@@ -6,12 +6,18 @@ import HomePage from './pages/HomePage';
 import BeerDetails from './pages/BeerDetails';
 import RateBeer from './pages/RateBeer';
 import Profile from './pages/Profile';
-import BreweriesList from './pages/BreweriesList';
+import ProducersList from './pages/ProducersList';
 import BreweryProfile from './pages/BreweryProfile';
 import StyleGuide from './pages/StyleGuide';
 import Chat from './pages/Chat';
-import Settings from './pages/Settings';
-import Navbar from './components/Navbar';
+import Cellar from './pages/Cellar';
+import DrinkingBuddies from './pages/DrinkingBuddies';
+import Venues from './pages/Venues';
+import Events from './pages/Events';
+import EventDetails from './pages/EventDetails';
+import Search from './pages/Search';
+import VenueManagement from './pages/VenueManagement';
+import MainLayout from './components/MainLayout';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -28,111 +34,213 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50">
         <Routes>
-          <Route 
-            path="/login" 
-            element={
-              user ? <Navigate to="/home" replace /> : <LoginPage onLogin={handleLogin} />
-            } 
-          />
-          <Route 
-            path="/home" 
+          <Route
+            path="/login"
             element={
               user ? (
-                <>
-                  <Navbar user={user} onLogout={handleLogout} />
+                <Navigate to="/home" replace />
+              ) : (
+                <LoginPage onLogin={handleLogin} />
+              )
+            }
+          />
+
+          {/* Protected routes with MainLayout */}
+          <Route
+            path="/home"
+            element={
+              user ? (
+                <MainLayout user={user} onLogout={handleLogout}>
                   <HomePage />
-                </>
-              ) : <Navigate to="/login" replace />
-            } 
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
           />
-          <Route 
-            path="/beer-details" 
+
+          <Route
+            path="/search"
             element={
               user ? (
-                <>
-                  <Navbar user={user} onLogout={handleLogout} />
+                <MainLayout user={user} onLogout={handleLogout}>
+                  <Search />
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/events"
+            element={
+              user ? (
+                <MainLayout user={user} onLogout={handleLogout}>
+                  <Events />
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/events/:eventId"
+            element={
+              user ? (
+                <MainLayout user={user} onLogout={handleLogout}>
+                  <EventDetails />
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/venue-management"
+            element={
+              user ? (
+                <MainLayout user={user} onLogout={handleLogout}>
+                  <VenueManagement user={user} />
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/beer-details"
+            element={
+              user ? (
+                <MainLayout user={user} onLogout={handleLogout}>
                   <BeerDetails />
-                </>
-              ) : <Navigate to="/login" replace />
-            } 
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
           />
-          <Route 
-            path="/rate-beer" 
+
+          <Route
+            path="/rate-beer"
             element={
               user ? (
-                <>
-                  <Navbar user={user} onLogout={handleLogout} />
+                <MainLayout user={user} onLogout={handleLogout}>
                   <RateBeer />
-                </>
-              ) : <Navigate to="/login" replace />
-            } 
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
           />
-          <Route 
-            path="/breweries" 
+
+          <Route
+            path="/producers"
             element={
               user ? (
-                <>
-                  <Navbar user={user} onLogout={handleLogout} />
-                  <BreweriesList />
-                </>
-              ) : <Navigate to="/login" replace />
-            } 
+                <MainLayout user={user} onLogout={handleLogout}>
+                  <ProducersList />
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
           />
-          <Route 
-            path="/brewery/:breweryId" 
+
+          <Route
+            path="/producer/:producerId"
             element={
               user ? (
-                <>
-                  <Navbar user={user} onLogout={handleLogout} />
+                <MainLayout user={user} onLogout={handleLogout}>
                   <BreweryProfile />
-                </>
-              ) : <Navigate to="/login" replace />
-            } 
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
           />
-          <Route 
-            path="/styles" 
+
+          <Route
+            path="/styles"
             element={
               user ? (
-                <>
-                  <Navbar user={user} onLogout={handleLogout} />
+                <MainLayout user={user} onLogout={handleLogout}>
                   <StyleGuide />
-                </>
-              ) : <Navigate to="/login" replace />
-            } 
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
           />
-          <Route 
-            path="/chat" 
+
+          <Route
+            path="/cellar"
             element={
               user ? (
-                <>
-                  <Navbar user={user} onLogout={handleLogout} />
+                <MainLayout user={user} onLogout={handleLogout}>
+                  <Cellar />
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/drinking-buddies"
+            element={
+              user ? (
+                <MainLayout user={user} onLogout={handleLogout}>
+                  <DrinkingBuddies />
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/venues"
+            element={
+              user ? (
+                <MainLayout user={user} onLogout={handleLogout}>
+                  <Venues />
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/chat"
+            element={
+              user ? (
+                <MainLayout user={user} onLogout={handleLogout}>
                   <Chat />
-                </>
-              ) : <Navigate to="/login" replace />
-            } 
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
           />
-          <Route 
-            path="/settings" 
+
+          <Route
+            path="/profile"
             element={
               user ? (
-                <>
-                  <Navbar user={user} onLogout={handleLogout} />
-                  <Settings />
-                </>
-              ) : <Navigate to="/login" replace />
-            } 
-          />
-          <Route 
-            path="/profile" 
-            element={
-              user ? (
-                <>
-                  <Navbar user={user} onLogout={handleLogout} />
+                <MainLayout user={user} onLogout={handleLogout}>
                   <Profile user={user} />
-                </>
-              ) : <Navigate to="/login" replace />
-            } 
+                </MainLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
           />
+
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>

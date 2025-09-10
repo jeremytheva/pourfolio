@@ -1,28 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
-import SliderRating from '../components/SliderRating';
-import StyleGuidanceCard from '../components/StyleGuidanceCard';
+import AttributeRatingCard from '../components/AttributeRatingCard';
+import StyleGuideCard from '../components/StyleGuideCard';
+import PhotoUpload from '../components/PhotoUpload';
+import TagFriends from '../components/TagFriends';
+import RatingSummary from '../components/RatingSummary';
+import ScoreBreakdown from '../components/ScoreBreakdown';
 import { calculateFinalRating, bonusAttributeCategories, burpScale } from '../utils/ratingCalculator';
 import { getSettings } from '../utils/settingsManager';
+import { beverageTypes, attributeLabels } from '../utils/beverageTypes';
 
-const { FiArrowLeft, FiCheck, FiPlus, FiX, FiEyeOff, FiEye } = FiIcons;
+const { FiArrowLeft, FiCheck, FiPlus, FiX, FiEyeOff, FiEye, FiChevronLeft, FiChevronRight } = FiIcons;
 
-function RateBeer() {
+function RateBeer({ selectedBeverageCategory = 'beer' }) {
   const navigate = useNavigate();
-  const [settings, setSettings] = useState(getSettings());
-  
-  // Main rating attributes with 1-7 scale
-  const [mainAttributes, setMainAttributes] = useState({
-    design: { score: 1, weight: settings.ratingWeights.design },
-    appearance: { score: 1, weight: settings.ratingWeights.appearance },
-    aroma: { score: 1, weight: settings.ratingWeights.aroma },
-    mouthfeel: { score: 1, weight: settings.ratingWeights.mouthfeel },
-    flavour: { score: 1, weight: settings.ratingWeights.flavour },
-    follow: { score: 1, weight: settings.ratingWeights.follow }
-  });
+  const [searchParams] = useSearchParams();
+  const beverageType = searchParams.get('type') || selectedBeverageCategory;
+  const [settings, setSettings] = useState(getSettings(beverageType));
+
+  // Rating step management
+  const [currentStep, setCurrentStep] = useState(0);
+  const totalSteps = 4; // Main Attributes, Bonus Attributes, Additional Info, Summary
+
+  // Initialize attributes based on beverage type
+  const initializeAttributes = (type) => {
+    const beverage = beverageTypes[type];
+    const typeSettings = getSettings(type);
+    const attrs = {};
+    
+    beverage.attributes.forEach(attr => {
+      attrs[attr] = {
+        score: 1,
+        weight: typeSettings.ratingWeights[attr] || beverage.defaultWeights[attr]
+      };
+    });
+    
+    return attrs;
+  };
+
+  const [mainAttributes, setMainAttributes] = useState(initializeAttributes(beverageType));
 
   // Bonus attributes
   const [selectedBonusAttributes, setSelectedBonusAttributes] = useState([]);
@@ -32,7 +51,7 @@ function RateBeer() {
     weight: 0.1,
     isPositive: true
   });
-  
+
   // Other rating components
   const [burpRating, setBurpRating] = useState(0);
   const [review, setReview] = useState('');
@@ -40,33 +59,47 @@ function RateBeer() {
   const [hideBonus, setHideBonus] = useState(settings.hideBonus);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // New fields
+  const [photos, setPhotos] = useState([]);
+  const [purchasedFrom, setPurchasedFrom] = useState('');
+  const [servingStyle, setServingStyle] = useState('');
+  const [taggedFriends, setTaggedFriends] = useState([]);
+
   // UI state
-  const [activeTab, setActiveTab] = useState('main');
   const [showCustomAttribute, setShowCustomAttribute] = useState(false);
 
-  // Dummy beer data
-  const beer = {
-    name: 'IPA Delight',
-    brewery: 'Brewery X',
-    style: 'American IPA',
+  // Dummy beverage data
+  const beverage = {
+    name: beverageType === 'beer' ? 'IPA Delight' : 
+          beverageType === 'wine' ? 'Chardonnay Reserve' : 
+          beverageType === 'spirits' ? 'Single Malt Scotch' : 
+          beverageType === 'cider' ? 'Traditional Dry Cider' : 
+          beverageType === 'mead' ? 'Traditional Honey Mead' : 
+          'Ginger Kombucha',
+    producer: beverageType === 'beer' ? 'Brewery X' : 
+              beverageType === 'wine' ? 'Vineyard Estate' : 
+              beverageType === 'spirits' ? 'Distillery Co.' : 
+              beverageType === 'cider' ? 'Orchard Cidery' : 
+              beverageType === 'mead' ? 'Meadery Guild' : 
+              'Fermentation Co.',
+    style: beverageType === 'beer' ? 'American IPA' : 
+           beverageType === 'wine' ? 'Chardonnay' : 
+           beverageType === 'spirits' ? 'Single Malt Scotch' : 
+           beverageType === 'cider' ? 'Traditional Cider' : 
+           beverageType === 'mead' ? 'Traditional Mead' : 
+           'Kombucha',
     image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=400&h=400&fit=crop'
   };
 
-  // Update weights when settings change
+  // Update when beverage type changes
   useEffect(() => {
-    const currentSettings = getSettings();
-    setSettings(currentSettings);
-    setHideBonus(currentSettings.hideBonus);
-    
-    setMainAttributes(prev => ({
-      design: { ...prev.design, weight: currentSettings.ratingWeights.design },
-      appearance: { ...prev.appearance, weight: currentSettings.ratingWeights.appearance },
-      aroma: { ...prev.aroma, weight: currentSettings.ratingWeights.aroma },
-      mouthfeel: { ...prev.mouthfeel, weight: currentSettings.ratingWeights.mouthfeel },
-      flavour: { ...prev.flavour, weight: currentSettings.ratingWeights.flavour },
-      follow: { ...prev.follow, weight: currentSettings.ratingWeights.follow }
-    }));
-  }, []);
+    const newSettings = getSettings(beverageType);
+    setSettings(newSettings);
+    setHideBonus(newSettings.hideBonus);
+    setMainAttributes(initializeAttributes(beverageType));
+    setSelectedBonusAttributes([]);
+    setUserBonusOverride(null);
+  }, [beverageType]);
 
   const handleMainAttributeChange = (attribute, value) => {
     setMainAttributes(prev => ({
@@ -100,7 +133,7 @@ function RateBeer() {
       const weight = customBonusAttribute.isPositive 
         ? Math.abs(customBonusAttribute.weight)
         : -Math.abs(customBonusAttribute.weight);
-      
+        
       const newAttribute = {
         id: `custom-${Date.now()}`,
         name: customBonusAttribute.name,
@@ -126,20 +159,37 @@ function RateBeer() {
   };
 
   const calculateCurrentRating = () => {
-    return calculateFinalRating(mainAttributes, selectedBonusAttributes, userBonusOverride, hideBonus);
+    return calculateFinalRating(
+      mainAttributes,
+      selectedBonusAttributes,
+      userBonusOverride,
+      hideBonus,
+      beverageType
+    );
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
+  const handleNext = () => {
+    if (currentStep < totalSteps - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleSubmit = async () => {
     const hasValidRatings = Object.values(mainAttributes).some(attr => attr.score > 1);
+    
     if (!hasValidRatings) {
       alert('Please provide ratings for the main attributes');
       return;
     }
 
     setIsSubmitting(true);
-
+    
     // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
@@ -149,6 +199,8 @@ function RateBeer() {
   };
 
   const currentRating = calculateCurrentRating();
+  const currentBeverage = beverageTypes[beverageType];
+  const stepTitles = ['Main Attributes', 'Bonus Attributes', 'Additional Information', 'Summary'];
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -158,12 +210,12 @@ function RateBeer() {
         animate={{ opacity: 1, x: 0 }}
         className="mb-6"
       >
-        <Link 
+        <Link
           to="/beer-details"
           className="flex items-center space-x-2 text-gray-600 hover:text-amber-600 transition-colors"
         >
           <SafeIcon icon={FiArrowLeft} className="w-5 h-5" />
-          <span>Back to Beer Details</span>
+          <span>Back to Details</span>
         </Link>
       </motion.div>
 
@@ -175,35 +227,60 @@ function RateBeer() {
         {/* Header */}
         <div className="p-8 border-b border-gray-200">
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Rate This Beer</h1>
-            <p className="text-gray-600">Comprehensive beer evaluation with sliding scale</p>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              Rate This {currentBeverage.name}
+            </h1>
+            <p className="text-gray-600">Comprehensive beverage evaluation with sliding scale</p>
           </div>
 
-          {/* Beer Info */}
+          {/* Beverage Info */}
           <div className="flex items-center space-x-4 mb-6 p-4 bg-gray-50 rounded-lg">
             <img
-              src={beer.image}
-              alt={beer.name}
+              src={beverage.image}
+              alt={beverage.name}
               className="w-16 h-16 rounded-lg object-cover"
             />
             <div>
-              <h3 className="font-semibold text-gray-800">{beer.name}</h3>
-              <p className="text-gray-600">{beer.brewery}</p>
-              <p className="text-sm text-gray-500">{beer.style}</p>
+              <h3 className="font-semibold text-gray-800">{beverage.name}</h3>
+              <p className="text-gray-600">{beverage.producer}</p>
+              <p className="text-sm text-gray-500">{beverage.style}</p>
             </div>
           </div>
 
-          {/* Current Rating Display */}
-          <div className="bg-amber-50 rounded-lg p-4 text-center">
-            <div className="text-3xl font-bold text-amber-600 mb-2">
-              {currentRating.finalRating}/5
+          {/* Style Guide */}
+          <div className="mb-6">
+            <StyleGuideCard
+              beverageStyle={beverage.style}
+              beverageType={beverageType}
+              isCollapsible={true}
+            />
+          </div>
+
+          {/* Progress Bar */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">
+                Step {currentStep + 1} of {totalSteps}: {stepTitles[currentStep]}
+              </span>
+              <span className="text-sm text-gray-500">
+                {Math.round(((currentStep + 1) / totalSteps) * 100)}%
+              </span>
             </div>
-            <div className="text-sm text-gray-600">
-              Base: {currentRating.baseRating}
-              {!hideBonus && ` + Bonus: ${currentRating.bonusPoints}`}
-              {hideBonus && ' (Bonus Hidden)'}
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-amber-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
+              ></div>
             </div>
           </div>
+
+          {/* Current Rating Display with Enhanced Score Breakdown */}
+          <ScoreBreakdown
+            currentRating={currentRating}
+            showAdminScore={true}
+            adminScore={4.2} // Mock admin score
+            className="mb-6"
+          />
 
           {/* Hide Bonus Toggle */}
           <div className="mt-4 flex items-center justify-center space-x-2">
@@ -218,71 +295,31 @@ function RateBeer() {
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex border-b border-gray-200">
-          <button
-            onClick={() => setActiveTab('main')}
-            className={`flex-1 py-4 px-6 text-sm font-medium ${
-              activeTab === 'main'
-                ? 'text-amber-600 border-b-2 border-amber-600 bg-amber-50'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Main Attributes
-          </button>
-          <button
-            onClick={() => setActiveTab('bonus')}
-            className={`flex-1 py-4 px-6 text-sm font-medium ${
-              activeTab === 'bonus'
-                ? 'text-amber-600 border-b-2 border-amber-600 bg-amber-50'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Bonus Attributes
-          </button>
-          <button
-            onClick={() => setActiveTab('additional')}
-            className={`flex-1 py-4 px-6 text-sm font-medium ${
-              activeTab === 'additional'
-                ? 'text-amber-600 border-b-2 border-amber-600 bg-amber-50'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Additional
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-8">
-          {/* Main Attributes Tab */}
-          {activeTab === 'main' && (
+        {/* Step Content */}
+        <div className="p-8">
+          {/* Step 0: Main Attributes */}
+          {currentStep === 0 && (
             <div className="space-y-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Main Attributes</h2>
               {Object.entries(mainAttributes).map(([key, data]) => (
-                <div key={key} className="border border-gray-200 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center">
-                      <h3 className="text-lg font-semibold text-gray-800 capitalize">
-                        {key === 'follow' ? 'Follow (Finish)' : key}
-                      </h3>
-                      <StyleGuidanceCard beerStyle={beer.style} attribute={key} />
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-500">
-                      <span>Weight: {data.weight}</span>
-                    </div>
-                  </div>
-                  
-                  <SliderRating
-                    attribute={key}
-                    value={data.score}
-                    onChange={(value) => handleMainAttributeChange(key, value)}
-                  />
-                </div>
+                <AttributeRatingCard
+                  key={key}
+                  attribute={key}
+                  attributeData={data}
+                  onChange={(value) => handleMainAttributeChange(key, value)}
+                  beverageStyle={beverage.style}
+                  beverageType={beverageType}
+                  attributeLabel={attributeLabels[key] || key.replace('_', ' ')}
+                />
               ))}
             </div>
           )}
 
-          {/* Bonus Attributes Tab */}
-          {activeTab === 'bonus' && (
+          {/* Step 1: Bonus Attributes */}
+          {currentStep === 1 && (
             <div className="space-y-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Bonus Attributes</h2>
+              
               {/* Selected Bonus Attributes */}
               {selectedBonusAttributes.length > 0 && (
                 <div className="bg-amber-50 rounded-lg p-6">
@@ -313,16 +350,16 @@ function RateBeer() {
                       </div>
                     ))}
                   </div>
-                  
+
                   {/* Manual Bonus Override */}
                   <div className="mt-4 p-4 border border-gray-200 rounded-lg">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Override Bonus Score (-2 to +2)
+                      Override Bonus Score (-0.5 to +0.5)
                     </label>
                     <input
                       type="number"
-                      min="-2"
-                      max="2"
+                      min="-0.5"
+                      max="0.5"
                       step="0.1"
                       value={userBonusOverride || ''}
                       onChange={(e) => setUserBonusOverride(e.target.value ? parseFloat(e.target.value) : null)}
@@ -337,7 +374,6 @@ function RateBeer() {
               {Object.entries(bonusAttributeCategories).map(([categoryKey, category]) => (
                 <div key={categoryKey} className="border border-gray-200 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">{category.name}</h3>
-                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Positive Attributes */}
                     <div>
@@ -419,41 +455,49 @@ function RateBeer() {
                       type="text"
                       placeholder="Custom attribute name"
                       value={customBonusAttribute.name}
-                      onChange={(e) => setCustomBonusAttribute(prev => ({ ...prev, name: e.target.value }))}
+                      onChange={(e) => setCustomBonusAttribute(prev => ({
+                        ...prev,
+                        name: e.target.value
+                      }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     />
-                    
                     <div className="grid grid-cols-3 gap-4">
                       <select
                         value={customBonusAttribute.category}
-                        onChange={(e) => setCustomBonusAttribute(prev => ({ ...prev, category: e.target.value }))}
+                        onChange={(e) => setCustomBonusAttribute(prev => ({
+                          ...prev,
+                          category: e.target.value
+                        }))}
                         className="px-3 py-2 border border-gray-300 rounded-lg"
                       >
                         {Object.entries(bonusAttributeCategories).map(([key, category]) => (
                           <option key={key} value={key}>{category.name}</option>
                         ))}
                       </select>
-                      
                       <select
                         value={customBonusAttribute.isPositive}
-                        onChange={(e) => setCustomBonusAttribute(prev => ({ ...prev, isPositive: e.target.value === 'true' }))}
+                        onChange={(e) => setCustomBonusAttribute(prev => ({
+                          ...prev,
+                          isPositive: e.target.value === 'true'
+                        }))}
                         className="px-3 py-2 border border-gray-300 rounded-lg"
                       >
                         <option value={true}>Positive</option>
                         <option value={false}>Negative</option>
                       </select>
-                      
                       <input
                         type="number"
-                        min="0.1"
-                        max="0.8"
-                        step="0.1"
+                        min="0.05"
+                        max="0.2"
+                        step="0.01"
                         value={customBonusAttribute.weight}
-                        onChange={(e) => setCustomBonusAttribute(prev => ({ ...prev, weight: parseFloat(e.target.value) || 0.1 }))}
+                        onChange={(e) => setCustomBonusAttribute(prev => ({
+                          ...prev,
+                          weight: parseFloat(e.target.value) || 0.1
+                        }))}
                         className="px-3 py-2 border border-gray-300 rounded-lg"
                       />
                     </div>
-                    
                     <button
                       type="button"
                       onClick={handleCustomAttributeAdd}
@@ -467,30 +511,85 @@ function RateBeer() {
             </div>
           )}
 
-          {/* Additional Tab */}
-          {activeTab === 'additional' && (
+          {/* Step 2: Additional Information */}
+          {currentStep === 2 && (
             <div className="space-y-8">
-              {/* Burp Rating */}
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Additional Information</h2>
+
+              {/* Photo Upload */}
               <div className="border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Burp Rating</h3>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {Object.entries(burpScale).map(([value, data]) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setBurpRating(parseInt(value))}
-                      className={`p-4 rounded-lg border text-left transition-colors ${
-                        burpRating === parseInt(value)
-                          ? 'bg-amber-50 border-amber-300 text-amber-800'
-                          : 'bg-white border-gray-200 hover:bg-gray-50'
-                      }`}
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Photos</h3>
+                <PhotoUpload photos={photos} onPhotosChange={setPhotos} />
+              </div>
+
+              {/* Purchase Information */}
+              <div className="border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Purchase Details</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Purchased From
+                    </label>
+                    <input
+                      type="text"
+                      value={purchasedFrom}
+                      onChange={(e) => setPurchasedFrom(e.target.value)}
+                      placeholder="Store name, restaurant, brewery, etc."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Serving Style
+                    </label>
+                    <select
+                      value={servingStyle}
+                      onChange={(e) => setServingStyle(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                     >
-                      <div className="font-medium">{value} - {data.label}</div>
-                      <div className="text-sm text-gray-600 mt-1">{data.description}</div>
-                    </button>
-                  ))}
+                      <option value="">Select serving style...</option>
+                      {currentBeverage.servingStyles?.map((style) => (
+                        <option key={style} value={style}>{style}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
+
+              {/* Tag Friends */}
+              <div className="border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Tag Friends</h3>
+                <TagFriends
+                  taggedFriends={taggedFriends}
+                  onTaggedFriendsChange={setTaggedFriends}
+                />
+              </div>
+
+              {/* Burp Rating - Only show for beer, fermented beverages, and cider */}
+              {(beverageType === 'beer' || beverageType === 'fermented' || beverageType === 'cider') && (
+                <div className="border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Burp Rating</h3>
+                  <p className="text-sm text-gray-600 mb-4">Rate the carbonation and gas release experience</p>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {Object.entries(burpScale).map(([value, data]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setBurpRating(parseInt(value))}
+                        className={`p-4 rounded-lg border text-left transition-colors ${
+                          burpRating === parseInt(value)
+                            ? 'bg-amber-50 border-amber-300 text-amber-800'
+                            : 'bg-white border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="font-medium">{value} - {data.label}</div>
+                        <div className="text-sm text-gray-600 mt-1">{data.description}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Review */}
               <div className="border border-gray-200 rounded-lg p-6">
@@ -502,7 +601,7 @@ function RateBeer() {
                   rows={6}
                   value={review}
                   onChange={(e) => setReview(e.target.value)}
-                  placeholder="Share your detailed thoughts about this beer..."
+                  placeholder={`Share your detailed thoughts about this ${currentBeverage.name.toLowerCase()}...`}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
                 />
                 <p className="text-sm text-gray-500 mt-2">
@@ -512,27 +611,66 @@ function RateBeer() {
             </div>
           )}
 
-          {/* Submit Button */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
+          {/* Step 3: Summary */}
+          {currentStep === 3 && (
+            <RatingSummary
+              mainAttributes={mainAttributes}
+              selectedBonusAttributes={selectedBonusAttributes}
+              designRating={mainAttributes.design?.score || 0}
+              burpRating={burpRating}
+              review={review}
+              photos={photos}
+              purchasedFrom={purchasedFrom}
+              servingStyle={servingStyle}
+              taggedFriends={taggedFriends}
+              currentRating={currentRating}
+              beverageType={beverageType}
+              beverage={beverage}
+            />
+          )}
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="px-8 pb-8 border-t border-gray-200 pt-6">
+          <div className="flex justify-between">
             <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-amber-600 hover:bg-amber-700 disabled:bg-gray-400 text-white px-8 py-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+              onClick={handleBack}
+              disabled={currentStep === 0}
+              className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Submitting Rating...</span>
-                </>
-              ) : (
-                <>
-                  <SafeIcon icon={FiCheck} className="w-5 h-5" />
-                  <span>Submit Rating ({currentRating.finalRating}/5)</span>
-                </>
-              )}
+              <SafeIcon icon={FiChevronLeft} className="w-5 h-5" />
+              <span>Back</span>
             </button>
+
+            {currentStep < totalSteps - 1 ? (
+              <button
+                onClick={handleNext}
+                className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg transition-colors"
+              >
+                <span>Next</span>
+                <SafeIcon icon={FiChevronRight} className="w-5 h-5" />
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="bg-amber-600 hover:bg-amber-700 disabled:bg-gray-400 text-white px-8 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <>
+                    <SafeIcon icon={FiCheck} className="w-5 h-5" />
+                    <span>Submit Rating ({currentRating.finalRating}/5)</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
-        </form>
+        </div>
       </motion.div>
     </div>
   );

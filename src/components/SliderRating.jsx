@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ratingDescriptors } from '../utils/ratingCalculator';
+import { ratingDescriptors } from '../utils/beverageTypes';
 
 function SliderRating({ attribute, value, onChange, disabled = false }) {
   const descriptors = ratingDescriptors[attribute] || {};

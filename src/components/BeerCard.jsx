@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
+import { beverageTypes } from '../utils/beverageTypes';
 
 const { FiStar } = FiIcons;
 
@@ -34,8 +35,10 @@ function BeerCard({ beer, index }) {
     return stars;
   };
 
+  const beverageTypeInfo = beverageTypes[beer.type] || beverageTypes.beer;
+
   return (
-    <Link to="/beer-details">
+    <Link to={`/beer-details?type=${beer.type}`}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -43,18 +46,29 @@ function BeerCard({ beer, index }) {
         whileHover={{ y: -5 }}
         className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-200 cursor-pointer"
       >
-        <div className="aspect-square overflow-hidden">
+        <div className="aspect-square overflow-hidden relative">
           <img
             src={beer.image}
             alt={beer.name}
             className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
           />
+          {/* Beverage type indicator */}
+          <div className="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full p-1">
+            <span className="text-lg" title={beverageTypeInfo.name}>
+              {beverageTypeInfo.icon}
+            </span>
+          </div>
         </div>
-        
+
         <div className="p-4">
           <h3 className="font-semibold text-gray-800 mb-1 truncate">{beer.name}</h3>
-          <p className="text-sm text-gray-600 mb-3 truncate">{beer.brewery}</p>
-          
+          <p className="text-sm text-gray-600 mb-1 truncate">
+            {beer.producer || beer.brewery}
+          </p>
+          <p className="text-xs text-gray-500 mb-3 truncate">
+            {beer.category}
+          </p>
+
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1">
               {renderStars(beer.rating)}

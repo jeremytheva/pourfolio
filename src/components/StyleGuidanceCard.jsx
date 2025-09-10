@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
-import { styleGuidance } from '../utils/ratingCalculator';
+import { styleGuidance } from '../utils/beverageTypes';
 
 const { FiInfo, FiX } = FiIcons;
 
-function StyleGuidanceCard({ beerStyle, attribute }) {
+function StyleGuidanceCard({ beverageStyle, attribute, beverageType = 'beer' }) {
   const [isVisible, setIsVisible] = useState(false);
   
-  const guidance = styleGuidance[beerStyle];
+  const guidance = styleGuidance[beverageStyle];
   const attributeGuidance = guidance?.[attribute];
 
   if (!attributeGuidance) return null;
@@ -45,7 +45,7 @@ function StyleGuidanceCard({ beerStyle, attribute }) {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800 capitalize">
-                  {attribute} - {beerStyle}
+                  {attribute.replace('_', ' ')} - {beverageStyle}
                 </h3>
                 <button
                   onClick={() => setIsVisible(false)}

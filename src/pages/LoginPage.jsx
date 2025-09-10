@@ -51,13 +51,13 @@ function LoginPage({ onLogin }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-2xl w-full"
       >
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Brew Buds</h1>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">Pourfolio</h1>
           <h2 className="text-2xl font-semibold text-gray-700 mb-4">Choose a Profile</h2>
           <p className="text-gray-600">Select your profile to get started</p>
         </div>
