@@ -7,7 +7,7 @@ import BeerCard from '../components/BeerCard';
 
 const { 
   FiArrowLeft, FiCalendar, FiMapPin, FiUsers, FiDollarSign, 
-  FiClock, FiExternalLink, FiStar, FiHeart 
+  FiClock, FiExternalLink, FiStar, FiHeart, FiX 
 } = FiIcons;
 
 function EventDetails() {

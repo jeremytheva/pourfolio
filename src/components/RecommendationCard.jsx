@@ -4,7 +4,7 @@ import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import BeerCard from './BeerCard';
 
-const { FiHeart, FiInfo, FiThumbsUp } = FiIcons;
+const { FiHeart, FiInfo, FiThumbsUp, FiMapPin, FiCalendar } = FiIcons;
 
 function RecommendationCard({ beverage, index, context = 'general', showReason = true }) {
   const getContextIcon = () => {
