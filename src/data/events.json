@@ -1,0 +1,77 @@
+[
+  {
+    "id": 1,
+    "name": "Portland Beer Festival",
+    "type": "Festival",
+    "description": "Annual celebration featuring 50+ local breweries with live music and food trucks.",
+    "startDate": "2024-06-15",
+    "endDate": "2024-06-17",
+    "startTime": "12:00",
+    "endTime": "22:00",
+    "venues": [
+      { "id": 1, "name": "Tom McCall Waterfront Park", "address": "98 SE Naito Pkwy, Portland, OR" }
+    ],
+    "organizer": "Portland Beer Society",
+    "ticketPrice": 25,
+    "maxAttendees": 5000,
+    "currentAttendees": 3200,
+    "image": "https://images.unsplash.com/photo-1436076863939-06870fe779c2?w=600&h=300&fit=crop",
+    "website": "https://portlandbeer.festival",
+    "beverageCategory": "beer",
+    "featuredBeers": [
+      { "id": 1, "name": "Festival IPA", "brewery": "Local Brewing Co.", "abv": 6.2 },
+      { "id": 2, "name": "Summer Wheat", "brewery": "Craft Beer Works", "abv": 5.1 }
+    ],
+    "tags": ["outdoor", "family-friendly", "food-trucks"]
+  },
+  {
+    "id": 2,
+    "name": "Wine Tasting Evening",
+    "type": "Tasting",
+    "description": "Intimate wine tasting featuring selections from Napa Valley wineries.",
+    "startDate": "2024-05-20",
+    "endDate": "2024-05-20",
+    "startTime": "18:00",
+    "endTime": "21:00",
+    "venues": [
+      { "id": 2, "name": "The Wine Bar", "address": "123 Main St, San Francisco, CA" }
+    ],
+    "organizer": "Valley Vineyard Estate",
+    "ticketPrice": 75,
+    "maxAttendees": 40,
+    "currentAttendees": 32,
+    "image": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&h=300&fit=crop",
+    "website": "https://valleyvineyards.com/events",
+    "beverageCategory": "wine",
+    "featuredBeers": [
+      { "id": 3, "name": "Reserve Chardonnay 2021", "brewery": "Valley Vineyard", "abv": 13.5 },
+      { "id": 4, "name": "Cabernet Sauvignon 2019", "brewery": "Valley Vineyard", "abv": 14.2 }
+    ],
+    "tags": ["indoor", "premium", "educational"]
+  },
+  {
+    "id": 3,
+    "name": "Whiskey & Cigars Night",
+    "type": "Pairing",
+    "description": "Premium whiskey tasting paired with artisanal cigars in an exclusive setting.",
+    "startDate": "2024-06-08",
+    "endDate": "2024-06-08",
+    "startTime": "19:00",
+    "endTime": "23:00",
+    "venues": [
+      { "id": 3, "name": "The Gentleman's Club", "address": "456 Oak Ave, Denver, CO" }
+    ],
+    "organizer": "Highland Distillery",
+    "ticketPrice": 150,
+    "maxAttendees": 25,
+    "currentAttendees": 18,
+    "image": "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=600&h=300&fit=crop",
+    "website": "https://highland-distillery.com/events",
+    "beverageCategory": "spirits",
+    "featuredBeers": [
+      { "id": 5, "name": "18-Year Single Malt", "brewery": "Highland Distillery", "abv": 43 },
+      { "id": 6, "name": "Cask Strength Reserve", "brewery": "Highland Distillery", "abv": 57.2 }
+    ],
+    "tags": ["premium", "indoor", "adults-only", "limited"]
+  }
+]

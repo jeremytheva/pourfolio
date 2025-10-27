@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
 import BeerDetails from './pages/BeerDetails';
@@ -18,17 +17,92 @@ import EventDetails from './pages/EventDetails';
 import Search from './pages/Search';
 import VenueManagement from './pages/VenueManagement';
 import MainLayout from './components/MainLayout';
+import { supabase, isSupabaseConfigured } from './utils/supabaseClient';
+import { buildUserProfile, buildDemoUser } from './utils/userProfile';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [authInitialized, setAuthInitialized] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    let subscription = null;
+
+    const restoreDemoUser = () => {
+      if (typeof window === 'undefined') {
+        return null;
+      }
+      const stored = window.localStorage.getItem('pourfolio_demo_user');
+      if (!stored) {
+        return null;
+      }
+      try {
+        return JSON.parse(stored);
+      } catch (error) {
+        console.warn('Failed to parse stored demo user', error);
+        return null;
+      }
+    };
+
+    const initialize = async () => {
+      if (isSupabaseConfigured) {
+        const { data } = await supabase.auth.getSession();
+        if (isMounted) {
+          setUser(buildUserProfile(data?.session?.user));
+        }
+        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (isMounted) {
+            setUser(buildUserProfile(session?.user));
+          }
+        });
+        subscription = listener.subscription;
+      } else if (isMounted) {
+        const demoUser = restoreDemoUser();
+        if (demoUser) {
+          setUser(demoUser);
+        }
+      }
+
+      if (isMounted) {
+        setAuthInitialized(true);
+      }
+    };
+
+    initialize();
+
+    return () => {
+      isMounted = false;
+      subscription?.unsubscribe();
+    };
+  }, []);
 
   const handleLogin = (userData) => {
-    setUser(userData);
+    const profile = userData || (isSupabaseConfigured ? null : buildDemoUser());
+    setUser(profile);
+    if (!isSupabaseConfigured && typeof window !== 'undefined' && profile) {
+      window.localStorage.setItem('pourfolio_demo_user', JSON.stringify(profile));
+    }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (isSupabaseConfigured) {
+      await supabase.auth.signOut();
+    }
     setUser(null);
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('pourfolio_demo_user');
+    }
   };
+
+  if (!authInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
+        <div className="bg-white px-6 py-4 rounded-xl shadow-sm border border-amber-100 text-gray-600">
+          Preparing your Pourfolio experience...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Router>
