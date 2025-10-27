@@ -133,10 +133,18 @@ function Cellar({ selectedBeverageCategory = 'beer' }) {
     });
   };
 
+  const parsePrice = (value) => {
+    if (value === null || value === undefined) return null;
+    const numericValue = typeof value === 'string' ? Number.parseFloat(value) : value;
+    return Number.isFinite(numericValue) ? numericValue : null;
+  };
+
   const calculateValue = (entry) => {
-    if (!entry.purchasePrice || !entry.retailPrice) return null;
-    const savings = entry.retailPrice - entry.purchasePrice;
-    const percentage = (savings / entry.retailPrice) * 100;
+    const purchasePrice = parsePrice(entry.purchasePrice);
+    const retailPrice = parsePrice(entry.retailPrice);
+    if (purchasePrice === null || retailPrice === null) return null;
+    const savings = retailPrice - purchasePrice;
+    const percentage = (savings / retailPrice) * 100;
     return { savings, percentage };
   };
 
@@ -278,6 +286,7 @@ function Cellar({ selectedBeverageCategory = 'beer' }) {
           className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
         >
           {filteredEntries.map((entry, index) => {
+            const purchasePrice = parsePrice(entry.purchasePrice);
             const valueInfo = calculateValue(entry);
             return (
               <motion.div
@@ -310,7 +319,7 @@ function Cellar({ selectedBeverageCategory = 'beer' }) {
                     </div>
                     <div className="flex items-center space-x-2">
                       <SafeIcon icon={FiDollarSign} className="w-4 h-4 text-amber-600" />
-                      <span>${entry.purchasePrice?.toFixed(2) || '—'}</span>
+                      <span>${purchasePrice !== null ? purchasePrice.toFixed(2) : '—'}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <SafeIcon icon={FiCalendar} className="w-4 h-4 text-amber-600" />
