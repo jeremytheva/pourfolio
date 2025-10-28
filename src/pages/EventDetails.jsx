@@ -4,21 +4,48 @@ import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import BeerCard from '../components/BeerCard';
+import { findEventById, getEvents, updateEvents } from '../utils/api/mockApi';
 
-const { 
-  FiArrowLeft, FiCalendar, FiMapPin, FiUsers, FiDollarSign, 
-  FiClock, FiExternalLink, FiStar, FiHeart, FiX 
+const {
+  FiArrowLeft, FiCalendar, FiMapPin, FiUsers, FiDollarSign,
+  FiClock, FiExternalLink, FiStar, FiHeart, FiX
 } = FiIcons;
 
 function EventDetails() {
   const { eventId } = useParams();
   const [event, setEvent] = useState(null);
   const [isAttending, setIsAttending] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const events = JSON.parse(localStorage.getItem('events') || '[]');
-    const foundEvent = events.find(e => e.id === parseInt(eventId));
-    setEvent(foundEvent);
+    let isMounted = true;
+
+    const loadEvent = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const data = await findEventById(eventId);
+        if (isMounted) {
+          setEvent(data);
+        }
+      } catch (loadError) {
+        console.error('Failed to load event', loadError);
+        if (isMounted) {
+          setError('We could not load this event. Please return to the events list and try again.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadEvent();
+
+    return () => {
+      isMounted = false;
+    };
   }, [eventId]);
 
   const formatDate = (dateString) => {
@@ -32,39 +59,53 @@ function EventDetails() {
 
   const formatTime = (timeString) => {
     const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours);
+    const hour = parseInt(hours, 10);
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  const handleAttendanceToggle = () => {
+  const handleAttendanceToggle = async () => {
     if (!event) return;
-    
-    const events = JSON.parse(localStorage.getItem('events') || '[]');
-    const eventIndex = events.findIndex(e => e.id === event.id);
-    
-    if (eventIndex !== -1) {
-      const updatedEvent = { ...events[eventIndex] };
-      
-      if (isAttending) {
-        updatedEvent.currentAttendees = Math.max(0, updatedEvent.currentAttendees - 1);
-      } else {
-        updatedEvent.currentAttendees = Math.min(updatedEvent.maxAttendees, updatedEvent.currentAttendees + 1);
-      }
-      
-      events[eventIndex] = updatedEvent;
-      localStorage.setItem('events', JSON.stringify(events));
-      setEvent(updatedEvent);
+
+    try {
+      const events = await getEvents();
+      const updatedEvents = events.map((existingEvent) => {
+        if (existingEvent.id !== event.id) {
+          return existingEvent;
+        }
+        const updatedEvent = { ...existingEvent };
+        if (isAttending) {
+          updatedEvent.currentAttendees = Math.max(0, updatedEvent.currentAttendees - 1);
+        } else {
+          updatedEvent.currentAttendees = Math.min(updatedEvent.maxAttendees, updatedEvent.currentAttendees + 1);
+        }
+        return updatedEvent;
+      });
+
+      await updateEvents(updatedEvents);
+      const refreshed = updatedEvents.find((updatedEvent) => updatedEvent.id === event.id);
+      setEvent(refreshed);
       setIsAttending(!isAttending);
+    } catch (updateError) {
+      console.error('Failed to update attendance', updateError);
+      alert('We could not update your attendance. Please try again.');
     }
   };
 
-  if (!event) {
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="h-64 bg-gray-100 animate-pulse rounded-xl border border-gray-200" />
+      </div>
+    );
+  }
+
+  if (error || !event) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <h3 className="text-lg font-medium text-gray-500">Event not found</h3>
+          <h3 className="text-lg font-medium text-gray-500">{error || 'Event not found'}</h3>
           <Link to="/events" className="text-amber-600 hover:text-amber-700">
             Back to Events
           </Link>
@@ -87,7 +128,6 @@ function EventDetails() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Back Button */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -102,13 +142,11 @@ function EventDetails() {
         </Link>
       </motion.div>
 
-      {/* Event Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8"
       >
-        {/* Hero Image */}
         <div className="h-64 md:h-80 overflow-hidden relative">
           <img
             src={event.image}
@@ -127,13 +165,11 @@ function EventDetails() {
           </div>
         </div>
 
-        {/* Event Info */}
         <div className="p-8">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
             <div className="flex-1 mb-6 lg:mb-0">
               <h1 className="text-4xl font-bold text-gray-800 mb-4">{event.name}</h1>
-              
-              {/* Date and Time */}
+
               <div className="flex flex-wrap items-center gap-6 text-gray-600 mb-4">
                 <div className="flex items-center space-x-2">
                   <SafeIcon icon={FiCalendar} className="w-5 h-5" />
@@ -148,7 +184,6 @@ function EventDetails() {
                 </div>
               </div>
 
-              {/* Venues */}
               <div className="mb-4">
                 <div className="flex items-center space-x-2 text-gray-600 mb-2">
                   <SafeIcon icon={FiMapPin} className="w-5 h-5" />
@@ -166,16 +201,13 @@ function EventDetails() {
 
               <p className="text-gray-600 leading-relaxed mb-6">{event.description}</p>
 
-              {/* Organizer */}
               <div className="text-sm text-gray-500">
                 Organized by <span className="font-medium">{event.organizer}</span>
               </div>
             </div>
 
-            {/* Event Stats & Actions */}
             <div className="lg:ml-8 lg:w-80">
               <div className="bg-gray-50 rounded-lg p-6">
-                {/* Attendance */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-2">
                     <SafeIcon icon={FiUsers} className="w-5 h-5 text-gray-500" />
@@ -186,7 +218,6 @@ function EventDetails() {
                   </span>
                 </div>
 
-                {/* Price */}
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-2">
                     <SafeIcon icon={FiDollarSign} className="w-5 h-5 text-gray-500" />
@@ -195,88 +226,68 @@ function EventDetails() {
                   <span className="font-medium text-gray-800">${event.ticketPrice}</span>
                 </div>
 
-                {/* Attendance Button */}
                 <button
                   onClick={handleAttendanceToggle}
-                  disabled={!isAttending && event.currentAttendees >= event.maxAttendees}
-                  className={`w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
+                  className={`w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-lg font-medium transition-colors ${
                     isAttending
-                      ? 'bg-red-600 hover:bg-red-700 text-white'
-                      : event.currentAttendees >= event.maxAttendees
-                      ? 'bg-gray-400 text-white cursor-not-allowed'
-                      : 'bg-amber-600 hover:bg-amber-700 text-white'
+                      ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                      : 'bg-amber-600 text-white hover:bg-amber-700'
                   }`}
                 >
                   <SafeIcon icon={isAttending ? FiX : FiHeart} className="w-5 h-5" />
-                  <span>
-                    {isAttending ? 'Cancel Attendance' : 
-                     event.currentAttendees >= event.maxAttendees ? 'Event Full' : 'Mark Attending'}
-                  </span>
+                  <span>{isAttending ? 'Cancel RSVP' : 'I want to attend'}</span>
                 </button>
 
-                {/* Website Link */}
-                {event.website && (
-                  <a
-                    href={event.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full mt-3 flex items-center justify-center space-x-2 border border-gray-300 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
-                  >
-                    <SafeIcon icon={FiExternalLink} className="w-5 h-5" />
-                    <span>Event Website</span>
-                  </a>
-                )}
+                <a
+                  href={event.website}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 flex items-center justify-center space-x-2 text-amber-600 hover:text-amber-700"
+                >
+                  <SafeIcon icon={FiExternalLink} className="w-5 h-5" />
+                  <span>Visit event site</span>
+                </a>
               </div>
             </div>
           </div>
         </div>
       </motion.div>
 
-      {/* Featured Beverages */}
       {event.featuredBeers && event.featuredBeers.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8"
+          transition={{ delay: 0.1 }}
+          className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
         >
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Featured Beverages</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {event.featuredBeers.map((beverage, index) => (
-              <div key={beverage.id} className="border border-gray-200 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-800 mb-1">{beverage.name}</h3>
-                <p className="text-gray-600 mb-2">{beverage.brewery}</p>
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <span>{beverage.abv}% ABV</span>
-                  <button className="text-amber-600 hover:text-amber-700 font-medium">
-                    Rate This
-                  </button>
-                </div>
-              </div>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">Featured Beverages</h2>
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <SafeIcon icon={FiStar} className="w-4 h-4 text-amber-500" />
+              <span>Curated selection</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {event.featuredBeers.map((beer, index) => (
+              <BeerCard
+                key={beer.id || index}
+                beer={{
+                  id: beer.id || index,
+                  name: beer.name,
+                  producer: beer.brewery,
+                  rating: beer.rating || 4,
+                  type: 'beer',
+                  category: event.type,
+                  image: event.image,
+                  abv: beer.abv
+                }}
+                index={index}
+              />
             ))}
           </div>
         </motion.div>
       )}
-
-      {/* Tags */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="bg-white rounded-xl shadow-sm border border-gray-200 p-8"
-      >
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Event Tags</h2>
-        <div className="flex flex-wrap gap-3">
-          {event.tags.map((tag, index) => (
-            <span
-              key={index}
-              className="bg-blue-100 text-blue-800 px-3 py-2 rounded-full text-sm font-medium"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      </motion.div>
     </div>
   );
 }
