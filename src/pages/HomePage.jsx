@@ -5,43 +5,54 @@ import SafeIcon from '../common/SafeIcon';
 import BeerCard from '../components/BeerCard';
 import BeverageTypeSelector from '../components/BeverageTypeSelector';
 import { beverageTypes } from '../utils/beverageTypes';
+import { getBeverages } from '../utils/api/mockApi';
 
 const { FiSearch, FiPlus } = FiIcons;
 
 function HomePage({ selectedBeverageCategory = 'beer' }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBeverageType, setSelectedBeverageType] = useState('all');
+  const [beverages, setBeverages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
-  // Update filter when category changes
   useEffect(() => {
     setSelectedBeverageType(selectedBeverageCategory);
   }, [selectedBeverageCategory]);
 
-  // Expanded beverage data with different types
-  const beverages = [
-    // Beers
-    { id: 1, name: 'IPA Delight', producer: 'Brewery X', type: 'beer', category: 'IPA', rating: 4.5, image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=300&h=300&fit=crop' },
-    { id: 2, name: 'Golden Wheat', producer: 'Sunset Brewing', type: 'beer', category: 'Wheat Beer', rating: 4.2, image: 'https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=300&h=300&fit=crop' },
-    { id: 3, name: 'Dark Stout', producer: 'Mountain Brewery', type: 'beer', category: 'Stout', rating: 4.7, image: 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=300&h=300&fit=crop' },
-    // Wines
-    { id: 11, name: 'Chardonnay Reserve', producer: 'Valley Vineyard', type: 'wine', category: 'White Wine', rating: 4.3, image: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=300&h=300&fit=crop' },
-    { id: 12, name: 'Cabernet Sauvignon', producer: 'Hill Estate', type: 'wine', category: 'Red Wine', rating: 4.6, image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=300&h=300&fit=crop' },
-    { id: 13, name: 'Rosé Selection', producer: 'Coastal Winery', type: 'wine', category: 'Rosé', rating: 4.1, image: 'https://images.unsplash.com/photo-1547595628-c61a29f496f0?w=300&h=300&fit=crop' },
-    // Spirits
-    { id: 21, name: 'Single Malt 18yr', producer: 'Highland Distillery', type: 'spirits', category: 'Whiskey', rating: 4.8, image: 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=300&h=300&fit=crop' },
-    { id: 22, name: 'Artisan Gin', producer: 'Botanical Co.', type: 'spirits', category: 'Gin', rating: 4.4, image: 'https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=300&h=300&fit=crop' },
-    // Ciders
-    { id: 31, name: 'Dry Apple Cider', producer: 'Orchard House', type: 'cider', category: 'Traditional Cider', rating: 4.2, image: 'https://images.unsplash.com/photo-1567696911980-2eed69a46042?w=300&h=300&fit=crop' },
-    { id: 32, name: 'Pear & Ginger', producer: 'Craft Cidery', type: 'cider', category: 'Fruit Cider', rating: 4.0, image: 'https://images.unsplash.com/photo-1596328546171-77e37b5e8b3d?w=300&h=300&fit=crop' },
-    // Meads
-    { id: 41, name: 'Wildflower Honey', producer: 'Ancient Meadery', type: 'mead', category: 'Traditional Mead', rating: 4.5, image: 'https://images.unsplash.com/photo-1618183479302-1e0aa382c36b?w=300&h=300&fit=crop' },
-    // Fermented Beverages
-    { id: 51, name: 'Ginger Kombucha', producer: 'Living Cultures', type: 'fermented', category: 'Kombucha', rating: 4.1, image: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=300&h=300&fit=crop' },
-    { id: 52, name: 'Pineapple Tepache', producer: 'Ferment Co.', type: 'fermented', category: 'Tepache', rating: 4.3, image: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=300&h=300&fit=crop' }
-  ];
+  useEffect(() => {
+    let isMounted = true;
 
-  const filteredBeverages = beverages.filter(beverage => {
-    const matchesSearch = beverage.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const loadBeverages = async () => {
+      setLoading(true);
+      setLoadError('');
+      try {
+        const data = await getBeverages();
+        if (isMounted) {
+          setBeverages(data);
+        }
+      } catch (error) {
+        console.error('Failed to load beverages', error);
+        if (isMounted) {
+          setLoadError('We could not fetch the beverage catalogue. Try refreshing the page.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadBeverages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filteredBeverages = beverages.filter((beverage) => {
+    const matchesSearch =
+      beverage.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       beverage.producer.toLowerCase().includes(searchTerm.toLowerCase()) ||
       beverage.category.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = selectedBeverageType === 'all' || beverage.type === selectedBeverageType;
@@ -107,7 +118,7 @@ function HomePage({ selectedBeverageCategory = 'beer' }) {
               type="text"
               placeholder="Search beverages, producers, or categories..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(event) => setSearchTerm(event.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
             />
           </div>
@@ -118,20 +129,40 @@ function HomePage({ selectedBeverageCategory = 'beer' }) {
         </div>
       </motion.div>
 
-      {/* Beverages Grid */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8"
-      >
-        {filteredBeverages.map((beverage, index) => (
-          <BeerCard key={beverage.id} beer={beverage} index={index} />
-        ))}
-      </motion.div>
+      {loadError && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6"
+        >
+          {loadError}
+        </motion.div>
+      )}
 
-      {/* No Results */}
-      {filteredBeverages.length === 0 && (
+      {loading ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8"
+        >
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="h-64 bg-gray-100 animate-pulse rounded-xl border border-gray-200" />
+          ))}
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8"
+        >
+          {filteredBeverages.map((beverage, index) => (
+            <BeerCard key={beverage.id} beer={beverage} index={index} />
+          ))}
+        </motion.div>
+      )}
+
+      {!loading && filteredBeverages.length === 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -143,41 +174,42 @@ function HomePage({ selectedBeverageCategory = 'beer' }) {
         </motion.div>
       )}
 
-      {/* Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
-      >
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Collection Statistics</h3>
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-amber-600">{beverages.filter(b => b.type === 'beer').length}</div>
-            <div className="text-sm text-gray-600">🍺 Beers</div>
+      {!loading && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+        >
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Collection Statistics</h3>
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-amber-600">{beverages.filter((b) => b.type === 'beer').length}</div>
+              <div className="text-sm text-gray-600">🍺 Beers</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">{beverages.filter((b) => b.type === 'wine').length}</div>
+              <div className="text-sm text-gray-600">🍷 Wines</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">{beverages.filter((b) => b.type === 'spirits').length}</div>
+              <div className="text-sm text-gray-600">🥃 Spirits</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{beverages.filter((b) => b.type === 'cider').length}</div>
+              <div className="text-sm text-gray-600">🍎 Ciders</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-600">{beverages.filter((b) => b.type === 'mead').length}</div>
+              <div className="text-sm text-gray-600">🍯 Meads</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-teal-600">{beverages.filter((b) => b.type === 'fermented').length}</div>
+              <div className="text-sm text-gray-600">🫖 Fermented</div>
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">{beverages.filter(b => b.type === 'wine').length}</div>
-            <div className="text-sm text-gray-600">🍷 Wines</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-orange-600">{beverages.filter(b => b.type === 'spirits').length}</div>
-            <div className="text-sm text-gray-600">🥃 Spirits</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{beverages.filter(b => b.type === 'cider').length}</div>
-            <div className="text-sm text-gray-600">🍎 Ciders</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-600">{beverages.filter(b => b.type === 'mead').length}</div>
-            <div className="text-sm text-gray-600">🍯 Meads</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-teal-600">{beverages.filter(b => b.type === 'fermented').length}</div>
-            <div className="text-sm text-gray-600">🫖 Fermented</div>
-          </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "name": "The Crafty Pint",
+    "type": "Brewery",
+    "address": "123 Brew Street",
+    "city": "Portland",
+    "state": "OR",
+    "country": "USA",
+    "phone": "(503) 555-0123",
+    "website": "https://craftypint.com",
+    "priceRange": "$$",
+    "specialties": ["Craft Beer", "Local Brews", "IPAs", "Live Music"],
+    "description": "Local brewery with rotating taps and live music on weekends.",
+    "hours": {
+      "monday": { "open": "15:00", "close": "22:00", "closed": false },
+      "tuesday": { "open": "15:00", "close": "22:00", "closed": false },
+      "wednesday": { "open": "15:00", "close": "22:00", "closed": false },
+      "thursday": { "open": "15:00", "close": "23:00", "closed": false },
+      "friday": { "open": "12:00", "close": "00:00", "closed": false },
+      "saturday": { "open": "12:00", "close": "00:00", "closed": false },
+      "sunday": { "open": "12:00", "close": "21:00", "closed": false }
+    },
+    "totalRatings": 24,
+    "averageRating": 4.3,
+    "beverageCount": 12,
+    "addedDate": "2024-01-15"
+  },
+  {
+    "id": 2,
+    "name": "Bottle & Cork",
+    "type": "Bottle Shop",
+    "address": "456 Wine Ave",
+    "city": "San Francisco",
+    "state": "CA",
+    "country": "USA",
+    "phone": "(415) 555-0456",
+    "website": "https://bottleandcork.com",
+    "priceRange": "$$$",
+    "specialties": ["Rare Bottles", "Wine Selection", "Craft Beer", "Import Beers"],
+    "description": "Premium bottle shop with rare finds and knowledgeable staff.",
+    "hours": {
+      "monday": { "open": "10:00", "close": "20:00", "closed": false },
+      "tuesday": { "open": "10:00", "close": "20:00", "closed": false },
+      "wednesday": { "open": "10:00", "close": "20:00", "closed": false },
+      "thursday": { "open": "10:00", "close": "21:00", "closed": false },
+      "friday": { "open": "10:00", "close": "22:00", "closed": false },
+      "saturday": { "open": "09:00", "close": "22:00", "closed": false },
+      "sunday": { "open": "11:00", "close": "19:00", "closed": false }
+    },
+    "totalRatings": 18,
+    "averageRating": 4.6,
+    "beverageCount": 8,
+    "addedDate": "2024-01-10"
+  }
+]
