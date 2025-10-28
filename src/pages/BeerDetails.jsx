@@ -11,6 +11,7 @@ import ColorRangeDisplay from '../components/ColorRangeDisplay';
 import ScoreBreakdown from '../components/ScoreBreakdown';
 import RadarChart from '../components/RadarChart';
 import { beverageTypes } from '../utils/beverageTypes';
+import { getCellarEntries, saveCellarEntries } from '../utils/api/mockApi';
 
 const { FiStar, FiArrowLeft, FiShare2, FiPlus } = FiIcons;
 
@@ -94,16 +95,18 @@ function BeerDetails({ selectedBeverageCategory = 'beer' }) {
                    beverageType === 'mead' ? '#F0E68C' : '#F0E68C'
   };
 
-  const handleAddToCellar = (cellarEntry) => {
-    const updatedEntries = [...cellarEntries, cellarEntry];
-    setCellarEntries(updatedEntries);
-    
-    // Save to localStorage
-    const existingEntries = JSON.parse(localStorage.getItem('cellarEntries') || '[]');
-    const allEntries = [...existingEntries, { ...cellarEntry, beverageType }];
-    localStorage.setItem('cellarEntries', JSON.stringify(allEntries));
-    
-    alert('Added to cellar successfully!');
+  const handleAddToCellar = async (cellarEntry) => {
+    try {
+      const existingEntries = await getCellarEntries();
+      const entryWithType = { ...cellarEntry, beverageType };
+      const updatedEntries = [...existingEntries, entryWithType];
+      await saveCellarEntries(updatedEntries);
+      setCellarEntries(updatedEntries);
+      alert('Added to cellar successfully!');
+    } catch (error) {
+      console.error('Failed to add cellar entry', error);
+      alert('We could not save this to your cellar. Please try again.');
+    }
   };
 
   const renderStars = (rating) => {

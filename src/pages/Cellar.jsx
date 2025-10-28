@@ -5,8 +5,9 @@ import SafeIcon from '../common/SafeIcon';
 import BeverageTypeSelector from '../components/BeverageTypeSelector';
 import ShareCellarItemModal from '../components/ShareCellarItemModal';
 import { beverageTypes } from '../utils/beverageTypes';
+import { getCellarEntries, saveCellarEntries } from '../utils/api/mockApi';
 
-const { FiSearch, FiFilter, FiPlus, FiEdit3, FiTrash2, FiCalendar, FiMapPin, FiDollarSign, FiPackage, FiEye, FiEyeOff, FiShare2 } = FiIcons;
+const { FiSearch, FiPlus, FiTrash2, FiCalendar, FiMapPin, FiDollarSign, FiPackage, FiEye, FiEyeOff, FiShare2 } = FiIcons;
 
 function Cellar({ selectedBeverageCategory = 'beer' }) {
   const [cellarEntries, setCellarEntries] = useState([]);
@@ -17,45 +18,78 @@ function Cellar({ selectedBeverageCategory = 'beer' }) {
   const [showHidden, setShowHidden] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [initialized, setInitialized] = useState(false);
 
-  // Mock drinking buddies for sharing
   const drinkingBuddies = [
     { id: 'buddy1', name: 'John Smith', username: 'johnsmith', avatar: '👨' },
     { id: 'buddy2', name: 'Sarah Wilson', username: 'sarahw', avatar: '👩' },
     { id: 'buddy3', name: 'Mike Johnson', username: 'mikej', avatar: '👱‍♂️' }
   ];
 
-  // Load cellar entries from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem('cellarEntries');
-    if (stored) {
-      setCellarEntries(JSON.parse(stored));
-    }
+    let isMounted = true;
+
+    const loadEntries = async () => {
+      setLoading(true);
+      setLoadError('');
+      try {
+        const data = await getCellarEntries();
+        if (isMounted) {
+          setCellarEntries(data);
+        }
+      } catch (error) {
+        console.error('Failed to load cellar entries', error);
+        if (isMounted) {
+          setLoadError('We could not load your cellar entries. Refresh to try again.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+          setInitialized(true);
+        }
+      }
+    };
+
+    loadEntries();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Save to localStorage whenever entries change
   useEffect(() => {
-    localStorage.setItem('cellarEntries', JSON.stringify(cellarEntries));
-  }, [cellarEntries]);
+    if (!initialized) {
+      return;
+    }
+
+    saveCellarEntries(cellarEntries).catch((error) => {
+      console.error('Failed to persist cellar entries', error);
+    });
+  }, [cellarEntries, initialized]);
+
+  useEffect(() => {
+    setSelectedBeverageType(selectedBeverageCategory);
+  }, [selectedBeverageCategory]);
 
   const currentBeverage = beverageTypes[selectedBeverageType];
 
-  // Filter and sort entries
   const filteredEntries = cellarEntries
     .filter(entry => {
       const matchesSearch = entry.beverageName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            entry.producer.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            entry.purchaseLocation.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesType = selectedBeverageType === 'all' || 
+
+      const matchesType = selectedBeverageType === 'all' ||
                          entry.beverageType === selectedBeverageType;
-      
+
       const matchesFilter = filterBy === 'all' ||
                            entry.source === filterBy ||
                            entry.containerType === filterBy;
 
       const matchesVisibility = showHidden || !entry.isHidden;
-      
+
       return matchesSearch && matchesType && matchesFilter && matchesVisibility;
     })
     .sort((a, b) => {
@@ -79,8 +113,8 @@ function Cellar({ selectedBeverageCategory = 'beer' }) {
   };
 
   const handleToggleVisibility = (entryId) => {
-    setCellarEntries(prev => prev.map(entry => 
-      entry.id === entryId 
+    setCellarEntries(prev => prev.map(entry =>
+      entry.id === entryId
         ? { ...entry, isHidden: !entry.isHidden }
         : entry
     ));
@@ -99,10 +133,18 @@ function Cellar({ selectedBeverageCategory = 'beer' }) {
     });
   };
 
+  const parsePrice = (value) => {
+    if (value === null || value === undefined) return null;
+    const numericValue = typeof value === 'string' ? Number.parseFloat(value) : value;
+    return Number.isFinite(numericValue) ? numericValue : null;
+  };
+
   const calculateValue = (entry) => {
-    if (!entry.purchasePrice || !entry.retailPrice) return null;
-    const savings = entry.retailPrice - entry.purchasePrice;
-    const percentage = (savings / entry.retailPrice) * 100;
+    const purchasePrice = parsePrice(entry.purchasePrice);
+    const retailPrice = parsePrice(entry.retailPrice);
+    if (purchasePrice === null || retailPrice === null) return null;
+    const savings = retailPrice - purchasePrice;
+    const percentage = (savings / retailPrice) * 100;
     return { savings, percentage };
   };
 
@@ -110,7 +152,6 @@ function Cellar({ selectedBeverageCategory = 'beer' }) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -125,7 +166,16 @@ function Cellar({ selectedBeverageCategory = 'beer' }) {
         </p>
       </motion.div>
 
-      {/* Beverage Type Selector */}
+      {loadError && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6"
+        >
+          {loadError}
+        </motion.div>
+      )}
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -154,7 +204,6 @@ function Cellar({ selectedBeverageCategory = 'beer' }) {
         </div>
       </motion.div>
 
-      {/* Search and Filter Controls */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -162,22 +211,20 @@ function Cellar({ selectedBeverageCategory = 'beer' }) {
         className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8"
       >
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {/* Search */}
           <div className="relative">
             <SafeIcon icon={FiSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
               placeholder="Search cellar..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(event) => setSearchTerm(event.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
             />
           </div>
 
-          {/* Sort */}
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
+            onChange={(event) => setSortBy(event.target.value)}
             className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
           >
             <option value="addedDate">Sort by Date Added</option>
@@ -186,10 +233,9 @@ function Cellar({ selectedBeverageCategory = 'beer' }) {
             <option value="purchaseDate">Sort by Purchase Date</option>
           </select>
 
-          {/* Filter */}
           <select
             value={filterBy}
-            onChange={(e) => setFilterBy(e.target.value)}
+            onChange={(event) => setFilterBy(event.target.value)}
             className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
           >
             <option value="all">All Sources</option>
@@ -200,234 +246,135 @@ function Cellar({ selectedBeverageCategory = 'beer' }) {
             <option value="Other">Other</option>
           </select>
 
-          {/* Show Hidden Toggle */}
           <button
-            onClick={() => setShowHidden(!showHidden)}
-            className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-lg border transition-colors ${
-              showHidden
-                ? 'bg-orange-100 border-orange-300 text-orange-800'
-                : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-            }`}
+            onClick={() => alert('Cellar entry creation is available from individual beverage pages.')}
+            className="flex items-center justify-center space-x-2 px-4 py-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-medium"
           >
-            <SafeIcon icon={showHidden ? FiEye : FiEyeOff} className="w-4 h-4" />
-            <span className="text-sm font-medium">
-              {showHidden ? 'Hide Private' : `Show Hidden (${hiddenCount})`}
-            </span>
+            <SafeIcon icon={FiPlus} className="w-5 h-5" />
+            <span>Add Entry</span>
           </button>
 
-          {/* Stats */}
-          <div className="bg-amber-50 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-amber-600">{filteredEntries.length}</div>
-            <div className="text-sm text-amber-800">Items</div>
-          </div>
+          <button
+            onClick={() => setShowHidden(!showHidden)}
+            className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-lg border font-medium transition-colors ${
+              showHidden
+                ? 'border-amber-300 bg-amber-50 text-amber-700'
+                : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <SafeIcon icon={showHidden ? FiEye : FiEyeOff} className="w-5 h-5" />
+            <span>{showHidden ? 'Hide Hidden Items' : `Show Hidden (${hiddenCount})`}</span>
+          </button>
         </div>
       </motion.div>
 
-      {/* Cellar Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredEntries.map((entry, index) => {
-          const value = calculateValue(entry);
-          return (
-            <motion.div
-              key={entry.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow ${
-                entry.isHidden ? 'border-orange-200 bg-orange-50' : 'border-gray-200'
-              }`}
-            >
-              {/* Entry Header */}
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="font-semibold text-gray-800">{entry.beverageName}</h3>
-                      {entry.isHidden && (
-                        <SafeIcon icon={FiEyeOff} className="w-4 h-4 text-orange-600" />
-                      )}
+      {loading ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+        >
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="h-72 bg-gray-100 animate-pulse rounded-xl border border-gray-200" />
+          ))}
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+        >
+          {filteredEntries.map((entry, index) => {
+            const purchasePrice = parsePrice(entry.purchasePrice);
+            const valueInfo = calculateValue(entry);
+            return (
+              <motion.div
+                key={entry.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className={`bg-white rounded-xl shadow-sm border ${entry.isHidden ? 'border-dashed border-gray-300 opacity-75' : 'border-gray-200'} overflow-hidden`}
+              >
+                <div className="p-6 space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-800">{entry.beverageName}</h3>
+                      <p className="text-sm text-gray-500">{entry.producer}</p>
                     </div>
-                    <p className="text-sm text-gray-600">{entry.producer}</p>
-                    <p className="text-xs text-gray-500">{entry.style}</p>
+                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <SafeIcon icon={FiCalendar} className="w-4 h-4" />
+                      <span>{formatDate(entry.addedDate)}</span>
+                    </div>
                   </div>
-                  <div className="flex space-x-1 ml-2">
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600">
+                    <div className="flex items-center space-x-2">
+                      <SafeIcon icon={FiMapPin} className="w-4 h-4 text-amber-600" />
+                      <span>{entry.purchaseLocation}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <SafeIcon icon={FiPackage} className="w-4 h-4 text-amber-600" />
+                      <span>{entry.containerType}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <SafeIcon icon={FiDollarSign} className="w-4 h-4 text-amber-600" />
+                      <span>${purchasePrice !== null ? purchasePrice.toFixed(2) : '—'}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <SafeIcon icon={FiCalendar} className="w-4 h-4 text-amber-600" />
+                      <span>{formatDate(entry.purchaseDate)}</span>
+                    </div>
+                  </div>
+
+                  {valueInfo && (
+                    <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg p-3 text-sm">
+                      Saved ${valueInfo.savings.toFixed(2)} ({valueInfo.percentage.toFixed(0)}% below retail)
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100">
                     <button
                       onClick={() => handleShareItem(entry)}
-                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                      title="Share item"
+                      className="flex items-center space-x-1 text-amber-600 hover:text-amber-700"
                     >
                       <SafeIcon icon={FiShare2} className="w-4 h-4" />
+                      <span>Share</span>
                     </button>
                     <button
                       onClick={() => handleToggleVisibility(entry.id)}
-                      className="p-1 text-gray-400 hover:text-orange-600 transition-colors"
-                      title={entry.isHidden ? 'Make visible' : 'Hide from others'}
+                      className="flex items-center space-x-1 text-gray-500 hover:text-amber-600"
                     >
-                      <SafeIcon icon={entry.isHidden ? FiEyeOff : FiEye} className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => {/* Handle edit */}}
-                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                    >
-                      <SafeIcon icon={FiEdit3} className="w-4 h-4" />
+                      <SafeIcon icon={entry.isHidden ? FiEye : FiEyeOff} className="w-4 h-4" />
+                      <span>{entry.isHidden ? 'Unhide' : 'Hide'}</span>
                     </button>
                     <button
                       onClick={() => handleDeleteEntry(entry.id)}
-                      className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                      className="flex items-center space-x-1 text-red-500 hover:text-red-600"
                     >
                       <SafeIcon icon={FiTrash2} className="w-4 h-4" />
+                      <span>Delete</span>
                     </button>
                   </div>
                 </div>
-              </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      )}
 
-              {/* Entry Details */}
-              <div className="p-4 space-y-3">
-                {/* Container Info */}
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <SafeIcon icon={FiPackage} className="w-4 h-4" />
-                  <span>{entry.containerSize}{entry.unit} {entry.containerType}</span>
-                </div>
-
-                {/* Purchase Location */}
-                {entry.purchaseLocation && (
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <SafeIcon icon={FiMapPin} className="w-4 h-4" />
-                    <span className="truncate">{entry.purchaseLocation}</span>
-                  </div>
-                )}
-
-                {/* Purchase Date */}
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <SafeIcon icon={FiCalendar} className="w-4 h-4" />
-                  <span>{formatDate(entry.purchaseDate)}</span>
-                </div>
-
-                {/* Pricing */}
-                {(entry.purchasePrice || entry.retailPrice) && (
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <SafeIcon icon={FiDollarSign} className="w-4 h-4 text-green-600" />
-                      <span className="text-sm font-medium text-gray-700">Pricing</span>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      {entry.purchasePrice && (
-                        <div>
-                          <div className="text-gray-500">Paid</div>
-                          <div className="font-semibold text-gray-800">${entry.purchasePrice}</div>
-                        </div>
-                      )}
-                      {entry.retailPrice && (
-                        <div>
-                          <div className="text-gray-500">Retail</div>
-                          <div className="font-semibold text-gray-800">${entry.retailPrice}</div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Value Analysis */}
-                    {value && (
-                      <div className="mt-2 pt-2 border-t border-gray-200">
-                        <div className="flex justify-between text-xs">
-                          <span className="text-gray-500">Savings:</span>
-                          <span className={`font-medium ${value.savings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            ${Math.abs(value.savings).toFixed(2)} ({value.percentage.toFixed(1)}%)
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Source & Series */}
-                <div className="flex flex-wrap gap-2">
-                  <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                    {entry.source}
-                  </span>
-                  {entry.series && entry.series !== 'Custom' && (
-                    <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
-                      {entry.series}
-                    </span>
-                  )}
-                  {entry.customSeries && (
-                    <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
-                      {entry.customSeries}
-                    </span>
-                  )}
-                  {entry.isHidden && (
-                    <span className="inline-block bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
-                      Private
-                    </span>
-                  )}
-                </div>
-
-                {/* Notes */}
-                {entry.notes && (
-                  <div className="text-sm text-gray-600 italic">
-                    "{entry.notes}"
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* No Results */}
-      {filteredEntries.length === 0 && (
+      {!loading && filteredEntries.length === 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-center py-12"
         >
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <SafeIcon icon={FiSearch} className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-500 mb-2">No items found</h3>
-          <p className="text-gray-400">
-            {cellarEntries.length === 0 
-              ? "Your cellar is empty. Start adding beverages to track your collection!"
-              : "Try adjusting your search or filter criteria."
-            }
-          </p>
+          <SafeIcon icon={FiSearch} className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-500 mb-2">No cellar entries found</h3>
+          <p className="text-gray-400">Try adjusting your filters or add new beverages from the details page.</p>
         </motion.div>
       )}
 
-      {/* Summary Stats */}
-      {cellarEntries.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mt-12 bg-white rounded-xl shadow-sm border border-gray-200 p-6"
-        >
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Cellar Statistics</h3>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-            {Object.entries(beverageTypes).map(([key, beverage]) => {
-              const count = cellarEntries.filter(entry => entry.beverageType === key).length;
-              return (
-                <div key={key} className="text-center">
-                  <div className="text-2xl font-bold text-amber-600">{count}</div>
-                  <div className="text-sm text-gray-600">
-                    {beverage.icon} {beverage.name}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
-          {/* Privacy Summary */}
-          <div className="mt-6 pt-4 border-t border-gray-200">
-            <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>Privacy: {cellarEntries.length - hiddenCount} visible, {hiddenCount} hidden</span>
-              <span>Total Value: ${cellarEntries.reduce((sum, entry) => sum + (parseFloat(entry.purchasePrice) || 0), 0).toFixed(2)}</span>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Share Modal */}
       <ShareCellarItemModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
