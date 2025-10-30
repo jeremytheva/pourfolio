@@ -1,48 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
-
-const { FiUser, FiSettings, FiShield } = FiIcons;
+import { profileOptions } from '../config/profileOptions';
 
 function LoginPage({ onLogin }) {
   const navigate = useNavigate();
-
-  const profiles = [
-    {
-      id: 'jane',
-      name: 'Jane',
-      type: 'General User',
-      icon: FiUser,
-      color: 'bg-blue-500',
-      description: 'Beer enthusiast and casual drinker'
-    },
-    {
-      id: 'john',
-      name: 'John',
-      type: 'General User',
-      icon: FiUser,
-      color: 'bg-green-500',
-      description: 'Craft beer lover and reviewer'
-    },
-    {
-      id: 'brewmasters',
-      name: 'BrewMasters',
-      type: 'Brewery Login',
-      icon: FiSettings,
-      color: 'bg-amber-500',
-      description: 'Brewery management account'
-    },
-    {
-      id: 'admin',
-      name: 'Admin',
-      type: 'Admin User',
-      icon: FiShield,
-      color: 'bg-red-500',
-      description: 'System administrator'
-    }
-  ];
 
   const handleProfileSelect = (profile) => {
     onLogin(profile);
@@ -63,7 +26,7 @@ function LoginPage({ onLogin }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {profiles.map((profile, index) => (
+          {profileOptions.map((profile, index) => (
             <motion.button
               key={profile.id}
               initial={{ opacity: 0, y: 20 }}
