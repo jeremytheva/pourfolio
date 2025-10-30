@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
@@ -49,6 +50,10 @@ function HomePage({ selectedBeverageCategory = 'beer' }) {
   });
 
   const currentBeverage = beverageTypes[selectedBeverageCategory] || beverageTypes.beer;
+  const beverageTypeForAdd = selectedBeverageType === 'all'
+    ? selectedBeverageCategory
+    : selectedBeverageType;
+  const addBeverageLink = `/add-beverage${beverageTypeForAdd ? `?type=${encodeURIComponent(beverageTypeForAdd)}` : ''}`;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -111,10 +116,13 @@ function HomePage({ selectedBeverageCategory = 'beer' }) {
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
             />
           </div>
-          <button className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2">
+          <Link
+            to={addBeverageLink}
+            className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2"
+          >
             <SafeIcon icon={FiPlus} className="w-5 h-5" />
             <span>Add a Beverage</span>
-          </button>
+          </Link>
         </div>
       </motion.div>
 
