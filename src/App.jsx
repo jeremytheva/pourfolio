@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
 import BeerDetails from './pages/BeerDetails';
@@ -19,8 +18,39 @@ import Search from './pages/Search';
 import VenueManagement from './pages/VenueManagement';
 import MainLayout from './components/MainLayout';
 
+function ProtectedRoute({ user, onLogout, children }) {
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <MainLayout user={user} onLogout={onLogout}>
+      {children}
+    </MainLayout>
+  );
+}
+
 function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    const storedUser = window.localStorage.getItem('pourfolio:user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    if (user) {
+      window.localStorage.setItem('pourfolio:user', JSON.stringify(user));
+    } else {
+      window.localStorage.removeItem('pourfolio:user');
+    }
+  }, [user]);
 
   const handleLogin = (userData) => {
     setUser(userData);
@@ -30,6 +60,24 @@ function App() {
     setUser(null);
   };
 
+  const protectedRoutes = [
+    { path: '/home', component: HomePage },
+    { path: '/search', component: Search },
+    { path: '/events', component: Events },
+    { path: '/events/:eventId', component: EventDetails },
+    { path: '/venue-management', component: VenueManagement, getProps: (currentUser) => ({ user: currentUser }) },
+    { path: '/beer-details', component: BeerDetails },
+    { path: '/rate-beer', component: RateBeer },
+    { path: '/producers', component: ProducersList },
+    { path: '/producer/:producerId', component: BreweryProfile },
+    { path: '/styles', component: StyleGuide },
+    { path: '/cellar', component: Cellar },
+    { path: '/drinking-buddies', component: DrinkingBuddies },
+    { path: '/venues', component: Venues },
+    { path: '/chat', component: Chat },
+    { path: '/profile', component: Profile, getProps: (currentUser) => ({ user: currentUser }) }
+  ];
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
@@ -37,209 +85,21 @@ function App() {
           <Route
             path="/login"
             element={
-              user ? (
-                <Navigate to="/home" replace />
-              ) : (
-                <LoginPage onLogin={handleLogin} />
-              )
+              user ? <Navigate to="/home" replace /> : <LoginPage onLogin={handleLogin} />
             }
           />
 
-          {/* Protected routes with MainLayout */}
-          <Route
-            path="/home"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <HomePage />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/search"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <Search />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/events"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <Events />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/events/:eventId"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <EventDetails />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/venue-management"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <VenueManagement user={user} />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/beer-details"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <BeerDetails />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/rate-beer"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <RateBeer />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/producers"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <ProducersList />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/producer/:producerId"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <BreweryProfile />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/styles"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <StyleGuide />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/cellar"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <Cellar />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/drinking-buddies"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <DrinkingBuddies />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/venues"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <Venues />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/chat"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <Chat />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/profile"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <Profile user={user} />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
+          {protectedRoutes.map(({ path, component: Component, getProps }) => (
+            <Route
+              key={path}
+              path={path}
+              element={(
+                <ProtectedRoute user={user} onLogout={handleLogout}>
+                  <Component {...(getProps ? getProps(user) : {})} />
+                </ProtectedRoute>
+              )}
+            />
+          ))}
 
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
