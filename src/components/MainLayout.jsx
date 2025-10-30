@@ -10,20 +10,26 @@ function MainLayout({ user, onLogout, children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUserSwitch, setShowUserSwitch] = useState(false);
 
-  // Load saved category preference or user's default
+  const isBrowser = typeof window !== 'undefined';
+
   useEffect(() => {
-    const saved = localStorage.getItem('selectedBeverageCategory');
+    if (!isBrowser) {
+      return;
+    }
+
+    const saved = window.localStorage.getItem('selectedBeverageCategory');
     if (saved && ['beer', 'wine', 'spirits', 'cider', 'mead', 'fermented'].includes(saved)) {
       setSelectedBeverageCategory(saved);
     } else if (user?.defaultBeverageCategory) {
       setSelectedBeverageCategory(user.defaultBeverageCategory);
     }
-  }, [user]);
+  }, [user, isBrowser]);
 
-  // Save category preference
   const handleCategoryChange = (category) => {
     setSelectedBeverageCategory(category);
-    localStorage.setItem('selectedBeverageCategory', category);
+    if (isBrowser) {
+      window.localStorage.setItem('selectedBeverageCategory', category);
+    }
   };
 
   const handleSideNavToggle = () => {
@@ -34,8 +40,11 @@ function MainLayout({ user, onLogout, children }) {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-  // Close mobile menu when screen size changes
   useEffect(() => {
+    if (!isBrowser) {
+      return undefined;
+    }
+
     const handleResize = () => {
       if (window.innerWidth >= 768) {
         setMobileMenuOpen(false);
@@ -44,11 +53,10 @@ function MainLayout({ user, onLogout, children }) {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [isBrowser]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Side Navigation - Always visible */}
       <SideNavigation
         selectedBeverageCategory={selectedBeverageCategory}
         onCategoryChange={handleCategoryChange}
@@ -60,11 +68,11 @@ function MainLayout({ user, onLogout, children }) {
         onLogout={onLogout}
       />
 
-      {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${
-        sideNavCollapsed ? 'md:ml-16' : 'md:ml-64'
-      } ml-0`}>
-        {/* Top Navigation */}
+      <div
+        className={`flex-1 flex flex-col transition-all duration-300 ${
+          sideNavCollapsed ? 'md:ml-16' : 'md:ml-64'
+        } ml-0`}
+      >
         <Navbar
           user={user}
           onLogout={onLogout}
@@ -73,14 +81,12 @@ function MainLayout({ user, onLogout, children }) {
           onUserSwitch={() => setShowUserSwitch(true)}
         />
 
-        {/* Page Content */}
         <main className="flex-1 overflow-auto">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            {/* Pass the selected category to children */}
             {React.cloneElement(children, {
               selectedBeverageCategory,
               onCategoryChange: handleCategoryChange
@@ -89,12 +95,11 @@ function MainLayout({ user, onLogout, children }) {
         </main>
       </div>
 
-      {/* User Switch Modal */}
       <UserSwitchModal
         isOpen={showUserSwitch}
         onClose={() => setShowUserSwitch(false)}
         currentUser={user}
-        onUserSelect={onLogout} // This will trigger login flow
+        onUserSelect={onLogout}
       />
     </div>
   );
