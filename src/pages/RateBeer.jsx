@@ -9,7 +9,13 @@ import PhotoUpload from '../components/PhotoUpload';
 import TagFriends from '../components/TagFriends';
 import RatingSummary from '../components/RatingSummary';
 import ScoreBreakdown from '../components/ScoreBreakdown';
-import { calculateFinalRating, bonusAttributeCategories, burpScale } from '../utils/ratingCalculator';
+import {
+  calculateFinalRating,
+  calculateFinalScore,
+  bonusAttributeCategories,
+  burpScale,
+  calculatePricePerPoint
+} from '../utils/ratingCalculator';
 import { getSettings } from '../utils/settingsManager';
 import { beverageTypes, attributeLabels } from '../utils/beverageTypes';
 
@@ -159,13 +165,25 @@ function RateBeer({ selectedBeverageCategory = 'beer' }) {
   };
 
   const calculateCurrentRating = () => {
-    return calculateFinalRating(
+    const rating = calculateFinalRating(
       mainAttributes,
       selectedBonusAttributes,
       userBonusOverride,
       hideBonus,
       beverageType
     );
+
+    const { purchasePPP, retailPPP } = calculatePricePerPoint({
+      purchasePrice: null,
+      retailPrice: beverage.retailPrice,
+      finalScore: rating.finalRating
+    });
+
+    return {
+      ...rating,
+      purchase_price_per_point: purchasePPP,
+      retail_price_per_point: retailPPP
+    };
   };
 
   const handleNext = () => {
@@ -182,20 +200,53 @@ function RateBeer({ selectedBeverageCategory = 'beer' }) {
 
   const handleSubmit = async () => {
     const hasValidRatings = Object.values(mainAttributes).some(attr => attr.score > 1);
-    
+
     if (!hasValidRatings) {
       alert('Please provide ratings for the main attributes');
       return;
     }
 
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    const ratingInput = {
+      mainAttributes,
+      selectedBonusAttributes,
+      userBonusOverride,
+      hideBonus,
+      beverageType
+    };
+
+    const finalScore = calculateFinalScore(ratingInput);
+    const { purchasePPP, retailPPP } = calculatePricePerPoint({
+      purchasePrice: null,
+      retailPrice: beverage.retailPrice,
+      finalScore
+    });
+
+    const payload = {
+      ...ratingInput,
+      burpRating,
+      review,
+      photos,
+      purchasedFrom,
+      servingStyle,
+      taggedFriends,
+      beverageId: beverage.id,
+      final_score: finalScore,
+      purchase_price_per_point: purchasePPP,
+      retail_price_per_point: retailPPP
+    };
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      console.log('Rating payload ready for submission:', payload);
       alert('Rating submitted successfully!');
       navigate('/beer-details');
-    }, 1500);
+    } catch (error) {
+      console.error('Failed to submit rating', error);
+      alert('Something went wrong while submitting your rating. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const currentRating = calculateCurrentRating();

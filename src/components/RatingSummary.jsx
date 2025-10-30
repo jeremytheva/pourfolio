@@ -173,6 +173,26 @@ function RatingSummary({
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Additional Information</h3>
         <div className="space-y-3">
+          {(currentRating.purchase_price_per_point || currentRating.retail_price_per_point) && (
+            <div className="p-3 bg-amber-50 rounded-lg">
+              {currentRating.purchase_price_per_point && (
+                <p className="text-sm text-amber-600">
+                  💰 ${currentRating.purchase_price_per_point.toFixed(2)} per pt
+                  {currentRating.purchase_price_per_point <= 0.5 && (
+                    <span className="ml-2 text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded">
+                      ⭐ Great Value
+                    </span>
+                  )}
+                </p>
+              )}
+              {currentRating.retail_price_per_point && (
+                <p className="text-xs text-gray-500 mt-1">
+                  (Retail ${currentRating.retail_price_per_point.toFixed(2)} per pt)
+                </p>
+              )}
+            </div>
+          )}
+
           {purchasedFrom && (
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
               <SafeIcon icon={FiMapPin} className="w-5 h-5 text-gray-500" />
