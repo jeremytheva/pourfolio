@@ -1,52 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import BeerCard from '../components/BeerCard';
 import BeverageTypeSelector from '../components/BeverageTypeSelector';
 import { beverageTypes } from '../utils/beverageTypes';
+import { useBeverages } from '../hooks/useBeverages';
 
-const { FiSearch, FiPlus } = FiIcons;
+const { FiSearch, FiPlus, FiAlertCircle, FiRefreshCw } = FiIcons;
 
 function HomePage({ selectedBeverageCategory = 'beer' }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBeverageType, setSelectedBeverageType] = useState('all');
+  const {
+    beverages,
+    isLoading,
+    error,
+    refetch
+  } = useBeverages();
 
-  // Update filter when category changes
   useEffect(() => {
     setSelectedBeverageType(selectedBeverageCategory);
   }, [selectedBeverageCategory]);
 
-  // Expanded beverage data with different types
-  const beverages = [
-    // Beers
-    { id: 1, name: 'IPA Delight', producer: 'Brewery X', type: 'beer', category: 'IPA', rating: 4.5, image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=300&h=300&fit=crop' },
-    { id: 2, name: 'Golden Wheat', producer: 'Sunset Brewing', type: 'beer', category: 'Wheat Beer', rating: 4.2, image: 'https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=300&h=300&fit=crop' },
-    { id: 3, name: 'Dark Stout', producer: 'Mountain Brewery', type: 'beer', category: 'Stout', rating: 4.7, image: 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=300&h=300&fit=crop' },
-    // Wines
-    { id: 11, name: 'Chardonnay Reserve', producer: 'Valley Vineyard', type: 'wine', category: 'White Wine', rating: 4.3, image: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=300&h=300&fit=crop' },
-    { id: 12, name: 'Cabernet Sauvignon', producer: 'Hill Estate', type: 'wine', category: 'Red Wine', rating: 4.6, image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=300&h=300&fit=crop' },
-    { id: 13, name: 'Rosé Selection', producer: 'Coastal Winery', type: 'wine', category: 'Rosé', rating: 4.1, image: 'https://images.unsplash.com/photo-1547595628-c61a29f496f0?w=300&h=300&fit=crop' },
-    // Spirits
-    { id: 21, name: 'Single Malt 18yr', producer: 'Highland Distillery', type: 'spirits', category: 'Whiskey', rating: 4.8, image: 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=300&h=300&fit=crop' },
-    { id: 22, name: 'Artisan Gin', producer: 'Botanical Co.', type: 'spirits', category: 'Gin', rating: 4.4, image: 'https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=300&h=300&fit=crop' },
-    // Ciders
-    { id: 31, name: 'Dry Apple Cider', producer: 'Orchard House', type: 'cider', category: 'Traditional Cider', rating: 4.2, image: 'https://images.unsplash.com/photo-1567696911980-2eed69a46042?w=300&h=300&fit=crop' },
-    { id: 32, name: 'Pear & Ginger', producer: 'Craft Cidery', type: 'cider', category: 'Fruit Cider', rating: 4.0, image: 'https://images.unsplash.com/photo-1596328546171-77e37b5e8b3d?w=300&h=300&fit=crop' },
-    // Meads
-    { id: 41, name: 'Wildflower Honey', producer: 'Ancient Meadery', type: 'mead', category: 'Traditional Mead', rating: 4.5, image: 'https://images.unsplash.com/photo-1618183479302-1e0aa382c36b?w=300&h=300&fit=crop' },
-    // Fermented Beverages
-    { id: 51, name: 'Ginger Kombucha', producer: 'Living Cultures', type: 'fermented', category: 'Kombucha', rating: 4.1, image: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=300&h=300&fit=crop' },
-    { id: 52, name: 'Pineapple Tepache', producer: 'Ferment Co.', type: 'fermented', category: 'Tepache', rating: 4.3, image: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=300&h=300&fit=crop' }
-  ];
+  const filteredBeverages = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    return beverages.filter((beverage) => {
+      const matchesSearch =
+        query.length === 0 ||
+        beverage.name.toLowerCase().includes(query) ||
+        beverage.producer.toLowerCase().includes(query) ||
+        beverage.category.toLowerCase().includes(query);
+      const matchesType = selectedBeverageType === 'all' || beverage.type === selectedBeverageType;
+      return matchesSearch && matchesType;
+    });
+  }, [beverages, searchTerm, selectedBeverageType]);
 
-  const filteredBeverages = beverages.filter(beverage => {
-    const matchesSearch = beverage.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      beverage.producer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      beverage.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedBeverageType === 'all' || beverage.type === selectedBeverageType;
-    return matchesSearch && matchesType;
-  });
+  const beverageCounts = useMemo(() => {
+    const counts = Object.keys(beverageTypes).reduce((acc, key) => {
+      acc[key] = 0;
+      return acc;
+    }, {});
+
+    beverages.forEach((beverage) => {
+      counts[beverage.type] = (counts[beverage.type] || 0) + 1;
+    });
+
+    return counts;
+  }, [beverages]);
 
   const currentBeverage = beverageTypes[selectedBeverageCategory] || beverageTypes.beer;
 
@@ -118,6 +119,30 @@ function HomePage({ selectedBeverageCategory = 'beer' }) {
         </div>
       </motion.div>
 
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start justify-between"
+        >
+          <div className="flex items-start space-x-3">
+            <SafeIcon icon={FiAlertCircle} className="w-5 h-5 mt-0.5" />
+            <div>
+              <p className="font-medium">We couldn&apos;t load your beverages.</p>
+              <p className="text-sm text-red-600">{error.message}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => refetch()}
+            className="flex items-center space-x-2 bg-red-100 hover:bg-red-200 text-red-800 px-3 py-2 rounded-md transition-colors"
+            type="button"
+          >
+            <SafeIcon icon={FiRefreshCw} className="w-4 h-4" />
+            <span>Try again</span>
+          </button>
+        </motion.div>
+      )}
+
       {/* Beverages Grid */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -125,13 +150,27 @@ function HomePage({ selectedBeverageCategory = 'beer' }) {
         transition={{ delay: 0.3 }}
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8"
       >
-        {filteredBeverages.map((beverage, index) => (
-          <BeerCard key={beverage.id} beer={beverage} index={index} />
-        ))}
+        {isLoading ? (
+          Array.from({ length: 8 }).map((_, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-xl border border-gray-200 p-4 animate-pulse h-full"
+            >
+              <div className="aspect-square bg-gray-200 rounded-lg mb-4" />
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+              <div className="h-3 bg-gray-200 rounded w-1/2 mb-2" />
+              <div className="h-3 bg-gray-200 rounded w-2/3" />
+            </div>
+          ))
+        ) : (
+          filteredBeverages.map((beverage, index) => (
+            <BeerCard key={beverage.id} beer={beverage} index={index} />
+          ))
+        )}
       </motion.div>
 
       {/* No Results */}
-      {filteredBeverages.length === 0 && (
+      {!isLoading && filteredBeverages.length === 0 && !error && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -153,27 +192,27 @@ function HomePage({ selectedBeverageCategory = 'beer' }) {
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Collection Statistics</h3>
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-amber-600">{beverages.filter(b => b.type === 'beer').length}</div>
+            <div className="text-2xl font-bold text-amber-600">{beverageCounts.beer || 0}</div>
             <div className="text-sm text-gray-600">🍺 Beers</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">{beverages.filter(b => b.type === 'wine').length}</div>
+            <div className="text-2xl font-bold text-purple-600">{beverageCounts.wine || 0}</div>
             <div className="text-sm text-gray-600">🍷 Wines</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-orange-600">{beverages.filter(b => b.type === 'spirits').length}</div>
+            <div className="text-2xl font-bold text-orange-600">{beverageCounts.spirits || 0}</div>
             <div className="text-sm text-gray-600">🥃 Spirits</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{beverages.filter(b => b.type === 'cider').length}</div>
+            <div className="text-2xl font-bold text-green-600">{beverageCounts.cider || 0}</div>
             <div className="text-sm text-gray-600">🍎 Ciders</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-600">{beverages.filter(b => b.type === 'mead').length}</div>
+            <div className="text-2xl font-bold text-yellow-600">{beverageCounts.mead || 0}</div>
             <div className="text-sm text-gray-600">🍯 Meads</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-teal-600">{beverages.filter(b => b.type === 'fermented').length}</div>
+            <div className="text-2xl font-bold text-teal-600">{beverageCounts.fermented || 0}</div>
             <div className="text-sm text-gray-600">🫖 Fermented</div>
           </div>
         </div>
