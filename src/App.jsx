@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import LoginPage from './pages/LoginPage';
-import HomePage from './pages/HomePage';
-import BeerDetails from './pages/BeerDetails';
-import RateBeer from './pages/RateBeer';
-import Profile from './pages/Profile';
-import ProducersList from './pages/ProducersList';
-import BreweryProfile from './pages/BreweryProfile';
-import StyleGuide from './pages/StyleGuide';
-import Chat from './pages/Chat';
-import Cellar from './pages/Cellar';
-import DrinkingBuddies from './pages/DrinkingBuddies';
-import Venues from './pages/Venues';
-import Events from './pages/Events';
-import EventDetails from './pages/EventDetails';
-import Search from './pages/Search';
-import VenueManagement from './pages/VenueManagement';
+import React, { useState, lazy, Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './components/MainLayout';
+
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const HomePage = lazy(() => import('./pages/HomePage'));
+const BeerDetails = lazy(() => import('./pages/BeerDetails'));
+const RateBeer = lazy(() => import('./pages/RateBeer'));
+const Profile = lazy(() => import('./pages/Profile'));
+const ProducersList = lazy(() => import('./pages/ProducersList'));
+const BreweryProfile = lazy(() => import('./pages/BreweryProfile'));
+const StyleGuide = lazy(() => import('./pages/StyleGuide'));
+const Chat = lazy(() => import('./pages/Chat'));
+const Cellar = lazy(() => import('./pages/Cellar'));
+const DrinkingBuddies = lazy(() => import('./pages/DrinkingBuddies'));
+const Venues = lazy(() => import('./pages/Venues'));
+const Events = lazy(() => import('./pages/Events'));
+const EventDetails = lazy(() => import('./pages/EventDetails'));
+const Search = lazy(() => import('./pages/Search'));
+const VenueManagement = lazy(() => import('./pages/VenueManagement'));
 
 function App() {
   const [user, setUser] = useState(null);
@@ -30,219 +30,50 @@ function App() {
     setUser(null);
   };
 
+  const renderProtectedPage = (page) => (
+    user ? (
+      <MainLayout user={user} onLogout={handleLogout}>
+        {page}
+      </MainLayout>
+    ) : (
+      <Navigate to="/login" replace />
+    )
+  );
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        <Routes>
-          <Route
-            path="/login"
-            element={
-              user ? (
-                <Navigate to="/home" replace />
-              ) : (
-                <LoginPage onLogin={handleLogin} />
-              )
-            }
-          />
+        <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-gray-600">Loading...</div>}>
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                user ? <Navigate to="/home" replace /> : <LoginPage onLogin={handleLogin} />
+              }
+            />
 
-          {/* Protected routes with MainLayout */}
-          <Route
-            path="/home"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <HomePage />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/search"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <Search />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/events"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <Events />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/events/:eventId"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <EventDetails />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/venue-management"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <VenueManagement user={user} />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/beer-details"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <BeerDetails />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/rate-beer"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <RateBeer />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/producers"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <ProducersList />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/producer/:producerId"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <BreweryProfile />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/styles"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <StyleGuide />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/cellar"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <Cellar />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/drinking-buddies"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <DrinkingBuddies />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/venues"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <Venues />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/chat"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <Chat />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route
-            path="/profile"
-            element={
-              user ? (
-                <MainLayout user={user} onLogout={handleLogout}>
-                  <Profile user={user} />
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-
-          <Route path="/" element={<Navigate to="/login" replace />} />
-        </Routes>
+            {/* Protected routes with MainLayout */}
+            <Route path="/home" element={renderProtectedPage(<HomePage />)} />
+            <Route path="/search" element={renderProtectedPage(<Search />)} />
+            <Route path="/events" element={renderProtectedPage(<Events />)} />
+            <Route path="/events/:eventId" element={renderProtectedPage(<EventDetails />)} />
+            <Route
+              path="/venue-management"
+              element={renderProtectedPage(<VenueManagement user={user} />)}
+            />
+            <Route path="/beer-details" element={renderProtectedPage(<BeerDetails />)} />
+            <Route path="/rate-beer" element={renderProtectedPage(<RateBeer />)} />
+            <Route path="/producers" element={renderProtectedPage(<ProducersList />)} />
+            <Route path="/producer/:producerId" element={renderProtectedPage(<BreweryProfile />)} />
+            <Route path="/styles" element={renderProtectedPage(<StyleGuide />)} />
+            <Route path="/cellar" element={renderProtectedPage(<Cellar />)} />
+            <Route path="/drinking-buddies" element={renderProtectedPage(<DrinkingBuddies />)} />
+            <Route path="/venues" element={renderProtectedPage(<Venues />)} />
+            <Route path="/chat" element={renderProtectedPage(<Chat />)} />
+            <Route path="/profile" element={renderProtectedPage(<Profile user={user} />)} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </Suspense>
       </div>
     </Router>
   );
