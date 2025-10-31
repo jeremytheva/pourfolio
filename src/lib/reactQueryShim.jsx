@@ -4,7 +4,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState
 } from 'react';
 
@@ -75,14 +74,10 @@ export function useQuery({
   staleTime = 0
 }) {
   const client = useQueryClient();
-  const keyRef = useRef(serializeKey(queryKey));
-
-  useEffect(() => {
-    keyRef.current = serializeKey(queryKey);
-  }, [queryKey]);
+  const serializedKey = useMemo(() => serializeKey(queryKey), [queryKey]);
 
   const getCachedState = useCallback(() => {
-    const entry = client.getCacheEntry(keyRef.current);
+    const entry = client.getCacheEntry(queryKey);
     if (!entry) {
       return {
         data: null,
@@ -102,16 +97,20 @@ export function useQuery({
       isLoading: enabled && isStale,
       isFetching: enabled && isStale
     };
-  }, [client, enabled, staleTime]);
+  }, [client, enabled, queryKey, staleTime]);
 
   const [state, setState] = useState(getCachedState);
+
+  useEffect(() => {
+    setState(getCachedState());
+  }, [getCachedState, serializedKey]);
 
   const executeFetch = useCallback(async (force = false) => {
     if (!enabled || typeof queryFn !== 'function') {
       return null;
     }
 
-    const cached = client.getCacheEntry(keyRef.current);
+    const cached = client.getCacheEntry(queryKey);
     const isStale = force || !cached || (staleTime > 0 && Date.now() - cached.updatedAt > staleTime);
 
     if (!isStale && cached) {
@@ -133,7 +132,7 @@ export function useQuery({
 
     try {
       const data = await queryFn();
-      client.setCacheEntry(keyRef.current, data);
+      client.setCacheEntry(queryKey, data);
       setState({
         data,
         error: null,
@@ -150,7 +149,7 @@ export function useQuery({
       }));
       throw error;
     }
-  }, [client, enabled, queryFn, staleTime]);
+  }, [client, enabled, queryFn, queryKey, staleTime]);
 
   useEffect(() => {
     if (!enabled) {
@@ -167,7 +166,7 @@ export function useQuery({
     return () => {
       cancelled = true;
     };
-  }, [enabled, executeFetch]);
+  }, [enabled, executeFetch, serializedKey]);
 
   const refetch = useCallback(() => executeFetch(true), [executeFetch]);
 
