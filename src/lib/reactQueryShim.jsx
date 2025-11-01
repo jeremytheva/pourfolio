@@ -77,7 +77,7 @@ export function useQuery({
   const serializedKey = useMemo(() => serializeKey(queryKey), [queryKey]);
 
   const getCachedState = useCallback(() => {
-    const entry = client.getCacheEntry(queryKey);
+    const entry = client.getCacheEntry(serializedKey);
     if (!entry) {
       return {
         data: null,
@@ -97,7 +97,7 @@ export function useQuery({
       isLoading: enabled && isStale,
       isFetching: enabled && isStale
     };
-  }, [client, enabled, queryKey, staleTime]);
+  }, [client, enabled, serializedKey, staleTime]);
 
   const [state, setState] = useState(getCachedState);
 
@@ -110,7 +110,7 @@ export function useQuery({
       return null;
     }
 
-    const cached = client.getCacheEntry(queryKey);
+    const cached = client.getCacheEntry(serializedKey);
     const isStale = force || !cached || (staleTime > 0 && Date.now() - cached.updatedAt > staleTime);
 
     if (!isStale && cached) {
@@ -132,7 +132,7 @@ export function useQuery({
 
     try {
       const data = await queryFn();
-      client.setCacheEntry(queryKey, data);
+      client.setCacheEntry(serializedKey, data);
       setState({
         data,
         error: null,
@@ -149,7 +149,7 @@ export function useQuery({
       }));
       throw error;
     }
-  }, [client, enabled, queryFn, queryKey, staleTime]);
+  }, [client, enabled, queryFn, serializedKey, staleTime]);
 
   useEffect(() => {
     if (!enabled) {
