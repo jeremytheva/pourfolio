@@ -46,7 +46,12 @@ function App() {
 
     if (envBase === './') {
       if (typeof window !== 'undefined') {
-        return window.location.pathname.replace(/\/index\.html$/, '') || '/';
+        const { pathname } = window.location;
+        const withoutIndexHtml = pathname.endsWith('/index.html')
+          ? pathname.slice(0, -'/index.html'.length)
+          : pathname;
+
+        return withoutIndexHtml || '/';
       }
 
       return '/';
