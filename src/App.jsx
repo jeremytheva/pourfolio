@@ -1,5 +1,5 @@
 import React, { useState, lazy, Suspense } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './components/MainLayout';
 
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -21,6 +21,44 @@ const VenueManagement = lazy(() => import('./pages/VenueManagement'));
 
 function App() {
   const [user, setUser] = useState(null);
+  const [basename] = useState(() => {
+    if (typeof document !== 'undefined') {
+      const baseElement = document.querySelector('base');
+
+      if (baseElement) {
+        const href = baseElement.getAttribute('href');
+
+        if (href) {
+          try {
+            const baseURL = new URL(href, window.location.origin).pathname;
+
+            return baseURL.endsWith('/') && baseURL.length > 1
+              ? baseURL.slice(0, -1)
+              : baseURL;
+          } catch (error) {
+            console.warn('Failed to resolve base href for router basename:', error);
+          }
+        }
+      }
+    }
+
+    const envBase = import.meta.env.BASE_URL || '/';
+
+    if (envBase === './') {
+      if (typeof window !== 'undefined') {
+        const { pathname } = window.location;
+        const withoutIndexHtml = pathname.endsWith('/index.html')
+          ? pathname.slice(0, -'/index.html'.length)
+          : pathname;
+
+        return withoutIndexHtml || '/';
+      }
+
+      return '/';
+    }
+
+    return envBase.endsWith('/') && envBase.length > 1 ? envBase.slice(0, -1) : envBase;
+  });
 
   const handleLogin = (userData) => {
     setUser(userData);
@@ -41,7 +79,7 @@ function App() {
   );
 
   return (
-    <Router>
+    <Router basename={basename}>
       <div className="min-h-screen bg-gray-50">
         <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-gray-600">Loading...</div>}>
           <Routes>
