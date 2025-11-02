@@ -1,0 +1,6 @@
+Brewery Id,Brewery Name,Beer Id,Beer Name,Declared Style,ABV,IBU
+BR-001,Brewery X,BE-001,IPA Delight,American IPA,6.5,65
+BR-002,Sunset Brewing,BE-002,Golden Wheat,Belgian Witbier,5.2,18
+BR-003,Mountain Brewery,BE-003,Dark Stout,Imperial Stout,9.5,75
+BR-002,Sunset Brewing,BE-004,Crisp Kölsch,Kölsch,4.9,25
+BR-004,Valley Brews,BE-005,Amber Sunset,American Amber Ale,5.6,35
