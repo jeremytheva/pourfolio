@@ -1,0 +1,212 @@
+[
+  {
+    "id": "bjcp-21a-american-ipa",
+    "guide": "BJCP 2021",
+    "category": "21 IPA",
+    "subcategory": "21A",
+    "name": "American IPA",
+    "styleFamily": "Pale American Ale",
+    "description": "A decidedly hoppy and bitter, moderately strong American pale ale showcasing modern American or New World hop varieties.",
+    "abvRange": {
+      "min": 5.5,
+      "max": 7.5
+    },
+    "ibuRange": {
+      "min": 40,
+      "max": 70
+    },
+    "srmRange": {
+      "min": 6,
+      "max": 14
+    }
+  },
+  {
+    "id": "bjcp-24a-witbier",
+    "guide": "BJCP 2021",
+    "category": "24 Belgian Ale",
+    "subcategory": "24A",
+    "name": "Witbier",
+    "styleFamily": "Belgian Ale",
+    "description": "A refreshing, elegant, tasty, moderate-strength wheat-based ale fermented with Belgian yeast.",
+    "abvRange": {
+      "min": 4.5,
+      "max": 5.5
+    },
+    "ibuRange": {
+      "min": 8,
+      "max": 20
+    },
+    "srmRange": {
+      "min": 2,
+      "max": 4
+    }
+  },
+  {
+    "id": "bjcp-20c-imperial-stout",
+    "guide": "BJCP 2021",
+    "category": "20 American Porter and Stout",
+    "subcategory": "20C",
+    "name": "Imperial Stout",
+    "styleFamily": "American Porter and Stout",
+    "description": "An intensely flavored, big, dark ale with a wide range of flavor balances and regional interpretations.",
+    "abvRange": {
+      "min": 8,
+      "max": 12
+    },
+    "ibuRange": {
+      "min": 50,
+      "max": 90
+    },
+    "srmRange": {
+      "min": 30,
+      "max": 40
+    }
+  },
+  {
+    "id": "bjcp-5b-kolsch",
+    "guide": "BJCP 2021",
+    "category": "5 Pale Bitter European Beer",
+    "subcategory": "5B",
+    "name": "Kölsch",
+    "styleFamily": "Pale Bitter European Beer",
+    "description": "A clean, crisp, delicately-balanced beer usually with very subtle fruit and hop character.",
+    "abvRange": {
+      "min": 4.4,
+      "max": 5.2
+    },
+    "ibuRange": {
+      "min": 18,
+      "max": 30
+    },
+    "srmRange": {
+      "min": 3,
+      "max": 5
+    }
+  },
+  {
+    "id": "bjcp-19a-american-amber-ale",
+    "guide": "BJCP 2021",
+    "category": "19 Amber and Brown American Beer",
+    "subcategory": "19A",
+    "name": "American Amber Ale",
+    "styleFamily": "Amber and Brown American Beer",
+    "description": "An amber, hoppy, moderate-strength American craft beer with caramel flavor.",
+    "abvRange": {
+      "min": 4.5,
+      "max": 6.2
+    },
+    "ibuRange": {
+      "min": 25,
+      "max": 40
+    },
+    "srmRange": {
+      "min": 10,
+      "max": 17
+    }
+  },
+  {
+    "id": "bjcp-1c-cream-ale",
+    "guide": "BJCP 2021",
+    "category": "1 Standard American Beer",
+    "subcategory": "1C",
+    "name": "Cream Ale",
+    "styleFamily": "Standard American Beer",
+    "description": "A clean, well-attenuated, flavorful American lawnmower beer.",
+    "abvRange": {
+      "min": 4.2,
+      "max": 5.6
+    },
+    "ibuRange": {
+      "min": 8,
+      "max": 20
+    },
+    "srmRange": {
+      "min": 2,
+      "max": 5
+    }
+  },
+  {
+    "id": "bjcp-3b-czech-premium-pale",
+    "guide": "BJCP 2021",
+    "category": "3 Czech Lager",
+    "subcategory": "3B",
+    "name": "Czech Premium Pale Lager",
+    "styleFamily": "Czech Lager",
+    "description": "A rich, characterful, pale Czech lager with considerable malt and hop character.",
+    "abvRange": {
+      "min": 4.2,
+      "max": 5.8
+    },
+    "ibuRange": {
+      "min": 30,
+      "max": 45
+    },
+    "srmRange": {
+      "min": 3,
+      "max": 6
+    }
+  },
+  {
+    "id": "bjcp-10a-weissbier",
+    "guide": "BJCP 2021",
+    "category": "10 German Wheat Beer",
+    "subcategory": "10A",
+    "name": "Weissbier",
+    "styleFamily": "German Wheat Beer",
+    "description": "A pale, refreshing, German wheat beer with a high, pillowy head and a yeast-driven banana and clove aroma.",
+    "abvRange": {
+      "min": 4.3,
+      "max": 5.6
+    },
+    "ibuRange": {
+      "min": 8,
+      "max": 15
+    },
+    "srmRange": {
+      "min": 2,
+      "max": 6
+    }
+  },
+  {
+    "id": "bjcp-13b-british-brown",
+    "guide": "BJCP 2021",
+    "category": "13 Brown British Beer",
+    "subcategory": "13B",
+    "name": "British Brown Ale",
+    "styleFamily": "Brown British Beer",
+    "description": "A malty, sweet beer with a nice nutty character.",
+    "abvRange": {
+      "min": 4.2,
+      "max": 5.4
+    },
+    "ibuRange": {
+      "min": 20,
+      "max": 30
+    },
+    "srmRange": {
+      "min": 12,
+      "max": 22
+    }
+  },
+  {
+    "id": "bjcp-28b-berliner-weisse",
+    "guide": "BJCP 2021",
+    "category": "28 American Wild Ale",
+    "subcategory": "28B",
+    "name": "Mixed-Fermentation Sour Beer",
+    "styleFamily": "American Wild Ale",
+    "description": "An American sour beer fermented with both traditional brewers yeast and bacteria, resulting in a complex sour profile.",
+    "abvRange": {
+      "min": 4.5,
+      "max": 7
+    },
+    "ibuRange": {
+      "min": 0,
+      "max": 10
+    },
+    "srmRange": {
+      "min": 2,
+      "max": 7
+    }
+  }
+]

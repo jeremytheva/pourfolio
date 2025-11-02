@@ -1,0 +1,37 @@
+[
+  {
+    "declared_style": "American IPA",
+    "bjcp_style_id": "bjcp-21a-american-ipa",
+    "ba_style_id": "ba-american-ipa",
+    "match_method": "exact-name",
+    "notes": "Declared style aligns directly with BJCP 21A American IPA and the Brewers Association American-Style India Pale Ale."
+  },
+  {
+    "declared_style": "Belgian Witbier",
+    "bjcp_style_id": "bjcp-24a-witbier",
+    "ba_style_id": "ba-wheat-ale",
+    "match_method": "exact-name",
+    "notes": "Declared style maps to the classic Belgian witbier specification in both guideline sets."
+  },
+  {
+    "declared_style": "Imperial Stout",
+    "bjcp_style_id": "bjcp-20c-imperial-stout",
+    "ba_style_id": "ba-imperial-stout",
+    "match_method": "exact-name",
+    "notes": "Imperial stout terminology is shared between BJCP 20C and the BA American-Style Imperial Stout category."
+  },
+  {
+    "declared_style": "Kölsch",
+    "bjcp_style_id": "bjcp-5b-kolsch",
+    "ba_style_id": "ba-kolsch",
+    "match_method": "exact-name",
+    "notes": "Kölsch is explicitly covered in BJCP 5B and Brewers Association German-Style Kölsch."
+  },
+  {
+    "declared_style": "American Amber Ale",
+    "bjcp_style_id": "bjcp-19a-american-amber-ale",
+    "ba_style_id": "ba-american-amber-ale",
+    "match_method": "exact-name",
+    "notes": "American Amber Ale corresponds to BJCP 19A and BA American-Style Amber/Red Ale."
+  }
+]

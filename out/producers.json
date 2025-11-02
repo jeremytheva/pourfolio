@@ -1,0 +1,26 @@
+[
+  {
+    "id": "producer_839628b6f98f",
+    "name": "Brewery X",
+    "slug": "brewery-x",
+    "source_brewery_id": "BR-001"
+  },
+  {
+    "id": "producer_13ddd38418d5",
+    "name": "Sunset Brewing",
+    "slug": "sunset-brewing",
+    "source_brewery_id": "BR-002"
+  },
+  {
+    "id": "producer_4a6e86e3dc6c",
+    "name": "Mountain Brewery",
+    "slug": "mountain-brewery",
+    "source_brewery_id": "BR-003"
+  },
+  {
+    "id": "producer_632ea7b04df8",
+    "name": "Valley Brews",
+    "slug": "valley-brews",
+    "source_brewery_id": "BR-004"
+  }
+]

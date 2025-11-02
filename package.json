@@ -10,7 +10,8 @@
     "lint:error": "eslint . --quiet",
     "preview": "vite preview",
     "test": "vitest",
-    "test:watch": "vitest --watch"
+    "test:watch": "vitest --watch",
+    "generate:data": "node scripts/generate-json.js"
   },
   "dependencies": {
     "@questlabs/react-sdk": "latest",
