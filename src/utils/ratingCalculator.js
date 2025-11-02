@@ -61,7 +61,7 @@ export const calculateFinalRating = (
 // Export descriptors and guidance from beverageTypes
 export { ratingDescriptors, styleGuidance } from './beverageTypes';
 
-export const bonusAttributeCategories = {
+export const defaultBonusAttributeCategories = {
   emotionalImpact: {
     name: 'Emotional Impact',
     positive: [
