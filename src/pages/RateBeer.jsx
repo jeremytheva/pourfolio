@@ -18,7 +18,11 @@ const { FiArrowLeft, FiCheck, FiPlus, FiX, FiEyeOff, FiEye, FiChevronLeft, FiChe
 function RateBeer({ selectedBeverageCategory = 'beer' }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const beverageType = searchParams.get('type') || selectedBeverageCategory;
+  const queryType = searchParams.get('type');
+  const fallbackType = beverageTypes[selectedBeverageCategory]
+    ? selectedBeverageCategory
+    : 'beer';
+  const beverageType = beverageTypes[queryType] ? queryType : fallbackType;
   const [settings, setSettings] = useState(getSettings(beverageType));
 
   // Rating step management
@@ -27,8 +31,14 @@ function RateBeer({ selectedBeverageCategory = 'beer' }) {
 
   // Initialize attributes based on beverage type
   const initializeAttributes = (type) => {
-    const beverage = beverageTypes[type];
-    const typeSettings = getSettings(type);
+    const effectiveType = beverageTypes[type] ? type : fallbackType;
+    const beverage = beverageTypes[effectiveType];
+
+    if (!beverage) {
+      return {};
+    }
+
+    const typeSettings = getSettings(effectiveType);
     const attrs = {};
     
     beverage.attributes.forEach(attr => {
@@ -37,7 +47,7 @@ function RateBeer({ selectedBeverageCategory = 'beer' }) {
         weight: typeSettings.ratingWeights[attr] || beverage.defaultWeights[attr]
       };
     });
-    
+
     return attrs;
   };
 
@@ -70,23 +80,23 @@ function RateBeer({ selectedBeverageCategory = 'beer' }) {
 
   // Dummy beverage data
   const beverage = {
-    name: beverageType === 'beer' ? 'IPA Delight' : 
-          beverageType === 'wine' ? 'Chardonnay Reserve' : 
-          beverageType === 'spirits' ? 'Single Malt Scotch' : 
-          beverageType === 'cider' ? 'Traditional Dry Cider' : 
-          beverageType === 'mead' ? 'Traditional Honey Mead' : 
+    name: beverageType === 'beer' ? 'IPA Delight' :
+          beverageType === 'wine' ? 'Chardonnay Reserve' :
+          beverageType === 'spirits' ? 'Single Malt Scotch' :
+          beverageType === 'cider' ? 'Traditional Dry Cider' :
+          beverageType === 'mead' ? 'Traditional Honey Mead' :
           'Ginger Kombucha',
-    producer: beverageType === 'beer' ? 'Brewery X' : 
-              beverageType === 'wine' ? 'Vineyard Estate' : 
-              beverageType === 'spirits' ? 'Distillery Co.' : 
-              beverageType === 'cider' ? 'Orchard Cidery' : 
-              beverageType === 'mead' ? 'Meadery Guild' : 
+    producer: beverageType === 'beer' ? 'Brewery X' :
+              beverageType === 'wine' ? 'Vineyard Estate' :
+              beverageType === 'spirits' ? 'Distillery Co.' :
+              beverageType === 'cider' ? 'Orchard Cidery' :
+              beverageType === 'mead' ? 'Meadery Guild' :
               'Fermentation Co.',
-    style: beverageType === 'beer' ? 'American IPA' : 
-           beverageType === 'wine' ? 'Chardonnay' : 
-           beverageType === 'spirits' ? 'Single Malt Scotch' : 
-           beverageType === 'cider' ? 'Traditional Cider' : 
-           beverageType === 'mead' ? 'Traditional Mead' : 
+    style: beverageType === 'beer' ? 'American IPA' :
+           beverageType === 'wine' ? 'Chardonnay' :
+           beverageType === 'spirits' ? 'Single Malt Scotch' :
+           beverageType === 'cider' ? 'Traditional Cider' :
+           beverageType === 'mead' ? 'Traditional Mead' :
            'Kombucha',
     image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=400&h=400&fit=crop'
   };
@@ -199,7 +209,7 @@ function RateBeer({ selectedBeverageCategory = 'beer' }) {
   };
 
   const currentRating = calculateCurrentRating();
-  const currentBeverage = beverageTypes[beverageType];
+  const currentBeverage = beverageTypes[beverageType] || beverageTypes[fallbackType];
   const stepTitles = ['Main Attributes', 'Bonus Attributes', 'Additional Information', 'Summary'];
 
   return (

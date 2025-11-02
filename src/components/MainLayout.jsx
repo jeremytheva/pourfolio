@@ -12,7 +12,11 @@ function MainLayout({ user, onLogout, children }) {
 
   // Load saved category preference or user's default
   useEffect(() => {
-    const saved = localStorage.getItem('selectedBeverageCategory');
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const saved = window.localStorage?.getItem('selectedBeverageCategory');
     if (saved && ['beer', 'wine', 'spirits', 'cider', 'mead', 'fermented'].includes(saved)) {
       setSelectedBeverageCategory(saved);
     } else if (user?.defaultBeverageCategory) {
@@ -23,7 +27,9 @@ function MainLayout({ user, onLogout, children }) {
   // Save category preference
   const handleCategoryChange = (category) => {
     setSelectedBeverageCategory(category);
-    localStorage.setItem('selectedBeverageCategory', category);
+    if (typeof window !== 'undefined') {
+      window.localStorage?.setItem('selectedBeverageCategory', category);
+    }
   };
 
   const handleSideNavToggle = () => {
@@ -36,6 +42,10 @@ function MainLayout({ user, onLogout, children }) {
 
   // Close mobile menu when screen size changes
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
     const handleResize = () => {
       if (window.innerWidth >= 768) {
         setMobileMenuOpen(false);
@@ -81,10 +91,12 @@ function MainLayout({ user, onLogout, children }) {
             transition={{ duration: 0.3 }}
           >
             {/* Pass the selected category to children */}
-            {React.cloneElement(children, {
-              selectedBeverageCategory,
-              onCategoryChange: handleCategoryChange
-            })}
+            {React.isValidElement(children)
+              ? React.cloneElement(children, {
+                  selectedBeverageCategory,
+                  onCategoryChange: handleCategoryChange
+                })
+              : children}
           </motion.div>
         </main>
       </div>
