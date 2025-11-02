@@ -58,6 +58,24 @@ export const calculateFinalRating = (
   };
 };
 
+export const calculateFinalScore = ({
+  mainAttributes,
+  selectedBonusAttributes = [],
+  userBonusOverride = null,
+  hideBonus = false,
+  beverageType = 'beer'
+} = {}) => {
+  const rating = calculateFinalRating(
+    mainAttributes || {},
+    selectedBonusAttributes,
+    userBonusOverride,
+    hideBonus,
+    beverageType
+  );
+
+  return rating.finalRating;
+};
+
 // Export descriptors and guidance from beverageTypes
 export { ratingDescriptors, styleGuidance } from './beverageTypes';
 
@@ -128,3 +146,13 @@ export const burpScale = {
   2: { label: 'Moderate', description: 'Noticeable, satisfying burp' },
   3: { label: 'Strong', description: 'Robust, full-bodied burp with character' }
 };
+
+export function calculatePricePerPoint({ purchasePrice, retailPrice, finalScore }) {
+  if (!finalScore || finalScore <= 0) {
+    return { purchasePPP: null, retailPPP: null };
+  }
+  const purchasePPP = purchasePrice ? +(purchasePrice / finalScore).toFixed(2) : null;
+  const retailPPP   = retailPrice   ? +(retailPrice / finalScore).toFixed(2)   : null;
+  return { purchasePPP, retailPPP };
+}
+

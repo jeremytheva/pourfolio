@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import { calculatePriceValue, getScoreDescriptor } from '../utils/priceCalculator';
+import { calculatePricePerPoint } from '../utils/ratingCalculator';
 
 const { FiInfo, FiChevronDown, FiChevronUp, FiDollarSign, FiTrendingUp } = FiIcons;
 
@@ -19,6 +20,17 @@ function ScoreBreakdown({
   const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
 
   const scoreDescriptor = getScoreDescriptor(currentRating.finalRating);
+
+  const { purchasePPP, retailPPP } = calculatePricePerPoint({
+    purchasePrice,
+    retailPrice,
+    finalScore: currentRating.finalRating
+  });
+
+  const purchasePricePerPoint =
+    currentRating.purchase_price_per_point ?? purchasePPP;
+  const retailPricePerPoint =
+    currentRating.retail_price_per_point ?? retailPPP;
   
   // Calculate price value if pricing data is available
   const priceValue = (purchasePrice > 0 || retailPrice > 0) ? 
@@ -39,6 +51,25 @@ function ScoreBreakdown({
             Base: {currentRating.baseRating}/4.5
             {!currentRating.hideBonus && ` + Bonus: ${currentRating.bonusPoints}`}
           </div>
+          {(purchasePricePerPoint || retailPricePerPoint) && (
+            <div className="mt-3">
+              {purchasePricePerPoint && (
+                <p className="text-sm text-amber-600">
+                  💰 ${purchasePricePerPoint.toFixed(2)} per pt
+                  {purchasePricePerPoint <= 0.5 && (
+                    <span className="ml-2 text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded">
+                      ⭐ Great Value
+                    </span>
+                  )}
+                </p>
+              )}
+              {retailPricePerPoint && (
+                <p className="text-xs text-gray-500 mt-1">
+                  (Retail ${retailPricePerPoint.toFixed(2)} per pt)
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Show Admin Score Toggle */}
