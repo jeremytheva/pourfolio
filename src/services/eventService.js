@@ -1,60 +1,26 @@
-import { supabase } from '../lib/supabase'
+import { nocodeBackend } from '../lib/nocodeBackend'
+
+const EVENTS = 'events_pf2025'
 
 export const eventService = {
-  // Get all events
   async getEvents(filters = {}) {
-    let query = supabase
-      .from('events_pf2025')
-      .select('*')
-      .order('start_date', { ascending: true })
-
-    if (filters.type) {
-      query = query.eq('type', filters.type)
-    }
-
-    if (filters.beverage_category) {
-      query = query.eq('beverage_category', filters.beverage_category)
-    }
-
-    if (filters.search) {
-      query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`)
-    }
-
-    const { data, error } = await query
-    return { data, error }
+    return nocodeBackend.list(EVENTS, {
+      filters: { type: filters.type, beverage_category: filters.beverage_category },
+      search: filters.search ? { term: filters.search, fields: ['name', 'description'] } : undefined,
+      orderBy: 'start_date',
+      ascending: true
+    })
   },
 
-  // Get single event
   async getEvent(id) {
-    const { data, error } = await supabase
-      .from('events_pf2025')
-      .select('*')
-      .eq('id', id)
-      .single()
-    
-    return { data, error }
+    return nocodeBackend.get(EVENTS, id)
   },
 
-  // Add new event
   async addEvent(eventData) {
-    const { data, error } = await supabase
-      .from('events_pf2025')
-      .insert([eventData])
-      .select()
-      .single()
-    
-    return { data, error }
+    return nocodeBackend.create(EVENTS, eventData)
   },
 
-  // Update event
   async updateEvent(id, updates) {
-    const { data, error } = await supabase
-      .from('events_pf2025')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single()
-    
-    return { data, error }
+    return nocodeBackend.update(EVENTS, id, updates)
   }
 }
