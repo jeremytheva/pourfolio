@@ -1,32 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React,{useState,useEffect} from 'react';
+import {motion} from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import VenueModal from '../components/VenueModal';
 
-const { FiMapPin, FiSearch, FiFilter, FiStar, FiPlus, FiPhone, FiGlobe, FiClock, FiEdit3, FiTrash2 } = FiIcons;
+const {FiMapPin,FiSearch,FiFilter,FiStar,FiPlus,FiPhone,FiGlobe,FiClock,FiEdit3,FiTrash2,FiShield}=FiIcons;
 
 function Venues() {
-  const [venues, setVenues] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState('all');
-  const [selectedPriceRange, setSelectedPriceRange] = useState('all');
-  const [sortBy, setSortBy] = useState('name');
-  const [showVenueModal, setShowVenueModal] = useState(false);
+  const [venues,setVenues]=useState([]);
+  const [searchTerm,setSearchTerm]=useState('');
+  const [selectedType,setSelectedType]=useState('all');
+  const [selectedPriceRange,setSelectedPriceRange]=useState('all');
+  const [sortBy,setSortBy]=useState('name');
+  const [showVenueModal,setShowVenueModal]=useState(false);
 
   // Load venues from localStorage
-  useEffect(() => {
-    const stored = localStorage.getItem('venues');
+  useEffect(()=> {
+    const stored=localStorage.getItem('venues');
     if (stored) {
       try {
-        const parsedVenues = JSON.parse(stored);
+        const parsedVenues=JSON.parse(stored);
         setVenues(parsedVenues);
       } catch (error) {
-        console.error('Error loading venues:', error);
+        console.error('Error loading venues:',error);
       }
     } else {
       // Initialize with some sample venues
-      const sampleVenues = [
+      const sampleVenues=[
         {
           id: 1,
           name: 'The Crafty Pint',
@@ -38,21 +38,22 @@ function Venues() {
           phone: '(503) 555-0123',
           website: 'https://craftypint.com',
           priceRange: '$$',
-          specialties: ['Craft Beer', 'Local Brews', 'IPAs', 'Live Music'],
+          specialties: ['Craft Beer','Local Brews','IPAs','Live Music'],
           description: 'Local brewery with rotating taps and live music on weekends.',
           hours: {
-            monday: { open: '15:00', close: '22:00', closed: false },
-            tuesday: { open: '15:00', close: '22:00', closed: false },
-            wednesday: { open: '15:00', close: '22:00', closed: false },
-            thursday: { open: '15:00', close: '23:00', closed: false },
-            friday: { open: '12:00', close: '00:00', closed: false },
-            saturday: { open: '12:00', close: '00:00', closed: false },
-            sunday: { open: '12:00', close: '21:00', closed: false }
+            monday: {open: '15:00',close: '22:00',closed: false},
+            tuesday: {open: '15:00',close: '22:00',closed: false},
+            wednesday: {open: '15:00',close: '22:00',closed: false},
+            thursday: {open: '15:00',close: '23:00',closed: false},
+            friday: {open: '12:00',close: '00:00',closed: false},
+            saturday: {open: '12:00',close: '00:00',closed: false},
+            sunday: {open: '12:00',close: '21:00',closed: false}
           },
           totalRatings: 24,
           averageRating: 4.3,
           beverageCount: 12,
-          addedDate: '2024-01-15'
+          addedDate: '2024-01-15',
+          canClaim: true
         },
         {
           id: 2,
@@ -65,56 +66,56 @@ function Venues() {
           phone: '(415) 555-0456',
           website: 'https://bottleandcork.com',
           priceRange: '$$$',
-          specialties: ['Rare Bottles', 'Wine Selection', 'Craft Beer', 'Import Beers'],
+          specialties: ['Rare Bottles','Wine Selection','Craft Beer','Import Beers'],
           description: 'Premium bottle shop with rare finds and knowledgeable staff.',
           hours: {
-            monday: { open: '10:00', close: '20:00', closed: false },
-            tuesday: { open: '10:00', close: '20:00', closed: false },
-            wednesday: { open: '10:00', close: '20:00', closed: false },
-            thursday: { open: '10:00', close: '21:00', closed: false },
-            friday: { open: '10:00', close: '22:00', closed: false },
-            saturday: { open: '09:00', close: '22:00', closed: false },
-            sunday: { open: '11:00', close: '19:00', closed: false }
+            monday: {open: '10:00',close: '20:00',closed: false},
+            tuesday: {open: '10:00',close: '20:00',closed: false},
+            wednesday: {open: '10:00',close: '20:00',closed: false},
+            thursday: {open: '10:00',close: '21:00',closed: false},
+            friday: {open: '10:00',close: '22:00',closed: false},
+            saturday: {open: '09:00',close: '22:00',closed: false},
+            sunday: {open: '11:00',close: '19:00',closed: false}
           },
           totalRatings: 18,
           averageRating: 4.6,
           beverageCount: 8,
-          addedDate: '2024-01-10'
+          addedDate: '2024-01-10',
+          canClaim: true
         }
       ];
+
       setVenues(sampleVenues);
-      localStorage.setItem('venues', JSON.stringify(sampleVenues));
+      localStorage.setItem('venues',JSON.stringify(sampleVenues));
     }
-  }, []);
+  },[]);
 
   // Save venues to localStorage whenever venues change
-  useEffect(() => {
-    localStorage.setItem('venues', JSON.stringify(venues));
-  }, [venues]);
+  useEffect(()=> {
+    localStorage.setItem('venues',JSON.stringify(venues));
+  },[venues]);
 
-  const venueTypes = [
-    'Brewery', 'Winery', 'Distillery', 'Cidery', 'Meadery',
-    'Bottle Shop', 'Liquor Store', 'Restaurant', 'Bar', 'Pub',
-    'Taproom', 'Tasting Room', 'Wine Bar', 'Cocktail Lounge',
-    'Grocery Store', 'Online Store', 'Festival', 'Other'
+  const venueTypes=[
+    'Brewery','Winery','Distillery','Cidery','Meadery','Bottle Shop',
+    'Liquor Store','Restaurant','Bar','Pub','Taproom','Tasting Room',
+    'Wine Bar','Cocktail Lounge','Grocery Store','Online Store','Festival','Other'
   ];
 
-  const priceRanges = ['$', '$$', '$$$', '$$$$'];
+  const priceRanges=['$','$$','$$$','$$$$'];
 
   // Filter and sort venues
-  const filteredVenues = venues
-    .filter(venue => {
-      const matchesSearch = venue.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           venue.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           venue.state.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           venue.specialties.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      const matchesType = selectedType === 'all' || venue.type === selectedType;
-      const matchesPrice = selectedPriceRange === 'all' || venue.priceRange === selectedPriceRange;
+  const filteredVenues=venues
+    .filter(venue=> {
+      const matchesSearch=venue.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        venue.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        venue.state.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        venue.specialties.some(s=> s.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesType=selectedType==='all' || venue.type===selectedType;
+      const matchesPrice=selectedPriceRange==='all' || venue.priceRange===selectedPriceRange;
       
       return matchesSearch && matchesType && matchesPrice;
     })
-    .sort((a, b) => {
+    .sort((a,b)=> {
       switch (sortBy) {
         case 'rating':
           return b.averageRating - a.averageRating;
@@ -128,27 +129,43 @@ function Venues() {
       }
     });
 
-  const handleAddVenue = (newVenue) => {
-    setVenues(prev => [...prev, newVenue]);
+  const handleAddVenue=(newVenue)=> {
+    setVenues(prev=> [...prev,newVenue]);
   };
 
-  const handleDeleteVenue = (venueId) => {
+  const handleDeleteVenue=(venueId)=> {
     if (confirm('Are you sure you want to delete this venue?')) {
-      setVenues(prev => prev.filter(venue => venue.id !== venueId));
+      setVenues(prev=> prev.filter(venue=> venue.id !==venueId));
     }
   };
 
-  const formatTime = (time) => {
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  const handleClaimVenue=(venue)=> {
+    // Save claim request
+    const claims=JSON.parse(localStorage.getItem('venueClaims') || '[]');
+    claims.push({
+      id: Date.now(),
+      venueId: venue.id,
+      venueName: venue.name,
+      claimedBy: 'Current User',
+      claimedAt: new Date().toISOString(),
+      status: 'pending_verification',
+      type: 'venue'
+    });
+    localStorage.setItem('venueClaims',JSON.stringify(claims));
+    alert('Venue claim submitted! Please check your email for verification instructions.');
+  };
+
+  const formatTime=(time)=> {
+    const [hours,minutes]=time.split(':');
+    const hour=parseInt(hours);
+    const ampm=hour >=12 ? 'PM' : 'AM';
+    const displayHour=hour===0 ? 12 : hour > 12 ? hour - 12 : hour;
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  const getTodayHours = (venue) => {
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    const todayHours = venue.hours[today];
+  const getTodayHours=(venue)=> {
+    const today=new Date().toLocaleDateString('en-US',{weekday: 'long'}).toLowerCase();
+    const todayHours=venue.hours[today];
     
     if (!todayHours || todayHours.closed) {
       return 'Closed Today';
@@ -157,30 +174,30 @@ function Venues() {
     return `${formatTime(todayHours.open)} - ${formatTime(todayHours.close)}`;
   };
 
-  const renderStars = (rating) => {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
-    const stars = [];
-
-    for (let i = 0; i < fullStars; i++) {
+  const renderStars=(rating)=> {
+    const fullStars=Math.floor(rating);
+    const hasHalfStar=rating % 1 !==0;
+    const stars=[];
+    
+    for (let i=0;i < fullStars;i++) {
       stars.push(
         <SafeIcon key={i} icon={FiStar} className="w-4 h-4 text-yellow-400 fill-current" />
       );
     }
-
+    
     if (hasHalfStar) {
       stars.push(
         <SafeIcon key="half" icon={FiStar} className="w-4 h-4 text-yellow-400 fill-current opacity-50" />
       );
     }
-
-    const remainingStars = 5 - Math.ceil(rating);
-    for (let i = 0; i < remainingStars; i++) {
+    
+    const remainingStars=5 - Math.ceil(rating);
+    for (let i=0;i < remainingStars;i++) {
       stars.push(
         <SafeIcon key={`empty-${i}`} icon={FiStar} className="w-4 h-4 text-gray-300" />
       );
     }
-
+    
     return stars;
   };
 
@@ -188,8 +205,8 @@ function Venues() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{opacity: 0,y: 20}}
+        animate={{opacity: 1,y: 0}}
         className="text-center mb-8"
       >
         <div className="flex items-center justify-center space-x-3 mb-4">
@@ -203,9 +220,9 @@ function Venues() {
 
       {/* Stats and Add Button */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        initial={{opacity: 0,y: 20}}
+        animate={{opacity: 1,y: 0}}
+        transition={{delay: 0.1}}
         className="flex items-center justify-between mb-8"
       >
         <div className="flex space-x-6">
@@ -215,20 +232,20 @@ function Venues() {
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">
-              {venues.reduce((sum, venue) => sum + venue.beverageCount, 0)}
+              {venues.reduce((sum,venue)=> sum + venue.beverageCount,0)}
             </div>
             <div className="text-sm text-gray-600">Beverages Purchased</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">
-              {venues.length > 0 ? (venues.reduce((sum, venue) => sum + venue.averageRating, 0) / venues.length).toFixed(1) : '0.0'}
+              {venues.length > 0 ? (venues.reduce((sum,venue)=> sum + venue.averageRating,0) / venues.length).toFixed(1) : '0.0'}
             </div>
             <div className="text-sm text-gray-600">Avg Rating</div>
           </div>
         </div>
-        
+
         <button
-          onClick={() => setShowVenueModal(true)}
+          onClick={()=> setShowVenueModal(true)}
           className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2"
         >
           <SafeIcon icon={FiPlus} className="w-5 h-5" />
@@ -238,9 +255,9 @@ function Venues() {
 
       {/* Search and Filter Controls */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        initial={{opacity: 0,y: 20}}
+        animate={{opacity: 1,y: 0}}
+        transition={{delay: 0.2}}
         className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8"
       >
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -251,7 +268,7 @@ function Venues() {
               type="text"
               placeholder="Search venues..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e)=> setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
             />
           </div>
@@ -259,11 +276,11 @@ function Venues() {
           {/* Type Filter */}
           <select
             value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
+            onChange={(e)=> setSelectedType(e.target.value)}
             className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
           >
             <option value="all">All Types</option>
-            {venueTypes.map(type => (
+            {venueTypes.map(type=> (
               <option key={type} value={type}>{type}</option>
             ))}
           </select>
@@ -271,11 +288,11 @@ function Venues() {
           {/* Price Range Filter */}
           <select
             value={selectedPriceRange}
-            onChange={(e) => setSelectedPriceRange(e.target.value)}
+            onChange={(e)=> setSelectedPriceRange(e.target.value)}
             className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
           >
             <option value="all">All Price Ranges</option>
-            {priceRanges.map(range => (
+            {priceRanges.map(range=> (
               <option key={range} value={range}>{range}</option>
             ))}
           </select>
@@ -283,7 +300,7 @@ function Venues() {
           {/* Sort */}
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
+            onChange={(e)=> setSortBy(e.target.value)}
             className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
           >
             <option value="name">Sort by Name</option>
@@ -302,12 +319,12 @@ function Venues() {
 
       {/* Venues Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredVenues.map((venue, index) => (
+        {filteredVenues.map((venue,index)=> (
           <motion.div
             key={venue.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
+            initial={{opacity: 0,y: 20}}
+            animate={{opacity: 1,y: 0}}
+            transition={{delay: index * 0.1}}
             className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
           >
             {/* Venue Header */}
@@ -320,7 +337,7 @@ function Venues() {
                   </span>
                   <span className="text-gray-500">{venue.priceRange}</span>
                 </div>
-                
+
                 {/* Rating */}
                 {venue.averageRating > 0 && (
                   <div className="flex items-center space-x-2 mb-2">
@@ -340,23 +357,33 @@ function Venues() {
                 <div className="flex items-center space-x-2 text-gray-600 mb-2">
                   <SafeIcon icon={FiMapPin} className="w-4 h-4" />
                   <span className="text-sm">
-                    {venue.address && `${venue.address}, `}
-                    {venue.city}, {venue.state}
+                    {venue.address && `${venue.address},`} {venue.city},{venue.state}
                   </span>
                 </div>
               </div>
 
               {/* Actions */}
               <div className="flex space-x-2 ml-4">
+                {venue.canClaim && (
+                  <button
+                    onClick={()=> handleClaimVenue(venue)}
+                    className="p-2 text-gray-400 hover:text-green-600 transition-colors"
+                    title="Claim this venue"
+                  >
+                    <SafeIcon icon={FiShield} className="w-4 h-4" />
+                  </button>
+                )}
+                
                 <button
-                  onClick={() => {/* Handle edit */}}
+                  onClick={()=> {/* Handle edit */}}
                   className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
                   title="Edit venue"
                 >
                   <SafeIcon icon={FiEdit3} className="w-4 h-4" />
                 </button>
+                
                 <button
-                  onClick={() => handleDeleteVenue(venue.id)}
+                  onClick={()=> handleDeleteVenue(venue.id)}
                   className="p-2 text-gray-400 hover:text-red-600 transition-colors"
                   title="Delete venue"
                 >
@@ -374,7 +401,7 @@ function Venues() {
 
             {/* Specialties */}
             <div className="flex flex-wrap gap-2 mb-4">
-              {venue.specialties.slice(0, 4).map((specialty, idx) => (
+              {venue.specialties.slice(0,4).map((specialty,idx)=> (
                 <span
                   key={idx}
                   className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full"
@@ -444,23 +471,23 @@ function Venues() {
       </div>
 
       {/* No Results */}
-      {filteredVenues.length === 0 && (
+      {filteredVenues.length===0 && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          initial={{opacity: 0}}
+          animate={{opacity: 1}}
           className="text-center py-12"
         >
           <SafeIcon icon={FiMapPin} className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-500 mb-2">No venues found</h3>
           <p className="text-gray-400 mb-6">
-            {venues.length === 0 
+            {venues.length===0
               ? "You haven't added any venues yet. Start by adding your first venue!"
               : "Try adjusting your search or filter criteria."
             }
           </p>
-          {venues.length === 0 && (
+          {venues.length===0 && (
             <button
-              onClick={() => setShowVenueModal(true)}
+              onClick={()=> setShowVenueModal(true)}
               className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2 mx-auto"
             >
               <SafeIcon icon={FiPlus} className="w-5 h-5" />
@@ -473,7 +500,7 @@ function Venues() {
       {/* Add Venue Modal */}
       <VenueModal
         isOpen={showVenueModal}
-        onClose={() => setShowVenueModal(false)}
+        onClose={()=> setShowVenueModal(false)}
         onAdd={handleAddVenue}
         existingVenues={venues}
       />

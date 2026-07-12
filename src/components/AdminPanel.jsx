@@ -2,17 +2,15 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
+import ClaimsManagement from './ClaimsManagement';
 import { beverageTypes } from '../utils/beverageTypes';
 
-const { 
-  FiUsers, FiSettings, FiDatabase, FiActivity, FiShield, 
-  FiTrendingUp, FiAlertTriangle, FiCheck, FiX 
-} = FiIcons;
+const { FiUsers, FiSettings, FiDatabase, FiActivity, FiShield, FiTrendingUp, FiAlertTriangle, FiCheck, FiX, FiFileText } = FiIcons;
 
-function AdminPanel({ adminMode }) {
+function AdminPanel({ adminMode, user }) {
   const [activeSection, setActiveSection] = useState('overview');
 
-  if (!adminMode) {
+  if (!adminMode || user?.type !== 'Admin User') {
     return (
       <div className="text-center py-12">
         <SafeIcon icon={FiShield} className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -24,6 +22,7 @@ function AdminPanel({ adminMode }) {
 
   const sections = [
     { id: 'overview', label: 'Overview', icon: FiTrendingUp },
+    { id: 'claims', label: 'Producer Claims', icon: FiFileText },
     { id: 'users', label: 'Users', icon: FiUsers },
     { id: 'content', label: 'Content', icon: FiDatabase },
     { id: 'settings', label: 'Global Settings', icon: FiSettings },
@@ -37,12 +36,14 @@ function AdminPanel({ adminMode }) {
     totalRatings: 15643,
     totalVenues: 324,
     pendingReports: 7,
-    systemHealth: 98.5
+    systemHealth: 98.5,
+    pendingClaims: 5
   };
 
   const recentActivity = [
     { type: 'user_signup', user: 'jane.doe@email.com', time: '2 minutes ago' },
     { type: 'venue_added', venue: 'Craft Beer Corner', user: 'brewery_owner', time: '15 minutes ago' },
+    { type: 'claim_submitted', producer: 'Highland Brewery', user: 'owner@highland.com', time: '30 minutes ago' },
     { type: 'rating_reported', rating: 'IPA Delight Review', reporter: 'user123', time: '1 hour ago' },
     { type: 'admin_login', user: 'admin@pourfolio.com', time: '2 hours ago' }
   ];
@@ -80,6 +81,11 @@ function AdminPanel({ adminMode }) {
             >
               <SafeIcon icon={section.icon} className="w-4 h-4" />
               <span>{section.label}</span>
+              {section.id === 'claims' && adminStats.pendingClaims > 0 && (
+                <span className="bg-yellow-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                  {adminStats.pendingClaims}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -108,9 +114,9 @@ function AdminPanel({ adminMode }) {
                 <div className="text-2xl font-bold text-amber-600">{adminStats.totalVenues.toLocaleString()}</div>
                 <div className="text-sm text-amber-800">Venues</div>
               </div>
-              <div className="bg-red-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-red-600">{adminStats.pendingReports}</div>
-                <div className="text-sm text-red-800">Pending Reports</div>
+              <div className="bg-yellow-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-yellow-600">{adminStats.pendingClaims}</div>
+                <div className="text-sm text-yellow-800">Pending Claims</div>
               </div>
               <div className="bg-green-50 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-green-600">{adminStats.systemHealth}%</div>
@@ -127,7 +133,8 @@ function AdminPanel({ adminMode }) {
                     <SafeIcon icon={FiActivity} className="w-4 h-4 text-gray-500" />
                     <div className="flex-1">
                       <span className="text-sm text-gray-800">
-                        {activity.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}: {activity.user || activity.venue}
+                        {activity.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}:
+                        {activity.user || activity.venue || activity.producer}
                       </span>
                     </div>
                     <span className="text-xs text-gray-500">{activity.time}</span>
@@ -136,6 +143,11 @@ function AdminPanel({ adminMode }) {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Producer Claims Section */}
+        {activeSection === 'claims' && (
+          <ClaimsManagement user={user} />
         )}
 
         {/* Users Section */}
@@ -197,10 +209,10 @@ function AdminPanel({ adminMode }) {
                 </div>
                 <div className="flex items-center justify-between p-3 border border-gray-200 rounded">
                   <div>
-                    <div className="font-medium">Rating System</div>
-                    <div className="text-sm text-gray-600">Global rating algorithm version</div>
+                    <div className="font-medium">Producer Claims</div>
+                    <div className="text-sm text-gray-600">Automatic approval for verified businesses</div>
                   </div>
-                  <button className="bg-blue-600 text-white px-3 py-1 rounded text-sm">v2.1</button>
+                  <button className="bg-red-600 text-white px-3 py-1 rounded text-sm">Manual Review</button>
                 </div>
               </div>
             </div>
@@ -247,8 +259,9 @@ function AdminPanel({ adminMode }) {
                           <SafeIcon icon={FiAlertTriangle} className="w-4 h-4 text-red-500" />
                           <span className="font-medium text-gray-800">{report.type}</span>
                           <span className={`px-2 py-1 rounded-full text-xs ${
-                            report.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-blue-100 text-blue-800'
+                            report.status === 'pending' 
+                              ? 'bg-yellow-100 text-yellow-800' 
+                              : 'bg-blue-100 text-blue-800'
                           }`}>
                             {report.status}
                           </span>

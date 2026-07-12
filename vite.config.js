@@ -4,20 +4,16 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  base: './',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
     }
   },
-  build: {
+  server: {
+    historyApiFallback: true,
+  },
+   build: {
     outDir: 'dist',
     sourcemap: true
   },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/setupTests.js',
-    css: true
-  }
 });

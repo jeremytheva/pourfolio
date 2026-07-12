@@ -1,28 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React,{useState,useEffect} from 'react';
+import {useParams,Link} from 'react-router-dom';
+import {motion} from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import BeerCard from '../components/BeerCard';
+import SuggestUpdatesModal from '../components/SuggestUpdatesModal';
 
-const { 
-  FiArrowLeft, FiCalendar, FiMapPin, FiUsers, FiDollarSign, 
-  FiClock, FiExternalLink, FiStar, FiHeart, FiX 
-} = FiIcons;
+const {FiArrowLeft,FiCalendar,FiMapPin,FiUsers,FiDollarSign,FiClock,FiExternalLink,FiStar,FiHeart,FiX,FiEdit3}=FiIcons;
 
 function EventDetails() {
-  const { eventId } = useParams();
-  const [event, setEvent] = useState(null);
-  const [isAttending, setIsAttending] = useState(false);
+  const {eventId}=useParams();
+  const [event,setEvent]=useState(null);
+  const [isAttending,setIsAttending]=useState(false);
+  const [showSuggestModal,setShowSuggestModal]=useState(false);
 
-  useEffect(() => {
-    const events = JSON.parse(localStorage.getItem('events') || '[]');
-    const foundEvent = events.find(e => e.id === parseInt(eventId));
+  useEffect(()=> {
+    const events=JSON.parse(localStorage.getItem('events') || '[]');
+    const foundEvent=events.find(e=> e.id===parseInt(eventId));
     setEvent(foundEvent);
-  }, [eventId]);
+  },[eventId]);
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate=(dateString)=> {
+    return new Date(dateString).toLocaleDateString('en-US',{
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -30,34 +29,51 @@ function EventDetails() {
     });
   };
 
-  const formatTime = (timeString) => {
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  const formatTime=(timeString)=> {
+    const [hours,minutes]=timeString.split(':');
+    const hour=parseInt(hours);
+    const ampm=hour >=12 ? 'PM' : 'AM';
+    const displayHour=hour===0 ? 12 : hour > 12 ? hour - 12 : hour;
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  const handleAttendanceToggle = () => {
+  const handleAttendanceToggle=()=> {
     if (!event) return;
-    
-    const events = JSON.parse(localStorage.getItem('events') || '[]');
-    const eventIndex = events.findIndex(e => e.id === event.id);
-    
-    if (eventIndex !== -1) {
-      const updatedEvent = { ...events[eventIndex] };
+
+    const events=JSON.parse(localStorage.getItem('events') || '[]');
+    const eventIndex=events.findIndex(e=> e.id===event.id);
+
+    if (eventIndex !==-1) {
+      const updatedEvent={...events[eventIndex]};
       
       if (isAttending) {
-        updatedEvent.currentAttendees = Math.max(0, updatedEvent.currentAttendees - 1);
+        updatedEvent.currentAttendees=Math.max(0,updatedEvent.currentAttendees - 1);
       } else {
-        updatedEvent.currentAttendees = Math.min(updatedEvent.maxAttendees, updatedEvent.currentAttendees + 1);
+        updatedEvent.currentAttendees=Math.min(updatedEvent.maxAttendees,updatedEvent.currentAttendees + 1);
       }
-      
-      events[eventIndex] = updatedEvent;
-      localStorage.setItem('events', JSON.stringify(events));
+
+      events[eventIndex]=updatedEvent;
+      localStorage.setItem('events',JSON.stringify(events));
       setEvent(updatedEvent);
       setIsAttending(!isAttending);
     }
+  };
+
+  const handleSuggestUpdates=(updates)=> {
+    // Save suggestion for admin approval
+    const suggestions=JSON.parse(localStorage.getItem('eventSuggestions') || '[]');
+    suggestions.push({
+      id: Date.now(),
+      eventId: event.id,
+      eventName: event.name,
+      updates,
+      submittedBy: 'Current User',
+      submittedAt: new Date().toISOString(),
+      status: 'pending',
+      type: 'event'
+    });
+    localStorage.setItem('eventSuggestions',JSON.stringify(suggestions));
+    alert('Updates suggested successfully! They will be reviewed by the event organizer or administrators.');
   };
 
   if (!event) {
@@ -73,24 +89,24 @@ function EventDetails() {
     );
   }
 
-  const getEventStatus = () => {
-    const today = new Date();
-    const startDate = new Date(event.startDate);
-    const endDate = new Date(event.endDate);
+  const getEventStatus=()=> {
+    const today=new Date();
+    const startDate=new Date(event.startDate);
+    const endDate=new Date(event.endDate);
 
-    if (today < startDate) return { status: 'upcoming', color: 'bg-blue-100 text-blue-800' };
-    if (today >= startDate && today <= endDate) return { status: 'live', color: 'bg-green-100 text-green-800' };
-    return { status: 'past', color: 'bg-gray-100 text-gray-800' };
+    if (today < startDate) return {status: 'upcoming',color: 'bg-blue-100 text-blue-800'};
+    if (today >=startDate && today <=endDate) return {status: 'live',color: 'bg-green-100 text-green-800'};
+    return {status: 'past',color: 'bg-gray-100 text-gray-800'};
   };
 
-  const eventStatus = getEventStatus();
+  const eventStatus=getEventStatus();
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Back Button */}
       <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
+        initial={{opacity: 0,x: -20}}
+        animate={{opacity: 1,x: 0}}
         className="mb-6"
       >
         <Link
@@ -104,8 +120,8 @@ function EventDetails() {
 
       {/* Event Header */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{opacity: 0,y: 20}}
+        animate={{opacity: 1,y: 0}}
         className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8"
       >
         {/* Hero Image */}
@@ -131,15 +147,26 @@ function EventDetails() {
         <div className="p-8">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
             <div className="flex-1 mb-6 lg:mb-0">
-              <h1 className="text-4xl font-bold text-gray-800 mb-4">{event.name}</h1>
-              
+              <div className="flex items-start justify-between mb-4">
+                <h1 className="text-4xl font-bold text-gray-800">{event.name}</h1>
+                
+                {/* Suggest Updates Button */}
+                <button
+                  onClick={()=> setShowSuggestModal(true)}
+                  className="ml-4 flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors px-3 py-2 rounded-lg border border-blue-300 hover:border-blue-400"
+                >
+                  <SafeIcon icon={FiEdit3} className="w-4 h-4" />
+                  <span>Suggest Updates</span>
+                </button>
+              </div>
+
               {/* Date and Time */}
               <div className="flex flex-wrap items-center gap-6 text-gray-600 mb-4">
                 <div className="flex items-center space-x-2">
                   <SafeIcon icon={FiCalendar} className="w-5 h-5" />
                   <span>
                     {formatDate(event.startDate)}
-                    {event.startDate !== event.endDate && ` - ${formatDate(event.endDate)}`}
+                    {event.startDate !==event.endDate && ` - ${formatDate(event.endDate)}`}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -155,7 +182,7 @@ function EventDetails() {
                   <span className="font-medium">Venue{event.venues.length > 1 ? 's' : ''}</span>
                 </div>
                 <div className="space-y-2 pl-7">
-                  {event.venues.map((venue, index) => (
+                  {event.venues.map((venue,index)=> (
                     <div key={venue.id || index}>
                       <div className="font-medium text-gray-800">{venue.name}</div>
                       <div className="text-sm text-gray-600">{venue.address}</div>
@@ -198,19 +225,23 @@ function EventDetails() {
                 {/* Attendance Button */}
                 <button
                   onClick={handleAttendanceToggle}
-                  disabled={!isAttending && event.currentAttendees >= event.maxAttendees}
+                  disabled={!isAttending && event.currentAttendees >=event.maxAttendees}
                   className={`w-full px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
                     isAttending
                       ? 'bg-red-600 hover:bg-red-700 text-white'
-                      : event.currentAttendees >= event.maxAttendees
+                      : event.currentAttendees >=event.maxAttendees
                       ? 'bg-gray-400 text-white cursor-not-allowed'
                       : 'bg-amber-600 hover:bg-amber-700 text-white'
                   }`}
                 >
                   <SafeIcon icon={isAttending ? FiX : FiHeart} className="w-5 h-5" />
                   <span>
-                    {isAttending ? 'Cancel Attendance' : 
-                     event.currentAttendees >= event.maxAttendees ? 'Event Full' : 'Mark Attending'}
+                    {isAttending 
+                      ? 'Cancel Attendance' 
+                      : event.currentAttendees >=event.maxAttendees 
+                      ? 'Event Full' 
+                      : 'Mark Attending'
+                    }
                   </span>
                 </button>
 
@@ -235,14 +266,14 @@ function EventDetails() {
       {/* Featured Beverages */}
       {event.featuredBeers && event.featuredBeers.length > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          initial={{opacity: 0,y: 20}}
+          animate={{opacity: 1,y: 0}}
+          transition={{delay: 0.2}}
           className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8"
         >
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Featured Beverages</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {event.featuredBeers.map((beverage, index) => (
+            {event.featuredBeers.map((beverage,index)=> (
               <div key={beverage.id} className="border border-gray-200 rounded-lg p-4">
                 <h3 className="font-semibold text-gray-800 mb-1">{beverage.name}</h3>
                 <p className="text-gray-600 mb-2">{beverage.brewery}</p>
@@ -260,14 +291,14 @@ function EventDetails() {
 
       {/* Tags */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+        initial={{opacity: 0,y: 20}}
+        animate={{opacity: 1,y: 0}}
+        transition={{delay: 0.3}}
         className="bg-white rounded-xl shadow-sm border border-gray-200 p-8"
       >
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Event Tags</h2>
         <div className="flex flex-wrap gap-3">
-          {event.tags.map((tag, index) => (
+          {event.tags.map((tag,index)=> (
             <span
               key={index}
               className="bg-blue-100 text-blue-800 px-3 py-2 rounded-full text-sm font-medium"
@@ -277,6 +308,15 @@ function EventDetails() {
           ))}
         </div>
       </motion.div>
+
+      {/* Suggest Updates Modal */}
+      <SuggestUpdatesModal
+        isOpen={showSuggestModal}
+        onClose={()=> setShowSuggestModal(false)}
+        item={event}
+        itemType="event"
+        onSubmit={handleSuggestUpdates}
+      />
     </div>
   );
 }

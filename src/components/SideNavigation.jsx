@@ -5,43 +5,108 @@ import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 import { beverageTypes } from '../utils/beverageTypes';
 
-const { 
-  FiChevronLeft, FiChevronRight, FiX, FiBook, FiUsers, FiMapPin, 
-  FiPackage, FiMessageCircle, FiSettings, FiShield, FiLogOut 
+const {
+  FiChevronLeft,
+  FiChevronRight,
+  FiX,
+  FiBook,
+  FiUsers,
+  FiMapPin,
+  FiPackage,
+  FiMessageCircle,
+  FiSettings,
+  FiShield,
+  FiLogOut,
+  FiBarChart3
 } = FiIcons;
 
-function SideNavigation({ 
-  selectedBeverageCategory, 
-  onCategoryChange, 
-  isCollapsed, 
-  onToggleCollapse, 
-  isMobileOpen, 
+function SideNavigation({
+  selectedBeverageCategory,
+  onCategoryChange,
+  isCollapsed,
+  onToggleCollapse,
+  isMobileOpen,
   onMobileToggle,
   user,
-  onLogout 
+  onLogout
 }) {
   const location = useLocation();
-  const beverageCategories = Object.entries(beverageTypes).map(([key, beverage]) => ({ key, ...beverage }));
+
+  const beverageCategories = Object.entries(beverageTypes).map(([key, beverage]) => ({
+    key,
+    ...beverage
+  }));
 
   // Navigation items moved from top nav
   const navigationItems = [
-    { path: '/styles', label: 'Style Guides', icon: FiBook, description: 'Beverage style guidelines' },
-    { path: '/producers', label: 'Producers', icon: FiMapPin, description: 'Breweries, wineries, distilleries' },
-    { path: '/venues', label: 'Venues', icon: FiMapPin, description: 'Places to buy beverages' },
-    { path: '/cellar', label: 'My Cellar', icon: FiPackage, description: 'Your beverage collection' },
-    { path: '/drinking-buddies', label: 'Buddies', icon: FiUsers, description: 'Your drinking buddies' },
-    { path: '/chat', label: 'Community', icon: FiMessageCircle, description: 'Chat with enthusiasts' }
+    {
+      path: '/styles',
+      label: 'Style Guides',
+      icon: FiBook,
+      description: 'Beverage style guidelines'
+    },
+    {
+      path: '/producers',
+      label: 'Producers',
+      icon: FiMapPin,
+      description: 'Breweries, wineries, distilleries'
+    },
+    {
+      path: '/venues',
+      label: 'Venues',
+      icon: FiMapPin,
+      description: 'Places to buy beverages'
+    },
+    {
+      path: '/cellar',
+      label: 'My Cellar',
+      icon: FiPackage,
+      description: 'Your beverage collection'
+    },
+    {
+      path: '/drinking-buddies',
+      label: 'Buddies',
+      icon: FiUsers,
+      description: 'Your drinking buddies'
+    },
+    {
+      path: '/analytics',
+      label: 'Analytics',
+      icon: FiBarChart3,
+      description: 'Insights & patterns'
+    },
+    {
+      path: '/chat',
+      label: 'Community',
+      icon: FiMessageCircle,
+      description: 'Chat with enthusiasts'
+    }
   ];
 
   // Admin-specific items
   const adminItems = user?.type === 'Admin User' ? [
-    { path: '/admin', label: 'Admin Panel', icon: FiSettings, description: 'System administration' },
-    { path: '/admin/global-settings', label: 'Global Settings', icon: FiShield, description: 'Platform settings' }
+    {
+      path: '/admin',
+      label: 'Admin Panel',
+      icon: FiSettings,
+      description: 'System administration'
+    },
+    {
+      path: '/admin/global-settings',
+      label: 'Global Settings',
+      icon: FiShield,
+      description: 'Platform settings'
+    }
   ] : [];
 
   // Venue owner items
   const venueOwnerItems = user?.type === 'Brewery Login' ? [
-    { path: '/venue-management', label: 'My Venues', icon: FiMapPin, description: 'Manage your venues' }
+    {
+      path: '/venue-management',
+      label: 'My Venues',
+      icon: FiMapPin,
+      description: 'Manage your venues'
+    }
   ] : [];
 
   const handleCategorySelect = (categoryKey) => {

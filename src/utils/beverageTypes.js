@@ -4,12 +4,7 @@ export const beverageTypes = {
     name: 'Beer',
     icon: '🍺',
     attributes: [
-      'appearance',
-      'aroma', 
-      'mouthfeel',
-      'flavour',
-      'follow',
-      'design'
+      'appearance', 'aroma', 'mouthfeel', 'flavour', 'follow', 'design'
     ],
     defaultWeights: {
       appearance: 1.5,
@@ -20,18 +15,15 @@ export const beverageTypes = {
       design: 0
     },
     maxWeightSum: 15,
-    servingStyles: ['Draft', 'Bottle', 'Can', 'Taster', 'Cask', 'Crowler', 'Growler', 'Side Pull']
+    servingStyles: [
+      'Draft', 'Bottle', 'Can', 'Taster', 'Cask', 'Crowler', 'Growler', 'Side Pull'
+    ]
   },
   wine: {
     name: 'Wine',
     icon: '🍷',
     attributes: [
-      'appearance',
-      'aroma',
-      'taste',
-      'balance',
-      'finish',
-      'design'
+      'appearance', 'aroma', 'taste', 'balance', 'finish', 'design'
     ],
     defaultWeights: {
       appearance: 1.0,
@@ -42,18 +34,15 @@ export const beverageTypes = {
       design: 0
     },
     maxWeightSum: 15,
-    servingStyles: ['Bottle', 'Glass', 'Decanter', 'Magnum', 'Half Bottle']
+    servingStyles: [
+      'Bottle', 'Glass', 'Decanter', 'Magnum', 'Half Bottle'
+    ]
   },
   spirits: {
     name: 'Spirits',
     icon: '🥃',
     attributes: [
-      'appearance',
-      'nose',
-      'palate',
-      'complexity',
-      'finish',
-      'design'
+      'appearance', 'nose', 'palate', 'complexity', 'finish', 'design'
     ],
     defaultWeights: {
       appearance: 0.5,
@@ -64,18 +53,15 @@ export const beverageTypes = {
       design: 0
     },
     maxWeightSum: 15,
-    servingStyles: ['Neat', 'On the Rocks', 'With Water', 'Cocktail', 'Shot', 'Taster']
+    servingStyles: [
+      'Neat', 'On the Rocks', 'With Water', 'Cocktail', 'Shot', 'Taster'
+    ]
   },
   cider: {
     name: 'Cider',
     icon: '🍎',
     attributes: [
-      'appearance',
-      'aroma',
-      'sweetness',
-      'acidity',
-      'finish',
-      'design'
+      'appearance', 'aroma', 'sweetness', 'acidity', 'finish', 'design'
     ],
     defaultWeights: {
       appearance: 1.0,
@@ -86,18 +72,15 @@ export const beverageTypes = {
       design: 0
     },
     maxWeightSum: 15,
-    servingStyles: ['Draft', 'Bottle', 'Can', 'Crowler', 'Growler', 'Cask']
+    servingStyles: [
+      'Draft', 'Bottle', 'Can', 'Crowler', 'Growler', 'Cask'
+    ]
   },
   mead: {
     name: 'Mead',
     icon: '🍯',
     attributes: [
-      'appearance',
-      'aroma',
-      'honey_character',
-      'balance',
-      'finish',
-      'design'
+      'appearance', 'aroma', 'honey_character', 'balance', 'finish', 'design'
     ],
     defaultWeights: {
       appearance: 1.0,
@@ -108,18 +91,15 @@ export const beverageTypes = {
       design: 0
     },
     maxWeightSum: 15,
-    servingStyles: ['Bottle', 'Glass', 'Goblet', 'Horn', 'Taster']
+    servingStyles: [
+      'Bottle', 'Glass', 'Goblet', 'Horn', 'Taster'
+    ]
   },
   fermented: {
     name: 'Fermented Beverages',
     icon: '🫖',
     attributes: [
-      'appearance',
-      'aroma',
-      'fermentation_character',
-      'balance',
-      'finish',
-      'design'
+      'appearance', 'aroma', 'fermentation_character', 'balance', 'finish', 'design'
     ],
     defaultWeights: {
       appearance: 1.0,
@@ -130,14 +110,16 @@ export const beverageTypes = {
       design: 0
     },
     maxWeightSum: 15,
-    servingStyles: ['Bottle', 'Can', 'Glass', 'Growler', 'Draft']
+    servingStyles: [
+      'Bottle', 'Can', 'Glass', 'Growler', 'Draft'
+    ]
   }
 };
 
 export const attributeLabels = {
   // Common attributes
   appearance: 'Appearance',
-  aroma: 'Aroma', 
+  aroma: 'Aroma',
   finish: 'Finish',
   design: 'Package Design',
   
@@ -170,7 +152,7 @@ export const ratingDescriptors = {
   // Beer descriptors
   appearance: {
     1: "Unappealing",
-    2: "Below Average", 
+    2: "Below Average",
     3: "Average Look",
     4: "Good Looking",
     5: "Very Appealing",
@@ -180,7 +162,7 @@ export const ratingDescriptors = {
   aroma: {
     1: "Off-putting",
     2: "Weak Aroma",
-    3: "Average Aroma", 
+    3: "Average Aroma",
     4: "Pleasant",
     5: "Great Aroma",
     6: "Amazing Smell",
@@ -190,7 +172,7 @@ export const ratingDescriptors = {
     1: "Unpleasant",
     2: "Poor Texture",
     3: "Average Feel",
-    4: "Good Texture", 
+    4: "Good Texture",
     5: "Great Feel",
     6: "Excellent Body",
     7: "Perfect Mouthfeel"
@@ -200,7 +182,7 @@ export const ratingDescriptors = {
     2: "Poor Flavour",
     3: "Average Taste",
     4: "Good Flavour",
-    5: "Great Taste", 
+    5: "Great Taste",
     6: "Amazing Flavour",
     7: "Mind-blowing"
   },
@@ -219,10 +201,10 @@ export const ratingDescriptors = {
     3: "Average Design",
     4: "Good Design",
     5: "Great Design",
-    6: "Beautiful Design", 
+    6: "Beautiful Design",
     7: "Stunning Design"
   },
-  
+
   // Wine descriptors
   taste: {
     1: "Unpalatable",
@@ -244,14 +226,14 @@ export const ratingDescriptors = {
   },
   finish: {
     1: "Abrupt/Harsh",
-    2: "Short/Weak", 
+    2: "Short/Weak",
     3: "Average Length",
     4: "Good Finish",
     5: "Long & Pleasant",
     6: "Exceptional Length",
     7: "Eternal Perfection"
   },
-  
+
   // Spirits descriptors
   nose: {
     1: "Off-putting",
@@ -268,7 +250,7 @@ export const ratingDescriptors = {
     3: "Average Palate",
     4: "Good Flavors",
     5: "Rich & Complex",
-    6: "Outstanding", 
+    6: "Outstanding",
     7: "Perfect Expression"
   },
   complexity: {
@@ -280,7 +262,7 @@ export const ratingDescriptors = {
     6: "Exceptionally Layered",
     7: "Infinite Complexity"
   },
-  
+
   // Cider descriptors
   sweetness: {
     1: "Cloying/Harsh",
@@ -300,7 +282,7 @@ export const ratingDescriptors = {
     6: "Exceptional Crispness",
     7: "Ideal Balance"
   },
-  
+
   // Mead descriptors
   honey_character: {
     1: "Absent/Off",
@@ -311,7 +293,7 @@ export const ratingDescriptors = {
     6: "Exceptional Honey",
     7: "Perfect Honey Expression"
   },
-  
+
   // Fermented beverages descriptors
   fermentation_character: {
     1: "Off/Unpleasant",
@@ -328,7 +310,7 @@ export const styleGuidance = {
   // Beer styles
   "American IPA": {
     appearance: "Expect pale gold to amber color with good clarity and persistent white head",
-    aroma: "Prominent hop aroma of citrus, pine, or floral notes with supporting malt sweetness", 
+    aroma: "Prominent hop aroma of citrus, pine, or floral notes with supporting malt sweetness",
     mouthfeel: "Medium-light to medium body with moderate to high carbonation",
     flavour: "Strong hop flavor balanced by caramel malt sweetness, clean fermentation",
     follow: "Medium to long hop bitterness that doesn't linger harshly",
@@ -338,11 +320,11 @@ export const styleGuidance = {
     appearance: "Straw to light gold color, brilliant clarity, dense white head",
     aroma: "Moderate to moderately-high floral or spicy hop aroma",
     mouthfeel: "Medium-light body with high carbonation, crisp and dry",
-    flavour: "Clean, crisp with moderate hop bitterness and light malt sweetness", 
+    flavour: "Clean, crisp with moderate hop bitterness and light malt sweetness",
     follow: "Dry finish with lingering hop bitterness",
     design: "Traditional German styling, often with classic fonts and heraldic elements"
   },
-  
+
   // Wine styles
   "Chardonnay": {
     appearance: "Pale to medium gold, clear and brilliant",
@@ -353,19 +335,19 @@ export const styleGuidance = {
     design: "Elegant labeling often featuring vineyard imagery or classic typography"
   },
   "Cabernet Sauvignon": {
-    appearance: "Deep ruby to purple color, good clarity", 
+    appearance: "Deep ruby to purple color, good clarity",
     aroma: "Blackcurrant, cedar, tobacco, possible oak and spice",
     taste: "Full-bodied with dark fruit, tannins, and complexity",
     balance: "Fruit, tannins, acidity, and alcohol in harmony",
     finish: "Long, complex with fruit and oak notes",
     design: "Rich, sophisticated labeling often with estate imagery or coat of arms"
   },
-  
+
   // Spirits styles
   "Single Malt Scotch": {
     appearance: "Golden amber to deep copper, clear and bright",
     nose: "Malt, honey, fruit, possible peat and oak complexity",
-    palate: "Rich malt character with regional characteristics", 
+    palate: "Rich malt character with regional characteristics",
     complexity: "Layered flavors developing over time",
     finish: "Long, warming with malt and oak notes",
     design: "Traditional Scottish imagery, often featuring distillery heritage and landscapes"
@@ -378,7 +360,7 @@ export const styleGuidance = {
     finish: "Warm, spicy with lingering sweetness",
     design: "American heritage styling with bourbon barrel and grain imagery"
   },
-  
+
   // Cider styles
   "Traditional Cider": {
     appearance: "Pale to golden yellow, clear to slightly hazy",
@@ -392,11 +374,11 @@ export const styleGuidance = {
     appearance: "Golden to amber, may have some haze",
     aroma: "Rich apple character with earthy undertones",
     sweetness: "Medium-dry with complex apple flavors",
-    acidity: "Balanced acidity supporting fruit character", 
+    acidity: "Balanced acidity supporting fruit character",
     finish: "Medium length with apple and earth notes",
     design: "Traditional English countryside imagery with heritage elements"
   },
-  
+
   // Mead styles
   "Traditional Mead": {
     appearance: "Pale gold to deep amber, clear and bright",
@@ -406,7 +388,7 @@ export const styleGuidance = {
     finish: "Smooth, warming with lingering honey notes",
     design: "Ancient or medieval imagery with honeycomb and bee motifs"
   },
-  
+
   // Fermented beverage styles
   "Kombucha": {
     appearance: "Pale to amber, may have slight cloudiness",
@@ -418,7 +400,7 @@ export const styleGuidance = {
   },
   "Ginger Kombucha": {
     appearance: "Golden to amber with possible cloudiness",
-    aroma: "Spicy ginger with tangy fermentation notes", 
+    aroma: "Spicy ginger with tangy fermentation notes",
     fermentation_character: "Complex fermentation with prominent ginger spice",
     balance: "Ginger heat balanced by acidity and sweetness",
     finish: "Warming ginger finish with clean acidity",
@@ -429,7 +411,7 @@ export const styleGuidance = {
 export const getBeverageTypeFromCategory = (category) => {
   const categoryMap = {
     'beer': 'beer',
-    'wine': 'wine', 
+    'wine': 'wine',
     'spirits': 'spirits',
     'whiskey': 'spirits',
     'vodka': 'spirits',
@@ -443,7 +425,6 @@ export const getBeverageTypeFromCategory = (category) => {
     'tepache': 'fermented',
     'jun': 'fermented'
   };
-  
   return categoryMap[category.toLowerCase()] || 'beer';
 };
 
