@@ -1,7 +1,7 @@
 import { nocodeBackend } from '../lib/nocodeBackend'
+import { attachProfilesToRecords } from './relationshipHelpers'
 
 const CLAIMS = 'producer_claims_pf2025'
-const PROFILES = 'profiles'
 
 class ClaimsService {
   constructor() {
@@ -19,10 +19,7 @@ class ClaimsService {
     })
     if (error) return { data, error }
 
-    const claims = await Promise.all((data || []).map(async (claim) => {
-      const { data: profile } = await nocodeBackend.get(PROFILES, claim.user_id)
-      return { ...claim, profiles: profile ? { name: profile.name, email: profile.email } : null }
-    }))
+    const claims = await attachProfilesToRecords(data || [], ['name', 'email'])
 
     return { data: claims, error: null }
   }
