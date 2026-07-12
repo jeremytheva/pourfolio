@@ -1,163 +1,239 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../lib/supabase'
+
+const AUTH_API_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
+const PROFILE_OVERRIDES_KEY = 'pourfolioProfileOverrides'
+
+const getProfileOverrides = () => {
+  try {
+    return JSON.parse(localStorage.getItem(PROFILE_OVERRIDES_KEY) || '{}')
+  } catch (error) {
+    console.error('Error reading profile overrides:', error)
+    return {}
+  }
+}
+
+const saveProfileOverride = (userId, updates) => {
+  const overrides = getProfileOverrides()
+  const nextProfile = {
+    ...(overrides[userId] || {}),
+    ...updates
+  }
+
+  localStorage.setItem(
+    PROFILE_OVERRIDES_KEY,
+    JSON.stringify({
+      ...overrides,
+      [userId]: nextProfile
+    })
+  )
+
+  return nextProfile
+}
+
+const toAuthError = (error) => {
+  if (error instanceof Error) return error
+  if (typeof error === 'string') return new Error(error)
+  return new Error(error?.message || 'Authentication request failed')
+}
+
+const authRequest = async (path, options = {}) => {
+  const response = await fetch(`${AUTH_API_BASE_URL}${path}`, {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    ...options
+  })
+
+  const text = await response.text()
+  const payload = text ? JSON.parse(text) : null
+
+  if (!response.ok || payload?.error) {
+    throw toAuthError(payload?.error || payload || response.statusText)
+  }
+
+  return payload
+}
+
+const findNestedValue = (source, keys) => {
+  if (!source || typeof source !== 'object') return null
+
+  for (const key of keys) {
+    if (source[key]) return source[key]
+  }
+
+  for (const value of Object.values(source)) {
+    const nestedValue = findNestedValue(value, keys)
+    if (nestedValue) return nestedValue
+  }
+
+  return null
+}
+
+const normalizeUser = (payload) => {
+  const candidate = findNestedValue(payload, ['user', 'profile']) || payload?.data || payload
+
+  if (!candidate || typeof candidate !== 'object') return null
+
+  const metadata = candidate.user_metadata || candidate.metadata || candidate.customData || {}
+  const id = candidate.id || candidate.user_id || candidate.userId || candidate._id || candidate.email
+  const email = candidate.email || candidate.emailAddress || metadata.email
+
+  if (!id && !email) return null
+
+  return {
+    ...candidate,
+    id: id || email,
+    email,
+    user_metadata: metadata
+  }
+}
+
+const buildProfile = (authUser) => {
+  if (!authUser) return null
+
+  const metadata = authUser.user_metadata || {}
+  const overrides = getProfileOverrides()[authUser.id] || {}
+  const name = authUser.name || authUser.fullName || metadata.name || authUser.email?.split('@')[0] || 'User'
+  const type = authUser.type || metadata.type || 'General User'
+  const description = authUser.description || metadata.description || ''
+
+  return {
+    id: authUser.id,
+    email: authUser.email,
+    name,
+    type,
+    description,
+    ...metadata,
+    ...authUser,
+    ...overrides
+  }
+}
+
+const normalizeAuthState = (payload) => {
+  const authUser = normalizeUser(payload)
+  const normalizedProfile = buildProfile(authUser)
+
+  return {
+    user: authUser,
+    profile: normalizedProfile,
+    data: {
+      ...(payload || {}),
+      user: authUser,
+      profile: normalizedProfile
+    }
+  }
+}
 
 export function useAuth() {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const fetchProfile = useCallback(async (userId) => {
-    if (!userId) return
+  const applyAuthState = useCallback((payload) => {
+    const nextState = normalizeAuthState(payload)
 
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
+    setUser(nextState.user)
+    setProfile(nextState.profile)
 
-      if (error) {
-        console.error('Error fetching profile:', error)
-        if (error.code === 'PGRST116') {
-          await createProfile(userId)
-        }
-      } else {
-        setProfile(data)
-      }
-    } catch (err) {
-      console.error('Profile fetch error:', err)
-    } finally {
-      setLoading(false)
-    }
+    return nextState
   }, [])
-
-  const createProfile = useCallback(async (userId) => {
-    if (!user) return
-
-    const userData = user.user_metadata || {}
-    
-    const { data, error } = await supabase
-      .from('profiles')
-      .insert([{
-        id: userId,
-        email: user.email,
-        name: userData.name || user.email?.split('@')[0],
-        type: userData.type || 'General User',
-        description: userData.description || ''
-      }])
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error creating profile:', error)
-    } else {
-      setProfile(data)
-    }
-  }, [user])
 
   useEffect(() => {
     let mounted = true
 
     const initAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        
+        const session = await authRequest('/get-session', { method: 'GET' })
+
         if (mounted) {
-          setUser(session?.user ?? null)
-          if (session?.user) {
-            await fetchProfile(session.user.id)
-          } else {
-            setLoading(false)
-          }
+          applyAuthState(session)
         }
       } catch (error) {
         console.error('Auth initialization error:', error)
+        if (mounted) {
+          setUser(null)
+          setProfile(null)
+        }
+      } finally {
         if (mounted) setLoading(false)
       }
     }
 
     initAuth()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (mounted) {
-          setUser(session?.user ?? null)
-          if (session?.user) {
-            await fetchProfile(session.user.id)
-          } else {
-            setProfile(null)
-            setLoading(false)
-          }
-        }
-      }
-    )
-
     return () => {
       mounted = false
-      subscription.unsubscribe()
     }
-  }, [fetchProfile])
+  }, [applyAuthState])
 
   const signUp = useCallback(async (email, password, userData = {}) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
+      const payload = await authRequest('/sign-up/email', {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password,
+          name: userData.name,
+          type: userData.type || 'General User',
+          metadata: {
             name: userData.name,
-            type: userData.type || 'General User'
+            type: userData.type || 'General User',
+            description: userData.description || ''
           }
-        }
+        })
       })
-      return { data, error }
+
+      const nextState = applyAuthState(payload)
+      return { data: nextState.data, error: null }
     } catch (error) {
-      return { data: null, error }
+      return { data: null, error: toAuthError(error) }
     }
-  }, [])
+  }, [applyAuthState])
 
   const signIn = useCallback(async (email, password) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+      const payload = await authRequest('/sign-in/email', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
       })
-      return { data, error }
+
+      const nextState = applyAuthState(payload)
+      return { data: nextState.data, error: null }
     } catch (error) {
-      return { data: null, error }
+      return { data: null, error: toAuthError(error) }
     }
-  }, [])
+  }, [applyAuthState])
 
   const signOut = useCallback(async () => {
     try {
-      const { error } = await supabase.auth.signOut()
+      await authRequest('/sign-out', { method: 'POST' })
+      setUser(null)
       setProfile(null)
-      return { error }
+      return { error: null }
     } catch (error) {
-      return { error }
+      return { error: toAuthError(error) }
     }
   }, [])
 
   const updateProfile = useCallback(async (updates) => {
-    if (!user) return { error: { message: 'No user logged in' } }
+    if (!user) return { data: null, error: { message: 'No user logged in' } }
 
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id)
-        .select()
-        .single()
-
-      if (!error) {
-        setProfile(data)
+      const updatedProfile = {
+        ...profile,
+        ...saveProfileOverride(user.id, updates)
       }
 
-      return { data, error }
+      setProfile(updatedProfile)
+      setUser((currentUser) => currentUser ? { ...currentUser, ...updates } : currentUser)
+
+      return { data: updatedProfile, error: null }
     } catch (error) {
-      return { data: null, error }
+      return { data: null, error: toAuthError(error) }
     }
-  }, [user])
+  }, [profile, user])
 
   return {
     user: user && profile ? { ...user, ...profile } : null,
