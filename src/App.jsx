@@ -1,6 +1,5 @@
 import React, { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import ErrorBoundary from './components/ErrorBoundary'
 import MainLayout from './components/MainLayout'
 import { useAuth } from './hooks/useAuth'
@@ -35,13 +34,13 @@ const LoadingSpinner = () => (
 )
 
 // Protected Route component
-const ProtectedRoute = ({ children, user }) => {
+const ProtectedRoute = ({ children, user, onLogout }) => {
   if (!user) {
     return <Navigate to="/login" replace />
   }
   
   return (
-    <MainLayout user={user} onLogout={() => window.location.reload()}>
+    <MainLayout user={user} onLogout={onLogout}>
       {children}
     </MainLayout>
   )
@@ -69,7 +68,7 @@ function App() {
               <Route
                 path="/home"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <HomePage />
                   </ProtectedRoute>
                 }
@@ -78,7 +77,7 @@ function App() {
               <Route
                 path="/search"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <Search />
                   </ProtectedRoute>
                 }
@@ -87,7 +86,7 @@ function App() {
               <Route
                 path="/analytics"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <Analytics />
                   </ProtectedRoute>
                 }
@@ -96,7 +95,7 @@ function App() {
               <Route
                 path="/events"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <Events />
                   </ProtectedRoute>
                 }
@@ -105,7 +104,7 @@ function App() {
               <Route
                 path="/events/:eventId"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <EventDetails />
                   </ProtectedRoute>
                 }
@@ -114,7 +113,7 @@ function App() {
               <Route
                 path="/venue-management"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <VenueManagement user={user} />
                   </ProtectedRoute>
                 }
@@ -123,7 +122,7 @@ function App() {
               <Route
                 path="/beer-details"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <BeerDetails />
                   </ProtectedRoute>
                 }
@@ -132,7 +131,7 @@ function App() {
               <Route
                 path="/rate-beer"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <RateBeer />
                   </ProtectedRoute>
                 }
@@ -141,7 +140,7 @@ function App() {
               <Route
                 path="/producers"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <ProducersList />
                   </ProtectedRoute>
                 }
@@ -150,7 +149,7 @@ function App() {
               <Route
                 path="/producer/:producerId"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <BreweryProfile />
                   </ProtectedRoute>
                 }
@@ -159,7 +158,7 @@ function App() {
               <Route
                 path="/styles"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <StyleGuide />
                   </ProtectedRoute>
                 }
@@ -168,7 +167,7 @@ function App() {
               <Route
                 path="/cellar"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <Cellar />
                   </ProtectedRoute>
                 }
@@ -177,7 +176,7 @@ function App() {
               <Route
                 path="/drinking-buddies"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <DrinkingBuddies />
                   </ProtectedRoute>
                 }
@@ -186,7 +185,7 @@ function App() {
               <Route
                 path="/venues"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <Venues />
                   </ProtectedRoute>
                 }
@@ -195,7 +194,7 @@ function App() {
               <Route
                 path="/chat"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <Chat />
                   </ProtectedRoute>
                 }
@@ -204,7 +203,7 @@ function App() {
               <Route
                 path="/profile"
                 element={
-                  <ProtectedRoute user={user}>
+                  <ProtectedRoute user={user} onLogout={signOut}>
                     <Profile user={user} />
                   </ProtectedRoute>
                 }
