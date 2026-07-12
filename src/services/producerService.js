@@ -1,7 +1,8 @@
 import { nocodeBackend } from '../lib/nocodeBackend'
+import { COLLECTIONS } from './relationshipHelpers'
 
-const PRODUCERS = 'producers_pf2025'
-const BEVERAGES = 'beverages_pf2025'
+const PRODUCERS = COLLECTIONS.producers
+const BEVERAGES = COLLECTIONS.beverages
 
 const attachBeverages = async (producer) => {
   const { data: beverages } = await nocodeBackend.list(BEVERAGES, { filters: { producer_id: producer.id } })
