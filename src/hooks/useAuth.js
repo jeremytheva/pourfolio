@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-
-const AUTH_API_BASE_URL = '/api/nocodebackend/auth'
+import { authRequest, toAuthError, getGoogleSignInUrl } from '../lib/nocodeBackendAuth'
 const PROFILE_OVERRIDES_KEY = 'pourfolioProfileOverrides'
 
 const getProfileOverrides = () => {
@@ -28,32 +27,6 @@ const saveProfileOverride = (userId, updates) => {
   )
 
   return nextProfile
-}
-
-const toAuthError = (error) => {
-  if (error instanceof Error) return error
-  if (typeof error === 'string') return new Error(error)
-  return new Error(error?.message || 'Authentication request failed')
-}
-
-const authRequest = async (path, options = {}) => {
-  const response = await fetch(`${AUTH_API_BASE_URL}${path}`, {
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {})
-    },
-    ...options
-  })
-
-  const text = await response.text()
-  const payload = text ? JSON.parse(text) : null
-
-  if (!response.ok || payload?.error) {
-    throw toAuthError(payload?.error || payload || response.statusText)
-  }
-
-  return payload
 }
 
 const findNestedValue = (source, keys) => {
@@ -206,6 +179,37 @@ export function useAuth() {
     }
   }, [applyAuthState])
 
+  const requestEmailOtp = useCallback(async (email) => {
+    try {
+      const payload = await authRequest('/sign-in/otp', {
+        method: 'POST',
+        body: JSON.stringify({ email })
+      })
+
+      return { data: payload, error: null }
+    } catch (error) {
+      return { data: null, error: toAuthError(error) }
+    }
+  }, [])
+
+  const verifyEmailOtp = useCallback(async (email, otp) => {
+    try {
+      const payload = await authRequest('/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email, otp })
+      })
+
+      const nextState = applyAuthState(payload)
+      return { data: nextState.data, error: null }
+    } catch (error) {
+      return { data: null, error: toAuthError(error) }
+    }
+  }, [applyAuthState])
+
+  const signInWithGoogle = useCallback(() => {
+    window.location.assign(getGoogleSignInUrl())
+  }, [])
+
   const signOut = useCallback(async () => {
     try {
       await authRequest('/sign-out', { method: 'POST' })
@@ -241,6 +245,9 @@ export function useAuth() {
     loading,
     signUp,
     signIn,
+    requestEmailOtp,
+    verifyEmailOtp,
+    signInWithGoogle,
     signOut,
     updateProfile
   }
