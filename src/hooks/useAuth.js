@@ -1,6 +1,8 @@
-import { useState, useEffect, useCallback } from 'react'
-import { authRequest, toAuthError, getGoogleSignInUrl } from '../lib/nocodeBackendAuth'
+import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { authRequest, toAuthError, getGoogleSignInUrl } from '../lib/nocodeBackend'
 const PROFILE_OVERRIDES_KEY = 'pourfolioProfileOverrides'
+
+const AuthContext = createContext(null)
 
 const getProfileOverrides = () => {
   try {
@@ -99,7 +101,7 @@ const normalizeAuthState = (payload) => {
   }
 }
 
-export function useAuth() {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -239,7 +241,7 @@ export function useAuth() {
     }
   }, [profile, user])
 
-  return {
+  const value = useMemo(() => ({
     user: user && profile ? { ...user, ...profile } : null,
     profile,
     loading,
@@ -250,5 +252,17 @@ export function useAuth() {
     signInWithGoogle,
     signOut,
     updateProfile
+  }), [loading, profile, requestEmailOtp, signIn, signInWithGoogle, signOut, signUp, updateProfile, user, verifyEmailOtp])
+
+  return createElement(AuthContext.Provider, { value }, children)
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext)
+
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider')
   }
+
+  return context
 }
