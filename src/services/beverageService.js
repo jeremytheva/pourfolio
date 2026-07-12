@@ -5,7 +5,7 @@ const BEVERAGES = COLLECTIONS.beverages
 const RATINGS = COLLECTIONS.ratings
 
 export const beverageService = {
-  // NoCodeBackend does not support Supabase relational selects in a single collection call;
+  // NoCodeBackend does not support multi-relation selects in a single collection call;
   // producer/rating/profile relationships are hydrated with follow-up collection requests.
   async getBeverages(filters = {}) {
     const { data, error } = await nocodeBackend.list(BEVERAGES, {

@@ -9,7 +9,7 @@ class ClaimsService {
     this.cacheTimeout = 5 * 60 * 1000 // 5 minutes
   }
 
-  // NoCodeBackend cannot represent Supabase profile relational selects in one call;
+  // NoCodeBackend cannot represent profile joins in one collection call;
   // profile details are hydrated with follow-up collection reads.
   async getClaimsWithProfiles(filters = {}) {
     const { data, error } = await nocodeBackend.list(CLAIMS, {

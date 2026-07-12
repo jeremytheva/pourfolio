@@ -14,7 +14,7 @@ const attachBeverageToCellarItem = async (cellarItem) => {
 }
 
 export const cellarService = {
-  // NoCodeBackend does not support Supabase relational selects in one collection call;
+  // NoCodeBackend does not support multi-relation selects in one collection call;
   // beverage and producer relationship shapes are composed from follow-up requests.
   async getCellarItems(userId) {
     const { data, error } = await nocodeBackend.list(CELLAR_ITEMS, {

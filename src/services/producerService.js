@@ -10,7 +10,7 @@ const attachBeverages = async (producer) => {
 }
 
 export const producerService = {
-  // NoCodeBackend cannot express the previous Supabase relational beverage select in one call;
+  // NoCodeBackend cannot express producer-to-beverage joins in one collection call;
   // beverages are loaded from the beverages collection after producer reads.
   async getProducers(filters = {}) {
     const { data, error } = await nocodeBackend.list(PRODUCERS, {
