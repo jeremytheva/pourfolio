@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 
-const AUTH_API_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
+const AUTH_API_BASE_URL = '/api/nocodebackend/auth'
 const PROFILE_OVERRIDES_KEY = 'pourfolioProfileOverrides'
 
 const getProfileOverrides = () => {
