@@ -1,56 +1,26 @@
-import { supabase } from '../lib/supabase'
+import { nocodeBackend } from '../lib/nocodeBackend'
+
+const VENUES = 'venues_pf2025'
 
 export const venueService = {
-  // Get all venues
   async getVenues(filters = {}) {
-    let query = supabase
-      .from('venues_pf2025')
-      .select('*')
-      .order('name')
-
-    if (filters.type) {
-      query = query.eq('type', filters.type)
-    }
-
-    if (filters.search) {
-      query = query.or(`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%`)
-    }
-
-    const { data, error } = await query
-    return { data, error }
+    return nocodeBackend.list(VENUES, {
+      filters: { type: filters.type },
+      search: filters.search ? { term: filters.search, fields: ['name', 'city'] } : undefined,
+      orderBy: 'name',
+      ascending: true
+    })
   },
 
-  // Get single venue
   async getVenue(id) {
-    const { data, error } = await supabase
-      .from('venues_pf2025')
-      .select('*')
-      .eq('id', id)
-      .single()
-    
-    return { data, error }
+    return nocodeBackend.get(VENUES, id)
   },
 
-  // Add new venue
   async addVenue(venueData) {
-    const { data, error } = await supabase
-      .from('venues_pf2025')
-      .insert([venueData])
-      .select()
-      .single()
-    
-    return { data, error }
+    return nocodeBackend.create(VENUES, venueData)
   },
 
-  // Update venue
   async updateVenue(id, updates) {
-    const { data, error } = await supabase
-      .from('venues_pf2025')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single()
-    
-    return { data, error }
+    return nocodeBackend.update(VENUES, id, updates)
   }
 }

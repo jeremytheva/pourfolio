@@ -1,71 +1,72 @@
-import { supabase } from '../lib/supabase'
+import { nocodeBackend } from '../lib/nocodeBackend'
+
+const RATINGS = 'ratings_pf2025'
+const BEVERAGES = 'beverages_pf2025'
+const PRODUCERS = 'producers_pf2025'
+const PROFILES = 'profiles'
+
+const attachBeverage = async (rating) => {
+  if (!rating?.beverage_id) return rating
+  const { data: beverage } = await nocodeBackend.get(BEVERAGES, rating.beverage_id)
+  if (!beverage) return { ...rating, beverages_pf2025: null }
+
+  let producer = null
+  if (beverage.producer_id) {
+    const { data } = await nocodeBackend.get(PRODUCERS, beverage.producer_id)
+    producer = data ? { name: data.name } : null
+  }
+
+  return {
+    ...rating,
+    beverages_pf2025: {
+      name: beverage.name,
+      style: beverage.style,
+      type: beverage.type,
+      producer_id: beverage.producer_id,
+      producers_pf2025: producer
+    }
+  }
+}
+
+const attachProfile = async (rating) => {
+  const { data: profile } = await nocodeBackend.get(PROFILES, rating.user_id)
+  return { ...rating, profiles: profile ? { name: profile.name, avatar_url: profile.avatar_url } : null }
+}
 
 export const ratingService = {
-  // Add new rating
+  // NoCodeBackend cannot perform Supabase relational selects in one call; beverage,
+  // producer, and profile objects are composed with separate collection requests.
   async addRating(ratingData) {
-    const { data, error } = await supabase
-      .from('ratings_pf2025')
-      .insert([ratingData])
-      .select(`
-        *,
-        beverages_pf2025!ratings_pf2025_beverage_id_fkey(name, producer_id),
-        profiles(name, avatar_url)
-      `)
-      .single()
-    
-    return { data, error }
+    const { data, error } = await nocodeBackend.create(RATINGS, ratingData)
+    if (error || !data) return { data, error }
+    return { data: await attachProfile(await attachBeverage(data)), error: null }
   },
 
-  // Get user's ratings
   async getUserRatings(userId) {
-    const { data, error } = await supabase
-      .from('ratings_pf2025')
-      .select(`
-        *,
-        beverages_pf2025!ratings_pf2025_beverage_id_fkey(
-          name, style, type,
-          producers_pf2025!beverages_pf2025_producer_id_fkey(name)
-        )
-      `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-    
-    return { data, error }
+    const { data, error } = await nocodeBackend.list(RATINGS, {
+      filters: { user_id: userId },
+      orderBy: 'created_at',
+      ascending: false
+    })
+    if (error) return { data, error }
+    return { data: await Promise.all(data.map(attachBeverage)), error: null }
   },
 
-  // Get ratings for a specific beverage
   async getBeverageRatings(beverageId) {
-    const { data, error } = await supabase
-      .from('ratings_pf2025')
-      .select(`
-        *,
-        profiles(name, avatar_url)
-      `)
-      .eq('beverage_id', beverageId)
-      .order('created_at', { ascending: false })
-    
-    return { data, error }
+    const { data, error } = await nocodeBackend.list(RATINGS, {
+      filters: { beverage_id: beverageId },
+      orderBy: 'created_at',
+      ascending: false
+    })
+    if (error) return { data, error }
+    return { data: await Promise.all(data.map(attachProfile)), error: null }
   },
 
-  // Update rating
   async updateRating(id, updates) {
-    const { data, error } = await supabase
-      .from('ratings_pf2025')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single()
-    
-    return { data, error }
+    return nocodeBackend.update(RATINGS, id, updates)
   },
 
-  // Delete rating
   async deleteRating(id) {
-    const { data, error } = await supabase
-      .from('ratings_pf2025')
-      .delete()
-      .eq('id', id)
-    
-    return { data, error }
+    return nocodeBackend.remove(RATINGS, id)
   }
 }

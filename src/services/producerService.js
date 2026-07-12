@@ -1,62 +1,38 @@
-import { supabase } from '../lib/supabase'
+import { nocodeBackend } from '../lib/nocodeBackend'
+
+const PRODUCERS = 'producers_pf2025'
+const BEVERAGES = 'beverages_pf2025'
+
+const attachBeverages = async (producer) => {
+  const { data: beverages } = await nocodeBackend.list(BEVERAGES, { filters: { producer_id: producer.id } })
+  return { ...producer, beverages_pf2025: beverages || [] }
+}
 
 export const producerService = {
-  // Get all producers
+  // NoCodeBackend cannot express the previous Supabase relational beverage select in one call;
+  // beverages are loaded from the beverages collection after producer reads.
   async getProducers(filters = {}) {
-    let query = supabase
-      .from('producers_pf2025')
-      .select(`
-        *,
-        beverages_pf2025(id, name, style, average_rating)
-      `)
-      .order('name')
-
-    if (filters.type) {
-      query = query.eq('type', filters.type)
-    }
-
-    if (filters.search) {
-      query = query.or(`name.ilike.%${filters.search}%,location.ilike.%${filters.search}%`)
-    }
-
-    const { data, error } = await query
-    return { data, error }
+    const { data, error } = await nocodeBackend.list(PRODUCERS, {
+      filters: { type: filters.type },
+      search: filters.search ? { term: filters.search, fields: ['name', 'location'] } : undefined,
+      orderBy: 'name',
+      ascending: true
+    })
+    if (error) return { data, error }
+    return { data: await Promise.all(data.map(attachBeverages)), error: null }
   },
 
-  // Get single producer
   async getProducer(id) {
-    const { data, error } = await supabase
-      .from('producers_pf2025')
-      .select(`
-        *,
-        beverages_pf2025!beverages_pf2025_producer_id_fkey(*)
-      `)
-      .eq('id', id)
-      .single()
-    
-    return { data, error }
+    const { data, error } = await nocodeBackend.get(PRODUCERS, id)
+    if (error || !data) return { data, error }
+    return { data: await attachBeverages(data), error: null }
   },
 
-  // Add new producer
   async addProducer(producerData) {
-    const { data, error } = await supabase
-      .from('producers_pf2025')
-      .insert([producerData])
-      .select()
-      .single()
-    
-    return { data, error }
+    return nocodeBackend.create(PRODUCERS, producerData)
   },
 
-  // Update producer
   async updateProducer(id, updates) {
-    const { data, error } = await supabase
-      .from('producers_pf2025')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single()
-    
-    return { data, error }
+    return nocodeBackend.update(PRODUCERS, id, updates)
   }
 }

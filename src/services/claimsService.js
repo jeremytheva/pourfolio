@@ -1,4 +1,7 @@
-import supabase from '../lib/supabase'
+import { nocodeBackend } from '../lib/nocodeBackend'
+
+const CLAIMS = 'producer_claims_pf2025'
+const PROFILES = 'profiles'
 
 class ClaimsService {
   constructor() {
@@ -6,26 +9,39 @@ class ClaimsService {
     this.cacheTimeout = 5 * 60 * 1000 // 5 minutes
   }
 
+  // NoCodeBackend cannot represent Supabase profile relational selects in one call;
+  // profile details are hydrated with follow-up collection reads.
+  async getClaimsWithProfiles(filters = {}) {
+    const { data, error } = await nocodeBackend.list(CLAIMS, {
+      filters,
+      orderBy: 'created_at',
+      ascending: false
+    })
+    if (error) return { data, error }
+
+    const claims = await Promise.all((data || []).map(async (claim) => {
+      const { data: profile } = await nocodeBackend.get(PROFILES, claim.user_id)
+      return { ...claim, profiles: profile ? { name: profile.name, email: profile.email } : null }
+    }))
+
+    return { data: claims, error: null }
+  }
+
   async submitProducerClaim(claimData) {
     try {
       this.validateClaimData(claimData)
 
-      const { data, error } = await supabase
-        .from('producer_claims_pf2025')
-        .insert([{
-          user_id: claimData.user_id,
-          producer_id: claimData.producer_id || null,
-          producer_name: claimData.producer_name,
-          business_license: claimData.business_license || null,
-          tax_id: claimData.tax_id || null,
-          contact_email: claimData.contact_email,
-          contact_phone: claimData.contact_phone || null,
-          status: 'pending'
-        }])
-        .select()
-        .single()
+      const { data, error } = await nocodeBackend.create(CLAIMS, {
+        user_id: claimData.user_id,
+        producer_id: claimData.producer_id || null,
+        producer_name: claimData.producer_name,
+        business_license: claimData.business_license || null,
+        tax_id: claimData.tax_id || null,
+        contact_email: claimData.contact_email,
+        contact_phone: claimData.contact_phone || null,
+        status: 'pending'
+      })
 
-      // Invalidate cache
       this.invalidateCache('all-claims')
       this.invalidateCache(`user-claims-${claimData.user_id}`)
 
@@ -37,25 +53,20 @@ class ClaimsService {
   }
 
   async getUserClaims(userId) {
-    if (!userId) {
-      return { data: [], error: { message: 'User ID is required' } }
-    }
+    if (!userId) return { data: [], error: { message: 'User ID is required' } }
 
     const cacheKey = `user-claims-${userId}`
     const cached = this.getFromCache(cacheKey)
     if (cached) return { data: cached, error: null }
 
     try {
-      const { data, error } = await supabase
-        .from('producer_claims_pf2025')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+      const { data, error } = await nocodeBackend.list(CLAIMS, {
+        filters: { user_id: userId },
+        orderBy: 'created_at',
+        ascending: false
+      })
 
-      if (!error && data) {
-        this.setCache(cacheKey, data)
-      }
-
+      if (!error && data) this.setCache(cacheKey, data)
       return { data: data || [], error }
     } catch (err) {
       console.error('Error in getUserClaims:', err)
@@ -69,18 +80,8 @@ class ClaimsService {
     if (cached) return { data: cached, error: null }
 
     try {
-      const { data, error } = await supabase
-        .from('producer_claims_pf2025')
-        .select(`
-          *,
-          profiles!producer_claims_pf2025_user_id_fkey(name, email)
-        `)
-        .order('created_at', { ascending: false })
-
-      if (!error && data) {
-        this.setCache(cacheKey, data)
-      }
-
+      const { data, error } = await this.getClaimsWithProfiles()
+      if (!error && data) this.setCache(cacheKey, data)
       return { data: data || [], error }
     } catch (err) {
       console.error('Error in getAllClaims:', err)
@@ -94,19 +95,8 @@ class ClaimsService {
     if (cached) return { data: cached, error: null }
 
     try {
-      const { data, error } = await supabase
-        .from('producer_claims_pf2025')
-        .select(`
-          *,
-          profiles!producer_claims_pf2025_user_id_fkey(name, email)
-        `)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-
-      if (!error && data) {
-        this.setCache(cacheKey, data)
-      }
-
+      const { data, error } = await this.getClaimsWithProfiles({ status: 'pending' })
+      if (!error && data) this.setCache(cacheKey, data)
       return { data: data || [], error }
     } catch (err) {
       console.error('Error in getPendingClaims:', err)
@@ -118,21 +108,14 @@ class ClaimsService {
     try {
       this.validateUpdateData({ claimId, status, adminNotes, reviewedBy })
 
-      const { data, error } = await supabase
-        .from('producer_claims_pf2025')
-        .update({
-          status,
-          admin_notes: adminNotes,
-          reviewed_by: reviewedBy,
-          reviewed_at: new Date().toISOString()
-        })
-        .eq('id', claimId)
-        .select()
-        .single()
+      const { data, error } = await nocodeBackend.update(CLAIMS, claimId, {
+        status,
+        admin_notes: adminNotes,
+        reviewed_by: reviewedBy,
+        reviewed_at: new Date().toISOString()
+      })
 
-      // Invalidate all relevant caches
       this.invalidateAllCaches()
-
       return { data, error }
     } catch (err) {
       console.error('Error in updateClaimStatus:', err)
@@ -141,19 +124,11 @@ class ClaimsService {
   }
 
   async deleteClaim(claimId) {
-    if (!claimId) {
-      return { data: null, error: { message: 'Claim ID is required' } }
-    }
+    if (!claimId) return { data: null, error: { message: 'Claim ID is required' } }
 
     try {
-      const { data, error } = await supabase
-        .from('producer_claims_pf2025')
-        .delete()
-        .eq('id', claimId)
-
-      // Invalidate all relevant caches
+      const { data, error } = await nocodeBackend.remove(CLAIMS, claimId)
       this.invalidateAllCaches()
-
       return { data, error }
     } catch (err) {
       console.error('Error in deleteClaim:', err)
@@ -161,13 +136,10 @@ class ClaimsService {
     }
   }
 
-  // Validation helpers
   validateClaimData(claimData) {
     const requiredFields = ['producer_name', 'contact_email', 'user_id']
     for (const field of requiredFields) {
-      if (!claimData[field]) {
-        throw new Error(`Missing required field: ${field}`)
-      }
+      if (!claimData[field]) throw new Error(`Missing required field: ${field}`)
     }
 
     if (claimData.contact_email && !this.isValidEmail(claimData.contact_email)) {
@@ -179,21 +151,15 @@ class ClaimsService {
     if (!claimId) throw new Error('Claim ID is required')
     if (!adminNotes.trim()) throw new Error('Admin notes are required')
     if (!reviewedBy) throw new Error('Reviewer ID is required')
-    if (!['pending', 'approved', 'rejected', 'under_review'].includes(status)) {
-      throw new Error('Invalid status')
-    }
+    if (!['pending', 'approved', 'rejected', 'under_review'].includes(status)) throw new Error('Invalid status')
   }
 
   isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   }
 
-  // Cache management
   setCache(key, data) {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now()
-    })
+    this.cache.set(key, { data, timestamp: Date.now() })
   }
 
   getFromCache(key) {
