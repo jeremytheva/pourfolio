@@ -4,7 +4,7 @@ import { attachBeverageToRating, attachBeveragesToRatings, attachProfileToRecord
 const RATINGS = COLLECTIONS.ratings
 
 export const ratingService = {
-  // NoCodeBackend cannot perform Supabase relational selects in one call; beverage,
+  // NoCodeBackend cannot perform multi-relation selects in one call; beverage,
   // producer, and profile objects are composed with separate collection requests.
   async addRating(ratingData) {
     const { data, error } = await nocodeBackend.create(RATINGS, ratingData)
