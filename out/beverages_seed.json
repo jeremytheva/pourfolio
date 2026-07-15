@@ -68,5 +68,19 @@
     "source_beer_id": "BE-005",
     "source_brewery_id": "BR-004",
     "style_match_status": "matched"
+  },
+  {
+    "id": "beverage_1cf949488026",
+    "name": "Line Break \"Special\"\nReserve",
+    "slug": "line-break-special-reserve",
+    "beverage_type": "Beer",
+    "beverage_subtype": "American IPA",
+    "declared_style": "American IPA",
+    "producer_id": "producer_95becf3c7bd9",
+    "abv": 7.1,
+    "ibu": 70,
+    "source_beer_id": "BE-006",
+    "source_brewery_id": "BR-005",
+    "style_match_status": "matched"
   }
 ]

@@ -22,5 +22,11 @@
     "name": "Valley Brews",
     "slug": "valley-brews",
     "source_brewery_id": "BR-004"
+  },
+  {
+    "id": "producer_95becf3c7bd9",
+    "name": "Harbor, Barrel & Ale",
+    "slug": "harbor-barrel-ale",
+    "source_brewery_id": "BR-005"
   }
 ]
