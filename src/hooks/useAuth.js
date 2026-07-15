@@ -1,5 +1,6 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { authRequest, toAuthError, getGoogleSignInUrl } from '../lib/nocodeBackend'
+import { getCurrentUserProfile, updateCurrentUserProfile } from '../services/profileService'
 const PROFILE_OVERRIDES_KEY = 'pourfolioProfileOverrides'
 
 const AuthContext = createContext(null)
@@ -14,21 +15,26 @@ const getProfileOverrides = () => {
 }
 
 const saveProfileOverride = (userId, updates) => {
-  const overrides = getProfileOverrides()
-  const nextProfile = {
-    ...(overrides[userId] || {}),
-    ...updates
+  try {
+    const overrides = getProfileOverrides()
+    const nextProfile = {
+      ...(overrides[userId] || {}),
+      ...updates
+    }
+
+    localStorage.setItem(
+      PROFILE_OVERRIDES_KEY,
+      JSON.stringify({
+        ...overrides,
+        [userId]: nextProfile
+      })
+    )
+
+    return nextProfile
+  } catch (error) {
+    console.error('Error saving profile cache:', error)
+    return updates
   }
-
-  localStorage.setItem(
-    PROFILE_OVERRIDES_KEY,
-    JSON.stringify({
-      ...overrides,
-      [userId]: nextProfile
-    })
-  )
-
-  return nextProfile
 }
 
 const findNestedValue = (source, keys) => {
@@ -65,11 +71,11 @@ const normalizeUser = (payload) => {
   }
 }
 
-const buildProfile = (authUser) => {
+const buildProfile = (authUser, persistedProfile = null) => {
   if (!authUser) return null
 
   const metadata = authUser.user_metadata || {}
-  const overrides = getProfileOverrides()[authUser.id] || {}
+  const overrides = persistedProfile ? {} : getProfileOverrides()[authUser.id] || {}
   const name = authUser.name || authUser.fullName || metadata.name || authUser.email?.split('@')[0] || 'User'
   const type = authUser.type || metadata.type || 'General User'
   const description = authUser.description || metadata.description || ''
@@ -82,13 +88,14 @@ const buildProfile = (authUser) => {
     description,
     ...metadata,
     ...authUser,
+    ...(persistedProfile || {}),
     ...overrides
   }
 }
 
-const normalizeAuthState = (payload) => {
+const normalizeAuthState = (payload, persistedProfile = null) => {
   const authUser = normalizeUser(payload)
-  const normalizedProfile = buildProfile(authUser)
+  const normalizedProfile = buildProfile(authUser, persistedProfile)
 
   return {
     user: authUser,
@@ -106,8 +113,8 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const applyAuthState = useCallback((payload) => {
-    const nextState = normalizeAuthState(payload)
+  const applyAuthState = useCallback((payload, persistedProfile = null) => {
+    const nextState = normalizeAuthState(payload, persistedProfile)
 
     setUser(nextState.user)
     setProfile(nextState.profile)
@@ -122,8 +129,15 @@ export function AuthProvider({ children }) {
       try {
         const session = await authRequest('/get-session', { method: 'GET' })
 
+        const authUser = normalizeUser(session)
+        const { data: persistedProfile, error } = authUser
+          ? await getCurrentUserProfile(authUser.id)
+          : { data: null, error: null }
+
+        if (error) console.error('Profile initialization error:', error)
+
         if (mounted) {
-          applyAuthState(session)
+          applyAuthState(session, persistedProfile)
         }
       } catch (error) {
         console.error('Auth initialization error:', error)
@@ -160,7 +174,11 @@ export function AuthProvider({ children }) {
         })
       })
 
-      const nextState = applyAuthState(payload)
+      const authUser = normalizeUser(payload)
+      const { data: persistedProfile } = authUser
+        ? await getCurrentUserProfile(authUser.id)
+        : { data: null }
+      const nextState = applyAuthState(payload, persistedProfile)
       return { data: nextState.data, error: null }
     } catch (error) {
       return { data: null, error: toAuthError(error) }
@@ -174,7 +192,11 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ email, password })
       })
 
-      const nextState = applyAuthState(payload)
+      const authUser = normalizeUser(payload)
+      const { data: persistedProfile } = authUser
+        ? await getCurrentUserProfile(authUser.id)
+        : { data: null }
+      const nextState = applyAuthState(payload, persistedProfile)
       return { data: nextState.data, error: null }
     } catch (error) {
       return { data: null, error: toAuthError(error) }
@@ -201,7 +223,11 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ email, otp })
       })
 
-      const nextState = applyAuthState(payload)
+      const authUser = normalizeUser(payload)
+      const { data: persistedProfile } = authUser
+        ? await getCurrentUserProfile(authUser.id)
+        : { data: null }
+      const nextState = applyAuthState(payload, persistedProfile)
       return { data: nextState.data, error: null }
     } catch (error) {
       return { data: null, error: toAuthError(error) }
@@ -227,13 +253,18 @@ export function AuthProvider({ children }) {
     if (!user) return { data: null, error: { message: 'No user logged in' } }
 
     try {
+      const { data, error } = await updateCurrentUserProfile(user.id, updates, profile)
+
+      if (error) return { data: null, error: toAuthError(error) }
+
       const updatedProfile = {
         ...profile,
-        ...saveProfileOverride(user.id, updates)
+        ...(data || updates)
       }
 
+      saveProfileOverride(user.id, updatedProfile)
       setProfile(updatedProfile)
-      setUser((currentUser) => currentUser ? { ...currentUser, ...updates } : currentUser)
+      setUser((currentUser) => currentUser ? { ...currentUser, ...updatedProfile } : currentUser)
 
       return { data: updatedProfile, error: null }
     } catch (error) {
