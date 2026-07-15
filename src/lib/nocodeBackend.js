@@ -97,7 +97,8 @@ const compareValues = (left, right) => {
 
 export const nocodeBackend = {
   list(collection, { filters = {}, orderBy, ascending = true, search } = {}) {
-    return request(`/${collection}${buildQueryString(filters) ? `?${buildQueryString(filters)}` : ''}`).then(({ data, error }) => {
+    const queryString = buildQueryString(filters)
+    return request(`/${collection}${queryString ? `?${queryString}` : ''}`).then(({ data, error }) => {
       if (error || !Array.isArray(data)) return { data: data || [], error }
 
       let records = data
