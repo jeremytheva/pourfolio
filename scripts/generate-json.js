@@ -26,16 +26,17 @@ function slugify(input) {
     .replace(/(^-|-$)/g, '');
 }
 
-function parseCSVLine(line) {
-  const values = [];
+function parseCsvRecords(raw) {
+  const records = [];
+  let record = [];
   let current = '';
   let inQuotes = false;
 
-  for (let i = 0; i < line.length; i += 1) {
-    const char = line[i];
+  for (let i = 0; i < raw.length; i += 1) {
+    const char = raw[i];
 
     if (char === '"') {
-      if (inQuotes && line[i + 1] === '"') {
+      if (inQuotes && raw[i + 1] === '"') {
         current += '"';
         i += 1;
       } else {
@@ -45,7 +46,21 @@ function parseCSVLine(line) {
     }
 
     if (char === ',' && !inQuotes) {
-      values.push(current.trim());
+      record.push(current.trim());
+      current = '';
+      continue;
+    }
+
+    if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && raw[i + 1] === '\n') {
+        i += 1;
+      }
+
+      record.push(current.trim());
+      if (record.some((cell) => cell !== '')) {
+        records.push(record);
+      }
+      record = [];
       current = '';
       continue;
     }
@@ -53,26 +68,32 @@ function parseCSVLine(line) {
     current += char;
   }
 
-  values.push(current.trim());
-  return values;
+  if (inQuotes) {
+    throw new Error('Invalid CSV: unmatched quote');
+  }
+
+  record.push(current.trim());
+  if (record.some((cell) => cell !== '')) {
+    records.push(record);
+  }
+
+  return records;
 }
+
 
 function parseCsvFile(filePath) {
   const raw = fs.readFileSync(filePath, 'utf8');
-  const lines = raw.split(/\r?\n/).filter(Boolean);
-  if (lines.length === 0) {
+  const rows = parseCsvRecords(raw);
+  if (rows.length === 0) {
     return [];
   }
 
-  const header = parseCSVLine(lines[0]);
+  const [header, ...records] = rows;
 
-  return lines.slice(1).map((line) => {
-    const cells = parseCSVLine(line);
-    return header.reduce((acc, key, index) => {
-      acc[key] = cells[index] ?? '';
-      return acc;
-    }, {});
-  });
+  return records.map((cells) => header.reduce((acc, key, index) => {
+    acc[key] = cells[index] ?? '';
+    return acc;
+  }, {}));
 }
 
 function createDeterministicId(prefix, value) {
