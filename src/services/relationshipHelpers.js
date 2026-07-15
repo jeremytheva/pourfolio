@@ -9,11 +9,31 @@ export const COLLECTIONS = {
 
 const getUniqueIds = (records, key) => [...new Set((records || []).map((record) => record?.[key]).filter(Boolean))]
 
+// NoCodeBackend's current list helper only serializes simple equality filters,
+// so multi-ID lookups are not guaranteed to be supported by the API. Keep
+// per-ID get calls, but run them through a small worker pool to avoid
+// unbounded Promise.all request bursts when hydrating large relationship sets.
+const INDEX_BY_ID_CONCURRENCY_LIMIT = 8
+
 const indexById = async (collection, ids) => {
-  const entries = await Promise.all(ids.map(async (id) => {
+  const entries = ids.map((id) => [id, null])
+  let nextIndex = 0
+
+  const indexNextId = async () => {
+    const currentIndex = nextIndex
+    nextIndex += 1
+
+    if (currentIndex >= ids.length) return
+
+    const id = ids[currentIndex]
     const { data } = await nocodeBackend.get(collection, id)
-    return [id, data || null]
-  }))
+    entries[currentIndex] = [id, data || null]
+
+    await indexNextId()
+  }
+
+  const workerCount = Math.min(INDEX_BY_ID_CONCURRENCY_LIMIT, ids.length)
+  await Promise.all(Array.from({ length: workerCount }, indexNextId))
 
   return new Map(entries)
 }
