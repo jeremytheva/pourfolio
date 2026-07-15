@@ -20,6 +20,38 @@ const normalizePayload = (payload) => {
   return payload?.data ?? payload?.records ?? payload?.items ?? payload ?? null
 }
 
+const previewRawBody = (responseText) => responseText.slice(0, 200)
+
+const parseResponseBody = (responseText) => {
+  const trimmedText = responseText.trim()
+  if (!trimmedText) return { payload: null, parseError: null }
+
+  try {
+    return { payload: JSON.parse(trimmedText), parseError: null }
+  } catch (error) {
+    return {
+      payload: null,
+      parseError: {
+        message: 'Response body was not valid JSON',
+        rawBody: trimmedText,
+        cause: error
+      }
+    }
+  }
+}
+
+const buildHttpError = (response, parseError) => {
+  const statusMessage = `${response.status} ${response.statusText || 'HTTP error'}`.trim()
+  if (!parseError) return new Error(statusMessage)
+
+  const preview = previewRawBody(parseError.rawBody)
+  const error = new Error(`${statusMessage}: non-JSON response body${preview ? ` - ${preview}` : ''}`)
+  error.status = response.status
+  error.statusText = response.statusText
+  error.rawBody = parseError.rawBody
+  return error
+}
+
 const buildQueryString = (filters = {}) => {
   const params = new URLSearchParams()
   Object.entries(filters).forEach(([key, value]) => {
@@ -40,10 +72,14 @@ const request = async (path, options = {}) => {
     })
 
     const text = await response.text()
-    const payload = text ? JSON.parse(text) : null
+    const { payload, parseError } = parseResponseBody(text)
 
-    if (!response.ok || payload?.error) {
-      return { data: null, error: normalizeError(payload?.error || payload || response.statusText) }
+    if (!response.ok) {
+      return { data: null, error: normalizeError(payload?.error || payload || buildHttpError(response, parseError)) }
+    }
+
+    if (parseError || payload?.error) {
+      return { data: null, error: normalizeError(parseError || payload.error) }
     }
 
     return { data: normalizePayload(payload), error: null }
@@ -121,10 +157,14 @@ export const authRequest = async (path, options = {}) => {
   })
 
   const text = await response.text()
-  const payload = text ? JSON.parse(text) : null
+  const { payload, parseError } = parseResponseBody(text)
 
-  if (!response.ok || payload?.error) {
-    throw toAuthError(payload?.error || payload || response.statusText)
+  if (!response.ok) {
+    throw toAuthError(payload?.error || payload || buildHttpError(response, parseError))
+  }
+
+  if (parseError || payload?.error) {
+    throw toAuthError(parseError || payload.error)
   }
 
   return payload
