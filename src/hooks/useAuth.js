@@ -37,35 +37,49 @@ const saveProfileOverride = (userId, updates) => {
   }
 }
 
-const findNestedValue = (source, keys) => {
-  if (!source || typeof source !== 'object') return null
+const getStableIdentity = (candidate) => {
+  if (!candidate || typeof candidate !== 'object') return null
 
-  for (const key of keys) {
-    if (source[key]) return source[key]
-  }
-
-  for (const value of Object.values(source)) {
-    const nestedValue = findNestedValue(value, keys)
-    if (nestedValue) return nestedValue
-  }
-
-  return null
+  return candidate.id || candidate.user_id || candidate.userId || candidate._id || candidate.email || null
 }
 
+const hasStableIdentity = (candidate) => Boolean(getStableIdentity(candidate))
+
 const normalizeUser = (payload) => {
-  const candidate = findNestedValue(payload, ['user', 'profile']) || payload?.data || payload
+  if (!payload || typeof payload !== 'object') return null
+
+  // Accepted NoCodeBackend auth response shapes:
+  // - { user: { id|user_id|userId|_id|email, ... } }
+  // - { profile: { id|user_id|userId|_id|email, ... } }
+  // - { data: { user: { id|user_id|userId|_id|email, ... } } }
+  // - { data: { profile: { id|user_id|userId|_id|email, ... } } }
+  // - { data: { id|user_id|userId|_id|email, ... } }
+  // - { id|user_id|userId|_id|email, ... }
+  // Avoid scanning arbitrary nested objects so unrelated payload fields are not
+  // mistaken for the authenticated user. Add a documented shape above before
+  // accepting any additional backend response format.
+  const candidates = [
+    payload.user,
+    payload.profile,
+    payload.data?.user,
+    payload.data?.profile,
+    payload.data,
+    payload
+  ]
+
+  const candidate = candidates.find(hasStableIdentity)
 
   if (!candidate || typeof candidate !== 'object') return null
 
   const metadata = candidate.user_metadata || candidate.metadata || candidate.customData || {}
-  const id = candidate.id || candidate.user_id || candidate.userId || candidate._id || candidate.email
+  const id = getStableIdentity(candidate)
   const email = candidate.email || candidate.emailAddress || metadata.email
 
-  if (!id && !email) return null
+  if (!id) return null
 
   return {
     ...candidate,
-    id: id || email,
+    id,
     email,
     user_metadata: metadata
   }
