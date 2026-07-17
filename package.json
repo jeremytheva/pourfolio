@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run lint && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "lint:error": "eslint . --quiet",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test src/utils/__tests__/*.test.js",
+    "validate": "npm run lint && npm test && npm run build"
   },
   "dependencies": {
     "@questlabs/react-sdk": "latest",

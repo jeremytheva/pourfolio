@@ -1,0 +1,46 @@
+name: Bug report
+description: Report a reproducible defect without exposing sensitive information.
+title: "[Bug]: "
+labels: ["type: bug", "status: needs-refinement"]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not paste secrets, access tokens, passwords, session cookies, or sensitive user data. Redact logs and screenshots."
+  - type: textarea
+    id: summary
+    attributes: { label: Bug summary }
+    validations: { required: true }
+  - type: input
+    id: environment
+    attributes: { label: Environment, placeholder: "Browser, OS, app version/commit, and backend context" }
+    validations: { required: true }
+  - type: textarea
+    id: reproduce
+    attributes: { label: Steps to reproduce, placeholder: "1. ...\n2. ...\n3. ..." }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: Expected behaviour }
+    validations: { required: true }
+  - type: textarea
+    id: actual
+    attributes: { label: Actual behaviour }
+    validations: { required: true }
+  - type: dropdown
+    id: frequency
+    attributes: { label: Frequency, options: ["Once", "Intermittent", "Often", "Always", "Unknown"] }
+    validations: { required: true }
+  - type: textarea
+    id: impact
+    attributes: { label: User and business impact }
+    validations: { required: true }
+  - type: textarea
+    id: evidence
+    attributes: { label: Redacted logs or screenshots }
+  - type: textarea
+    id: suspected-area
+    attributes: { label: Suspected area and regression information, description: "Include last known working version/commit if known." }
+  - type: textarea
+    id: acceptance-criteria
+    attributes: { label: Acceptance criteria for the fix, placeholder: "- [ ] Reproduction no longer fails\n- [ ] Regression test added" }
+    validations: { required: true }

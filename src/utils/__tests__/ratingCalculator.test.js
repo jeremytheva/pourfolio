@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
-import { calculateFinalRating } from '../ratingCalculator';
+import assert from 'node:assert/strict'
+import { describe, it } from 'node:test'
+import { calculateFinalRating } from '../ratingCalculator.js'
 
 const sampleAttributes = {
   appearance: { score: 7, weight: 1.5 },
@@ -8,35 +9,28 @@ const sampleAttributes = {
   flavour: { score: 6, weight: 4.5 },
   follow: { score: 5, weight: 2.5 },
   design: { score: 4, weight: 0 }
-};
+}
 
 describe('calculateFinalRating', () => {
   it('combines weighted base score with selected bonus attributes', () => {
-    const result = calculateFinalRating(sampleAttributes, [
-      { id: 'memorable', name: 'Memorable', weight: 0.2 }
-    ]);
+    const result = calculateFinalRating(sampleAttributes, [{ id: 'memorable', name: 'Memorable', weight: 0.2 }])
 
-    expect(result.baseRating).toBeCloseTo(3.54, 2);
-    expect(result.bonusPoints).toBeCloseTo(0.2, 2);
-    expect(result.finalRating).toBeCloseTo(3.74, 2);
-  });
+    assert.ok(Math.abs(result.baseRating - 3.54) < 0.01)
+    assert.ok(Math.abs(result.bonusPoints - 0.2) < 0.01)
+    assert.ok(Math.abs(result.finalRating - 3.74) < 0.01)
+  })
 
   it('clamps manual bonus overrides to the allowed range', () => {
-    const result = calculateFinalRating(sampleAttributes, [], 0.75);
+    const result = calculateFinalRating(sampleAttributes, [], 0.75)
 
-    expect(result.bonusPoints).toBe(0.5);
-    expect(result.finalRating).toBeCloseTo(4.04, 2);
-  });
+    assert.equal(result.bonusPoints, 0.5)
+    assert.ok(Math.abs(result.finalRating - 4.04) < 0.01)
+  })
 
   it('omits bonus contributions when hideBonus is true', () => {
-    const result = calculateFinalRating(
-      sampleAttributes,
-      [{ id: 'greatValue', name: 'Great Value', weight: 0.3 }],
-      null,
-      true
-    );
+    const result = calculateFinalRating(sampleAttributes, [{ id: 'greatValue', name: 'Great Value', weight: 0.3 }], null, true)
 
-    expect(result.bonusPoints).toBe(0);
-    expect(result.finalRating).toBe(result.baseRating);
-  });
-});
+    assert.equal(result.bonusPoints, 0)
+    assert.equal(result.finalRating, result.baseRating)
+  })
+})

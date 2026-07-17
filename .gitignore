@@ -23,3 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 .env
+# Test and tool artefacts
+coverage/
+.vitest/
+*.tsbuildinfo
