@@ -1,5 +1,5 @@
 // Updated rating calculation utility functions
-import { beverageTypes } from './beverageTypes';
+import { beverageTypes } from './beverageTypes.js';
 
 export const calculateFinalRating = (
   mainAttributes,
@@ -59,7 +59,7 @@ export const calculateFinalRating = (
 };
 
 // Export descriptors and guidance from beverageTypes
-export { ratingDescriptors, styleGuidance } from './beverageTypes';
+export { ratingDescriptors, styleGuidance } from './beverageTypes.js';
 
 export const bonusAttributeCategories = {
   emotionalImpact: {

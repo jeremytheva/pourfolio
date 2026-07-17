@@ -1,0 +1,41 @@
+name: Technical debt
+description: Define a bounded maintainability, reliability, or architecture improvement.
+title: "[Tech debt]: "
+labels: ["type: technical-debt", "status: needs-refinement"]
+body:
+  - type: textarea
+    id: limitation
+    attributes: { label: Current limitation }
+    validations: { required: true }
+  - type: textarea
+    id: evidence
+    attributes: { label: Evidence, description: "Link incidents, code paths, measurements, or repeated delivery cost." }
+    validations: { required: true }
+  - type: textarea
+    id: affected-modules
+    attributes: { label: Affected modules }
+    validations: { required: true }
+  - type: textarea
+    id: consequences
+    attributes: { label: Consequences of not addressing it }
+    validations: { required: true }
+  - type: textarea
+    id: outcome
+    attributes: { label: Proposed outcome }
+    validations: { required: true }
+  - type: textarea
+    id: boundaries
+    attributes: { label: Refactoring boundaries and behaviour that must remain unchanged }
+    validations: { required: true }
+  - type: textarea
+    id: validation
+    attributes: { label: Validation requirements }
+    validations: { required: true }
+  - type: textarea
+    id: dependencies
+    attributes: { label: Dependencies, description: "Write 'None' if none." }
+    validations: { required: true }
+  - type: textarea
+    id: acceptance-criteria
+    attributes: { label: Acceptance criteria, placeholder: "- [ ] Testable criterion" }
+    validations: { required: true }

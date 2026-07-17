@@ -1,0 +1,64 @@
+name: Implementation
+description: Define one focused feature, architecture, or documentation outcome for delivery.
+title: "[Feature]: "
+labels: ["type: feature", "status: needs-refinement"]
+body:
+  - type: markdown
+    attributes:
+      value: "Use this form for one implementable outcome. Do not include secrets or personal data."
+  - type: textarea
+    id: outcome
+    attributes: { label: Outcome, description: "What user or system outcome will this change deliver?" }
+    validations: { required: true }
+  - type: textarea
+    id: context
+    attributes: { label: Context, description: "Why is this needed? Link relevant product or architecture documentation." }
+    validations: { required: true }
+  - type: textarea
+    id: current-behaviour
+    attributes: { label: Current behaviour, description: "Describe the observed current state, including relevant code paths." }
+    validations: { required: true }
+  - type: textarea
+    id: required-behaviour
+    attributes: { label: Required behaviour, description: "Describe the desired observable behaviour." }
+    validations: { required: true }
+  - type: textarea
+    id: in-scope
+    attributes: { label: In-scope requirements, placeholder: "- Requirement" }
+    validations: { required: true }
+  - type: textarea
+    id: out-of-scope
+    attributes: { label: Out-of-scope items, description: "State exclusions to protect the focused PR scope." }
+    validations: { required: true }
+  - type: textarea
+    id: acceptance-criteria
+    attributes: { label: Acceptance criteria, placeholder: "- [ ] Testable criterion" }
+    validations: { required: true }
+  - type: textarea
+    id: validation
+    attributes: { label: Validation expectations, description: "Specify automated and manual evidence expected." }
+    validations: { required: true }
+  - type: textarea
+    id: impacts
+    attributes: { label: Data, security, and accessibility impact, description: "State migration/schema, authorisation, sensitive-data, and accessibility impact; write 'None identified' where applicable." }
+    validations: { required: true }
+  - type: textarea
+    id: dependencies
+    attributes: { label: Dependencies, description: "Issues, decisions, services, designs, or rollout dependencies; write 'None' if none." }
+    validations: { required: true }
+  - type: textarea
+    id: supporting-material
+    attributes: { label: Supporting files, screenshots, or links }
+  - type: checkboxes
+    id: ready
+    attributes:
+      label: Delivery readiness acknowledgement
+      options:
+        - label: This issue has one primary outcome.
+          required: true
+        - label: The scope is suitable for one focused pull request.
+          required: true
+        - label: The acceptance criteria are testable.
+          required: true
+        - label: Dependencies are identified.
+          required: true
