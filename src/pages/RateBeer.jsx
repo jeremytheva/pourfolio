@@ -1,5 +1,5 @@
 import React,{useState,useEffect} from 'react';
-import {Link,useNavigate,useSearchParams} from 'react-router-dom';
+import {Link,useNavigate,useParams,useSearchParams} from 'react-router-dom';
 import {motion} from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
@@ -9,6 +9,9 @@ import PhotoUpload from '../components/PhotoUpload';
 import TagFriends from '../components/TagFriends';
 import RatingSummary from '../components/RatingSummary';
 import ScoreBreakdown from '../components/ScoreBreakdown';
+import {ratingService} from '../services/ratingService';
+import {useAuth} from '../hooks/useAuth';
+import {buildRatingPayload} from '../utils/ratingPayload';
 import {calculateFinalRating,bonusAttributeCategories,burpScale} from '../utils/ratingCalculator';
 import {getSettings} from '../utils/settingsManager';
 import {beverageTypes,attributeLabels} from '../utils/beverageTypes';
@@ -17,7 +20,14 @@ const {FiArrowLeft,FiCheck,FiPlus,FiX,FiEyeOff,FiEye,FiChevronLeft,FiChevronRigh
 
 function RateBeer({selectedBeverageCategory='beer'}) {
   const navigate=useNavigate();
+  const routeParams=useParams();
   const [searchParams]=useSearchParams();
+  const {user}=useAuth();
+  const beverageId=searchParams.get('beverage_id') || routeParams.beverageId || routeParams.beverage_id || '';
+  const beverageName=searchParams.get('beverage_name');
+  const beverageProducer=searchParams.get('producer');
+  const beverageStyle=searchParams.get('style');
+  const beverageImage=searchParams.get('image');
   const beverageType=searchParams.get('type') || selectedBeverageCategory;
   const [settings,setSettings]=useState(getSettings(beverageType));
 
@@ -56,6 +66,7 @@ function RateBeer({selectedBeverageCategory='beer'}) {
   const [userBonusOverride,setUserBonusOverride]=useState(null);
   const [hideBonusPoints,setHideBonusPoints]=useState(false); // Changed from hideBonus
   const [isSubmitting,setIsSubmitting]=useState(false);
+  const [submitError,setSubmitError]=useState('');
 
   // New fields
   const [photos,setPhotos]=useState([]);
@@ -66,24 +77,12 @@ function RateBeer({selectedBeverageCategory='beer'}) {
   // UI state
   const [showCustomAttribute,setShowCustomAttribute]=useState(false);
 
-  // Dummy beverage data
   const beverage={
-    name: beverageType==='beer' ? 'IPA Delight' : 
-          beverageType==='wine' ? 'Chardonnay Reserve' : 
-          beverageType==='spirits' ? 'Single Malt Scotch' : 
-          beverageType==='cider' ? 'Traditional Dry Cider' : 
-          beverageType==='mead' ? 'Traditional Honey Mead' : 'Ginger Kombucha',
-    producer: beverageType==='beer' ? 'Brewery X' : 
-              beverageType==='wine' ? 'Vineyard Estate' : 
-              beverageType==='spirits' ? 'Distillery Co.' : 
-              beverageType==='cider' ? 'Orchard Cidery' : 
-              beverageType==='mead' ? 'Meadery Guild' : 'Fermentation Co.',
-    style: beverageType==='beer' ? 'American IPA' : 
-           beverageType==='wine' ? 'Chardonnay' : 
-           beverageType==='spirits' ? 'Single Malt Scotch' : 
-           beverageType==='cider' ? 'Traditional Cider' : 
-           beverageType==='mead' ? 'Traditional Mead' : 'Kombucha',
-    image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=400&h=400&fit=crop'
+    id: beverageId,
+    name: beverageName || 'Selected beverage',
+    producer: beverageProducer || 'Producer details unavailable',
+    style: beverageStyle || beverageTypes[beverageType]?.name || 'Beverage',
+    image: beverageImage || 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=400&h=400&fit=crop'
   };
 
   // Update when beverage type changes
@@ -174,20 +173,57 @@ function RateBeer({selectedBeverageCategory='beer'}) {
 
   const handleSubmit=async ()=> {
     const hasValidRatings=Object.values(mainAttributes).some(attr=> attr.score > 1);
+    setSubmitError('');
     
     if (!hasValidRatings) {
-      alert('Please provide ratings for the main attributes');
+      setSubmitError('Please provide ratings for the main attributes.');
+      return;
+    }
+
+    if (!beverageId) {
+      setSubmitError('Select a beverage before submitting a rating.');
+      return;
+    }
+
+    if (!user?.id) {
+      setSubmitError('Sign in before submitting a rating.');
       return;
     }
 
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(()=> {
-      setIsSubmitting(false);
+
+    try {
+      const payload=buildRatingPayload({
+        userId: user.id,
+        beverageId,
+        rating: currentRating.finalRating,
+        notes: review,
+        mainAttributes
+      });
+      const {error}=await ratingService.addRating(payload);
+
+      if (error) {
+        console.error('Rating submission error:', {
+          beverageId,
+          userId: user.id,
+          message: error.message || 'NoCodeBackend rating create failed'
+        });
+        setSubmitError('We could not submit your rating. Please try again.');
+        return;
+      }
+
       alert('Rating submitted successfully!');
-      navigate('/beer-details');
-    },1500);
+      navigate(`/beer-details${beverageId ? `?beverage_id=${encodeURIComponent(beverageId)}` : ''}`);
+    } catch (error) {
+      console.error('Rating submission error:', {
+        beverageId,
+        userId: user.id,
+        message: error.message
+      });
+      setSubmitError(error.message || 'We could not submit your rating. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const currentRating=calculateCurrentRating();
@@ -224,6 +260,16 @@ function RateBeer({selectedBeverageCategory='beer'}) {
             </h1>
             <p className="text-gray-600">Comprehensive beverage evaluation with sliding scale</p>
           </div>
+
+          {submitError && (
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            >
+              {submitError}
+            </div>
+          )}
 
           {/* Beverage Info */}
           <div className="flex items-center space-x-4 mb-6 p-4 bg-gray-50 rounded-lg">
