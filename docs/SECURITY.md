@@ -15,7 +15,7 @@
 - Same-origin checks for unsafe requests, with an explicit optional allowlist.
 - Per-client throttling and request body limits.
 - Upstream timeouts and safe error mapping.
-- Secure session cookie attributes.
+- Host-only, root-path session cookies with enforced `HttpOnly` and `Secure` attributes.
 - Server-derived immutable user identity.
 - Owner checks for profile, cellar and rating mutation.
 - Explicit response projections that exclude `secret_key`, raw provider payloads and private owner fields.

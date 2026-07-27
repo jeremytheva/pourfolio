@@ -57,12 +57,44 @@ const buildUpstreamUrl = (request, path) => {
   return url
 }
 
+const splitSetCookieHeader = (header) => String(header || '')
+  .split(/,(?=\s*[^;,\s]+=)/)
+  .map((cookie) => cookie.trim())
+  .filter(Boolean)
+
 const secureCookie = (cookie) => {
-  let result = String(cookie)
-  if (!/;\s*HttpOnly/i.test(result)) result += '; HttpOnly'
-  if (!/;\s*Secure/i.test(result)) result += '; Secure'
-  if (!/;\s*SameSite=/i.test(result)) result += '; SameSite=Lax'
-  return result
+  const [nameValue, ...rawAttributes] = String(cookie).split(';')
+  const attributes = []
+  let sameSite = null
+
+  for (const rawAttribute of rawAttributes) {
+    const attribute = rawAttribute.trim()
+    if (!attribute) continue
+
+    const attributeName = attribute.split('=', 1)[0].toLowerCase()
+    if (attributeName === 'domain' || attributeName === 'path') continue
+    if (attributeName === 'httponly' || attributeName === 'secure') continue
+    if (attributeName === 'samesite') {
+      sameSite = attribute
+      continue
+    }
+    attributes.push(attribute)
+  }
+
+  return [
+    nameValue.trim(),
+    ...attributes,
+    'Path=/',
+    'HttpOnly',
+    'Secure',
+    sameSite || 'SameSite=Lax'
+  ].join('; ')
+}
+
+const getSetCookies = (headers) => {
+  const cookies = headers.getSetCookie?.()
+  if (Array.isArray(cookies) && cookies.length) return cookies
+  return splitSetCookieHeader(headers.get('set-cookie'))
 }
 
 const copyResponseHeaders = (upstream, response) => {
@@ -72,14 +104,10 @@ const copyResponseHeaders = (upstream, response) => {
   if (location) response.setHeader('Location', location)
   response.setHeader('Cache-Control', 'no-store')
 
-  const cookies = upstream.headers.getSetCookie?.() || []
+  const cookies = getSetCookies(upstream.headers)
   if (cookies.length) {
     response.setHeader('Set-Cookie', cookies.map(secureCookie))
-    return
   }
-
-  const cookie = upstream.headers.get('set-cookie')
-  if (cookie) response.setHeader('Set-Cookie', secureCookie(cookie))
 }
 
 const rateLimitForAction = (path) => {
@@ -164,5 +192,6 @@ export const __testables = {
   AUTH_ACTIONS,
   getRequestPath,
   safeRedirectTarget,
+  splitSetCookieHeader,
   secureCookie
 }
