@@ -13,6 +13,7 @@
     "test:e2e": "playwright test",
     "audit:production": "npm audit --omit=dev --audit-level=high",
     "audit:import": "node scripts/audit-import-references.js",
+    "audit:schema": "node scripts/audit-schema-contract.js",
     "check:bundle": "node scripts/check-bundle-size.js",
     "validate": "npm run lint && npm test && npm run audit:production && npm run build && npm run check:bundle"
   },

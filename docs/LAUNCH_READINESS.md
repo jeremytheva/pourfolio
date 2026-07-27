@@ -21,6 +21,9 @@ Source-controlled launch hardening is implemented for a beer-first MVP, but prod
 - Expanded unit/policy tests, mocked browser journeys, automated accessibility
   checks, production audit, bundle budgets, CodeQL, dependency review and
   Dependabot.
+- Read-only import and rating-schema preflights that fail closed on incomplete
+  catalogue references, missing profile/rating controls, duplicate-permitting
+  schema and mutable rating timestamps.
 
 ## Historical import evidence
 
@@ -38,12 +41,20 @@ The supplied workbook currently reports:
 
 The previously missing products, cellar, bonus-attribute and SQL exports are now present in the supplied source set. Their presence does not complete import reconciliation. The [historical import preflight](nocodebackend/import-preflight.md) currently blocks the source set because catalogue and producer references do not reconcile.
 
+The [rating schema preflight](nocodebackend/schema-preflight.md) also blocks the
+supplied SQL export with 15 findings: the `profiles` table is absent, ten required
+columns are nullable, three required unique constraints are absent, and
+`ratings.date_rated` changes automatically on update.
+
 ## External P0 gates
 
 - [ ] Configure `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_DATA_BASE_URL` in staging and production.
 - [ ] Verify the configured data base URL accepts the gateway’s collection paths, query filters and create/update/delete response shapes.
-- [ ] Apply the canonical schema without `*_pf2025` aliases.
+- [ ] Provision the canonical schema without `*_pf2025` aliases and make the rating schema preflight return `PASS`.
+- [ ] Apply non-null and unique rating controls through an approved provider migration, with cleanup, compatibility and rollback evidence.
+- [ ] Prove `date_rated` remains unchanged during controlled non-date updates.
 - [ ] Prove unauthenticated, owner, other-user and privileged negative permission cases for every collection.
+- [ ] Prove sequential and concurrent duplicate-rating retries return one persisted rating.
 - [ ] Prove forced rating partial-write rollback; prefer a verified provider transaction if supported.
 - [ ] Obtain complete, same-state products/producers exports and make the historical import preflight return `PASS`; the current source set references absent products and producer ID `0`.
 - [ ] Resolve the 69 unmatched historical bonus selections.
