@@ -9,6 +9,14 @@ updates:
       timezone: Australia/Sydney
     open-pull-requests-limit: 5
     groups:
+      react-runtime:
+        patterns:
+          - react
+          - react-dom
+        update-types:
+          - major
+          - minor
+          - patch
       production-minor-patches:
         dependency-type: production
         update-types:
