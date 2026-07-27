@@ -4,7 +4,7 @@
 Pourfolio's launch scope is a beer-first MVP. Reachable production journeys are authentication, product catalogue/search/details, rating creation/history, cellar management, and profile editing. Social, event, venue, analytics, producer-claim, administrator, photo and non-beer prototype modules are deferred and must not be made reachable without a separate reviewed delivery.
 
 ## Verified technology stack
-- **Client:** React 18.3 with a small same-origin History API router, built by Vite 7; JavaScript/JSX (ES modules).
+- **Client:** React 19.2 with a small same-origin History API router, built by Vite 7; JavaScript/JSX (ES modules).
 - **Runtime/package manager:** Node.js 20 LTS (defined in `.nvmrc`) and npm with `package-lock.json`.
 - **Styling:** Tailwind CSS, PostCSS, Framer Motion, and React Icons.
 - **Data and authentication:** Browser requests use same-origin endpoints in `src/lib/nocodeBackend.js`. Auth is proxied by `api/nocodebackend/auth/[...path].js`; application data is mediated by the owner-enforcing gateway in `api/nocodebackend/[...path].js`.

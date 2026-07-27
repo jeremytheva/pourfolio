@@ -15,8 +15,8 @@ Prototype social, event, venue, analytics, producer/admin, photo and non-beer mo
 ## Runtime
 
 - Node.js 20
-- React 18
-- Vite 5
+- React 19.2
+- Vite 7
 - npm
 - NoCodeBackend through the serverless gateways in `api/`
 
