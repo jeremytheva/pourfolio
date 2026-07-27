@@ -25,7 +25,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -44,7 +44,7 @@ jobs:
       contents: read
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Review dependency changes
         uses: actions/dependency-review-action@v4
         # The action reports a configuration warning until a repository
@@ -60,7 +60,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
