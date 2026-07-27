@@ -33,7 +33,7 @@ Tests cover:
 - profile/cellar input allowlists and ownership predicates;
 - immutable session identity extraction;
 - same-origin, request-size and rate-limit helpers;
-- authentication action/method and redirect/cookie policy;
+- authentication action/method, redirect policy, and proxied cookie domain/path normalisation;
 - the existing rating calculation utility.
 
 The Playwright suite uses a deterministic same-origin API fixture and covers the
