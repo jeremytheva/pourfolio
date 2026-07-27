@@ -1,16 +1,48 @@
 # Security
 
-## Authentication and authorisation
-Authentication calls go through `/api/nocodebackend/auth/*`; the proxy attaches `NOCODEBACKEND_SECRET_KEY` server-side and forwards session cookies. Never expose that key to Vite/browser code or prefix it with `VITE_`. Client-side protected routes are not authorisation: configure and test NoCodeBackend collection permissions for ownership, administrator roles, producer claims, venue management, and private cellar data.
+## Trust boundaries
 
-## Data, validation, and logging
-Validate and constrain user input before collection writes, and treat responses from external services as untrusted. Use HTTPS in deployed environments. Do not place passwords, tokens, claims verification data, private cellar contents, or sensitive user data in logs, issues, screenshots, fixtures, or browser storage. Redact operational diagnostics. Local storage is not suitable for secrets or sensitive persistent records.
+- The browser is untrusted and never receives the NoCodeBackend secret.
+- Client-side route guards are navigation only, not authorisation.
+- Every data request is authenticated server-side.
+- Owner IDs, roles, totals and provider secrets supplied by a browser are discarded.
+- Remote NoCodeBackend permissions remain a required defence in depth and must be tested independently.
 
-## API, upload, and dependency expectations
-Keep privileged calls in `api/`; preserve the auth proxy's header filtering and avoid accepting browser-supplied upstream authorisation. Follow the NoCodeBackend permissions in the schema mapping. Photo/UI upload features must enforce file type, size, ownership, and storage access rules before any production storage integration; no repository-managed upload service is currently configured. Review new dependencies, keep `package-lock.json` current, and use GitHub Dependabot/secret scanning where available. Rate limiting is not implemented in this repository; the deployment and NoCodeBackend configuration should provide it for public/auth endpoints.
+## Implemented controls
 
-## Pull request security review
-Review identity/ownership checks, collection permissions, input handling, secret exposure, dependency changes, data minimisation, error/log content, and browser/server boundaries. Schema/permission changes require a non-production validation and documented rollout.
+- Fixed auth action/method allowlist.
+- Fixed application data route/workflow allowlist.
+- Same-origin checks for unsafe requests, with an explicit optional allowlist.
+- Per-client throttling and request body limits.
+- Upstream timeouts and safe error mapping.
+- Secure session cookie attributes.
+- Server-derived immutable user identity.
+- Owner checks for profile, cellar and rating mutation.
+- Explicit response projections that exclude `secret_key`, raw provider payloads and private owner fields.
+- Complete 1–7 rating validation, server-calculated totals, idempotency and compensating rollback.
+- CSP, HSTS, clickjacking, MIME-sniffing, referrer and permissions headers.
+- Production source maps disabled.
+- CodeQL, dependency review, Dependabot and production dependency audit.
 
-## Reporting a vulnerability
-Do not open a public issue with exploit details or sensitive evidence. Use GitHub's private security advisory flow for this repository when enabled, or contact the maintainers through the repository owner privately. Include impact, affected versions/paths, safe reproduction steps, and suggested mitigation. Allow reasonable time for triage before disclosure.
+The in-memory rate limiter is a baseline abuse control for individual serverless instances. Production must also enable platform/edge rate limiting because instance-local counters are not globally authoritative.
+
+## Logging
+
+Server errors log only correlation ID, status/name and operation counts needed for support. Never log request bodies, passwords, tokens, cookies, user IDs, cellar contents, rating selections, email addresses or provider responses. Return the correlation ID to the client for support.
+
+## Photos and deferred features
+
+Photo upload, privacy controls, chat, social sharing, events, venues, producer claims and administration are disabled in launch routing. They require their own permission, retention, moderation, validation and deletion controls before reactivation.
+
+## Production proof required
+
+Before launch:
+
+1. Rotate any credential that may have matched the former published admin hint.
+2. Configure the server variables only in encrypted deployment settings.
+3. Test unauthenticated, owner, other-user and privileged negative cases against the remote collections.
+4. Enable GitHub secret scanning/push protection and branch protection in repository settings.
+5. Complete an external security/privacy review appropriate to the Australian launch context.
+6. Verify edge rate limits, alerting, backup restore and incident response.
+
+Report vulnerabilities using GitHub’s private security-advisory flow. Do not open a public issue containing exploit details, credentials or personal data.

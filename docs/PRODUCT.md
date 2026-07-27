@@ -1,22 +1,41 @@
-# Product: Pourfolio
+# Product
 
-## Purpose and users
-Pourfolio is an in-development beverage discovery and community application for general beverage enthusiasts, producer representatives, venue operators, and administrators. It combines a beverage catalogue with personal ratings, cellar tracking, producer claims, venue and event discovery, and profile-driven community features.
+## Launch outcome
 
-## Core capabilities and journeys
-- **Discover:** signed-in users browse/search beverages, producers, styles, venues, and events.
-- **Record:** users rate beverages, retain tasting notes, and manage cellar entries.
-- **Participate:** users manage profiles, explore drinking-buddy and chat-oriented UI, and receive recommendations.
-- **Operate:** producer representatives submit ownership claims; venue managers and administrators use management and claim workflows.
+Pourfolio’s first public release is a reliable beer portfolio:
 
-Typical flow: a user signs in through NoCodeBackend, is routed to protected pages, discovers a beverage or producer, and records a rating or cellar entry. Data-facing services call the configured NoCodeBackend collections; some prototype flows remain browser-local.
+- authenticate and maintain a display profile;
+- search the live beer product catalogue;
+- open a stable product route;
+- submit a structured 1–7 rating;
+- review and delete personal rating history;
+- add, edit and remove private cellar records.
 
-## Current scope and non-goals
-The repository provides a Vite client and one server-side authentication proxy. NoCodeBackend collection setup and permissions are documented but are operated outside this repository. The app is not a payment system, regulated alcohol-sale platform, or authoritative inventory/identity system. A committed hosting configuration, executable database migrations, complete end-to-end suite, and a comprehensive server API are not present.
+Ratings and cellar records do not require a sharing series or edition.
 
-## Terminology
-- **Beverage:** a catalogued beer, wine, spirit, cider, mead, or similar item.
-- **Producer:** a brewery, winery, distillery, cidery, meadery, or similar maker.
-- **Cellar item:** a user-owned beverage inventory entry.
-- **Producer claim:** a request to associate a user with a producer, reviewed by an administrator.
-- **NoCodeBackend:** the active external data and authentication service.
+## Deferred until a real supported workflow exists
+
+- wine, spirits, cider, mead and other rating modes;
+- chat and Drinking Buddies;
+- events and venues;
+- analytics;
+- producer claims and producer administration;
+- platform administration and moderation dashboards;
+- social cellar sharing;
+- privacy controls not enforced by backend permissions;
+- photo upload.
+
+Deferred modules may remain as prototype source for future research, but they are not reachable or bundled by launch routing and must not show fake success, statistics or user data.
+
+## Launch quality bar
+
+The product must never:
+
+- offer privileged roles during public sign-up;
+- infer immutable identity from email;
+- allow the browser to choose record ownership or rating totals;
+- store private cellar records only in browser storage;
+- show demonstration content as production data;
+- report a simulated success for a failed or unimplemented write.
+
+The complete release decision is in [Launch Readiness](LAUNCH_READINESS.md).

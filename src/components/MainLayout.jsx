@@ -1,103 +1,50 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import Navbar from './Navbar';
-import SideNavigation from './SideNavigation';
-import UserSwitchModal from './UserSwitchModal';
+import React from 'react'
+import { FiHome, FiLogOut, FiSearch, FiUser } from 'react-icons/fi'
+import { Link, NavLink } from '../lib/router.jsx'
+import SafeIcon from '../common/SafeIcon.jsx'
 
-function MainLayout({ user, onLogout, children }) {
-  const [selectedBeverageCategory, setSelectedBeverageCategory] = useState('beer');
-  const [sideNavCollapsed, setSideNavCollapsed] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showUserSwitch, setShowUserSwitch] = useState(false);
+const navigation = [
+  { to: '/home', label: 'Discover', icon: FiHome },
+  { to: '/search', label: 'Search', icon: FiSearch },
+  { to: '/cellar', label: 'Cellar', icon: FiUser }
+]
 
-  // Load saved category preference or user's default
-  useEffect(() => {
-    const saved = localStorage.getItem('selectedBeverageCategory');
-    if (saved && ['beer', 'wine', 'spirits', 'cider', 'mead', 'fermented'].includes(saved)) {
-      setSelectedBeverageCategory(saved);
-    } else if (user?.defaultBeverageCategory) {
-      setSelectedBeverageCategory(user.defaultBeverageCategory);
-    }
-  }, [user]);
-
-  // Save category preference
-  const handleCategoryChange = (category) => {
-    setSelectedBeverageCategory(category);
-    localStorage.setItem('selectedBeverageCategory', category);
-  };
-
-  const handleSideNavToggle = () => {
-    setSideNavCollapsed(!sideNavCollapsed);
-  };
-
-  const handleMobileMenuToggle = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
-  // Close mobile menu when screen size changes
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        setMobileMenuOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
+function MainLayout({ children, user, onLogout }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Side Navigation - Always visible */}
-      <SideNavigation
-        selectedBeverageCategory={selectedBeverageCategory}
-        onCategoryChange={handleCategoryChange}
-        isCollapsed={sideNavCollapsed}
-        onToggleCollapse={handleSideNavToggle}
-        isMobileOpen={mobileMenuOpen}
-        onMobileToggle={handleMobileMenuToggle}
-        user={user}
-        onLogout={onLogout}
-      />
-
-      {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${
-        sideNavCollapsed ? 'md:ml-16' : 'md:ml-64'
-      } ml-0`}>
-        {/* Top Navigation */}
-        <Navbar
-          user={user}
-          onLogout={onLogout}
-          selectedBeverageCategory={selectedBeverageCategory}
-          onMobileMenuToggle={handleMobileMenuToggle}
-          onUserSwitch={() => setShowUserSwitch(true)}
-        />
-
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {/* Pass the selected category to children */}
-            {React.cloneElement(children, {
-              selectedBeverageCategory,
-              onCategoryChange: handleCategoryChange
-            })}
-          </motion.div>
-        </main>
-      </div>
-
-      {/* User Switch Modal */}
-      <UserSwitchModal
-        isOpen={showUserSwitch}
-        onClose={() => setShowUserSwitch(false)}
-        currentUser={user}
-        onUserSelect={onLogout} // This will trigger login flow
-      />
+    <div className="min-h-screen bg-gray-50">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:shadow">
+        Skip to content
+      </a>
+      <header className="border-b border-gray-200 bg-white">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <Link to="/home" className="text-2xl font-bold text-amber-700">Pourfolio</Link>
+          <nav aria-label="Primary navigation" className="order-3 flex w-full items-center gap-1 sm:order-none sm:w-auto">
+            {navigation.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => `flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium sm:flex-none ${
+                  isActive ? 'bg-amber-100 text-amber-900' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <SafeIcon icon={item.icon} className="h-4 w-4" />
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+          <div className="flex items-center gap-2">
+            <Link to="/profile" className="max-w-32 truncate rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+              {user?.name || 'Profile'}
+            </Link>
+            <button type="button" onClick={onLogout} className="rounded-lg p-2 text-gray-600 hover:bg-red-50 hover:text-red-700" aria-label="Sign out">
+              <SafeIcon icon={FiLogOut} className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </header>
+      <main id="main-content">{children}</main>
     </div>
-  );
+  )
 }
 
-export default MainLayout;
+export default MainLayout

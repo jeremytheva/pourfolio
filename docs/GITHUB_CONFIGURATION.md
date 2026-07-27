@@ -9,12 +9,19 @@ Repository files cannot configure the following settings. A repository administr
 Use **Status**, **Project or product**, **Type**, **Priority**, **Complexity**, **Milestone**, **Codex ready**, and **Dependencies**. Recommended Status values: Backlog, Refinement, Ready, In progress, Review, Blocked, and Done.
 
 ## Administrator checklist
+
+- [ ] Enable GitHub Issues or nominate and document another issue tracker.
 - [ ] Protect the default branch and require pull requests before merging.
-- [ ] Require the `Lint, test, and build` status check and branches to be up to date.
+- [ ] Require the `Release gate`, `Browser and accessibility`, and CodeQL status checks and branches to be up to date.
+- [ ] Dismiss stale approvals when new commits are pushed.
 - [ ] Prevent force pushes and branch deletion; enable automatic deletion of merged branches.
 - [ ] Enable issue forms and verify `Closes #` issue auto-linking/closing behaviour.
 - [ ] Configure required reviewers only when reliable ownership is known; no `CODEOWNERS` file is supplied because ownership is not evidenced in this repository.
-- [ ] Enable Dependabot alerts and secret scanning where available.
+- [ ] Enable Dependabot alerts, secret scanning, and push protection where available.
+- [ ] Enable Dependency Graph, then remove `continue-on-error` from the dependency-review workflow step and require its check.
+- [ ] Review Dependabot alerts weekly.
+- [ ] Add deployment environment protection and restrict production secret access.
+- [ ] Close or archive obsolete Supabase and prototype pull requests that cannot merge into the canonical architecture.
 - [ ] Configure authorised Codex repository access and Codex pull-request review where available.
 - [ ] Configure GitHub Project fields, labels, and automation.
 - [ ] Confirm Actions permissions remain least privilege.

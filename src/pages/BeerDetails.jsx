@@ -1,529 +1,208 @@
-import React,{useState} from 'react';
-import {Link,useSearchParams} from 'react-router-dom';
-import {motion} from 'framer-motion';
-import * as FiIcons from 'react-icons/fi';
-import SafeIcon from '../common/SafeIcon';
-import SendToFriendModal from '../components/SendToFriendModal';
-import CellarModal from '../components/CellarModal';
-import SuggestUpdatesModal from '../components/SuggestUpdatesModal';
-import StyleGuideCard from '../components/StyleGuideCard';
-import StyleRangeIndicator from '../components/StyleRangeIndicator';
-import ColorRangeDisplay from '../components/ColorRangeDisplay';
-import ScoreBreakdown from '../components/ScoreBreakdown';
-import RadarChart from '../components/RadarChart';
-import {beverageTypes} from '../utils/beverageTypes';
+import React, { useEffect, useState } from 'react'
+import { FiArrowLeft, FiPackage, FiRefreshCw, FiStar, FiX } from 'react-icons/fi'
+import { Link, useParams } from '../lib/router.jsx'
+import SafeIcon from '../common/SafeIcon.jsx'
+import { beverageService } from '../services/beverageService.js'
+import { cellarService } from '../services/cellarService.js'
 
-const {FiStar,FiArrowLeft,FiShare2,FiPlus,FiMoreVertical,FiEdit3}=FiIcons;
+const FALLBACK_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540"%3E%3Crect width="960" height="540" fill="%23fef3c7"/%3E%3Ctext x="480" y="285" text-anchor="middle" font-family="sans-serif" font-size="64" fill="%2392400e"%3EPourfolio%3C/text%3E%3C/svg%3E'
 
-function BeerDetails({selectedBeverageCategory='beer'}) {
-  const [searchParams]=useSearchParams();
-  const beverageType=searchParams.get('type') || selectedBeverageCategory;
-  const [showSendModal,setShowSendModal]=useState(false);
-  const [showCellarModal,setShowCellarModal]=useState(false);
-  const [showSuggestModal,setShowSuggestModal]=useState(false);
-  const [showActionsDropdown,setShowActionsDropdown]=useState(false);
-  const [cellarEntries,setCellarEntries]=useState([]);
-
-  const beverageTypeInfo=beverageTypes[beverageType] || beverageTypes.beer;
-
-  // Dynamic beverage data based on type
-  const beverage={
-    id: 1,
-    name: beverageType==='beer' ? 'IPA Delight' : 
-          beverageType==='wine' ? 'Chardonnay Reserve' : 
-          beverageType==='spirits' ? 'Single Malt Scotch 18yr' : 
-          beverageType==='cider' ? 'Traditional Dry Cider' : 
-          beverageType==='mead' ? 'Wildflower Honey Mead' : 'Ginger Kombucha',
-    producer: beverageType==='beer' ? 'Brewery X' : 
-              beverageType==='wine' ? 'Valley Vineyard Estate' : 
-              beverageType==='spirits' ? 'Highland Distillery' : 
-              beverageType==='cider' ? 'Orchard House Cidery' : 
-              beverageType==='mead' ? 'Ancient Meadery' : 'Living Cultures Co.',
-    style: beverageType==='beer' ? 'American IPA' : 
-           beverageType==='wine' ? 'Chardonnay' : 
-           beverageType==='spirits' ? 'Single Malt Scotch Whisky' : 
-           beverageType==='cider' ? 'Traditional English Cider' : 
-           beverageType==='mead' ? 'Traditional Mead' : 'Ginger Kombucha',
-    statedStyle: beverageType==='beer' ? 'West Coast IPA' : 
-                 beverageType==='wine' ? 'Barrel-Aged Chardonnay' : 
-                 beverageType==='spirits' ? 'Highland Single Malt' : 
-                 beverageType==='cider' ? 'Traditional Farmhouse Cider' : 
-                 beverageType==='mead' ? 'Wildflower Traditional' : 'Artisanal Ginger Kombucha',
-    details: beverageType==='beer' ? {abv: 6.5,ibu: 65} : 
-             beverageType==='wine' ? {abv: 13.5,vintage: '2021'} : 
-             beverageType==='spirits' ? {abv: 43,age: '18 years'} : 
-             beverageType==='cider' ? {abv: 6.2,residualSugar: 'Dry'} : 
-             beverageType==='mead' ? {abv: 14,honey: 'Wildflower'} : {abv: 0.5,probiotics: 'Live cultures'},
-    image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=600&h=600&fit=crop',
-    description: beverageType==='beer' ? 'A bold and hoppy IPA with citrus notes and a crisp finish. Brewed with premium hops and malted barley for the perfect balance of bitterness and flavor.' : 
-                 beverageType==='wine' ? 'An elegant Chardonnay with notes of green apple,citrus,and subtle oak. Crisp acidity balanced with creamy texture from partial malolactic fermentation.' : 
-                 beverageType==='spirits' ? 'A complex single malt aged 18 years in oak casks. Rich notes of honey,vanilla,and dried fruits with a long,warming finish.' : 
-                 beverageType==='cider' ? 'A traditional dry cider made from heritage apples. Crisp,refreshing with bright acidity and subtle fruit character.' : 
-                 beverageType==='mead' ? 'A traditional mead crafted from wildflower honey. Smooth and balanced with floral notes and gentle sweetness.' : 'A refreshing kombucha with live probiotics and fresh ginger. Lightly effervescent with tangy,spicy notes.',
-    averageRating: 4.5,
-    totalReviews: 127,
-    type: beverageType,
-    retailPrice: beverageType==='beer' ? 8.99 : 
-                 beverageType==='wine' ? 24.99 : 
-                 beverageType==='spirits' ? 89.99 : 
-                 beverageType==='cider' ? 6.99 : 
-                 beverageType==='mead' ? 18.99 : 4.99,
-    // Style ranges for indicators
-    styleRanges: beverageType==='beer' ? {
-      abv: {min: 5.5,max: 7.5,globalMin: 0,globalMax: 15},
-      ibu: {min: 40,max: 70,globalMin: 0,globalMax: 120}
-    } : beverageType==='wine' ? {
-      abv: {min: 12,max: 15,globalMin: 8,globalMax: 20}
-    } : beverageType==='spirits' ? {
-      abv: {min: 40,max: 60,globalMin: 20,globalMax: 80}
-    } : beverageType==='cider' ? {
-      abv: {min: 4.5,max: 8.5,globalMin: 0,globalMax: 12}
-    } : beverageType==='mead' ? {
-      abv: {min: 8,max: 18,globalMin: 6,globalMax: 20}
-    } : {abv: {min: 0.1,max: 3,globalMin: 0,globalMax: 5}},
-    // Color ranges for appearance
-    colorRange: beverageType==='beer' ? ['#F4E4BC','#D4A574','#B8860B','#8B4513'] : 
-                beverageType==='wine' ? ['#F5F5DC','#FFD700','#DAA520'] : 
-                beverageType==='spirits' ? ['#F5DEB3','#D2691E','#8B4513','#654321'] : 
-                beverageType==='cider' ? ['#FFFACD','#F0E68C','#DAA520'] : 
-                beverageType==='mead' ? ['#FFF8DC','#F0E68C','#DAA520','#B8860B'] : ['#F5F5DC','#F0E68C','#DAA520'],
-    beverageColor: beverageType==='beer' ? '#D4A574' : 
-                   beverageType==='wine' ? '#FFD700' : 
-                   beverageType==='spirits' ? '#D2691E' : 
-                   beverageType==='cider' ? '#F0E68C' : 
-                   beverageType==='mead' ? '#F0E68C' : '#F0E68C'
-  };
-
-  const handleAddToCellar=(cellarEntry)=> {
-    const updatedEntries=[...cellarEntries,cellarEntry];
-    setCellarEntries(updatedEntries);
-    // Save to localStorage
-    const existingEntries=JSON.parse(localStorage.getItem('cellarEntries') || '[]');
-    const allEntries=[...existingEntries,{...cellarEntry,beverageType}];
-    localStorage.setItem('cellarEntries',JSON.stringify(allEntries));
-    alert('Added to cellar successfully!');
-  };
-
-  const handleSuggestUpdates=(updates)=> {
-    // Save suggestion for admin approval
-    const suggestions=JSON.parse(localStorage.getItem('beverageSuggestions') || '[]');
-    suggestions.push({
-      id: Date.now(),
-      beverageId: beverage.id,
-      beverageName: beverage.name,
-      updates,
-      submittedBy: 'Current User',
-      submittedAt: new Date().toISOString(),
-      status: 'pending',
-      type: 'beverage'
-    });
-    localStorage.setItem('beverageSuggestions',JSON.stringify(suggestions));
-    alert('Updates suggested successfully! They will be reviewed by administrators.');
-  };
-
-  const renderStars=(rating)=> {
-    const fullStars=Math.floor(rating);
-    const hasHalfStar=rating % 1 !==0;
-    const stars=[];
-    
-    for (let i=0;i < fullStars;i++) {
-      stars.push(
-        <SafeIcon key={i} icon={FiStar} className="w-5 h-5 text-yellow-400 fill-current" />
-      );
-    }
-    
-    if (hasHalfStar) {
-      stars.push(
-        <SafeIcon key="half" icon={FiStar} className="w-5 h-5 text-yellow-400 fill-current opacity-50" />
-      );
-    }
-    
-    const remainingStars=5 - Math.ceil(rating);
-    for (let i=0;i < remainingStars;i++) {
-      stars.push(
-        <SafeIcon key={`empty-${i}`} icon={FiStar} className="w-5 h-5 text-gray-300" />
-      );
-    }
-    
-    return stars;
-  };
-
-  const getDetailsLabels=()=> {
-    switch (beverageType) {
-      case 'beer': 
-        return {abv: 'ABV (Alcohol by Volume)',ibu: 'IBU (International Bitterness Units)'};
-      case 'wine': 
-        return {abv: 'ABV (Alcohol by Volume)',vintage: 'Vintage'};
-      case 'spirits': 
-        return {abv: 'ABV (Alcohol by Volume)',age: 'Age Statement'};
-      case 'cider': 
-        return {abv: 'ABV (Alcohol by Volume)',residualSugar: 'Sweetness Level'};
-      case 'mead': 
-        return {abv: 'ABV (Alcohol by Volume)',honey: 'Honey Type'};
-      case 'fermented': 
-        return {abv: 'ABV (Alcohol by Volume)',probiotics: 'Health Benefits'};
-      default: 
-        return {abv: 'ABV (Alcohol by Volume)'};
-    }
-  };
-
-  const detailLabels=getDetailsLabels();
-
-  // Mock current rating for score breakdown
-  const currentRating={
-    finalRating: beverage.averageRating,
-    baseRating: 4.2,
-    bonusPoints: 0.3,
-    hideBonus: false
-  };
-
-  // Mock radar chart data
-  const ratingChartData={
-    name: beverage.name,
-    title: `Rating Profile`,
-    values: beverageType==='beer' ? [6.2,6.5,6.0,6.8,5.9,4.0,75] : // appearance,aroma,mouthfeel,flavour,follow,design,value
-            beverageType==='wine' ? [6.0,6.3,6.5,6.2,6.4,3.5,68] : // appearance,aroma,taste,balance,finish,design,value
-            beverageType==='spirits' ? [5.8,6.7,6.9,6.5,6.6,4.2,82] : // appearance,nose,palate,complexity,finish,design,value
-            beverageType==='cider' ? [5.9,6.1,6.3,6.0,6.2,3.8,71] : // appearance,aroma,sweetness,acidity,finish,design,value
-            beverageType==='mead' ? [6.1,6.4,6.7,6.3,6.5,4.1,76] : // appearance,aroma,honey_character,balance,finish,design,value
-            [5.7,6.0,6.2,5.9,6.1,3.6,69], // fermented: appearance,aroma,fermentation_character,balance,finish,design,value
-    color: '#F59E0B',
-    overallScore: beverage.averageRating
-  };
-
-  const characteristicsChartData={
-    name: beverage.name,
-    title: `Characteristics Profile`,
-    values: beverageType==='beer' ? [7.5,5.2,8.1,3.8,6.4,4.2,6.8,7.0] : // hop,malt,bitter,sweet,fruit,alcohol,body,carb
-            beverageType==='wine' ? [2.1,6.8,4.5,7.2,5.9,6.1,4.8,7.3] : // tannins,acid,sweet,fruit,oak,mineral,alcohol,body
-            beverageType==='spirits' ? [6.8,3.2,5.4,7.1,2.1,6.5,6.9,8.2] : // alcohol,sweet,spice,oak,smoke,fruit,grain,smooth
-            beverageType==='cider' ? [8.5,4.1,7.2,5.8,2.3,6.4,5.1,6.7] : // apple,sweet,acid,fruit,funk,carb,alcohol,body
-            beverageType==='mead' ? [6.8,7.4,4.9,5.2,4.7,5.8,3.1,6.3] : // honey,floral,fruit,spice,alcohol,acid,carb,body
-            [7.1,4.8,3.9,6.2,5.7,6.9,4.2,5.5], // fermented: tart,funk,sweet,spice,fruit,probiotics,carb,tea
-    color: '#3B82F6'
-  };
-
-  return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Back Button */}
-      <motion.div
-        initial={{opacity: 0,x: -20}}
-        animate={{opacity: 1,x: 0}}
-        className="mb-6"
-      >
-        <Link
-          to="/home"
-          className="flex items-center space-x-2 text-gray-600 hover:text-amber-600 transition-colors"
-        >
-          <SafeIcon icon={FiArrowLeft} className="w-5 h-5" />
-          <span>Back to Beverages</span>
-        </Link>
-      </motion.div>
-
-      <motion.div
-        initial={{opacity: 0,y: 20}}
-        animate={{opacity: 1,y: 0}}
-        className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
-      >
-        {/* Beverage Image */}
-        <div className="aspect-video md:aspect-square lg:aspect-video overflow-hidden relative">
-          <img
-            src={beverage.image}
-            alt={beverage.name}
-            className="w-full h-full object-cover"
-          />
-          {/* Type indicator */}
-          <div className="absolute top-4 right-4 bg-white bg-opacity-90 rounded-lg px-3 py-2 flex items-center space-x-2">
-            <span className="text-xl">{beverageTypeInfo.icon}</span>
-            <span className="font-medium text-gray-800">{beverageTypeInfo.name}</span>
-          </div>
-        </div>
-
-        {/* Beverage Information */}
-        <div className="p-8">
-          {/* Beverage Name and Action Buttons */}
-          <motion.div
-            initial={{opacity: 0,y: 10}}
-            animate={{opacity: 1,y: 0}}
-            transition={{delay: 0.2}}
-            className="flex items-start justify-between mb-4"
-          >
-            <h1 className="text-4xl font-bold text-gray-800">{beverage.name}</h1>
-            
-            {/* Actions Dropdown */}
-            <div className="relative ml-4">
-              <button
-                onClick={()=> setShowActionsDropdown(!showActionsDropdown)}
-                className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                <span>Actions</span>
-                <SafeIcon icon={FiMoreVertical} className="w-4 h-4" />
-              </button>
-
-              {showActionsDropdown && (
-                <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-10 min-w-[200px]">
-                  <Link
-                    to={`/rate-beer?type=${beverageType}`}
-                    className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                    onClick={()=> setShowActionsDropdown(false)}
-                  >
-                    <SafeIcon icon={FiStar} className="w-4 h-4" />
-                    <span>Rate This {beverageTypeInfo.name}</span>
-                  </Link>
-                  
-                  <button
-                    onClick={()=> {
-                      setShowCellarModal(true);
-                      setShowActionsDropdown(false);
-                    }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <SafeIcon icon={FiPlus} className="w-4 h-4" />
-                    <span>Add to Cellar</span>
-                  </button>
-                  
-                  <button
-                    onClick={()=> {
-                      setShowSendModal(true);
-                      setShowActionsDropdown(false);
-                    }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <SafeIcon icon={FiShare2} className="w-4 h-4" />
-                    <span>Send to Friend</span>
-                  </button>
-
-                  <button
-                    onClick={()=> {
-                      setShowSuggestModal(true);
-                      setShowActionsDropdown(false);
-                    }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <SafeIcon icon={FiEdit3} className="w-4 h-4" />
-                    <span>Suggest Updates</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Style Guide */}
-          <motion.div
-            initial={{opacity: 0,y: 10}}
-            animate={{opacity: 1,y: 0}}
-            transition={{delay: 0.25}}
-            className="mb-8"
-          >
-            <StyleGuideCard
-              beverageStyle={beverage.style}
-              beverageType={beverageType}
-              isCollapsible={true}
-            />
-          </motion.div>
-
-          {/* Color Range Display */}
-          <motion.div
-            initial={{opacity: 0,y: 10}}
-            animate={{opacity: 1,y: 0}}
-            transition={{delay: 0.3}}
-            className="mb-8"
-          >
-            <ColorRangeDisplay
-              styleColors={beverage.colorRange}
-              beverageColor={beverage.beverageColor}
-              label={`Expected ${beverageTypeInfo.name} Color Range`}
-            />
-          </motion.div>
-
-          {/* Beverage Details Grid */}
-          <motion.div
-            initial={{opacity: 0,y: 10}}
-            animate={{opacity: 1,y: 0}}
-            transition={{delay: 0.35}}
-            className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
-          >
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">
-                  {beverageType==='beer' ? 'Brewery' : 
-                   beverageType==='wine' ? 'Winery' : 
-                   beverageType==='spirits' ? 'Distillery' : 
-                   beverageType==='cider' ? 'Cidery' : 
-                   beverageType==='mead' ? 'Meadery' : 'Producer'}
-                </label>
-                <div className="text-lg text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
-                  {beverage.producer}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">Official Style</label>
-                <div className="text-lg text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
-                  {beverage.style}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">Stated Style</label>
-                <div className="text-lg text-gray-800 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
-                  {beverage.statedStyle}
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  As labeled by the producer
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {Object.entries(beverage.details).map(([key,value])=> (
-                <div key={key}>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">
-                    {detailLabels[key] || key}
-                  </label>
-                  <div className="text-lg text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
-                    {value}{key==='abv' ? '%' : ''}
-                  </div>
-                  {/* Style Range Indicators */}
-                  {beverage.styleRanges[key] && (
-                    <div className="mt-2">
-                      <StyleRangeIndicator
-                        label="Style Range"
-                        beverageValue={parseFloat(value)}
-                        styleMin={beverage.styleRanges[key].min}
-                        styleMax={beverage.styleRanges[key].max}
-                        globalMin={beverage.styleRanges[key].globalMin}
-                        globalMax={beverage.styleRanges[key].globalMax}
-                        unit={key==='abv' ? '%' : ''}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Description */}
-          <motion.div
-            initial={{opacity: 0,y: 10}}
-            animate={{opacity: 1,y: 0}}
-            transition={{delay: 0.4}}
-            className="mb-8"
-          >
-            <h3 className="text-xl font-semibold text-gray-800 mb-3">Description</h3>
-            <p className="text-gray-600 leading-relaxed">{beverage.description}</p>
-          </motion.div>
-
-          {/* Radar Charts */}
-          <motion.div
-            initial={{opacity: 0,y: 10}}
-            animate={{opacity: 1,y: 0}}
-            transition={{delay: 0.45}}
-            className="mb-8"
-          >
-            <h3 className="text-xl font-semibold text-gray-800 mb-6">Analysis Charts</h3>
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-              {/* Rating Chart */}
-              <RadarChart
-                data={ratingChartData}
-                beverageType={beverageType}
-                chartType="rating"
-                showValue={true}
-              />
-              
-              {/* Characteristics Chart */}
-              <RadarChart
-                data={characteristicsChartData}
-                beverageType={beverageType}
-                chartType="characteristics"
-                showValue={false}
-              />
-            </div>
-          </motion.div>
-
-          {/* Score Breakdown */}
-          <motion.div
-            initial={{opacity: 0,y: 10}}
-            animate={{opacity: 1,y: 0}}
-            transition={{delay: 0.5}}
-            className="mb-8"
-          >
-            <ScoreBreakdown
-              currentRating={currentRating}
-              showAdminScore={true}
-              adminScore={4.3}
-              purchasePrice={0}
-              retailPrice={beverage.retailPrice}
-              volumeML={375}
-            />
-          </motion.div>
-
-          {/* User Reviews Section */}
-          <motion.div
-            initial={{opacity: 0,y: 10}}
-            animate={{opacity: 1,y: 0}}
-            transition={{delay: 0.55}}
-            className="border-t pt-8"
-          >
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">User Reviews</h3>
-            
-            {/* Average Rating Display */}
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="flex items-center space-x-1">
-                {renderStars(beverage.averageRating)}
-              </div>
-              <span className="text-2xl font-bold text-gray-800">{beverage.averageRating}</span>
-              <span className="text-gray-600">({beverage.totalReviews} reviews)</span>
-            </div>
-
-            {/* Placeholder for reviews */}
-            <div className="bg-gray-50 rounded-lg p-6 mb-6">
-              <p className="text-gray-600 text-center">
-                User reviews will be displayed here. Join the community and be the first to rate this {beverageTypeInfo.name.toLowerCase()}!
-              </p>
-            </div>
-
-            {/* Rate This Beverage Button */}
-            <Link
-              to={`/rate-beer?type=${beverageType}`}
-              className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-3 rounded-lg font-medium transition-colors inline-flex items-center space-x-2"
-            >
-              <SafeIcon icon={FiStar} className="w-5 h-5" />
-              <span>Rate This {beverageTypeInfo.name}</span>
-            </Link>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* Modals */}
-      <SendToFriendModal
-        isOpen={showSendModal}
-        onClose={()=> setShowSendModal(false)}
-        beer={beverage}
-      />
-
-      <CellarModal
-        isOpen={showCellarModal}
-        onClose={()=> setShowCellarModal(false)}
-        beverage={beverage}
-        onAdd={handleAddToCellar}
-      />
-
-      <SuggestUpdatesModal
-        isOpen={showSuggestModal}
-        onClose={()=> setShowSuggestModal(false)}
-        item={beverage}
-        itemType="beverage"
-        onSubmit={handleSuggestUpdates}
-      />
-
-      {/* Click outside to close dropdown */}
-      {showActionsDropdown && (
-        <div 
-          className="fixed inset-0 z-0"
-          onClick={()=> setShowActionsDropdown(false)}
-        />
-      )}
-    </div>
-  );
+const initialCellarForm = {
+  quantity: 1,
+  mls: '',
+  container: '',
+  purchase_price: '',
+  retail_price: '',
+  date_received: new Date().toISOString().slice(0, 10),
+  notes: ''
 }
 
-export default BeerDetails;
+const formatDate = (value) => value
+  ? new Intl.DateTimeFormat('en-AU', { dateStyle: 'medium' }).format(new Date(value))
+  : 'Date not recorded'
+
+function BeerDetails() {
+  const { productId } = useParams()
+  const [product, setProduct] = useState(null)
+  const [status, setStatus] = useState('loading')
+  const [error, setError] = useState('')
+  const [reloadKey, setReloadKey] = useState(0)
+  const [showCellarForm, setShowCellarForm] = useState(false)
+  const [cellarForm, setCellarForm] = useState(initialCellarForm)
+  const [cellarStatus, setCellarStatus] = useState('')
+  const [cellarError, setCellarError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    setStatus('loading')
+    setError('')
+    beverageService.getProduct(productId)
+      .then((payload) => {
+        if (!active) return
+        setProduct(payload)
+        setStatus('ready')
+      })
+      .catch((requestError) => {
+        if (!active) return
+        setError(requestError.message || 'Product details could not be loaded.')
+        setStatus('error')
+      })
+    return () => {
+      active = false
+    }
+  }, [productId, reloadKey])
+
+  const updateCellarField = (field) => (event) => {
+    setCellarForm((current) => ({ ...current, [field]: event.target.value }))
+  }
+
+  const addToCellar = async (event) => {
+    event.preventDefault()
+    setCellarStatus('saving')
+    setCellarError('')
+    try {
+      await cellarService.addCellarItem({
+        product_id: product.id,
+        ...cellarForm
+      })
+      setCellarStatus('saved')
+      setCellarForm(initialCellarForm)
+    } catch (requestError) {
+      setCellarStatus('')
+      setCellarError(requestError.message || 'The cellar item could not be saved.')
+    }
+  }
+
+  if (status === 'loading') {
+    return <div className="mx-auto max-w-6xl px-4 py-16 text-center text-gray-600" role="status">Loading product…</div>
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-900" role="alert">
+          <h1 className="text-lg font-semibold">Product unavailable</h1>
+          <p className="mt-1">{error}</p>
+          <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-4 inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-white">
+            <SafeIcon icon={FiRefreshCw} className="mr-2 h-4 w-4" />
+            Try again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const category = product.declared_category || product.category?.category_name || 'Beer'
+  const producer = product.producer?.producer_name || 'Producer not recorded'
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <Link to="/home" className="mb-6 inline-flex items-center text-sm font-medium text-gray-600 hover:text-amber-800">
+        <SafeIcon icon={FiArrowLeft} className="mr-2 h-4 w-4" />
+        Back to products
+      </Link>
+
+      <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="grid lg:grid-cols-2">
+          <img src={product.product_image || FALLBACK_IMAGE} alt="" className="h-full min-h-80 w-full bg-amber-50 object-cover" />
+          <div className="p-6 sm:p-8">
+            <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">{category}</p>
+            <h1 className="mt-2 text-4xl font-bold text-gray-900">{product.product_name}</h1>
+            <p className="mt-2 text-lg text-gray-600">{producer}</p>
+
+            <dl className="mt-8 grid grid-cols-2 gap-4 rounded-xl bg-gray-50 p-5">
+              <div>
+                <dt className="text-sm text-gray-500">Average rating</dt>
+                <dd className="mt-1 text-xl font-semibold text-gray-900">
+                  {product.ratingSummary.average === null ? 'Not rated' : `${product.ratingSummary.average} / 7`}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-sm text-gray-500">Ratings</dt>
+                <dd className="mt-1 text-xl font-semibold text-gray-900">{product.ratingSummary.count}</dd>
+              </div>
+              <div>
+                <dt className="text-sm text-gray-500">ABV</dt>
+                <dd className="mt-1 font-medium text-gray-900">{product.abv ?? 'Not recorded'}{product.abv !== null && product.abv !== undefined ? '%' : ''}</dd>
+              </div>
+              <div>
+                <dt className="text-sm text-gray-500">IBU</dt>
+                <dd className="mt-1 font-medium text-gray-900">{product.ibu || 'Not recorded'}</dd>
+              </div>
+              {product.edition && (
+                <div className="col-span-2">
+                  <dt className="text-sm text-gray-500">Edition</dt>
+                  <dd className="mt-1 font-medium text-gray-900">{product.edition}</dd>
+                </div>
+              )}
+            </dl>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link to={`/products/${product.id}/rate`} className="inline-flex items-center rounded-lg bg-amber-700 px-5 py-3 font-medium text-white hover:bg-amber-800">
+                <SafeIcon icon={FiStar} className="mr-2 h-5 w-5" />
+                Rate this beer
+              </Link>
+              <button type="button" onClick={() => { setShowCellarForm((value) => !value); setCellarStatus(''); setCellarError('') }} className="inline-flex items-center rounded-lg border border-gray-300 px-5 py-3 font-medium text-gray-700 hover:bg-gray-50" aria-expanded={showCellarForm}>
+                <SafeIcon icon={showCellarForm ? FiX : FiPackage} className="mr-2 h-5 w-5" />
+                {showCellarForm ? 'Close cellar form' : 'Add to cellar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      {showCellarForm && (
+        <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="cellar-form-heading">
+          <h2 id="cellar-form-heading" className="text-2xl font-semibold text-gray-900">Add {product.product_name} to your cellar</h2>
+          <p className="mt-1 text-sm text-gray-600">Sharing series and edition links are optional and remain empty unless explicitly selected in a future supported workflow.</p>
+          {cellarStatus === 'saved' && <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3 text-green-800" role="status">Cellar item saved.</div>}
+          {cellarError && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-red-800" role="alert">{cellarError}</div>}
+          <form onSubmit={addToCellar} className="mt-6 grid gap-5 sm:grid-cols-2">
+            <label className="text-sm font-medium text-gray-700">Quantity
+              <input type="number" min="0" max="10000" required value={cellarForm.quantity} onChange={updateCellarField('quantity')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </label>
+            <label className="text-sm font-medium text-gray-700">Container volume (mL)
+              <input type="number" min="0" max="100000" value={cellarForm.mls} onChange={updateCellarField('mls')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </label>
+            <label className="text-sm font-medium text-gray-700">Container
+              <input value={cellarForm.container} onChange={updateCellarField('container')} placeholder="Can, bottle, growler…" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </label>
+            <label className="text-sm font-medium text-gray-700">Date received
+              <input type="date" value={cellarForm.date_received} onChange={updateCellarField('date_received')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </label>
+            <label className="text-sm font-medium text-gray-700">Purchase price
+              <input type="number" min="0" step="0.01" value={cellarForm.purchase_price} onChange={updateCellarField('purchase_price')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </label>
+            <label className="text-sm font-medium text-gray-700">Retail price
+              <input type="number" min="0" step="0.01" value={cellarForm.retail_price} onChange={updateCellarField('retail_price')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </label>
+            <label className="text-sm font-medium text-gray-700 sm:col-span-2">Notes
+              <textarea value={cellarForm.notes} onChange={updateCellarField('notes')} maxLength={255} rows={3} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </label>
+            <button type="submit" disabled={cellarStatus === 'saving'} className="rounded-lg bg-amber-700 px-5 py-3 font-medium text-white hover:bg-amber-800 disabled:bg-gray-500 sm:col-span-2">
+              {cellarStatus === 'saving' ? 'Saving…' : 'Save cellar item'}
+            </button>
+          </form>
+        </section>
+      )}
+
+      <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="recent-ratings">
+        <h2 id="recent-ratings" className="text-2xl font-semibold text-gray-900">Recent ratings</h2>
+        {product.ratings.length === 0 ? (
+          <p className="mt-3 text-gray-600">No ratings yet. Be the first to rate this product.</p>
+        ) : (
+          <ul className="mt-4 divide-y divide-gray-200">
+            {product.ratings.map((rating) => (
+              <li key={rating.id} className="flex flex-wrap items-center justify-between gap-2 py-4">
+                <span className="text-lg font-semibold text-amber-800">{rating.total_weighted} / 7</span>
+                <span className="text-sm text-gray-500">{formatDate(rating.date_rated)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  )
+}
+
+export default BeerDetails

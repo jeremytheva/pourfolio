@@ -1,6 +1,6 @@
-const DATA_API_BASE_URL = import.meta.env.VITE_NOCODEBACKEND_API_BASE_URL || '/api/nocodebackend'
-
-const AUTH_API_BASE_URL = import.meta.env.VITE_NOCODEBACKEND_AUTH_BASE_URL || '/api/nocodebackend/auth'
+const DATA_API_BASE_URL = '/api/nocodebackend'
+const AUTH_API_BASE_URL = '/api/nocodebackend/auth'
+const REQUEST_TIMEOUT_MS = 12_000
 
 const PROVIDER_ALIASES = {
   emailPassword: ['emailPassword', 'email_password', 'email-password', 'password', 'credentials', 'email'],
@@ -8,182 +8,92 @@ const PROVIDER_ALIASES = {
   google: ['google', 'googleOAuth', 'google_oauth', 'oauth_google']
 }
 
-const normalizeError = (error) => {
-  if (!error) return null
-  if (error instanceof Error) return error
-  if (typeof error === 'string') return new Error(error)
-  return error
-}
-
-const normalizePayload = (payload) => {
-  if (Array.isArray(payload)) return payload
-  return payload?.data ?? payload?.records ?? payload?.items ?? payload ?? null
-}
-
-const previewRawBody = (responseText) => responseText.slice(0, 200)
-
-const parseResponseBody = (responseText) => {
-  const trimmedText = responseText.trim()
-  if (!trimmedText) return { payload: null, parseError: null }
-
-  try {
-    return { payload: JSON.parse(trimmedText), parseError: null }
-  } catch (error) {
-    return {
-      payload: null,
-      parseError: {
-        message: 'Response body was not valid JSON',
-        rawBody: trimmedText,
-        cause: error
-      }
-    }
+export class ApiError extends Error {
+  constructor(message, { status = 0, requestId = null } = {}) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.requestId = requestId
   }
 }
 
-const buildHttpError = (response, parseError) => {
-  const statusMessage = `${response.status} ${response.statusText || 'HTTP error'}`.trim()
-  if (!parseError) return new Error(statusMessage)
-
-  const preview = previewRawBody(parseError.rawBody)
-  const error = new Error(`${statusMessage}: non-JSON response body${preview ? ` - ${preview}` : ''}`)
-  error.status = response.status
-  error.statusText = response.statusText
-  error.rawBody = parseError.rawBody
-  return error
-}
-
-const buildQueryString = (filters = {}) => {
-  const params = new URLSearchParams()
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') params.set(key, value)
-  })
-  return params.toString()
-}
-
-const request = async (path, options = {}) => {
-  try {
-    const response = await fetch(`${DATA_API_BASE_URL}${path}`, {
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options.headers || {})
-      },
-      ...options
-    })
-
-    const text = await response.text()
-    const { payload, parseError } = parseResponseBody(text)
-
-    if (!response.ok) {
-      return { data: null, error: normalizeError(payload?.error || payload || buildHttpError(response, parseError)) }
-    }
-
-    if (parseError || payload?.error) {
-      return { data: null, error: normalizeError(parseError || payload.error) }
-    }
-
-    return { data: normalizePayload(payload), error: null }
-  } catch (error) {
-    return { data: null, error: normalizeError(error) }
-  }
-}
-
-const compareValues = (left, right) => {
-  if (left === right) return 0
-  if (left === null || left === undefined) return 1
-  if (right === null || right === undefined) return -1
-  return String(left).localeCompare(String(right), undefined, { numeric: true, sensitivity: 'base' })
-}
-
-export const nocodeBackend = {
-  list(collection, { filters = {}, orderBy, ascending = true, search } = {}) {
-    const queryString = buildQueryString(filters)
-    return request(`/${collection}${queryString ? `?${queryString}` : ''}`).then(({ data, error }) => {
-      if (error || !Array.isArray(data)) return { data: data || [], error }
-
-      let records = data
-      if (search?.term && search.fields?.length) {
-        const term = search.term.toLowerCase()
-        records = records.filter((record) => search.fields.some((field) => String(record[field] || '').toLowerCase().includes(term)))
-      }
-
-      if (orderBy) {
-        records = [...records].sort((a, b) => {
-          const result = compareValues(a[orderBy], b[orderBy])
-          return ascending ? result : -result
-        })
-      }
-
-      return { data: records, error: null }
-    })
-  },
-
-  async get(collection, id) {
-    const direct = await request(`/${collection}/${id}`)
-    if (!direct.error) return direct
-
-    const fallback = await this.list(collection, { filters: { id } })
-    if (fallback.error) return { data: null, error: fallback.error }
-    const record = fallback.data[0] || null
-    return { data: record, error: record ? null : { message: 'Record not found' } }
-  },
-
-  create(collection, data) {
-    return request(`/${collection}`, { method: 'POST', body: JSON.stringify(data) })
-  },
-
-  update(collection, id, updates) {
-    return request(`/${collection}/${id}`, { method: 'PUT', body: JSON.stringify(updates) })
-  },
-
-  remove(collection, id) {
-    return request(`/${collection}/${id}`, { method: 'DELETE' })
-  }
-}
-
-export const toAuthError = (error) => {
-  if (error instanceof Error) return error
-  if (typeof error === 'string') return new Error(error)
-  return new Error(error?.message || 'Authentication request failed')
-}
-
-export const authRequest = async (path, options = {}) => {
-  const response = await fetch(`${AUTH_API_BASE_URL}${path}`, {
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {})
-    },
-    ...options
-  })
-
+const parsePayload = async (response) => {
   const text = await response.text()
-  const { payload, parseError } = parseResponseBody(text)
-
-  if (!response.ok) {
-    throw toAuthError(payload?.error || payload || buildHttpError(response, parseError))
+  if (!text) return null
+  try {
+    return JSON.parse(text)
+  } catch {
+    throw new ApiError('The server returned an invalid response.', {
+      status: response.status,
+      requestId: response.headers.get('x-request-id')
+    })
   }
+}
 
-  if (parseError || payload?.error) {
-    throw toAuthError(parseError || payload.error)
+const fetchWithTimeout = async (url, options) => {
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  try {
+    return await fetch(url, { ...options, signal: controller.signal })
+  } catch (error) {
+    if (error.name === 'AbortError') throw new ApiError('The request timed out. Please try again.')
+    throw new ApiError('The service could not be reached. Please check your connection and try again.')
+  } finally {
+    window.clearTimeout(timeout)
+  }
+}
+
+const request = async (baseUrl, path, options = {}) => {
+  const response = await fetchWithTimeout(`${baseUrl}${path}`, {
+    credentials: 'include',
+    method: options.method || 'GET',
+    headers: {
+      accept: 'application/json',
+      ...(options.body === undefined ? {} : { 'content-type': 'application/json' })
+    },
+    body: options.body === undefined
+      ? undefined
+      : typeof options.body === 'string'
+        ? options.body
+        : JSON.stringify(options.body)
+  })
+  const payload = await parsePayload(response)
+
+  if (!response.ok || payload?.error) {
+    throw new ApiError(payload?.error || 'The request could not be completed.', {
+      status: response.status,
+      requestId: payload?.requestId || response.headers.get('x-request-id')
+    })
   }
 
   return payload
 }
 
+export const apiRequest = (path, options) => request(DATA_API_BASE_URL, path, options)
+
+export const toAuthError = (error) => {
+  if (error instanceof Error) return error
+  return new ApiError(error?.message || 'Authentication request failed.')
+}
+
+export const authRequest = async (path, options = {}) => {
+  try {
+    return await request(AUTH_API_BASE_URL, path, options)
+  } catch (error) {
+    throw toAuthError(error)
+  }
+}
+
 const collectProviderNames = (source, names = []) => {
   if (!source) return names
-
   if (Array.isArray(source)) {
     source.forEach((item) => collectProviderNames(item, names))
     return names
   }
-
   if (typeof source === 'string') {
     names.push(source)
     return names
   }
-
   if (typeof source !== 'object') return names
 
   const enabled = source.enabled ?? source.isEnabled ?? source.active ?? true
@@ -202,7 +112,6 @@ const collectProviderNames = (source, names = []) => {
 
 export const normalizeProviders = (payload) => {
   const providerNames = collectProviderNames(payload).map((name) => String(name).toLowerCase())
-
   return Object.fromEntries(
     Object.entries(PROVIDER_ALIASES).map(([provider, aliases]) => [
       provider,
@@ -216,6 +125,56 @@ export const getAuthProviders = async () => normalizeProviders(await authRequest
 export const getGoogleSignInUrl = (redirectTo = window.location.origin) => {
   const params = new URLSearchParams({ redirectTo })
   return `${AUTH_API_BASE_URL}/sign-in/google?${params}`
+}
+
+// Legacy collection access is retained only for currently disabled prototype
+// modules. Launch routes use the explicit service functions below so adding a
+// new collection cannot silently expand the browser's data authority.
+export const nocodeBackend = {
+  async list(collection, { filters = {} } = {}) {
+    const params = new URLSearchParams(filters)
+    try {
+      const payload = await apiRequest(`/collections/${encodeURIComponent(collection)}?${params}`)
+      return { data: payload?.items || [], error: null }
+    } catch (error) {
+      return { data: [], error }
+    }
+  },
+  async get(collection, id) {
+    try {
+      const payload = await apiRequest(`/collections/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`)
+      return { data: payload?.item || null, error: null }
+    } catch (error) {
+      return { data: null, error }
+    }
+  },
+  async create(collection, data) {
+    try {
+      const payload = await apiRequest(`/collections/${encodeURIComponent(collection)}`, { method: 'POST', body: data })
+      return { data: payload?.item || null, error: null }
+    } catch (error) {
+      return { data: null, error }
+    }
+  },
+  async update(collection, id, data) {
+    try {
+      const payload = await apiRequest(`/collections/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        body: data
+      })
+      return { data: payload?.item || null, error: null }
+    } catch (error) {
+      return { data: null, error }
+    }
+  },
+  async remove(collection, id) {
+    try {
+      await apiRequest(`/collections/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`, { method: 'DELETE' })
+      return { data: true, error: null }
+    } catch (error) {
+      return { data: null, error }
+    }
+  }
 }
 
 export default nocodeBackend

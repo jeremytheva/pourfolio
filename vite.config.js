@@ -12,8 +12,9 @@ export default defineConfig({
   server: {
     historyApiFallback: true,
   },
-   build: {
+  build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: false,
+    chunkSizeWarningLimit: 600
   },
 });

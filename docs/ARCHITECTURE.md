@@ -1,31 +1,80 @@
 # Architecture
 
-## Current implementation
-Pourfolio is a React single-page application built by Vite. `src/App.jsx` declares browser routes and wraps protected routes in a client-side authentication guard. Pages compose components, hooks, services, and utilities. Services use the collection client in `src/lib/nocodeBackend.js`; it normalises NoCodeBackend responses and hydrates selected relationships through follow-up requests.
+## Launch architecture
+
+Pourfolio is a beer-first React/Vite single-page application deployed with same-origin serverless functions. The browser cannot select a backend collection, owner ID, role or authoritative rating total.
 
 ```mermaid
 flowchart LR
-  Browser[React/Vite browser client] --> Router[React Router and protected routes]
-  Router --> Pages[Pages and components]
-  Pages --> Services[Collection services]
-  Services --> Client[src/lib/nocodeBackend.js]
-  Client --> Data[NoCodeBackend data endpoint]
-  Browser --> AuthProxy[/api/nocodebackend/auth/*]
-  AuthProxy --> Auth[NoCodeBackend auth API]
-  AuthProxy --> Secret[NOCODEBACKEND_SECRET_KEY]
-  Browser --> Local[localStorage: selected prototype/client flows]
+  Browser[React client] --> AuthProxy[Allowlisted auth proxy]
+  Browser --> DataGateway[Application data gateway]
+  AuthProxy --> Auth[NoCodeBackend auth]
+  DataGateway --> Session[Server session verification]
+  DataGateway --> Policy[Validation and ownership policy]
+  Policy --> Collections[Canonical collections]
 ```
 
-## Boundaries and flows
-- **Client:** all `src/` code executes in the browser. It may use only `VITE_` environment variables and the app-owned data/auth base URLs.
-- **Server proxy:** `api/nocodebackend/auth/[...path].js` forwards authentication requests, propagates cookies, strips incoming authorisation headers, and attaches the server-only NoCodeBackend bearer token. Its deployment platform must support the handler contract used by that file.
-- **Data:** services map features to NoCodeBackend collections documented in [the schema mapping](nocodebackend/schema-mapping.md). The documented permissions are the authorisation boundary; client-side protected routes only improve navigation.
-- **Local state:** React hooks handle transient UI state. Existing `localStorage` use supports preferences and prototype features; it is not a secure data store.
+## Browser boundary
 
-## Authentication and storage
-On startup, `useAuth` asks the auth proxy for the session, normalises supported response shapes, and loads a matching profile collection record. Sign-in, sign-up, OTP, Google redirect, and sign-out calls use the proxy. The browser must never receive `NOCODEBACKEND_SECRET_KEY`.
+The reachable launch routes are:
 
-Persistent collections are operated in NoCodeBackend. There is no live SQL database or migration runner in this repository. Archived Supabase SQL files are reference-only and must not be run for new setup.
+- `/login`
+- `/home`
+- `/search`
+- `/products/:productId`
+- `/products/:productId/rate`
+- `/cellar`
+- `/profile`
 
-## Deployment and constraints
-The client builds to `dist/` with Vite. The repository does not commit Vercel, Netlify, container, or other hosting configuration, so the actual hosting platform is unverified. Deployment must provide the `api/` handler and configure server-only environment variables. The existing data base URL defaults to `/api/nocodebackend`, but only the auth proxy is implemented here; deployments must supply the corresponding data route or override the browser-safe base URL.
+Catalogue, product, rating, rating-history, cellar and profile operations use explicit services and same-origin `/api/nocodebackend/*` endpoints. The browser stores no authentication secret, private cellar record, role override, rating transaction or privacy policy state. Device-local browser storage remains only in unreachable prototype modules.
+
+The launch client uses a small same-origin History API router in
+`src/lib/router.jsx`. It intentionally supports only internal links, exact route
+patterns and named path parameters; cross-origin navigation targets are rejected.
+This avoids carrying a general-purpose router dependency with unresolved launch
+advisories.
+
+Chat, Drinking Buddies, events, venues, analytics, producer claims, administration, test-user switching, non-beer rating modes, privacy controls without enforcement, and photo upload are not routed or bundled into the launch application.
+
+## Authentication boundary
+
+`api/nocodebackend/auth/[...path].js` exposes a fixed action/method matrix. It adds the server-only provider secret, forwards the session cookie, validates unsafe request origins, limits request size and rate, times out upstream requests, adds cookie security attributes, and maps provider failures to safe errors.
+
+Public sign-up supplies only email, password, name and non-authoritative display metadata. It cannot request producer or administrator access. Immutable identity must come from `id`, `user_id`, `userId` or `_id`; email alone is not accepted as identity.
+
+## Data boundary
+
+`api/nocodebackend/[...path].js`:
+
+- verifies the session on every data request;
+- uses server-only `NOCODEBACKEND_DATA_BASE_URL` and `NOCODEBACKEND_SECRET_KEY`;
+- exposes only product catalogue/details, rating-form/submission/history, cellar and profile workflows;
+- derives owner IDs from the session;
+- verifies ownership again before update/delete or cellar linkage;
+- strips browser-supplied identity, role, secret and total fields;
+- projects every response through explicit public/owner field lists;
+- assigns a correlation ID without logging request bodies or personal data.
+
+The canonical data contract is [schema mapping](nocodebackend/schema-mapping.md).
+
+## Rating integrity
+
+Rating submission is a coordinated server operation across `ratings`, `rating_scores` and optional `bonus_attribute_rating_mapping`. A stable positive `rating_id` makes retries idempotent. Scores are complete 1–7 integers, current database weights calculate totals, and partial writes are deleted in reverse order after failure. Remote provider transaction support should replace compensation if it becomes available and is verified.
+
+## Deployment
+
+`vercel.json` provides SPA direct-route rewrites, security headers and immutable caching for hashed assets. Production source maps are disabled. `/api/health` reports only configuration booleans and never contacts upstream services or reveals secrets.
+
+Required server variables:
+
+- `NOCODEBACKEND_SECRET_KEY`
+- `NOCODEBACKEND_DATA_BASE_URL`
+
+Optional server variables:
+
+- `NOCODEBACKEND_AUTH_BASE_URL`
+- `ALLOWED_ORIGINS`
+
+## Remaining external controls
+
+Source code cannot prove remote collection permissions, production environment values, import reconciliation, backup/restore, alert routing, legal text, account deletion/export or operational support ownership. These remain release gates in [Launch Readiness](LAUNCH_READINESS.md).
