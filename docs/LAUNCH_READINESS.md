@@ -59,6 +59,7 @@ The previously missing products, cellar, bonus-attribute and SQL exports are now
 - [ ] Configure central monitoring, redacted correlation-ID logging, alert ownership and service-level thresholds.
 - [ ] Complete backup, restore and deployment rollback rehearsals with evidence.
 - [ ] Enable GitHub branch protection, required checks, secret scanning and push protection.
+- [ ] Enable GitHub Dependency Graph and make the dependency-review check blocking.
 - [ ] Enable GitHub Issues or nominate another tracker for the remaining gates.
 - [ ] Test direct routes and `/api/health` on the production host.
 

@@ -156,7 +156,7 @@ function AuthForm({ mode, onToggleMode }) {
             </div>
           )}
 
-          <button type="submit" disabled={isSubmitting} className="flex w-full items-center justify-center rounded-lg bg-amber-600 px-4 py-3 font-medium text-white hover:bg-amber-700 disabled:cursor-wait disabled:bg-gray-400">
+          <button type="submit" disabled={isSubmitting} className="flex w-full items-center justify-center rounded-lg bg-amber-700 px-4 py-3 font-medium text-white hover:bg-amber-800 disabled:cursor-wait disabled:bg-gray-500">
             {isSubmitting ? <><SafeIcon icon={FiLoader} className="mr-2 h-5 w-5 animate-spin" />Working…</> : canUseOtp && !otpSent ? 'Send one-time passcode' : mode === 'signup' ? 'Create account' : 'Sign in'}
           </button>
         </form>

@@ -183,7 +183,7 @@ function RateBeer() {
           ) : <p className="mt-1 text-sm text-amber-900">Complete every attribute to calculate the preview.</p>}
         </section>
 
-        <button type="submit" disabled={status === 'submitting'} className="inline-flex w-full items-center justify-center rounded-lg bg-amber-600 px-5 py-3 font-semibold text-white hover:bg-amber-700 disabled:cursor-wait disabled:bg-gray-400">
+        <button type="submit" disabled={status === 'submitting'} className="inline-flex w-full items-center justify-center rounded-lg bg-amber-700 px-5 py-3 font-semibold text-white hover:bg-amber-800 disabled:cursor-wait disabled:bg-gray-500">
           <SafeIcon icon={FiCheck} className="mr-2 h-5 w-5" />
           {status === 'submitting' ? 'Submitting securely…' : 'Submit rating'}
         </button>

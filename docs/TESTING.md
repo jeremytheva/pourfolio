@@ -45,9 +45,11 @@ the connected staging tests below.
 ## CI
 
 Pull requests, pushes to `main`/`master`, and manual runs execute the release gate
-and Playwright browser/accessibility suite on Node 20. Pull requests also run
-dependency review. CodeQL runs on pull requests, protected branches, weekly
-schedule and manual dispatch.
+and Playwright browser/accessibility suite on Node 20. Pull requests also attempt
+dependency review. That step is warning-only until a repository administrator
+enables Dependency Graph; the production dependency audit remains blocking.
+CodeQL runs on pull requests, protected branches, weekly schedule and manual
+dispatch.
 
 ## Required pre-launch environment tests
 

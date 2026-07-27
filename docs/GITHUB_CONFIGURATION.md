@@ -18,6 +18,7 @@ Use **Status**, **Project or product**, **Type**, **Priority**, **Complexity**, 
 - [ ] Enable issue forms and verify `Closes #` issue auto-linking/closing behaviour.
 - [ ] Configure required reviewers only when reliable ownership is known; no `CODEOWNERS` file is supplied because ownership is not evidenced in this repository.
 - [ ] Enable Dependabot alerts, secret scanning, and push protection where available.
+- [ ] Enable Dependency Graph, then remove `continue-on-error` from the dependency-review workflow step and require its check.
 - [ ] Review Dependabot alerts weekly.
 - [ ] Add deployment environment protection and restrict production secret access.
 - [ ] Close or archive obsolete Supabase and prototype pull requests that cannot merge into the canonical architecture.

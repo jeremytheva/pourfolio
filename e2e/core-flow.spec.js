@@ -22,8 +22,8 @@ test('catalogue to product to rating uses stable IDs and accepts score 1', async
   await expect(page).toHaveURL(/\/products\/4$/)
   await page.getByRole('link', { name: 'Rate this beer' }).click()
 
-  await page.getByLabel('Appearance Weight 0.1').selectOption('1')
-  await page.getByLabel('Aroma Weight 0.2').selectOption('7')
+  await page.getByRole('combobox', { name: /Appearance/ }).selectOption('1')
+  await page.getByRole('combobox', { name: /Aroma/ }).selectOption('7')
   await expect(page.getByText('4 / 7').first()).toBeVisible()
   await page.getByRole('button', { name: 'Submit rating' }).click()
 

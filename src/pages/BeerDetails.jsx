@@ -138,7 +138,7 @@ function BeerDetails() {
             </dl>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to={`/products/${product.id}/rate`} className="inline-flex items-center rounded-lg bg-amber-600 px-5 py-3 font-medium text-white hover:bg-amber-700">
+              <Link to={`/products/${product.id}/rate`} className="inline-flex items-center rounded-lg bg-amber-700 px-5 py-3 font-medium text-white hover:bg-amber-800">
                 <SafeIcon icon={FiStar} className="mr-2 h-5 w-5" />
                 Rate this beer
               </Link>
@@ -179,7 +179,7 @@ function BeerDetails() {
             <label className="text-sm font-medium text-gray-700 sm:col-span-2">Notes
               <textarea value={cellarForm.notes} onChange={updateCellarField('notes')} maxLength={255} rows={3} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
             </label>
-            <button type="submit" disabled={cellarStatus === 'saving'} className="rounded-lg bg-amber-600 px-5 py-3 font-medium text-white hover:bg-amber-700 disabled:bg-gray-400 sm:col-span-2">
+            <button type="submit" disabled={cellarStatus === 'saving'} className="rounded-lg bg-amber-700 px-5 py-3 font-medium text-white hover:bg-amber-800 disabled:bg-gray-500 sm:col-span-2">
               {cellarStatus === 'saving' ? 'Saving…' : 'Save cellar item'}
             </button>
           </form>

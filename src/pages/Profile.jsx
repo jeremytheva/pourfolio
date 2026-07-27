@@ -100,7 +100,7 @@ function Profile() {
               <input type="url" maxLength={2048} value={form.avatar_url} onChange={(event) => { setForm((current) => ({ ...current, avatar_url: event.target.value })); setSaveStatus('') }} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
             </label>
             <p className="text-xs text-gray-500">Account identity and role are not editable from the browser.</p>
-            <button type="submit" disabled={saveStatus === 'saving'} className="inline-flex w-full items-center justify-center rounded-lg bg-amber-600 px-4 py-2.5 font-medium text-white hover:bg-amber-700 disabled:bg-gray-400">
+            <button type="submit" disabled={saveStatus === 'saving'} className="inline-flex w-full items-center justify-center rounded-lg bg-amber-700 px-4 py-2.5 font-medium text-white hover:bg-amber-800 disabled:bg-gray-500">
               <SafeIcon icon={FiSave} className="mr-2 h-4 w-4" />
               {saveStatus === 'saving' ? 'Saving…' : 'Save profile'}
             </button>

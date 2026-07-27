@@ -181,7 +181,7 @@ function Cellar() {
                   <label className="text-sm font-medium text-gray-700 sm:col-span-3">Notes
                     <textarea maxLength={255} rows={2} value={draft.notes} onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
                   </label>
-                  <button type="submit" className="rounded-lg bg-amber-600 px-4 py-2 font-medium text-white hover:bg-amber-700 sm:col-span-3">Save changes</button>
+                  <button type="submit" className="rounded-lg bg-amber-700 px-4 py-2 font-medium text-white hover:bg-amber-800 sm:col-span-3">Save changes</button>
                 </form>
               )}
             </li>
