@@ -28,6 +28,7 @@ Tests cover:
 - canonical relational collection names;
 - optional nullable sharing series/edition relationships;
 - historical import CSV parsing, required headers, positive unique IDs, and product/producer referential integrity;
+- SQL schema parsing and required profile/rating non-null, uniqueness and immutable timestamp controls;
 - response field projection;
 - score 1 validity and complete 1–7 rating validation;
 - weighted/unweighted totals and submission IDs;
@@ -52,13 +53,18 @@ enables Dependency Graph; the production dependency audit remains blocking.
 CodeQL runs on pull requests, protected branches, weekly schedule and manual
 dispatch.
 
+The schema and import audit CLIs are exercised through their Node regression
+tests. Environment-specific exports are intentionally supplied at release time
+rather than committed to the repository.
+
 ## Required pre-launch environment tests
 
 Source-only tests cannot replace these staging checks:
 
 - sign-up, sign-in, OTP where enabled, Google where enabled, logout and expired session;
 - catalogue search, pagination and direct product routes;
-- rating score `1`, score `7`, incomplete forms, duplicate retry and forced partial-write rollback;
+- rating score `1`, score `7`, incomplete forms, sequential and concurrent duplicate retries, and forced partial-write rollback;
+- rating schema preflight `PASS` and preservation of `date_rated` during a controlled non-date update;
 - owner cellar create/update/delete and other-user rejection;
 - owner profile update with attempted role/email/user-ID injection;
 - historical import preflight `PASS`, dry run, repeat-run idempotency and count reconciliation;
