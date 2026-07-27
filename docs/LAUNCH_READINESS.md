@@ -36,7 +36,7 @@ The supplied workbook currently reports:
 | Historical cellar records | 399 | All currently lack `user_id` and confirmed cellar ID. |
 | Rating-to-cellar links | 593 | 592 await cellar import; one intentionally has no cellar metadata. |
 
-The previously missing products, cellar, bonus-attribute and SQL exports are now present in the supplied source set. Their presence does not complete import reconciliation.
+The previously missing products, cellar, bonus-attribute and SQL exports are now present in the supplied source set. Their presence does not complete import reconciliation. The [historical import preflight](nocodebackend/import-preflight.md) currently blocks the source set because catalogue and producer references do not reconcile.
 
 ## External P0 gates
 
@@ -45,6 +45,7 @@ The previously missing products, cellar, bonus-attribute and SQL exports are now
 - [ ] Apply the canonical schema without `*_pf2025` aliases.
 - [ ] Prove unauthenticated, owner, other-user and privileged negative permission cases for every collection.
 - [ ] Prove forced rating partial-write rollback; prefer a verified provider transaction if supported.
+- [ ] Obtain complete, same-state products/producers exports and make the historical import preflight return `PASS`; the current source set references absent products and producer ID `0`.
 - [ ] Resolve the 69 unmatched historical bonus selections.
 - [ ] Assign valid owners and confirmed IDs to all 399 historical cellar records.
 - [ ] Run the historical import in non-production, rerun it to prove idempotency, and reconcile imported/rejected counts.

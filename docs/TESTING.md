@@ -27,6 +27,7 @@ Tests cover:
 
 - canonical relational collection names;
 - optional nullable sharing series/edition relationships;
+- historical import CSV parsing, required headers, positive unique IDs, and product/producer referential integrity;
 - response field projection;
 - score 1 validity and complete 1–7 rating validation;
 - weighted/unweighted totals and submission IDs;
@@ -60,7 +61,7 @@ Source-only tests cannot replace these staging checks:
 - rating score `1`, score `7`, incomplete forms, duplicate retry and forced partial-write rollback;
 - owner cellar create/update/delete and other-user rejection;
 - owner profile update with attempted role/email/user-ID injection;
-- historical import dry run and count reconciliation;
+- historical import preflight `PASS`, dry run, repeat-run idempotency and count reconciliation;
 - WCAG 2.2 AA automated checks plus keyboard/screen-reader manual checks;
 - direct SPA routes and unknown-route fallback on the production host;
 - `/api/health`, correlation IDs, alert delivery, backup restore and rollback.
