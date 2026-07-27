@@ -1,112 +1,168 @@
-const NOCODEBACKEND_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
-const HOP_BY_HOP_HEADERS = new Set([
-  'connection',
-  'keep-alive',
-  'proxy-authenticate',
-  'proxy-authorization',
-  'te',
-  'trailer',
-  'transfer-encoding',
-  'upgrade',
-  'host',
-  'content-length'
-])
+import crypto from 'node:crypto'
+import {
+  enforceOrigin,
+  enforceRateLimit,
+  enforceRequestSize,
+  safeErrorMessage,
+  withTimeout
+} from '../../_lib/httpSecurity.js'
+
+const DEFAULT_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
+const AUTH_ACTIONS = Object.freeze({
+  providers: ['GET'],
+  'get-session': ['GET'],
+  'sign-up/email': ['POST'],
+  'sign-in/email': ['POST'],
+  'sign-in/otp': ['POST'],
+  'verify-otp': ['POST'],
+  'sign-in/google': ['GET'],
+  'sign-out': ['POST']
+})
 
 const getRequestPath = (request) => {
   const path = request.query?.path
-
-  if (Array.isArray(path)) return path.map(encodeURIComponent).join('/')
-  if (path) return encodeURIComponent(path)
-
-  return ''
+  const segments = Array.isArray(path) ? path : path ? String(path).split('/') : []
+  return segments.filter(Boolean).join('/')
 }
 
 const getRequestBody = (request) => {
-  if (request.method === 'GET' || request.method === 'HEAD') return undefined
-  if (request.body === undefined || request.body === null) return undefined
+  if (['GET', 'HEAD'].includes(request.method) || request.body === undefined || request.body === null) {
+    return undefined
+  }
   if (typeof request.body === 'string' || Buffer.isBuffer(request.body)) return request.body
-
   return JSON.stringify(request.body)
 }
 
-const copyForwardHeaders = (request) => {
-  const headers = {}
+const safeRedirectTarget = (request, value) => {
+  if (!value) return null
 
-  for (const [name, value] of Object.entries(request.headers || {})) {
-    const lowerName = name.toLowerCase()
-    if (HOP_BY_HOP_HEADERS.has(lowerName)) continue
-    if (lowerName === 'authorization') continue
-    if (value === undefined) continue
-
-    headers[name] = Array.isArray(value) ? value.join(', ') : value
+  try {
+    const target = new URL(String(value))
+    const requestHost = String(request.headers?.['x-forwarded-host'] || request.headers?.host || '').toLowerCase()
+    return target.host.toLowerCase() === requestHost ? target.origin : null
+  } catch {
+    return null
   }
-
-  headers.authorization = `Bearer ${process.env.NOCODEBACKEND_SECRET_KEY}`
-
-  if (!headers['content-type'] && !headers['Content-Type'] && request.body) {
-    headers['content-type'] = 'application/json'
-  }
-
-  return headers
 }
 
-const copyResponseHeaders = (upstreamResponse, response) => {
-  upstreamResponse.headers.forEach((value, name) => {
-    const lowerName = name.toLowerCase()
-    if (HOP_BY_HOP_HEADERS.has(lowerName)) return
-    if (lowerName === 'set-cookie') return
+const buildUpstreamUrl = (request, path) => {
+  const baseUrl = (process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL).replace(/\/+$/, '')
+  const url = new URL(`${baseUrl}/${path.split('/').map(encodeURIComponent).join('/')}`)
 
-    response.setHeader(name, value)
-  })
+  if (path === 'sign-in/google') {
+    const redirectTo = safeRedirectTarget(request, request.query?.redirectTo)
+    if (redirectTo) url.searchParams.set('redirectTo', redirectTo)
+  }
 
-  const setCookies = upstreamResponse.headers.getSetCookie?.()
-  if (setCookies?.length) {
-    response.setHeader('Set-Cookie', setCookies)
+  return url
+}
+
+const secureCookie = (cookie) => {
+  let result = String(cookie)
+  if (!/;\s*HttpOnly/i.test(result)) result += '; HttpOnly'
+  if (!/;\s*Secure/i.test(result)) result += '; Secure'
+  if (!/;\s*SameSite=/i.test(result)) result += '; SameSite=Lax'
+  return result
+}
+
+const copyResponseHeaders = (upstream, response) => {
+  const contentType = upstream.headers.get('content-type')
+  const location = upstream.headers.get('location')
+  if (contentType) response.setHeader('Content-Type', contentType)
+  if (location) response.setHeader('Location', location)
+  response.setHeader('Cache-Control', 'no-store')
+
+  const cookies = upstream.headers.getSetCookie?.() || []
+  if (cookies.length) {
+    response.setHeader('Set-Cookie', cookies.map(secureCookie))
     return
   }
 
-  const setCookie = upstreamResponse.headers.get('set-cookie')
-  if (setCookie) response.setHeader('Set-Cookie', setCookie)
+  const cookie = upstream.headers.get('set-cookie')
+  if (cookie) response.setHeader('Set-Cookie', secureCookie(cookie))
+}
+
+const rateLimitForAction = (path) => {
+  if (path.startsWith('sign-in') || path === 'verify-otp') {
+    return { key: `auth:${path}`, limit: 20, windowMs: 15 * 60_000 }
+  }
+  if (path === 'sign-up/email') {
+    return { key: 'auth:signup', limit: 10, windowMs: 60 * 60_000 }
+  }
+  return { key: `auth:${path}`, limit: 120, windowMs: 60_000 }
 }
 
 export default async function handler(request, response) {
-  if (!process.env.NOCODEBACKEND_SECRET_KEY) {
-    response.status(500).json({ error: 'NoCodeBackend secret is not configured on the server.' })
+  const correlationId = request.headers?.['x-request-id'] || crypto.randomUUID()
+  response.setHeader('X-Request-Id', correlationId)
+  response.setHeader('Cache-Control', 'no-store')
+
+  const secret = process.env.NOCODEBACKEND_SECRET_KEY
+  if (!secret) {
+    response.status(503).json({ error: 'Authentication is not configured.', requestId: correlationId })
     return
   }
 
   const path = getRequestPath(request)
-  if (!path) {
-    response.status(400).json({ error: 'Missing NoCodeBackend auth action.' })
+  const methods = AUTH_ACTIONS[path]
+  if (!methods) {
+    response.status(404).json({ error: 'Authentication action not found.', requestId: correlationId })
     return
   }
-
-  const query = new URLSearchParams()
-  for (const [key, value] of Object.entries(request.query || {})) {
-    if (key === 'path') continue
-    if (Array.isArray(value)) {
-      value.forEach((item) => query.append(key, item))
-    } else if (value !== undefined) {
-      query.append(key, value)
-    }
+  if (!methods.includes(request.method)) {
+    response.setHeader('Allow', methods.join(', '))
+    response.status(405).json({ error: 'Method not allowed.', requestId: correlationId })
+    return
   }
-
-  const upstreamUrl = `${NOCODEBACKEND_AUTH_BASE_URL}/${path}${query.size ? `?${query}` : ''}`
+  if (!enforceRequestSize(request, response) || !enforceOrigin(request, response)) return
+  if (!enforceRateLimit(request, response, rateLimitForAction(path))) return
 
   try {
-    const upstreamResponse = await fetch(upstreamUrl, {
+    const upstream = await withTimeout((signal) => fetch(buildUpstreamUrl(request, path), {
       method: request.method,
-      headers: copyForwardHeaders(request),
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${secret}`,
+        cookie: request.headers?.cookie || '',
+        ...(getRequestBody(request) === undefined ? {} : { 'content-type': 'application/json' })
+      },
       body: getRequestBody(request),
-      redirect: 'manual'
-    })
+      redirect: 'manual',
+      signal
+    }))
 
-    const responseBody = Buffer.from(await upstreamResponse.arrayBuffer())
+    copyResponseHeaders(upstream, response)
 
-    copyResponseHeaders(upstreamResponse, response)
-    response.status(upstreamResponse.status).send(responseBody)
+    if (upstream.status >= 300 && upstream.status < 400) {
+      response.status(upstream.status).end()
+      return
+    }
+
+    const body = await upstream.arrayBuffer()
+    if (!upstream.ok) {
+      response.status(upstream.status).json({
+        error: safeErrorMessage(upstream.status),
+        requestId: correlationId
+      })
+      return
+    }
+
+    response.status(upstream.status).send(Buffer.from(body))
   } catch (error) {
-    console.error('NoCodeBackend proxy error:', error)
-    response.status(502).json({ error: 'NoCodeBackend auth request failed.' })
+    console.error('Authentication proxy error', {
+      correlationId,
+      name: error.name
+    })
+    response.status(502).json({
+      error: 'Authentication service is temporarily unavailable.',
+      requestId: correlationId
+    })
   }
+}
+
+export const __testables = {
+  AUTH_ACTIONS,
+  getRequestPath,
+  safeRedirectTarget,
+  secureCookie
 }

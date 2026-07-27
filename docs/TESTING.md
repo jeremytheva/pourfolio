@@ -1,25 +1,66 @@
 # Testing
 
-## Tools and commands
-The repository uses Node.js built-in `node:test` and `node:assert` for unit tests. Run:
+## Local release gate
+
+Use Node.js 20 and run:
 
 ```bash
-npm run lint
-npm test
-npm run build
+npm ci
 npm run validate
+npx playwright install --with-deps chromium
+npm run test:e2e
 ```
 
-`validate` runs lint, unit tests, and the production build in sequence. There is no TypeScript configuration, integration-test command, end-to-end suite, formatting checker, or executable database migration command. Do not report those checks as passed; use targeted manual testing and non-production NoCodeBackend validation where relevant.
+`validate` runs:
 
-## Test placement and approach
-Place pure-logic tests alongside utilities in `src/**/__tests__/*.test.js`, following the existing `ratingCalculator.test.js` pattern and importing from `node:test` and `node:assert/strict`. Mock external boundaries rather than making unit tests call NoCodeBackend. Add tests for changed calculations, response normalisation, validation, and service error paths where practical. Component/UI changes need accessible manual validation of keyboard paths, labels, focus, error states, and relevant protected-route behaviour.
+1. ESLint;
+2. Node unit/policy tests;
+3. a high-severity production dependency audit;
+4. the production Vite build;
+5. gzip JavaScript bundle budgets.
 
-## Change expectations
-- Pure logic and bug fixes: add regression/unit tests.
-- Data/service changes: test normalisation/error behaviour and verify the documented collection contract in a non-production environment.
-- Authentication, permissions, or proxy changes: exercise unauthenticated, authorised, and unauthorised paths without using production credentials.
-- Schema changes: update the schema mapping, document rollout/backfill, and validate collection fields/permissions outside production; no local migration runner exists.
+Production source maps are disabled.
 
-## CI sequence and gaps
-Pull requests install the lockfile with `npm ci`, then run lint, unit tests, and production build. CI intentionally does not call external services. Coverage reporting, integration tests, end-to-end tests, a formatter, and automated NoCodeBackend schema/migration validation are current gaps; record any manual evidence and follow-up work in the PR.
+## Current automated coverage
+
+Tests cover:
+
+- canonical relational collection names;
+- optional nullable sharing series/edition relationships;
+- response field projection;
+- score 1 validity and complete 1–7 rating validation;
+- weighted/unweighted totals and submission IDs;
+- profile/cellar input allowlists and ownership predicates;
+- immutable session identity extraction;
+- same-origin, request-size and rate-limit helpers;
+- authentication action/method and redirect/cookie policy;
+- the existing rating calculation utility.
+
+The Playwright suite uses a deterministic same-origin API fixture and covers the
+launch catalogue, product, rating, cellar and profile journeys. It also runs
+automated accessibility checks on the reachable launch pages. This suite verifies
+browser behaviour without requiring production credentials; it does not replace
+the connected staging tests below.
+
+## CI
+
+Pull requests, pushes to `main`/`master`, and manual runs execute the release gate
+and Playwright browser/accessibility suite on Node 20. Pull requests also run
+dependency review. CodeQL runs on pull requests, protected branches, weekly
+schedule and manual dispatch.
+
+## Required pre-launch environment tests
+
+Source-only tests cannot replace these staging checks:
+
+- sign-up, sign-in, OTP where enabled, Google where enabled, logout and expired session;
+- catalogue search, pagination and direct product routes;
+- rating score `1`, score `7`, incomplete forms, duplicate retry and forced partial-write rollback;
+- owner cellar create/update/delete and other-user rejection;
+- owner profile update with attempted role/email/user-ID injection;
+- historical import dry run and count reconciliation;
+- WCAG 2.2 AA automated checks plus keyboard/screen-reader manual checks;
+- direct SPA routes and unknown-route fallback on the production host;
+- `/api/health`, correlation IDs, alert delivery, backup restore and rollback.
+
+Do not use production credentials or personal data in fixtures. Redact evidence before attaching it to a PR.

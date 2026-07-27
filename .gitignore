@@ -27,3 +27,5 @@ dist-ssr
 coverage/
 .vitest/
 *.tsbuildinfo
+playwright-report/
+test-results/

@@ -1,5 +1,5 @@
 import React,{useState,useEffect} from 'react';
-import {useParams,Link} from 'react-router-dom';
+import {useParams,Link} from '../lib/router.jsx';
 import {motion} from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';

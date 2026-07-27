@@ -1,98 +1,46 @@
 import React, { memo } from 'react'
-import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import * as FiIcons from 'react-icons/fi'
-import SafeIcon from '../common/SafeIcon'
-import { beverageTypes } from '../utils/beverageTypes'
-import { optimizeImageUrl } from '../utils/performance'
+import { FiArrowRight } from 'react-icons/fi'
+import { Link } from '../lib/router.jsx'
+import SafeIcon from '../common/SafeIcon.jsx'
 
-const { FiStar } = FiIcons
+const FALLBACK_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480"%3E%3Crect width="640" height="480" fill="%23fef3c7"/%3E%3Ctext x="320" y="250" text-anchor="middle" font-family="sans-serif" font-size="42" fill="%2392400e"%3EPourfolio%3C/text%3E%3C/svg%3E'
 
-const OptimizedBeerCard = memo(function BeerCard({ beer, index, onClick }) {
-  const renderStars = (rating) => {
-    const fullStars = Math.floor(rating)
-    const hasHalfStar = rating % 1 !== 0
-    const stars = []
-
-    for (let i = 0; i < fullStars; i++) {
-      stars.push(
-        <SafeIcon key={i} icon={FiStar} className="w-4 h-4 text-yellow-400 fill-current" />
-      )
-    }
-
-    if (hasHalfStar) {
-      stars.push(
-        <SafeIcon key="half" icon={FiStar} className="w-4 h-4 text-yellow-400 fill-current opacity-50" />
-      )
-    }
-
-    const remainingStars = 5 - Math.ceil(rating)
-    for (let i = 0; i < remainingStars; i++) {
-      stars.push(
-        <SafeIcon key={`empty-${i}`} icon={FiStar} className="w-4 h-4 text-gray-300" />
-      )
-    }
-
-    return stars
-  }
-
-  const beverageTypeInfo = beverageTypes[beer.type] || beverageTypes.beer
-  const optimizedImage = optimizeImageUrl(beer.image, 300, 300, 80)
-
-  const cardContent = (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      whileHover={{ y: -5 }}
-      className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-200 cursor-pointer"
-    >
-      <div className="aspect-square overflow-hidden relative">
-        <img
-          src={optimizedImage}
-          alt={beer.name}
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-          loading="lazy"
-        />
-        {/* Beverage type indicator */}
-        <div className="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full p-1">
-          <span className="text-lg" title={beverageTypeInfo.name}>
-            {beverageTypeInfo.icon}
-          </span>
-        </div>
-      </div>
-
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-800 mb-1 truncate">{beer.name}</h3>
-        <p className="text-sm text-gray-600 mb-1 truncate">
-          {beer.producer || beer.brewery}
-        </p>
-        <p className="text-xs text-gray-500 mb-3 truncate">
-          {beer.category}
-        </p>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-1">
-            {renderStars(beer.rating)}
-          </div>
-          <span className="text-sm font-medium text-gray-700">{beer.rating}</span>
-        </div>
-      </div>
-    </motion.div>
-  )
-
-  if (onClick) {
-    return (
-      <div onClick={() => onClick(beer)}>
-        {cardContent}
-      </div>
-    )
-  }
+const OptimizedBeerCard = memo(function OptimizedBeerCard({ product }) {
+  const category = product.declared_category || product.category?.category_name || 'Beer'
+  const producer = product.producer?.producer_name || 'Producer not recorded'
 
   return (
-    <Link to={`/beer-details?type=${beer.type}`}>
-      {cardContent}
-    </Link>
+    <article className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+      <img
+        src={product.product_image || FALLBACK_IMAGE}
+        alt=""
+        loading="lazy"
+        className="aspect-[4/3] w-full bg-amber-50 object-cover"
+      />
+      <div className="p-5">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-700">{category}</p>
+        <h2 className="line-clamp-2 text-lg font-semibold text-gray-900">{product.product_name}</h2>
+        <p className="mt-1 truncate text-sm text-gray-600">{producer}</p>
+        <dl className="mt-4 flex gap-5 text-sm">
+          {product.abv !== null && product.abv !== undefined && (
+            <div>
+              <dt className="text-gray-500">ABV</dt>
+              <dd className="font-medium text-gray-800">{product.abv}%</dd>
+            </div>
+          )}
+          {product.ibu && (
+            <div>
+              <dt className="text-gray-500">IBU</dt>
+              <dd className="font-medium text-gray-800">{product.ibu}</dd>
+            </div>
+          )}
+        </dl>
+        <Link to={`/products/${product.id}`} className="mt-5 inline-flex items-center font-medium text-amber-700 hover:text-amber-900">
+          View product
+          <SafeIcon icon={FiArrowRight} className="ml-2 h-4 w-4" />
+        </Link>
+      </div>
+    </article>
   )
 })
 

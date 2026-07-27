@@ -1,259 +1,158 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import * as FiIcons from 'react-icons/fi';
-import SafeIcon from '../common/SafeIcon';
-import ProfileSettings from '../components/ProfileSettings';
-import PrivacySettings from '../components/PrivacySettings';
-import AdminPanel from '../components/AdminPanel';
+import React, { useEffect, useMemo, useState } from 'react'
+import { FiSave, FiStar, FiTrash2, FiUser } from 'react-icons/fi'
+import { Link } from '../lib/router.jsx'
+import SafeIcon from '../common/SafeIcon.jsx'
+import { useAuth } from '../hooks/useAuth.js'
+import { ratingService } from '../services/ratingService.js'
 
-const { FiUser, FiSettings, FiShield, FiStar, FiCalendar, FiToggleLeft, FiToggleRight } = FiIcons;
+const formatDate = (value) => value
+  ? new Intl.DateTimeFormat('en-AU', { dateStyle: 'medium' }).format(new Date(value))
+  : 'Date not recorded'
 
-function Profile({ user }) {
-  const [activeTab, setActiveTab] = useState('profile');
-  const [adminMode, setAdminMode] = useState(false);
+function Profile() {
+  const { user, updateProfile } = useAuth()
+  const [form, setForm] = useState({
+    name: user?.name || '',
+    description: user?.description || '',
+    avatar_url: user?.avatar_url || ''
+  })
+  const [ratings, setRatings] = useState([])
+  const [ratingsStatus, setRatingsStatus] = useState('loading')
+  const [saveStatus, setSaveStatus] = useState('')
+  const [error, setError] = useState('')
 
-  const getProfileIcon = (userType) => {
-    switch (userType) {
-      case 'Brewery Login': return FiSettings;
-      case 'Admin User': return FiShield;
-      default: return FiUser;
+  useEffect(() => {
+    let active = true
+    ratingService.getUserRatings()
+      .then((payload) => {
+        if (!active) return
+        setRatings(payload.items || [])
+        setRatingsStatus('ready')
+      })
+      .catch((requestError) => {
+        if (!active) return
+        setError(requestError.message || 'Rating history could not be loaded.')
+        setRatingsStatus('error')
+      })
+    return () => {
+      active = false
     }
-  };
+  }, [])
 
-  const getProfileColor = (userType) => {
-    switch (userType) {
-      case 'Brewery Login': return 'bg-amber-500';
-      case 'Admin User': return 'bg-red-500';
-      default: return 'bg-blue-500';
+  const average = useMemo(() => {
+    const values = ratings.map((rating) => Number(rating.total_weighted)).filter(Number.isFinite)
+    return values.length ? (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2) : null
+  }, [ratings])
+
+  const saveProfile = async (event) => {
+    event.preventDefault()
+    setError('')
+    setSaveStatus('saving')
+    const result = await updateProfile(form)
+    if (result.error) {
+      setError(result.error.message || 'Your profile could not be saved.')
+      setSaveStatus('')
+      return
     }
-  };
-
-  // Dummy rating data
-  const userRatings = [
-    {
-      id: 1,
-      beverageName: 'IPA Delight',
-      producer: 'Brewery X',
-      rating: 4.5,
-      review: 'Excellent hop character with a perfect balance of citrus and pine notes.',
-      date: '2024-01-15',
-      image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=100&h=100&fit=crop'
-    },
-    {
-      id: 2,
-      beverageName: 'Golden Wheat',
-      producer: 'Sunset Brewing',
-      rating: 4.0,
-      review: 'Smooth and refreshing, perfect for summer drinking.',
-      date: '2024-01-10',
-      image: 'https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=100&h=100&fit=crop'
-    }
-  ];
-
-  const tabs = [
-    { id: 'profile', label: 'Profile', icon: FiUser },
-    { id: 'settings', label: 'Settings', icon: FiSettings },
-    { id: 'privacy', label: 'Privacy', icon: FiShield }
-  ];
-
-  // Add admin tab if user is admin
-  if (user?.type === 'Admin User') {
-    tabs.push({ id: 'admin', label: 'Admin', icon: FiShield });
+    setSaveStatus('saved')
   }
 
-  const renderStars = (rating) => {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
-    const stars = [];
-
-    for (let i = 0; i < fullStars; i++) {
-      stars.push(
-        <SafeIcon key={i} icon={FiStar} className="w-4 h-4 text-yellow-400 fill-current" />
-      );
+  const deleteRating = async (rating) => {
+    if (!window.confirm(`Delete your rating for ${rating.product?.product_name || 'this product'}?`)) return
+    setError('')
+    try {
+      await ratingService.deleteRating(rating.id)
+      setRatings((current) => current.filter((item) => item.id !== rating.id))
+    } catch (requestError) {
+      setError(requestError.message || 'The rating could not be deleted.')
     }
-
-    if (hasHalfStar) {
-      stars.push(
-        <SafeIcon key="half" icon={FiStar} className="w-4 h-4 text-yellow-400 fill-current opacity-50" />
-      );
-    }
-
-    const remainingStars = 5 - Math.ceil(rating);
-    for (let i = 0; i < remainingStars; i++) {
-      stars.push(
-        <SafeIcon key={`empty-${i}`} icon={FiStar} className="w-4 h-4 text-gray-300" />
-      );
-    }
-
-    return stars;
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl shadow-sm border border-gray-200"
-      >
-        {/* Profile Header */}
-        <div className="p-8 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <div className={`${getProfileColor(user?.type)} rounded-full p-4 text-white`}>
-                <SafeIcon icon={getProfileIcon(user?.type)} className="w-8 h-8" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">{user?.name}</h1>
-                <p className="text-lg text-gray-600">{user?.type}</p>
-                <p className="text-sm text-gray-500 mt-1">{user?.description}</p>
-              </div>
-            </div>
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      <header className="mb-8">
+        <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Account</p>
+        <h1 className="mt-2 text-3xl font-bold text-gray-900">Profile and rating history</h1>
+      </header>
 
-            {/* Admin Mode Toggle */}
-            {user?.type === 'Admin User' && (
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-600">Normal Mode</span>
-                <button
-                  onClick={() => setAdminMode(!adminMode)}
-                  className={`p-1 rounded-full transition-colors ${
-                    adminMode ? 'bg-red-600 text-white' : 'bg-gray-300 text-gray-600'
-                  }`}
-                >
-                  <SafeIcon icon={adminMode ? FiToggleRight : FiToggleLeft} className="w-6 h-6" />
-                </button>
-                <span className="text-sm text-gray-600">Admin Mode</span>
-              </div>
-            )}
+      {error && <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800" role="alert">{error}</div>}
+
+      <div className="grid gap-8 lg:grid-cols-[22rem_1fr]">
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="profile-details">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-800">
+              <SafeIcon icon={FiUser} className="h-6 w-6" />
+            </div>
+            <div>
+              <h2 id="profile-details" className="font-semibold text-gray-900">{user?.name}</h2>
+              <p className="text-sm text-gray-500">{user?.email}</p>
+            </div>
           </div>
-        </div>
 
-        {/* Tabs */}
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-8">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors flex items-center space-x-2 ${
-                  activeTab === tab.id
-                    ? 'border-amber-500 text-amber-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <SafeIcon icon={tab.icon} className="w-4 h-4" />
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
+          <form onSubmit={saveProfile} className="space-y-4">
+            <label className="block text-sm font-medium text-gray-700">Display name
+              <input required maxLength={120} value={form.name} onChange={(event) => { setForm((current) => ({ ...current, name: event.target.value })); setSaveStatus('') }} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </label>
+            <label className="block text-sm font-medium text-gray-700">Description
+              <textarea maxLength={1000} rows={4} value={form.description} onChange={(event) => { setForm((current) => ({ ...current, description: event.target.value })); setSaveStatus('') }} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </label>
+            <label className="block text-sm font-medium text-gray-700">Avatar URL
+              <input type="url" maxLength={2048} value={form.avatar_url} onChange={(event) => { setForm((current) => ({ ...current, avatar_url: event.target.value })); setSaveStatus('') }} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+            </label>
+            <p className="text-xs text-gray-500">Account identity and role are not editable from the browser.</p>
+            <button type="submit" disabled={saveStatus === 'saving'} className="inline-flex w-full items-center justify-center rounded-lg bg-amber-600 px-4 py-2.5 font-medium text-white hover:bg-amber-700 disabled:bg-gray-400">
+              <SafeIcon icon={FiSave} className="mr-2 h-4 w-4" />
+              {saveStatus === 'saving' ? 'Saving…' : 'Save profile'}
+            </button>
+            {saveStatus === 'saved' && <p className="text-center text-sm text-green-700" role="status">Profile saved.</p>}
+          </form>
+        </section>
 
-        {/* Tab Content */}
-        <div className="p-8">
-          {/* Profile Tab */}
-          {activeTab === 'profile' && (
-            <div className="space-y-8">
-              {/* Stats Section */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-amber-50 rounded-lg p-6 text-center">
-                  <div className="text-2xl font-bold text-amber-600 mb-2">{userRatings.length}</div>
-                  <div className="text-gray-600">Beverages Rated</div>
-                </div>
-                <div className="bg-blue-50 rounded-lg p-6 text-center">
-                  <div className="text-2xl font-bold text-blue-600 mb-2">
-                    {(userRatings.reduce((sum, rating) => sum + rating.rating, 0) / userRatings.length).toFixed(1)}
-                  </div>
-                  <div className="text-gray-600">Average Rating</div>
-                </div>
-                <div className="bg-green-50 rounded-lg p-6 text-center">
-                  <div className="text-2xl font-bold text-green-600 mb-2">
-                    {userRatings.filter(r => r.rating >= 4.5).length}
-                  </div>
-                  <div className="text-gray-600">5-Star Reviews</div>
-                </div>
-              </div>
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="rating-history">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 id="rating-history" className="text-2xl font-semibold text-gray-900">My ratings</h2>
+              <p className="mt-1 text-sm text-gray-600">Only ratings owned by your authenticated account are returned.</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs uppercase tracking-wide text-gray-500">Average</p>
+              <p className="text-2xl font-bold text-amber-800">{average ? `${average} / 7` : '—'}</p>
+            </div>
+          </div>
 
-              {/* Recent Ratings */}
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Ratings</h2>
-                {userRatings.length > 0 ? (
-                  <div className="space-y-4">
-                    {userRatings.map((rating, index) => (
-                      <motion.div
-                        key={rating.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 * index }}
-                        className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start space-x-4">
-                          <img
-                            src={rating.image}
-                            alt={rating.beverageName}
-                            className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <h3 className="text-lg font-semibold text-gray-800">{rating.beverageName}</h3>
-                                <p className="text-gray-600">{rating.producer}</p>
-                              </div>
-                              <div className="flex items-center space-x-2 flex-shrink-0">
-                                <SafeIcon icon={FiCalendar} className="w-4 h-4 text-gray-400" />
-                                <span className="text-sm text-gray-500">{formatDate(rating.date)}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2 mt-2 mb-3">
-                              <div className="flex items-center space-x-1">
-                                {renderStars(rating.rating)}
-                              </div>
-                              <span className="text-sm font-medium text-gray-700">{rating.rating}</span>
-                            </div>
-                            {rating.review && (
-                              <p className="text-gray-600 text-sm leading-relaxed">{rating.review}</p>
-                            )}
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <SafeIcon icon={FiStar} className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-500 mb-2">No ratings yet</h3>
-                    <p className="text-gray-400">Start rating beverages to see your reviews here!</p>
-                  </div>
-                )}
-              </div>
+          {ratingsStatus === 'loading' && <p className="py-10 text-center text-gray-600" role="status">Loading rating history…</p>}
+          {ratingsStatus === 'ready' && ratings.length === 0 && (
+            <div className="py-10 text-center">
+              <SafeIcon icon={FiStar} className="mx-auto mb-3 h-9 w-9 text-gray-300" />
+              <p className="font-medium text-gray-800">No ratings yet</p>
+              <Link to="/home" className="mt-2 inline-block text-sm font-medium text-amber-700 hover:underline">Browse products</Link>
             </div>
           )}
-
-          {/* Settings Tab */}
-          {activeTab === 'settings' && (
-            <ProfileSettings user={user} />
+          {ratings.length > 0 && (
+            <ul className="mt-5 divide-y divide-gray-200">
+              {ratings.map((rating) => (
+                <li key={rating.id} className="flex items-start justify-between gap-4 py-4">
+                  <div>
+                    <Link to={`/products/${rating.product_id}`} className="font-semibold text-gray-900 hover:text-amber-800">
+                      {rating.product?.product_name || `Product ${rating.product_id}`}
+                    </Link>
+                    <p className="mt-1 text-sm text-gray-600">{rating.product?.producer?.producer_name || 'Producer not recorded'}</p>
+                    <p className="mt-1 text-xs text-gray-500">{formatDate(rating.date_rated)}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="whitespace-nowrap text-lg font-semibold text-amber-800">{rating.total_weighted} / 7</span>
+                    <button type="button" onClick={() => deleteRating(rating)} className="rounded-lg p-2 text-red-700 hover:bg-red-50" aria-label={`Delete rating for ${rating.product?.product_name || 'product'}`}>
+                      <SafeIcon icon={FiTrash2} className="h-4 w-4" />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
-
-          {/* Privacy Tab */}
-          {activeTab === 'privacy' && (
-            <PrivacySettings />
-          )}
-
-          {/* Admin Tab */}
-          {activeTab === 'admin' && user?.type === 'Admin User' && (
-            <AdminPanel adminMode={adminMode} />
-          )}
-        </div>
-      </motion.div>
+        </section>
+      </div>
     </div>
-  );
+  )
 }
 
-export default Profile;
+export default Profile
