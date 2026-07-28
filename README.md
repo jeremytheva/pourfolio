@@ -25,10 +25,16 @@ Prototype social, event, venue, analytics, producer/admin, photo and non-beer mo
 ```bash
 npm ci
 cp .env.example .env.local
-npm run dev
+npx vercel dev
 ```
 
-Configure the server-only variables described in `.env.example`. The browser receives no provider secret and always calls same-origin `/api/nocodebackend/*` routes.
+Configure the server-only variables described in `.env.example` before starting the
+application. Use `vercel dev` for authenticated local journeys because the Vite
+development server does not execute the serverless gateways in `api/`. The browser
+receives no provider secret and always calls same-origin
+`/api/nocodebackend/*` routes.
+
+`npm run dev` remains suitable for UI-only work that mocks the same-origin API.
 
 ## Validation
 
