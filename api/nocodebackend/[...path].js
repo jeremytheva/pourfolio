@@ -110,12 +110,15 @@ const getProduct = async (productId, response) => {
   }
 
   const [hydrated] = await hydrateProducts([product])
-  const ratings = normaliseList(await dataProvider.list(COLLECTIONS.ratings, { product_id: product.id }))
-    .map(projectRating)
-    .sort((left, right) => String(right.date_rated || '').localeCompare(String(left.date_rated || '')))
-
+  const ratings = normaliseList(await dataProvider.list(COLLECTIONS.ratings, {
+    product_id: product.id,
+    fields: 'total_weighted'
+  }))
   const totals = ratings
-    .map((rating) => Number(rating.total_weighted))
+    .map((rating) => {
+      const total = rating.total_weighted
+      return total === null || (typeof total === 'string' && !total.trim()) ? Number.NaN : Number(total)
+    })
     .filter(Number.isFinite)
 
   response.status(200).json({
@@ -125,8 +128,7 @@ const getProduct = async (productId, response) => {
       average: totals.length
         ? Number((totals.reduce((sum, value) => sum + value, 0) / totals.length).toFixed(2))
         : null
-    },
-    ratings: ratings.slice(0, 20)
+    }
   })
 }
 
@@ -514,6 +516,7 @@ export const __testables = {
   BONUS_FIELDS,
   PROFILE_FIELDS,
   findProfile,
+  getProduct,
   getProfile,
   updateProfile
 }

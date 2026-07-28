@@ -30,6 +30,7 @@ Tests cover:
 - historical import CSV parsing, required headers, positive unique IDs, and product/producer referential integrity;
 - SQL schema parsing and required profile/rating non-null, uniqueness and immutable timestamp controls;
 - response field projection;
+- zero, one and multiple-rating catalogue aggregates, including rejection of non-finite totals and absence of individual rating or cellar identifiers;
 - score 1 validity and complete 1–7 rating validation;
 - weighted/unweighted totals and submission IDs;
 - profile/cellar input allowlists and ownership predicates;

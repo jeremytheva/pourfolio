@@ -19,6 +19,7 @@
 - Server-derived immutable user identity.
 - Owner checks for profile, cellar and rating mutation.
 - Explicit response projections that exclude `secret_key`, raw provider payloads and private owner fields.
+- Catalogue product details expose rating aggregates only (count and average), never rating, submission or cellar identifiers, dates, or individual scores; personal history remains owner-only at `/ratings/mine`.
 - Complete 1–7 rating validation, server-calculated totals, idempotency and compensating rollback.
 - CSP, HSTS, clickjacking, MIME-sniffing, referrer and permissions headers.
 - Production source maps disabled.
