@@ -57,7 +57,7 @@ Public sign-up supplies only email, password, name and non-authoritative display
 
 - verifies the session on every data request;
 - uses server-only `NOCODEBACKEND_DATA_BASE_URL` and `NOCODEBACKEND_SECRET_KEY`;
-- exposes only product catalogue/details, rating-form/submission/history, cellar and profile workflows;
+- exposes only product catalogue/details, rating-form/submission/history, cellar and profile workflows; catalogue details contain only a rating count and average, while owner-only `/ratings/mine` provides personal rating history;
 - derives owner IDs from the session;
 - verifies ownership again before update/delete or cellar linkage;
 - strips browser-supplied identity, role, secret and total fields;

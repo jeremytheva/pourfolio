@@ -1,0 +1,83 @@
+import assert from 'node:assert/strict'
+import { afterEach, test } from 'node:test'
+import { COLLECTIONS } from '../../../src/data/contract.js'
+import { dataProvider } from '../../_lib/dataProvider.js'
+import { __testables } from '../[...path].js'
+
+const originalProviderMethods = { ...dataProvider }
+
+afterEach(() => {
+  Object.assign(dataProvider, originalProviderMethods)
+})
+
+const createResponse = () => ({
+  body: null,
+  statusCode: null,
+  status(statusCode) {
+    this.statusCode = statusCode
+    return this
+  },
+  json(body) {
+    this.body = body
+    return this
+  }
+})
+
+const getProductWithRatings = async (ratings) => {
+  dataProvider.get = async (collection, id) => {
+    assert.equal(collection, COLLECTIONS.products)
+    return { id, product_name: 'Aggregate Ale', producer_id: 7, product_category_id: 8 }
+  }
+  dataProvider.list = async (collection, filters = {}) => {
+    if (collection === COLLECTIONS.ratings) {
+      assert.deepEqual(filters, { product_id: '42', fields: 'total_weighted' })
+      return ratings
+    }
+    if (collection === COLLECTIONS.producers) return [{ id: 7, producer_name: 'Test Brewery' }]
+    if (collection === COLLECTIONS.categories) return [{ id: 8, category_name: 'Test Beer' }]
+    assert.fail(`Unexpected collection: ${collection}`)
+  }
+
+  const response = createResponse()
+  await __testables.getProduct('42', response)
+  assert.equal(response.statusCode, 200)
+  return response.body
+}
+
+test('product details return an empty rating aggregate without rating records', async () => {
+  const product = await getProductWithRatings([])
+
+  assert.deepEqual(product.ratingSummary, { count: 0, average: null })
+  assert.equal(Object.hasOwn(product, 'ratings'), false)
+})
+
+test('product details return the aggregate for one rating only', async () => {
+  const product = await getProductWithRatings([{
+    id: 'rating-record-id',
+    rating_id: 'submission-id',
+    cellar_id: 'cellar-id',
+    date_rated: '2026-07-28',
+    total_weighted: 6.25,
+    scores: [1, 7]
+  }])
+
+  assert.deepEqual(product.ratingSummary, { count: 1, average: 6.25 })
+  assert.equal(JSON.stringify(product).includes('rating-record-id'), false)
+  assert.equal(JSON.stringify(product).includes('submission-id'), false)
+  assert.equal(JSON.stringify(product).includes('cellar-id'), false)
+  assert.equal(JSON.stringify(product).includes('2026-07-28'), false)
+  assert.equal(JSON.stringify(product).includes('"scores"'), false)
+})
+
+test('product details average multiple finite totals and ignore untrusted non-finite totals', async () => {
+  const product = await getProductWithRatings([
+    { total_weighted: 3.111 },
+    { total_weighted: 6.222 },
+    { total_weighted: 'not-a-number' },
+    { total_weighted: Number.POSITIVE_INFINITY },
+    { total_weighted: null }
+  ])
+
+  assert.deepEqual(product.ratingSummary, { count: 5, average: 4.67 })
+  assert.deepEqual(Object.keys(product).filter((key) => /rating|cellar|score|date/i.test(key)), ['ratingSummary'])
+})
