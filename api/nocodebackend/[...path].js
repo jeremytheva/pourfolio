@@ -50,9 +50,8 @@ const parsePositiveId = (value, label = 'Record identifier') => {
 const normaliseList = (value) => asArray(value).filter((item) => item && typeof item === 'object')
 
 const findProfile = async (userId) => {
-  const direct = await dataProvider.get(COLLECTIONS.profiles, userId)
-  if (direct) return direct
-  return (await dataProvider.list(COLLECTIONS.profiles, { user_id: userId }))[0] || null
+  const candidates = normaliseList(await dataProvider.list(COLLECTIONS.profiles, { user_id: userId }))
+  return candidates.find((record) => isOwnedBy(record, userId)) || null
 }
 
 const indexById = (records) => new Map(records.map((record) => [String(record.id), record]))
@@ -513,5 +512,8 @@ export const __testables = {
   CATEGORY_FIELDS,
   RATING_FIELDS,
   BONUS_FIELDS,
-  PROFILE_FIELDS
+  PROFILE_FIELDS,
+  findProfile,
+  getProfile,
+  updateProfile
 }
