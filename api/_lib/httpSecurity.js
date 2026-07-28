@@ -1,12 +1,24 @@
 const rateLimitBuckets = new Map()
+export const MAX_RATE_LIMIT_BUCKETS = 5_000
 
 export const MAX_REQUEST_BYTES = 32 * 1024
 export const UPSTREAM_TIMEOUT_MS = 10_000
 
 export const getClientAddress = (request) => {
-  const forwarded = request.headers?.['x-forwarded-for']
+  // Vercel overwrites this header at its edge. Do not use x-forwarded-for: a
+  // direct client can supply it and thereby choose its own bucket.
+  const forwarded = request.headers?.['x-vercel-forwarded-for']
   if (Array.isArray(forwarded)) return forwarded[0] || 'unknown'
   return String(forwarded || request.socket?.remoteAddress || 'unknown').split(',')[0].trim()
+}
+
+const cleanRateLimitBuckets = (now) => {
+  for (const [bucketKey, bucket] of rateLimitBuckets) {
+    if (bucket.resetAt <= now) rateLimitBuckets.delete(bucketKey)
+  }
+  while (rateLimitBuckets.size >= MAX_RATE_LIMIT_BUCKETS) {
+    rateLimitBuckets.delete(rateLimitBuckets.keys().next().value)
+  }
 }
 
 export const enforceRateLimit = (request, response, {
@@ -15,6 +27,7 @@ export const enforceRateLimit = (request, response, {
   windowMs = 60_000
 } = {}) => {
   const now = Date.now()
+  cleanRateLimitBuckets(now)
   const bucketKey = `${key}:${getClientAddress(request)}`
   const current = rateLimitBuckets.get(bucketKey)
 
@@ -100,3 +113,4 @@ export const safeErrorMessage = (status) => {
 }
 
 export const __resetRateLimitsForTests = () => rateLimitBuckets.clear()
+export const __rateLimitBucketCountForTests = () => rateLimitBuckets.size

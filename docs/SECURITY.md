@@ -24,7 +24,19 @@
 - Production source maps disabled.
 - CodeQL, dependency review, Dependabot and production dependency audit.
 
-The in-memory rate limiter is a baseline abuse control for individual serverless instances. Production must also enable platform/edge rate limiting because instance-local counters are not globally authoritative.
+The authoritative authentication limiter is shared Upstash Redis and uses atomic
+increment-and-expiry operations. The local limiter remains bounded defence in
+depth: expired entries are removed and at most 5,000 buckets are retained. Vercel
+documents that `x-vercel-forwarded-for` is overwritten by its proxy; only that
+deployment-controlled header is trusted in production, never client-selectable
+`x-forwarded-for`. Outside Vercel, the socket peer address is used.
+
+If Redis is unavailable, malformed or unconfigured, authentication fails closed
+with HTTP 503; the request is not sent to NoCodeBackend. Monitor Redis error and
+latency metrics, authentication 429/503 rates, key count and memory, and alert on
+sustained changes. Never log Redis tokens, opaque keys, account identifiers or
+request bodies. Rotate the REST token and `RATE_LIMIT_KEY_SECRET` through encrypted
+Vercel environment settings; rotation intentionally starts fresh buckets.
 
 ## Logging
 
