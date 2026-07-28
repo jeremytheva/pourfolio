@@ -68,7 +68,7 @@ The canonical data contract is [schema mapping](nocodebackend/schema-mapping.md)
 
 ## Rating integrity
 
-Rating submission is a coordinated server operation across `ratings`, `rating_scores` and optional `bonus_attribute_rating_mapping`. A stable positive `rating_id` makes retries idempotent. Scores are complete 1–7 integers, current database weights calculate totals, and partial writes are deleted in reverse order after failure. Remote provider transaction support should replace compensation if it becomes available and is verified.
+Rating submission is a coordinated server operation across `ratings`, `rating_scores` and optional `bonus_attribute_rating_mapping`. The delivery environment has no connected provider credentials or documented transaction endpoint, so atomic support is unverified. A stable owner/submission key, deterministic child keys, payload fingerprint, expected counts and `pending`/`complete`/`failed` state make retries and the owner-safe reconciliation route idempotent. Success is returned only after an exact owner-scoped child re-read; see the schema mapping for verification evidence and rollout controls. A single provider transaction should replace this workflow only after atomic commit and abort behaviour is proved in a production-equivalent environment.
 
 ## Deployment
 

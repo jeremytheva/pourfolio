@@ -133,18 +133,22 @@ const TABLE_RULES = [
   },
   {
     table: 'ratings',
-    requiredColumns: ['user_id', 'rating_id', 'product_id', 'date_rated'],
-    uniqueKeys: [['user_id', 'rating_id']]
+    requiredColumns: [
+      'user_id', 'rating_id', 'product_id', 'date_rated', 'submission_key',
+      'submission_fingerprint', 'submission_state', 'expected_score_count',
+      'expected_bonus_count'
+    ],
+    uniqueKeys: [['user_id', 'rating_id'], ['submission_key']]
   },
   {
     table: 'rating_scores',
-    requiredColumns: ['user_id', 'rating_id', 'attribute_id', 'attribute_score'],
-    uniqueKeys: [['rating_id', 'attribute_id']]
+    requiredColumns: ['user_id', 'rating_id', 'attribute_id', 'attribute_score', 'uniqueness_key'],
+    uniqueKeys: [['rating_id', 'attribute_id'], ['uniqueness_key']]
   },
   {
     table: 'bonus_attribute_rating_mapping',
-    requiredColumns: ['user_id', 'rating_id', 'bonus_attributes_id'],
-    uniqueKeys: [['rating_id', 'bonus_attributes_id']]
+    requiredColumns: ['user_id', 'rating_id', 'bonus_attributes_id', 'uniqueness_key'],
+    uniqueKeys: [['rating_id', 'bonus_attributes_id'], ['uniqueness_key']]
   }
 ]
 

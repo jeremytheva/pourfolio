@@ -15,9 +15,15 @@ const compliantSchema = `
     rating_id bigint NOT NULL,
     product_id bigint unsigned NOT NULL,
     date_rated timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    submission_key varchar(255) NOT NULL,
+    submission_fingerprint char(64) NOT NULL,
+    submission_state varchar(16) NOT NULL,
+    expected_score_count int NOT NULL,
+    expected_bonus_count int NOT NULL,
     total_weighted decimal(10,2),
     PRIMARY KEY (id),
-    UNIQUE KEY uq_ratings_user_submission (user_id, rating_id)
+    UNIQUE KEY uq_ratings_user_submission (user_id, rating_id),
+    UNIQUE KEY uq_ratings_submission_key (submission_key)
   );
 
   CREATE TABLE rating_scores (
@@ -26,8 +32,10 @@ const compliantSchema = `
     rating_id bigint unsigned NOT NULL,
     attribute_id bigint unsigned NOT NULL,
     attribute_score int NOT NULL,
+    uniqueness_key varchar(255) NOT NULL,
     PRIMARY KEY (id),
-    CONSTRAINT uq_rating_score UNIQUE (rating_id, attribute_id)
+    CONSTRAINT uq_rating_score UNIQUE (rating_id, attribute_id),
+    UNIQUE KEY uq_rating_score_idempotency (uniqueness_key)
   );
 
   CREATE TABLE bonus_attribute_rating_mapping (
@@ -35,8 +43,10 @@ const compliantSchema = `
     user_id varchar(36) NOT NULL,
     rating_id bigint unsigned NOT NULL,
     bonus_attributes_id bigint unsigned NOT NULL,
+    uniqueness_key varchar(255) NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE INDEX uq_rating_bonus (rating_id, bonus_attributes_id)
+    UNIQUE INDEX uq_rating_bonus (rating_id, bonus_attributes_id),
+    UNIQUE INDEX uq_rating_bonus_idempotency (uniqueness_key)
   );
 `
 
@@ -78,8 +88,9 @@ test('schema preflight blocks the supplied legacy rating shape', () => {
   assert.equal(report.status, 'BLOCKED')
   assert.deepEqual(report.countsByCode, {
     MISSING_TABLE: 1,
+    MISSING_REQUIRED_COLUMN: 7,
     NULLABLE_REQUIRED_COLUMN: 10,
-    MISSING_UNIQUE_CONSTRAINT: 3,
+    MISSING_UNIQUE_CONSTRAINT: 6,
     MUTABLE_RATING_TIMESTAMP_DEFAULT: 1
   })
   assert.ok(report.blockers.some((blocker) =>

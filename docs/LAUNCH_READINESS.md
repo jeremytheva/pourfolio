@@ -55,7 +55,8 @@ columns are nullable, three required unique constraints are absent, and
 - [ ] Prove `date_rated` remains unchanged during controlled non-date updates.
 - [ ] Prove unauthenticated, owner, other-user and privileged negative permission cases for every collection.
 - [ ] Prove sequential and concurrent duplicate-rating retries return one persisted rating.
-- [ ] Prove forced rating partial-write rollback; prefer a verified provider transaction if supported.
+- [ ] Repeat the atomic-workflow capability probe with configured staging credentials and retain redacted evidence.
+- [ ] Apply and prove the documented idempotency fields, constraints, state permissions and owner-safe reconciliation workflow, including forced partial writes and failed state updates.
 - [ ] Obtain complete, same-state products/producers exports and make the historical import preflight return `PASS`; the current source set references absent products and producer ID `0`.
 - [ ] Resolve the 69 unmatched historical bonus selections.
 - [ ] Assign valid owners and confirmed IDs to all 399 historical cellar records.

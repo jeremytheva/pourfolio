@@ -45,6 +45,7 @@ const providerRequest = async (path, { method = 'GET', body, filters } = {}) => 
   if (!upstream.ok || payload?.error) {
     const error = new Error(safeErrorMessage(upstream.status))
     error.status = upstream.status >= 400 && upstream.status < 600 ? upstream.status : 502
+    error.code = upstream.status === 409 ? 'UNIQUE_CONFLICT' : 'PROVIDER_ERROR'
     throw error
   }
 
@@ -52,6 +53,9 @@ const providerRequest = async (path, { method = 'GET', body, filters } = {}) => 
 }
 
 export const dataProvider = {
+  isUniqueConflict(error) {
+    return error?.status === 409 || error?.code === 'UNIQUE_CONFLICT'
+  },
   async list(collection, filters = {}) {
     const payload = await providerRequest(collection, { filters })
     if (Array.isArray(payload)) return payload
