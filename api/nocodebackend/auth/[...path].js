@@ -6,6 +6,7 @@ import {
   safeErrorMessage,
   withTimeout
 } from '../../_lib/httpSecurity.js'
+import { enforceSharedRateLimit, rateLimitPolicyFor } from '../../_lib/rateLimit.js'
 
 const DEFAULT_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
 const AUTH_ACTIONS = Object.freeze({
@@ -110,16 +111,6 @@ const copyResponseHeaders = (upstream, response) => {
   }
 }
 
-const rateLimitForAction = (path) => {
-  if (path.startsWith('sign-in') || path === 'verify-otp') {
-    return { key: `auth:${path}`, limit: 20, windowMs: 15 * 60_000 }
-  }
-  if (path === 'sign-up/email') {
-    return { key: 'auth:signup', limit: 10, windowMs: 60 * 60_000 }
-  }
-  return { key: `auth:${path}`, limit: 120, windowMs: 60_000 }
-}
-
 export default async function handler(request, response) {
   const correlationId = request.headers?.['x-request-id'] || crypto.randomUUID()
   response.setHeader('X-Request-Id', correlationId)
@@ -143,7 +134,9 @@ export default async function handler(request, response) {
     return
   }
   if (!enforceRequestSize(request, response) || !enforceOrigin(request, response)) return
-  if (!enforceRateLimit(request, response, rateLimitForAction(path))) return
+  const rateLimit = rateLimitPolicyFor(path)
+  if (!enforceRateLimit(request, response, { key: `auth:${rateLimit.name}`, ...rateLimit })) return
+  if (!await enforceSharedRateLimit(request, response, path)) return
 
   try {
     const upstream = await withTimeout((signal) => fetch(buildUpstreamUrl(request, path), {

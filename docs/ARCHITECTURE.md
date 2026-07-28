@@ -40,6 +40,15 @@ Chat, Drinking Buddies, events, venues, analytics, producer claims, administrati
 
 `api/nocodebackend/auth/[...path].js` exposes a fixed action/method matrix. It adds the server-only provider secret, forwards the session cookie, validates unsafe request origins, limits request size and rate, times out upstream requests, and maps provider failures to safe errors. Upstream authentication cookies are rewritten as host-only, root-path cookies for the Pourfolio deployment and retain their expiry and explicit SameSite policy while always receiving `HttpOnly` and `Secure`.
 
+Authentication throttling uses an Upstash Redis database provisioned through the
+approved Vercel Marketplace integration. `api/_lib/rateLimit.js` performs one
+atomic Redis script operation to increment a bucket and set its expiry. Sign-in,
+OTP verification, sign-up and general operations have separate policies. Sensitive
+operations combine Vercel's deployment-controlled client address with a normalised
+account identifier, then HMAC the dimensions before storage. No email, password,
+OTP, token or request body is stored. This direct REST implementation avoids a new
+runtime dependency; changing provider or package requires architecture review.
+
 Public sign-up supplies only email, password, name and non-authoritative display metadata. It cannot request producer or administrator access. Immutable identity must come from `id`, `user_id`, `userId` or `_id`; email alone is not accepted as identity.
 
 ## Data boundary
@@ -69,6 +78,9 @@ Required server variables:
 
 - `NOCODEBACKEND_SECRET_KEY`
 - `NOCODEBACKEND_DATA_BASE_URL`
+- `UPSTASH_REDIS_REST_URL`
+- `UPSTASH_REDIS_REST_TOKEN`
+- `RATE_LIMIT_KEY_SECRET`
 
 Optional server variables:
 
