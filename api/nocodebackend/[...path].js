@@ -155,16 +155,50 @@ const getRatingForm = async (request, response) => {
   })
 }
 
-const rollbackCreated = async (created) => {
-  const failures = []
-  for (const item of [...created].reverse()) {
-    try {
-      await dataProvider.remove(item.collection, item.id)
-    } catch (error) {
-      failures.push({ collection: item.collection, id: item.id, message: error.message })
-    }
+const submissionFingerprint = (productId, cellarId, scores, bonusIds) => crypto
+  .createHash('sha256')
+  .update(JSON.stringify({ productId: String(productId), cellarId, scores, bonusIds: [...bonusIds].sort() }))
+  .digest('hex')
+
+const submissionKey = (userId, submissionId) => `${userId}:${submissionId}`
+const scoreKey = (key, attributeId) => `${key}:score:${attributeId}`
+const bonusKey = (key, bonusId) => `${key}:bonus:${bonusId}`
+
+const findSubmission = async (userId, submissionId) => normaliseList(await dataProvider.list(
+  COLLECTIONS.ratings,
+  { user_id: userId, rating_id: submissionId }
+)).find((rating) => isOwnedBy(rating, userId) && Number(rating.rating_id) === submissionId) || null
+
+const validateSubmissionChildren = async (rating, userId, expectedScores, expectedBonusIds, key) => {
+  const [scores, bonuses] = await Promise.all([
+    dataProvider.list(COLLECTIONS.ratingScores, { rating_id: rating.id, user_id: userId }),
+    dataProvider.list(COLLECTIONS.bonusRatingMappings, { rating_id: rating.id, user_id: userId })
+  ])
+  const ownedScores = normaliseList(scores).filter((item) => isOwnedBy(item, userId))
+  const ownedBonuses = normaliseList(bonuses).filter((item) => isOwnedBy(item, userId))
+  const expectedScoreKeys = new Set(expectedScores.map((score) => scoreKey(key, score.attribute_id)))
+  const expectedBonusKeys = new Set(expectedBonusIds.map((id) => bonusKey(key, id)))
+  return {
+    complete: ownedScores.length === expectedScoreKeys.size && ownedBonuses.length === expectedBonusKeys.size &&
+      ownedScores.every((item) => expectedScoreKeys.has(item.uniqueness_key)) &&
+      ownedBonuses.every((item) => expectedBonusKeys.has(item.uniqueness_key)),
+    scoreKeys: new Set(ownedScores.map((item) => item.uniqueness_key)),
+    bonusKeys: new Set(ownedBonuses.map((item) => item.uniqueness_key))
   }
-  return failures
+}
+
+const createChildIdempotently = async (collection, body, loadExisting) => {
+  try {
+    const created = firstRecord(await dataProvider.create(collection, body))
+    if (!created?.id) throw new Error('The rating service did not return a child identifier.')
+  } catch (error) {
+    if (!dataProvider.isUniqueConflict(error)) throw error
+    const existing = await loadExisting()
+    const matchesExpected = existing && Object.entries(body).every(([field, value]) =>
+      String(existing[field] ?? '') === String(value ?? '')
+    )
+    if (!matchesExpected || !isOwnedBy(existing, body.user_id)) throw error
+  }
 }
 
 const submitRating = async (request, response, user, correlationId) => {
@@ -175,16 +209,6 @@ const submitRating = async (request, response, user, correlationId) => {
     const error = new Error('Rating submission identifier is invalid.')
     error.status = 400
     throw error
-  }
-
-  const existing = normaliseList(await dataProvider.list(COLLECTIONS.ratings, {
-    user_id: user.id,
-    rating_id: submissionId
-  })).find((rating) => String(rating.user_id) === user.id && Number(rating.rating_id) === submissionId)
-
-  if (existing) {
-    response.status(200).json({ rating: projectRating(existing), duplicate: true })
-    return
   }
 
   const [product, attributes, bonuses] = await Promise.all([
@@ -218,61 +242,82 @@ const submitRating = async (request, response, user, correlationId) => {
     }
   }
 
-  const created = []
+  const key = submissionKey(user.id, submissionId)
+  const fingerprint = submissionFingerprint(productId, cellarId, totals.scores, requestedBonusIds)
+  let rating = await findSubmission(user.id, submissionId)
+  let duplicate = Boolean(rating)
+  if (rating && rating.submission_fingerprint !== fingerprint) {
+    const error = new Error('The submission identifier is already used by different rating data.')
+    error.status = 409
+    throw error
+  }
+
   try {
-    const rating = firstRecord(await dataProvider.create(COLLECTIONS.ratings, {
-      user_id: user.id,
-      rating_id: submissionId,
-      product_id: product.id,
-      cellar_id: cellarId,
-      date_rated: new Date().toISOString(),
-      total_unweighted: totals.total_unweighted,
-      total_weighted: totals.total_weighted
-    }))
-    if (!rating?.id) throw new Error('The rating service did not return a rating identifier.')
-    created.push({ collection: COLLECTIONS.ratings, id: rating.id })
+    if (!rating) {
+      try {
+        rating = firstRecord(await dataProvider.create(COLLECTIONS.ratings, {
+          user_id: user.id, rating_id: submissionId, submission_key: key,
+          submission_fingerprint: fingerprint, submission_state: 'pending',
+          expected_score_count: totals.scores.length, expected_bonus_count: requestedBonusIds.length,
+          product_id: product.id, cellar_id: cellarId, date_rated: new Date().toISOString(),
+          total_unweighted: totals.total_unweighted, total_weighted: totals.total_weighted
+        }))
+      } catch (error) {
+        rating = await findSubmission(user.id, submissionId)
+        if (!rating || (!dataProvider.isUniqueConflict(error) && error?.name !== 'TimeoutError')) throw error
+        duplicate = true
+      }
+      if (!rating?.id) throw new Error('The rating service did not return a rating identifier.')
+      if (!isOwnedBy(rating, user.id) || rating.submission_fingerprint !== fingerprint) {
+        const conflict = new Error('The submission identifier is already used by different rating data.')
+        conflict.status = 409
+        throw conflict
+      }
+    }
+
+    const children = await validateSubmissionChildren(rating, user.id, totals.scores, requestedBonusIds, key)
 
     for (const score of totals.scores) {
-      const createdScore = firstRecord(await dataProvider.create(COLLECTIONS.ratingScores, {
-        user_id: user.id,
-        attribute_id: score.attribute_id,
-        rating_id: rating.id,
-        attribute_score: score.attribute_score
-      }))
-      if (!createdScore?.id) throw new Error('The rating service did not return a score identifier.')
-      created.push({ collection: COLLECTIONS.ratingScores, id: createdScore.id })
+      const uniquenessKey = scoreKey(key, score.attribute_id)
+      if (children.scoreKeys.has(uniquenessKey)) continue
+      await createChildIdempotently(COLLECTIONS.ratingScores, {
+        user_id: user.id, attribute_id: score.attribute_id, rating_id: rating.id,
+        attribute_score: score.attribute_score, uniqueness_key: uniquenessKey
+      }, async () => normaliseList(await dataProvider.list(COLLECTIONS.ratingScores, {
+        user_id: user.id, uniqueness_key: uniquenessKey
+      }))[0])
     }
 
     for (const bonusId of requestedBonusIds) {
-      const mapping = firstRecord(await dataProvider.create(COLLECTIONS.bonusRatingMappings, {
-        user_id: user.id,
-        rating_id: rating.id,
-        bonus_attributes_id: bonusId
-      }))
-      if (!mapping?.id) throw new Error('The rating service did not return a bonus-selection identifier.')
-      created.push({ collection: COLLECTIONS.bonusRatingMappings, id: mapping.id })
+      const uniquenessKey = bonusKey(key, bonusId)
+      if (children.bonusKeys.has(uniquenessKey)) continue
+      await createChildIdempotently(COLLECTIONS.bonusRatingMappings, {
+        user_id: user.id, rating_id: rating.id, bonus_attributes_id: bonusId, uniqueness_key: uniquenessKey
+      }, async () => normaliseList(await dataProvider.list(COLLECTIONS.bonusRatingMappings, {
+        user_id: user.id, uniqueness_key: uniquenessKey
+      }))[0])
     }
 
-    response.status(201).json({
+    const completed = await validateSubmissionChildren(rating, user.id, totals.scores, requestedBonusIds, key)
+    if (!completed.complete) throw new Error('Rating children remain incomplete after reconciliation.')
+    rating = { ...rating, ...firstRecord(await dataProvider.update(COLLECTIONS.ratings, rating.id, { submission_state: 'complete' })) }
+
+    response.status(duplicate ? 200 : 201).json({
       rating: projectRating({ ...rating, ...totals }),
       scoreCount: totals.scores.length,
       bonusCount: requestedBonusIds.length,
-      duplicate: false
+      duplicate
     })
   } catch (error) {
-    const rollbackFailures = await rollbackCreated(created)
-    console.error('Rating transaction failed', {
-      correlationId,
-      rollbackFailureCount: rollbackFailures.length,
-      createdCount: created.length
-    })
-    const transactionError = new Error(
-      rollbackFailures.length
-        ? 'Rating submission failed and requires support review.'
-        : 'Rating submission failed and was rolled back.'
-    )
-    transactionError.status = 502
-    throw transactionError
+    let stateUpdateFailed = false
+    if (rating?.id) {
+      try { await dataProvider.update(COLLECTIONS.ratings, rating.id, { submission_state: 'failed' }) } catch { stateUpdateFailed = true }
+    }
+    console.error('Rating reconciliation failed', { correlationId, stateUpdateFailed, submissionState: 'failed' })
+    if (error.status && error.status < 500) throw error
+    const workflowError = new Error('Rating submission is incomplete and can be retried safely.')
+    workflowError.status = 502
+    throw workflowError
   }
 }
 
@@ -445,6 +490,9 @@ const routeRequest = async (request, response, user, correlationId) => {
   if (request.method === 'POST' && resource === 'ratings' && id === 'submit') {
     return submitRating(request, response, user, correlationId)
   }
+  if (request.method === 'POST' && resource === 'ratings' && id === 'reconcile') {
+    return submitRating(request, response, user, correlationId)
+  }
   if (request.method === 'GET' && resource === 'ratings' && id === 'mine') {
     return listUserRatings(response, user)
   }
@@ -518,5 +566,6 @@ export const __testables = {
   findProfile,
   getProduct,
   getProfile,
-  updateProfile
+  updateProfile,
+  submitRating
 }
