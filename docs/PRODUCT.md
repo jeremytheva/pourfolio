@@ -35,6 +35,33 @@ There is no remote invitation flow. The signed-in player may play with any conse
 
 Questions are selected from a controlled, reviewed question bank and answered **yes** or **no**. Free-typed questions are not permitted. Secret beers must be selected from the live beer catalogue rather than entered as arbitrary text.
 
+### Shared-history question contract
+
+Shared rating history is available only to two authenticated participants in an
+active persisted round, after **each participant explicitly opts in** when
+creating or joining that game. Consent is game-specific, cannot be inferred from
+account privacy settings or participation, and cannot be supplied for another
+person. A block in either direction disables every shared-history question.
+
+The controlled history bank contains exactly these server predicates:
+
+| Predicate | Yes when evaluated immediately before the round started |
+| --- | --- |
+| `both_rated_product` | Each participant has a non-deleted rating for the round's server-selected product. |
+| `both_rated_producer` | Each participant has a non-deleted rating for any catalogue product by the selected product's canonical producer. |
+| `both_rated_style` | Each participant has a non-deleted rating for any catalogue product with the selected product's exact canonical style. |
+| `current_player_rated_product` | The authenticated participant asking has a non-deleted rating for the selected product. |
+
+Private-account ratings count after this explicit, game-specific consent because
+only the boolean is disclosed; rating records remain private. Deleted ratings do
+not count. Ratings created at or after `started_at` do not count, so play cannot
+change an answer. Cellar contents never count. A round permits at most two
+distinct shared-history predicates, in addition to the per-endpoint rate limit.
+The client supplies only a predicate name: catalogue targets, participants,
+cut-off time, consent, block state and answer are resolved by the server from
+the current round. The response is only the recognised predicate and `true` or
+`false`; it contains no participant identifier or rating/catalogue history.
+
 ### Acceptance criteria
 
 A playable production delivery must satisfy all of the following criteria before its controls are enabled:

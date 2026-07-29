@@ -21,14 +21,19 @@ const installProvider = () => {
   const records = {
     [COLLECTIONS.brewDoneItGames]: [{
       id: 1, selector_participant_id: selector.id, guesser_participant_id: guesser.id,
-      status: 'active', created_at: '2026-01-01T00:00:00.000Z'
+      status: 'active', selector_history_consent_at: '2026-01-01T00:00:00.000Z',
+      guesser_history_consent_at: '2026-01-01T00:00:00.000Z', created_at: '2026-01-01T00:00:00.000Z'
     }],
     [COLLECTIONS.brewDoneItRounds]: [{
       id: 2, game_id: 1, round_number: 1, selector_participant_id: selector.id,
       guesser_participant_id: guesser.id, selected_product_id: '10', status: 'guessing',
-      turn_sequence: 0, max_turns: 6, question_count: 0, created_at: '2026-01-01T00:00:00.000Z'
+      turn_sequence: 0, max_turns: 6, question_count: 0, started_at: '2026-01-02T00:00:00.000Z',
+      created_at: '2026-01-01T00:00:00.000Z'
     }],
-    [COLLECTIONS.brewDoneItGuesses]: []
+    [COLLECTIONS.brewDoneItGuesses]: [],
+    [COLLECTIONS.brewDoneItHistoryQuestions]: [],
+    [COLLECTIONS.blockedRelationships]: [],
+    [COLLECTIONS.ratings]: []
   }
   let nextId = 20
   dataProvider.isUniqueConflict = (error) => error?.status === 409
@@ -135,4 +140,57 @@ test('statistics are derived only from participant completed records', async () 
   const result = response()
   await __testables.brewDoneItStats(result, guesser)
   assert.deepEqual(result.body, { completedGames: 1, completedRounds: 1, awardedPoints: 4 })
+})
+
+test('shared-history predicates return only a boolean and ignore deleted and in-round ratings', async () => {
+  const records = installProvider()
+  records.ratings.push(
+    { id: 1, user_id: selector.id, product_id: '10', date_rated: '2026-01-01T10:00:00.000Z' },
+    { id: 2, user_id: guesser.id, product_id: '10', date_rated: '2026-01-01T11:00:00.000Z', deleted_at: '2026-01-01T12:00:00.000Z' },
+    { id: 3, user_id: guesser.id, product_id: '10', date_rated: '2026-01-02T01:00:00.000Z' }
+  )
+  const result = response()
+  await __testables.resolveBrewDoneItHistoryQuestion(2, { body: { predicate: 'both_rated_product' } }, result, selector)
+  assert.deepEqual(result.body, { predicate: 'both_rated_product', answer: false })
+  assert.deepEqual(Object.keys(result.body).sort(), ['answer', 'predicate'])
+})
+
+test('shared-history rejects outsiders, guessed IDs, completed games and blocked participants', async () => {
+  let records = installProvider()
+  await assert.rejects(
+    __testables.resolveBrewDoneItHistoryQuestion(2, { body: { predicate: 'both_rated_product' } }, response(), outsider),
+    (error) => error.status === 404
+  )
+  await assert.rejects(
+    __testables.resolveBrewDoneItHistoryQuestion(2, { body: { predicate: 'both_rated_product', userId: guesser.id } }, response(), selector),
+    (error) => error.status === 400
+  )
+  records.brew_done_it_games[0].status = 'completed'
+  records.brew_done_it_rounds[0].status = 'completed'
+  await assert.rejects(
+    __testables.resolveBrewDoneItHistoryQuestion(2, { body: { predicate: 'both_rated_product' } }, response(), selector),
+    (error) => error.status === 409
+  )
+  records = installProvider()
+  records.blocked_relationships.push({ blocker_user_id: selector.id, blocked_user_id: guesser.id })
+  await assert.rejects(
+    __testables.resolveBrewDoneItHistoryQuestion(2, { body: { predicate: 'both_rated_product' } }, response(), selector),
+    (error) => error.status === 403
+  )
+})
+
+test('the allowlist and per-round limit prevent private-history enumeration', async () => {
+  const records = installProvider()
+  await assert.rejects(
+    __testables.resolveBrewDoneItHistoryQuestion(2, { body: { predicate: 'arbitrary_query' } }, response(), selector),
+    (error) => error.status === 400
+  )
+  records.brew_done_it_history_questions.push(
+    { round_id: 2, predicate: 'both_rated_producer' },
+    { round_id: 2, predicate: 'both_rated_style' }
+  )
+  await assert.rejects(
+    __testables.resolveBrewDoneItHistoryQuestion(2, { body: { predicate: 'current_player_rated_product' } }, response(), selector),
+    /no remaining shared-history questions/
+  )
 })

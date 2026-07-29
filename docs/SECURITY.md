@@ -20,6 +20,8 @@
 - Owner checks for profile, cellar and rating mutation.
 - Explicit response projections that exclude `secret_key`, raw provider payloads and private owner fields.
 - Catalogue product details expose rating aggregates only (count and average), never rating, submission or cellar identifiers, dates, or individual scores; personal history remains owner-only at `/ratings/mine`.
+- Shared-history questions accept one fixed predicate name only. The gateway reloads an active round, verifies the session is one of its immutable participants, requires both game-specific consent timestamps, rejects a block in either direction, and derives the catalogue target and pre-round cut-off itself. It returns only `{ predicate, answer }`: never the other participant's rating rows, dates, scores, cellar, account privacy metadata, unmatched products, user IDs or record counts.
+- Shared-history disclosure is bounded to two distinct questions per round and six endpoint attempts per client/round per minute. Completed rounds reject questions, and unique persisted predicate records prevent replay. These controls limit adaptive boolean-query enumeration; provider compare-and-set enforcement remains required before production enablement.
 - Complete 1–7 rating validation, server-calculated totals, idempotency and compensating rollback.
 - CSP, HSTS, clickjacking, MIME-sniffing, referrer and permissions headers.
 - Production source maps disabled.
@@ -42,6 +44,14 @@ Vercel environment settings; rotation intentionally starts fresh buckets.
 ## Logging
 
 Server errors log only correlation ID, status/name and operation counts needed for support. Never log request bodies, passwords, tokens, cookies, user IDs, cellar contents, rating selections, email addresses or provider responses. Return the correlation ID to the client for support.
+
+Shared-history question records retain only round ID, recognised predicate,
+sequence, asking-participant ID, boolean answer and server timestamp. They are
+retained with their parent game for 30 days after completion for abuse and
+policy investigation, then hard-deleted; no rating snapshot is retained.
+Waiting games expire after 24 hours. Consent timestamps and question records are
+deleted with an expired or deleted game, subject only to encrypted backup expiry
+within 30 further days. Operational logs must not contain predicates or answers.
 
 ## Photos and deferred features
 
