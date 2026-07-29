@@ -148,9 +148,17 @@ release-candidate change.
 ## External P1 gates
 
 - [ ] Run browser end-to-end and WCAG 2.2 AA checks against the connected staging backend.
-- [ ] Complete account recovery, email verification, data export and account deletion workflows.
-- [ ] Publish reviewed privacy policy, terms, moderation procedure, support contact and retention schedule.
-- [ ] Complete appropriate Australian privacy/legal review.
+- [ ] Implement and evidence the recovery, verification, export and deletion
+  [acceptance contract](account-lifecycle-readiness.md); its current review is a
+  design gate, not implementation evidence.
+- [ ] Publish reviewed privacy policy, terms, moderation/escalation procedure,
+  support contact and retention schedule at stable, accessible URLs, recording
+  version and effective date in the private release record.
+- [ ] Complete appropriate Australian privacy/legal review and record the named
+  reviewer, date, scope, findings, resolutions, approval and re-review trigger;
+  the current approval fields are explicitly incomplete.
+- [ ] Complete the documented production-equivalent export/deletion exercise and
+  reconcile its behaviour to the exact published policy version.
 - [ ] Configure central monitoring, redacted correlation-ID logging, alert ownership and service-level thresholds.
 - [ ] Complete backup, restore and deployment rollback rehearsals with evidence.
 - [ ] Enable GitHub branch protection, required checks, secret scanning and push protection.

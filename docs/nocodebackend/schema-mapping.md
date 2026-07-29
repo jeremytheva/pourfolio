@@ -44,6 +44,27 @@ staging endpoint nor credential. No transaction has therefore been adopted.
 | `bonus_attribute_rating_mapping` | Normalised optional bonus selections. | Same owner as parent rating. |
 | `cellar` | Private user cellar inventory. | Owner CRUD only. |
 
+## Account export, deletion and retention status
+
+The existing schema has no deletion-job, deletion-receipt, export-job,
+verification-status or retention-control fields. None is implied by an editable
+profile row, and no browser-supplied lifecycle status may be trusted. Whole-account
+export and deletion are therefore not implemented against this contract.
+
+The proposed owner-data boundary and dependency order are documented in the
+[account lifecycle readiness review](../account-lifecycle-readiness.md). It
+includes `profiles`, `ratings`, `rating_scores`,
+`bonus_attribute_rating_mapping` and `cellar`; shared catalogue and attribute
+definitions are not owner data and must not be deleted with an account.
+
+Before implementation, a reviewed provider change must define a server-only,
+idempotent deletion job/receipt store, write fencing, authentication identity
+deletion, backup-expiry behaviour, permissions, indexes and rollback. Any job
+record must contain only the minimum operational identifiers, state, timestamps
+and aggregate counts—not exported personal-data bodies. This document must be
+updated with the exact approved fields and relationships before persistence is
+changed. Until then, the proposed retention periods are not production promises.
+
 ## Authoritative relationships
 
 ```mermaid
