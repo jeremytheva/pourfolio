@@ -46,6 +46,38 @@ supplied SQL export with 15 findings: the `profiles` table is absent, ten requir
 columns are nullable, three required unique constraints are absent, and
 `ratings.date_rated` changes automatically on update.
 
+### Historical import execution record
+
+**Status (29 July 2026):** Blocked; the repository does not contain the
+reconciled historical CSV inputs, an identity-verification record, staging
+credentials or provider backup/restore evidence. Consequently, no preflight
+`PASS`, staging write, count reconciliation or idempotency result is claimed.
+
+The private release record must identify the environment, source snapshot,
+operator, independent reviewer and release commit. It must retain dated,
+redacted evidence at a recorded location for each step below; do not place
+personal data, credentials or raw staging exports in this repository.
+
+| Step | Required evidence | Current result |
+| --- | --- | --- |
+| Same-state catalogue export | Complete products and producers exports with provider snapshot/export identifiers and timestamps. | Not supplied; blocked. |
+| Catalogue reconciliation | Every rating and cellar product resolves; every product has a positive producer ID resolving in the paired producers export. No name-only substitutions. | Known missing product references and producer ID `0`; blocked. |
+| Bonus decisions | A decision ledger containing every unmatched source variant, source count, mapped canonical bonus ID or explicit rejection reason, reviewer and totals. Variant counts must sum to 69 and final accepted/rejected totals must be stated. | Ten variant names and decisions are not supplied; blocked. |
+| Cellar identity | A 399-row ledger containing the source record key, verified account owner ID, verification method/evidence reference and confirmed destination cellar ID. Email alone is not identity evidence. | Owners and confirmed IDs are not supplied; blocked. |
+| Read-only preflight | Exact command, input checksums and retained JSON report from `npm run audit:import -- --ratings <ratings.csv> --products <products.csv> --producers <producers.csv> --cellar <cellar.csv>` showing `PASS`. | Cannot run against absent reconciled inputs; blocked. |
+| Backup and restore | Backup identifiers and checksums for every target collection, followed by a successful isolated restore rehearsal and post-restore count/hash comparison before import writes. | No provider evidence; blocked. |
+| Dry run and import | Dry-run diff, approval, actual non-production import log, rejected-record ledger and post-import orphan queries. Reconcile 604 source ratings, 593 accepted ratings, 4,177 uploaded scores, 15 excluded scores, 1,785 bonus selections, 399 cellar records and 593 rating-to-cellar relationships. | Not run. |
+| Idempotency rerun | Unchanged input checksums, second-run log, zero creates, zero mutations, zero duplicates and stable per-collection counts/content hashes. | Not run. |
+| Rollback | Provider-specific, reviewer-approved procedure naming backup, restore order, validation queries, abort thresholds and responsible operator; rehearse it before production scheduling. | Not supplied; blocked. |
+
+The rejected-record ledger must account for all 11 ratings excluded from the
+604 source ratings and all 15 excluded score rows, plus any explicitly rejected
+bonus variants. A rejected bonus selection must not silently reject its parent
+rating unless that behaviour is reviewed and included in the expected counts.
+Final evidence must record per-collection before, first-run and second-run
+counts as well as stable identifiers or content hashes; counts alone do not
+prove that the rerun avoided mutation.
+
 ## External P0 gates
 
 ### Backend certification
