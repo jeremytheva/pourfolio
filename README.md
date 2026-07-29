@@ -51,5 +51,6 @@ This runs lint, unit/policy tests, production dependency audit, build and bundle
 - [Security](docs/SECURITY.md)
 - [Testing](docs/TESTING.md)
 - [Launch readiness](docs/LAUNCH_READINESS.md)
+- [Account lifecycle readiness and acceptance contract](docs/account-lifecycle-readiness.md)
 
 Production remains blocked until the external gates in the launch-readiness checklist are completed against the connected backend and deployed environment.
