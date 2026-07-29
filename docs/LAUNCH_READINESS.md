@@ -48,6 +48,56 @@ columns are nullable, three required unique constraints are absent, and
 
 ## External P0 gates
 
+### Backend certification
+
+- **Accountable owner:** `@jeremytheva`
+- **Independent reviewer:** Release manager (must not be the accountable owner)
+
+**Status (29 July 2026):** Blocked; this delivery environment has no staging
+credentials, schema export or provider access. No certification item below is
+claimed as complete.
+
+The accountable owner coordinates the staging work and records the identity of
+the operator and independent reviewer in the private release record. Secrets,
+session cookies, unredacted response bodies and production or staging data must
+not be committed or attached as public evidence. Configure
+`NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_DATA_BASE_URL` only as server-side
+variables in the isolated staging environment; never expose either variable to
+Vite or use a `VITE_` prefix.
+
+The backend-certification gate is complete only when the independent reviewer
+has checked dated, redacted evidence for every item below against the exact
+release candidate:
+
+- [ ] The two server-only variables are present in isolated staging and absent
+  from browser bundles, repository files, command transcripts and evidence.
+- [ ] The canonical collections in
+  [the schema mapping](nocodebackend/schema-mapping.md) are provisioned, and an
+  inventory proves that no legacy `*_pf2025` alias is used.
+- [ ] A production-equivalent, same-state schema export has been audited with
+  `npm run audit:schema -- --schema <export-path>` and the retained JSON report
+  says `PASS`.
+- [ ] The schema evidence proves required non-null fields and uniqueness
+  constraints, immutable ownership fields, rating idempotency fields and
+  workflow-state permissions; an owner-scoped, controlled non-date update also
+  proves that `ratings.date_rated` is unchanged.
+- [ ] Redacted provider transcripts exercise the precise paths, filters and
+  response envelopes consumed by `api/_lib/dataProvider.js`: list, filtered
+  list, get, create, update, delete, not-found fallback, unique conflict,
+  malformed response, timeout and upstream failure.
+- [ ] For every launch collection exposed by
+  `api/nocodebackend/[...path].js`, the permission matrix covers
+  unauthenticated, owner, other-user and privileged negative cases. The
+  privileged cases must demonstrate least privilege, not merely possession of
+  a provider secret.
+- [ ] Evidence is dated, redacted, tied to the environment and release commit,
+  stored with the private release record, and approved by the independent
+  reviewer before any corresponding P0 checkbox below is closed.
+
+Partial completion does not permit this gate or a related P0 entry to be
+closed. A rerun is required after any schema, permission, provider-contract or
+release-candidate change.
+
 - [ ] Configure `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_DATA_BASE_URL` in staging and production.
 - [ ] Verify the configured data base URL accepts the gateway’s collection paths, query filters and create/update/delete response shapes.
 - [ ] Provision the canonical schema without `*_pf2025` aliases and make the rating schema preflight return `PASS`.
