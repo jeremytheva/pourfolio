@@ -3,7 +3,8 @@
 Historical ratings and cellar data must not be uploaded until this preflight
 returns `PASS`. Workbook checks that only test whether a product ID is populated
 are insufficient; every foreign-key value must resolve against the exact
-catalogue export used for the import.
+catalogue export used for the import. A product with a blank, zero, malformed or
+unknown producer ID is also a blocker.
 
 ## Current source-set finding
 

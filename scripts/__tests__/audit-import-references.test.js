@@ -51,6 +51,22 @@ test('preflight blocks zero producers and missing product references', () => {
   )
 })
 
+test('preflight blocks a blank producer reference', () => {
+  const report = auditImportData({
+    producers: [{ __row: 2, id: '9', producer_name: 'Brewery' }],
+    products: [{ __row: 2, id: '20', product_name: 'Beer', producer_id: '   ' }]
+  })
+
+  assert.equal(report.status, 'BLOCKED')
+  assert.deepEqual(report.blockers, [{
+    code: 'MISSING_PRODUCER_REFERENCE',
+    collection: 'products',
+    row: 2,
+    recordId: '20',
+    value: ''
+  }])
+})
+
 test('preflight rejects missing required headers', () => {
   assert.throws(
     () => auditImportData({

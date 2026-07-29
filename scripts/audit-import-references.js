@@ -120,7 +120,7 @@ export const auditImportData = ({ products, producers, ratings = [], cellar = []
 
   for (const product of products) {
     const producerId = String(product.producer_id ?? '').trim()
-    if (producerId && (!POSITIVE_INTEGER.test(producerId) || !producerIds.has(producerId))) {
+    if (!POSITIVE_INTEGER.test(producerId) || !producerIds.has(producerId)) {
       blockers.push({
         code: 'MISSING_PRODUCER_REFERENCE',
         collection: 'products',
