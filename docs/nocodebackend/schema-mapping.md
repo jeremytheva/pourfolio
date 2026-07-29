@@ -149,11 +149,10 @@ The gateway accepts the supplied schema fields through an explicit allowlist. `u
 
 ## Proposed Brew Done It persistent contract (not yet deployed)
 
-This is a deliberately smaller three-collection model. A separate
-`brew_done_it_questions` collection is not required for the initial product-guess
-rules: every turn is an immutable `product` guess. Adding free-text or yes/no
-questions would require a separately reviewed moderation, disclosure and answer
-contract. No client route is part of this delivery.
+This is a deliberately smaller three-collection model. Questions come only from
+the separately reviewed controlled bank; free text is never accepted. The
+versioned scoring details are in [the approved product contract](../PRODUCT.md#scoring-contract-v100).
+No client route is part of this delivery.
 
 ### `brew_done_it_games`
 
@@ -175,8 +174,10 @@ contract. No client route is part of this delivery.
 | `selected_product_id` | Existing `products.id`, set once by the selector through the gateway; hidden from the guesser until completion. |
 | `status` | Server-only enum: `awaiting_selection`, `guessing`, `completed`. No completed round can transition again. |
 | `turn_sequence`, `max_turns` | Server-owned non-negative current turn and immutable limit (six for MVP). |
+| `question_count` | Server-owned count from 0 through 6 of controlled questions used in this round. |
 | `created_at`, `started_at`, `completed_at` | Server timestamps. |
 | `completion_reason` | Server-only nullable enum: `correct_guess` or `turn_limit`; required exactly when completed. |
+| `scoring_rules_version`, `awarded_points`, `score_breakdown` | Required exactly when completed. The immutable semantic version, clamped authoritative total and itemised JSON award/penalty/question totals are calculated by the gateway and retained so historical results are never rewritten. |
 
 ### `brew_done_it_guesses`
 
@@ -185,9 +186,9 @@ contract. No client route is part of this delivery.
 | `id`, `round_id` | Provider primary key and non-null round reference. |
 | `guesser_participant_id` | Immutable copy of the designated guesser, derived from the round rather than the request. |
 | `turn_sequence`, `uniqueness_key` | Consecutive positive turn and globally unique `<round_id>:<turn_sequence>` key; `(round_id, turn_sequence)` is also unique. |
-| `guess_type` | Immutable enum restricted to `product`. |
-| `guessed_product_id` | Existing `products.id`; the only guess value accepted from the browser. |
-| `is_correct`, `awarded_points` | Server-derived. Correctness compares against the hidden selection; points are `max_turns - turn_sequence + 1` only for a correct guess, otherwise zero. |
+| `guess_type` | Immutable enum restricted to `product`, `producer`, or `style`. |
+| `guessed_reference_id` | Existing canonical ID in the collection selected by `guess_type`: `products`, `producers`, or `categories`. No labels are persisted or compared. |
+| `is_correct`, `awarded_points` | Server-derived exact-product completion flag and itemised points (including an incorrect-guess penalty). The gateway reloads the selected product, catalogue relationships, maintained category hierarchy and prior guesses, then invokes scoring contract v1.0.0. |
 | `created_at` | Immutable server timestamp. |
 
 The explicit application surface is `POST /brew-done-it/games`, `POST
@@ -201,7 +202,8 @@ game relationship. Only the selector may select; only the immutable guesser may
 guess; a completed round rejects every mutation. Game reads omit
 `invitation_digest`; round reads omit `selected_product_id` for the guesser until
 completion. Statistics count only authorised completed games/rounds and sum
-persisted server-awarded correct-guess points; browser totals are never accepted.
+each round's persisted versioned authoritative total; browser totals and
+breakdowns are never accepted.
 
 ### Safe rollout and rollback
 
@@ -210,10 +212,12 @@ is reviewed and evidenced because this repository has no executable migration
 runner:
 
 1. Back up the production-equivalent provider and prove restoration in staging.
-   Create the three collections with foreign keys, enums, non-null rules and
+   Create the three collections with foreign keys, enums, JSON support, non-null rules and
    immutable/server-only fields above. Apply unique constraints to invitation
    digests, `(game_id, round_number)`, `(round_id, turn_sequence)` and guess
-   `uniqueness_key`.
+   `uniqueness_key`. Add the question count, typed reference, scoring version,
+   total and breakdown fields documented above. Do not enable the flag against
+   the earlier draft schema; there is no safe in-place guess-reference backfill.
 2. Implement or verify provider compare-and-set/server workflows for the
    `waiting` to `active`, selection, turn-increment and completion transitions.
    A plain read followed by an unconditional update is **not sufficient** for

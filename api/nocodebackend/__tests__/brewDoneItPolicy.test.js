@@ -26,14 +26,18 @@ const installProvider = () => {
     [COLLECTIONS.brewDoneItRounds]: [{
       id: 2, game_id: 1, round_number: 1, selector_participant_id: selector.id,
       guesser_participant_id: guesser.id, selected_product_id: '10', status: 'guessing',
-      turn_sequence: 0, max_turns: 6, created_at: '2026-01-01T00:00:00.000Z'
+      turn_sequence: 0, max_turns: 6, question_count: 0, created_at: '2026-01-01T00:00:00.000Z'
     }],
     [COLLECTIONS.brewDoneItGuesses]: []
   }
   let nextId = 20
   dataProvider.isUniqueConflict = (error) => error?.status === 409
   dataProvider.get = async (collection, id) => {
-    if (collection === COLLECTIONS.products) return ['10', '11'].includes(String(id)) ? { id } : null
+    if (collection === COLLECTIONS.products) return ['10', '11'].includes(String(id))
+      ? { id, producer_id: 30, product_category_id: 40 }
+      : null
+    if (collection === COLLECTIONS.producers) return String(id) === '30' ? { id } : null
+    if (collection === COLLECTIONS.categories) return String(id) === '40' ? { id, parent_id: null } : null
     return records[collection]?.find((record) => String(record.id) === String(id)) || null
   }
   dataProvider.list = async (collection, filters = {}) => (records[collection] || [])
@@ -92,13 +96,18 @@ test('owner, participant, turn, score and completion fields are ignored or serve
   assert.equal(result.statusCode, 201)
   assert.equal(records.brew_done_it_guesses[0].guesser_participant_id, guesser.id)
   assert.equal(records.brew_done_it_guesses[0].turn_sequence, 1)
-  assert.equal(records.brew_done_it_guesses[0].awarded_points, 6)
+  assert.equal(records.brew_done_it_guesses[0].awarded_points, 10)
   assert.equal(records.brew_done_it_guesses[0].is_correct, true)
+  assert.equal(records.brew_done_it_rounds[0].scoring_rules_version, '1.0.0')
+  assert.equal(records.brew_done_it_rounds[0].awarded_points, 10)
 })
 
 test('replayed turns and completed-round mutations are rejected', async () => {
   const records = installProvider()
-  records.brew_done_it_guesses.push({ id: 8, round_id: 2, uniqueness_key: '2:1' })
+  records.brew_done_it_guesses.push({
+    id: 8, round_id: 2, uniqueness_key: '2:1', turn_sequence: 1,
+    guess_type: 'product', guessed_reference_id: '12'
+  })
   await assert.rejects(
     __testables.submitBrewDoneItGuess(2, { body: { guessType: 'product', productId: 11 } }, response(), guesser),
     (error) => error.status === 409
@@ -118,6 +127,7 @@ test('statistics are derived only from participant completed records', async () 
   const records = installProvider()
   records.brew_done_it_games[0].status = 'completed'
   records.brew_done_it_rounds[0].status = 'completed'
+  records.brew_done_it_rounds[0].awarded_points = 4
   records.brew_done_it_guesses.push(
     { round_id: 2, is_correct: true, awarded_points: 4 },
     { round_id: 2, is_correct: false, awarded_points: 900 }

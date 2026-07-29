@@ -30,10 +30,11 @@ export const BREW_DONE_IT_GAME_FIELDS = Object.freeze([
 ])
 export const BREW_DONE_IT_ROUND_FIELDS = Object.freeze([
   'id', 'game_id', 'round_number', 'selector_participant_id', 'guesser_participant_id', 'status',
-  'turn_sequence', 'max_turns', 'created_at', 'started_at', 'completed_at', 'completion_reason'
+  'turn_sequence', 'max_turns', 'question_count', 'created_at', 'started_at', 'completed_at', 'completion_reason',
+  'scoring_rules_version', 'awarded_points', 'score_breakdown'
 ])
 export const BREW_DONE_IT_GUESS_FIELDS = Object.freeze([
-  'id', 'round_id', 'turn_sequence', 'guess_type', 'guessed_product_id', 'is_correct', 'awarded_points', 'created_at'
+  'id', 'round_id', 'turn_sequence', 'guess_type', 'guessed_reference_id', 'is_correct', 'awarded_points', 'created_at'
 ])
 
 const requirePlainObject = (input) => {
@@ -60,8 +61,12 @@ export const sanitiseBrewDoneItSelectionInput = (input) => ({
 
 export const sanitiseBrewDoneItGuessInput = (input) => {
   const body = requirePlainObject(input)
-  if (body.guessType !== 'product') throw new Error('Guess type is invalid.')
-  return { guessType: 'product', productId: positiveId(body.productId, 'Product identifier') }
+  if (!['product', 'producer', 'style'].includes(body.guessType)) throw new Error('Guess type is invalid.')
+  const legacyProductId = body.guessType === 'product' ? body.productId : undefined
+  return {
+    guessType: body.guessType,
+    guessId: positiveId(body.guessId ?? legacyProductId, 'Guess identifier')
+  }
 }
 
 export const projectBrewDoneItGame = (record) => pickFields(record, BREW_DONE_IT_GAME_FIELDS)
