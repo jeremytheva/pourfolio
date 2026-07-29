@@ -8,7 +8,10 @@ export const COLLECTIONS = Object.freeze({
   ratingAttributes: 'rating_attributes',
   bonusAttributes: 'bonus_attributes',
   bonusRatingMappings: 'bonus_attribute_rating_mapping',
-  cellar: 'cellar'
+  cellar: 'cellar',
+  brewDoneItGames: 'brew_done_it_games',
+  brewDoneItRounds: 'brew_done_it_rounds',
+  brewDoneItGuesses: 'brew_done_it_guesses'
 })
 
 export const SCORE_RANGE = Object.freeze({ min: 1, max: 7 })

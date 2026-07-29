@@ -43,6 +43,9 @@ staging endpoint nor credential. No transaction has therefore been adopted.
 | `rating_scores` | Normalised attribute scores for a rating. | Same owner as parent rating. |
 | `bonus_attribute_rating_mapping` | Normalised optional bonus selections. | Same owner as parent rating. |
 | `cellar` | Private user cellar inventory. | Owner CRUD only. |
+| `brew_done_it_games` | Invitation and immutable two-participant game relationship. | Participants read; gateway-only create/update. |
+| `brew_done_it_rounds` | Authoritative beer selection, roles, turn and completion state. | Participants read through a role-aware projection; gateway-only write. |
+| `brew_done_it_guesses` | Immutable, ordered product guesses and server-awarded points. | Participants read through the game relationship; gateway-only create. |
 
 ## Account export, deletion and retention status
 
@@ -143,6 +146,94 @@ are set by the server.
 The gateway accepts the supplied schema fields through an explicit allowlist. `user_id` is always derived from the session. Quantities and monetary values cannot be negative.
 
 `sharing_series_id` and `series_version_id` are optional. When not applicable they must be `NULL`; zero and fabricated identifiers are rejected. A rating does not require a sharing series or edition.
+
+## Proposed Brew Done It persistent contract (not yet deployed)
+
+This is a deliberately smaller three-collection model. A separate
+`brew_done_it_questions` collection is not required for the initial product-guess
+rules: every turn is an immutable `product` guess. Adding free-text or yes/no
+questions would require a separately reviewed moderation, disclosure and answer
+contract. No client route is part of this delivery.
+
+### `brew_done_it_games`
+
+| Field | Rule |
+| --- | --- |
+| `id` | Provider-generated positive primary key. |
+| `selector_participant_id` | Non-null immutable authentication subject; always copied from the creating session. |
+| `guesser_participant_id` | Immutable authentication subject set once by the gateway when a different authenticated user proves possession of the one-time invitation. Never accepted as a client field. |
+| `invitation_digest` | SHA-256 digest of a 256-bit random invitation; server-only, unique, cleared on join and never projected. |
+| `status` | Server-only enum: `waiting`, `active`, `completed`. |
+| `created_at`, `joined_at`, `completed_at` | Server timestamps; nullable only before the corresponding transition. |
+
+### `brew_done_it_rounds`
+
+| Field | Rule |
+| --- | --- |
+| `id`, `game_id`, `round_number` | Provider primary key, non-null game reference and positive sequence; `(game_id, round_number)` is unique. MVP has one round. |
+| `selector_participant_id`, `guesser_participant_id` | Non-null immutable copies of the game's authenticated participants. Provider constraints or a server workflow must prevent changes. |
+| `selected_product_id` | Existing `products.id`, set once by the selector through the gateway; hidden from the guesser until completion. |
+| `status` | Server-only enum: `awaiting_selection`, `guessing`, `completed`. No completed round can transition again. |
+| `turn_sequence`, `max_turns` | Server-owned non-negative current turn and immutable limit (six for MVP). |
+| `created_at`, `started_at`, `completed_at` | Server timestamps. |
+| `completion_reason` | Server-only nullable enum: `correct_guess` or `turn_limit`; required exactly when completed. |
+
+### `brew_done_it_guesses`
+
+| Field | Rule |
+| --- | --- |
+| `id`, `round_id` | Provider primary key and non-null round reference. |
+| `guesser_participant_id` | Immutable copy of the designated guesser, derived from the round rather than the request. |
+| `turn_sequence`, `uniqueness_key` | Consecutive positive turn and globally unique `<round_id>:<turn_sequence>` key; `(round_id, turn_sequence)` is also unique. |
+| `guess_type` | Immutable enum restricted to `product`. |
+| `guessed_product_id` | Existing `products.id`; the only guess value accepted from the browser. |
+| `is_correct`, `awarded_points` | Server-derived. Correctness compares against the hidden selection; points are `max_turns - turn_sequence + 1` only for a correct guess, otherwise zero. |
+| `created_at` | Immutable server timestamp. |
+
+The explicit application surface is `POST /brew-done-it/games`, `POST
+/brew-done-it/games/:id/join`, `GET /brew-done-it/games/:id`, `POST
+/brew-done-it/rounds/:id/selection`, `POST
+/brew-done-it/rounds/:id/guesses`, and `GET /brew-done-it/stats` below the
+authenticated gateway. Arbitrary collection paths are never routed. The create
+route makes the session user the selector; join accepts only the opaque
+invitation, not an owner or participant ID. Every later operation reloads the
+game relationship. Only the selector may select; only the immutable guesser may
+guess; a completed round rejects every mutation. Game reads omit
+`invitation_digest`; round reads omit `selected_product_id` for the guesser until
+completion. Statistics count only authorised completed games/rounds and sum
+persisted server-awarded correct-guess points; browser totals are never accepted.
+
+### Safe rollout and rollback
+
+These routes must remain unreleased until the following manual provider change
+is reviewed and evidenced because this repository has no executable migration
+runner:
+
+1. Back up the production-equivalent provider and prove restoration in staging.
+   Create the three collections with foreign keys, enums, non-null rules and
+   immutable/server-only fields above. Apply unique constraints to invitation
+   digests, `(game_id, round_number)`, `(round_id, turn_sequence)` and guess
+   `uniqueness_key`.
+2. Implement or verify provider compare-and-set/server workflows for the
+   `waiting` to `active`, selection, turn-increment and completion transitions.
+   A plain read followed by an unconditional update is **not sufficient** for
+   concurrent join or turn safety; production enablement is blocked without
+   atomic conditional transitions.
+3. Deny browser/provider-public access to all three collections. Permit only the
+   gateway service identity, then exercise two simultaneous joins and guesses,
+   replayed turns, role swaps, non-participants, forged scores and premature
+   answer reads using redacted evidence.
+4. Canary the gateway routes by setting the server-only
+   `BREW_DONE_IT_POLICY_ENABLED=true` flag only after the preceding atomicity
+   proof, reconcile counts and transition invariants, and then gradually enable
+   traffic. With the flag absent or false, the gateway returns the same 404 as
+   an unknown application route. There is no legacy backfill for this additive
+   model.
+5. For rollback, disable the flag first and retain the additive collections for
+   investigation. Restore the prior gateway release; do not delete records or
+   fields. After the retention decision and a redacted export, a separately
+   approved provider operation may archive/drop empty collections. If corruption
+   occurred, restore the backup and invalidate all outstanding invitations.
 
 ## Rating write lifecycle
 

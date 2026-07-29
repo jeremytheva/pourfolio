@@ -25,6 +25,54 @@ export const RATING_FIELDS = Object.freeze(['id', 'rating_id', 'product_id', 'ce
 export const ATTRIBUTE_FIELDS = Object.freeze(['id', 'category_id', 'attribute_name', 'is_scored', 'weighting'])
 export const BONUS_FIELDS = Object.freeze(['id', 'description', 'point_value'])
 export const PROFILE_FIELDS = Object.freeze(['id', 'name', 'description', 'avatar_url'])
+export const BREW_DONE_IT_GAME_FIELDS = Object.freeze([
+  'id', 'selector_participant_id', 'guesser_participant_id', 'status', 'created_at', 'joined_at', 'completed_at'
+])
+export const BREW_DONE_IT_ROUND_FIELDS = Object.freeze([
+  'id', 'game_id', 'round_number', 'selector_participant_id', 'guesser_participant_id', 'status',
+  'turn_sequence', 'max_turns', 'created_at', 'started_at', 'completed_at', 'completion_reason'
+])
+export const BREW_DONE_IT_GUESS_FIELDS = Object.freeze([
+  'id', 'round_id', 'turn_sequence', 'guess_type', 'guessed_product_id', 'is_correct', 'awarded_points', 'created_at'
+])
+
+const requirePlainObject = (input) => {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Request data is invalid.')
+  return input
+}
+
+const positiveId = (value, label) => {
+  const result = String(value ?? '').trim()
+  if (!/^[1-9]\d*$/.test(result)) throw new Error(`${label} is invalid.`)
+  return result
+}
+
+export const sanitiseBrewDoneItJoinInput = (input) => {
+  const body = requirePlainObject(input)
+  const inviteCode = String(body.inviteCode ?? '').trim()
+  if (!/^[A-Za-z0-9_-]{32,128}$/.test(inviteCode)) throw new Error('Invitation code is invalid.')
+  return { inviteCode }
+}
+
+export const sanitiseBrewDoneItSelectionInput = (input) => ({
+  productId: positiveId(requirePlainObject(input).productId, 'Product identifier')
+})
+
+export const sanitiseBrewDoneItGuessInput = (input) => {
+  const body = requirePlainObject(input)
+  if (body.guessType !== 'product') throw new Error('Guess type is invalid.')
+  return { guessType: 'product', productId: positiveId(body.productId, 'Product identifier') }
+}
+
+export const projectBrewDoneItGame = (record) => pickFields(record, BREW_DONE_IT_GAME_FIELDS)
+export const projectBrewDoneItGuess = (record) => pickFields(record, BREW_DONE_IT_GUESS_FIELDS)
+export const projectBrewDoneItRound = (record, viewerId) => {
+  const projected = pickFields(record, BREW_DONE_IT_ROUND_FIELDS)
+  if (record?.status === 'completed' || String(record?.selector_participant_id) === String(viewerId)) {
+    projected.selected_product_id = record?.selected_product_id
+  }
+  return projected
+}
 
 const asOptionalNumber = (value, { integer = false, min, max } = {}) => {
   if (value === undefined || value === null || value === '') return null
