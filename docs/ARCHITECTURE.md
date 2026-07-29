@@ -72,7 +72,7 @@ Rating submission is a coordinated server operation across `ratings`, `rating_sc
 
 ## Deployment
 
-`vercel.json` provides SPA direct-route rewrites, security headers and immutable caching for hashed assets. Production source maps are disabled. `/api/health` reports only configuration booleans and never contacts upstream services or reveals secrets.
+`vercel.json` provides SPA direct-route rewrites, security headers and immutable caching for hashed assets. Production source maps are disabled. `/api/health` is the configuration-only liveness signal described in the [production operations runbook](OPERATIONS_READINESS.md): it reports only configuration booleans, never contacts upstream services and is not a readiness guarantee.
 
 Required server variables:
 

@@ -166,6 +166,12 @@ release-candidate change.
 - [ ] Enable GitHub Issues or nominate another tracker for the remaining gates.
 - [ ] Test direct routes and `/api/health` on the production host.
 
+The thresholds, safe central-logging contract, health semantics, alert-owner
+register, backup/restore procedure, rollback rehearsal and release ownership
+register are defined in the [production operations readiness runbook](OPERATIONS_READINESS.md).
+Its blocked evidence fields are release gates, not evidence of completed remote
+configuration or rehearsals.
+
 ## Launch sign-off
 
 Public launch requires:
