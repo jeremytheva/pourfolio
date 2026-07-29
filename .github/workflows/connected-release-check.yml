@@ -1,0 +1,62 @@
+name: Connected staging release check
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_url:
+        description: HTTPS URL of the immutable staging deployment
+        required: true
+        type: string
+      release_sha:
+        description: Full commit SHA deployed to staging
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: connected-release-${{ inputs.release_sha }}
+  cancel-in-progress: false
+
+jobs:
+  connected:
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.release_sha }}
+      - name: Confirm checked-out release candidate
+        run: test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run connected release checks
+        run: npm run test:release
+        env:
+          RELEASE_BASE_URL: ${{ inputs.release_url }}
+          RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
+          RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
+          RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}
+          RELEASE_OTHER_PASSWORD: ${{ secrets.RELEASE_OTHER_PASSWORD }}
+          RELEASE_SIGNUP_EMAIL: ${{ secrets.RELEASE_SIGNUP_EMAIL }}
+          RELEASE_SIGNUP_PASSWORD: ${{ secrets.RELEASE_SIGNUP_PASSWORD }}
+          RELEASE_OTP_EMAIL: ${{ secrets.RELEASE_OTP_EMAIL }}
+          RELEASE_OTP_CODE: ${{ secrets.RELEASE_OTP_CODE }}
+          RELEASE_SEARCH_TERM: ${{ vars.RELEASE_SEARCH_TERM }}
+      - name: Retain redacted evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: connected-release-${{ inputs.release_sha }}
+          path: |
+            playwright-report/release-check/
+            test-results/release-check/
+          retention-days: 30
