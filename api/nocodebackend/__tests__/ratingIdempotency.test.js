@@ -16,7 +16,7 @@ const body = {
 }
 const response = () => ({ statusCode: null, body: null, status(code) { this.statusCode = code; return this }, json(value) { this.body = value; return this } })
 
-const installMemoryProvider = ({ cellar, failCreate, failUpdate } = {}) => {
+const installMemoryProvider = ({ cellar, failCreate, failGet, failList, failUpdate } = {}) => {
   const records = {
     [COLLECTIONS.ratings]: [],
     [COLLECTIONS.ratingScores]: [],
@@ -25,11 +25,13 @@ const installMemoryProvider = ({ cellar, failCreate, failUpdate } = {}) => {
   let nextId = 1
   dataProvider.isUniqueConflict = (error) => error?.status === 409
   dataProvider.get = async (collection, id) => {
+    if (failGet?.(collection, id, records)) throw Object.assign(new Error('get failure'), { status: 502 })
     if (collection === COLLECTIONS.products) return { id, product_name: 'Safe Ale' }
     if (collection === COLLECTIONS.cellar) return cellar || null
     return records[collection]?.find((item) => String(item.id) === String(id)) || null
   }
   dataProvider.list = async (collection, filters = {}) => {
+    if (failList?.(collection, filters, records)) throw Object.assign(new Error('list failure'), { status: 502 })
     if (collection === COLLECTIONS.ratingAttributes) return [
       { id: 2, is_scored: 1, weighting: 1 }, { id: 3, is_scored: 1, weighting: 1 }
     ]
@@ -97,6 +99,100 @@ test('partial child creation is failed and retry reconciliation completes it', a
   const retried = await submit()
   assert.equal(retried.statusCode, 200)
   assert.equal(records.ratings[0].submission_state, 'complete')
+})
+
+test('a failure after a persisted score write is reconciled without duplicate children', async () => {
+  let failOnce = true
+  const records = installMemoryProvider({ failCreate(collection, value, state) {
+    if (collection === COLLECTIONS.ratingScores && failOnce) {
+      failOnce = false
+      state[collection].push({ id: 20, ...value })
+      throw Object.assign(new Error('post-write timeout'), { name: 'TimeoutError' })
+    }
+    return false
+  } })
+  await assert.rejects(submit(), /incomplete/)
+  const retried = await submit()
+  assert.equal(retried.statusCode, 200)
+  assert.equal(records.rating_scores.length, 2)
+  assert.equal(records.bonus_attribute_rating_mapping.length, 1)
+  assert.equal(records.ratings[0].submission_state, 'complete')
+})
+
+test('a failure after a persisted bonus write is reconciled without duplicate children', async () => {
+  let failOnce = true
+  const records = installMemoryProvider({ failCreate(collection, value, state) {
+    if (collection === COLLECTIONS.bonusRatingMappings && failOnce) {
+      failOnce = false
+      state[collection].push({ id: 20, ...value })
+      throw Object.assign(new Error('post-write timeout'), { name: 'TimeoutError' })
+    }
+    return false
+  } })
+  await assert.rejects(submit(), /incomplete/)
+  const retried = await submit()
+  assert.equal(retried.statusCode, 200)
+  assert.equal(records.rating_scores.length, 2)
+  assert.equal(records.bonus_attribute_rating_mapping.length, 1)
+})
+
+test('a verification re-read failure never reports success and can be retried', async () => {
+  let scoreReads = 0
+  const records = installMemoryProvider({ failList(collection, filters) {
+    if (collection === COLLECTIONS.ratingScores && filters.rating_id && ++scoreReads === 2) return true
+    return false
+  } })
+  await assert.rejects(submit(), /incomplete/)
+  assert.equal(records.ratings[0].submission_state, 'failed')
+  const retried = await submit()
+  assert.equal(retried.statusCode, 200)
+  assert.equal(records.ratings[0].submission_state, 'complete')
+})
+
+test('a post-write workflow-state timeout never reports success and retry confirms completion', async () => {
+  let failOnce = true
+  const records = installMemoryProvider({ failUpdate(collection, id, value) {
+    if (collection === COLLECTIONS.ratings && value.submission_state === 'complete' && failOnce) {
+      failOnce = false
+      const rating = records.ratings.find((item) => item.id === id)
+      rating.submission_state = 'complete'
+      throw Object.assign(new Error('post-write timeout'), { name: 'TimeoutError' })
+    }
+    return false
+  } })
+  await assert.rejects(submit(), /incomplete/)
+  assert.equal(records.ratings[0].submission_state, 'failed')
+  const retried = await submit()
+  assert.equal(retried.statusCode, 200)
+  assert.equal(records.ratings[0].submission_state, 'complete')
+})
+
+test('success requires a durable complete workflow-state re-read', async () => {
+  let ignoreComplete = true
+  const records = installMemoryProvider({ failUpdate(collection, id, value) {
+    if (collection === COLLECTIONS.ratings && value.submission_state === 'complete' && ignoreComplete) {
+      ignoreComplete = false
+      return true
+    }
+    return false
+  } })
+  await assert.rejects(submit(), /incomplete/)
+  assert.equal(records.ratings[0].submission_state, 'failed')
+  const retried = await submit()
+  assert.equal(retried.statusCode, 200)
+})
+
+test('verification rejects a child whose deterministic key hides corrupt score data', async () => {
+  let corruptOnce = true
+  const records = installMemoryProvider({ failList(collection, filters, state) {
+    if (collection === COLLECTIONS.ratingScores && filters.rating_id && state.rating_scores.length === 2 && corruptOnce) {
+      corruptOnce = false
+      state.rating_scores[0].attribute_score = 1
+    }
+    return false
+  } })
+  await assert.rejects(submit(), /incomplete/)
+  assert.equal(records.ratings[0].submission_state, 'failed')
 })
 
 test('child uniqueness conflicts are accepted only after owner-scoped validation', async () => {
