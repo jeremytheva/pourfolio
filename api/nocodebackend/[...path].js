@@ -10,6 +10,9 @@ import {
   PRODUCT_FIELDS,
   PROFILE_FIELDS,
   RATING_FIELDS,
+  projectBrewDoneItGame,
+  projectBrewDoneItGuess,
+  projectBrewDoneItRound,
   isOwnedBy,
   projectAttribute,
   projectBonus,
@@ -17,6 +20,9 @@ import {
   projectProfile,
   projectRating,
   sanitiseCellarInput,
+  sanitiseBrewDoneItGuessInput,
+  sanitiseBrewDoneItJoinInput,
+  sanitiseBrewDoneItSelectionInput,
   sanitiseProfileUpdates
 } from '../_lib/dataPolicy.js'
 import {
@@ -491,9 +497,152 @@ const updateProfile = async (request, response, user) => {
   response.status(200).json({ profile: projectProfile({ ...existing, ...saved, id: user.id }) })
 }
 
+const brewDoneItError = (message, status = 403) => Object.assign(new Error(message), { status })
+const participant = (game, userId) => [game?.selector_participant_id, game?.guesser_participant_id]
+  .some((id) => id !== null && id !== undefined && String(id) === String(userId))
+const inviteDigest = (code) => crypto.createHash('sha256').update(code).digest('hex')
+
+const getBrewDoneItGame = async (gameId, user) => {
+  const game = await dataProvider.get(COLLECTIONS.brewDoneItGames, parsePositiveId(gameId, 'Game identifier'))
+  if (!game || !participant(game, user.id)) throw brewDoneItError('Game not found.', 404)
+  return game
+}
+
+const getBrewDoneItRound = async (roundId, user) => {
+  const round = await dataProvider.get(COLLECTIONS.brewDoneItRounds, parsePositiveId(roundId, 'Round identifier'))
+  if (!round) throw brewDoneItError('Round not found.', 404)
+  const game = await getBrewDoneItGame(round.game_id, user)
+  if (String(round.selector_participant_id) !== String(game.selector_participant_id) ||
+      String(round.guesser_participant_id) !== String(game.guesser_participant_id)) {
+    throw brewDoneItError('Round participant relationship is invalid.', 409)
+  }
+  return { round, game }
+}
+
+const createBrewDoneItGame = async (response, user) => {
+  const now = new Date().toISOString()
+  const invitationCode = crypto.randomBytes(32).toString('base64url')
+  const game = firstRecord(await dataProvider.create(COLLECTIONS.brewDoneItGames, {
+    selector_participant_id: user.id,
+    guesser_participant_id: null,
+    invitation_digest: inviteDigest(invitationCode),
+    status: 'waiting',
+    created_at: now,
+    joined_at: null,
+    completed_at: null
+  }))
+  response.status(201).json({ game: projectBrewDoneItGame(game), invitationCode })
+}
+
+const joinBrewDoneItGame = async (gameId, request, response, user) => {
+  const id = parsePositiveId(gameId, 'Game identifier')
+  const { inviteCode } = sanitiseBrewDoneItJoinInput(request.body)
+  const game = await dataProvider.get(COLLECTIONS.brewDoneItGames, id)
+  if (!game || game.invitation_digest !== inviteDigest(inviteCode)) throw brewDoneItError('Game invitation is invalid.', 404)
+  if (game.status !== 'waiting' || game.guesser_participant_id) throw brewDoneItError('Game invitation is no longer available.', 409)
+  if (String(game.selector_participant_id) === String(user.id)) throw brewDoneItError('The selector cannot join as the guesser.', 409)
+  const joinedAt = new Date().toISOString()
+  await dataProvider.update(COLLECTIONS.brewDoneItGames, id, {
+    guesser_participant_id: user.id, status: 'active', joined_at: joinedAt, invitation_digest: null
+  })
+  const persisted = await dataProvider.get(COLLECTIONS.brewDoneItGames, id)
+  if (String(persisted?.guesser_participant_id) !== String(user.id) || persisted?.status !== 'active') {
+    throw brewDoneItError('Game invitation was claimed by another participant.', 409)
+  }
+  const round = firstRecord(await dataProvider.create(COLLECTIONS.brewDoneItRounds, {
+    game_id: persisted.id, round_number: 1,
+    selector_participant_id: persisted.selector_participant_id,
+    guesser_participant_id: persisted.guesser_participant_id,
+    selected_product_id: null, status: 'awaiting_selection', turn_sequence: 0, max_turns: 6,
+    created_at: joinedAt, started_at: null, completed_at: null, completion_reason: null
+  }))
+  response.status(200).json({ game: projectBrewDoneItGame(persisted), round: projectBrewDoneItRound(round, user.id) })
+}
+
+const selectBrewDoneItProduct = async (roundId, request, response, user) => {
+  const { round } = await getBrewDoneItRound(roundId, user)
+  if (String(round.selector_participant_id) !== String(user.id)) throw brewDoneItError('Only the selector can choose the beer.')
+  if (round.status !== 'awaiting_selection' || round.selected_product_id) throw brewDoneItError('This round cannot be changed.', 409)
+  const { productId } = sanitiseBrewDoneItSelectionInput(request.body)
+  if (!await dataProvider.get(COLLECTIONS.products, productId)) throw brewDoneItError('Product not found.', 404)
+  const startedAt = new Date().toISOString()
+  await dataProvider.update(COLLECTIONS.brewDoneItRounds, round.id, {
+    selected_product_id: productId, status: 'guessing', started_at: startedAt
+  })
+  const persisted = await dataProvider.get(COLLECTIONS.brewDoneItRounds, round.id)
+  response.status(200).json({ round: projectBrewDoneItRound(persisted, user.id) })
+}
+
+const submitBrewDoneItGuess = async (roundId, request, response, user) => {
+  const { round, game } = await getBrewDoneItRound(roundId, user)
+  if (String(round.guesser_participant_id) !== String(user.id)) throw brewDoneItError('Only the designated guesser can submit a guess.')
+  if (round.status !== 'guessing' || !round.selected_product_id) throw brewDoneItError('This round is not accepting guesses.', 409)
+  const guess = sanitiseBrewDoneItGuessInput(request.body)
+  if (!await dataProvider.get(COLLECTIONS.products, guess.productId)) throw brewDoneItError('Product not found.', 404)
+  const turnSequence = Number(round.turn_sequence) + 1
+  if (!Number.isSafeInteger(turnSequence) || turnSequence > Number(round.max_turns)) throw brewDoneItError('This round has no remaining turns.', 409)
+  const correct = String(guess.productId) === String(round.selected_product_id)
+  const completed = correct || turnSequence === Number(round.max_turns)
+  const completionReason = correct ? 'correct_guess' : completed ? 'turn_limit' : null
+  const awardedPoints = correct ? Number(round.max_turns) - turnSequence + 1 : 0
+  let created
+  try {
+    created = firstRecord(await dataProvider.create(COLLECTIONS.brewDoneItGuesses, {
+      round_id: round.id, guesser_participant_id: user.id, turn_sequence: turnSequence,
+      uniqueness_key: `${round.id}:${turnSequence}`, guess_type: guess.guessType,
+      guessed_product_id: guess.productId, is_correct: correct, awarded_points: awardedPoints,
+      created_at: new Date().toISOString()
+    }))
+  } catch (error) {
+    if (dataProvider.isUniqueConflict(error)) throw brewDoneItError('This turn has already been submitted.', 409)
+    throw error
+  }
+  const completedAt = completed ? new Date().toISOString() : null
+  await dataProvider.update(COLLECTIONS.brewDoneItRounds, round.id, {
+    turn_sequence: turnSequence, status: completed ? 'completed' : 'guessing',
+    completed_at: completedAt, completion_reason: completionReason
+  })
+  if (completed) await dataProvider.update(COLLECTIONS.brewDoneItGames, game.id, { status: 'completed', completed_at: completedAt })
+  const persisted = await dataProvider.get(COLLECTIONS.brewDoneItRounds, round.id)
+  if (Number(persisted?.turn_sequence) !== turnSequence || (completed && persisted?.status !== 'completed')) {
+    throw brewDoneItError('The turn could not be confirmed.', 409)
+  }
+  response.status(201).json({ guess: projectBrewDoneItGuess(created), round: projectBrewDoneItRound(persisted, user.id) })
+}
+
+const showBrewDoneItGame = async (gameId, response, user) => {
+  const game = await getBrewDoneItGame(gameId, user)
+  const rounds = normaliseList(await dataProvider.list(COLLECTIONS.brewDoneItRounds, { game_id: game.id }))
+    .filter((round) => String(round.selector_participant_id) === String(game.selector_participant_id) &&
+      String(round.guesser_participant_id) === String(game.guesser_participant_id))
+  response.status(200).json({ game: projectBrewDoneItGame(game), rounds: rounds.map((round) => projectBrewDoneItRound(round, user.id)) })
+}
+
+const brewDoneItStats = async (response, user) => {
+  const games = normaliseList(await dataProvider.list(COLLECTIONS.brewDoneItGames))
+    .filter((game) => participant(game, user.id) && game.status === 'completed')
+  const rounds = (await Promise.all(games.map((game) => dataProvider.list(COLLECTIONS.brewDoneItRounds, { game_id: game.id })))).flat()
+    .filter((round) => round.status === 'completed' && participant(round, user.id))
+  const guesses = (await Promise.all(rounds.map((round) => dataProvider.list(COLLECTIONS.brewDoneItGuesses, { round_id: round.id })))).flat()
+  const points = guesses.filter((guess) => guess.is_correct === true || Number(guess.is_correct) === 1)
+    .reduce((total, guess) => total + Number(guess.awarded_points || 0), 0)
+  response.status(200).json({ completedGames: games.length, completedRounds: rounds.length, awardedPoints: points })
+}
+
 const routeRequest = async (request, response, user, correlationId) => {
   const segments = pathSegments(request)
   const [resource, id, action] = segments
+
+  if (resource === 'brew-done-it' && process.env.BREW_DONE_IT_POLICY_ENABLED !== 'true') {
+    response.status(404).json({ error: 'Application data route not found.' })
+    return
+  }
+  if (resource === 'brew-done-it' && id === 'games' && !action && request.method === 'POST') return createBrewDoneItGame(response, user)
+  if (resource === 'brew-done-it' && id === 'games' && action && segments[3] === 'join' && request.method === 'POST') return joinBrewDoneItGame(action, request, response, user)
+  if (resource === 'brew-done-it' && id === 'games' && action && !segments[3] && request.method === 'GET') return showBrewDoneItGame(action, response, user)
+  if (resource === 'brew-done-it' && id === 'rounds' && action && segments[3] === 'selection' && request.method === 'POST') return selectBrewDoneItProduct(action, request, response, user)
+  if (resource === 'brew-done-it' && id === 'rounds' && action && segments[3] === 'guesses' && request.method === 'POST') return submitBrewDoneItGuess(action, request, response, user)
+  if (resource === 'brew-done-it' && id === 'stats' && !action && request.method === 'GET') return brewDoneItStats(response, user)
 
   if (request.method === 'GET' && resource === 'catalog' && id === 'products' && !action) {
     return listProducts(request, response)
@@ -584,5 +733,7 @@ export const __testables = {
   getProduct,
   getProfile,
   updateProfile,
-  submitRating
+  submitRating,
+  createBrewDoneItGame, joinBrewDoneItGame, selectBrewDoneItProduct, submitBrewDoneItGuess,
+  showBrewDoneItGame, brewDoneItStats
 }
