@@ -502,6 +502,19 @@ const brewDoneItError = (message, status = 403) => Object.assign(new Error(messa
 const participant = (game, userId) => [game?.selector_participant_id, game?.guesser_participant_id]
   .some((id) => id !== null && id !== undefined && String(id) === String(userId))
 const inviteDigest = (code) => crypto.createHash('sha256').update(code).digest('hex')
+const HISTORY_PREDICATES = Object.freeze({
+  both_rated_product: 'both_rated_product',
+  both_rated_producer: 'both_rated_producer',
+  both_rated_style: 'both_rated_style',
+  current_player_rated_product: 'current_player_rated_product'
+})
+const MAX_HISTORY_QUESTIONS_PER_ROUND = 2
+
+const requireHistoryConsent = (body) => {
+  if (!body || body.historyConsent !== true) {
+    throw brewDoneItError('Explicit shared-history consent is required.', 400)
+  }
+}
 
 const getBrewDoneItGame = async (gameId, user) => {
   const game = await dataProvider.get(COLLECTIONS.brewDoneItGames, parsePositiveId(gameId, 'Game identifier'))
@@ -520,7 +533,8 @@ const getBrewDoneItRound = async (roundId, user) => {
   return { round, game }
 }
 
-const createBrewDoneItGame = async (response, user) => {
+const createBrewDoneItGame = async (request, response, user) => {
+  requireHistoryConsent(request.body)
   const now = new Date().toISOString()
   const invitationCode = crypto.randomBytes(32).toString('base64url')
   const game = firstRecord(await dataProvider.create(COLLECTIONS.brewDoneItGames, {
@@ -528,6 +542,8 @@ const createBrewDoneItGame = async (response, user) => {
     guesser_participant_id: null,
     invitation_digest: inviteDigest(invitationCode),
     status: 'waiting',
+    selector_history_consent_at: now,
+    guesser_history_consent_at: null,
     created_at: now,
     joined_at: null,
     completed_at: null
@@ -536,6 +552,7 @@ const createBrewDoneItGame = async (response, user) => {
 }
 
 const joinBrewDoneItGame = async (gameId, request, response, user) => {
+  requireHistoryConsent(request.body)
   const id = parsePositiveId(gameId, 'Game identifier')
   const { inviteCode } = sanitiseBrewDoneItJoinInput(request.body)
   const game = await dataProvider.get(COLLECTIONS.brewDoneItGames, id)
@@ -544,7 +561,8 @@ const joinBrewDoneItGame = async (gameId, request, response, user) => {
   if (String(game.selector_participant_id) === String(user.id)) throw brewDoneItError('The selector cannot join as the guesser.', 409)
   const joinedAt = new Date().toISOString()
   await dataProvider.update(COLLECTIONS.brewDoneItGames, id, {
-    guesser_participant_id: user.id, status: 'active', joined_at: joinedAt, invitation_digest: null
+    guesser_participant_id: user.id, status: 'active', joined_at: joinedAt,
+    guesser_history_consent_at: joinedAt, invitation_digest: null
   })
   const persisted = await dataProvider.get(COLLECTIONS.brewDoneItGames, id)
   if (String(persisted?.guesser_participant_id) !== String(user.id) || persisted?.status !== 'active') {
@@ -559,6 +577,69 @@ const joinBrewDoneItGame = async (gameId, request, response, user) => {
     created_at: joinedAt, started_at: null, completed_at: null, completion_reason: null
   }))
   response.status(200).json({ game: projectBrewDoneItGame(persisted), round: projectBrewDoneItRound(round, user.id) })
+}
+
+const activeRatingMatches = (rating, userId, cutoff, product, predicate) => {
+  if (!isOwnedBy(rating, userId) || rating.deleted_at) return false
+  const ratedAt = Date.parse(rating.date_rated)
+  if (!Number.isFinite(ratedAt) || ratedAt >= cutoff) return false
+  if (predicate.endsWith('_product')) return String(rating.product_id) === String(product.id)
+  return true
+}
+
+const resolveBrewDoneItHistoryQuestion = async (roundId, request, response, user) => {
+  const { round, game } = await getBrewDoneItRound(roundId, user)
+  if (game.status !== 'active' || round.status !== 'guessing' || !round.selected_product_id) {
+    throw brewDoneItError('Shared-history questions are available only during an active round.', 409)
+  }
+  if (!game.selector_history_consent_at || !game.guesser_history_consent_at) {
+    throw brewDoneItError('Both participants must consent to shared-history questions.')
+  }
+  const body = request.body && typeof request.body === 'object' ? request.body : {}
+  const suppliedFields = Object.keys(body)
+  if (suppliedFields.length !== 1 || suppliedFields[0] !== 'predicate' || !Object.hasOwn(HISTORY_PREDICATES, body.predicate)) {
+    throw brewDoneItError('The history predicate is not allowed.', 400)
+  }
+  const existing = normaliseList(await dataProvider.list(COLLECTIONS.brewDoneItHistoryQuestions, { round_id: round.id }))
+  if (existing.length >= MAX_HISTORY_QUESTIONS_PER_ROUND) throw brewDoneItError('This round has no remaining shared-history questions.', 409)
+  if (existing.some((question) => question.predicate === body.predicate)) throw brewDoneItError('This shared-history question has already been asked.', 409)
+
+  const participantIds = [game.selector_participant_id, game.guesser_participant_id]
+  const blocks = normaliseList(await dataProvider.list(COLLECTIONS.blockedRelationships))
+  const participantKeys = participantIds.map(String)
+  if (blocks.some((block) => participantKeys.includes(String(block.blocker_user_id)) && participantKeys.includes(String(block.blocked_user_id)))) {
+    throw brewDoneItError('Shared-history questions are unavailable for these participants.')
+  }
+  const product = await dataProvider.get(COLLECTIONS.products, round.selected_product_id)
+  if (!product) throw brewDoneItError('The selected product cannot be resolved.', 409)
+  const cutoff = Date.parse(round.started_at)
+  if (!Number.isFinite(cutoff)) throw brewDoneItError('The round history boundary is invalid.', 409)
+  const ratings = normaliseList(await dataProvider.list(COLLECTIONS.ratings))
+  const ratedProducts = new Map()
+  for (const participantId of participantIds) {
+    const owned = ratings.filter((rating) => activeRatingMatches(rating, participantId, cutoff, product, body.predicate))
+    if (body.predicate === HISTORY_PREDICATES.both_rated_producer || body.predicate === HISTORY_PREDICATES.both_rated_style) {
+      const products = await Promise.all(owned.map((rating) => dataProvider.get(COLLECTIONS.products, rating.product_id)))
+      ratedProducts.set(participantId, products.some((ratedProduct) => ratedProduct && String(
+        body.predicate === HISTORY_PREDICATES.both_rated_producer ? ratedProduct.producer_id : ratedProduct.product_category_id
+      ) === String(body.predicate === HISTORY_PREDICATES.both_rated_producer ? product.producer_id : product.product_category_id)))
+    } else ratedProducts.set(participantId, owned.length > 0)
+  }
+  const answer = body.predicate === HISTORY_PREDICATES.current_player_rated_product
+    ? [...ratedProducts].find(([id]) => String(id) === String(user.id))?.[1] === true
+    : participantIds.every((id) => ratedProducts.get(id) === true)
+  try {
+    await dataProvider.create(COLLECTIONS.brewDoneItHistoryQuestions, {
+      round_id: round.id, predicate: body.predicate, question_sequence: existing.length + 1,
+      uniqueness_key: `${round.id}:${body.predicate}`, asked_by_participant_id: user.id,
+      answer, answered_at: new Date().toISOString()
+    })
+  } catch (error) {
+    if (dataProvider.isUniqueConflict(error)) throw brewDoneItError('This shared-history question has already been asked.', 409)
+    throw error
+  }
+  await dataProvider.update(COLLECTIONS.brewDoneItRounds, round.id, { question_count: existing.length + 1 })
+  response.status(200).json({ predicate: body.predicate, answer })
 }
 
 const selectBrewDoneItProduct = async (roundId, request, response, user) => {
@@ -673,11 +754,15 @@ const routeRequest = async (request, response, user, correlationId) => {
     response.status(404).json({ error: 'Application data route not found.' })
     return
   }
-  if (resource === 'brew-done-it' && id === 'games' && !action && request.method === 'POST') return createBrewDoneItGame(response, user)
+  if (resource === 'brew-done-it' && id === 'games' && !action && request.method === 'POST') return createBrewDoneItGame(request, response, user)
   if (resource === 'brew-done-it' && id === 'games' && action && segments[3] === 'join' && request.method === 'POST') return joinBrewDoneItGame(action, request, response, user)
   if (resource === 'brew-done-it' && id === 'games' && action && !segments[3] && request.method === 'GET') return showBrewDoneItGame(action, response, user)
   if (resource === 'brew-done-it' && id === 'rounds' && action && segments[3] === 'selection' && request.method === 'POST') return selectBrewDoneItProduct(action, request, response, user)
   if (resource === 'brew-done-it' && id === 'rounds' && action && segments[3] === 'guesses' && request.method === 'POST') return submitBrewDoneItGuess(action, request, response, user)
+  if (resource === 'brew-done-it' && id === 'rounds' && action && segments[3] === 'history-questions' && request.method === 'POST') {
+    if (!enforceRateLimit(request, response, { key: `history-question:${action}`, limit: 6, windowMs: 60_000 })) return
+    return resolveBrewDoneItHistoryQuestion(action, request, response, user)
+  }
   if (resource === 'brew-done-it' && id === 'stats' && !action && request.method === 'GET') return brewDoneItStats(response, user)
 
   if (request.method === 'GET' && resource === 'catalog' && id === 'products' && !action) {
@@ -771,5 +856,6 @@ export const __testables = {
   updateProfile,
   submitRating,
   createBrewDoneItGame, joinBrewDoneItGame, selectBrewDoneItProduct, submitBrewDoneItGuess,
-  showBrewDoneItGame, brewDoneItStats
+  showBrewDoneItGame, brewDoneItStats, resolveBrewDoneItHistoryQuestion,
+  HISTORY_PREDICATES, MAX_HISTORY_QUESTIONS_PER_ROUND
 }

@@ -11,7 +11,9 @@ export const COLLECTIONS = Object.freeze({
   cellar: 'cellar',
   brewDoneItGames: 'brew_done_it_games',
   brewDoneItRounds: 'brew_done_it_rounds',
-  brewDoneItGuesses: 'brew_done_it_guesses'
+  brewDoneItGuesses: 'brew_done_it_guesses',
+  brewDoneItHistoryQuestions: 'brew_done_it_history_questions',
+  blockedRelationships: 'blocked_relationships'
 })
 
 export const SCORE_RANGE = Object.freeze({ min: 1, max: 7 })

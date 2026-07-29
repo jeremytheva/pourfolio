@@ -46,6 +46,8 @@ staging endpoint nor credential. No transaction has therefore been adopted.
 | `brew_done_it_games` | Invitation and immutable two-participant game relationship. | Participants read; gateway-only create/update. |
 | `brew_done_it_rounds` | Authoritative beer selection, roles, turn and completion state. | Participants read through a role-aware projection; gateway-only write. |
 | `brew_done_it_guesses` | Immutable, ordered product guesses and server-awarded points. | Participants read through the game relationship; gateway-only create. |
+| `brew_done_it_history_questions` | Minimal recognised-predicate boolean disclosures and per-round limit evidence. | No direct participant collection read; gateway-only create/read. |
+| `blocked_relationships` | Directional account blocks consulted as a deny override. | Owner relationship management only; game gateway may test existence but never project rows. |
 
 ## Account export, deletion and retention status
 
@@ -164,6 +166,7 @@ No client route is part of this delivery.
 | `invitation_digest` | SHA-256 digest of a 256-bit random invitation; server-only, unique, cleared on join and never projected. |
 | `status` | Server-only enum: `waiting`, `active`, `completed`. |
 | `created_at`, `joined_at`, `completed_at` | Server timestamps; nullable only before the corresponding transition. |
+| `selector_history_consent_at`, `guesser_history_consent_at` | Server timestamps written only after that authenticated participant submits literal `historyConsent: true`; both are required before questions. |
 
 ### `brew_done_it_rounds`
 
@@ -191,10 +194,27 @@ No client route is part of this delivery.
 | `is_correct`, `awarded_points` | Server-derived exact-product completion flag and itemised points (including an incorrect-guess penalty). The gateway reloads the selected product, catalogue relationships, maintained category hierarchy and prior guesses, then invokes scoring contract v1.0.0. |
 | `created_at` | Immutable server timestamp. |
 
+### `brew_done_it_history_questions`
+
+| Field | Rule |
+| --- | --- |
+| `id`, `round_id`, `question_sequence` | Provider primary key, parent round and consecutive sequence limited to two. |
+| `predicate` | One of `both_rated_product`, `both_rated_producer`, `both_rated_style`, or `current_player_rated_product`; unique with `round_id`. |
+| `uniqueness_key` | Globally unique `<round_id>:<predicate>` replay barrier. |
+| `asked_by_participant_id` | Server-derived authenticated active participant; never accepted from the request. |
+| `answer`, `answered_at` | Server-derived boolean and timestamp. No rating, product, score, date, cellar or unmatched-history data is copied here. |
+
+`blocked_relationships` must provide indexed directional
+`blocker_user_id`/`blocked_user_id` pairs. A matching pair in either direction
+denies questions. Private profiles do not prevent a consented boolean, but
+deleted ratings (including soft-deleted rows) and ratings whose `date_rated` is
+at or after the round's immutable `started_at` do not count.
+
 The explicit application surface is `POST /brew-done-it/games`, `POST
 /brew-done-it/games/:id/join`, `GET /brew-done-it/games/:id`, `POST
 /brew-done-it/rounds/:id/selection`, `POST
-/brew-done-it/rounds/:id/guesses`, and `GET /brew-done-it/stats` below the
+/brew-done-it/rounds/:id/guesses`, `POST /brew-done-it/rounds/:id/history-questions`,
+and `GET /brew-done-it/stats` below the
 authenticated gateway. Arbitrary collection paths are never routed. The create
 route makes the session user the selector; join accepts only the opaque
 invitation, not an owner or participant ID. Every later operation reloads the
@@ -238,6 +258,15 @@ runner:
    fields. After the retention decision and a redacted export, a separately
    approved provider operation may archive/drop empty collections. If corruption
    occurred, restore the backup and invalidate all outstanding invitations.
+
+The provider rollout must also create the history-question collection and
+consent fields above, enforce the two-question maximum atomically with question
+creation, and add the block-pair index before enabling this endpoint. Completed
+game, consent and question records are hard-deleted after 30 days; waiting games
+after 24 hours; encrypted backups expire within a further 30 days. Retention
+jobs must delete question rows before their parent round/game and record only
+aggregate deletion counts. Rollback must disable the flag rather than dropping
+retained evidence.
 
 ## Rating write lifecycle
 
