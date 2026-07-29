@@ -1,6 +1,7 @@
 import crypto from 'node:crypto'
 import { COLLECTIONS } from '../../src/data/contract.js'
 import { calculateRatingTotals } from '../../src/utils/ratingSubmission.js'
+import { BREW_DONE_IT_RULES, calculateBrewDoneItScore } from '../../src/utils/brewDoneItScoring.js'
 import { requireSessionUser } from '../_lib/authSession.js'
 import { dataProvider } from '../_lib/dataProvider.js'
 import {
@@ -553,7 +554,8 @@ const joinBrewDoneItGame = async (gameId, request, response, user) => {
     game_id: persisted.id, round_number: 1,
     selector_participant_id: persisted.selector_participant_id,
     guesser_participant_id: persisted.guesser_participant_id,
-    selected_product_id: null, status: 'awaiting_selection', turn_sequence: 0, max_turns: 6,
+    selected_product_id: null, status: 'awaiting_selection', turn_sequence: 0,
+    max_turns: BREW_DONE_IT_RULES.maxGuesses, question_count: 0,
     created_at: joinedAt, started_at: null, completed_at: null, completion_reason: null
   }))
   response.status(200).json({ game: projectBrewDoneItGame(persisted), round: projectBrewDoneItRound(round, user.id) })
@@ -578,19 +580,47 @@ const submitBrewDoneItGuess = async (roundId, request, response, user) => {
   if (String(round.guesser_participant_id) !== String(user.id)) throw brewDoneItError('Only the designated guesser can submit a guess.')
   if (round.status !== 'guessing' || !round.selected_product_id) throw brewDoneItError('This round is not accepting guesses.', 409)
   const guess = sanitiseBrewDoneItGuessInput(request.body)
-  if (!await dataProvider.get(COLLECTIONS.products, guess.productId)) throw brewDoneItError('Product not found.', 404)
+  const guessCollection = guess.guessType === 'product'
+    ? COLLECTIONS.products
+    : guess.guessType === 'producer' ? COLLECTIONS.producers : COLLECTIONS.categories
+  if (!await dataProvider.get(guessCollection, guess.guessId)) throw brewDoneItError('Guess reference not found.', 404)
+  const targetProduct = await dataProvider.get(COLLECTIONS.products, round.selected_product_id)
+  if (!targetProduct?.producer_id || !targetProduct?.product_category_id) {
+    throw brewDoneItError('The selected product cannot be scored.', 409)
+  }
+  const previous = normaliseList(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, { round_id: round.id }))
+    .sort((left, right) => Number(left.turn_sequence) - Number(right.turn_sequence))
+  if (previous.some((item) => item.guess_type === guess.guessType && String(item.guessed_reference_id ?? item.guessed_product_id) === String(guess.guessId))) {
+    throw brewDoneItError('This guess has already been submitted.', 409)
+  }
   const turnSequence = Number(round.turn_sequence) + 1
   if (!Number.isSafeInteger(turnSequence) || turnSequence > Number(round.max_turns)) throw brewDoneItError('This round has no remaining turns.', 409)
-  const correct = String(guess.productId) === String(round.selected_product_id)
+  const categories = normaliseList(await dataProvider.list(COLLECTIONS.categories))
+  const styleParentById = Object.fromEntries(categories.map((category) => [String(category.id), category.parent_id ?? null]))
+  const score = calculateBrewDoneItScore({
+    target: {
+      productId: targetProduct.id,
+      producerId: targetProduct.producer_id,
+      styleId: targetProduct.product_category_id
+    },
+    guesses: [...previous.map((item) => ({
+      type: item.guess_type,
+      id: item.guessed_reference_id ?? item.guessed_product_id
+    })), { type: guess.guessType, id: guess.guessId }],
+    questionCount: Number(round.question_count || 0),
+    styleParentById
+  })
+  const currentItem = score.items.at(-1)
+  const correct = guess.guessType === 'product' && currentItem.outcome === 'exact'
   const completed = correct || turnSequence === Number(round.max_turns)
   const completionReason = correct ? 'correct_guess' : completed ? 'turn_limit' : null
-  const awardedPoints = correct ? Number(round.max_turns) - turnSequence + 1 : 0
+  const awardedPoints = currentItem.points
   let created
   try {
     created = firstRecord(await dataProvider.create(COLLECTIONS.brewDoneItGuesses, {
       round_id: round.id, guesser_participant_id: user.id, turn_sequence: turnSequence,
       uniqueness_key: `${round.id}:${turnSequence}`, guess_type: guess.guessType,
-      guessed_product_id: guess.productId, is_correct: correct, awarded_points: awardedPoints,
+      guessed_reference_id: guess.guessId, is_correct: correct, awarded_points: awardedPoints,
       created_at: new Date().toISOString()
     }))
   } catch (error) {
@@ -600,11 +630,19 @@ const submitBrewDoneItGuess = async (roundId, request, response, user) => {
   const completedAt = completed ? new Date().toISOString() : null
   await dataProvider.update(COLLECTIONS.brewDoneItRounds, round.id, {
     turn_sequence: turnSequence, status: completed ? 'completed' : 'guessing',
-    completed_at: completedAt, completion_reason: completionReason
+    completed_at: completedAt, completion_reason: completionReason,
+    ...(completed ? {
+      scoring_rules_version: score.version,
+      awarded_points: score.total,
+      score_breakdown: { ...score.breakdown, items: score.items }
+    } : {})
   })
   if (completed) await dataProvider.update(COLLECTIONS.brewDoneItGames, game.id, { status: 'completed', completed_at: completedAt })
   const persisted = await dataProvider.get(COLLECTIONS.brewDoneItRounds, round.id)
-  if (Number(persisted?.turn_sequence) !== turnSequence || (completed && persisted?.status !== 'completed')) {
+  if (Number(persisted?.turn_sequence) !== turnSequence || (completed && (
+    persisted?.status !== 'completed' || persisted?.scoring_rules_version !== score.version ||
+    Number(persisted?.awarded_points) !== score.total || !persisted?.score_breakdown
+  ))) {
     throw brewDoneItError('The turn could not be confirmed.', 409)
   }
   response.status(201).json({ guess: projectBrewDoneItGuess(created), round: projectBrewDoneItRound(persisted, user.id) })
@@ -623,9 +661,7 @@ const brewDoneItStats = async (response, user) => {
     .filter((game) => participant(game, user.id) && game.status === 'completed')
   const rounds = (await Promise.all(games.map((game) => dataProvider.list(COLLECTIONS.brewDoneItRounds, { game_id: game.id })))).flat()
     .filter((round) => round.status === 'completed' && participant(round, user.id))
-  const guesses = (await Promise.all(rounds.map((round) => dataProvider.list(COLLECTIONS.brewDoneItGuesses, { round_id: round.id })))).flat()
-  const points = guesses.filter((guess) => guess.is_correct === true || Number(guess.is_correct) === 1)
-    .reduce((total, guess) => total + Number(guess.awarded_points || 0), 0)
+  const points = rounds.reduce((total, round) => total + Number(round.awarded_points || 0), 0)
   response.status(200).json({ completedGames: games.length, completedRounds: rounds.length, awardedPoints: points })
 }
 
