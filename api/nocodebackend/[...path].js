@@ -509,6 +509,39 @@ const HISTORY_PREDICATES = Object.freeze({
   current_player_rated_product: 'current_player_rated_product'
 })
 const MAX_HISTORY_QUESTIONS_PER_ROUND = 2
+const INVITATION_LIFETIME_MS = 24 * 60 * 60 * 1000
+const IDEMPOTENCY_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{15,127}$/
+
+const transitionInput = (request) => {
+  const body = request.body && typeof request.body === 'object' && !Array.isArray(request.body) ? request.body : {}
+  const expectedVersion = Number(body.expectedVersion)
+  const idempotencyKey = String(body.idempotencyKey || '').trim()
+  if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 0) throw brewDoneItError('The expected version is invalid.', 400)
+  if (!IDEMPOTENCY_KEY_PATTERN.test(idempotencyKey)) throw brewDoneItError('The idempotency key is invalid.', 400)
+  return { expectedVersion, idempotencyKey }
+}
+
+const versionConflict = (record) => {
+  const error = brewDoneItError('The game changed before this request was applied.', 409)
+  error.payload = { error: error.message, code: 'VERSION_CONFLICT', currentVersion: Number(record?.version || 0) }
+  return error
+}
+
+const assertVersion = (record, expectedVersion) => {
+  if (Number(record?.version || 0) !== expectedVersion) throw versionConflict(record)
+}
+
+const compareAndSet = async (collection, record, expectedVersion, updates) => {
+  try {
+    await dataProvider.compareAndSet(collection, record.id, expectedVersion, { ...updates, version: expectedVersion + 1 })
+  } catch (error) {
+    if (!dataProvider.isUniqueConflict(error)) throw error
+    throw versionConflict(await dataProvider.get(collection, record.id))
+  }
+  const persisted = await dataProvider.get(collection, record.id)
+  if (Number(persisted?.version) !== expectedVersion + 1) throw versionConflict(persisted)
+  return persisted
+}
 
 const requireHistoryConsent = (body) => {
   if (!body || body.historyConsent !== true) {
@@ -533,15 +566,53 @@ const getBrewDoneItRound = async (roundId, user) => {
   return { round, game }
 }
 
+const ensureInitialBrewDoneItRound = async (game, joinedAt) => {
+  const [existing] = normaliseList(await dataProvider.list(COLLECTIONS.brewDoneItRounds, {
+    game_id: game.id, round_number: 1
+  }))
+  if (existing) return existing
+  try {
+    return firstRecord(await dataProvider.create(COLLECTIONS.brewDoneItRounds, {
+      game_id: game.id, round_number: 1,
+      selector_participant_id: game.selector_participant_id,
+      guesser_participant_id: game.guesser_participant_id,
+      selected_product_id: null, status: 'awaiting_selection', turn_sequence: 0,
+      max_turns: BREW_DONE_IT_RULES.maxGuesses, question_count: 0,
+      created_at: joinedAt, started_at: null, completed_at: null, completion_reason: null, version: 0
+    }))
+  } catch (error) {
+    if (!dataProvider.isUniqueConflict(error)) throw error
+    const [persisted] = normaliseList(await dataProvider.list(COLLECTIONS.brewDoneItRounds, {
+      game_id: game.id, round_number: 1
+    }))
+    if (!persisted) throw error
+    return persisted
+  }
+}
+
 const createBrewDoneItGame = async (request, response, user) => {
+  const { expectedVersion, idempotencyKey } = transitionInput(request)
+  if (expectedVersion !== 0) throw versionConflict({ version: 0 })
   requireHistoryConsent(request.body)
   const now = new Date().toISOString()
-  const invitationCode = crypto.randomBytes(32).toString('base64url')
+  const creationKey = `${user.id}:${idempotencyKey}`
+  const signingKey = process.env.BREW_DONE_IT_INVITATION_KEY || process.env.NOCODEBACKEND_SECRET_KEY
+  if (!signingKey) throw brewDoneItError('The game invitation service is not configured.', 503)
+  const invitationCode = crypto.createHmac('sha256', signingKey).update(creationKey).digest('base64url')
+  const [existing] = normaliseList(await dataProvider.list(COLLECTIONS.brewDoneItGames, {
+    creation_idempotency_key: creationKey
+  }))
+  if (existing && String(existing.selector_participant_id) === String(user.id)) {
+    response.status(200).json({ game: projectBrewDoneItGame(existing), invitationCode, replayed: true })
+    return
+  }
   const game = firstRecord(await dataProvider.create(COLLECTIONS.brewDoneItGames, {
     selector_participant_id: user.id,
     guesser_participant_id: null,
     invitation_digest: inviteDigest(invitationCode),
     status: 'waiting',
+    version: 0, creation_idempotency_key: creationKey,
+    expires_at: new Date(Date.now() + INVITATION_LIFETIME_MS).toISOString(),
     selector_history_consent_at: now,
     guesser_history_consent_at: null,
     created_at: now,
@@ -552,30 +623,31 @@ const createBrewDoneItGame = async (request, response, user) => {
 }
 
 const joinBrewDoneItGame = async (gameId, request, response, user) => {
+  const { expectedVersion, idempotencyKey } = transitionInput(request)
   requireHistoryConsent(request.body)
   const id = parsePositiveId(gameId, 'Game identifier')
   const { inviteCode } = sanitiseBrewDoneItJoinInput(request.body)
   const game = await dataProvider.get(COLLECTIONS.brewDoneItGames, id)
+  if (game?.join_idempotency_key === `${user.id}:${idempotencyKey}` && participant(game, user.id)) {
+    const round = await ensureInitialBrewDoneItRound(game, game.joined_at)
+    response.status(200).json({ game: projectBrewDoneItGame(game), round: projectBrewDoneItRound(round, user.id), replayed: true })
+    return
+  }
   if (!game || game.invitation_digest !== inviteDigest(inviteCode)) throw brewDoneItError('Game invitation is invalid.', 404)
+  assertVersion(game, expectedVersion)
+  if (Date.parse(game.expires_at) <= Date.now()) throw brewDoneItError('Game invitation has expired.', 409)
   if (game.status !== 'waiting' || game.guesser_participant_id) throw brewDoneItError('Game invitation is no longer available.', 409)
   if (String(game.selector_participant_id) === String(user.id)) throw brewDoneItError('The selector cannot join as the guesser.', 409)
   const joinedAt = new Date().toISOString()
-  await dataProvider.update(COLLECTIONS.brewDoneItGames, id, {
+  const persisted = await compareAndSet(COLLECTIONS.brewDoneItGames, game, expectedVersion, {
     guesser_participant_id: user.id, status: 'active', joined_at: joinedAt,
-    guesser_history_consent_at: joinedAt, invitation_digest: null
+    guesser_history_consent_at: joinedAt, invitation_digest: null,
+    join_idempotency_key: `${user.id}:${idempotencyKey}`
   })
-  const persisted = await dataProvider.get(COLLECTIONS.brewDoneItGames, id)
   if (String(persisted?.guesser_participant_id) !== String(user.id) || persisted?.status !== 'active') {
     throw brewDoneItError('Game invitation was claimed by another participant.', 409)
   }
-  const round = firstRecord(await dataProvider.create(COLLECTIONS.brewDoneItRounds, {
-    game_id: persisted.id, round_number: 1,
-    selector_participant_id: persisted.selector_participant_id,
-    guesser_participant_id: persisted.guesser_participant_id,
-    selected_product_id: null, status: 'awaiting_selection', turn_sequence: 0,
-    max_turns: BREW_DONE_IT_RULES.maxGuesses, question_count: 0,
-    created_at: joinedAt, started_at: null, completed_at: null, completion_reason: null
-  }))
+  const round = await ensureInitialBrewDoneItRound(persisted, joinedAt)
   response.status(200).json({ game: projectBrewDoneItGame(persisted), round: projectBrewDoneItRound(round, user.id) })
 }
 
@@ -588,7 +660,17 @@ const activeRatingMatches = (rating, userId, cutoff, product, predicate) => {
 }
 
 const resolveBrewDoneItHistoryQuestion = async (roundId, request, response, user) => {
+  const { expectedVersion, idempotencyKey } = transitionInput(request)
   const { round, game } = await getBrewDoneItRound(roundId, user)
+  const requestKey = `${user.id}:${idempotencyKey}`
+  const [replayed] = normaliseList(await dataProvider.list(COLLECTIONS.brewDoneItHistoryQuestions, {
+    round_id: round.id, idempotency_key: requestKey
+  }))
+  if (replayed) {
+    response.status(200).json({ predicate: replayed.predicate, answer: Boolean(replayed.answer), version: Number(round.version), replayed: true })
+    return
+  }
+  assertVersion(round, expectedVersion)
   if (game.status !== 'active' || round.status !== 'guessing' || !round.selected_product_id) {
     throw brewDoneItError('Shared-history questions are available only during an active round.', 409)
   }
@@ -596,8 +678,8 @@ const resolveBrewDoneItHistoryQuestion = async (roundId, request, response, user
     throw brewDoneItError('Both participants must consent to shared-history questions.')
   }
   const body = request.body && typeof request.body === 'object' ? request.body : {}
-  const suppliedFields = Object.keys(body)
-  if (suppliedFields.length !== 1 || suppliedFields[0] !== 'predicate' || !Object.hasOwn(HISTORY_PREDICATES, body.predicate)) {
+  const allowedFields = new Set(['predicate', 'expectedVersion', 'idempotencyKey'])
+  if (Object.keys(body).some((field) => !allowedFields.has(field)) || !Object.hasOwn(HISTORY_PREDICATES, body.predicate)) {
     throw brewDoneItError('The history predicate is not allowed.', 400)
   }
   const existing = normaliseList(await dataProvider.list(COLLECTIONS.brewDoneItHistoryQuestions, { round_id: round.id }))
@@ -632,32 +714,90 @@ const resolveBrewDoneItHistoryQuestion = async (roundId, request, response, user
     await dataProvider.create(COLLECTIONS.brewDoneItHistoryQuestions, {
       round_id: round.id, predicate: body.predicate, question_sequence: existing.length + 1,
       uniqueness_key: `${round.id}:${body.predicate}`, asked_by_participant_id: user.id,
-      answer, answered_at: new Date().toISOString()
+      answer, answered_at: new Date().toISOString(), idempotency_key: requestKey
     })
   } catch (error) {
     if (dataProvider.isUniqueConflict(error)) throw brewDoneItError('This shared-history question has already been asked.', 409)
     throw error
   }
-  await dataProvider.update(COLLECTIONS.brewDoneItRounds, round.id, { question_count: existing.length + 1 })
-  response.status(200).json({ predicate: body.predicate, answer })
+  const persisted = await compareAndSet(COLLECTIONS.brewDoneItRounds, round, expectedVersion, { question_count: existing.length + 1 })
+  response.status(200).json({ predicate: body.predicate, answer, version: Number(persisted.version) })
+}
+
+const transitionBrewDoneItGame = async (gameId, action, request, response, user) => {
+  const { expectedVersion, idempotencyKey } = transitionInput(request)
+  const game = await getBrewDoneItGame(gameId, user)
+  const requestKey = `${user.id}:${idempotencyKey}`
+  if (game.terminal_idempotency_key === requestKey) {
+    response.status(200).json({ game: projectBrewDoneItGame(game), replayed: true }); return
+  }
+  assertVersion(game, expectedVersion)
+  const now = new Date().toISOString()
+  if (action === 'cancel') {
+    if (game.status !== 'waiting' || String(game.selector_participant_id) !== String(user.id)) {
+      throw brewDoneItError('Only the selector can cancel a waiting invitation.', 409)
+    }
+  } else if (action === 'expire') {
+    if (game.status !== 'waiting' || Date.parse(game.expires_at) > Date.now()) {
+      throw brewDoneItError('This invitation is not eligible for expiry.', 409)
+    }
+  } else if (action === 'forfeit') {
+    if (game.status !== 'active') throw brewDoneItError('Only an active game can be forfeited.', 409)
+  } else throw brewDoneItError('Game transition not found.', 404)
+
+  const status = action === 'cancel' ? 'cancelled' : action === 'expire' ? 'expired' : 'forfeited'
+  const persisted = await compareAndSet(COLLECTIONS.brewDoneItGames, game, expectedVersion, {
+    status, completion_reason: action, completed_at: now,
+    ...(action === 'cancel' ? { cancelled_at: now } : {}), terminal_idempotency_key: requestKey
+  })
+  const rounds = normaliseList(await dataProvider.list(COLLECTIONS.brewDoneItRounds, { game_id: game.id }))
+  const activeRound = rounds.find((round) => ['awaiting_selection', 'guessing'].includes(round.status))
+  if (activeRound) await compareAndSet(COLLECTIONS.brewDoneItRounds, activeRound, Number(activeRound.version || 0), {
+    status, completion_reason: action, completed_at: now, awarded_points: 0
+  })
+  response.status(200).json({ game: projectBrewDoneItGame(persisted) })
 }
 
 const selectBrewDoneItProduct = async (roundId, request, response, user) => {
+  const { expectedVersion, idempotencyKey } = transitionInput(request)
   const { round } = await getBrewDoneItRound(roundId, user)
+  const requestKey = `${user.id}:${idempotencyKey}`
+  if (round.selection_idempotency_key === requestKey) {
+    response.status(200).json({ round: projectBrewDoneItRound(round, user.id), replayed: true })
+    return
+  }
+  assertVersion(round, expectedVersion)
   if (String(round.selector_participant_id) !== String(user.id)) throw brewDoneItError('Only the selector can choose the beer.')
   if (round.status !== 'awaiting_selection' || round.selected_product_id) throw brewDoneItError('This round cannot be changed.', 409)
   const { productId } = sanitiseBrewDoneItSelectionInput(request.body)
   if (!await dataProvider.get(COLLECTIONS.products, productId)) throw brewDoneItError('Product not found.', 404)
   const startedAt = new Date().toISOString()
-  await dataProvider.update(COLLECTIONS.brewDoneItRounds, round.id, {
-    selected_product_id: productId, status: 'guessing', started_at: startedAt
+  const persisted = await compareAndSet(COLLECTIONS.brewDoneItRounds, round, expectedVersion, {
+    selected_product_id: productId, status: 'guessing', started_at: startedAt,
+    selection_idempotency_key: requestKey
   })
-  const persisted = await dataProvider.get(COLLECTIONS.brewDoneItRounds, round.id)
   response.status(200).json({ round: projectBrewDoneItRound(persisted, user.id) })
 }
 
 const submitBrewDoneItGuess = async (roundId, request, response, user) => {
+  const { expectedVersion, idempotencyKey } = transitionInput(request)
   const { round, game } = await getBrewDoneItRound(roundId, user)
+  const requestKey = `${user.id}:${idempotencyKey}`
+  const [replayedGuess] = normaliseList(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, {
+    round_id: round.id, idempotency_key: requestKey
+  }))
+  if (replayedGuess) {
+    if (round.status === 'completed' && game.status === 'active') {
+      await compareAndSet(COLLECTIONS.brewDoneItGames, game, Number(game.version || 0), {
+        status: 'completed', completed_at: round.completed_at, completion_reason: round.completion_reason
+      })
+    }
+    response.status(200).json({
+      guess: projectBrewDoneItGuess(replayedGuess), round: projectBrewDoneItRound(round, user.id), replayed: true
+    })
+    return
+  }
+  assertVersion(round, expectedVersion)
   if (String(round.guesser_participant_id) !== String(user.id)) throw brewDoneItError('Only the designated guesser can submit a guess.')
   if (round.status !== 'guessing' || !round.selected_product_id) throw brewDoneItError('This round is not accepting guesses.', 409)
   const guess = sanitiseBrewDoneItGuessInput(request.body)
@@ -702,14 +842,14 @@ const submitBrewDoneItGuess = async (roundId, request, response, user) => {
       round_id: round.id, guesser_participant_id: user.id, turn_sequence: turnSequence,
       uniqueness_key: `${round.id}:${turnSequence}`, guess_type: guess.guessType,
       guessed_reference_id: guess.guessId, is_correct: correct, awarded_points: awardedPoints,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(), idempotency_key: requestKey
     }))
   } catch (error) {
     if (dataProvider.isUniqueConflict(error)) throw brewDoneItError('This turn has already been submitted.', 409)
     throw error
   }
   const completedAt = completed ? new Date().toISOString() : null
-  await dataProvider.update(COLLECTIONS.brewDoneItRounds, round.id, {
+  const persisted = await compareAndSet(COLLECTIONS.brewDoneItRounds, round, expectedVersion, {
     turn_sequence: turnSequence, status: completed ? 'completed' : 'guessing',
     completed_at: completedAt, completion_reason: completionReason,
     ...(completed ? {
@@ -718,8 +858,9 @@ const submitBrewDoneItGuess = async (roundId, request, response, user) => {
       score_breakdown: { ...score.breakdown, items: score.items }
     } : {})
   })
-  if (completed) await dataProvider.update(COLLECTIONS.brewDoneItGames, game.id, { status: 'completed', completed_at: completedAt })
-  const persisted = await dataProvider.get(COLLECTIONS.brewDoneItRounds, round.id)
+  if (completed && game.status === 'active') await compareAndSet(COLLECTIONS.brewDoneItGames, game, Number(game.version || 0), {
+    status: 'completed', completed_at: completedAt, completion_reason: completionReason
+  })
   if (Number(persisted?.turn_sequence) !== turnSequence || (completed && (
     persisted?.status !== 'completed' || persisted?.scoring_rules_version !== score.version ||
     Number(persisted?.awarded_points) !== score.total || !persisted?.score_breakdown
@@ -756,6 +897,9 @@ const routeRequest = async (request, response, user, correlationId) => {
   }
   if (resource === 'brew-done-it' && id === 'games' && !action && request.method === 'POST') return createBrewDoneItGame(request, response, user)
   if (resource === 'brew-done-it' && id === 'games' && action && segments[3] === 'join' && request.method === 'POST') return joinBrewDoneItGame(action, request, response, user)
+  if (resource === 'brew-done-it' && id === 'games' && action && ['cancel', 'expire', 'forfeit'].includes(segments[3]) && request.method === 'POST') {
+    return transitionBrewDoneItGame(action, segments[3], request, response, user)
+  }
   if (resource === 'brew-done-it' && id === 'games' && action && !segments[3] && request.method === 'GET') return showBrewDoneItGame(action, response, user)
   if (resource === 'brew-done-it' && id === 'rounds' && action && segments[3] === 'selection' && request.method === 'POST') return selectBrewDoneItProduct(action, request, response, user)
   if (resource === 'brew-done-it' && id === 'rounds' && action && segments[3] === 'guesses' && request.method === 'POST') return submitBrewDoneItGuess(action, request, response, user)
@@ -836,7 +980,7 @@ export default async function handler(request, response) {
         name: error.name
       })
     }
-    response.status(status).json({
+    response.status(status).json(error.payload || {
       error: status < 500 && error.message ? error.message : safeErrorMessage(status),
       requestId: correlationId
     })
@@ -856,6 +1000,6 @@ export const __testables = {
   updateProfile,
   submitRating,
   createBrewDoneItGame, joinBrewDoneItGame, selectBrewDoneItProduct, submitBrewDoneItGuess,
-  showBrewDoneItGame, brewDoneItStats, resolveBrewDoneItHistoryQuestion,
+  showBrewDoneItGame, brewDoneItStats, resolveBrewDoneItHistoryQuestion, transitionBrewDoneItGame,
   HISTORY_PREDICATES, MAX_HISTORY_QUESTIONS_PER_ROUND
 }

@@ -163,8 +163,11 @@ No client route is part of this delivery.
 | `id` | Provider-generated positive primary key. |
 | `selector_participant_id` | Non-null immutable authentication subject; always copied from the creating session. |
 | `guesser_participant_id` | Immutable authentication subject set once by the gateway when a different authenticated user proves possession of the one-time invitation. Never accepted as a client field. |
-| `invitation_digest` | SHA-256 digest of a 256-bit random invitation; server-only, unique, cleared on join and never projected. |
-| `status` | Server-only enum: `waiting`, `active`, `completed`. |
+| `invitation_digest` | SHA-256 digest of an opaque 256-bit HMAC-derived invitation; server-only, unique, cleared on join and never projected. |
+| `status` | Server-only enum: `waiting`, `active`, `completed`, `forfeited`, `expired`, or `cancelled`. |
+| `version` | Non-negative monotonic transition version. Every conditional mutation increments it exactly once. |
+| `expires_at`, `cancelled_at`, `completion_reason` | Server deadlines and terminal audit fields. Waiting invitations may expire or be cancelled; active games may complete or be forfeited. |
+| `creation_idempotency_key`, `join_idempotency_key`, `terminal_idempotency_key` | Server-scoped stable retry keys. Unique constraints include the authenticated actor; values are never projected. |
 | `created_at`, `joined_at`, `completed_at` | Server timestamps; nullable only before the corresponding transition. |
 | `selector_history_consent_at`, `guesser_history_consent_at` | Server timestamps written only after that authenticated participant submits literal `historyConsent: true`; both are required before questions. |
 
@@ -175,9 +178,11 @@ No client route is part of this delivery.
 | `id`, `game_id`, `round_number` | Provider primary key, non-null game reference and positive sequence; `(game_id, round_number)` is unique. MVP has one round. |
 | `selector_participant_id`, `guesser_participant_id` | Non-null immutable copies of the game's authenticated participants. Provider constraints or a server workflow must prevent changes. |
 | `selected_product_id` | Existing `products.id`, set once by the selector through the gateway; hidden from the guesser until completion. |
-| `status` | Server-only enum: `awaiting_selection`, `guessing`, `completed`. No completed round can transition again. |
+| `status` | Server-only enum: `awaiting_selection`, `guessing`, `completed`, `forfeited`, `expired`, or `cancelled`. No terminal round can transition again. |
+| `version` | Non-negative monotonic turn version returned to both participants and required as `expectedVersion` on every mutation. |
+| `selection_idempotency_key` | Actor-scoped stable retry key for the one selection transition; server-only and unique. |
 | `turn_sequence`, `max_turns` | Server-owned non-negative current turn and immutable limit (six for MVP). |
-| `question_count` | Server-owned count from 0 through 6 of controlled questions used in this round. |
+| `question_count` | Server-owned count from 0 through 2 of controlled questions used in this round. |
 | `created_at`, `started_at`, `completed_at` | Server timestamps. |
 | `completion_reason` | Server-only nullable enum: `correct_guess` or `turn_limit`; required exactly when completed. |
 | `scoring_rules_version`, `awarded_points`, `score_breakdown` | Required exactly when completed. The immutable semantic version, clamped authoritative total and itemised JSON award/penalty/question totals are calculated by the gateway and retained so historical results are never rewritten. |
@@ -193,6 +198,7 @@ No client route is part of this delivery.
 | `guessed_reference_id` | Existing canonical ID in the collection selected by `guess_type`: `products`, `producers`, or `categories`. No labels are persisted or compared. |
 | `is_correct`, `awarded_points` | Server-derived exact-product completion flag and itemised points (including an incorrect-guess penalty). The gateway reloads the selected product, catalogue relationships, maintained category hierarchy and prior guesses, then invokes scoring contract v1.0.0. |
 | `created_at` | Immutable server timestamp. |
+| `idempotency_key` | Stable actor-scoped request key, unique for the round and retained for retry reconciliation. |
 
 ### `brew_done_it_history_questions`
 
@@ -210,8 +216,15 @@ denies questions. Private profiles do not prevent a consented boolean, but
 deleted ratings (including soft-deleted rows) and ratings whose `date_rated` is
 at or after the round's immutable `started_at` do not count.
 
+The finite state machine is `waiting -> active -> completed`, with
+`waiting -> cancelled`, `waiting -> expired`, and `active -> forfeited` as the
+only other game transitions. A round moves `awaiting_selection -> guessing ->
+completed`, or follows its parent into the matching terminal cancellation,
+expiry, or forfeiture state. Terminal states have no outgoing transitions.
+
 The explicit application surface is `POST /brew-done-it/games`, `POST
 /brew-done-it/games/:id/join`, `GET /brew-done-it/games/:id`, `POST
+/brew-done-it/games/:id/cancel|expire|forfeit`, `POST
 /brew-done-it/rounds/:id/selection`, `POST
 /brew-done-it/rounds/:id/guesses`, `POST /brew-done-it/rounds/:id/history-questions`,
 and `GET /brew-done-it/stats` below the
@@ -223,7 +236,18 @@ guess; a completed round rejects every mutation. Game reads omit
 `invitation_digest`; round reads omit `selected_product_id` for the guesser until
 completion. Statistics count only authorised completed games/rounds and sum
 each round's persisted versioned authoritative total; browser totals and
-breakdowns are never accepted.
+breakdowns are never accepted. Mutations require a 16–128 character stable
+`idempotencyKey` and the last observed `expectedVersion`; stale and out-of-turn
+requests receive a safe `409 VERSION_CONFLICT` with only the current version.
+The gateway checks participant relationship, immutable role, FSM state,
+expected version and question/turn limit before writing. Provider conditional
+writes fence concurrent transitions, while persisted request keys reconcile a
+retry after a response is lost. Completed-round statistics read the one
+immutable round total, so request replay cannot add a second award.
+
+The browser uses bounded refresh rather than introducing a real-time transport:
+`brewDoneItService` polls no faster than once per second, defaults to two seconds
+and 30 attempts, caps at 120 attempts, and stops on abort or a terminal game.
 
 ### Safe rollout and rollback
 

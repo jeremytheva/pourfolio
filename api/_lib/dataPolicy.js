@@ -26,15 +26,17 @@ export const ATTRIBUTE_FIELDS = Object.freeze(['id', 'category_id', 'attribute_n
 export const BONUS_FIELDS = Object.freeze(['id', 'description', 'point_value'])
 export const PROFILE_FIELDS = Object.freeze(['id', 'name', 'description', 'avatar_url'])
 export const BREW_DONE_IT_GAME_FIELDS = Object.freeze([
-  'id', 'selector_participant_id', 'guesser_participant_id', 'status', 'created_at', 'joined_at', 'completed_at'
+  'id', 'selector_participant_id', 'guesser_participant_id', 'status', 'created_at', 'joined_at', 'completed_at',
+  'version', 'expires_at', 'cancelled_at', 'completion_reason'
 ])
 export const BREW_DONE_IT_ROUND_FIELDS = Object.freeze([
   'id', 'game_id', 'round_number', 'selector_participant_id', 'guesser_participant_id', 'status',
   'turn_sequence', 'max_turns', 'question_count', 'created_at', 'started_at', 'completed_at', 'completion_reason',
-  'scoring_rules_version', 'awarded_points', 'score_breakdown'
+  'scoring_rules_version', 'awarded_points', 'score_breakdown', 'version'
 ])
 export const BREW_DONE_IT_GUESS_FIELDS = Object.freeze([
-  'id', 'round_id', 'turn_sequence', 'guess_type', 'guessed_reference_id', 'is_correct', 'awarded_points', 'created_at'
+  'id', 'round_id', 'turn_sequence', 'guess_type', 'guessed_reference_id', 'is_correct', 'awarded_points', 'created_at',
+  'idempotency_key'
 ])
 
 const requirePlainObject = (input) => {

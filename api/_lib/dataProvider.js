@@ -82,6 +82,12 @@ export const dataProvider = {
     return providerRequest(`${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body })
   },
 
+  compareAndSet(collection, id, expectedVersion, body) {
+    return providerRequest(`${collection}/${encodeURIComponent(id)}`, {
+      method: 'PUT', body, filters: { expected_version: expectedVersion }
+    })
+  },
+
   remove(collection, id) {
     return providerRequest(`${collection}/${encodeURIComponent(id)}`, { method: 'DELETE' })
   }
