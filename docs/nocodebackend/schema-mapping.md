@@ -10,7 +10,7 @@ This is the launch contract for the beer-first MVP. It is derived from:
 
 The obsolete `*_pf2025` collection names and `beverage_id` field are not part of this contract. The browser accesses these collections only through the authenticated application gateway in `api/nocodebackend/[...path].js`.
 
-### Atomic-workflow verification (28 July 2026)
+### Atomic-workflow verification (29 July 2026)
 
 The connected runtime could not be interrogated: neither
 `NOCODEBACKEND_DATA_BASE_URL` nor `NOCODEBACKEND_SECRET_KEY` is present in the
@@ -23,6 +23,11 @@ not a claim that the provider can never support transactions. Operations must
 repeat this probe against the production-equivalent environment and may adopt a
 single provider transaction only after its atomic commit/abort behaviour is
 recorded with redacted API evidence.
+
+The 29 July certification attempt is recorded in the
+[rating workflow certification record](rating-workflow-certification.md). It was
+blocked before remote requests because this environment still has neither
+staging endpoint nor credential. No transaction has therefore been adopted.
 
 ## Collection summary
 
@@ -130,9 +135,11 @@ The gateway accepts the supplied schema fields through an explicit allowlist. `u
 7. Create missing children by deterministic `uniqueness_key`. Treat a unique
    conflict as success only after loading the row through owner filters and
    validating its owner, parent and key.
-8. Re-read every owner-scoped child. Mark the header `complete` and return
-   success only when exact expected key sets and counts match. Otherwise mark it
-   `failed`; a failure to record that state is logged without owner data.
+8. Re-read every owner-scoped child, including its parent, attribute or bonus
+   reference and score value. Mark the header `complete`, then re-read that
+   owner-scoped header and return success only when the exact expected child
+   sets and durable `complete` state match. Otherwise mark it `failed`; a
+   failure to record that state is logged without owner data.
 9. `POST /api/nocodebackend/ratings/reconcile` accepts the original submission
    body and performs this same owner-safe workflow. `submit` retries do likewise;
    both can resume `pending` or `failed` records after a timeout or partial write.

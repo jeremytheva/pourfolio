@@ -178,10 +178,21 @@ const validateSubmissionChildren = async (rating, userId, expectedScores, expect
   const ownedBonuses = normaliseList(bonuses).filter((item) => isOwnedBy(item, userId))
   const expectedScoreKeys = new Set(expectedScores.map((score) => scoreKey(key, score.attribute_id)))
   const expectedBonusKeys = new Set(expectedBonusIds.map((id) => bonusKey(key, id)))
+  const expectedScoresByKey = new Map(expectedScores.map((score) => [
+    scoreKey(key, score.attribute_id),
+    score
+  ]))
   return {
     complete: ownedScores.length === expectedScoreKeys.size && ownedBonuses.length === expectedBonusKeys.size &&
-      ownedScores.every((item) => expectedScoreKeys.has(item.uniqueness_key)) &&
-      ownedBonuses.every((item) => expectedBonusKeys.has(item.uniqueness_key)),
+      ownedScores.every((item) => {
+        const expected = expectedScoresByKey.get(item.uniqueness_key)
+        return expected && String(item.rating_id) === String(rating.id) &&
+          String(item.attribute_id) === String(expected.attribute_id) &&
+          String(item.attribute_score) === String(expected.attribute_score)
+      }) &&
+      ownedBonuses.every((item) => expectedBonusKeys.has(item.uniqueness_key) &&
+        String(item.rating_id) === String(rating.id) &&
+        item.uniqueness_key === bonusKey(key, item.bonus_attributes_id)),
     scoreKeys: new Set(ownedScores.map((item) => item.uniqueness_key)),
     bonusKeys: new Set(ownedBonuses.map((item) => item.uniqueness_key))
   }
@@ -300,7 +311,13 @@ const submitRating = async (request, response, user, correlationId) => {
 
     const completed = await validateSubmissionChildren(rating, user.id, totals.scores, requestedBonusIds, key)
     if (!completed.complete) throw new Error('Rating children remain incomplete after reconciliation.')
-    rating = { ...rating, ...firstRecord(await dataProvider.update(COLLECTIONS.ratings, rating.id, { submission_state: 'complete' })) }
+    await dataProvider.update(COLLECTIONS.ratings, rating.id, { submission_state: 'complete' })
+    const persistedRating = await dataProvider.get(COLLECTIONS.ratings, rating.id)
+    if (!isOwnedBy(persistedRating, user.id) || persistedRating.submission_fingerprint !== fingerprint ||
+      persistedRating.submission_state !== 'complete') {
+      throw new Error('Rating workflow state was not durably completed.')
+    }
+    rating = persistedRating
 
     response.status(duplicate ? 200 : 201).json({
       rating: projectRating({ ...rating, ...totals }),
