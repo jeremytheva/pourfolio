@@ -101,28 +101,28 @@ The backend-certification gate is complete only when the independent reviewer
 has checked dated, redacted evidence for every item below against the exact
 release candidate:
 
-- [ ] The two server-only variables are present in isolated staging and absent
+- [ ] [G01](#evidence-g01) — The two server-only variables are present in isolated staging and absent
   from browser bundles, repository files, command transcripts and evidence.
-- [ ] The canonical collections in
+- [ ] [G02](#evidence-g02) — The canonical collections in
   [the schema mapping](nocodebackend/schema-mapping.md) are provisioned, and an
   inventory proves that no legacy `*_pf2025` alias is used.
-- [ ] A production-equivalent, same-state schema export has been audited with
+- [ ] [G03](#evidence-g03) — A production-equivalent, same-state schema export has been audited with
   `npm run audit:schema -- --schema <export-path>` and the retained JSON report
   says `PASS`.
-- [ ] The schema evidence proves required non-null fields and uniqueness
+- [ ] [G04](#evidence-g04) — The schema evidence proves required non-null fields and uniqueness
   constraints, immutable ownership fields, rating idempotency fields and
   workflow-state permissions; an owner-scoped, controlled non-date update also
   proves that `ratings.date_rated` is unchanged.
-- [ ] Redacted provider transcripts exercise the precise paths, filters and
+- [ ] [G05](#evidence-g05) — Redacted provider transcripts exercise the precise paths, filters and
   response envelopes consumed by `api/_lib/dataProvider.js`: list, filtered
   list, get, create, update, delete, not-found fallback, unique conflict,
   malformed response, timeout and upstream failure.
-- [ ] For every launch collection exposed by
+- [ ] [G06](#evidence-g06) — For every launch collection exposed by
   `api/nocodebackend/[...path].js`, the permission matrix covers
   unauthenticated, owner, other-user and privileged negative cases. The
   privileged cases must demonstrate least privilege, not merely possession of
   a provider secret.
-- [ ] Evidence is dated, redacted, tied to the environment and release commit,
+- [ ] [G07](#evidence-g07) — Evidence is dated, redacted, tied to the environment and release commit,
   stored with the private release record, and approved by the independent
   reviewer before any corresponding P0 checkbox below is closed.
 
@@ -130,41 +130,41 @@ Partial completion does not permit this gate or a related P0 entry to be
 closed. A rerun is required after any schema, permission, provider-contract or
 release-candidate change.
 
-- [ ] Configure `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_DATA_BASE_URL` in staging and production.
-- [ ] Verify the configured data base URL accepts the gateway’s collection paths, query filters and create/update/delete response shapes.
-- [ ] Provision the canonical schema without `*_pf2025` aliases and make the rating schema preflight return `PASS`.
-- [ ] Apply non-null and unique rating controls through an approved provider migration, with cleanup, compatibility and rollback evidence.
-- [ ] Prove `date_rated` remains unchanged during controlled non-date updates.
-- [ ] Prove unauthenticated, owner, other-user and privileged negative permission cases for every collection.
-- [ ] Prove sequential and concurrent duplicate-rating retries return one persisted rating.
-- [ ] Repeat the atomic-workflow capability probe with configured staging credentials and retain redacted evidence.
-- [ ] Apply and prove the documented idempotency fields, constraints, state permissions and owner-safe reconciliation workflow, including forced partial writes and failed state updates.
-- [ ] Obtain complete, same-state products/producers exports and make the historical import preflight return `PASS`; the current source set references absent products and producer ID `0`.
-- [ ] Resolve the 69 unmatched historical bonus selections.
-- [ ] Assign valid owners and confirmed IDs to all 399 historical cellar records.
-- [ ] Run the historical import in non-production, rerun it to prove idempotency, and reconcile imported/rejected counts.
-- [ ] Rotate any credential that may have matched the former published admin hint.
+- [ ] [G08](#evidence-g08) — Configure `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_DATA_BASE_URL` in staging and production.
+- [ ] [G09](#evidence-g09) — Verify the configured data base URL accepts the gateway’s collection paths, query filters and create/update/delete response shapes.
+- [ ] [G10](#evidence-g10) — Provision the canonical schema without `*_pf2025` aliases and make the rating schema preflight return `PASS`.
+- [ ] [G11](#evidence-g11) — Apply non-null and unique rating controls through an approved provider migration, with cleanup, compatibility and rollback evidence.
+- [ ] [G12](#evidence-g12) — Prove `date_rated` remains unchanged during controlled non-date updates.
+- [ ] [G13](#evidence-g13) — Prove unauthenticated, owner, other-user and privileged negative permission cases for every collection.
+- [ ] [G14](#evidence-g14) — Prove sequential and concurrent duplicate-rating retries return one persisted rating.
+- [ ] [G15](#evidence-g15) — Repeat the atomic-workflow capability probe with configured staging credentials and retain redacted evidence.
+- [ ] [G16](#evidence-g16) — Apply and prove the documented idempotency fields, constraints, state permissions and owner-safe reconciliation workflow, including forced partial writes and failed state updates.
+- [ ] [G17](#evidence-g17) — Obtain complete, same-state products/producers exports and make the historical import preflight return `PASS`; the current source set references absent products and producer ID `0`.
+- [ ] [G18](#evidence-g18) — Resolve the 69 unmatched historical bonus selections.
+- [ ] [G19](#evidence-g19) — Assign valid owners and confirmed IDs to all 399 historical cellar records.
+- [ ] [G20](#evidence-g20) — Run the historical import in non-production, rerun it to prove idempotency, and reconcile imported/rejected counts.
+- [ ] [G21](#evidence-g21) — Rotate any credential that may have matched the former published admin hint.
 
 ## External P1 gates
 
-- [ ] Run browser end-to-end and WCAG 2.2 AA checks against the connected staging backend.
-- [ ] Implement and evidence the recovery, verification, export and deletion
+- [ ] [G22](#evidence-g22) — Run browser end-to-end and WCAG 2.2 AA checks against the connected staging backend.
+- [ ] [G23](#evidence-g23) — Implement and evidence the recovery, verification, export and deletion
   [acceptance contract](account-lifecycle-readiness.md); its current review is a
   design gate, not implementation evidence.
-- [ ] Publish reviewed privacy policy, terms, moderation/escalation procedure,
+- [ ] [G24](#evidence-g24) — Publish reviewed privacy policy, terms, moderation/escalation procedure,
   support contact and retention schedule at stable, accessible URLs, recording
   version and effective date in the private release record.
-- [ ] Complete appropriate Australian privacy/legal review and record the named
+- [ ] [G25](#evidence-g25) — Complete appropriate Australian privacy/legal review and record the named
   reviewer, date, scope, findings, resolutions, approval and re-review trigger;
   the current approval fields are explicitly incomplete.
-- [ ] Complete the documented production-equivalent export/deletion exercise and
+- [ ] [G26](#evidence-g26) — Complete the documented production-equivalent export/deletion exercise and
   reconcile its behaviour to the exact published policy version.
-- [ ] Configure central monitoring, redacted correlation-ID logging, alert ownership and service-level thresholds.
-- [ ] Complete backup, restore and deployment rollback rehearsals with evidence.
-- [ ] Enable GitHub branch protection, required checks, secret scanning and push protection.
-- [ ] Enable GitHub Dependency Graph and make the dependency-review check blocking.
-- [ ] Enable GitHub Issues or nominate another tracker for the remaining gates.
-- [ ] Test direct routes and `/api/health` on the production host.
+- [ ] [G27](#evidence-g27) — Configure central monitoring, redacted correlation-ID logging, alert ownership and service-level thresholds.
+- [ ] [G28](#evidence-g28) — Complete backup, restore and deployment rollback rehearsals with evidence.
+- [ ] [G29](#evidence-g29) — Enable GitHub branch protection, required checks, secret scanning and push protection.
+- [ ] [G30](#evidence-g30) — Enable GitHub Dependency Graph and make the dependency-review check blocking.
+- [ ] [G31](#evidence-g31) — Enable GitHub Issues or nominate another tracker for the remaining gates.
+- [ ] [G32](#evidence-g32) — Test direct routes and `/api/health` on the production host.
 
 The thresholds, safe central-logging contract, health semantics, alert-owner
 register, backup/restore procedure, rollback rehearsal and release ownership
@@ -182,3 +182,102 @@ Public launch requires:
 4. permission-negative tests passing;
 5. restore and rollback exercised;
 6. named technical, privacy, moderation and support owners.
+
+## Release evidence register
+
+This register links every launch checkbox to an accountable person and the
+private evidence reference that must be reviewed before it can close. The
+review date is **29 July 2026**. `PRR` references are identifiers in the
+access-controlled private release record, not public links: the underlying
+artefacts may contain operational metadata and must remain redacted and access
+controlled. A reference marked `not supplied` is evidence of an unresolved
+blocker, **not** evidence that the gate passed.
+
+The repository can name `@jeremytheva` as the person accountable for obtaining
+or assigning every missing artefact. It cannot invent the independent technical,
+privacy/legal, moderation, support, or backup owners. Where specialist approval
+is required, the missing named approver remains an explicit blocker even though
+the action has an accountable owner.
+
+| Gate | Accountable owner | Dated, redacted evidence | Result on frozen candidate |
+| --- | --- | --- | --- |
+| <a id="evidence-g01"></a>G01: The two server-only variables are present in isolated staging and… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G01`: not supplied | **BLOCKED** |
+| <a id="evidence-g02"></a>G02: The canonical collections in | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G02`: not supplied | **BLOCKED** |
+| <a id="evidence-g03"></a>G03: A production-equivalent, same-state schema export has been audite… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G03`: not supplied | **BLOCKED** |
+| <a id="evidence-g04"></a>G04: The schema evidence proves required non-null fields and uniqueness | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G04`: not supplied | **BLOCKED** |
+| <a id="evidence-g05"></a>G05: Redacted provider transcripts exercise the precise paths, filters… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G05`: not supplied | **BLOCKED** |
+| <a id="evidence-g06"></a>G06: For every launch collection exposed by | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G06`: not supplied | **BLOCKED** |
+| <a id="evidence-g07"></a>G07: Evidence is dated, redacted, tied to the environment and release … | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G07`: not supplied | **BLOCKED** |
+| <a id="evidence-g08"></a>G08: Configure `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_DATA_BASE… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G08`: not supplied | **BLOCKED** |
+| <a id="evidence-g09"></a>G09: Verify the configured data base URL accepts the gateway’s collect… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G09`: not supplied | **BLOCKED** |
+| <a id="evidence-g10"></a>G10: Provision the canonical schema without `*_pf2025` aliases and mak… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G10`: not supplied | **BLOCKED** |
+| <a id="evidence-g11"></a>G11: Apply non-null and unique rating controls through an approved pro… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G11`: not supplied | **BLOCKED** |
+| <a id="evidence-g12"></a>G12: Prove `date_rated` remains unchanged during controlled non-date u… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G12`: not supplied | **BLOCKED** |
+| <a id="evidence-g13"></a>G13: Prove unauthenticated, owner, other-user and privileged negative … | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G13`: not supplied | **BLOCKED** |
+| <a id="evidence-g14"></a>G14: Prove sequential and concurrent duplicate-rating retries return o… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G14`: not supplied | **BLOCKED** |
+| <a id="evidence-g15"></a>G15: Repeat the atomic-workflow capability probe with configured stagi… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G15`: not supplied | **BLOCKED** |
+| <a id="evidence-g16"></a>G16: Apply and prove the documented idempotency fields, constraints, s… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G16`: not supplied | **BLOCKED** |
+| <a id="evidence-g17"></a>G17: Obtain complete, same-state products/producers exports and make t… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G17`: not supplied | **BLOCKED** |
+| <a id="evidence-g18"></a>G18: Resolve the 69 unmatched historical bonus selections. | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G18`: not supplied | **BLOCKED** |
+| <a id="evidence-g19"></a>G19: Assign valid owners and confirmed IDs to all 399 historical cella… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G19`: not supplied | **BLOCKED** |
+| <a id="evidence-g20"></a>G20: Run the historical import in non-production, rerun it to prove id… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G20`: not supplied | **BLOCKED** |
+| <a id="evidence-g21"></a>G21: Rotate any credential that may have matched the former published … | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G21`: not supplied | **BLOCKED** |
+| <a id="evidence-g22"></a>G22: Run browser end-to-end and WCAG 2.2 AA checks against the connect… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G22`: not supplied | **BLOCKED** |
+| <a id="evidence-g23"></a>G23: Implement and evidence the recovery, verification, export and del… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G23`: not supplied | **BLOCKED** |
+| <a id="evidence-g24"></a>G24: Publish reviewed privacy policy, terms, moderation/escalation pro… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G24`: not supplied | **BLOCKED** |
+| <a id="evidence-g25"></a>G25: Complete appropriate Australian privacy/legal review and record t… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G25`: not supplied | **BLOCKED** |
+| <a id="evidence-g26"></a>G26: Complete the documented production-equivalent export/deletion exe… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G26`: not supplied | **BLOCKED** |
+| <a id="evidence-g27"></a>G27: Configure central monitoring, redacted correlation-ID logging, al… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G27`: not supplied | **BLOCKED** |
+| <a id="evidence-g28"></a>G28: Complete backup, restore and deployment rollback rehearsals with … | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G28`: not supplied | **BLOCKED** |
+| <a id="evidence-g29"></a>G29: Enable GitHub branch protection, required checks, secret scanning… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G29`: not supplied | **BLOCKED** |
+| <a id="evidence-g30"></a>G30: Enable GitHub Dependency Graph and make the dependency-review che… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G30`: not supplied | **BLOCKED** |
+| <a id="evidence-g31"></a>G31: Enable GitHub Issues or nominate another tracker for the remainin… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G31`: not supplied | **BLOCKED** |
+| <a id="evidence-g32"></a>G32: Test direct routes and `/api/health` on the production host. | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G32`: not supplied | **BLOCKED** |
+
+### Frozen-candidate decision record
+
+The candidate is frozen by the Git commit created from this review; its full
+SHA must be recorded in `PRR-2026-07-29-RC` after commit creation and must be the
+SHA supplied to the connected staging workflow. A Git SHA cannot truthfully be
+embedded in the content of the commit it identifies. No staging or production
+deployment is authorised from this review because every register entry above
+is blocked and the environment supplies no deployment credentials or remote
+administration access.
+
+**Decision: NO-GO.** Release management must create one public, non-sensitive
+issue per unresolved item using the **Release blocker** issue form, then keep
+private evidence in the access-controlled release record. Production promotion
+is prohibited while any P0 or P1 issue remains open.
+
+### Approval record
+
+| Review | Required named approver | Evidence/date | Decision |
+| --- | --- | --- | --- |
+| Technical | Independent technical reviewer (not yet named) | Not supplied | **BLOCKED** |
+| Privacy/legal | Qualified Australian privacy/legal reviewer (not yet named) | Not supplied | **BLOCKED** |
+| Moderation | Moderation and safety owner (not yet named) | Not supplied | **BLOCKED** |
+| Support | User support owner (not yet named) | Not supplied | **BLOCKED** |
+
+Explicit approval means an individually named reviewer records approval,
+date, scope, frozen SHA, findings and resolutions in the private record.
+Silence, a role label, a workflow result, or this repository review is not
+approval.
+
+### Post-deployment evidence (not authorised)
+
+If a later review closes every gate and authorises promotion, retain one
+redacted smoke report tied to the deployed SHA covering direct SPA routes,
+authentication, catalogue list/search/details, rating create/retry/recovery and
+history, cellar CRUD, profile editing, `/api/health`, correlation-safe logging,
+and every alert route. Record UTC start/end times, operator, reviewer, result
+per check, production deployment identifier, monitoring links, observed data
+reconciliation, and the explicit rollback decision.
+
+The rollback decision window starts at promotion and remains open for at
+least **60 minutes** after the last successful smoke check. During that window
+the operator and incident owner must watch all six production indicators in
+[the operations runbook](OPERATIONS_READINESS.md). Roll back immediately for an
+owner-boundary failure, inconsistent rating data, incompatible API/schema,
+failed critical journey, health/configuration regression, missing safe logs, or
+an unrouteable P0/P1 alert. The authorised release manager may close the window
+only after recording a `retain` decision and reviewer concurrence.
