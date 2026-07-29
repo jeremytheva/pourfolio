@@ -25,3 +25,22 @@ Use **Status**, **Project or product**, **Type**, **Priority**, **Complexity**, 
 - [ ] Configure authorised Codex repository access and Codex pull-request review where available.
 - [ ] Configure GitHub Project fields, labels, and automation.
 - [ ] Confirm Actions permissions remain least privilege.
+
+### Release-critical administrator evidence
+
+Before changing any checkbox, record the repository, administrator, UTC time
+and a private screenshot or settings-export reference. For the default branch,
+prove pull requests and up-to-date `Release gate`, `Browser and accessibility`,
+CodeQL checks are required, and force pushes and deletion are disabled. Prove
+production environment access and secrets are restricted to authorised
+deployers. Prove secret scanning, push protection and Dependency Graph are
+enabled rather than merely available under the organisation plan.
+
+Do not remove `continue-on-error: true` from
+`.github/workflows/pull-request-validation.yml` until an administrator has
+enabled Dependency Graph and retained that evidence. After enabling it, remove
+the exception in a separate reviewed change, observe a successful Dependency
+review run on a pull request, and then make `Dependency review` required. As of
+29 July 2026 no repository-administrator evidence is available in this delivery
+environment, so these settings and the workflow change remain blocking and are
+not claimed as complete.
