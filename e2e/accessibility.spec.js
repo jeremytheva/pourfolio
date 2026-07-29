@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import { installMockApi } from './mockApi.js'
 
-const routes = ['/home', '/products/4', '/products/4/rate', '/cellar', '/profile']
+const routes = ['/home', '/products/4', '/products/4/rate', '/cellar', '/profile', '/brew-done-it']
 
 test('/login has no serious or critical automated accessibility violations', async ({ page }) => {
   await page.route('**/api/nocodebackend/auth/get-session', (route) => route.fulfill({
