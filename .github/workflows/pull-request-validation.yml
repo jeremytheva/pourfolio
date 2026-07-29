@@ -47,10 +47,6 @@ jobs:
         uses: actions/checkout@v7
       - name: Review dependency changes
         uses: actions/dependency-review-action@v5
-        # The action reports a configuration warning until a repository
-        # administrator enables Dependency Graph. Production audit remains
-        # blocking in the Release gate.
-        continue-on-error: true
         with:
           fail-on-severity: high
 

@@ -1,0 +1,65 @@
+name: Release blocker
+description: Assign one unresolved P0 or P1 launch gate without exposing private evidence.
+title: "[Release blocker]: "
+labels: ["type: release", "status: blocked"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Use one issue per unresolved release gate. Do not paste credentials,
+        personal data, private contact routes, raw exports, or unredacted
+        provider evidence into this public tracker.
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options: [P0, P1]
+    validations: { required: true }
+  - type: input
+    id: readiness-gate
+    attributes:
+      label: Launch-readiness gate
+      description: Link the exact checkbox or evidence-register row in docs/LAUNCH_READINESS.md.
+    validations: { required: true }
+  - type: input
+    id: owner
+    attributes:
+      label: Individually named owner
+      description: Name the accountable person, not only a team or role.
+    validations: { required: true }
+  - type: input
+    id: target-date
+    attributes:
+      label: Target date
+      placeholder: YYYY-MM-DD
+    validations: { required: true }
+  - type: textarea
+    id: blocker
+    attributes:
+      label: Blocking condition
+      description: State the missing outcome without including sensitive evidence.
+    validations: { required: true }
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance and verification
+      description: Define the PASS result, exact check, independent reviewer, and safe evidence expected.
+      placeholder: |-
+        - [ ] Required outcome is complete.
+        - [ ] Check passes on the frozen release SHA.
+        - [ ] Dated, redacted evidence is retained in the private release record.
+        - [ ] Independent reviewer approves the evidence.
+    validations: { required: true }
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Safety and rollback
+      description: Record data, security, privacy, accessibility, and rollback implications.
+    validations: { required: true }
+  - type: checkboxes
+    id: hygiene
+    attributes:
+      label: Evidence hygiene
+      options:
+        - label: This issue contains no secrets, personal data, private routes, or unredacted operational evidence.
+          required: true
