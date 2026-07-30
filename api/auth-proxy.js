@@ -136,7 +136,7 @@ export default async function handler(request, response) {
   if (!enforceRequestSize(request, response) || !enforceOrigin(request, response)) return
   const rateLimit = rateLimitPolicyFor(path)
   if (!enforceRateLimit(request, response, { key: `auth:${rateLimit.name}`, ...rateLimit })) return
-  if (!await enforceSharedRateLimit(request, response, path)) return
+  if (!await enforceSharedRateLimit(request, response, path, { requestId: correlationId })) return
 
   try {
     const upstream = await withTimeout((signal) => fetch(buildUpstreamUrl(request, path), {

@@ -30,6 +30,25 @@ test('shared limit allows the boundary and rejects the next operation', async ()
   assert.equal((await call(9)).allowed, false)
 })
 
+test('rejected requests retain the generic response and correlation ID', async () => {
+  const response = {
+    headers: {},
+    setHeader(name, value) { this.headers[name] = value },
+    status(code) { this.statusCode = code; return this },
+    json(body) { this.body = body }
+  }
+  assert.equal(await enforceSharedRateLimit(request(), response, 'verify-otp', {
+    keySecret: 'secret',
+    requestId: 'request-123',
+    redis: { eval: async () => [9, 60_000] }
+  }), false)
+  assert.equal(response.statusCode, 429)
+  assert.deepEqual(response.body, {
+    error: 'Too many requests. Please try again shortly.',
+    requestId: 'request-123'
+  })
+})
+
 test('atomic shared operation attaches the configured expiration to a new bucket', async () => {
   let command
   await checkSharedRateLimit(request(), 'sign-up/email', {
@@ -45,18 +64,69 @@ test('atomic shared operation attaches the configured expiration to a new bucket
   assert.deepEqual(command[2], ['3600000'])
 })
 
-test('shared store failure fails authentication closed without leaking details', async () => {
+const captureFailure = async (options) => {
   const previousError = console.error
-  console.error = () => {}
+  const logs = []
+  console.error = (...values) => logs.push(values)
   const response = {
     setHeader() {}, status(code) { this.statusCode = code; return this }, json(body) { this.body = body }
   }
   try {
     assert.equal(await enforceSharedRateLimit(request(), response, 'sign-in/email', {
-      keySecret: 'secret',
-      redis: { eval: async () => { throw new Error('store unavailable') } }
+      requestId: 'request-123',
+      ...options
     }), false)
-    assert.equal(response.statusCode, 503)
-    assert.deepEqual(response.body, { error: 'Authentication is temporarily unavailable.' })
+    return { response, logs }
   } finally { console.error = previousError }
+}
+
+test('missing configuration fails closed with a safe correlated category', async () => {
+  const previousUrl = process.env.UPSTASH_REDIS_REST_URL
+  const previousToken = process.env.UPSTASH_REDIS_REST_TOKEN
+  delete process.env.UPSTASH_REDIS_REST_URL
+  delete process.env.UPSTASH_REDIS_REST_TOKEN
+  try {
+    const { response, logs } = await captureFailure({ keySecret: 'rate-limit-secret' })
+    assert.equal(response.statusCode, 503)
+    assert.deepEqual(response.body, {
+      error: 'Authentication is temporarily unavailable.',
+      requestId: 'request-123'
+    })
+    assert.deepEqual(logs, [[
+      'Shared authentication rate limiter unavailable',
+      { category: 'configuration', requestId: 'request-123' }
+    ]])
+    assert.equal(JSON.stringify({ response, logs }).includes('rate-limit-secret'), false)
+  } finally {
+    if (previousUrl === undefined) delete process.env.UPSTASH_REDIS_REST_URL
+    else process.env.UPSTASH_REDIS_REST_URL = previousUrl
+    if (previousToken === undefined) delete process.env.UPSTASH_REDIS_REST_TOKEN
+    else process.env.UPSTASH_REDIS_REST_TOKEN = previousToken
+  }
+})
+
+test('SDK command failures fail closed without leaking private inputs or raw errors', async () => {
+  const privateValues = [
+    'redis://user:token@private.example',
+    'rate-limit-secret',
+    'pourfolio:auth:signin:raw-key',
+    'Person@Example.COM',
+    '203.0.113.8',
+    'SDK exploded with token details'
+  ]
+  const { response, logs } = await captureFailure({
+    keySecret: privateValues[1],
+    redis: { eval: async () => { throw new Error(privateValues.join(' ')) } }
+  })
+  assert.equal(response.statusCode, 503)
+  assert.deepEqual(response.body, {
+    error: 'Authentication is temporarily unavailable.',
+    requestId: 'request-123'
+  })
+  assert.deepEqual(logs, [[
+    'Shared authentication rate limiter unavailable',
+    { category: 'sdk_command', requestId: 'request-123' }
+  ]])
+  const capturedOutput = JSON.stringify({ response, logs })
+  for (const privateValue of privateValues) assert.equal(capturedOutput.includes(privateValue), false)
 })
