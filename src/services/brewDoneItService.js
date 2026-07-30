@@ -32,6 +32,7 @@ export const transitionBrewDoneItGame = (gameId, action, expectedVersion, idempo
   apiRequest(`${gamePath(gameId)}/${action}`, {
     method: 'POST', body: mutationBody(expectedVersion, idempotencyKey)
   })
+export const getBrewDoneItStats = () => apiRequest('/brew-done-it/stats')
 
 export const pollBrewDoneItGame = async (gameId, {
   signal,

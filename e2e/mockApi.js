@@ -23,6 +23,12 @@ const rating = {
 }
 
 export const installMockApi = async (page) => {
+  let brewRound = null
+  let brewGame = null
+  let guessCount = 0
+  let staleOnce = true
+  const json = (route, body, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
+
   await page.route('**/api/nocodebackend/auth/get-session', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
@@ -125,5 +131,50 @@ export const installMockApi = async (page) => {
         }
       })
     })
+  })
+
+  await page.route('**/api/nocodebackend/brew-done-it/stats', (route) => json(route, {
+    completedGames: brewRound?.status === 'completed' ? 1 : 0,
+    completedRounds: brewRound?.status === 'completed' ? 1 : 0,
+    awardedPoints: brewRound?.awarded_points || 0
+  }))
+
+  await page.route('**/api/nocodebackend/brew-done-it/games', async (route) => {
+    brewGame = { id: 71, selector_participant_id: 'user-1', guesser_participant_id: null, status: 'waiting', version: 0 }
+    await json(route, { game: brewGame, invitationCode: 'mock_invitation_code_12345678901234567890' }, 201)
+  })
+
+  await page.route('**/api/nocodebackend/brew-done-it/games/71/join', async (route) => {
+    brewGame = { ...brewGame, guesser_participant_id: 'user-2', status: 'active', version: 1 }
+    brewRound = { id: 81, game_id: 71, selector_participant_id: 'user-1', guesser_participant_id: 'user-2', status: 'awaiting_selection', turn_sequence: 0, max_turns: 6, question_count: 0, version: 0 }
+    await json(route, { game: brewGame, round: brewRound })
+  })
+
+  await page.route('**/api/nocodebackend/brew-done-it/games/71', async (route) => {
+    if (brewRound?.status === 'guessing') brewGame = { ...brewGame, selector_participant_id: 'user-2', guesser_participant_id: 'user-1' }
+    await json(route, { game: brewGame, rounds: brewRound ? [brewRound] : [] })
+  })
+
+  await page.route('**/api/nocodebackend/brew-done-it/rounds/81/selection', async (route) => {
+    brewRound = { ...brewRound, status: 'guessing', version: 1, selected_product_id: 4 }
+    await json(route, { round: brewRound })
+  })
+
+  await page.route('**/api/nocodebackend/brew-done-it/rounds/81/history-questions', async (route) => {
+    brewRound = { ...brewRound, version: brewRound.version + 1, question_count: 1 }
+    await json(route, { predicate: route.request().postDataJSON().predicate, answer: true, version: brewRound.version })
+  })
+
+  await page.route('**/api/nocodebackend/brew-done-it/rounds/81/guesses', async (route) => {
+    const body = route.request().postDataJSON()
+    if (body.guessType === 'style' && staleOnce) {
+      staleOnce = false
+      return json(route, { error: 'The game changed before this request was applied.', code: 'VERSION_CONFLICT', currentVersion: brewRound.version }, 409)
+    }
+    guessCount += 1
+    const completed = body.guessType === 'product'
+    brewRound = { ...brewRound, version: brewRound.version + 1, turn_sequence: guessCount, status: completed ? 'completed' : 'guessing', ...(completed ? { selected_product_id: 4, completion_reason: 'correct_guess', awarded_points: 12, scoring_rules_version: '1.0.0' } : {}) }
+    if (completed) brewGame = { ...brewGame, status: 'completed' }
+    await json(route, { guess: { awarded_points: body.guessType === 'style' ? 3 : body.guessType === 'producer' ? 5 : 10 }, round: brewRound }, 201)
   })
 }
