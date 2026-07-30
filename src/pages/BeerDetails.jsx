@@ -94,6 +94,7 @@ function BeerDetails() {
 
   const category = product.declared_category || product.category?.category_name || 'Beer'
   const producer = product.producer?.producer_name || 'Producer not recorded'
+  const ratings = Array.isArray(product.ratings) ? product.ratings : []
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -188,11 +189,11 @@ function BeerDetails() {
 
       <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="recent-ratings">
         <h2 id="recent-ratings" className="text-2xl font-semibold text-gray-900">Recent ratings</h2>
-        {product.ratings.length === 0 ? (
+        {ratings.length === 0 ? (
           <p className="mt-3 text-gray-600">No ratings yet. Be the first to rate this product.</p>
         ) : (
           <ul className="mt-4 divide-y divide-gray-200">
-            {product.ratings.map((rating) => (
+            {ratings.map((rating) => (
               <li key={rating.id} className="flex flex-wrap items-center justify-between gap-2 py-4">
                 <span className="text-lg font-semibold text-amber-800">{rating.total_weighted} / 7</span>
                 <span className="text-sm text-gray-500">{formatDate(rating.date_rated)}</span>
