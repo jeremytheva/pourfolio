@@ -1,5 +1,15 @@
 # Security
 
+## Contained game surface
+
+Brew Done It is not present in browser routing or navigation. Direct route
+requests use the launch catch-all and cannot load its client service or trigger
+game API traffic. Independently, the data gateway fails closed for every game
+path unless the server-only `BREW_DONE_IT_POLICY_ENABLED` value is exactly
+`true`. The flag must remain unset in normal environments and must never be
+published with a `VITE_` prefix. Enabling the gateway alone does not make the
+unapproved feature a supported product surface.
+
 ## Trust boundaries
 
 - The browser is untrusted and never receives the NoCodeBackend secret.

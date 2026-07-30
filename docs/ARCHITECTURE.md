@@ -25,7 +25,6 @@ The reachable launch routes are:
 - `/products/:productId/rate`
 - `/cellar`
 - `/profile`
-- `/brew-done-it`
 
 Catalogue, product, rating, rating-history, cellar and profile operations use explicit services and same-origin `/api/nocodebackend/*` endpoints. The browser stores no authentication secret, private cellar record, role override, rating transaction or privacy policy state. Device-local browser storage remains only in unreachable prototype modules.
 
@@ -67,22 +66,22 @@ Public sign-up supplies only email, password, name and non-authoritative display
 
 The canonical data contract is [schema mapping](nocodebackend/schema-mapping.md).
 
-## Brew Done It boundary
+## Brew Done It containment boundary
 
-The protected, lazy-loaded Brew Done It route keeps orchestration in
-`src/pages/BrewDoneIt.jsx` and presentation in focused invitation, selection,
-round, question, guess, score and statistics components. Browser operations use
-only the explicit `brewDoneItService` gateway methods. Secret selection,
-current version, turn ownership, scoring and completion remain authoritative at
-the gateway; the UI never sends an owner, outcome or points total.
+Brew Done It is absent from the launch route table and primary navigation. The
+existing catch-all route sends a direct `/brew-done-it` request to `/home` for
+an authenticated user (or `/login` otherwise), so the retained game page and
+service modules are neither imported nor executed by the launch application.
+Consequently the contained UI cannot inspect, create, join or resume a game and
+makes no game API request.
 
-The selected product is removed from interactive markup after selection. The
-guesser's round projection omits its identifier until completion, and product
-details are fetched for the reveal only after a completed projection supplies
-that identifier. No game state is serialised to URLs or browser storage.
-Bounded, user-triggered refresh and safe retry actions handle disconnection and
-lost responses without introducing a realtime dependency. Stale versions,
-expiry and terminal states are shown without provider details or private data.
+The retained gateway policy remains a second, server-side boundary. Every
+`brew-done-it` data route returns the ordinary not-found response unless the
+server-only `BREW_DONE_IT_POLICY_ENABLED` value is exactly `true`. Normal
+environments must leave the flag unset; it is not a `VITE_` variable and is
+never sent to browser code. The focused policy tests remain in place for the
+retained authorisation, privacy, idempotency and state-transition logic, but do
+not constitute approval to enable the feature.
 
 ## Rating integrity
 

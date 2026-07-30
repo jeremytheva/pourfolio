@@ -1,5 +1,17 @@
 # Launch readiness
 
+## Stage 1 containment state
+
+- [x] Brew Done It is absent from launch navigation and routing; direct browser
+  requests fall back without loading playable controls or calling game APIs.
+- [x] Game gateway routes remain fail-closed behind the unset, server-only
+  `BREW_DONE_IT_POLICY_ENABLED` flag.
+- [ ] Do not enable Brew Done It unless a reviewed delivery implements the
+  accepted same-device ADR or a newly accepted ADR supersedes it.
+
+These repository checks establish containment only. They do not close any
+external release gate or approve the retained remote, persistent game.
+
 ## Decision
 
 Source-controlled launch hardening is implemented for a beer-first MVP, but production remains **no-go** until every external gate below is evidenced and signed off.
