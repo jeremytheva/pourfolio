@@ -55,6 +55,7 @@ const parsePositiveId = (value, label = 'Record identifier') => {
 }
 
 const normaliseList = (value) => asArray(value).filter((item) => item && typeof item === 'object')
+const isCompletedRating = (rating) => rating?.submission_state === 'complete'
 
 const findProfile = async (userId) => {
   const candidates = normaliseList(await dataProvider.list(COLLECTIONS.profiles, { user_id: userId }))
@@ -119,9 +120,10 @@ const getProduct = async (productId, response) => {
   const [hydrated] = await hydrateProducts([product])
   const ratings = normaliseList(await dataProvider.list(COLLECTIONS.ratings, {
     product_id: product.id,
-    fields: 'total_weighted'
-  }))
-  const totals = ratings
+    submission_state: 'complete',
+    fields: 'total_weighted,submission_state'
+  })).filter(isCompletedRating)
+  const validTotals = ratings
     .map((rating) => {
       const total = rating.total_weighted
       return total === null || (typeof total === 'string' && !total.trim()) ? Number.NaN : Number(total)
@@ -131,9 +133,9 @@ const getProduct = async (productId, response) => {
   response.status(200).json({
     ...hydrated,
     ratingSummary: {
-      count: ratings.length,
-      average: totals.length
-        ? Number((totals.reduce((sum, value) => sum + value, 0) / totals.length).toFixed(2))
+      count: validTotals.length,
+      average: validTotals.length
+        ? Number((validTotals.reduce((sum, value) => sum + value, 0) / validTotals.length).toFixed(2))
         : null
     },
     // Launch catalogue details expose aggregates, not individual rating records.
@@ -349,7 +351,7 @@ const submitRating = async (request, response, user, correlationId) => {
 
 const listUserRatings = async (response, user) => {
   const ratings = normaliseList(await dataProvider.list(COLLECTIONS.ratings, { user_id: user.id }))
-    .filter((rating) => isOwnedBy(rating, user.id))
+    .filter((rating) => isOwnedBy(rating, user.id) && isCompletedRating(rating))
   const products = normaliseList(await dataProvider.list(COLLECTIONS.products))
   const hydratedProducts = await hydrateProducts(products)
   const productsById = indexById(hydratedProducts)
@@ -654,7 +656,7 @@ const joinBrewDoneItGame = async (gameId, request, response, user) => {
 }
 
 const activeRatingMatches = (rating, userId, cutoff, product, predicate) => {
-  if (!isOwnedBy(rating, userId) || rating.deleted_at) return false
+  if (!isOwnedBy(rating, userId) || !isCompletedRating(rating) || rating.deleted_at) return false
   const ratedAt = Date.parse(rating.date_rated)
   if (!Number.isFinite(ratedAt) || ratedAt >= cutoff) return false
   if (predicate.endsWith('_product')) return String(rating.product_id) === String(product.id)
@@ -1001,6 +1003,7 @@ export const __testables = {
   getProfile,
   updateProfile,
   submitRating,
+  listUserRatings,
   createBrewDoneItGame, joinBrewDoneItGame, selectBrewDoneItProduct, submitBrewDoneItGuess,
   showBrewDoneItGame, brewDoneItStats, resolveBrewDoneItHistoryQuestion, transitionBrewDoneItGame,
   HISTORY_PREDICATES, MAX_HISTORY_QUESTIONS_PER_ROUND

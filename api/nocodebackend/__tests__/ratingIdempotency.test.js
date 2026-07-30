@@ -101,6 +101,31 @@ test('partial child creation is failed and retry reconciliation completes it', a
   assert.equal(records.ratings[0].submission_state, 'complete')
 })
 
+test('rating history hides incomplete submissions until reconciliation completes', async () => {
+  let failOnce = true
+  const records = installMemoryProvider({ failCreate(collection) {
+    if (collection === COLLECTIONS.ratingScores && failOnce) { failOnce = false; return true }
+    return false
+  } })
+  await assert.rejects(submit(), /incomplete/)
+
+  const failedHistory = response()
+  await __testables.listUserRatings(failedHistory, user)
+  assert.deepEqual(failedHistory.body.items, [])
+
+  records.ratings[0].submission_state = 'pending'
+  const pendingHistory = response()
+  await __testables.listUserRatings(pendingHistory, user)
+  assert.deepEqual(pendingHistory.body.items, [])
+
+  const reconciled = await submit()
+  assert.equal(reconciled.statusCode, 200)
+  const completeHistory = response()
+  await __testables.listUserRatings(completeHistory, user)
+  assert.equal(completeHistory.body.items.length, 1)
+  assert.equal(completeHistory.body.items[0].id, records.ratings[0].id)
+})
+
 test('a failure after a persisted score write is reconciled without duplicate children', async () => {
   let failOnce = true
   const records = installMemoryProvider({ failCreate(collection, value, state) {
