@@ -2,6 +2,14 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
+      "source": "/api/nocodebackend/auth/:path*",
+      "destination": "/api/auth-proxy"
+    },
+    {
+      "source": "/api/nocodebackend/:path*",
+      "destination": "/api/data-proxy"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }

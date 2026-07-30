@@ -38,7 +38,9 @@ Chat, Drinking Buddies, events, venues, analytics, producer claims, administrati
 
 ## Authentication boundary
 
-`api/nocodebackend/auth/[...path].js` exposes a fixed action/method matrix. It adds the server-only provider secret, forwards the session cookie, validates unsafe request origins, limits request size and rate, times out upstream requests, and maps provider failures to safe errors. Upstream authentication cookies are rewritten as host-only, root-path cookies for the Pourfolio deployment and retain their expiry and explicit SameSite policy while always receiving `HttpOnly` and `Secure`.
+`vercel.json` rewrites the stable public authentication and data paths to the flat `api/auth-proxy.js` and `api/data-proxy.js` entrypoints before the SPA fallback. Vercel supplies each `:path*` capture as `request.query.path` and retains the request’s other query parameters for redirects, pagination, search and filtering.
+
+`api/auth-proxy.js` exposes a fixed action/method matrix. It adds the server-only provider secret, forwards the session cookie, validates unsafe request origins, limits request size and rate, times out upstream requests, and maps provider failures to safe errors. Upstream authentication cookies are rewritten as host-only, root-path cookies for the Pourfolio deployment and retain their expiry and explicit SameSite policy while always receiving `HttpOnly` and `Secure`.
 
 Authentication throttling uses an Upstash Redis database provisioned through the
 approved Vercel Marketplace integration. `api/_lib/rateLimit.js` performs one
@@ -53,7 +55,7 @@ Public sign-up supplies only email, password, name and non-authoritative display
 
 ## Data boundary
 
-`api/nocodebackend/[...path].js`:
+`api/data-proxy.js`:
 
 - verifies the session on every data request;
 - uses server-only `NOCODEBACKEND_DATA_BASE_URL` and `NOCODEBACKEND_SECRET_KEY`;

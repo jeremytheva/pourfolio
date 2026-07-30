@@ -137,7 +137,7 @@ release candidate:
   list, get, create, update, delete, not-found fallback, unique conflict,
   malformed response, timeout and upstream failure.
 - [ ] [G06](#evidence-g06) — For every launch collection exposed by
-  `api/nocodebackend/[...path].js`, the permission matrix covers
+  `api/data-proxy.js`, the permission matrix covers
   unauthenticated, owner, other-user and privileged negative cases. The
   privileged cases must demonstrate least privilege, not merely possession of
   a provider secret.

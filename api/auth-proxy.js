@@ -5,8 +5,8 @@ import {
   enforceRequestSize,
   safeErrorMessage,
   withTimeout
-} from '../../_lib/httpSecurity.js'
-import { enforceSharedRateLimit, rateLimitPolicyFor } from '../../_lib/rateLimit.js'
+} from './_lib/httpSecurity.js'
+import { enforceSharedRateLimit, rateLimitPolicyFor } from './_lib/rateLimit.js'
 
 const DEFAULT_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
 const AUTH_ACTIONS = Object.freeze({

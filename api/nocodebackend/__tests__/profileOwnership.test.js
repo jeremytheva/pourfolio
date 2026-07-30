@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { afterEach, test } from 'node:test'
 import { dataProvider } from '../../_lib/dataProvider.js'
-import { __testables } from '../[...path].js'
+import { __testables } from '../../data-proxy.js'
 
 const originalProviderMethods = { ...dataProvider }
 
