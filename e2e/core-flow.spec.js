@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { installMockApi } from './mockApi.js'
+import { installMockApi, product } from './mockApi.js'
 
 test.beforeEach(async ({ page }) => {
   await installMockApi(page)
@@ -34,6 +34,23 @@ test('catalogue to product to rating uses stable IDs and accepts score 1', async
     { attributeId: 3, score: 7 }
   ])
   expect(Number.isSafeInteger(submitted.submissionId)).toBe(true)
+})
+
+test('product details render an aggregate-only rating response', async ({ page }) => {
+  await page.route('**/api/nocodebackend/catalog/products/4', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      ...product,
+      ratingSummary: { count: 1, average: 4 }
+    })
+  }))
+
+  await page.goto('/products/4')
+
+  await expect(page.getByRole('heading', { name: 'Ace' })).toBeVisible()
+  await expect(page.getByText('No ratings yet. Be the first to rate this product.')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Something went wrong' })).toHaveCount(0)
 })
 
 test('cellar records load, update and delete through server endpoints', async ({ page }) => {

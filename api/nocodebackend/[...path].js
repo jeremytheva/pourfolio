@@ -135,7 +135,9 @@ const getProduct = async (productId, response) => {
       average: totals.length
         ? Number((totals.reduce((sum, value) => sum + value, 0) / totals.length).toFixed(2))
         : null
-    }
+    },
+    // Launch catalogue details expose aggregates, not individual rating records.
+    ratings: []
   })
 }
 
