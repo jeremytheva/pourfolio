@@ -116,12 +116,6 @@ export default async function handler(request, response) {
   response.setHeader('X-Request-Id', correlationId)
   response.setHeader('Cache-Control', 'no-store')
 
-  const secret = process.env.NOCODEBACKEND_SECRET_KEY
-  if (!secret) {
-    response.status(503).json({ error: 'Authentication is not configured.', requestId: correlationId })
-    return
-  }
-
   const path = getRequestPath(request)
   const methods = AUTH_ACTIONS[path]
   if (!methods) {
@@ -131,6 +125,12 @@ export default async function handler(request, response) {
   if (!methods.includes(request.method)) {
     response.setHeader('Allow', methods.join(', '))
     response.status(405).json({ error: 'Method not allowed.', requestId: correlationId })
+    return
+  }
+
+  const secret = process.env.NOCODEBACKEND_SECRET_KEY
+  if (!secret) {
+    response.status(503).json({ error: 'Authentication is not configured.', requestId: correlationId })
     return
   }
   if (!enforceRequestSize(request, response) || !enforceOrigin(request, response)) return
