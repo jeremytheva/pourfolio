@@ -108,8 +108,11 @@ export const sanitiseProfileUpdates = (input) => {
 export const sanitiseCellarInput = (input, { partial = false } = {}) => {
   const result = pickFields(input, CELLAR_EDITABLE_FIELDS) || {}
 
-  if (!partial && !result.product_id) throw new Error('A product is required.')
-  if (result.product_id !== undefined) result.product_id = normaliseNullableId(result.product_id)
+  if (result.product_id === undefined) {
+    if (!partial) throw new Error('A product is required.')
+  } else {
+    result.product_id = positiveId(result.product_id, 'Product identifier')
+  }
   if (result.location_id !== undefined) result.location_id = normaliseNullableId(result.location_id)
   if (result.purchase_location_id !== undefined) result.purchase_location_id = normaliseNullableId(result.purchase_location_id)
   if (result.bet_id !== undefined) result.bet_id = normaliseNullableId(result.bet_id)

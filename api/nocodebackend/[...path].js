@@ -457,7 +457,7 @@ const getOwnedCellarRecord = async (id, user) => {
 const updateCellar = async (id, request, response, user) => {
   const existing = await getOwnedCellarRecord(id, user)
   const updates = sanitiseCellarInput(request.body || {}, { partial: true })
-  if (updates.product_id && String(updates.product_id) !== String(existing.product_id)) {
+  if (updates.product_id !== undefined) {
     const product = await dataProvider.get(COLLECTIONS.products, parsePositiveId(updates.product_id, 'Product identifier'))
     if (!product) {
       response.status(404).json({ error: 'Product not found.' })
@@ -1002,6 +1002,7 @@ export const __testables = {
   getProduct,
   getProfile,
   updateProfile,
+  updateCellar,
   submitRating,
   listUserRatings,
   createBrewDoneItGame, joinBrewDoneItGame, selectBrewDoneItProduct, submitBrewDoneItGuess,
