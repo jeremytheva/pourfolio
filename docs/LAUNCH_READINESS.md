@@ -9,8 +9,15 @@
 - [ ] Do not enable Brew Done It unless a reviewed delivery implements the
   accepted same-device ADR or a newly accepted ADR supersedes it.
 
+The accepted ADR permits only session-memory, same-device play: no second
+account, invitation, shared-history access, persisted round or score, durable
+statistics, or retention schedule. It is an approved future model, not a
+currently reachable journey.
+
 These repository checks establish containment only. They do not close any
-external release gate or approve the retained remote, persistent game.
+external release gate or approve the retained remote, persistent game. Its
+two-account shared history, invitations, stored scoring, retention and durable
+statistics remain an unapproved proposal and require a superseding accepted ADR.
 
 ## Decision
 

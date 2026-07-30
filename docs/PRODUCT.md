@@ -27,7 +27,7 @@ Ratings and cellar records do not require a sharing series or edition.
 
 Deferred modules may remain as prototype source for future research, but they are not reachable or bundled by launch routing and must not show fake success, statistics or user data.
 
-## Brew Done It — contained pending an approved implementation
+## Brew Done It — accepted same-device game, currently contained
 
 Brew Done It is not shipped in the launch application. It has no navigation
 item or route, and a direct request returns to the authenticated home screen
@@ -36,41 +36,30 @@ persistent implementation does not match the accepted decision and must remain
 unreachable until a superseding ADR and separately reviewed delivery approve a
 product model, privacy boundary and data lifecycle.
 
-The only currently accepted product model is the future same-device contract
-below. Acceptance of that contract does not enable the retained remote game.
+These are three distinct states and must not be conflated:
 
-The product review recorded in [ADR 0001](DECISIONS/0001-approve-brew-done-it-same-device.md) approves **same-device play only**. Brew Done It is neither live multiplayer nor asynchronous: two authenticated adults share one device and pass it between turns. The first production slice is deliberately local to the current React session. It does not create a social graph, send invitations or persist game activity.
+1. **Current containment:** no Brew Done It route or controls are shipped.
+2. **Accepted model:** ADR 0001 permits a separately delivered, session-memory,
+   same-device game with no remote or persistent behaviour.
+3. **Unapproved proposal:** retained two-account and persistent implementation
+   code is research material only and cannot be enabled or treated as a product
+   requirement until a superseding ADR is accepted.
+
+### Accepted same-device contract
+
+The product review recorded in [ADR 0001](DECISIONS/0001-approve-brew-done-it-same-device.md) approves **same-device play only**. Brew Done It is neither live multiplayer nor asynchronous: one authenticated player and a second, physically present adult share one device and pass it between turns. The first production slice is deliberately local to the current React session. It does not create a social graph, send invitations or persist game activity.
 
 There is no remote invitation flow. The signed-in player may play with any consenting adult who is physically present; the second player does not need a Pourfolio account and an existing Drinking Buddy relationship is not required. Drinking Buddies, chat and remote play remain deferred.
 
 Questions are selected from a controlled, reviewed question bank and answered **yes** or **no**. Free-typed questions are not permitted. Secret beers must be selected from the live beer catalogue rather than entered as arbitrary text.
 
-### Shared-history question contract
-
-Shared rating history is available only to two authenticated participants in an
-active persisted round, after **each participant explicitly opts in** when
-creating or joining that game. Consent is game-specific, cannot be inferred from
-account privacy settings or participation, and cannot be supplied for another
-person. A block in either direction disables every shared-history question.
-
-The controlled history bank contains exactly these server predicates:
-
-| Predicate | Yes when evaluated immediately before the round started |
-| --- | --- |
-| `both_rated_product` | Each participant has a non-deleted rating for the round's server-selected product. |
-| `both_rated_producer` | Each participant has a non-deleted rating for any catalogue product by the selected product's canonical producer. |
-| `both_rated_style` | Each participant has a non-deleted rating for any catalogue product with the selected product's exact canonical style. |
-| `current_player_rated_product` | The authenticated participant asking has a non-deleted rating for the selected product. |
-
-Private-account ratings count after this explicit, game-specific consent because
-only the boolean is disclosed; rating records remain private. Deleted ratings do
-not count. Ratings created at or after `started_at` do not count, so play cannot
-change an answer. Cellar contents never count. A round permits at most two
-distinct shared-history predicates, in addition to the per-endpoint rate limit.
-The client supplies only a predicate name: catalogue targets, participants,
-cut-off time, consent, block state and answer are resolved by the server from
-the current round. The response is only the recognised predicate and `true` or
-`false`; it contains no participant identifier or rating/catalogue history.
+The question bank for the accepted model uses catalogue facts only. It must not
+inspect either person's rating history, cellar, account, relationships or other
+private records. Every secret, answer, question, guess, score and statistic
+exists only in React memory for the current browser session. The implementation
+must not write game data to a backend, browser persistence (including
+`localStorage`) or analytics. Refresh and sign-out clear the round and all game
+statistics.
 
 ### Acceptance criteria
 
@@ -81,7 +70,7 @@ A playable production delivery must satisfy all of the following criteria before
 - **Turn order:** the creator chooses who starts, turns then alternate, and the current player and hand-off state are always announced visibly and to assistive technology.
 - **Yes/no questions:** on a turn, a player selects one unused question from the controlled question bank and the opponent records only “yes” or “no”; the question and answer remain visible in the round history.
 - **Guesses:** instead of asking a question, the current player may make one catalogue-backed beer guess; an incorrect guess ends that turn and a correct guess completes the round.
-- **Scoring:** every completed round uses the versioned, UI-independent scoring contract below. The calculation, version and itemised inputs are shown at completion and a draw awards zero points.
+- **Scoring:** the session-memory calculator awards 10 points for a correct beer guess and subtracts 1 point for each earlier question or incorrect guess by that player, clamped to 0–10; the calculation and itemised inputs are shown at completion, and a draw awards zero points to both players. No score is stored remotely or in browser persistence.
 - **Completion:** the round completes on a correct guess or, after 20 total turns without one, as a draw; both secret beers are then revealed and no further turns can be recorded.
 - **Abandonment:** either player can abandon after a confirmation; the round ends with no winner and zero points, and abandoned activity is not counted in statistics.
 - **Rematches:** after completion, both players can start a rematch with names and starting player swapped, cleared secrets/history and no information carried across except the session statistics.
@@ -89,46 +78,27 @@ A playable production delivery must satisfy all of the following criteria before
 
 The initial protected route may explain these reviewed rules while the interactive controls remain unavailable. Enabling play is a separate delivery that must demonstrate every criterion above, catalogue-data validation, accessibility, and tests. It must not substitute mock players, beer choices, outcomes or statistics.
 
-### Scoring contract v1.0.0
+### Unapproved remote and persistent proposal
 
-This contract is authoritative for persisted game rounds and is independent of
-how a future UI presents guesses. Inputs are canonical catalogue IDs only:
-`products.id` for beer, `producers.id` for brewery and `categories.id` for
-style. Style accuracy uses the explicitly maintained `categories.parent_id`
-hierarchy. An exact style ID earns exact credit; parent/child styles and styles
-with the same non-null direct parent are related. All other styles are
-unrelated. Names, free-text labels, spelling, fuzzy matching and inferred
-similarity are never scoring inputs.
+The repository retains an earlier proposal for a different product: two
+authenticated accounts create or join persisted rounds through invitations and
+may query narrowly disclosed shared rating-history predicates after bilateral
+consent. That proposal also includes stored, versioned scoring and itemised
+breakdowns; multi-round ranking and durable aggregate statistics; waiting-game
+expiry; completed-game retention and deletion; and remote authorisation,
+blocking, rate-limit and replay requirements.
 
-| Item | v1.0.0 score |
-| --- | ---: |
-| Exact beer | +10 points and immediately completes the round |
-| Exact brewery | +5 points, awarded once |
-| Exact style | +3 points, awarded once |
-| Related style | +1 point, awarded once instead of exact-style credit |
-| Incorrect accepted guess | −1 point |
-| Controlled yes/no question | −1 point |
+None of those requirements is authoritative for the accepted same-device
+model. In particular, the accepted model has no second authenticated account,
+invitation, shared-history query, backend round, stored score, durable
+statistics or retention schedule. Retained client, service, gateway and policy
+test code for those behaviours must remain unreachable and fail closed.
 
-A round permits six accepted guesses and six controlled questions. A duplicate
-is the same guess type and canonical ID used earlier in the round: it earns
-nothing, costs nothing and does not consume an attempt; the gateway rejects it
-rather than storing it. Once a brewery or style award has been earned, that
-dimension cannot award more points. A beer match or the sixth accepted guess
-completes the round. Activity supplied after completion is ignored by the pure
-calculator and rejected by the gateway.
-
-The raw total is awards minus question costs and incorrect-guess penalties. The
-round total is clamped to 0–18 inclusive. Thus three exact matches without a
-question score the maximum 18; penalties and costs can never produce a negative
-stored total. For a multi-round match, rank by (1) rounds won, (2) total points,
-(3) fewer accepted guesses across completed rounds and (4) fewer questions.
-Players still equal after all four measures share the placing; timestamps,
-request order and lexical names never break a tie.
-
-Every completed persistent round stores `scoring_rules_version`, the final
-`awarded_points`, and the itemised award/penalty/question breakdown calculated
-by the server. A rules change requires a new version; statistics sum each
-historical stored result and must not recalculate old rounds under new rules.
+The remote proposal cannot be implemented or enabled until a superseding ADR
+is accepted following product and privacy review. That decision must define the
+threat model, server-side ownership and consent policy, scoring contract,
+retention and deletion lifecycle, schema mapping, migration/rollout approach,
+abuse controls, accessibility criteria and connected-environment tests.
 
 ## Launch quality bar
 

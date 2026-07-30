@@ -52,7 +52,17 @@ the connected staging tests below.
 reachable launch page. The unreachable remote game is not represented as an
 accessibility-tested production journey. Its focused Node policy tests are
 retained so containment does not discard coverage of authorisation, privacy,
-idempotency and state transitions.
+idempotency and state transitions. Those tests exercise the unapproved retained
+two-account, invitation, shared-history, stored-scoring, retention and statistics
+proposal; passing them neither makes that proposal authoritative nor approves
+it for enablement.
+
+A separately reviewed delivery of ADR 0001 must add browser and accessibility
+coverage for the accepted same-device contract, including pass-the-device
+privacy, catalogue-backed secrets and guesses, controlled questions, in-memory
+scoring and statistics, completion, abandonment and rematches. Tests must prove
+that refresh and sign-out clear game state and that no game API, `localStorage`
+or other persistent write occurs.
 
 ## CI
 
