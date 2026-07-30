@@ -38,7 +38,7 @@ Chat, Drinking Buddies, events, venues, analytics, producer claims, administrati
 
 ## Authentication boundary
 
-`vercel.json` rewrites the stable public authentication and data paths to the flat `api/auth-proxy.js` and `api/data-proxy.js` entrypoints before the SPA fallback. Vercel supplies each `:path*` capture as `request.query.path` and retains the request’s other query parameters for redirects, pagination, search and filtering.
+`api/auth-proxy.js` is the authentication proxy, and `api/data-proxy.js` is the owner-enforcing application-data gateway. `vercel.json` maps the unchanged same-origin `/api/nocodebackend/auth/*` and `/api/nocodebackend/*` interfaces to these flat Vercel Functions before applying the SPA fallback. Vercel supplies each `:path*` capture as `request.query.path` and retains the request’s other query parameters for redirects, pagination, search and filtering.
 
 `api/auth-proxy.js` exposes a fixed action/method matrix. It adds the server-only provider secret, forwards the session cookie, validates unsafe request origins, limits request size and rate, times out upstream requests, and maps provider failures to safe errors. Upstream authentication cookies are rewritten as host-only, root-path cookies for the Pourfolio deployment and retain their expiry and explicit SameSite policy while always receiving `HttpOnly` and `Secure`.
 

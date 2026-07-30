@@ -7,7 +7,7 @@ Pourfolio's launch scope is a beer-first MVP. Reachable production journeys are 
 - **Client:** React 19.2 with a small same-origin History API router, built by Vite 7; JavaScript/JSX (ES modules).
 - **Runtime/package manager:** Node.js 20 LTS (defined in `.nvmrc`) and npm with `package-lock.json`.
 - **Styling:** Tailwind CSS, PostCSS, Framer Motion, and React Icons.
-- **Data and authentication:** Browser requests use same-origin endpoints in `src/lib/nocodeBackend.js`. Auth is proxied by `api/nocodebackend/auth/[...path].js`; application data is mediated by the owner-enforcing gateway in `api/nocodebackend/[...path].js`.
+- **Data and authentication:** Browser requests use same-origin endpoints in `src/lib/nocodeBackend.js`. `api/auth-proxy.js` is the authentication proxy; `api/data-proxy.js` is the owner-enforcing application-data gateway.
 - **Storage:** Canonical NoCodeBackend collections are `products`, `producers`, `categories`, `ratings`, `rating_scores`, `rating_attributes`, `bonus_attributes`, `bonus_attribute_rating_mapping`, and `cellar`. There is no committed SQL migration runner.
 - **Testing:** Node.js built-in `node:test`/`node:assert`, plus Playwright and axe for browser/accessibility tests.
 - **Deployment:** Vercel configuration, SPA rewrites and security headers are committed in `vercel.json`.

@@ -8,7 +8,7 @@ This is the launch contract for the beer-first MVP. It is derived from:
 - the supplied products, producers, categories, rating-attribute, bonus-attribute and cellar CSV exports;
 - `Pourfolio_Beer_Ratings_Swagger_Payloads_With_Cellar(1)(1).xlsx`.
 
-The obsolete `*_pf2025` collection names and `beverage_id` field are not part of this contract. The browser accesses these collections only through the authenticated application gateway in `api/data-proxy.js`.
+The obsolete `*_pf2025` collection names and `beverage_id` field are not part of this contract. `api/auth-proxy.js` is the authentication proxy, and `api/data-proxy.js` is the owner-enforcing application-data gateway through which the browser accesses these collections.
 
 ### Atomic-workflow verification (29 July 2026)
 

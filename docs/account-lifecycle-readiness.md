@@ -163,6 +163,10 @@ configuration has been verified.
 
 ## Required architecture before implementation
 
+The active server entrypoints preserve the browser's same-origin boundary:
+`api/auth-proxy.js` is the authentication proxy, and `api/data-proxy.js` is the
+owner-enforcing application-data gateway.
+
 - `src/pages/`: add recovery/verification route-level screens and an account
   lifecycle section in Profile. Do not add routes for deferred modules.
 - `src/services/`: add focused authentication-lifecycle and account-lifecycle
