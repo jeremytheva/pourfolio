@@ -10,6 +10,11 @@ path unless the server-only `BREW_DONE_IT_POLICY_ENABLED` value is exactly
 published with a `VITE_` prefix. Enabling the gateway alone does not make the
 unapproved feature a supported product surface.
 
+ADR 0001's accepted future model has no remote game trust boundary: one signed-in
+player and a physically present second player use session-memory state on one
+device. It does not read private rating history or persist rounds, scores or
+statistics, and refresh or sign-out clears all game data.
+
 ## Trust boundaries
 
 - The browser is untrusted and never receives the NoCodeBackend secret.
@@ -18,7 +23,7 @@ unapproved feature a supported product surface.
 - Owner IDs, roles, totals and provider secrets supplied by a browser are discarded.
 - Remote NoCodeBackend permissions remain a required defence in depth and must be tested independently.
 
-## Implemented controls
+## Implemented launch controls
 
 - Fixed auth action/method allowlist.
 - Fixed application data route/workflow allowlist.
@@ -30,8 +35,6 @@ unapproved feature a supported product surface.
 - Owner checks for profile, cellar and rating mutation.
 - Explicit response projections that exclude `secret_key`, raw provider payloads and private owner fields.
 - Catalogue product details expose rating aggregates only (count and average), never rating, submission or cellar identifiers, dates, or individual scores; personal history remains owner-only at `/ratings/mine`.
-- Shared-history questions accept one fixed predicate name only. The gateway reloads an active round, verifies the session is one of its immutable participants, requires both game-specific consent timestamps, rejects a block in either direction, and derives the catalogue target and pre-round cut-off itself. It returns only `{ predicate, answer }`: never the other participant's rating rows, dates, scores, cellar, account privacy metadata, unmatched products, user IDs or record counts.
-- Shared-history disclosure is bounded to two distinct questions per round and six endpoint attempts per client/round per minute. Completed rounds reject questions, and unique persisted predicate records prevent replay. These controls limit adaptive boolean-query enumeration; provider compare-and-set enforcement remains required before production enablement.
 - Complete 1–7 rating validation, server-calculated totals, idempotency and compensating rollback.
 - CSP, HSTS, clickjacking, MIME-sniffing, referrer and permissions headers.
 - Production source maps disabled.
@@ -55,13 +58,26 @@ Vercel environment settings; rotation intentionally starts fresh buckets.
 
 Server errors log only correlation ID, status/name and operation counts needed for support. Never log request bodies, passwords, tokens, cookies, user IDs, cellar contents, rating selections, email addresses or provider responses. Return the correlation ID to the client for support.
 
-Shared-history question records retain only round ID, recognised predicate,
+## Unapproved remote proposal
+
+The retained remote policy code proposes fixed shared-history predicates,
+immutable two-account participation, bilateral game consent, block checks,
+server-derived catalogue targets and cut-offs, restricted boolean responses,
+two-predicate disclosure bounds, rate limits and replay prevention. These are
+defence-in-depth properties of unreachable research code, not controls for or
+authority to implement the accepted same-device model.
+
+That proposal says shared-history question records retain only round ID, recognised predicate,
 sequence, asking-participant ID, boolean answer and server timestamp. They are
 retained with their parent game for 30 days after completion for abuse and
 policy investigation, then hard-deleted; no rating snapshot is retained.
 Waiting games expire after 24 hours. Consent timestamps and question records are
 deleted with an expired or deleted game, subject only to encrypted backup expiry
 within 30 further days. Operational logs must not contain predicates or answers.
+Its invitation, shared-history, persisted scoring, durable statistics and this
+retention schedule remain unapproved. They cannot be enabled until a
+superseding ADR and privacy/security review accept a remote data lifecycle and
+the required provider enforcement is proved.
 
 ## Photos and deferred features
 

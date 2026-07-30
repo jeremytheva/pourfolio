@@ -75,13 +75,22 @@ service modules are neither imported nor executed by the launch application.
 Consequently the contained UI cannot inspect, create, join or resume a game and
 makes no game API request.
 
+ADR 0001 accepts only a future same-device implementation: one authenticated
+player shares the device with a physically present second player, and all round
+state, scoring and statistics remain in React memory until refresh or sign-out.
+It requires no invitation, second account, game collection or retention policy.
+This accepted model is distinct from both today's containment and the retained
+remote implementation.
+
 The retained gateway policy remains a second, server-side boundary. Every
 `brew-done-it` data route returns the ordinary not-found response unless the
 server-only `BREW_DONE_IT_POLICY_ENABLED` value is exactly `true`. Normal
 environments must leave the flag unset; it is not a `VITE_` variable and is
 never sent to browser code. The focused policy tests remain in place for the
 retained authorisation, privacy, idempotency and state-transition logic, but do
-not constitute approval to enable the feature.
+not constitute approval to enable the feature. That code's two-account rounds,
+invitations, shared-history queries, persistence, stored scoring, retention and
+durable statistics are an unapproved proposal requiring a superseding ADR.
 
 ## Rating integrity
 
