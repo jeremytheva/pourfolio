@@ -1,9 +1,9 @@
 import crypto from 'node:crypto'
-import { COLLECTIONS } from '../../src/data/contract.js'
-import { calculateRatingTotals } from '../../src/utils/ratingSubmission.js'
-import { BREW_DONE_IT_RULES, calculateBrewDoneItScore } from '../../src/utils/brewDoneItScoring.js'
-import { requireSessionUser } from '../_lib/authSession.js'
-import { dataProvider } from '../_lib/dataProvider.js'
+import { COLLECTIONS } from '../src/data/contract.js'
+import { calculateRatingTotals } from '../src/utils/ratingSubmission.js'
+import { BREW_DONE_IT_RULES, calculateBrewDoneItScore } from '../src/utils/brewDoneItScoring.js'
+import { requireSessionUser } from './_lib/authSession.js'
+import { dataProvider } from './_lib/dataProvider.js'
 import {
   BONUS_FIELDS,
   CATEGORY_FIELDS,
@@ -25,13 +25,13 @@ import {
   sanitiseBrewDoneItJoinInput,
   sanitiseBrewDoneItSelectionInput,
   sanitiseProfileUpdates
-} from '../_lib/dataPolicy.js'
+} from './_lib/dataPolicy.js'
 import {
   enforceOrigin,
   enforceRateLimit,
   enforceRequestSize,
   safeErrorMessage
-} from '../_lib/httpSecurity.js'
+} from './_lib/httpSecurity.js'
 
 const ALLOWED_METHODS = new Set(['GET', 'POST', 'PUT', 'DELETE'])
 const asArray = (value) => (Array.isArray(value) ? value : value ? [value] : [])
@@ -998,6 +998,7 @@ export const __testables = {
   RATING_FIELDS,
   BONUS_FIELDS,
   PROFILE_FIELDS,
+  pathSegments,
   findProfile,
   getProduct,
   getProfile,

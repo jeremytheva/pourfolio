@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { __testables } from '../[...path].js'
+import { __testables } from '../../../auth-proxy.js'
 
 test('authentication proxy exposes only explicit actions', () => {
   assert.deepEqual(__testables.AUTH_ACTIONS['sign-in/email'], ['POST'])

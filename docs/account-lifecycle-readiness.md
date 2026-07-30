@@ -169,9 +169,9 @@ configuration has been verified.
   orchestration, including retry state mapping and export download handling.
 - `src/lib/nocodeBackend.js`: retain only typed, explicit same-origin calls to
   the auth and application gateways; do not expose provider collection paths.
-- `api/nocodebackend/auth/[...path].js`: allowlist only provider-confirmed
+- `api/auth-proxy.js`: allowlist only provider-confirmed
   recovery, verification, session revocation and identity-deletion operations.
-- `api/nocodebackend/[...path].js`: enforce recent session, owner discovery,
+- `api/data-proxy.js`: enforce recent session, owner discovery,
   export projections, deletion fencing, idempotency and final reconciliation.
 - Provider configuration: add a server-only deletion-job/receipt store and
   approved constraints/permissions only through a reviewed rollout and rollback
