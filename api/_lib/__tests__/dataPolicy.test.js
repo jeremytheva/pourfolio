@@ -31,7 +31,25 @@ test('cellar ownership and server fields are stripped from browser input', () =>
     user_id: 'other',
     secret_key: 'secret'
   })
-  assert.deepEqual(result, { product_id: 12, quantity: 2 })
+  assert.deepEqual(result, { product_id: '12', quantity: 2 })
+})
+
+test('partial cellar updates distinguish an omitted product from an invalid supplied product', () => {
+  assert.deepEqual(sanitiseCellarInput({ notes: 'Still cellared' }, { partial: true }), {
+    notes: 'Still cellared'
+  })
+
+  for (const product_id of [null, '', '  ', 0, '0', 'not-an-id', -1, 1.5]) {
+    assert.throws(
+      () => sanitiseCellarInput({ product_id }, { partial: true }),
+      /Product identifier is invalid/
+    )
+  }
+
+  assert.deepEqual(
+    sanitiseCellarInput({ product_id: ' 42 ' }, { partial: true }),
+    { product_id: '42' }
+  )
 })
 
 test('optional cellar series relationships are normalised to null', () => {
