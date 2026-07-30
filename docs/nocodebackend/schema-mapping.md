@@ -315,6 +315,12 @@ retained evidence.
 10. Return only projected public fields; never return fingerprints, deterministic
     keys, state internals, raw provider data, arbitrary owner IDs or secrets.
 
+Launch-facing rating reads treat only durable headers whose `submission_state`
+is `complete` as rating history. Product aggregates (both count and average),
+`GET /api/nocodebackend/ratings/mine`, and participant-history checks exclude
+`pending` and `failed` submissions. Reconciliation and operational workflow
+lookups may read those incomplete states so that a safe retry can finish them.
+
 Provider permissions must deny direct browser writes to all workflow fields and
 collections. The gateway service identity may create/update rating workflow
 fields and create children. Reads/updates used for reconciliation must require

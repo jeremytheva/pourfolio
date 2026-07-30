@@ -30,7 +30,11 @@ const getProductWithRatings = async (ratings) => {
   }
   dataProvider.list = async (collection, filters = {}) => {
     if (collection === COLLECTIONS.ratings) {
-      assert.deepEqual(filters, { product_id: '42', fields: 'total_weighted' })
+      assert.deepEqual(filters, {
+        product_id: '42',
+        submission_state: 'complete',
+        fields: 'total_weighted,submission_state'
+      })
       return ratings
     }
     if (collection === COLLECTIONS.producers) return [{ id: 7, producer_name: 'Test Brewery' }]
@@ -65,6 +69,7 @@ test('product details return the aggregate for one rating only', async () => {
     rating_id: 'submission-id',
     cellar_id: 'cellar-id',
     date_rated: '2026-07-28',
+    submission_state: 'complete',
     total_weighted: 6.25,
     scores: [1, 7]
   }])
@@ -80,13 +85,15 @@ test('product details return the aggregate for one rating only', async () => {
 
 test('product details average multiple finite totals and ignore untrusted non-finite totals', async () => {
   const product = await getProductWithRatings([
-    { total_weighted: 3.111 },
-    { total_weighted: 6.222 },
-    { total_weighted: 'not-a-number' },
-    { total_weighted: Number.POSITIVE_INFINITY },
-    { total_weighted: null }
+    { submission_state: 'complete', total_weighted: 3.111 },
+    { submission_state: 'complete', total_weighted: 6.222 },
+    { submission_state: 'complete', total_weighted: 'not-a-number' },
+    { submission_state: 'complete', total_weighted: Number.POSITIVE_INFINITY },
+    { submission_state: 'complete', total_weighted: null },
+    { submission_state: 'pending', total_weighted: 7 },
+    { submission_state: 'failed', total_weighted: 1 }
   ])
 
-  assert.deepEqual(product.ratingSummary, { count: 5, average: 4.67 })
+  assert.deepEqual(product.ratingSummary, { count: 2, average: 4.67 })
   assert.deepEqual(Object.keys(product).filter((key) => /rating|cellar|score|date/i.test(key)), ['ratingSummary', 'ratings'])
 })
