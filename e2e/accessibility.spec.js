@@ -41,3 +41,19 @@ for (const route of routes) {
     expect(serious).toEqual([])
   })
 }
+
+test('/brew-done-it supports keyboard-only invitation entry and remains axe-clean', async ({ page }) => {
+  await installMockApi(page)
+  await page.goto('/brew-done-it')
+  await page.getByRole('checkbox').focus()
+  await page.keyboard.press('Space')
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('button', { name: 'Create invitation' })).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('heading', { name: 'Invitation ready' })).toBeVisible()
+
+  const result = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+    .analyze()
+  expect(result.violations.filter(({ impact }) => ['serious', 'critical'].includes(impact))).toEqual([])
+})

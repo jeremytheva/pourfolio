@@ -49,7 +49,7 @@ function App() {
             <Route path="/products/:productId/rate" element={protect(<RateBeer />)} />
             <Route path="/cellar" element={protect(<Cellar />)} />
             <Route path="/profile" element={protect(<Profile />)} />
-            <Route path="/brew-done-it" element={protect(<BrewDoneIt />)} />
+            <Route path="/brew-done-it" element={protect(<BrewDoneIt user={user} />)} />
             <Route path="/" element={<Navigate to={user ? '/home' : '/login'} replace />} />
             <Route path="*" element={<Navigate to={user ? '/home' : '/login'} replace />} />
           </Routes>

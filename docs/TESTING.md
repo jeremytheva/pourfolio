@@ -40,10 +40,21 @@ Tests cover:
 - the existing rating calculation utility.
 
 The Playwright suite uses a deterministic same-origin API fixture and covers the
-launch catalogue, product, rating, cellar and profile journeys. It also runs
+launch catalogue, product, rating, cellar, profile and protected Brew Done It
+journeys. The game fixture covers invitation creation and acceptance, secret
+selection, controlled history questions, style/brewery/beer guesses, a stale
+turn retry, authoritative scoring, completion reveal and refreshed statistics.
+It also runs
 automated accessibility checks on the reachable launch pages. This suite verifies
 browser behaviour without requiring production credentials; it does not replace
 the connected staging tests below.
+
+`e2e/accessibility.spec.js` additionally enters the game invitation flow using
+only keyboard input and runs the WCAG 2.2-targeted axe rules against the changed
+state. Live-region assertions in `e2e/brew-done-it.spec.js` verify concise
+answer, points and completion updates without treating the whole board as a
+live region. Manual assistive-technology testing remains required for announcement
+timing, opponent disconnection and expired-round recovery.
 
 ## CI
 
