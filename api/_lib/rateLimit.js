@@ -1,5 +1,6 @@
 import crypto from 'node:crypto'
 import { getClientAddress } from './httpSecurity.js'
+import { getRedisClient } from './redis.js'
 
 const INCREMENT_SCRIPT = `
 local count = redis.call('INCR', KEYS[1])
@@ -41,26 +42,18 @@ export const buildSharedRateLimitKey = (request, path, secret) => {
 }
 
 export const checkSharedRateLimit = async (request, path, {
-  url = process.env.UPSTASH_REDIS_REST_URL,
-  token = process.env.UPSTASH_REDIS_REST_TOKEN,
-  keySecret = process.env.RATE_LIMIT_KEY_SECRET,
-  fetchImpl = fetch
+  redis,
+  keySecret = process.env.RATE_LIMIT_KEY_SECRET
 } = {}) => {
-  if (!url || !token || !keySecret) throw new Error('Shared rate limiter is not configured')
+  if (!keySecret) throw new Error('Shared rate limiter is not configured')
   const policy = rateLimitPolicyFor(path)
   const key = buildSharedRateLimitKey(request, path, keySecret)
-  const result = await fetchImpl(url, {
-    method: 'POST',
-    headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-    body: JSON.stringify(['EVAL', INCREMENT_SCRIPT, '1', key, String(policy.windowMs)])
-  })
-  if (!result.ok) throw new Error(`Shared rate limiter returned ${result.status}`)
-  const payload = await result.json()
-  if (!Array.isArray(payload.result) || payload.result.length !== 2) {
+  const result = await getRedisClient(redis).eval(INCREMENT_SCRIPT, [key], [String(policy.windowMs)])
+  if (!Array.isArray(result) || result.length !== 2) {
     throw new Error('Shared rate limiter returned an invalid response')
   }
-  const count = Number(payload.result[0])
-  const ttlMs = Number(payload.result[1])
+  const count = Number(result[0])
+  const ttlMs = Number(result[1])
   if (!Number.isFinite(count) || !Number.isFinite(ttlMs)) throw new Error('Shared rate limiter returned invalid values')
   return { allowed: count <= policy.limit, count, ttlMs, ...policy }
 }
