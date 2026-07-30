@@ -1,6 +1,32 @@
 import { expect, test } from '@playwright/test'
 import { product } from './mockApi.js'
 
+test('password form remains available while provider discovery fails in the background', async ({ page }) => {
+  await page.route('**/api/nocodebackend/auth/get-session', (route) => route.fulfill({
+    status: 401,
+    contentType: 'application/json',
+    body: JSON.stringify({ error: 'Authentication is required.' })
+  }))
+  await page.route('**/api/nocodebackend/auth/providers', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 1_000))
+    await route.fulfill({
+      status: 500,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Provider discovery failed.' })
+    })
+  })
+
+  const discoveryResponse = page.waitForResponse('**/api/nocodebackend/auth/providers')
+  await page.goto('/login')
+  await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+  await expect(page.getByLabel('Email')).toBeVisible()
+  await expect(page.getByLabel('Password')).toBeVisible()
+
+  await discoveryResponse
+  await expect(page.getByText('Sign-in options are temporarily unavailable.')).toHaveCount(0)
+  await expect(page.getByLabel('Password')).toBeVisible()
+})
+
 test('password sign-in discovers the provider and enters the launch app', async ({ page }) => {
   let signedIn = false
 

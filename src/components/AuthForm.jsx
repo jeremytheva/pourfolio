@@ -5,10 +5,13 @@ import { useAuth } from '../hooks/useAuth.js'
 import { getAuthProviders } from '../lib/nocodeBackend.js'
 
 const initialProviders = {
-  emailPassword: false,
+  emailPassword: true,
   emailOtp: false,
   google: false
 }
+
+const hasReliableProviderState = (enabled) => enabled &&
+  ['emailPassword', 'emailOtp', 'google'].every((provider) => typeof enabled[provider] === 'boolean')
 
 function AuthForm({ mode, onToggleMode }) {
   const [form, setForm] = useState({
@@ -20,7 +23,6 @@ function AuthForm({ mode, onToggleMode }) {
   })
   const [providers, setProviders] = useState(initialProviders)
   const [activeMethod, setActiveMethod] = useState('emailPassword')
-  const [providersLoading, setProvidersLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [otpSent, setOtpSent] = useState(false)
   const [error, setError] = useState('')
@@ -32,19 +34,25 @@ function AuthForm({ mode, onToggleMode }) {
     getAuthProviders()
       .then((enabled) => {
         if (!active) return
+        if (!hasReliableProviderState(enabled)) throw new Error('Invalid authentication provider response.')
         setProviders(enabled)
         setActiveMethod(enabled.emailPassword ? 'emailPassword' : enabled.emailOtp ? 'emailOtp' : 'google')
       })
       .catch(() => {
-        if (active) setError('Sign-in options are temporarily unavailable.')
-      })
-      .finally(() => {
-        if (active) setProvidersLoading(false)
+        if (!active) return
+        setProviders(initialProviders)
+        setActiveMethod('emailPassword')
       })
     return () => {
       active = false
     }
   }, [])
+
+  useEffect(() => {
+    if (mode === 'signup' && activeMethod !== 'emailPassword') {
+      setActiveMethod('emailPassword')
+    }
+  }, [activeMethod, mode])
 
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   const canUsePassword = providers.emailPassword && activeMethod === 'emailPassword'
@@ -85,15 +93,6 @@ function AuthForm({ mode, onToggleMode }) {
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  if (providersLoading) {
-    return (
-      <div className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-lg" role="status">
-        <SafeIcon icon={FiLoader} className="mx-auto mb-3 h-6 w-6 animate-spin text-amber-600" />
-        Loading sign-in options…
-      </div>
-    )
   }
 
   return (
@@ -167,12 +166,6 @@ function AuthForm({ mode, onToggleMode }) {
           <SafeIcon icon={FiChrome} className="mr-2 h-5 w-5" />
           Continue with Google
         </button>
-      )}
-
-      {!providers.emailPassword && !providers.emailOtp && !providers.google && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="alert">
-          No sign-in methods are currently enabled.
-        </div>
       )}
 
       {providers.emailPassword && (

@@ -8,6 +8,8 @@ const PROVIDER_ALIASES = {
   google: ['google', 'googleOAuth', 'google_oauth', 'oauth_google']
 }
 
+const PROVIDER_NAMES = new Set(Object.values(PROVIDER_ALIASES).flat().map((name) => name.toLowerCase()))
+
 export class ApiError extends Error {
   constructor(message, { status = 0, requestId = null } = {}) {
     super(message)
@@ -120,7 +122,23 @@ export const normalizeProviders = (payload) => {
   )
 }
 
-export const getAuthProviders = async () => normalizeProviders(await authRequest('/providers', { method: 'GET' }))
+const hasRecognisedProvider = (source) => {
+  if (typeof source === 'string') return PROVIDER_NAMES.has(source.toLowerCase())
+  if (Array.isArray(source)) return source.some(hasRecognisedProvider)
+  if (!source || typeof source !== 'object') return false
+
+  return Object.entries(source).some(([key, value]) =>
+    PROVIDER_NAMES.has(key.toLowerCase()) ||
+    (['name', 'provider', 'id', 'type', 'key'].includes(key) && hasRecognisedProvider(value)) ||
+    (['providers', 'data', 'authProviders', 'enabledProviders'].includes(key) && hasRecognisedProvider(value))
+  )
+}
+
+export const getAuthProviders = async () => {
+  const payload = await authRequest('/providers', { method: 'GET' })
+  if (!hasRecognisedProvider(payload)) throw new ApiError('The server returned an invalid response.')
+  return normalizeProviders(payload)
+}
 
 export const getGoogleSignInUrl = (redirectTo = window.location.origin) => {
   const params = new URLSearchParams({ redirectTo })
