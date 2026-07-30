@@ -33,6 +33,6 @@ The protected, lazy-loaded `/brew-done-it` route may initially publish the appro
 
 ## Links
 
-- [Product definition and acceptance criteria](../PRODUCT.md#brew-done-it--accepted-same-device-game-currently-contained)
+- [Product definition and acceptance criteria](../PRODUCT.md#brew-done-it-accepted-same-device-game-currently-contained)
 - [Launch readiness](../LAUNCH_READINESS.md)
 - [Security boundary](../SECURITY.md)
