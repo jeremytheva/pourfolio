@@ -100,7 +100,13 @@ Rating submission is a coordinated server operation across `ratings`, `rating_sc
 
 ## Deployment
 
-`vercel.json` provides SPA direct-route rewrites, security headers and immutable caching for hashed assets. Production source maps are disabled. `/api/health` is the configuration-only liveness signal described in the [production operations runbook](OPERATIONS_READINESS.md): it reports only configuration booleans, never contacts upstream services and is not a readiness guarantee.
+`vercel.json` provides SPA direct-route rewrites, security headers and immutable caching for hashed assets. Production source maps are disabled. `/api/health` is the configuration-only liveness signal described in the [production operations runbook](OPERATIONS_READINESS.md): it reports only whether required configuration is present, never returns configuration values, never contacts upstream services and is not a readiness guarantee.
+
+`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` and
+`RATE_LIMIT_KEY_SECRET` are server-only variables and must not use a `VITE_`
+prefix. The Upstash client is initialised with `Redis.fromEnv()`. Authentication
+fails closed when the shared store is unavailable; there is no in-memory
+production fallback.
 
 Required server variables:
 

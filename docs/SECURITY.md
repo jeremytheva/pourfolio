@@ -47,6 +47,12 @@ documents that `x-vercel-forwarded-for` is overwritten by its proxy; only that
 deployment-controlled header is trusted in production, never client-selectable
 `x-forwarded-for`. Outside Vercel, the socket peer address is used.
 
+`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` and
+`RATE_LIMIT_KEY_SECRET` are server-only variables and must not use a `VITE_`
+prefix. The Upstash client is initialised with `Redis.fromEnv()`. The health
+endpoint reports only whether required configuration is present; it does not
+return configuration values or test the shared store.
+
 If Redis is unavailable, malformed or unconfigured, authentication fails closed
 with HTTP 503; the request is not sent to NoCodeBackend. Monitor Redis error and
 latency metrics, authentication 429/503 rates, key count and memory, and alert on
