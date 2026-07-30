@@ -23,8 +23,8 @@ test('account identifiers are normalised and equivalent identifiers share an opa
 
 test('shared limit allows the boundary and rejects the next operation', async () => {
   const call = (count) => checkSharedRateLimit(request(), 'verify-otp', {
-    url: 'https://redis.example', token: 'token', keySecret: 'secret',
-    fetchImpl: async () => ({ ok: true, json: async () => ({ result: [count, 60_000] }) })
+    keySecret: 'secret',
+    redis: { eval: async () => [count, 60_000] }
   })
   assert.equal((await call(8)).allowed, true)
   assert.equal((await call(9)).allowed, false)
@@ -33,15 +33,16 @@ test('shared limit allows the boundary and rejects the next operation', async ()
 test('atomic shared operation attaches the configured expiration to a new bucket', async () => {
   let command
   await checkSharedRateLimit(request(), 'sign-up/email', {
-    url: 'https://redis.example', token: 'token', keySecret: 'secret',
-    fetchImpl: async (_url, options) => {
-      command = JSON.parse(options.body)
-      return { ok: true, json: async () => ({ result: [1, 3_600_000] }) }
-    }
+    keySecret: 'secret',
+    redis: { eval: async (...args) => {
+      command = args
+      return [1, 3_600_000]
+    } }
   })
-  assert.equal(command[0], 'EVAL')
-  assert.match(command[1], /PEXPIRE/)
-  assert.equal(command.at(-1), '3600000')
+  assert.match(command[0], /PEXPIRE/)
+  assert.equal(command[1].length, 1)
+  assert.match(command[1][0], /^pourfolio:auth:signup:/)
+  assert.deepEqual(command[2], ['3600000'])
 })
 
 test('shared store failure fails authentication closed without leaking details', async () => {
@@ -52,8 +53,8 @@ test('shared store failure fails authentication closed without leaking details',
   }
   try {
     assert.equal(await enforceSharedRateLimit(request(), response, 'sign-in/email', {
-      url: 'https://redis.example', token: 'token', keySecret: 'secret',
-      fetchImpl: async () => ({ ok: false, status: 500 })
+      keySecret: 'secret',
+      redis: { eval: async () => { throw new Error('store unavailable') } }
     }), false)
     assert.equal(response.statusCode, 503)
     assert.deepEqual(response.body, { error: 'Authentication is temporarily unavailable.' })
