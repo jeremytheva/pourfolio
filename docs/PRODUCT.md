@@ -27,7 +27,17 @@ Ratings and cellar records do not require a sharing series or edition.
 
 Deferred modules may remain as prototype source for future research, but they are not reachable or bundled by launch routing and must not show fake success, statistics or user data.
 
-## Brew Done It — approved same-device game
+## Brew Done It — contained pending an approved implementation
+
+Brew Done It is not shipped in the launch application. It has no navigation
+item or route, and a direct request returns to the authenticated home screen
+without loading game code or calling a game API. The retained remote,
+persistent implementation does not match the accepted decision and must remain
+unreachable until a superseding ADR and separately reviewed delivery approve a
+product model, privacy boundary and data lifecycle.
+
+The only currently accepted product model is the future same-device contract
+below. Acceptance of that contract does not enable the retained remote game.
 
 The product review recorded in [ADR 0001](DECISIONS/0001-approve-brew-done-it-same-device.md) approves **same-device play only**. Brew Done It is neither live multiplayer nor asynchronous: two authenticated adults share one device and pass it between turns. The first production slice is deliberately local to the current React session. It does not create a social graph, send invitations or persist game activity.
 

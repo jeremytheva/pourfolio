@@ -10,7 +10,6 @@ const BeerDetails = lazy(() => import('./pages/BeerDetails.jsx'))
 const RateBeer = lazy(() => import('./pages/RateBeer.jsx'))
 const Cellar = lazy(() => import('./pages/Cellar.jsx'))
 const Profile = lazy(() => import('./pages/Profile.jsx'))
-const BrewDoneIt = lazy(() => import('./pages/BrewDoneIt.jsx'))
 
 const LoadingState = () => (
   <div className="flex min-h-screen items-center justify-center bg-gray-50" role="status" aria-live="polite">
@@ -49,7 +48,6 @@ function App() {
             <Route path="/products/:productId/rate" element={protect(<RateBeer />)} />
             <Route path="/cellar" element={protect(<Cellar />)} />
             <Route path="/profile" element={protect(<Profile />)} />
-            <Route path="/brew-done-it" element={protect(<BrewDoneIt user={user} />)} />
             <Route path="/" element={<Navigate to={user ? '/home' : '/login'} replace />} />
             <Route path="*" element={<Navigate to={user ? '/home' : '/login'} replace />} />
           </Routes>

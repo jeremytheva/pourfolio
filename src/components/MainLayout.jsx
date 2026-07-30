@@ -1,13 +1,12 @@
 import React from 'react'
-import { FiHome, FiLogOut, FiSearch, FiTarget, FiUser } from 'react-icons/fi'
+import { FiHome, FiLogOut, FiSearch, FiUser } from 'react-icons/fi'
 import { Link, NavLink } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 
 const navigation = [
   { to: '/home', label: 'Discover', icon: FiHome },
   { to: '/search', label: 'Search', icon: FiSearch },
-  { to: '/cellar', label: 'Cellar', icon: FiUser },
-  { to: '/brew-done-it', label: 'Brew Done It', icon: FiTarget }
+  { to: '/cellar', label: 'Cellar', icon: FiUser }
 ]
 
 function MainLayout({ children, user, onLogout }) {
