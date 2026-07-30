@@ -45,6 +45,20 @@ test('defaults password to enabled when it is not explicitly disabled', () => {
   })
 })
 
+test('honours explicit disabled flags without enabling optional providers by presence', () => {
+  assert.deepEqual(normalizeProviders({
+    enabledProviders: [
+      { type: 'credentials', isEnabled: false },
+      { key: 'magicLink', enabled: false },
+      { provider: 'googleOAuth', active: true }
+    ]
+  }), {
+    emailPassword: false,
+    emailOtp: false,
+    google: true
+  })
+})
+
 test('rejects absent, empty, malformed, unrecognised, and ambiguous payloads', () => {
   for (const payload of [
     null,
@@ -58,4 +72,3 @@ test('rejects absent, empty, malformed, unrecognised, and ambiguous payloads', (
     assert.equal(normalizeProviders(payload), null)
   }
 })
-

@@ -16,7 +16,8 @@
     "audit:import": "node scripts/audit-import-references.js",
     "audit:schema": "node scripts/audit-schema-contract.js",
     "check:bundle": "node scripts/check-bundle-size.js",
-    "validate": "npm run lint && npm test && npm run audit:production && npm run build && npm run check:bundle"
+    "check:release-security": "node scripts/check-browser-release-security.js",
+    "validate": "npm run lint && npm test && npm run audit:production && npm run build && npm run check:bundle && npm run check:release-security"
   },
   "dependencies": {
     "react": "^19.2.8",
