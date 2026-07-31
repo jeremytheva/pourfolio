@@ -6,6 +6,7 @@ import {
   enforceSharedRateLimit,
   normaliseAccountIdentifier
 } from '../rateLimit.js'
+import { createInMemoryRedis } from './inMemoryRedis.js'
 
 const request = (email = ' Person@Example.COM ') => ({
   headers: { 'x-vercel-forwarded-for': '203.0.113.8' },
@@ -62,6 +63,29 @@ test('atomic shared operation attaches the configured expiration to a new bucket
   assert.equal(command[1].length, 1)
   assert.match(command[1][0], /^pourfolio:auth:signup:/)
   assert.deepEqual(command[2], ['3600000'])
+})
+
+test('shared counters increment without resetting the original expiry', async () => {
+  const redis = createInMemoryRedis()
+  const options = { keySecret: 'secret', redis }
+
+  const first = await checkSharedRateLimit(request(), 'sign-in/email', options)
+  assert.equal(first.count, 1)
+  assert.equal(first.ttlMs, 15 * 60_000)
+
+  redis.advanceTime(1_000)
+  const second = await checkSharedRateLimit(request(), 'sign-in/email', options)
+  assert.equal(second.count, 2)
+  assert.equal(second.ttlMs, first.ttlMs - 1_000)
+})
+
+test('different opaque keys maintain independent counters', async () => {
+  const redis = createInMemoryRedis()
+  const options = { keySecret: 'secret', redis }
+
+  assert.equal((await checkSharedRateLimit(request('first@example.com'), 'sign-in/email', options)).count, 1)
+  assert.equal((await checkSharedRateLimit(request('first@example.com'), 'sign-in/email', options)).count, 2)
+  assert.equal((await checkSharedRateLimit(request('second@example.com'), 'sign-in/email', options)).count, 1)
 })
 
 const captureFailure = async (options) => {
