@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  AUTH_RATE_LIMITS,
   buildSharedRateLimitKey,
   checkSharedRateLimit,
   enforceSharedRateLimit,
@@ -22,14 +23,32 @@ test('account identifiers are normalised and equivalent identifiers share an opa
   assert.equal(buildSharedRateLimitKey(request(), 'sign-in/email', 'secret').includes('person'), false)
 })
 
-test('shared limit allows the boundary and rejects the next operation', async () => {
-  const call = (count) => checkSharedRateLimit(request(), 'verify-otp', {
-    keySecret: 'secret',
-    redis: { eval: async () => [count, 60_000] }
+const authenticationPolicies = [
+  { path: 'sign-up/email', limit: 5, windowMs: 60 * 60_000 },
+  { path: 'sign-in/email', limit: 10, windowMs: 15 * 60_000 },
+  { path: 'sign-in/otp', limit: 10, windowMs: 15 * 60_000 },
+  { path: 'verify-otp', limit: 8, windowMs: 15 * 60_000 }
+]
+
+for (const expectedPolicy of authenticationPolicies) {
+  test(`${expectedPolicy.path} applies its configured request boundary`, async () => {
+    const { path, limit, windowMs } = expectedPolicy
+    assert.equal(AUTH_RATE_LIMITS[path].limit, limit)
+    assert.equal(AUTH_RATE_LIMITS[path].windowMs, windowMs)
+
+    const redis = createInMemoryRedis()
+    const decisions = []
+    for (let requestNumber = 1; requestNumber <= limit + 1; requestNumber += 1) {
+      decisions.push(await checkSharedRateLimit(request(), path, { keySecret: 'secret', redis }))
+    }
+
+    assert.deepEqual(decisions.map(({ count }) => count),
+      Array.from({ length: limit + 1 }, (_, index) => index + 1))
+    assert.equal(decisions[limit - 1].allowed, true)
+    assert.equal(decisions[limit].allowed, false)
+    assert.equal(decisions[0].ttlMs, windowMs)
   })
-  assert.equal((await call(8)).allowed, true)
-  assert.equal((await call(9)).allowed, false)
-})
+}
 
 test('rejected requests retain the generic response and correlation ID', async () => {
   const response = {
