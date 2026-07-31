@@ -16,24 +16,31 @@ export class RedisError extends Error {
   }
 }
 
-let productionRedis
+export const createRedisClientAccessor = ({
+  environment = process.env,
+  createClient = () => Redis.fromEnv()
+} = {}) => {
+  let productionRedis
 
-export const getRedisClient = (injectedClient) => {
-  if (injectedClient) {
-    if (typeof injectedClient.eval !== 'function') {
-      throw new RedisError(REDIS_ERROR_CODES.CLIENT_INVALID)
+  return (injectedClient) => {
+    if (injectedClient) {
+      if (typeof injectedClient.eval !== 'function') {
+        throw new RedisError(REDIS_ERROR_CODES.CLIENT_INVALID)
+      }
+      return injectedClient
     }
-    return injectedClient
-  }
 
-  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-    throw new RedisError(REDIS_ERROR_CODES.CONFIGURATION_MISSING)
-  }
+    if (!environment.UPSTASH_REDIS_REST_URL || !environment.UPSTASH_REDIS_REST_TOKEN) {
+      throw new RedisError(REDIS_ERROR_CODES.CONFIGURATION_MISSING)
+    }
 
-  try {
-    productionRedis ||= Redis.fromEnv()
-  } catch (error) {
-    throw new RedisError(REDIS_ERROR_CODES.CONNECTION_FAILED, { cause: error })
+    try {
+      productionRedis ||= createClient()
+    } catch (error) {
+      throw new RedisError(REDIS_ERROR_CODES.CONNECTION_FAILED, { cause: error })
+    }
+    return productionRedis
   }
-  return productionRedis
 }
+
+export const getRedisClient = createRedisClientAccessor()
