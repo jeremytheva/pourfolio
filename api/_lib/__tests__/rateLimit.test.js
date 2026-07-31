@@ -14,6 +14,13 @@ const request = (email = ' Person@Example.COM ') => ({
   body: { email }
 })
 
+const createResponse = () => ({
+  headers: {},
+  setHeader(name, value) { this.headers[name] = value },
+  status(code) { this.statusCode = code; return this },
+  json(body) { this.body = body }
+})
+
 test('account and client identifiers produce namespaced opaque keys', () => {
   const normalisedEmail = 'person@example.com'
   const clientAddress = '203.0.113.8'
@@ -59,22 +66,29 @@ for (const expectedPolicy of authenticationPolicies) {
     assert.equal(decisions[limit - 1].allowed, true)
     assert.equal(decisions[limit].allowed, false)
     assert.equal(decisions[0].ttlMs, windowMs)
+
+    const response = createResponse()
+    assert.equal(await enforceSharedRateLimit(request(), response, path, {
+      keySecret: 'secret',
+      redis: { eval: async () => [limit, windowMs] }
+    }), true)
+    assert.equal(response.headers['X-RateLimit-Limit'], String(limit))
+    assert.equal(response.headers['X-RateLimit-Remaining'], '0')
   })
 }
 
 test('rejected requests retain the generic response and correlation ID', async () => {
-  const response = {
-    headers: {},
-    setHeader(name, value) { this.headers[name] = value },
-    status(code) { this.statusCode = code; return this },
-    json(body) { this.body = body }
-  }
+  const ttlMs = 60_001
+  const response = createResponse()
   assert.equal(await enforceSharedRateLimit(request(), response, 'verify-otp', {
     keySecret: 'secret',
     requestId: 'request-123',
-    redis: { eval: async () => [9, 60_000] }
+    redis: { eval: async () => [9, ttlMs] }
   }), false)
   assert.equal(response.statusCode, 429)
+  assert.equal(response.headers['X-RateLimit-Limit'], String(AUTH_RATE_LIMITS['verify-otp'].limit))
+  assert.equal(response.headers['X-RateLimit-Remaining'], '0')
+  assert.equal(response.headers['Retry-After'], String(Math.max(1, Math.ceil(ttlMs / 1000))))
   assert.deepEqual(response.body, {
     error: 'Too many requests. Please try again shortly.',
     requestId: 'request-123'
