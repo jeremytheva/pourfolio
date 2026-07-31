@@ -14,13 +14,25 @@ const request = (email = ' Person@Example.COM ') => ({
   body: { email }
 })
 
-test('account identifiers are normalised and equivalent identifiers share an opaque key', () => {
-  assert.equal(normaliseAccountIdentifier('  PERSON@example.com '), 'person@example.com')
-  assert.equal(
-    buildSharedRateLimitKey(request(), 'sign-in/email', 'secret'),
-    buildSharedRateLimitKey(request('person@example.com'), 'sign-in/email', 'secret')
-  )
-  assert.equal(buildSharedRateLimitKey(request(), 'sign-in/email', 'secret').includes('person'), false)
+test('account and client identifiers produce namespaced opaque keys', () => {
+  const normalisedEmail = 'person@example.com'
+  const clientAddress = '203.0.113.8'
+  const key = buildSharedRateLimitKey(request(), 'sign-in/email', 'secret')
+  const equivalentKey = buildSharedRateLimitKey(request(normalisedEmail), 'sign-in/email', 'secret')
+  const differentAccountKey = buildSharedRateLimitKey(request('other@example.com'), 'sign-in/email', 'secret')
+  const differentAddressKey = buildSharedRateLimitKey({
+    ...request(),
+    headers: { 'x-vercel-forwarded-for': '203.0.113.9' }
+  }, 'sign-in/email', 'secret')
+  const namespace = 'pourfolio:auth:signin:'
+
+  assert.equal(normaliseAccountIdentifier('  PERSON@example.com '), normalisedEmail)
+  assert.equal(key, equivalentKey)
+  assert.equal(key.startsWith(namespace), true)
+  assert.equal(key.includes(normalisedEmail), false)
+  assert.equal(key.includes(clientAddress), false)
+  assert.notEqual(key.slice(namespace.length), differentAccountKey.slice(namespace.length))
+  assert.notEqual(key.slice(namespace.length), differentAddressKey.slice(namespace.length))
 })
 
 const authenticationPolicies = [
