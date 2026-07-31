@@ -3,8 +3,10 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const upstreamAuthDomain = /https?:\/\/[^\s"'`]*nocodebackend\.com\/api\/user-auth/gi
-const credentialAssignment = /(?:NOCODEBACKEND_SECRET_KEY|NOCODEBACKEND_DATA_BASE_URL)\s*[=:]\s*["']?([^\s"',}]+)/g
+const credentialAssignment = /(?:NOCODEBACKEND_SECRET_KEY|NOCODEBACKEND_DATA_BASE_URL|UPSTASH_REDIS_REST_TOKEN|RATE_LIMIT_KEY_SECRET|UPSTASH_REDIS_REST_URL)\s*[=:]\s*["']?([^\s"',}]+)/g
 const placeholderValue = /^(?:example|placeholder|replace[-_]?me|your[-_]|<|\$\{|https?:\/\/example\.)/i
+const upstashBrowserImport = /(?:from\s*|import\s*\(|require\s*\()\s*["']@upstash\/redis(?:[/'"])/
+const directUpstashRestRequest = /(?:fetch|axios(?:\.(?:get|post|put|patch|delete))?)\s*\([^)]*https?:\/\/[^\s"'`)]*\.upstash\.io(?:[/:?"'`)])/gis
 const serverFileAllowlist = [
   'api/auth-proxy.js',
   'api/data-proxy.js',
@@ -28,7 +30,10 @@ const walkFiles = (directory) => {
 export const inspectBrowserRelease = ({
   rootDirectory,
   browserDirectories = ['src', 'dist'],
-  dataUpstream = process.env.NOCODEBACKEND_DATA_BASE_URL
+  dataUpstream = process.env.NOCODEBACKEND_DATA_BASE_URL,
+  upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN,
+  rateLimitSecret = process.env.RATE_LIMIT_KEY_SECRET,
+  upstashUrl = process.env.UPSTASH_REDIS_REST_URL
 }) => {
   const findings = []
   for (const relativeDirectory of browserDirectories) {
@@ -40,9 +45,31 @@ export const inspectBrowserRelease = ({
       if (content.includes('NOCODEBACKEND_SECRET_KEY')) {
         findings.push(`${relativePath}: exposes the server-only secret variable name`)
       }
+      if (content.includes('UPSTASH_REDIS_REST_TOKEN')) {
+        findings.push(`${relativePath}: exposes the server-only Upstash token variable name`)
+      }
+      if (content.includes('RATE_LIMIT_KEY_SECRET')) {
+        findings.push(`${relativePath}: exposes the server-only rate-limit secret variable name`)
+      }
       if (dataUpstream && !placeholderValue.test(dataUpstream) && content.includes(dataUpstream)) {
         findings.push(`${relativePath}: exposes the configured data upstream`)
       }
+      if (upstashToken && !placeholderValue.test(upstashToken) && content.includes(upstashToken)) {
+        findings.push(`${relativePath}: exposes the configured Upstash token`)
+      }
+      if (rateLimitSecret && !placeholderValue.test(rateLimitSecret) && content.includes(rateLimitSecret)) {
+        findings.push(`${relativePath}: exposes the configured rate-limit secret`)
+      }
+      if (upstashUrl && !placeholderValue.test(upstashUrl) && content.includes(upstashUrl)) {
+        findings.push(`${relativePath}: exposes the configured Upstash URL`)
+      }
+      if (upstashBrowserImport.test(content)) {
+        findings.push(`${relativePath}: imports @upstash/redis in browser code`)
+      }
+      if (directUpstashRestRequest.test(content)) {
+        findings.push(`${relativePath}: makes a direct Upstash REST request`)
+      }
+      directUpstashRestRequest.lastIndex = 0
       if (upstreamAuthDomain.test(content)) {
         findings.push(`${relativePath}: requests the upstream authentication domain directly`)
       }

@@ -58,3 +58,73 @@ test('only exempts the explicit NoCodeBackend server proxy files and library', (
     'api/browser-client.js: requests the upstream authentication domain directly'
   ])
 })
+
+test('reports each server-only rate-limit variable name in browser source', (context) => {
+  const rootDirectory = fixture({
+    'src/token.js': "process.env.UPSTASH_REDIS_REST_TOKEN",
+    'dist/assets/secret.js': "globalThis.RATE_LIMIT_KEY_SECRET"
+  })
+  context.after(() => fs.rmSync(rootDirectory, { recursive: true, force: true }))
+
+  assert.deepEqual(inspectBrowserRelease({ rootDirectory }), [
+    'src/token.js: exposes the server-only Upstash token variable name',
+    'dist/assets/secret.js: exposes the server-only rate-limit secret variable name'
+  ])
+})
+
+test('reports configured Upstash and rate-limit values in browser output', (context) => {
+  const rootDirectory = fixture({
+    'dist/assets/config.js': "const values = ['redis-token-value', 'bucket-secret-value', 'https://redis-private.example.test']"
+  })
+  context.after(() => fs.rmSync(rootDirectory, { recursive: true, force: true }))
+
+  assert.deepEqual(inspectBrowserRelease({
+    rootDirectory,
+    upstashToken: 'redis-token-value',
+    rateLimitSecret: 'bucket-secret-value',
+    upstashUrl: 'https://redis-private.example.test'
+  }), [
+    'dist/assets/config.js: exposes the configured Upstash token',
+    'dist/assets/config.js: exposes the configured rate-limit secret',
+    'dist/assets/config.js: exposes the configured Upstash URL'
+  ])
+})
+
+test('reports Upstash browser imports and direct REST requests', (context) => {
+  const rootDirectory = fixture({
+    'src/redis.js': "import { Redis } from '@upstash/redis'",
+    'dist/assets/request.js': "fetch('https://alert-cobra-12345.upstash.io/get/key')"
+  })
+  context.after(() => fs.rmSync(rootDirectory, { recursive: true, force: true }))
+
+  assert.deepEqual(inspectBrowserRelease({ rootDirectory }), [
+    'src/redis.js: imports @upstash/redis in browser code',
+    'dist/assets/request.js: makes a direct Upstash REST request'
+  ])
+})
+
+test('allows rate-limit implementation fixtures under api/_lib', (context) => {
+  const rootDirectory = fixture({
+    'api/_lib/redis.js': "import { Redis } from '@upstash/redis'; fetch('https://server-only.upstash.io')",
+    'api/_lib/rateLimit.js': "const secret = process.env.RATE_LIMIT_KEY_SECRET",
+    'api/_lib/config.js': "const token = process.env.UPSTASH_REDIS_REST_TOKEN"
+  })
+  context.after(() => fs.rmSync(rootDirectory, { recursive: true, force: true }))
+
+  assert.deepEqual(inspectBrowserRelease({ rootDirectory, browserDirectories: ['api'] }), [])
+})
+
+test('does not treat .env.example placeholders as configured secrets', (context) => {
+  const rootDirectory = fixture({
+    '.env.example': 'UPSTASH_REDIS_REST_URL=\nUPSTASH_REDIS_REST_TOKEN=\nRATE_LIMIT_KEY_SECRET=\n',
+    'src/client.js': "fetch('/api/nocodebackend/products')"
+  })
+  context.after(() => fs.rmSync(rootDirectory, { recursive: true, force: true }))
+
+  assert.deepEqual(inspectBrowserRelease({
+    rootDirectory,
+    upstashToken: 'replace-me',
+    rateLimitSecret: '${RATE_LIMIT_KEY_SECRET}',
+    upstashUrl: 'https://example.com'
+  }), [])
+})
