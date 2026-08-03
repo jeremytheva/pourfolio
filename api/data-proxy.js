@@ -1,4 +1,5 @@
 import crypto from 'node:crypto'
+import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 import { COLLECTIONS } from '../src/data/contract.js'
 import { calculateRatingTotals } from '../src/utils/ratingSubmission.js'
 import { BREW_DONE_IT_RULES, calculateBrewDoneItScore } from '../src/utils/brewDoneItScoring.js'
@@ -341,7 +342,11 @@ const submitRating = async (request, response, user, correlationId) => {
     if (rating?.id) {
       try { await dataProvider.update(COLLECTIONS.ratings, rating.id, { submission_state: 'failed' }) } catch { stateUpdateFailed = true }
     }
-    console.error('Rating reconciliation failed', { correlationId, stateUpdateFailed, submissionState: 'failed' })
+    writeTelemetryError(runtimeTelemetry({
+      route_template: '/api/nocodebackend/ratings/:action', method: 'POST', status_class: '5xx',
+      event_name: stateUpdateFailed ? 'rating_reconciliation_state_update_failure' : 'rating_reconciliation_failure',
+      correlation_id: correlationId
+    }))
     if (error.status && error.status < 500) throw error
     const workflowError = new Error('Rating submission is incomplete and can be retried safely.')
     workflowError.status = 502
@@ -957,7 +962,7 @@ const routeRequest = async (request, response, user, correlationId) => {
 }
 
 export default async function handler(request, response) {
-  const correlationId = request.headers?.['x-request-id'] || crypto.randomUUID()
+  const correlationId = safeCorrelationId(request.headers?.['x-request-id'], crypto.randomUUID)
   response.setHeader('X-Request-Id', correlationId)
   response.setHeader('Cache-Control', 'no-store')
 
@@ -978,11 +983,12 @@ export default async function handler(request, response) {
   } catch (error) {
     const status = Number(error.status) >= 400 && Number(error.status) < 600 ? Number(error.status) : 500
     if (status >= 500) {
-      console.error('Application data gateway error', {
-        correlationId,
-        status,
-        name: error.name
-      })
+      writeTelemetryError(runtimeTelemetry({
+        route_template: '/api/nocodebackend/:resource', method: request.method,
+        status_class: `${Math.floor(status / 100)}xx`,
+        event_name: error.name === 'AbortError' ? 'provider_timeout' : 'gateway_failure',
+        correlation_id: correlationId
+      }))
     }
     response.status(status).json(error.payload || {
       error: status < 500 && error.message ? error.message : safeErrorMessage(status),
