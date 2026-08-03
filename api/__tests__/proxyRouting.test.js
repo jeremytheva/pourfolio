@@ -57,6 +57,12 @@ const createResponse = () => ({
 test('Vercel routes public catch-all paths to flat proxy entrypoints before the SPA fallback', async () => {
   const configuration = await loadVercelConfiguration()
 
+  assert.equal(
+    JSON.stringify(configuration).includes('BREW_DONE_IT_POLICY_ENABLED'),
+    false,
+    'production configuration must leave the Brew Done It policy flag unset'
+  )
+
   assert.deepEqual(configuration.rewrites.slice(0, 3), [
     {
       source: '/api/nocodebackend/auth/:path*',

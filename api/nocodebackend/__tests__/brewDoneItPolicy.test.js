@@ -6,7 +6,12 @@ import { dataProvider } from '../../_lib/dataProvider.js'
 import { __testables } from '../../data-proxy.js'
 
 const originalProviderMethods = { ...dataProvider }
-afterEach(() => Object.assign(dataProvider, originalProviderMethods))
+const originalPolicyFlag = process.env.BREW_DONE_IT_POLICY_ENABLED
+afterEach(() => {
+  Object.assign(dataProvider, originalProviderMethods)
+  if (originalPolicyFlag === undefined) delete process.env.BREW_DONE_IT_POLICY_ENABLED
+  else process.env.BREW_DONE_IT_POLICY_ENABLED = originalPolicyFlag
+})
 
 const selector = { id: 'selector' }
 const guesser = { id: 'guesser' }
@@ -18,6 +23,38 @@ const response = () => ({
   statusCode: null, body: null,
   status(code) { this.statusCode = code; return this },
   json(value) { this.body = value; return this }
+})
+
+test('every game gateway operation fails closed before data access while the policy flag is unset', async () => {
+  delete process.env.BREW_DONE_IT_POLICY_ENABLED
+  let providerCalls = 0
+  for (const method of ['get', 'list', 'create', 'update', 'compareAndSet']) {
+    dataProvider[method] = async () => {
+      providerCalls += 1
+      throw new Error('The disabled game must not access application data.')
+    }
+  }
+
+  const operations = [
+    ['POST', ['brew-done-it', 'games']],
+    ['POST', ['brew-done-it', 'games', '1', 'join']],
+    ['GET', ['brew-done-it', 'games', '1']],
+    ['POST', ['brew-done-it', 'games', '1', 'cancel']],
+    ['POST', ['brew-done-it', 'games', '1', 'expire']],
+    ['POST', ['brew-done-it', 'games', '1', 'forfeit']],
+    ['POST', ['brew-done-it', 'rounds', '2', 'selection']],
+    ['POST', ['brew-done-it', 'rounds', '2', 'guesses']],
+    ['POST', ['brew-done-it', 'rounds', '2', 'history-questions']],
+    ['GET', ['brew-done-it', 'stats']]
+  ]
+
+  for (const [method, path] of operations) {
+    const result = response()
+    await __testables.routeRequest({ method, query: { path }, body: {} }, result, selector, 'test-correlation-id')
+    assert.equal(result.statusCode, 404, `${method} ${path.join('/')} must be contained`)
+    assert.deepEqual(result.body, { error: 'Application data route not found.' })
+  }
+  assert.equal(providerCalls, 0)
 })
 
 const installProvider = () => {

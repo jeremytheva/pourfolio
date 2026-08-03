@@ -1005,6 +1005,7 @@ export const __testables = {
   BONUS_FIELDS,
   PROFILE_FIELDS,
   pathSegments,
+  routeRequest,
   findProfile,
   getProduct,
   getProfile,
