@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -153,6 +154,14 @@ export const auditImportData = ({ products, producers, ratings = [], cellar = []
   }
 }
 
+export const fingerprintCsv = (filePath) => {
+  const contents = fs.readFileSync(path.resolve(filePath))
+  return {
+    bytes: contents.byteLength,
+    sha256: createHash('sha256').update(contents).digest('hex')
+  }
+}
+
 const readCsv = (filePath) => parseCsv(fs.readFileSync(path.resolve(filePath), 'utf8'))
 
 const parseArguments = (arguments_) => {
@@ -173,13 +182,18 @@ const parseArguments = (arguments_) => {
 
 export const runCli = (arguments_) => {
   const options = parseArguments(arguments_)
+  const suppliedInputs = ['products', 'producers', 'ratings', 'cellar']
+    .filter((name) => options[name])
+  const inputs = Object.fromEntries(
+    suppliedInputs.map((name) => [name, fingerprintCsv(options[name])])
+  )
   const report = auditImportData({
     products: readCsv(options.products),
     producers: readCsv(options.producers),
     ratings: options.ratings ? readCsv(options.ratings) : [],
     cellar: options.cellar ? readCsv(options.cellar) : []
   })
-  process.stdout.write(`${JSON.stringify(report, null, 2)}\n`)
+  process.stdout.write(`${JSON.stringify({ ...report, inputs }, null, 2)}\n`)
   return report.status === 'PASS' ? 0 : 1
 }
 

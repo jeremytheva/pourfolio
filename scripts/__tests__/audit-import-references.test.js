@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import test from 'node:test'
-import { auditImportData, parseCsv } from '../audit-import-references.js'
+import { auditImportData, fingerprintCsv, parseCsv } from '../audit-import-references.js'
 
 test('CSV parsing supports quoted commas, newlines and escaped quotes', () => {
   const records = parseCsv(
@@ -75,4 +78,19 @@ test('preflight rejects missing required headers', () => {
     }),
     /producer_id/
   )
+})
+
+test('CSV fingerprints report byte length and a stable SHA-256 digest', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pourfolio-import-audit-'))
+  const filePath = path.join(directory, 'products.csv')
+  fs.writeFileSync(filePath, 'id,product_name,producer_id\n20,Beer,9\n')
+
+  try {
+    assert.deepEqual(fingerprintCsv(filePath), {
+      bytes: 38,
+      sha256: 'b365ac75ba7f7b2ee48db63a756c4c00508782e9ea64f0c4f638ff6810e12933'
+    })
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true })
+  }
 })
