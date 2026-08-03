@@ -37,8 +37,9 @@ test('reports secret names, the configured data upstream and direct upstream aut
   })
   context.after(() => fs.rmSync(rootDirectory, { recursive: true, force: true }))
   assert.deepEqual(inspectBrowserRelease({ rootDirectory, dataUpstream }), [
+    'src/config.js: exposes the server-only NoCodeBackend data upstream variable name',
     'src/config.js: contains a credential-like value',
-    'src/secret.js: exposes the server-only secret variable name',
+    'src/secret.js: exposes the server-only NoCodeBackend secret variable name',
     'dist/assets/auth.js: requests the upstream authentication domain directly',
     'dist/assets/data.js: exposes the configured data upstream'
   ])
@@ -62,14 +63,30 @@ test('only exempts the explicit NoCodeBackend server proxy files and library', (
 test('reports each server-only rate-limit variable name in browser source', (context) => {
   const rootDirectory = fixture({
     'src/token.js': "process.env.UPSTASH_REDIS_REST_TOKEN",
+    'src/url.js': "process.env.UPSTASH_REDIS_REST_URL",
     'dist/assets/secret.js': "globalThis.RATE_LIMIT_KEY_SECRET"
   })
   context.after(() => fs.rmSync(rootDirectory, { recursive: true, force: true }))
 
   assert.deepEqual(inspectBrowserRelease({ rootDirectory }), [
     'src/token.js: exposes the server-only Upstash token variable name',
+    'src/url.js: exposes the server-only Upstash URL variable name',
     'dist/assets/secret.js: exposes the server-only rate-limit secret variable name'
   ])
+})
+
+test('reports configured NoCodeBackend secret without including its value in findings', (context) => {
+  const nocodeBackendSecret = 'nocode-super-secret-value'
+  const rootDirectory = fixture({
+    'dist/assets/index-CONTENTHASH.js': `window.__CONFIG__={secret:${JSON.stringify(nocodeBackendSecret)}}`
+  })
+  context.after(() => fs.rmSync(rootDirectory, { recursive: true, force: true }))
+
+  const findings = inspectBrowserRelease({ rootDirectory, nocodeBackendSecret })
+  assert.deepEqual(findings, [
+    'dist/assets/index-CONTENTHASH.js: exposes the configured NoCodeBackend secret'
+  ])
+  assert.equal(findings.join('\n').includes(nocodeBackendSecret), false)
 })
 
 test('reports configured Upstash and rate-limit values in browser output', (context) => {
@@ -100,6 +117,23 @@ test('reports Upstash browser imports and direct REST requests', (context) => {
   assert.deepEqual(inspectBrowserRelease({ rootDirectory }), [
     'src/redis.js: imports @upstash/redis in browser code',
     'dist/assets/request.js: makes a direct Upstash REST request'
+  ])
+})
+
+test('recognises bundled import and request formats in release output', (context) => {
+  const rootDirectory = fixture({
+    'dist/assets/dynamic.js': "import('@upstash/redis')",
+    'dist/assets/commonjs.cjs': "require('@upstash/redis/nodejs')",
+    'dist/assets/axios.js': "axios.post(\"https://alert-cobra-12345.upstash.io/pipeline\",body)",
+    'dist/assets/auth.js': "const endpoint=\"https://tenant.nocodebackend.com/api/user-auth/sign-in/email\""
+  })
+  context.after(() => fs.rmSync(rootDirectory, { recursive: true, force: true }))
+
+  assert.deepEqual(inspectBrowserRelease({ rootDirectory }), [
+    'dist/assets/auth.js: requests the upstream authentication domain directly',
+    'dist/assets/axios.js: makes a direct Upstash REST request',
+    'dist/assets/commonjs.cjs: imports @upstash/redis in browser code',
+    'dist/assets/dynamic.js: imports @upstash/redis in browser code'
   ])
 })
 

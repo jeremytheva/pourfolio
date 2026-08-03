@@ -7,6 +7,13 @@ const credentialAssignment = /(?:NOCODEBACKEND_SECRET_KEY|NOCODEBACKEND_DATA_BAS
 const placeholderValue = /^(?:example|placeholder|replace[-_]?me|your[-_]|<|\$\{|https?:\/\/example\.)/i
 const upstashBrowserImport = /(?:from\s*|import\s*\(|require\s*\()\s*["']@upstash\/redis(?:[/'"])/
 const directUpstashRestRequest = /(?:fetch|axios(?:\.(?:get|post|put|patch|delete))?)\s*\([^)]*https?:\/\/[^\s"'`)]*\.upstash\.io(?:[/:?"'`)])/gis
+const serverOnlyVariableNames = [
+  ['NOCODEBACKEND_SECRET_KEY', 'NoCodeBackend secret'],
+  ['NOCODEBACKEND_DATA_BASE_URL', 'NoCodeBackend data upstream'],
+  ['UPSTASH_REDIS_REST_TOKEN', 'Upstash token'],
+  ['UPSTASH_REDIS_REST_URL', 'Upstash URL'],
+  ['RATE_LIMIT_KEY_SECRET', 'rate-limit secret']
+]
 const serverFileAllowlist = [
   'api/auth-proxy.js',
   'api/data-proxy.js',
@@ -30,6 +37,7 @@ const walkFiles = (directory) => {
 export const inspectBrowserRelease = ({
   rootDirectory,
   browserDirectories = ['src', 'dist'],
+  nocodeBackendSecret = process.env.NOCODEBACKEND_SECRET_KEY,
   dataUpstream = process.env.NOCODEBACKEND_DATA_BASE_URL,
   upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN,
   rateLimitSecret = process.env.RATE_LIMIT_KEY_SECRET,
@@ -42,14 +50,13 @@ export const inspectBrowserRelease = ({
       const content = fs.readFileSync(filePath, 'utf8')
       const relativePath = path.relative(rootDirectory, filePath).split(path.sep).join('/')
       if (isAllowlistedServerFile(relativePath)) continue
-      if (content.includes('NOCODEBACKEND_SECRET_KEY')) {
-        findings.push(`${relativePath}: exposes the server-only secret variable name`)
+      for (const [variableName, description] of serverOnlyVariableNames) {
+        if (content.includes(variableName)) {
+          findings.push(`${relativePath}: exposes the server-only ${description} variable name`)
+        }
       }
-      if (content.includes('UPSTASH_REDIS_REST_TOKEN')) {
-        findings.push(`${relativePath}: exposes the server-only Upstash token variable name`)
-      }
-      if (content.includes('RATE_LIMIT_KEY_SECRET')) {
-        findings.push(`${relativePath}: exposes the server-only rate-limit secret variable name`)
+      if (nocodeBackendSecret && !placeholderValue.test(nocodeBackendSecret) && content.includes(nocodeBackendSecret)) {
+        findings.push(`${relativePath}: exposes the configured NoCodeBackend secret`)
       }
       if (dataUpstream && !placeholderValue.test(dataUpstream) && content.includes(dataUpstream)) {
         findings.push(`${relativePath}: exposes the configured data upstream`)
