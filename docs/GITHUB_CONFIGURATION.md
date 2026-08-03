@@ -36,11 +36,10 @@ production environment access and secrets are restricted to authorised
 deployers. Prove secret scanning, push protection and Dependency Graph are
 enabled rather than merely available under the organisation plan.
 
-Do not remove `continue-on-error: true` from
-`.github/workflows/pull-request-validation.yml` until an administrator has
-enabled Dependency Graph and retained that evidence. After enabling it, remove
-the exception in a separate reviewed change, observe a successful Dependency
-review run on a pull request, and then make `Dependency review` required. As of
-29 July 2026 no repository-administrator evidence is available in this delivery
-environment, so these settings and the workflow change remain blocking and are
-not claimed as complete.
+The dependency-review job is configured to fail on findings at or above high
+severity. An administrator must enable Dependency Graph, observe a successful
+`Dependency review` run on a pull request, retain that evidence, and make the
+check required; workflow failure behaviour alone does not make a check
+branch-blocking. As of 3 August 2026 this delivery environment has no Git
+remote, GitHub CLI or repository-administrator evidence, so the remote settings
+remain blocking and are not claimed as complete.

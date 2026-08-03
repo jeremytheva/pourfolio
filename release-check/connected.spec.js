@@ -39,6 +39,17 @@ test('host health, headers, SPA fallback and rejected redirects', async ({ page,
   if (location) expect(new URL(location).hostname).not.toBe('attacker.invalid')
 })
 
+test('public policy and support documents are reachable without authentication', async ({ page }) => {
+  for (const path of ['/privacy', '/terms', '/moderation', '/support', '/retention']) {
+    await page.goto(path)
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+      .analyze()
+    expect(results.violations.filter(({ impact }) => ['serious', 'critical'].includes(impact)), `axe violations on ${path}`).toEqual([])
+  }
+})
+
 test('provider discovery, sign-up, password sign-in, OTP, Google and logout', async ({ page, request }) => {
   const providersResponse = await request.get('/api/nocodebackend/auth/providers')
   expect(providersResponse.ok()).toBeTruthy()
