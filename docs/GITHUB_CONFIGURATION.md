@@ -8,6 +8,11 @@ Repository files cannot configure the following settings. A repository administr
 ## Recommended project fields
 Use **Status**, **Project or product**, **Type**, **Priority**, **Complexity**, **Milestone**, **Codex ready**, and **Dependencies**. Recommended Status values: Backlog, Refinement, Ready, In progress, Review, Blocked, and Done.
 
+The authoritative Phase 0–6 milestone names, issue field contract, staged issue
+contracts and backlog mapping are in [Phase 0–6 release tracking](RELEASE_TRACKING.md).
+Those contracts must be created in GitHub Issues only after an administrator
+enables the tracker; repository documentation is not a substitute for issues.
+
 ## Administrator checklist
 
 - [ ] Enable GitHub Issues or nominate and document another issue tracker.
