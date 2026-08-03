@@ -61,9 +61,12 @@ The supplied workbook currently reports:
 The previously missing products, cellar, bonus-attribute and SQL exports are now present in the supplied source set. Their presence does not complete import reconciliation. The [historical import preflight](nocodebackend/import-preflight.md) currently blocks the source set because catalogue and producer references do not reconcile.
 
 The [rating schema preflight](nocodebackend/schema-preflight.md) also blocks the
-supplied SQL export with 15 findings: the `profiles` table is absent, ten required
-columns are nullable, three required unique constraints are absent, and
-`ratings.date_rated` changes automatically on update.
+supplied `54026_rating_export(2).sql` source snapshot. As audited on 29 July
+2026 against the current preflight contract, its 25 findings are one missing
+table, seven missing required workflow/idempotency columns, ten nullable
+required columns, six missing unique constraints and one mutable timestamp
+default. The category counts are taken from the retained audit output contract,
+not inferred from the headline total.
 
 ### Historical import execution record
 
