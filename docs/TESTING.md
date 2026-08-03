@@ -68,8 +68,16 @@ or other persistent write occurs.
 
 Pull requests, pushes to `main`/`master`, and manual runs execute the release gate
 and Playwright browser/accessibility suite on Node 20. Pull requests also attempt
-dependency review. That step is warning-only until a repository administrator
-enables Dependency Graph; the production dependency audit remains blocking.
+the `Dependency review` job. The job has no `continue-on-error` setting and is
+configured to fail when it finds a vulnerability of high severity or above.
+Dependency Graph must be enabled in the repository settings for the dependency
+review action to operate successfully. A failed job fails the workflow, but the
+job only blocks merging independently when an administrator also configures
+`Dependency review` as a required branch-protection check. Before treating the
+Dependency Graph and Dependency Review configuration as complete, retain the
+workflow URL, commit SHA and successful `Dependency review` result from a pull
+request run. Repository files and local validation do not prove that either
+remote setting is enabled. The production dependency audit remains blocking.
 CodeQL runs on pull requests, protected branches, weekly schedule and manual
 dispatch.
 

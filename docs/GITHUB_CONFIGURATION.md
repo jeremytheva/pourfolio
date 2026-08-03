@@ -18,7 +18,9 @@ Use **Status**, **Project or product**, **Type**, **Priority**, **Complexity**, 
 - [ ] Enable issue forms and verify `Closes #` issue auto-linking/closing behaviour.
 - [ ] Configure required reviewers only when reliable ownership is known; no `CODEOWNERS` file is supplied because ownership is not evidenced in this repository.
 - [ ] Enable Dependabot alerts, secret scanning, and push protection where available.
-- [ ] Enable Dependency Graph, then remove `continue-on-error` from the dependency-review workflow step and require its check.
+- [ ] Enable Dependency Graph so the dependency review action can operate successfully.
+- [ ] Retain the workflow URL, commit SHA and successful `Dependency review` result from a pull-request run before marking Dependency Graph and Dependency Review configuration complete.
+- [ ] Make `Dependency review` a required branch-protection check if it must block merging independently of the workflow's failure behaviour.
 - [ ] Review Dependabot alerts weekly.
 - [ ] Add deployment environment protection and restrict production secret access.
 - [ ] Close or archive obsolete Supabase and prototype pull requests that cannot merge into the canonical architecture.
@@ -36,10 +38,13 @@ production environment access and secrets are restricted to authorised
 deployers. Prove secret scanning, push protection and Dependency Graph are
 enabled rather than merely available under the organisation plan.
 
-The dependency-review job is configured to fail on findings at or above high
-severity. An administrator must enable Dependency Graph, observe a successful
-`Dependency review` run on a pull request, retain that evidence, and make the
-check required; workflow failure behaviour alone does not make a check
-branch-blocking. As of 3 August 2026 this delivery environment has no Git
-remote, GitHub CLI or repository-administrator evidence, so the remote settings
-remain blocking and are not claimed as complete.
+The `Dependency review` job has no `continue-on-error` setting and is configured
+to fail on vulnerabilities of high severity or above. Dependency Graph must be
+enabled for the action to operate successfully. An administrator must observe a
+successful `Dependency review` run on a pull request and retain its workflow
+URL, commit SHA and result before marking the Dependency Graph and Dependency
+Review configuration complete. A job failure fails the workflow; it does not,
+by itself, make `Dependency review` a required branch-protection check. Requiring
+that check is a separate administrator setting. As of 3 August 2026 this delivery
+environment has no Git remote, GitHub CLI or repository-administrator evidence,
+so the remote settings remain blocking and are not claimed as complete.
