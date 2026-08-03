@@ -82,7 +82,11 @@ export const checkSharedRateLimit = async (request, path, {
   }
   const count = Number(result[0])
   const ttlMs = Number(result[1])
-  if (!Number.isFinite(count) || !Number.isFinite(ttlMs)) {
+  // PTTL returns negative sentinel values when the bucket has no usable expiry.
+  // Treat those, fractional values and non-positive counters as a provider
+  // contract failure rather than accidentally allowing an unbounded bucket.
+  if (!Number.isSafeInteger(count) || count < 1 ||
+      !Number.isSafeInteger(ttlMs) || ttlMs < 1 || ttlMs > policy.windowMs) {
     throw new RedisError(REDIS_ERROR_CODES.RESULT_INVALID)
   }
   return { allowed: count <= policy.limit, count, ttlMs, ...policy }

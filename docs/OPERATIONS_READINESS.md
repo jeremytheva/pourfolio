@@ -63,6 +63,16 @@ and webhook addresses before placing evidence outside the private record.
 
 ### Monitoring evidence
 
+For the shared authentication limiter, add dedicated panels for `429` count
+and rate by route template, `503` count and rate by safe failure category, auth
+attempt denominator and request latency. Page on any sustained limiter `503`
+for 5 minutes; ticket when auth failures exceed 1% for 30 minutes; and ticket
+when limiter `429` exceeds three times the trailing seven-day same-hour
+baseline for 15 minutes. Keep the existing minimum-attempt requirements where
+the authentication-failure rate is used. The connected procedure and safe
+evidence contract are defined in
+[Shared authentication limiter staging certification](RATE_LIMIT_STAGING_CERTIFICATION.md).
+
 | Item | Required private evidence | Status on 29 July 2026 |
 | --- | --- | --- |
 | Deployment and gateway dashboard | Dashboard identifier, production scope, six queries, retention and access-control capture | **Blocked:** no monitoring-administrator access or destination was supplied. |

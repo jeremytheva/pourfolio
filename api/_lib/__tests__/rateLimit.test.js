@@ -133,6 +133,42 @@ test('different opaque keys maintain independent counters', async () => {
   assert.equal((await checkSharedRateLimit(request('second@example.com'), 'sign-in/email', options)).count, 1)
 })
 
+test('concurrent requests receive unique atomic increments at the policy boundary', async () => {
+  const redis = createInMemoryRedis()
+  const policy = AUTH_RATE_LIMITS['verify-otp']
+  const decisions = await Promise.all(Array.from(
+    { length: policy.limit + 1 },
+    () => checkSharedRateLimit(request(), 'verify-otp', { keySecret: 'secret', redis })
+  ))
+
+  assert.deepEqual(decisions.map(({ count }) => count).sort((left, right) => left - right),
+    Array.from({ length: policy.limit + 1 }, (_, index) => index + 1))
+  assert.equal(decisions.filter(({ allowed }) => allowed).length, policy.limit)
+  assert.equal(decisions.filter(({ allowed }) => !allowed).length, 1)
+})
+
+test('a fixed window expires exactly at its boundary and service recovers', async () => {
+  const redis = createInMemoryRedis()
+  const policy = AUTH_RATE_LIMITS['sign-in/email']
+  const options = { keySecret: 'secret', redis }
+
+  await Promise.all(Array.from(
+    { length: policy.limit },
+    () => checkSharedRateLimit(request(), 'sign-in/email', options)
+  ))
+  assert.equal((await checkSharedRateLimit(request(), 'sign-in/email', options)).allowed, false)
+
+  redis.advanceTime(policy.windowMs - 1)
+  assert.equal((await checkSharedRateLimit(request(), 'sign-in/email', options)).allowed, false)
+  redis.advanceTime(1)
+  const recovered = await checkSharedRateLimit(request(), 'sign-in/email', options)
+  assert.deepEqual({ allowed: recovered.allowed, count: recovered.count, ttlMs: recovered.ttlMs }, {
+    allowed: true,
+    count: 1,
+    ttlMs: policy.windowMs
+  })
+})
+
 const captureFailure = async (options) => {
   const previousError = console.error
   const logs = []
@@ -199,3 +235,48 @@ test('SDK command failures fail closed without leaking private inputs or raw err
   const capturedOutput = JSON.stringify({ response, logs })
   for (const privateValue of privateValues) assert.equal(capturedOutput.includes(privateValue), false)
 })
+
+test('provider latency does not weaken the limit and a later command recovers', async () => {
+  let releaseCommand
+  let calls = 0
+  const redis = {
+    eval: async () => {
+      calls += 1
+      if (calls === 1) await new Promise((resolve) => { releaseCommand = resolve })
+      return [calls, 60_000]
+    }
+  }
+  const pending = checkSharedRateLimit(request(), 'sign-in/email', { keySecret: 'secret', redis })
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.equal(typeof releaseCommand, 'function')
+  releaseCommand()
+  assert.equal((await pending).count, 1)
+  assert.equal((await checkSharedRateLimit(request(), 'sign-in/email', {
+    keySecret: 'secret', redis
+  })).count, 2)
+})
+
+const invalidProviderPrivateValue = 'redis://account:credential@private.example/key'
+for (const [name, result] of [
+  ['non-array', { count: 1, ttl: 60_000 }],
+  ['missing expiry', [1, -1]],
+  ['expired key', [1, -2]],
+  ['zero counter', [0, 60_000]],
+  ['fractional counter', [1.5, 60_000]],
+  ['expiry beyond the fixed window', [1, AUTH_RATE_LIMITS['sign-in/email'].windowMs + 1]],
+  ['non-numeric values', [invalidProviderPrivateValue, invalidProviderPrivateValue]]
+]) {
+  test(`invalid provider result (${name}) fails closed with only a safe category`, async () => {
+    const { response, logs } = await captureFailure({
+      keySecret: 'rate-limit-secret',
+      redis: { eval: async () => result }
+    })
+
+    assert.equal(response.statusCode, 503)
+    assert.deepEqual(logs, [[
+      'Shared authentication rate limiter unavailable',
+      { category: 'invalid_result', requestId: 'request-123' }
+    ]])
+    assert.equal(JSON.stringify({ response, logs }).includes(invalidProviderPrivateValue), false)
+  })
+}
