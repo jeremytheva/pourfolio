@@ -37,6 +37,17 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Build the exact release candidate
+        run: npm run build
+        env: &release-server-environment
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NOCODEBACKEND_DATA_BASE_URL: ${{ secrets.NOCODEBACKEND_DATA_BASE_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          RATE_LIMIT_KEY_SECRET: ${{ secrets.RATE_LIMIT_KEY_SECRET }}
+      - name: Check built browser release for server-only data
+        run: npm run check:release-security | tee release-security-check.txt
+        env: *release-server-environment
       - run: npx playwright install --with-deps chromium
       - name: Run connected release checks
         run: npm run test:release
@@ -57,6 +68,7 @@ jobs:
         with:
           name: connected-release-${{ inputs.release_sha }}
           path: |
+            release-security-check.txt
             playwright-report/release-check/
             test-results/release-check/
           retention-days: 30
