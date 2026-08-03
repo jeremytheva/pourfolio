@@ -1,6 +1,7 @@
 import crypto from 'node:crypto'
 import { getClientAddress } from './httpSecurity.js'
 import { REDIS_ERROR_CODES, RedisError, getRedisClient } from './redis.js'
+import { runtimeTelemetry, writeTelemetryError } from './telemetry.js'
 
 const INCREMENT_SCRIPT = `
 local count = redis.call('INCR', KEYS[1])
@@ -106,10 +107,11 @@ export const enforceSharedRateLimit = async (request, response, path, options) =
     })
     return false
   } catch (error) {
-    console.error('Shared authentication rate limiter unavailable', {
-      category: safeFailureCategory(error),
-      ...(requestId ? { requestId } : {})
-    })
+    writeTelemetryError(runtimeTelemetry({
+      route_template: '/api/nocodebackend/auth/:action', method: request.method, status_class: '5xx',
+      event_name: `authentication_limiter_${safeFailureCategory(error)}`,
+      correlation_id: requestId
+    }))
     response.status(503).json({
       error: 'Authentication is temporarily unavailable.',
       ...(requestId ? { requestId } : {})

@@ -7,6 +7,7 @@ import {
   withTimeout
 } from './_lib/httpSecurity.js'
 import { enforceSharedRateLimit, rateLimitPolicyFor } from './_lib/rateLimit.js'
+import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 
 const DEFAULT_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
 const AUTH_ACTIONS = Object.freeze({
@@ -112,7 +113,7 @@ const copyResponseHeaders = (upstream, response) => {
 }
 
 export default async function handler(request, response) {
-  const correlationId = request.headers?.['x-request-id'] || crypto.randomUUID()
+  const correlationId = safeCorrelationId(request.headers?.['x-request-id'], crypto.randomUUID)
   response.setHeader('X-Request-Id', correlationId)
   response.setHeader('Cache-Control', 'no-store')
 
@@ -170,10 +171,11 @@ export default async function handler(request, response) {
 
     response.status(upstream.status).send(Buffer.from(body))
   } catch (error) {
-    console.error('Authentication proxy error', {
-      correlationId,
-      name: error.name
-    })
+    writeTelemetryError(runtimeTelemetry({
+      route_template: '/api/nocodebackend/auth/:action', method: request.method, status_class: '5xx',
+      event_name: error.name === 'AbortError' ? 'provider_timeout' : 'authentication_provider_failure',
+      correlation_id: correlationId
+    }))
     response.status(502).json({
       error: 'Authentication service is temporarily unavailable.',
       requestId: correlationId

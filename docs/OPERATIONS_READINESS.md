@@ -53,6 +53,18 @@ In particular, do not ingest or index:
 - provider base URLs, provider collection payloads or environment-variable
   values.
 
+Application failure events are emitted through `api/_lib/telemetry.js`, which
+applies that same field allowlist before serialisation. Its sentinel test is a
+repository-level control proving that representative credentials, cookies,
+bodies, query values, IP and email addresses, user identifiers, private
+records, provider URLs and provider responses cannot enter an application
+event. This control does **not** prove the separately administered log drain is
+safe: the operator must inject different sentinel values through the connected
+production-scoped pipeline and export the resulting central query showing
+each is absent. `X-Request-Id` is cleaned of control characters and length
+bounded, but remains caller-controlled correlation metadata, never identity or
+authorisation evidence.
+
 Retain operational metadata for 30 days unless the approved privacy/retention
 review sets a shorter period. Restrict dashboard, alert and log access to the
 production support group, audit access, and test redaction with sentinel

@@ -185,6 +185,17 @@ const captureFailure = async (options) => {
   } finally { console.error = previousError }
 }
 
+const assertFailureTelemetry = (logs, category) => {
+  assert.equal(logs.length, 1)
+  assert.equal(logs[0].length, 1)
+  assert.deepEqual(JSON.parse(logs[0][0]), {
+    route_template: '/api/nocodebackend/auth/:action',
+    status_class: '5xx',
+    event_name: `authentication_limiter_${category}`,
+    correlation_id: 'request-123'
+  })
+}
+
 test('missing configuration fails closed with a safe correlated category', async () => {
   const previousUrl = process.env.UPSTASH_REDIS_REST_URL
   const previousToken = process.env.UPSTASH_REDIS_REST_TOKEN
@@ -197,10 +208,7 @@ test('missing configuration fails closed with a safe correlated category', async
       error: 'Authentication is temporarily unavailable.',
       requestId: 'request-123'
     })
-    assert.deepEqual(logs, [[
-      'Shared authentication rate limiter unavailable',
-      { category: 'configuration', requestId: 'request-123' }
-    ]])
+    assertFailureTelemetry(logs, 'configuration')
     assert.equal(JSON.stringify({ response, logs }).includes('rate-limit-secret'), false)
   } finally {
     if (previousUrl === undefined) delete process.env.UPSTASH_REDIS_REST_URL
@@ -228,10 +236,7 @@ test('SDK command failures fail closed without leaking private inputs or raw err
     error: 'Authentication is temporarily unavailable.',
     requestId: 'request-123'
   })
-  assert.deepEqual(logs, [[
-    'Shared authentication rate limiter unavailable',
-    { category: 'sdk_command', requestId: 'request-123' }
-  ]])
+  assertFailureTelemetry(logs, 'sdk_command')
   const capturedOutput = JSON.stringify({ response, logs })
   for (const privateValue of privateValues) assert.equal(capturedOutput.includes(privateValue), false)
 })
@@ -273,10 +278,7 @@ for (const [name, result] of [
     })
 
     assert.equal(response.statusCode, 503)
-    assert.deepEqual(logs, [[
-      'Shared authentication rate limiter unavailable',
-      { category: 'invalid_result', requestId: 'request-123' }
-    ]])
+    assertFailureTelemetry(logs, 'invalid_result')
     assert.equal(JSON.stringify({ response, logs }).includes(invalidProviderPrivateValue), false)
   })
 }
