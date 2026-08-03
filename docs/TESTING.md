@@ -73,6 +73,24 @@ enables Dependency Graph; the production dependency audit remains blocking.
 CodeQL runs on pull requests, protected branches, weekly schedule and manual
 dispatch.
 
+### Authentication locator validation evidence (3 August 2026)
+
+The exact accessible-name locator change was validated locally against commit
+`dd48aa5f6bdeb48ea324e69724095c1f398fc701` with Node.js `v20.20.2`. No
+credentials or personal data were used.
+
+| Command | Result |
+| --- | --- |
+| `npm run validate` | **Environment-blocked.** ESLint and all 152 Node tests passed; the command then stopped when the npm advisory endpoint returned HTTP 403, so the remaining validation stages did not run as part of this command. |
+| `npx playwright install --with-deps chromium` | **Environment-blocked.** The package proxy returned HTTP 403 for the Ubuntu repositories, so Playwright could not install Chromium or its operating-system dependencies. |
+| `npm run test:e2e` | **Environment-blocked.** The complete 24-test suite was invoked after a successful production build, but every test was unable to launch because the required Playwright Chromium executable was unavailable. |
+| Hosted `Browser and accessibility` | **Pending external evidence.** This checkout has no Git remote or hosted-run access. Record the workflow URL, commit SHA and final result here after the pull request workflow completes; no hosted pass is claimed by this local record. |
+
+The hosted `Browser and accessibility` result remains required because it runs
+the complete Playwright suite in the controlled CI environment with Chromium
+installed. A reviewer must not treat the local environment failures as a test
+pass or as release evidence.
+
 The schema and import audit CLIs are exercised through their Node regression
 tests. Environment-specific exports are intentionally supplied at release time
 rather than committed to the repository.
