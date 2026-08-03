@@ -8,17 +8,33 @@ field is updated.
 
 ## Current source-set finding
 
-The supplied `54026_rating_export(2).sql` is blocked with 15 deterministic
-findings:
+The current baseline applies specifically to the supplied
+`54026_rating_export(2).sql` source snapshot, audited on 29 July 2026 against
+the current `scripts/audit-schema-contract.js` contract. It is blocked with 25
+deterministic findings:
 
-- the required `profiles` table is absent;
-- ten required identity, relationship and score columns remain nullable;
-- `ratings` does not enforce unique `(user_id, rating_id)` submissions;
-- `rating_scores` does not enforce unique `(rating_id, attribute_id)` scores;
-- `bonus_attribute_rating_mapping` does not enforce unique
-  `(rating_id, bonus_attributes_id)` selections;
-- `ratings.date_rated` uses `ON UPDATE CURRENT_TIMESTAMP`, so later record
-  changes overwrite the original rating date.
+- **1 `MISSING_TABLE`:** the required `profiles` table is absent;
+- **7 `MISSING_REQUIRED_COLUMN`:** `ratings` lacks `submission_key`,
+  `submission_fingerprint`, `submission_state`, `expected_score_count` and
+  `expected_bonus_count`; `rating_scores` and
+  `bonus_attribute_rating_mapping` each lack `uniqueness_key`;
+- **10 `NULLABLE_REQUIRED_COLUMN`:** the four existing required columns on
+  `ratings`, the four on `rating_scores` and the three on
+  `bonus_attribute_rating_mapping` are nullable, except for the existing
+  non-null `ratings.date_rated` (4 + 4 + 3 - 1 = 10);
+- **6 `MISSING_UNIQUE_CONSTRAINT`:** the snapshot lacks unique constraints on
+  `ratings(user_id, rating_id)`, `ratings(submission_key)`,
+  `rating_scores(rating_id, attribute_id)`,
+  `rating_scores(uniqueness_key)`,
+  `bonus_attribute_rating_mapping(rating_id, bonus_attributes_id)` and
+  `bonus_attribute_rating_mapping(uniqueness_key)`; and
+- **1 `MUTABLE_RATING_TIMESTAMP_DEFAULT`:** `ratings.date_rated` uses
+  `ON UPDATE CURRENT_TIMESTAMP`, so later record changes overwrite the original
+  rating date.
+
+These categories sum to 25 (1 + 7 + 10 + 6 + 1). They describe only that dated
+source snapshot; a newer production-equivalent export requires a fresh audit
+and must not inherit this baseline by assumption.
 
 The launch application does not expose a rating-update route, but the timestamp
 definition is still unsafe for imports, administrative changes and future
@@ -44,9 +60,9 @@ these exit codes:
 | Table | Required controls |
 | --- | --- |
 | `profiles` | Non-null, unique `user_id`. |
-| `ratings` | Non-null `user_id`, `rating_id`, `product_id` and `date_rated`; unique `(user_id, rating_id)`; `date_rated` defaults on create and has no automatic update clause. |
-| `rating_scores` | Non-null `user_id`, `rating_id`, `attribute_id` and `attribute_score`; unique `(rating_id, attribute_id)`. |
-| `bonus_attribute_rating_mapping` | Non-null `user_id`, `rating_id` and `bonus_attributes_id`; unique `(rating_id, bonus_attributes_id)`. |
+| `ratings` | Non-null `user_id`, `rating_id`, `product_id`, `date_rated`, `submission_key`, `submission_fingerprint`, `submission_state`, `expected_score_count` and `expected_bonus_count`; unique `(user_id, rating_id)` and `submission_key`; `date_rated` defaults on create and has no automatic update clause. |
+| `rating_scores` | Non-null `user_id`, `rating_id`, `attribute_id`, `attribute_score` and `uniqueness_key`; unique `(rating_id, attribute_id)` and `uniqueness_key`. |
+| `bonus_attribute_rating_mapping` | Non-null `user_id`, `rating_id`, `bonus_attributes_id` and `uniqueness_key`; unique `(rating_id, bonus_attributes_id)` and `uniqueness_key`. |
 
 Foreign keys, owner permissions, the 1–7 score check and parent/child deletion
 behaviour must also be verified in the managed backend. They are separate
@@ -77,8 +93,11 @@ recorded before the remote schema is changed.
 
 Retain:
 
-1. the schema export name, environment and timestamp;
-2. the complete JSON `PASS` report;
+1. the schema export name, environment, source-snapshot identifier and
+   timestamp;
+2. the complete JSON report, including `counts.blockers`, `countsByCode` and
+   every blocker (the dated supplied-snapshot baseline is 25, partitioned as
+   1/7/10/6/1 above); the launch evidence must be a fresh `PASS` report;
 3. duplicate/null cleanup counts before and after remediation;
 4. redacted API evidence for concurrent retry and timestamp preservation;
 5. permission-negative, rollback and recovery evidence;
