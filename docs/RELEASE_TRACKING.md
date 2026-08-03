@@ -1,0 +1,215 @@
+# Phase 0–6 release tracking contract
+
+## Tracker status and administrator action
+
+The system of record is the repository's **GitHub Issues** tracker and its
+milestones. Its location must be recorded as the stable repository identifier
+`<github-host>/<owner>/<repository>/issues` once an administrator supplies the
+canonical host, owner and repository name. Issue creation must wait until the
+administrator enables Issues and verifies access; the contracts below are not
+issues and their identifiers are not substitutes for GitHub issue numbers.
+
+As at 3 August 2026, this checkout has no Git remote, GitHub CLI, canonical
+repository URL or administrator evidence. Consequently no milestone, issue,
+assignee, blocking link or tracker setting can truthfully be claimed as created
+or verified from this environment. **No alternative tracker exception has been
+approved.** If GitHub Issues cannot be enabled, release work remains blocked
+until an authorised decision records exactly one alternative tracker, one
+individually named owner, its URL or stable identifier, the complete field
+contract below, its access controls and the reason for the exception. Do not
+infer approval from this document.
+
+The repository administrator must:
+
+1. enable GitHub Issues and record the canonical Issues URL;
+2. create the seven milestones below with the names reproduced exactly;
+3. create one issue from each contract, replace contract dependency IDs with
+   real blocking issue links, assign `@jeremytheva`, the stated milestone and
+   priority label, and record the issue number in the mapping table; and
+4. verify that public issues contain only redacted evidence references; private
+   operational evidence must remain in the access-controlled release record.
+
+## Required issue field contract
+
+Every outcome issue must use the implementation issue form and contain one
+observable outcome, one individually named accountable owner, target milestone,
+priority, blocking issue links (or `None`), testable acceptance criteria,
+in-scope and explicitly excluded work, and data/security/accessibility impact.
+It must state which automated, manual, security, accessibility, deployment and
+redacted operational evidence is required, using `Not applicable — <reason>`
+where an evidence class genuinely does not apply. Evidence references must be
+dated and tied to the exact commit and environment without exposing secrets,
+tokens, cookies, raw request bodies or private user data.
+
+## Milestones and backlog-to-issue mapping
+
+Milestones are outcome-based; a date may be added only from an approved release
+plan. They must not be closed until every mapped issue is closed and its
+evidence has been independently reviewed.
+
+| Contract | Exact milestone name | Backlog outcome | Priority | Accountable owner | GitHub issue |
+| --- | --- | --- | --- | --- | --- |
+| `PF-P0-01` | Phase 0 — Governed delivery ready | Repository changes can reach production only through an evidenced, protected delivery path. | P0 | `@jeremytheva` | Pending Issues enablement |
+| `PF-P1-01` | Phase 1 — Backend contract certified | The production-equivalent backend enforces and proves the canonical launch data contract. | P0 | `@jeremytheva` | Pending `PF-P0-01` issue link |
+| `PF-P2-01` | Phase 2 — Identity lifecycle safe | A user can securely register, authenticate, recover, verify, export and delete their account. | P0 | `@jeremytheva` | Pending `PF-P1-01` issue link |
+| `PF-P3-01` | Phase 3 — Beer discovery dependable | A user can reliably browse, search and open canonical beer details. | P1 | `@jeremytheva` | Pending `PF-P1-01` issue link |
+| `PF-P4-01` | Phase 4 — Ratings trustworthy | A user can create, retry, view and delete only their own internally consistent rating. | P0 | `@jeremytheva` | Pending Phase 1 and 3 issue links |
+| `PF-P5-01` | Phase 5 — Cellar and profile owner-safe | A user can manage only their own cellar records and allowed profile fields. | P1 | `@jeremytheva` | Pending Phase 1 and 2 issue links |
+| `PF-P6-01` | Phase 6 — Launch evidence approved | The exact production candidate is deployed and independently approved from complete, redacted evidence. | P0 | `@jeremytheva` | Pending all Phase 0–5 issue links |
+
+## Issue contracts
+
+### `PF-P0-01` — Establish the governed delivery path
+
+- **Observable outcome:** an unauthorised actor cannot merge or deploy to
+  production without the remotely observed required checks and approvals.
+- **Owner / milestone / priority:** `@jeremytheva`; **Phase 0 — Governed
+  delivery ready**; **P0**.
+- **Dependencies:** none. Link any administrator-access request as related work.
+- **Acceptance criteria:** Issues and the seven milestones exist; `main`
+  protection requires pull requests, fresh approvals, strict successful checks
+  and deployment statuses; force-push/deletion and unrecorded bypass are denied;
+  secret scanning, push protection and Dependency Graph are enabled; exact
+  observed check contexts are recorded against one candidate SHA.
+- **Evidence:** automated—successful validation, dependency review and CodeQL;
+  manual—issue/milestone and ruleset inspection; security—scanning and bypass
+  controls; accessibility—not applicable, no UI behaviour changes;
+  deployment—environment protection and candidate statuses; operational—a
+  dated, redacted settings export/screenshots with administrator and independent
+  reviewer. Store sensitive administration evidence privately.
+- **Exclusions:** no launch feature, deferred route, provider schema change,
+  production promotion or claim that workflow names prove remote contexts.
+
+### `PF-P1-01` — Certify the canonical backend contract
+
+- **Observable outcome:** production-equivalent requests accept canonical
+  launch records while unauthenticated and cross-owner operations fail closed.
+- **Owner / milestone / priority:** `@jeremytheva`; **Phase 1 — Backend contract
+  certified**; **P0**.
+- **Dependencies:** blocked by the created `PF-P0-01` issue; link provider access
+  and approved schema rollout decisions.
+- **Acceptance criteria:** same-state schema and import preflights pass;
+  canonical collections and required constraints exist; provider CRUD/error
+  envelopes match the gateway; permission-negative and duplicate/concurrent
+  retry tests pass; backup, rollback and idempotent import rehearsals reconcile.
+- **Evidence:** automated—schema/import audits and policy tests; manual—provider
+  inventory and count reconciliation; security—owner/other-user/privileged
+  negatives and server-only secret inspection; accessibility—not applicable,
+  backend-only outcome; deployment—isolated production-equivalent staging;
+  operational—dated redacted transcripts, checksums, backup/restore identifiers
+  and independent approval in the private record.
+- **Exclusions:** no browser-direct provider access, legacy aliases, Supabase
+  migration, fabricated data reconciliation or deferred collection exposure.
+
+### `PF-P2-01` — Complete the safe account lifecycle
+
+- **Observable outcome:** a user can register, sign in, verify and recover their
+  account, export their data and request deletion without accessing another
+  person's data.
+- **Owner / milestone / priority:** `@jeremytheva`; **Phase 2 — Identity
+  lifecycle safe**; **P0**.
+- **Dependencies:** blocked by the created `PF-P1-01` issue and approved privacy,
+  retention and deletion decisions; include their issue links.
+- **Acceptance criteria:** lifecycle happy paths and expired/replayed/other-user
+  negatives pass; export is complete and deletion follows the published policy;
+  errors reveal no account existence or secrets; accessible status and error
+  announcements pass keyboard and WCAG 2.2 AA checks.
+- **Evidence:** automated—unit/policy/browser/axe tests; manual—email and lifecycle
+  walkthrough; security—token, enumeration, authorisation and redaction review;
+  accessibility—keyboard, focus and screen-reader checks; deployment—connected
+  staging run; operational—redacted provider IDs, timestamps, reconciliation and
+  privacy/legal approval stored privately.
+- **Exclusions:** no social login, roles UI, administrator journey, public
+  profiles, social graph, or retention policy invented by implementation.
+
+### `PF-P3-01` — Prove dependable beer discovery
+
+- **Observable outcome:** a user can browse/search canonical beers and open a
+  stable detail route with honest loading, empty and failure states.
+- **Owner / milestone / priority:** `@jeremytheva`; **Phase 3 — Beer discovery
+  dependable**; **P1**.
+- **Dependencies:** blocked by the created `PF-P1-01` issue; link catalogue data
+  reconciliation work.
+- **Acceptance criteria:** canonical product/producer/category references
+  reconcile; browse, search, direct detail route, no-result, malformed-data and
+  upstream-failure cases pass; all controls, focus order and result/status
+  announcements meet WCAG 2.2 AA.
+- **Evidence:** automated—service, browser, axe, build and bundle checks;
+  manual—responsive keyboard walkthrough; security—projection and untrusted-data
+  review; accessibility—axe plus keyboard/focus evidence; deployment—connected
+  staging direct-route smoke; operational—redacted catalogue snapshot/checksum
+  and run reference.
+- **Exclusions:** beer only; no wine/spirits, producer claims, venues, events,
+  analytics, social features, photos or deferred prototype routes.
+
+### `PF-P4-01` — Prove trustworthy owner-scoped ratings
+
+- **Observable outcome:** a user can create, safely retry, view and delete one
+  complete rating while another user cannot read or mutate it.
+- **Owner / milestone / priority:** `@jeremytheva`; **Phase 4 — Ratings
+  trustworthy**; **P0**.
+- **Dependencies:** blocked by the created `PF-P1-01` and `PF-P3-01` issues;
+  include both blocking links.
+- **Acceptance criteria:** scores 1–7, required attributes, bonuses and calculated
+  totals persist consistently; sequential/concurrent retries create one rating;
+  forced partial failures reconcile safely; history/delete are owner-scoped;
+  validation and errors are keyboard and screen-reader accessible.
+- **Evidence:** automated—calculation, policy, rollback and browser/axe tests;
+  manual—create/retry/history/delete walkthrough; security—ownership, forged ID
+  and sensitive-error negatives; accessibility—labels, focus and announced
+  errors; deployment—connected staging concurrency run; operational—redacted
+  workflow IDs/counts and reconciliation approved privately.
+- **Exclusions:** no rating edits unless separately approved, public feeds,
+  comments, reactions, photos, social statistics or game scoring.
+
+### `PF-P5-01` — Prove owner-safe cellar and profile management
+
+- **Observable outcome:** a user can manage their cellar and permitted profile
+  fields, and cannot view or change another user's records or protected fields.
+- **Owner / milestone / priority:** `@jeremytheva`; **Phase 5 — Cellar and profile
+  owner-safe**; **P1**.
+- **Dependencies:** blocked by the created `PF-P1-01` and `PF-P2-01` issues;
+  include both blocking links.
+- **Acceptance criteria:** cellar create/read/update/delete and nullable sharing
+  references behave as documented; the profile allowlist rejects ownership,
+  role and privacy escalation; cross-owner negatives pass; validation, focus,
+  status and errors satisfy WCAG 2.2 AA.
+- **Evidence:** automated—service/policy/browser/axe tests; manual—responsive
+  keyboard CRUD/profile walkthrough; security—mass-assignment and cross-owner
+  tests; accessibility—labels, focus and announcements; deployment—connected
+  staging smoke; operational—redacted record IDs and correlation references.
+- **Exclusions:** no public cellar, trading, social sharing, administrator or
+  privacy controls, producer claims, photos, events, venues or analytics.
+
+### `PF-P6-01` — Approve the exact launch candidate
+
+- **Observable outcome:** the exact reviewed commit serves every launch journey
+  in production and has a recorded, independent go/no-go decision.
+- **Owner / milestone / priority:** `@jeremytheva`; **Phase 6 — Launch evidence
+  approved**; **P0**.
+- **Dependencies:** blocked by every created Phase 0–5 issue; include all six
+  blocking links plus legal, moderation, support and operations approvals.
+- **Acceptance criteria:** all blockers close with evidence; required checks are
+  green on the deployed SHA; direct routes and health semantics pass; backup,
+  restore, rollback, monitoring and alert exercises pass; named technical,
+  privacy/legal, moderation and support reviewers approve; published policies
+  match observed behaviour.
+- **Evidence:** automated—full validation and connected browser/axe suite;
+  manual—production smoke and policy/contact review; security—release review,
+  scanning and permission negatives; accessibility—WCAG 2.2 AA evidence on
+  production-equivalent UI; deployment—provider URL/status tied to exact SHA and
+  rollback rehearsal; operational—dated, redacted monitoring/alert/restore
+  references and signed decision stored under controlled access.
+- **Exclusions:** no waiver by silence, partial evidence, earlier SHA or
+  unreviewed exception; no social, event, venue, analytics, producer-claim,
+  administrator, photo, non-beer or Brew Done It journey becomes reachable.
+
+## Review suggestions
+
+- Have the administrator and an independent release reviewer compare every
+  created issue against its contract before applying `status: codex-ready`.
+- Use GitHub's real blocking-issue relationships where available, in addition
+  to plain links, so milestone sequencing is queryable.
+- Split a contract only when each resulting issue retains one observable
+  outcome, one named owner and complete evidence; never split merely to hide an
+  unmet security, accessibility or deployment criterion.
