@@ -36,7 +36,10 @@ npm run audit:import -- \
   --cellar ./exports/cellar.csv
 ```
 
-The command emits a JSON report and uses these exit codes:
+The command emits a JSON report containing the byte length and SHA-256 checksum
+of every supplied input. Retain the report from each run and compare the
+checksums directly; matching file names are not evidence that an idempotency
+rerun used identical inputs. The command uses these exit codes:
 
 - `0`: all supplied references pass;
 - `1`: deterministic integrity blockers were found;
