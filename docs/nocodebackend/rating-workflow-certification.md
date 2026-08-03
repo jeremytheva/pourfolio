@@ -3,11 +3,13 @@
 ## Attempt: 29 July 2026
 
 **Result: BLOCKED — not launch evidence.** This checkout had no configured
-`NOCODEBACKEND_DATA_BASE_URL`, `NOCODEBACKEND_SECRET_KEY`, staging application
-origin or disposable-user credentials. No remote request was made, no staging
-record was created, and there was therefore nothing to clean up. The deployed
-commit could not be established because this checkout has no configured Git
-remote or deployment metadata; the local pre-change commit was `b51abff`.
+`NOCODEBACKEND_DATA_BASE_URL`, `NOCODEBACKEND_SECRET_KEY`,
+`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`,
+`RATE_LIMIT_KEY_SECRET`, staging application origin or disposable-user
+credentials. No remote request was made, no staging record was created, and
+there was therefore nothing to clean up. The deployed commit could not be
+established because this checkout has no configured Git remote or deployment
+metadata; the local pre-change commit was `b51abff`.
 
 Do not interpret the local regression results below as provider certification.
 The launch owner must repeat the complete run against the production-equivalent

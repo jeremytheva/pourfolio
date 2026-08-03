@@ -112,15 +112,16 @@ The accountable owner coordinates the staging work and records the identity of
 the operator and independent reviewer in the private release record. Secrets,
 session cookies, unredacted response bodies and production or staging data must
 not be committed or attached as public evidence. Configure
-`NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_DATA_BASE_URL` only as server-side
-variables in the isolated staging environment; never expose either variable to
-Vite or use a `VITE_` prefix.
+`NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_DATA_BASE_URL`,
+`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` and
+`RATE_LIMIT_KEY_SECRET` only as server-side variables in the isolated staging
+environment; never expose these variables to Vite or use a `VITE_` prefix.
 
 The backend-certification gate is complete only when the independent reviewer
 has checked dated, redacted evidence for every item below against the exact
 release candidate:
 
-- [ ] [G01](#evidence-g01) — The two server-only variables are present in isolated staging and absent
+- [ ] [G01](#evidence-g01) — The five server-only variables are present in isolated staging and absent
   from browser bundles, repository files, command transcripts and evidence.
 - [ ] [G02](#evidence-g02) — The canonical collections in
   [the schema mapping](nocodebackend/schema-mapping.md) are provisioned, and an
@@ -149,7 +150,7 @@ Partial completion does not permit this gate or a related P0 entry to be
 closed. A rerun is required after any schema, permission, provider-contract or
 release-candidate change.
 
-- [ ] [G08](#evidence-g08) — Configure `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_DATA_BASE_URL` in staging and production.
+- [ ] [G08](#evidence-g08) — Configure all five server-only backend and distributed rate-limit variables in staging and production.
 - [ ] [G09](#evidence-g09) — Verify the configured data base URL accepts the gateway’s collection paths, query filters and create/update/delete response shapes.
 - [ ] [G10](#evidence-g10) — Provision the canonical schema without `*_pf2025` aliases and make the rating schema preflight return `PASS`.
 - [ ] [G11](#evidence-g11) — Apply non-null and unique rating controls through an approved provider migration, with cleanup, compatibility and rollback evidence.

@@ -1,0 +1,141 @@
+import assert from 'node:assert/strict'
+import test from 'node:test'
+import { dataProvider } from '../dataProvider.js'
+
+const originalFetch = global.fetch
+const originalEnvironment = {
+  NOCODEBACKEND_DATA_BASE_URL: process.env.NOCODEBACKEND_DATA_BASE_URL,
+  NOCODEBACKEND_SECRET_KEY: process.env.NOCODEBACKEND_SECRET_KEY
+}
+
+test.beforeEach(() => {
+  process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://provider.example.test/data/'
+  process.env.NOCODEBACKEND_SECRET_KEY = 'test-secret'
+})
+
+test.afterEach(() => {
+  global.fetch = originalFetch
+})
+
+test.after(() => {
+  for (const [key, value] of Object.entries(originalEnvironment)) {
+    if (value === undefined) delete process.env[key]
+    else process.env[key] = value
+  }
+})
+
+const response = (payload, { status = 200, raw } = {}) => ({
+  ok: status >= 200 && status < 300,
+  status,
+  text: async () => raw ?? (payload === null ? '' : JSON.stringify(payload))
+})
+
+test('list sends filters and normalises supported provider envelopes', async () => {
+  const requests = []
+  global.fetch = async (url, options) => {
+    requests.push({ url: String(url), options })
+    return response({ records: [{ id: 7 }] })
+  }
+
+  assert.deepEqual(await dataProvider.list('ratings', { user_id: 'owner', ignored: '' }), [{ id: 7 }])
+  assert.equal(requests[0].url, 'https://provider.example.test/data/ratings?user_id=owner')
+  assert.equal(requests[0].options.method, 'GET')
+  assert.equal(requests[0].options.headers.authorization, 'Bearer test-secret')
+})
+
+test('get uses the record path and falls back to a filtered list after not found', async () => {
+  const urls = []
+  global.fetch = async (url) => {
+    urls.push(String(url))
+    if (urls.length === 1) return response({ error: 'missing' }, { status: 404 })
+    return response({ items: [{ id: 9 }] })
+  }
+
+  assert.deepEqual(await dataProvider.get('ratings', 'id/with slash'), { id: 9 })
+  assert.deepEqual(urls, [
+    'https://provider.example.test/data/ratings/id%2Fwith%20slash',
+    'https://provider.example.test/data/ratings?id=id%2Fwith+slash'
+  ])
+})
+
+test('create, update, compare-and-set and delete use the exact provider contract', async () => {
+  const requests = []
+  global.fetch = async (url, options) => {
+    requests.push({ url: String(url), options })
+    return response({ data: { id: 3 } })
+  }
+
+  await dataProvider.create('cellar', { product_id: 1 })
+  await dataProvider.update('cellar', 3, { quantity: 2 })
+  await dataProvider.compareAndSet('cellar', 3, 4, { version: 5 })
+  await dataProvider.remove('cellar', 3)
+
+  assert.deepEqual(requests.map(({ url, options }) => [url, options.method, options.body]), [
+    ['https://provider.example.test/data/cellar', 'POST', '{"product_id":1}'],
+    ['https://provider.example.test/data/cellar/3', 'PUT', '{"quantity":2}'],
+    ['https://provider.example.test/data/cellar/3?expected_version=4', 'PUT', '{"version":5}'],
+    ['https://provider.example.test/data/cellar/3', 'DELETE', undefined]
+  ])
+})
+
+test('unique conflicts retain a safe status and machine-readable conflict code', async () => {
+  global.fetch = async () => response({ error: 'provider detail must not escape' }, { status: 409 })
+
+  await assert.rejects(dataProvider.create('ratings', {}), (error) => {
+    assert.equal(error.status, 409)
+    assert.equal(error.code, 'UNIQUE_CONFLICT')
+    assert.equal(dataProvider.isUniqueConflict(error), true)
+    assert.doesNotMatch(error.message, /provider detail/)
+    return true
+  })
+})
+
+test('malformed responses and upstream failures become safe gateway errors', async () => {
+  global.fetch = async () => response(null, { raw: '<html>failure</html>' })
+  await assert.rejects(dataProvider.list('products'), { status: 502, code: 'PROVIDER_ERROR' })
+
+  global.fetch = async () => { throw new Error('private network detail') }
+  await assert.rejects(dataProvider.list('products'), (error) => {
+    assert.equal(error.status, 502)
+    assert.equal(error.code, 'PROVIDER_ERROR')
+    assert.doesNotMatch(error.message, /private network detail/)
+    return true
+  })
+})
+
+test('response-body transport failures become safe gateway errors', async () => {
+  global.fetch = async () => ({
+    ok: true,
+    status: 200,
+    text: async () => { throw new Error('private stream detail') }
+  })
+
+  await assert.rejects(dataProvider.list('products'), { status: 502, code: 'PROVIDER_ERROR' })
+})
+
+test('an aborted provider request becomes a safe gateway error', async () => {
+  global.fetch = async (_url, { signal }) => new Promise((resolve, reject) => {
+    signal.addEventListener('abort', () => reject(new DOMException('timed out', 'AbortError')), { once: true })
+  })
+
+  const originalSetTimeout = global.setTimeout
+  const originalClearTimeout = global.clearTimeout
+  global.setTimeout = (callback) => {
+    queueMicrotask(callback)
+    return 1
+  }
+  global.clearTimeout = () => {}
+  try {
+    await assert.rejects(dataProvider.list('products'), { status: 502, code: 'PROVIDER_ERROR' })
+  } finally {
+    global.setTimeout = originalSetTimeout
+    global.clearTimeout = originalClearTimeout
+  }
+})
+
+test('missing server configuration fails closed without making a request', async () => {
+  delete process.env.NOCODEBACKEND_SECRET_KEY
+  global.fetch = async () => assert.fail('fetch must not be called')
+
+  await assert.rejects(dataProvider.list('products'), { status: 503 })
+})

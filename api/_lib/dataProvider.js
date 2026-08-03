@@ -28,19 +28,35 @@ const buildUrl = (baseUrl, path, filters = {}) => {
 
 const providerRequest = async (path, { method = 'GET', body, filters } = {}) => {
   const { baseUrl, secret } = getConfiguration()
-  const upstream = await withTimeout((signal) => fetch(buildUrl(baseUrl, path, filters), {
-    method,
-    headers: {
-      accept: 'application/json',
-      authorization: `Bearer ${secret}`,
-      ...(body === undefined ? {} : { 'content-type': 'application/json' })
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-    signal
-  }))
+  let upstream
+  try {
+    upstream = await withTimeout((signal) => fetch(buildUrl(baseUrl, path, filters), {
+      method,
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${secret}`,
+        ...(body === undefined ? {} : { 'content-type': 'application/json' })
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal
+    }))
+  } catch {
+    const error = new Error(safeErrorMessage(502))
+    error.status = 502
+    error.code = 'PROVIDER_ERROR'
+    throw error
+  }
 
-  const text = await upstream.text()
-  const payload = text ? JSON.parse(text) : null
+  let payload
+  try {
+    const text = await upstream.text()
+    payload = text ? JSON.parse(text) : null
+  } catch {
+    const error = new Error(safeErrorMessage(502))
+    error.status = 502
+    error.code = 'PROVIDER_ERROR'
+    throw error
+  }
 
   if (!upstream.ok || payload?.error) {
     const error = new Error(safeErrorMessage(upstream.status))
