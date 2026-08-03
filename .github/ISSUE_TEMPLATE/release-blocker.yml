@@ -40,6 +40,15 @@ body:
       description: State the missing outcome without including sensitive evidence.
     validations: { required: true }
   - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: >-
+        Link every issue, decision, service, deployment or external approval
+        that must complete first; write "None" when the blocker has no
+        dependencies.
+    validations: { required: true }
+  - type: textarea
     id: acceptance
     attributes:
       label: Acceptance and verification
@@ -49,6 +58,16 @@ body:
         - [ ] Check passes on the frozen release SHA.
         - [ ] Dated, redacted evidence is retained in the private release record.
         - [ ] Independent reviewer approves the evidence.
+    validations: { required: true }
+  - type: textarea
+    id: evidence-contract
+    attributes:
+      label: Private evidence contract
+      description: >-
+        Define the redacted artefacts, exact release SHA, workflow and
+        deployment identifiers, UTC timestamps, storage reference and named
+        independent approval that the private release record must retain.
+        Do not include the private evidence itself.
     validations: { required: true }
   - type: textarea
     id: rollback
