@@ -167,6 +167,13 @@ release-candidate change.
 
 ## External P1 gates
 
+**Re-review (3 August 2026):** Repository-side public document pages and an
+evidence procedure are now present, but no connected staging/production host,
+legal reviewer, named operational owners, private escalation evidence, GitHub
+administrator access or independent approval was supplied. Accordingly G22 and
+G24–G32 remain open. The exact requirements and honest current values are in
+[the publication and release evidence procedure](PUBLICATION_AND_RELEASE_EVIDENCE.md).
+
 - [ ] [G22](#evidence-g22) — Run browser end-to-end and WCAG 2.2 AA checks against the connected staging backend.
 - [ ] [G23](#evidence-g23) — Implement and evidence the recovery, verification, export and deletion
   [acceptance contract](account-lifecycle-readiness.md); its current review is a
@@ -185,6 +192,10 @@ release-candidate change.
 - [ ] [G30](#evidence-g30) — Enable GitHub Dependency Graph and make the dependency-review check blocking.
 - [ ] [G31](#evidence-g31) — Enable GitHub Issues or nominate another tracker for the remaining gates.
 - [ ] [G32](#evidence-g32) — Test direct routes and `/api/health` on the production host.
+
+The `/api/health` configuration flags show only that required environment
+variables are present. They must not be described as proof that either upstream
+provider is available or ready.
 
 The thresholds, safe central-logging contract, health semantics, alert-owner
 register, backup/restore procedure, rollback rehearsal and release ownership

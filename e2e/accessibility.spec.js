@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test'
 import { installMockApi } from './mockApi.js'
 
 const routes = ['/home', '/products/4', '/products/4/rate', '/cellar', '/profile']
+const publicDocumentRoutes = ['/privacy', '/terms', '/moderation', '/support', '/retention']
 
 test('/login has no serious or critical automated accessibility violations', async ({ page }) => {
   await page.route('**/api/nocodebackend/auth/get-session', (route) => route.fulfill({
@@ -26,6 +27,20 @@ test('/login has no serious or critical automated accessibility violations', asy
   const serious = result.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact))
   expect(serious).toEqual([])
 })
+
+for (const route of publicDocumentRoutes) {
+  test(`${route} is public and has no serious or critical automated accessibility violations`, async ({ page }) => {
+    await page.route('**/api/nocodebackend/auth/get-session', () => {})
+    await page.goto(route)
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    await expect(page).toHaveURL(new RegExp(`${route}$`))
+
+    const result = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+      .analyze()
+    expect(result.violations.filter(({ impact }) => ['serious', 'critical'].includes(impact))).toEqual([])
+  })
+}
 
 for (const route of routes) {
   test(`${route} has no serious or critical automated accessibility violations`, async ({ page }) => {

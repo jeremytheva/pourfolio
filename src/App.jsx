@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from './lib/route
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import MainLayout from './components/MainLayout.jsx'
 import { useAuth } from './hooks/useAuth.js'
+import { publicDocuments } from './data/publicDocuments.js'
 
 const LoginPage = lazy(() => import('./pages/LoginPage.jsx'))
 const HomePage = lazy(() => import('./pages/HomePage.jsx'))
@@ -10,6 +11,7 @@ const BeerDetails = lazy(() => import('./pages/BeerDetails.jsx'))
 const RateBeer = lazy(() => import('./pages/RateBeer.jsx'))
 const Cellar = lazy(() => import('./pages/Cellar.jsx'))
 const Profile = lazy(() => import('./pages/Profile.jsx'))
+const PublicDocumentPage = lazy(() => import('./pages/PublicDocumentPage.jsx'))
 
 const LoadingState = () => (
   <div className="flex min-h-screen items-center justify-center bg-gray-50" role="status" aria-live="polite">
@@ -28,7 +30,9 @@ function ProtectedRoute({ user, onLogout, children }) {
 
 function App() {
   const { user, loading, signOut } = useAuth()
-  if (loading) return <LoadingState />
+  const publicDocumentPath = window.location.pathname.replace(/^\//, '')
+  const isPublicDocument = Object.hasOwn(publicDocuments, publicDocumentPath)
+  if (loading && !isPublicDocument) return <LoadingState />
 
   const protect = (element) => (
     <ProtectedRoute user={user} onLogout={signOut}>
@@ -41,6 +45,9 @@ function App() {
       <BrowserRouter>
         <Suspense fallback={<LoadingState />}>
           <Routes>
+            {Object.entries(publicDocuments).map(([path, document]) => (
+              <Route key={path} path={`/${path}`} element={<PublicDocumentPage document={document} />} />
+            ))}
             <Route path="/login" element={user ? <Navigate to="/home" replace /> : <LoginPage />} />
             <Route path="/home" element={protect(<HomePage />)} />
             <Route path="/search" element={protect(<HomePage searchMode />)} />

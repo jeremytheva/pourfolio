@@ -2,6 +2,7 @@ import React from 'react'
 import { FiHome, FiLogOut, FiSearch, FiUser } from 'react-icons/fi'
 import { Link, NavLink } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
+import PublicDocumentLinks from './PublicDocumentLinks.jsx'
 
 const navigation = [
   { to: '/home', label: 'Discover', icon: FiHome },
@@ -43,6 +44,9 @@ function MainLayout({ children, user, onLogout }) {
         </div>
       </header>
       <main id="main-content">{children}</main>
+      <footer className="border-t border-gray-200 bg-white">
+        <PublicDocumentLinks className="mx-auto flex max-w-7xl flex-wrap gap-x-5 gap-y-2 px-4 py-6 text-sm text-gray-700 sm:px-6 lg:px-8" />
+      </footer>
     </div>
   )
 }

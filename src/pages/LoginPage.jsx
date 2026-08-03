@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import AuthForm from '../components/AuthForm.jsx'
+import PublicDocumentLinks from '../components/PublicDocumentLinks.jsx'
 
 function LoginPage() {
   const [mode, setMode] = useState('signin')
@@ -16,6 +17,7 @@ function LoginPage() {
           mode={mode}
           onToggleMode={() => setMode((current) => current === 'signin' ? 'signup' : 'signin')}
         />
+        <PublicDocumentLinks className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-gray-700" />
       </div>
     </main>
   )
