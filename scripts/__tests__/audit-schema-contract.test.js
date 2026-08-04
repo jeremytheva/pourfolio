@@ -24,7 +24,12 @@ const compliantSchema = `
     total_weighted decimal(10,2),
     PRIMARY KEY (id),
     UNIQUE KEY uq_ratings_user_submission (user_id, rating_id),
-    UNIQUE KEY uq_ratings_submission_key (submission_key)
+    UNIQUE KEY uq_ratings_submission_key (submission_key),
+    CONSTRAINT fk_ratings_product FOREIGN KEY (product_id) REFERENCES products (id),
+    CONSTRAINT chk_submission_state CHECK (submission_state IN ('pending', 'complete', 'failed')),
+    CONSTRAINT chk_submission_version CHECK (submission_version >= 0),
+    CONSTRAINT chk_expected_score_count CHECK (expected_score_count >= 0),
+    CONSTRAINT chk_expected_bonus_count CHECK (expected_bonus_count >= 0)
   );
 
   CREATE TABLE rating_scores (
@@ -36,7 +41,10 @@ const compliantSchema = `
     uniqueness_key varchar(255) NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT uq_rating_score UNIQUE (rating_id, attribute_id),
-    UNIQUE KEY uq_rating_score_idempotency (uniqueness_key)
+    UNIQUE KEY uq_rating_score_idempotency (uniqueness_key),
+    CONSTRAINT fk_score_rating FOREIGN KEY (rating_id) REFERENCES ratings (id),
+    CONSTRAINT fk_score_attribute FOREIGN KEY (attribute_id) REFERENCES rating_attributes (id),
+    CONSTRAINT chk_attribute_score CHECK (attribute_score BETWEEN 1 AND 7)
   );
 
   CREATE TABLE bonus_attribute_rating_mapping (
@@ -47,7 +55,9 @@ const compliantSchema = `
     uniqueness_key varchar(255) NOT NULL,
     PRIMARY KEY (id),
     UNIQUE INDEX uq_rating_bonus (rating_id, bonus_attributes_id),
-    UNIQUE INDEX uq_rating_bonus_idempotency (uniqueness_key)
+    UNIQUE INDEX uq_rating_bonus_idempotency (uniqueness_key),
+    CONSTRAINT fk_bonus_rating FOREIGN KEY (rating_id) REFERENCES ratings (id),
+    CONSTRAINT fk_bonus_attribute FOREIGN KEY (bonus_attributes_id) REFERENCES bonus_attributes (id)
   );
 `
 
@@ -55,6 +65,7 @@ test('schema preflight passes an immutable, uniquely constrained rating model', 
   const report = auditSchemaContract(compliantSchema)
 
   assert.equal(report.status, 'PASS')
+  assert.equal(report.reportType, 'STRUCTURAL_SQL_AUDIT')
   assert.equal(report.counts.tablesChecked, 4)
   assert.equal(report.counts.blockers, 0)
 })
@@ -92,6 +103,8 @@ test('schema preflight blocks the supplied legacy rating shape', () => {
     MISSING_REQUIRED_COLUMN: 8,
     NULLABLE_REQUIRED_COLUMN: 10,
     MISSING_UNIQUE_CONSTRAINT: 6,
+    MISSING_FOREIGN_KEY: 5,
+    MISSING_SCORE_INTEGER_RANGE_ENFORCEMENT: 1,
     MUTABLE_RATING_TIMESTAMP_DEFAULT: 1
   })
   assert.ok(report.blockers.some((blocker) =>
@@ -111,6 +124,53 @@ test('schema preflight reports missing required columns and timestamp defaults',
     MISSING_RATING_TIMESTAMP_DEFAULT: 1,
     MISSING_REQUIRED_COLUMN: 1
   })
+})
+
+test('structural audit requires canonical foreign-key parent relationships', () => {
+  const report = auditSchemaContract(compliantSchema
+    .replace('product_id bigint unsigned NOT NULL,', 'product_id bigint unsigned NOT NULL,\n    cellar_id bigint unsigned,')
+    .replace('REFERENCES products (id)', 'REFERENCES producers (id)')
+    .replace('CONSTRAINT fk_score_attribute FOREIGN KEY (attribute_id) REFERENCES rating_attributes (id),', ''))
+
+  assert.equal(report.status, 'BLOCKED')
+  assert.equal(report.countsByCode.MISSING_FOREIGN_KEY, 3)
+  assert.ok(report.blockers.some((blocker) =>
+    blocker.table === 'ratings' && blocker.column === 'product_id' && blocker.parentTable === 'products'
+  ))
+  assert.ok(report.blockers.some((blocker) =>
+    blocker.table === 'ratings' && blocker.column === 'cellar_id' && blocker.parentTable === 'cellar'
+  ))
+})
+
+test('structural audit requires integer score range and non-negative workflow counters', () => {
+  const report = auditSchemaContract(compliantSchema
+    .replace('attribute_score int NOT NULL,', 'attribute_score decimal(2,1) NOT NULL,')
+    .replace('CHECK (submission_version >= 0)', 'CHECK (submission_version >= -1)')
+    .replace('expected_bonus_count int NOT NULL,', 'expected_bonus_count decimal(10,0) NOT NULL,'))
+
+  assert.deepEqual(report.countsByCode, {
+    MISSING_NON_NEGATIVE_INTEGER_ENFORCEMENT: 2,
+    MISSING_SCORE_INTEGER_RANGE_ENFORCEMENT: 1
+  })
+})
+
+test('structural audit requires the exact allowed submission states', () => {
+  const report = auditSchemaContract(compliantSchema
+    .replace("('pending', 'complete', 'failed')", "('pending', 'complete', 'cancelled')"))
+
+  assert.deepEqual(report.countsByCode, { MISSING_SUBMISSION_STATE_CHECK: 1 })
+})
+
+test('structural audit accepts equivalent unsigned counters and enum state enforcement', () => {
+  const report = auditSchemaContract(compliantSchema
+    .replace('submission_state varchar(16) NOT NULL,', "submission_state enum('failed', 'pending', 'complete') NOT NULL,")
+    .replace("    CONSTRAINT chk_submission_state CHECK (submission_state IN ('pending', 'complete', 'failed')),\n", '')
+    .replace('submission_version int NOT NULL DEFAULT 0,', 'submission_version int unsigned NOT NULL DEFAULT 0,')
+    .replace('expected_score_count int NOT NULL,', 'expected_score_count int unsigned NOT NULL,')
+    .replace('expected_bonus_count int NOT NULL,', 'expected_bonus_count int unsigned NOT NULL,')
+    .replace(/ {4}CONSTRAINT chk_(?:submission_version|expected_score_count|expected_bonus_count) CHECK \([^\n]+\),?\n/g, ''))
+
+  assert.equal(report.status, 'PASS')
 })
 
 test('schema parsing supports qualified names, nested types and quoted identifiers', () => {

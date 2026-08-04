@@ -103,6 +103,8 @@ const parseTable = (sql, tableName) => {
   const definitions = splitTopLevel(body)
   const columns = new Map()
   const uniqueKeys = []
+  const foreignKeys = []
+  const checks = []
 
   for (const definition of definitions) {
     const column = /^`?([a-zA-Z0-9_]+)`?\s+(.+)$/s.exec(definition)
@@ -112,9 +114,21 @@ const parseTable = (sql, tableName) => {
 
     const key = /^(?:CONSTRAINT\s+`?[\w$]+`?\s+)?(?:PRIMARY\s+KEY|UNIQUE(?:\s+(?:KEY|INDEX))?(?:\s+`?[\w$]+`?)?)\s*\((.+)\)$/is.exec(definition)
     if (key) uniqueKeys.push(splitTopLevel(key[1]).map(normaliseIndexColumn))
+
+    const foreignKey = /^(?:CONSTRAINT\s+`?[\w$]+`?\s+)?FOREIGN\s+KEY\s*\(([^)]+)\)\s+REFERENCES\s+(?:`[^`]+`\.)?`?([\w$]+)`?\s*\(([^)]+)\)/is.exec(definition)
+    if (foreignKey) {
+      foreignKeys.push({
+        columns: splitTopLevel(foreignKey[1]).map(normaliseIndexColumn),
+        parentTable: foreignKey[2].toLowerCase(),
+        parentColumns: splitTopLevel(foreignKey[3]).map(normaliseIndexColumn)
+      })
+    }
+
+    const check = /(?:^|\s)CHECK\s*\((.*)\)\s*$/is.exec(definition)
+    if (check) checks.push(check[1])
   }
 
-  return { columns, uniqueKeys }
+  return { columns, uniqueKeys, foreignKeys, checks }
 }
 
 const hasExactUniqueKey = (table, requiredColumns) => {
@@ -123,6 +137,60 @@ const hasExactUniqueKey = (table, requiredColumns) => {
     columns.length === expected.length &&
     columns.every((column, index) => column === expected[index])
   )
+}
+
+const hasForeignKey = (table, relationship) => table.foreignKeys.some((foreignKey) =>
+  foreignKey.columns.length === 1 &&
+  foreignKey.columns[0] === relationship.column &&
+  foreignKey.parentTable === relationship.parentTable &&
+  foreignKey.parentColumns.length === 1 &&
+  foreignKey.parentColumns[0] === relationship.parentColumn
+)
+
+const normaliseCheck = (value) => value
+  .replace(/`/g, '')
+  .replace(/\s+/g, '')
+  .replace(/^\((.*)\)$/s, '$1')
+  .toLowerCase()
+
+const hasCheck = (table, predicates) => table.checks.some((check) => {
+  const expression = normaliseCheck(check)
+  return predicates.some((predicate) => predicate(expression))
+})
+
+const isIntegerDefinition = (definition = '') => /^(?:tinyint|smallint|mediumint|int|integer|bigint)\b/i.test(definition)
+
+const hasNonNegativeCheck = (table, column) => hasCheck(table, [
+  (expression) => expression.includes(`${column}>=0`),
+  (expression) => expression.includes(`0<=${column}`)
+])
+
+const hasNonNegativeIntegerEnforcement = (table, column) => {
+  const definition = table.columns.get(column)
+  return isIntegerDefinition(definition) && (/\bunsigned\b/i.test(definition) || hasNonNegativeCheck(table, column))
+}
+
+const hasScoreRangeCheck = (table) => hasCheck(table, [
+  (expression) => expression.includes('attribute_scorebetween1and7'),
+  (expression) => expression.includes('attribute_score>=1') && expression.includes('attribute_score<=7'),
+  (expression) => expression.includes('1<=attribute_score') && expression.includes('7>=attribute_score')
+])
+
+const hasSubmissionStateEnforcement = (table) => {
+  const definition = normaliseCheck(table.columns.get('submission_state') || '')
+  const allowedValues = ['complete', 'failed', 'pending']
+  const enumMatch = /^enum\(([^)]+)\)/.exec(definition)
+  if (enumMatch) {
+    const values = enumMatch[1].split(',').map((value) => value.replaceAll("'", '')).sort()
+    if (values.length === allowedValues.length && values.every((value, index) => value === allowedValues[index])) return true
+  }
+
+  return hasCheck(table, [(expression) => {
+    const match = /submission_statein\(([^)]+)\)/.exec(expression)
+    if (!match) return false
+    const values = match[1].split(',').map((value) => value.replaceAll("'", '')).sort()
+    return values.length === allowedValues.length && values.every((value, index) => value === allowedValues[index])
+  }])
 }
 
 const TABLE_RULES = [
@@ -138,17 +206,31 @@ const TABLE_RULES = [
       'submission_fingerprint', 'submission_state', 'submission_version', 'expected_score_count',
       'expected_bonus_count'
     ],
-    uniqueKeys: [['user_id', 'rating_id'], ['submission_key']]
+    uniqueKeys: [['user_id', 'rating_id'], ['submission_key']],
+    foreignKeys: [
+      { column: 'product_id', parentTable: 'products', parentColumn: 'id' }
+    ],
+    optionalForeignKeys: [
+      { column: 'cellar_id', parentTable: 'cellar', parentColumn: 'id' }
+    ]
   },
   {
     table: 'rating_scores',
     requiredColumns: ['user_id', 'rating_id', 'attribute_id', 'attribute_score', 'uniqueness_key'],
-    uniqueKeys: [['rating_id', 'attribute_id'], ['uniqueness_key']]
+    uniqueKeys: [['rating_id', 'attribute_id'], ['uniqueness_key']],
+    foreignKeys: [
+      { column: 'rating_id', parentTable: 'ratings', parentColumn: 'id' },
+      { column: 'attribute_id', parentTable: 'rating_attributes', parentColumn: 'id' }
+    ]
   },
   {
     table: 'bonus_attribute_rating_mapping',
     requiredColumns: ['user_id', 'rating_id', 'bonus_attributes_id', 'uniqueness_key'],
-    uniqueKeys: [['rating_id', 'bonus_attributes_id'], ['uniqueness_key']]
+    uniqueKeys: [['rating_id', 'bonus_attributes_id'], ['uniqueness_key']],
+    foreignKeys: [
+      { column: 'rating_id', parentTable: 'ratings', parentColumn: 'id' },
+      { column: 'bonus_attributes_id', parentTable: 'bonus_attributes', parentColumn: 'id' }
+    ]
   }
 ]
 
@@ -196,6 +278,18 @@ export const auditSchemaContract = (sql) => {
       }
     }
 
+    for (const relationship of rule.foreignKeys || []) {
+      if (!hasForeignKey(table, relationship)) {
+        blockers.push({ code: 'MISSING_FOREIGN_KEY', table: rule.table, ...relationship })
+      }
+    }
+
+    for (const relationship of rule.optionalForeignKeys || []) {
+      if (table.columns.has(relationship.column) && !hasForeignKey(table, relationship)) {
+        blockers.push({ code: 'MISSING_FOREIGN_KEY', table: rule.table, ...relationship })
+      }
+    }
+
     if (rule.table === 'ratings') {
       const dateDefinition = table.columns.get('date_rated')
       if (dateDefinition && !/\bDEFAULT\s+(?:\(\s*)?CURRENT_TIMESTAMP(?:\s*\))?/i.test(dateDefinition)) {
@@ -212,6 +306,20 @@ export const auditSchemaContract = (sql) => {
           column: 'date_rated'
         })
       }
+      for (const column of ['submission_version', 'expected_score_count', 'expected_bonus_count']) {
+        if (table.columns.has(column) &&
+            !hasNonNegativeIntegerEnforcement(table, column)) {
+          blockers.push({ code: 'MISSING_NON_NEGATIVE_INTEGER_ENFORCEMENT', table: 'ratings', column })
+        }
+      }
+      if (table.columns.has('submission_state') && !hasSubmissionStateEnforcement(table)) {
+        blockers.push({ code: 'MISSING_SUBMISSION_STATE_CHECK', table: 'ratings', column: 'submission_state' })
+      }
+    }
+
+    if (rule.table === 'rating_scores' && table.columns.has('attribute_score') &&
+        (!isIntegerDefinition(table.columns.get('attribute_score')) || !hasScoreRangeCheck(table))) {
+      blockers.push({ code: 'MISSING_SCORE_INTEGER_RANGE_ENFORCEMENT', table: 'rating_scores', column: 'attribute_score' })
     }
   }
 
@@ -221,6 +329,8 @@ export const auditSchemaContract = (sql) => {
   }, {})
 
   return {
+    reportType: 'STRUCTURAL_SQL_AUDIT',
+    scope: 'Structural SQL invariants only; connected provider policy and workflow certification is required separately.',
     status: blockers.length ? 'BLOCKED' : 'PASS',
     counts: {
       tablesChecked: TABLE_RULES.length,

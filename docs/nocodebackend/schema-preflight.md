@@ -1,20 +1,27 @@
-# Rating schema preflight
+# Rating structural SQL audit and launch preflight
 
-The production-equivalent NoCodeBackend schema must return `PASS` before
-historical import or public launch. Application checks reduce ordinary errors,
-but only the persisted schema can prevent duplicate headers or child rows during
-concurrent requests and stop `date_rated` changing automatically when another
-field is updated.
+`scripts/audit-schema-contract.js` is a **structural SQL audit**, not the complete
+Phase 1 exit gate. Its production-equivalent schema report must return `PASS`
+before historical import or public launch, but SQL cannot prove the effective
+provider permissions or workflow behaviour. Launch therefore also requires a
+completed [connected-policy certification](connected-policy-certification.md)
+from the same release candidate and environment.
+
+Launch is `PASS` only when **both** reports say `PASS` and each reports zero
+blockers. A missing, stale or mismatched report is a launch blocker; one report
+must never be used as a substitute for the other.
 
 ## Current source-set finding
 
 The current baseline applies specifically to the supplied
 `54026_rating_export(2).sql` source snapshot, audited on 29 July 2026 against
-the current `scripts/audit-schema-contract.js` contract. It is blocked with 25
+the earlier `scripts/audit-schema-contract.js` contract. That historical audit
+is superseded by the expanded structural contract: the export must be rerun and
+a fresh blocker count retained. It previously recorded 26
 deterministic findings:
 
 - **1 `MISSING_TABLE`:** the required `profiles` table is absent;
-- **7 `MISSING_REQUIRED_COLUMN`:** `ratings` lacks `submission_key`,
+- **8 `MISSING_REQUIRED_COLUMN`:** `ratings` lacks `submission_key`,
   `submission_fingerprint`, `submission_state`, `submission_version`, `expected_score_count` and
   `expected_bonus_count`; `rating_scores` and
   `bonus_attribute_rating_mapping` each lack `uniqueness_key`;
@@ -32,7 +39,7 @@ deterministic findings:
   `ON UPDATE CURRENT_TIMESTAMP`, so later record changes overwrite the original
   rating date.
 
-These categories sum to 25 (1 + 7 + 10 + 6 + 1). They describe only that dated
+These categories sum to 26 (1 + 8 + 10 + 6 + 1). They describe only that dated
 source snapshot; a newer production-equivalent export requires a fresh audit
 and must not inherit this baseline by assumption.
 
@@ -48,10 +55,12 @@ Export the complete production-equivalent schema as SQL, then run:
 npm run audit:schema -- --schema ./exports/schema.sql
 ```
 
-The command reads the export without modifying it, emits a JSON report and uses
+The command reads the export without modifying it and emits a JSON report
+explicitly labelled `STRUCTURAL_SQL_AUDIT`. It uses
 these exit codes:
 
-- `0`: required tables, non-null fields, uniqueness and timestamp behaviour pass;
+- `0`: all represented structural controls (tables, fields, keys, checks and
+  timestamp definition) pass; this is not launch approval by itself;
 - `1`: deterministic schema blockers were found;
 - `2`: command, file or SQL contract error.
 
@@ -60,14 +69,15 @@ these exit codes:
 | Table | Required controls |
 | --- | --- |
 | `profiles` | Non-null, unique `user_id`. |
-| `ratings` | Non-null `user_id`, `rating_id`, `product_id`, `date_rated`, `submission_key`, `submission_fingerprint`, `submission_state`, `submission_version`, `expected_score_count` and `expected_bonus_count`; unique `(user_id, rating_id)` and `submission_key`; `date_rated` defaults on create and has no automatic update clause. |
-| `rating_scores` | Non-null `user_id`, `rating_id`, `attribute_id`, `attribute_score` and `uniqueness_key`; unique `(rating_id, attribute_id)` and `uniqueness_key`. |
-| `bonus_attribute_rating_mapping` | Non-null `user_id`, `rating_id`, `bonus_attributes_id` and `uniqueness_key`; unique `(rating_id, bonus_attributes_id)` and `uniqueness_key`. |
+| `ratings` | Non-null fields and unique keys listed previously; `product_id -> products.id` and, when present, `cellar_id -> cellar.id`; state limited to `pending`, `complete`, or `failed`; non-negative integer version and expected counts; `date_rated` defaults on create and has no automatic update clause. |
+| `rating_scores` | Non-null fields and unique keys; `rating_id -> ratings.id`; `attribute_id -> rating_attributes.id`; integer `attribute_score` from 1 through 7. |
+| `bonus_attribute_rating_mapping` | Non-null fields and unique keys; `rating_id -> ratings.id`; `bonus_attributes_id -> bonus_attributes.id`. |
 
-Foreign keys, owner permissions, the 1–7 score check and parent/child deletion
-behaviour must also be verified in the managed backend. They are separate
-connected-environment gates because a SQL export alone cannot prove effective
-permissions or provider API behaviour.
+The audit checks foreign keys, score and workflow checks, and create-time-only
+timestamp behaviour where the provider export represents them reliably. Owner
+and field permissions, cross-row ownership, deletion behaviour and workflow
+transitions remain connected-environment gates because SQL alone cannot prove
+effective provider API behaviour.
 
 ## Safe remediation sequence
 
@@ -80,10 +90,12 @@ permissions or provider API behaviour.
 4. Apply the non-null and unique controls through the approved NoCodeBackend
    schema/migration mechanism. Do not edit production first or execute the
    supplied source dump as a migration.
-5. Export the resulting schema and retain the `PASS` report.
-6. Exercise concurrent duplicate retries, a controlled non-date rating update,
+5. Export the resulting schema and retain the structural `PASS` report.
+6. Complete the connected-policy checklist with provider configuration evidence
+   and positive and negative results for every listed invariant.
+7. Exercise concurrent duplicate retries, a controlled non-date rating update,
    owner/other-user permission negatives and forced partial-write rollback.
-7. Rehearse recovery and rollback before production rollout.
+8. Rehearse recovery and rollback before production rollout.
 
 There is no executable database migration runner in this repository. The
 provider-supported migration path and rollback must therefore be approved and
@@ -107,8 +119,8 @@ Retain:
 1. the schema export name, environment, source-snapshot identifier and
    timestamp;
 2. the complete JSON report, including `counts.blockers`, `countsByCode` and
-   every blocker (the dated supplied-snapshot baseline is 25, partitioned as
-   1/7/10/6/1 above); the launch evidence must be a fresh `PASS` report;
+   every blocker (the dated supplied-snapshot baseline is 26, partitioned as
+   1/8/10/6/1 above); the launch evidence must be a fresh `PASS` report;
 3. duplicate/null cleanup counts before and after remediation;
 4. redacted API evidence for concurrent retry and timestamp preservation;
 5. permission-negative, rollback and recovery evidence;
