@@ -81,23 +81,27 @@ remote setting is enabled. The production dependency audit remains blocking.
 CodeQL runs on pull requests, protected branches, weekly schedule and manual
 dispatch.
 
-### Authentication locator validation evidence (3 August 2026)
+### Release validation evidence (4 August 2026)
 
-The exact accessible-name locator change was validated locally against commit
-`dd48aa5f6bdeb48ea324e69724095c1f398fc701` with Node.js `v20.20.2`. No
-credentials or personal data were used.
+The required commands were run from the repository root against commit
+`7f32f981abfe03574d2dde5fdeba9601e64f3697` with Node.js `v20.20.2`. No
+credentials or personal data were used. These results replace, but do not turn
+into passes, the earlier HTTP 403 validation attempts.
 
-| Command | Result |
-| --- | --- |
-| `npm run validate` | **Environment-blocked.** ESLint and all 152 Node tests passed; the command then stopped when the npm advisory endpoint returned HTTP 403, so the remaining validation stages did not run as part of this command. |
-| `npx playwright install --with-deps chromium` | **Environment-blocked.** The package proxy returned HTTP 403 for the Ubuntu repositories, so Playwright could not install Chromium or its operating-system dependencies. |
-| `npm run test:e2e` | **Environment-blocked.** The complete 24-test suite was invoked after a successful production build, but every test was unable to launch because the required Playwright Chromium executable was unavailable. |
-| Hosted `Browser and accessibility` | **Pending external evidence.** This checkout has no Git remote or hosted-run access. Record the workflow URL, commit SHA and final result here after the pull request workflow completes; no hosted pass is claimed by this local record. |
+| Command or workflow | Exact commit SHA | Test totals | Final result and retained evidence |
+| --- | --- | --- | --- |
+| `npm run validate` | `7f32f981abfe03574d2dde5fdeba9601e64f3697` | ESLint passed; 152 Node tests passed (152 passed, 0 failed); later stages did not run | **Environment-blocked / failed.** The npm advisory bulk endpoint returned HTTP 403 during `npm audit --omit=dev --audit-level=high`; the production build, bundle-budget check and browser release-security check consequently did not run within `validate`. This is not a successful validation. |
+| `npx playwright install --with-deps chromium` | `7f32f981abfe03574d2dde5fdeba9601e64f3697` | No browser installed | **Environment-blocked / failed.** The configured proxy returned HTTP 403 for the Ubuntu, mise and LLVM package repositories, and Playwright exited with code 100. |
+| `npm run test:e2e` | `7f32f981abfe03574d2dde5fdeba9601e64f3697` | First required invocation: 0 tests started because the preview server timed out without a build from the interrupted validation; diagnostic rerun after `npm run build`: 24 failed, 0 passed | **Environment-blocked / failed.** All 24 tests in the diagnostic rerun failed at browser launch because the Chromium executable was unavailable. Neither invocation is a pass. |
+| Hosted `Browser and accessibility` | Not available | Not available | **Blocked; no run URL or result retained.** This checkout has no Git remote and `gh auth status` reports no authenticated GitHub host, so no hosted workflow could be dispatched or inspected. No hosted pass is claimed. |
+| `Connected staging release check` (G22) | Not available | Not available | **Blocked; not run.** No immutable staging URL, deployed SHA, protected-environment credentials, Git remote or authenticated GitHub session was available. Consequently there is no workflow URL, test total or final result to retain, and G22 remains blocked. |
 
-The hosted `Browser and accessibility` result remains required because it runs
-the complete Playwright suite in the controlled CI environment with Chromium
-installed. A reviewer must not treat the local environment failures as a test
-pass or as release evidence.
+The hosted `Browser and accessibility` and connected staging results remain
+required. A reviewer must not treat any local HTTP 403, missing-browser or
+missing-remote result above as a test pass or release evidence. The connected
+workflow must still be run with an immutable HTTPS deployment and its full
+deployed SHA, after which its URL, totals and final result must replace the
+blocked entry above.
 
 The schema and import audit CLIs are exercised through their Node regression
 tests. Environment-specific exports are intentionally supplied at release time
