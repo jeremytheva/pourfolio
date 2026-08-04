@@ -90,6 +90,27 @@ test('unique conflicts retain a safe status and machine-readable conflict code',
   })
 })
 
+test('the connected stale expected-version envelope is classified separately and redacted', async () => {
+  global.fetch = async () => response({ error: 'The record has been modified by another request.' }, { status: 409 })
+
+  await assert.rejects(dataProvider.compareAndSet('ratings', 3, 4, { submission_version: 5 }), (error) => {
+    assert.equal(error.status, 409)
+    assert.equal(error.code, 'VERSION_CONFLICT')
+    assert.equal(dataProvider.isUniqueConflict(error), false)
+    assert.doesNotMatch(error.message, /modified by another request/i)
+    return true
+  })
+})
+
+test('unrelated provider 4xx responses retain their upstream status', async () => {
+  global.fetch = async () => response({ error: 'provider validation detail' }, { status: 422 })
+
+  await assert.rejects(dataProvider.update('ratings', 3, {}), {
+    status: 422,
+    code: 'PROVIDER_ERROR'
+  })
+})
+
 test('malformed responses and upstream failures become safe gateway errors', async () => {
   global.fetch = async () => response(null, { raw: '<html>failure</html>' })
   await assert.rejects(dataProvider.list('products'), { status: 502, code: 'PROVIDER_ERROR' })

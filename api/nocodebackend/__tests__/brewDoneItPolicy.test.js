@@ -76,7 +76,7 @@ const installProvider = () => {
     [COLLECTIONS.ratings]: []
   }
   let nextId = 20
-  dataProvider.isUniqueConflict = (error) => error?.status === 409
+  dataProvider.isUniqueConflict = (error) => error?.code === 'UNIQUE_CONFLICT'
   dataProvider.get = async (collection, id) => {
     if (collection === COLLECTIONS.products) return ['10', '11'].includes(String(id))
       ? { id, producer_id: 30, product_category_id: 40 }
@@ -102,7 +102,9 @@ const installProvider = () => {
   }
   dataProvider.compareAndSet = async (collection, id, expectedVersion, updates) => {
     const record = records[collection].find((candidate) => String(candidate.id) === String(id))
-    if (Number(record.version || 0) !== Number(expectedVersion)) throw Object.assign(new Error('conflict'), { status: 409 })
+    if (Number(record.version || 0) !== Number(expectedVersion)) {
+      throw Object.assign(new Error('conflict'), { status: 409, code: 'VERSION_CONFLICT' })
+    }
     Object.assign(record, updates)
     return record
   }
@@ -263,6 +265,26 @@ test('two guesses for one version produce one winner and a safe stale conflict',
   }, response(), guesser), (error) => error.status === 409 && error.payload?.code === 'VERSION_CONFLICT')
   assert.equal(records.brew_done_it_guesses.length, 1)
   assert.equal(records.brew_done_it_rounds[0].version, 1)
+})
+
+test('a provider stale-version response becomes the safe application conflict', async () => {
+  const records = installProvider()
+  const round = records.brew_done_it_rounds[0]
+  round.version = 1
+
+  await assert.rejects(
+    __testables.compareAndSet(COLLECTIONS.brewDoneItRounds, round, 0, { status: 'completed' }),
+    (error) => {
+      assert.equal(error.status, 409)
+      assert.deepEqual(error.payload, {
+        error: 'The game changed before this request was applied.',
+        code: 'VERSION_CONFLICT',
+        currentVersion: 1
+      })
+      return true
+    }
+  )
+  assert.equal(round.status, 'guessing')
 })
 
 test('forfeiture is terminal, versioned and idempotent', async () => {
