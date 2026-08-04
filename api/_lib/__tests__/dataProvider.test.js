@@ -30,7 +30,7 @@ const response = (payload, { status = 200, raw } = {}) => ({
   text: async () => raw ?? (payload === null ? '' : JSON.stringify(payload))
 })
 
-test('list sends filters and normalises supported provider envelopes', async () => {
+test('list sends filters and normalises records envelope', async () => {
   const requests = []
   global.fetch = async (url, options) => {
     requests.push({ url: String(url), options })
@@ -41,6 +41,52 @@ test('list sends filters and normalises supported provider envelopes', async () 
   assert.equal(requests[0].url, 'https://provider.example.test/data/ratings?user_id=owner')
   assert.equal(requests[0].options.method, 'GET')
   assert.equal(requests[0].options.headers.authorization, 'Bearer test-secret')
+})
+
+
+test('list normalises every supported list envelope', async () => {
+  const envelopes = [
+    [{ data: [{ id: 1 }] }, [{ id: 1 }]],
+    [{ records: [{ id: 2 }] }, [{ id: 2 }]],
+    [{ items: [{ id: 3 }] }, [{ id: 3 }]],
+    [{ results: [{ id: 4 }] }, [{ id: 4 }]],
+    [[{ id: 5 }], [{ id: 5 }]],
+    [{ data: null }, []]
+  ]
+
+  for (const [payload, expected] of envelopes) {
+    global.fetch = async () => response(payload)
+    assert.deepEqual(await dataProvider.list('products'), expected)
+  }
+})
+
+test('get and writes normalise every supported single-record envelope', async () => {
+  const envelopes = [
+    [{ data: { id: 1 } }, { id: 1 }],
+    [{ record: { id: 2 } }, { id: 2 }],
+    [{ results: { id: 3 } }, { id: 3 }],
+    [{ items: [{ id: 4 }] }, { id: 4 }],
+    [{ records: [{ id: 5 }] }, { id: 5 }],
+    [{ id: 6 }, { id: 6 }]
+  ]
+
+  for (const [payload, expected] of envelopes) {
+    global.fetch = async () => response(payload)
+    assert.deepEqual(await dataProvider.get('products', expected.id), expected)
+    const created = await dataProvider.create('products', expected)
+    assert.deepEqual(Array.isArray(created) ? created[0] : created, expected)
+  }
+})
+
+test('provider success=false envelopes are treated as safe provider errors', async () => {
+  global.fetch = async () => response({ success: false, message: 'private provider detail' }, { status: 200 })
+
+  await assert.rejects(dataProvider.list('products'), (error) => {
+    assert.equal(error.status, 502)
+    assert.equal(error.code, 'PROVIDER_ERROR')
+    assert.doesNotMatch(error.message, /private provider detail/)
+    return true
+  })
 })
 
 test('get uses the record path and falls back to a filtered list after not found', async () => {

@@ -1,6 +1,20 @@
 import { safeErrorMessage, withTimeout } from './httpSecurity.js'
 
-const normalisePayload = (payload) => payload?.data ?? payload?.records ?? payload?.items ?? payload ?? null
+const normalisePayload = (payload) => {
+  if (payload === undefined || payload === null) return null
+  if (payload.data !== undefined) return payload.data
+  if (payload.records !== undefined) return payload.records
+  if (payload.items !== undefined) return payload.items
+  if (payload.results !== undefined) return payload.results
+  if (payload.record !== undefined) return payload.record
+  return payload
+}
+
+const getProviderErrorCode = (status, filters = {}) => {
+  if (status === 409 && filters?.expected_version !== undefined) return 'VERSION_CONFLICT'
+  if (status === 409) return 'UNIQUE_CONFLICT'
+  return 'PROVIDER_ERROR'
+}
 
 const getConfiguration = () => {
   const baseUrl = process.env.NOCODEBACKEND_DATA_BASE_URL
@@ -58,14 +72,10 @@ const providerRequest = async (path, { method = 'GET', body, filters } = {}) => 
     throw error
   }
 
-  if (!upstream.ok || payload?.error) {
+  if (!upstream.ok || payload?.error || payload?.success === false) {
     const error = new Error(safeErrorMessage(upstream.status))
     error.status = upstream.status >= 400 && upstream.status < 600 ? upstream.status : 502
-    error.code = upstream.status === 409 && filters?.expected_version !== undefined
-      ? 'VERSION_CONFLICT'
-      : upstream.status === 409
-        ? 'UNIQUE_CONFLICT'
-        : 'PROVIDER_ERROR'
+    error.code = getProviderErrorCode(error.status, filters)
     throw error
   }
 
