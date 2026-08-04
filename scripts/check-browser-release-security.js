@@ -3,13 +3,18 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const upstreamAuthDomain = /https?:\/\/[^\s"'`]*nocodebackend\.com\/api\/user-auth/gi
-const credentialAssignment = /(?:NOCODEBACKEND_SECRET_KEY|NOCODEBACKEND_DATA_BASE_URL|UPSTASH_REDIS_REST_TOKEN|RATE_LIMIT_KEY_SECRET|UPSTASH_REDIS_REST_URL)\s*[=:]\s*["']?([^\s"',}]+)/g
+const upstreamDataDomain = /https?:\/\/[^\s"'`]*nocodebackend\.com\/(?:api\/)?(?:database|data|collections)(?:[/:?#"'`)]|$)/gi
+const sourceMapReference = /(?:sourceMappingURL=|"sourcesContent"\s*:|"mappings"\s*:)/g
+const secretBearingHeader = /(?:authorization|x-api-key|api-key|x-nocodebackend-secret|upstash-redis-rest-token)\s*[:=]\s*[`"']?(?:Bearer\s+)?[^`"'\s,}]+/gi
+const credentialAssignment = /(?:NOCODEBACKEND_SECRET_KEY|NOCODEBACKEND_DATA_BASE_URL|NOCODEBACKEND_AUTH_BASE_URL|ALLOWED_ORIGINS|UPSTASH_REDIS_REST_TOKEN|RATE_LIMIT_KEY_SECRET|UPSTASH_REDIS_REST_URL)\s*[=:]\s*["']?([^\s"',}]+)/g
 const placeholderValue = /^(?:example|placeholder|replace[-_]?me|your[-_]|<|\$\{|https?:\/\/example\.)/i
 const upstashBrowserImport = /(?:from\s*|import\s*\(|require\s*\()\s*["']@upstash\/redis(?:[/'"])/
 const directUpstashRestRequest = /(?:fetch|axios(?:\.(?:get|post|put|patch|delete))?)\s*\([^)]*https?:\/\/[^\s"'`)]*\.upstash\.io(?:[/:?"'`)])/gis
 const serverOnlyVariableNames = [
   ['NOCODEBACKEND_SECRET_KEY', 'NoCodeBackend secret'],
   ['NOCODEBACKEND_DATA_BASE_URL', 'NoCodeBackend data upstream'],
+  ['NOCODEBACKEND_AUTH_BASE_URL', 'NoCodeBackend auth upstream'],
+  ['ALLOWED_ORIGINS', 'allowed origins configuration'],
   ['UPSTASH_REDIS_REST_TOKEN', 'Upstash token'],
   ['UPSTASH_REDIS_REST_URL', 'Upstash URL'],
   ['RATE_LIMIT_KEY_SECRET', 'rate-limit secret']
@@ -41,7 +46,9 @@ export const inspectBrowserRelease = ({
   dataUpstream = process.env.NOCODEBACKEND_DATA_BASE_URL,
   upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN,
   rateLimitSecret = process.env.RATE_LIMIT_KEY_SECRET,
-  upstashUrl = process.env.UPSTASH_REDIS_REST_URL
+  upstashUrl = process.env.UPSTASH_REDIS_REST_URL,
+  authUpstream = process.env.NOCODEBACKEND_AUTH_BASE_URL,
+  allowedOrigins = process.env.ALLOWED_ORIGINS
 }) => {
   const findings = []
   for (const relativeDirectory of browserDirectories) {
@@ -70,6 +77,12 @@ export const inspectBrowserRelease = ({
       if (upstashUrl && !placeholderValue.test(upstashUrl) && content.includes(upstashUrl)) {
         findings.push(`${relativePath}: exposes the configured Upstash URL`)
       }
+      if (authUpstream && !placeholderValue.test(authUpstream) && content.includes(authUpstream)) {
+        findings.push(`${relativePath}: exposes the configured NoCodeBackend auth upstream`)
+      }
+      if (allowedOrigins && !placeholderValue.test(allowedOrigins) && content.includes(allowedOrigins)) {
+        findings.push(`${relativePath}: exposes the configured allowed origins`)
+      }
       if (upstashBrowserImport.test(content)) {
         findings.push(`${relativePath}: imports @upstash/redis in browser code`)
       }
@@ -81,6 +94,18 @@ export const inspectBrowserRelease = ({
         findings.push(`${relativePath}: requests the upstream authentication domain directly`)
       }
       upstreamAuthDomain.lastIndex = 0
+      if (upstreamDataDomain.test(content)) {
+        findings.push(`${relativePath}: requests a privileged NoCodeBackend data endpoint directly`)
+      }
+      upstreamDataDomain.lastIndex = 0
+      if (sourceMapReference.test(content) || relativePath.endsWith('.map')) {
+        findings.push(`${relativePath}: exposes source map content or references`)
+      }
+      sourceMapReference.lastIndex = 0
+      if (secretBearingHeader.test(content)) {
+        findings.push(`${relativePath}: contains a secret-bearing header pattern`)
+      }
+      secretBearingHeader.lastIndex = 0
 
       for (const match of content.matchAll(credentialAssignment)) {
         if (!placeholderValue.test(match[1])) findings.push(`${relativePath}: contains a credential-like value`)

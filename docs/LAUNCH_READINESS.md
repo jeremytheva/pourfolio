@@ -131,7 +131,10 @@ environment; never expose these variables to Vite or use a `VITE_` prefix.
 
 The backend-certification gate is complete only when the independent reviewer
 has checked dated, redacted evidence for every item below against the exact
-release candidate:
+release candidate. The presence-only configuration ledger, operational probes,
+browser artefact/source-map inspection, redacted-log failure evidence, rotation
+ownership and rollback record must follow the [launch configuration evidence
+procedure](launch-configuration-evidence.md):
 
 ### Phase 1 same-state baseline record
 
@@ -179,7 +182,7 @@ Partial completion does not permit this gate or a related P0 entry to be
 closed. A rerun is required after any schema, permission, provider-contract or
 release-candidate change.
 
-- [ ] [G08](#evidence-g08) — Configure all five server-only backend and distributed rate-limit variables in staging and production.
+- [ ] [G08](#evidence-g08) — Configure all five server-only backend and distributed rate-limit variables in staging and production, plus any deliberately configured `NOCODEBACKEND_AUTH_BASE_URL` and `ALLOWED_ORIGINS`.
 - [ ] [G09](#evidence-g09) — Verify the configured data base URL accepts the gateway’s collection paths, query filters and create/update/delete response shapes.
 - [ ] [G10](#evidence-g10) — Provision the canonical schema without `*_pf2025` aliases and make the rating schema preflight return `PASS`.
 - [ ] [G11](#evidence-g11) — Apply non-null and unique rating controls through an approved provider migration, with cleanup, compatibility and rollback evidence.
@@ -266,14 +269,14 @@ the action has an accountable owner.
 
 | Gate | Accountable owner | Dated, redacted evidence | Result on frozen candidate |
 | --- | --- | --- | --- |
-| <a id="evidence-g01"></a>G01: Presence-only evidence confirms that `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_DATA_BASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` and `RATE_LIMIT_KEY_SECRET` are present as server-only variables in the isolated staging environment and absent from browser bundles, repository files, command transcripts and evidence; no value may appear in the evidence, and presence alone is not operational provider or Redis evidence. | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G01`: not supplied | **BLOCKED** |
+| <a id="evidence-g01"></a>G01: Presence-only evidence confirms that `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_DATA_BASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `RATE_LIMIT_KEY_SECRET` and any deliberately configured `NOCODEBACKEND_AUTH_BASE_URL`/`ALLOWED_ORIGINS` are present as server-only variables in isolated staging and production scopes and absent from browser bundles, source maps, repository files, command transcripts and evidence; no value may appear in the evidence, and presence alone is not operational provider or Redis evidence. | `@jeremytheva` | 4 August 2026 — `PRR-2026-08-04-G01`: public evidence procedure added in `docs/launch-configuration-evidence.md`; private staging/production evidence, request IDs, endpoint identities and approver not supplied | **BLOCKED** |
 | <a id="evidence-g02"></a>G02: The canonical collections in | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G02`: not supplied | **BLOCKED** |
 | <a id="evidence-g03"></a>G03: A production-equivalent, same-state schema export has been audite… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G03`: not supplied | **BLOCKED** |
 | <a id="evidence-g04"></a>G04: The schema evidence proves required non-null fields and uniqueness | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G04`: not supplied | **BLOCKED** |
 | <a id="evidence-g05"></a>G05: Redacted provider transcripts exercise the precise paths, filters… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G05`: not supplied | **BLOCKED** |
 | <a id="evidence-g06"></a>G06: For every launch collection exposed by | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G06`: not supplied | **BLOCKED** |
 | <a id="evidence-g07"></a>G07: Evidence is dated, redacted, tied to the environment and release … | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G07`: not supplied | **BLOCKED** |
-| <a id="evidence-g08"></a>G08: Configure `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_DATA_BASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` and `RATE_LIMIT_KEY_SECRET` as server-only variables in staging and production, without recording their values in evidence; retain separate dated, redacted operational evidence for the NoCodeBackend provider and the Redis-backed distributed rate limiter rather than treating configuration presence as proof that either service operates. | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G08`: not supplied | **BLOCKED** |
+| <a id="evidence-g08"></a>G08: Configure `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_DATA_BASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `RATE_LIMIT_KEY_SECRET` and any deliberately configured `NOCODEBACKEND_AUTH_BASE_URL`/`ALLOWED_ORIGINS` as server-only variables in staging and production, without recording their values in evidence; retain dated, redacted least-privilege probes, endpoint/environment identity confirmation, browser bundle/source-map inspection, redacted-log failure proof, rotation ownership, rollback ownership, deployment SHA, request IDs and approver identity. | `@jeremytheva` | 4 August 2026 — `PRR-2026-08-04-G08`: public evidence procedure added in `docs/launch-configuration-evidence.md`; private configuration/probe evidence and approval not supplied | **BLOCKED** |
 | <a id="evidence-g09"></a>G09: Verify the configured data base URL accepts the gateway’s collect… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G09`: not supplied | **BLOCKED** |
 | <a id="evidence-g10"></a>G10: Provision the canonical schema without `*_pf2025` aliases and mak… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G10`: not supplied | **BLOCKED** |
 | <a id="evidence-g11"></a>G11: Apply non-null and unique rating controls through an approved pro… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G11`: not supplied | **BLOCKED** |
