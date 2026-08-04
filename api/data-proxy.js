@@ -590,7 +590,7 @@ const compareAndSet = async (collection, record, expectedVersion, updates) => {
   try {
     await dataProvider.compareAndSet(collection, record.id, expectedVersion, { ...updates, version: expectedVersion + 1 })
   } catch (error) {
-    if (!dataProvider.isUniqueConflict(error)) throw error
+    if (error?.code !== 'VERSION_CONFLICT') throw error
     throw versionConflict(await dataProvider.get(collection, record.id))
   }
   const persisted = await dataProvider.get(collection, record.id)
@@ -1057,6 +1057,7 @@ export const __testables = {
   getProfile,
   updateProfile,
   updateCellar,
+  compareAndSet,
   submitRating,
   listUserRatings,
   createBrewDoneItGame, joinBrewDoneItGame, selectBrewDoneItProduct, submitBrewDoneItGuess,

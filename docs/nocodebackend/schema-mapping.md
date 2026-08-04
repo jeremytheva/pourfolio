@@ -29,6 +29,22 @@ The 29 July certification attempt is recorded in the
 blocked before remote requests because this environment still has neither
 staging endpoint nor credential. No transaction has therefore been adopted.
 
+### Conditional-update provider contract (4 August 2026)
+
+A connected provider-contract probe sent an update with a stale
+`expected_version`. NoCodeBackend returned HTTP `409` with the JSON envelope
+`{"error":"<redacted provider stale-version message>"}` and did not expose a
+separate machine-readable error code. The gateway therefore identifies this as
+a version conflict only when the failed `409` belongs to a request carrying
+`expected_version`; ordinary create/update uniqueness conflicts remain distinct,
+and other upstream `4xx` statuses are preserved with safe application wording.
+
+This response demonstrates the provider's stale-version error contract only. It
+does **not** yet demonstrate that the rejected write was atomic or left the
+record unchanged under concurrency. Compare-and-set support remains unverified
+until a connected staging concurrency probe records the winning write, the
+rejected stale write and the final persisted version.
+
 ## Collection summary
 
 | Collection | Purpose | Ownership |
