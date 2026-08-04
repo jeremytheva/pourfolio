@@ -162,3 +162,37 @@ test('does not treat .env.example placeholders as configured secrets', (context)
     upstashUrl: 'https://example.com'
   }), [])
 })
+
+test('reports optional auth and origin configuration in browser artefacts', (context) => {
+  const authUpstream = 'https://tenant.nocodebackend.com/api/user-auth'
+  const allowedOrigins = 'https://staging.pourfolio.example,https://pourfolio.example'
+  const rootDirectory = fixture({
+    'src/auth-config.js': `window.authBase=${JSON.stringify(authUpstream)}`,
+    'dist/assets/origins.js': `globalThis.allowed=${JSON.stringify(allowedOrigins)}`,
+    'dist/assets/name.js': 'const name = "NOCODEBACKEND_AUTH_BASE_URL"'
+  })
+  context.after(() => fs.rmSync(rootDirectory, { recursive: true, force: true }))
+
+  assert.deepEqual(inspectBrowserRelease({ rootDirectory, authUpstream, allowedOrigins }), [
+    'src/auth-config.js: exposes the configured NoCodeBackend auth upstream',
+    'src/auth-config.js: requests the upstream authentication domain directly',
+    'dist/assets/name.js: exposes the server-only NoCodeBackend auth upstream variable name',
+    'dist/assets/origins.js: exposes the configured allowed origins'
+  ])
+})
+
+test('reports source maps, privileged data endpoints and secret-bearing headers', (context) => {
+  const rootDirectory = fixture({
+    'dist/assets/app.js': 'fetch("https://tenant.nocodebackend.com/api/database/products");\n//# sourceMappingURL=app.js.map',
+    'dist/assets/app.js.map': '{"version":3,"sourcesContent":["const token=1"],"mappings":"AAAA"}',
+    'src/request.js': 'fetch("/x", { headers: { authorization: "Bearer token-value" } })'
+  })
+  context.after(() => fs.rmSync(rootDirectory, { recursive: true, force: true }))
+
+  assert.deepEqual(inspectBrowserRelease({ rootDirectory }), [
+    'src/request.js: contains a secret-bearing header pattern',
+    'dist/assets/app.js: requests a privileged NoCodeBackend data endpoint directly',
+    'dist/assets/app.js: exposes source map content or references',
+    'dist/assets/app.js.map: exposes source map content or references'
+  ])
+})
