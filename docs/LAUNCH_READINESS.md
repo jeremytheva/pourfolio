@@ -170,11 +170,16 @@ release-candidate change.
 
 ## External P1 gates
 
-**Re-review (3 August 2026):** Repository-side public document pages and an
+**Re-review (4 August 2026):** Repository-side public document pages and an
 evidence procedure are now present, but no connected staging/production host,
 legal reviewer, named operational owners, private escalation evidence, GitHub
-administrator access or independent approval was supplied. Accordingly G22 and
-G24–G32 remain open. The exact requirements and honest current values are in
+administrator access or independent approval was supplied. The audit was
+performed from frozen commit
+`2b7fb6b7ccd33c7c2b605bd68f201daeb7e50701`; no remote configuration or
+connected execution can be attributed to it. Accordingly G22 and G24–G32
+remain open. G23 also remains open because its provider contract, durable job
+store, rollout and production-equivalent evidence are absent. The exact
+requirements and honest current values are in
 [the publication and release evidence procedure](PUBLICATION_AND_RELEASE_EVIDENCE.md).
 
 - [ ] [G22](#evidence-g22) — Run browser end-to-end and WCAG 2.2 AA checks against the connected staging backend.

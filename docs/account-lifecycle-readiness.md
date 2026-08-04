@@ -203,9 +203,15 @@ distinct sentinels. Then:
    release commit, operator and independent reviewer. Do not commit cookies,
    tokens, emails, record bodies or personal data.
 
-**Current result (29 July 2026): blocked.** This environment contains no
+**Current result (rechecked 4 August 2026): blocked.** At frozen commit
+`2b7fb6b7ccd33c7c2b605bd68f201daeb7e50701`, this environment contains no
 connected provider credentials, approved lifecycle schema, reviewed policy or
-legal approval. No production-equivalent export/deletion claim has been made.
+legal approval. Implementing only browser screens or proxy aliases would leave
+recovery artefact ownership, expiry and replay protection, recent-session
+enforcement, durable export/deletion retries, identity deletion and
+post-restore erasure unproved. No production-equivalent export/deletion claim
+has been made, and the existing design gate must not be mistaken for an
+implemented lifecycle contract.
 
 ## Privacy, legal and operational approval record
 
@@ -227,4 +233,3 @@ moderation/escalation procedure, support contact and retention schedule are
 published at stable, accessible URLs; their versions and effective dates match
 the approved record; and the production-equivalent exercise demonstrates the
 same behaviour.
-
