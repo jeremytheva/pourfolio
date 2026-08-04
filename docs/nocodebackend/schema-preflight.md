@@ -15,7 +15,7 @@ deterministic findings:
 
 - **1 `MISSING_TABLE`:** the required `profiles` table is absent;
 - **7 `MISSING_REQUIRED_COLUMN`:** `ratings` lacks `submission_key`,
-  `submission_fingerprint`, `submission_state`, `expected_score_count` and
+  `submission_fingerprint`, `submission_state`, `submission_version`, `expected_score_count` and
   `expected_bonus_count`; `rating_scores` and
   `bonus_attribute_rating_mapping` each lack `uniqueness_key`;
 - **10 `NULLABLE_REQUIRED_COLUMN`:** the four existing required columns on
@@ -60,7 +60,7 @@ these exit codes:
 | Table | Required controls |
 | --- | --- |
 | `profiles` | Non-null, unique `user_id`. |
-| `ratings` | Non-null `user_id`, `rating_id`, `product_id`, `date_rated`, `submission_key`, `submission_fingerprint`, `submission_state`, `expected_score_count` and `expected_bonus_count`; unique `(user_id, rating_id)` and `submission_key`; `date_rated` defaults on create and has no automatic update clause. |
+| `ratings` | Non-null `user_id`, `rating_id`, `product_id`, `date_rated`, `submission_key`, `submission_fingerprint`, `submission_state`, `submission_version`, `expected_score_count` and `expected_bonus_count`; unique `(user_id, rating_id)` and `submission_key`; `date_rated` defaults on create and has no automatic update clause. |
 | `rating_scores` | Non-null `user_id`, `rating_id`, `attribute_id`, `attribute_score` and `uniqueness_key`; unique `(rating_id, attribute_id)` and `uniqueness_key`. |
 | `bonus_attribute_rating_mapping` | Non-null `user_id`, `rating_id`, `bonus_attributes_id` and `uniqueness_key`; unique `(rating_id, bonus_attributes_id)` and `uniqueness_key`. |
 

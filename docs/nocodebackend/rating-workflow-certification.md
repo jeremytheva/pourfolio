@@ -52,6 +52,13 @@ and cleanup request.
    verification re-read and workflow-state update. Each first call must be
    non-successful; the identical retry must converge to the exact expected rows
    and durable `complete` state.
+   Also overlap two identical retries so one reaches `complete` while the other
+   encounters (a) a child-write failure and (b) a workflow-state update failure.
+   After each race, query by owner, submission key and deterministic child keys:
+   prove exactly one header and each expected child remain, prove the header is
+   still `complete`, and prove a later identical retry returns that completed
+   result. Retain the conflicting compare-and-set response as evidence that a
+   stale `pending -> failed` write cannot demote `complete`.
 5. As the other user, attempt gateway history/delete access and direct provider
    read/update access to workflow fields. Record safe denial responses and
    confirm the owner data and state are unchanged.

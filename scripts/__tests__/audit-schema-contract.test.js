@@ -18,6 +18,7 @@ const compliantSchema = `
     submission_key varchar(255) NOT NULL,
     submission_fingerprint char(64) NOT NULL,
     submission_state varchar(16) NOT NULL,
+    submission_version int NOT NULL DEFAULT 0,
     expected_score_count int NOT NULL,
     expected_bonus_count int NOT NULL,
     total_weighted decimal(10,2),
@@ -88,7 +89,7 @@ test('schema preflight blocks the supplied legacy rating shape', () => {
   assert.equal(report.status, 'BLOCKED')
   assert.deepEqual(report.countsByCode, {
     MISSING_TABLE: 1,
-    MISSING_REQUIRED_COLUMN: 7,
+    MISSING_REQUIRED_COLUMN: 8,
     NULLABLE_REQUIRED_COLUMN: 10,
     MISSING_UNIQUE_CONSTRAINT: 6,
     MUTABLE_RATING_TIMESTAMP_DEFAULT: 1
