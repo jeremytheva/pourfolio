@@ -18,8 +18,19 @@ npm run test:e2e
 3. a high-severity production dependency audit;
 4. the production Vite build;
 5. gzip JavaScript bundle budgets.
+6. Brew Done It route, navigation, production-bundle and normal-environment
+   containment;
+7. browser release-security checks.
 
 Production source maps are disabled.
+
+`npm run check:brew-containment` runs after the production build and fails if
+`src/App.jsx` or primary navigation references Brew Done It, if the generated
+browser bundle contains its route or product name, or if tracked normal
+environment configuration sets `BREW_DONE_IT_POLICY_ENABLED`. The gateway's
+unset-flag behaviour remains covered separately by the Node policy tests; the
+Playwright containment and accessibility specifications remain required and
+cannot be replaced by this static check.
 
 ## Current automated coverage
 
