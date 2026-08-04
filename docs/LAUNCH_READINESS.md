@@ -133,6 +133,23 @@ The backend-certification gate is complete only when the independent reviewer
 has checked dated, redacted evidence for every item below against the exact
 release candidate:
 
+### Phase 1 same-state baseline record
+
+Use the [NoCodeBackend baseline export evidence
+template](nocodebackend/baseline-export-evidence-template.md) to capture the
+schema and all launch collections from one quiesced or provider-consistent
+snapshot. Retain the completed, appropriately redacted package in the approved
+private evidence store.
+
+**Completed baseline reference (4 August 2026):** Not supplied; blocked. This
+delivery environment has no provider access, immutable provider snapshot
+identifier or approved private evidence destination. It therefore cannot
+truthfully export or retain the requested private records. G03, G07 and Phase 1
+remain open. Once an independent reviewer approves a completed package, replace
+this status only with the safe evidence-store reference, immutable package and
+snapshot identifiers, UTC interval, candidate commit/deployment identifier and
+approved aggregate manifest described by the template.
+
 - [ ] [G01](#evidence-g01) — The five server-only variables are present in isolated staging and absent
   from browser bundles, repository files, command transcripts and evidence.
 - [ ] [G02](#evidence-g02) — The canonical collections in

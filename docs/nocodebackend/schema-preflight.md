@@ -91,6 +91,17 @@ recorded before the remote schema is changed.
 
 ## Required evidence
 
+Capture the same-state schema and collection baseline with the
+[baseline export evidence template](baseline-export-evidence-template.md). The
+completed, appropriately redacted package belongs in the approved private
+evidence store, not this repository.
+
+**Baseline status (4 August 2026):** Not supplied; blocked. No approved evidence
+store reference, immutable provider snapshot identifier or connected provider
+access was available to this delivery environment, so no completed baseline is
+claimed. After independent approval, record the safe reference and summary here
+as directed by the template.
+
 Retain:
 
 1. the schema export name, environment, source-snapshot identifier and
