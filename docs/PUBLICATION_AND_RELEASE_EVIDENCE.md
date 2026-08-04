@@ -1,7 +1,39 @@
 # Publication and release evidence procedure
 
 **Prepared:** 3 August 2026  
+**Last execution audit:** 4 August 2026
 **Repository status:** implementation and review packet only; no external approval or remote configuration is claimed.
+
+## 4 August 2026 execution audit
+
+The requested connected release exercise was assessed from commit
+`2b7fb6b7ccd33c7c2b605bd68f201daeb7e50701`. The execution environment did not
+contain a Git remote, a GitHub administrator session, staging or production
+host names, deployment identifiers, connected-test credentials, provider
+credentials, a private evidence destination, or the names and recorded
+acceptance of the required independent approvers and operational owners.
+Consequently, no remote setting was changed, no connected or production test
+was run, no document was represented as legally reviewed, and no gate was
+closed. This is a release-safety result, not successful gate evidence.
+
+Release management should supply these inputs together rather than asking an
+operator to infer them:
+
+1. immutable staging and production deployment URLs and the deployed full SHA;
+2. least-privilege connected-test accounts and the approved private evidence
+   destination;
+3. authenticated administrator access for Vercel, the monitoring destination,
+   NoCodeBackend and the authoritative GitHub repository;
+4. the individually named Australian privacy/legal reviewer and the named
+   technical, privacy, moderation, support and backup/restore owners, including
+   their recorded acceptance and private escalation references; and
+5. the approved account-lifecycle provider contract, schema rollout and
+   rollback plan required by the lifecycle readiness review.
+
+The frozen release candidate must remain the deployed and reviewed candidate
+through the exercise. Any implementation commit made to close G23 creates a
+new candidate and requires the connected evidence and all four approvals to be
+retaken against that new SHA.
 
 ## Public document URLs
 
@@ -72,8 +104,9 @@ authoritative alternative tracker URL and operating owner). The dependency
 review workflow is already configured to fail on high-severity findings, but
 only branch protection makes that result blocking.
 
-This environment has no Git remote, GitHub CLI or administrator session, so it
-cannot enable or verify any remote setting. G29–G31 remain open.
+This environment has no Git remote or authenticated administrator session. A
+GitHub CLI binary is installed, but a binary without repository targeting and
+authorisation cannot enable or verify remote settings. G29–G31 remain open.
 
 ## Staging and production execution
 
