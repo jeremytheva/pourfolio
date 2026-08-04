@@ -19,6 +19,15 @@ external release gate or approve the retained remote, persistent game. Its
 two-account shared history, invitations, stored scoring, retention and durable
 statistics remain an unapproved proposal and require a superseding accepted ADR.
 
+The checked containment statements are guarded on every `npm run validate` by
+the route, primary-navigation, generated-bundle and tracked normal-environment
+check in `scripts/check-brew-done-it-containment.js`, and by the gateway policy
+tests. Before treating those statements as release evidence, repeat
+`npm run validate`, `npx playwright install --with-deps chromium` and
+`npm run test:e2e` against the exact candidate. The Playwright run supplies the
+direct-route, no-game-request and reachable-page accessibility evidence; a
+static or unit-only pass is insufficient.
+
 ## Decision
 
 Source-controlled launch hardening is implemented for a beer-first MVP, but production remains **no-go** until every external gate below is evidenced and signed off.

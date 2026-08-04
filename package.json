@@ -16,8 +16,9 @@
     "audit:import": "node scripts/audit-import-references.js",
     "audit:schema": "node scripts/audit-schema-contract.js",
     "check:bundle": "node scripts/check-bundle-size.js",
+    "check:brew-containment": "node scripts/check-brew-done-it-containment.js",
     "check:release-security": "node scripts/check-browser-release-security.js",
-    "validate": "npm run lint && npm test && npm run audit:production && npm run build && npm run check:bundle && npm run check:release-security"
+    "validate": "npm run lint && npm test && npm run audit:production && npm run build && npm run check:bundle && npm run check:brew-containment && npm run check:release-security"
   },
   "dependencies": {
     "@upstash/redis": "^1.35.3",
