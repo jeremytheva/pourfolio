@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "test": "node --test",
     "test:e2e": "playwright test",
+    "test:provider-contract": "RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1 node --test api/_lib/__tests__/providerContract.connected.test.js",
     "test:release": "playwright test --config=playwright.release.config.js",
     "audit:production": "npm audit --omit=dev --audit-level=high",
     "audit:import": "node scripts/audit-import-references.js",
