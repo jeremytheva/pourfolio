@@ -97,7 +97,12 @@ evidence has been independently reviewed.
   negatives and server-only secret inspection; accessibility—not applicable,
   backend-only outcome; deployment—isolated production-equivalent staging;
   operational—dated redacted transcripts, checksums, backup/restore identifiers
-  and independent approval in the private record.
+  and independent approval in the private record. Capture the initial schema
+  and collection package with the [same-state baseline evidence
+  template](nocodebackend/baseline-export-evidence-template.md); the completed
+  package remains in the approved private evidence store. Its repository-safe
+  reference is currently **not supplied**, so this evidence item remains
+  blocked and no completed export is claimed.
 - **Exclusions:** no browser-direct provider access, legacy aliases, Supabase
   migration, fabricated data reconciliation or deferred collection exposure.
 
