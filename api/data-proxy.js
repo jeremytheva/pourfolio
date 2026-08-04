@@ -210,6 +210,38 @@ const validateSubmissionChildren = async (rating, userId, expectedScores, expect
   }
 }
 
+const ratingIdentityMatches = (rating, userId, fingerprint) =>
+  isOwnedBy(rating, userId) && rating?.submission_fingerprint === fingerprint
+
+const transitionRating = async (rating, userId, fingerprint, fromStates, toState) => {
+  const persisted = await dataProvider.get(COLLECTIONS.ratings, rating.id)
+  if (!ratingIdentityMatches(persisted, userId, fingerprint)) {
+    const error = new Error('The persisted rating no longer matches this submission.')
+    error.status = 409
+    throw error
+  }
+  if (persisted.submission_state === toState ||
+      (toState === 'failed' && persisted.submission_state === 'complete')) return persisted
+  if (!fromStates.has(persisted.submission_state)) {
+    throw new Error('The rating workflow state cannot make that transition.')
+  }
+
+  const version = Number(persisted.submission_version)
+  if (!Number.isSafeInteger(version) || version < 0) {
+    throw new Error('The rating workflow version is invalid.')
+  }
+  await dataProvider.compareAndSet(COLLECTIONS.ratings, persisted.id, version, {
+    submission_state: toState,
+    submission_version: version + 1
+  })
+  const transitioned = await dataProvider.get(COLLECTIONS.ratings, persisted.id)
+  if (!ratingIdentityMatches(transitioned, userId, fingerprint) ||
+      transitioned.submission_state !== toState || Number(transitioned.submission_version) !== version + 1) {
+    throw new Error('Rating workflow state was not durably updated.')
+  }
+  return transitioned
+}
+
 const createChildIdempotently = async (collection, body, loadExisting) => {
   try {
     const created = firstRecord(await dataProvider.create(collection, body))
@@ -281,6 +313,7 @@ const submitRating = async (request, response, user, correlationId) => {
         rating = firstRecord(await dataProvider.create(COLLECTIONS.ratings, {
           user_id: user.id, rating_id: submissionId, submission_key: key,
           submission_fingerprint: fingerprint, submission_state: 'pending',
+          submission_version: 0,
           expected_score_count: totals.scores.length, expected_bonus_count: requestedBonusIds.length,
           product_id: product.id, cellar_id: cellarId, date_rated: new Date().toISOString(),
           total_unweighted: totals.total_unweighted, total_weighted: totals.total_weighted
@@ -323,13 +356,7 @@ const submitRating = async (request, response, user, correlationId) => {
 
     const completed = await validateSubmissionChildren(rating, user.id, totals.scores, requestedBonusIds, key)
     if (!completed.complete) throw new Error('Rating children remain incomplete after reconciliation.')
-    await dataProvider.update(COLLECTIONS.ratings, rating.id, { submission_state: 'complete' })
-    const persistedRating = await dataProvider.get(COLLECTIONS.ratings, rating.id)
-    if (!isOwnedBy(persistedRating, user.id) || persistedRating.submission_fingerprint !== fingerprint ||
-      persistedRating.submission_state !== 'complete') {
-      throw new Error('Rating workflow state was not durably completed.')
-    }
-    rating = persistedRating
+    rating = await transitionRating(rating, user.id, fingerprint, new Set(['pending', 'failed']), 'complete')
 
     response.status(duplicate ? 200 : 201).json({
       rating: projectRating({ ...rating, ...totals }),
@@ -340,7 +367,26 @@ const submitRating = async (request, response, user, correlationId) => {
   } catch (error) {
     let stateUpdateFailed = false
     if (rating?.id) {
-      try { await dataProvider.update(COLLECTIONS.ratings, rating.id, { submission_state: 'failed' }) } catch { stateUpdateFailed = true }
+      try {
+        const persisted = await dataProvider.get(COLLECTIONS.ratings, rating.id)
+        if (ratingIdentityMatches(persisted, user.id, fingerprint) && persisted.submission_state === 'complete') {
+          const reconciled = await validateSubmissionChildren(
+            persisted, user.id, totals.scores, requestedBonusIds, key
+          )
+          if (reconciled.complete) {
+            response.status(200).json({
+              rating: projectRating({ ...persisted, ...totals }),
+              scoreCount: totals.scores.length,
+              bonusCount: requestedBonusIds.length,
+              duplicate: true
+            })
+            return
+          }
+        }
+        await transitionRating(rating, user.id, fingerprint, new Set(['pending']), 'failed')
+      } catch {
+        stateUpdateFailed = true
+      }
     }
     writeTelemetryError(runtimeTelemetry({
       route_template: '/api/nocodebackend/ratings/:action', method: 'POST', status_class: '5xx',

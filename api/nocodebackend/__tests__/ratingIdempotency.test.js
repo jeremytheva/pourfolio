@@ -25,13 +25,13 @@ const installMemoryProvider = ({ cellar, failCreate, failGet, failList, failUpda
   let nextId = 1
   dataProvider.isUniqueConflict = (error) => error?.status === 409
   dataProvider.get = async (collection, id) => {
-    if (failGet?.(collection, id, records)) throw Object.assign(new Error('get failure'), { status: 502 })
+    if (await failGet?.(collection, id, records)) throw Object.assign(new Error('get failure'), { status: 502 })
     if (collection === COLLECTIONS.products) return { id, product_name: 'Safe Ale' }
     if (collection === COLLECTIONS.cellar) return cellar || null
     return records[collection]?.find((item) => String(item.id) === String(id)) || null
   }
   dataProvider.list = async (collection, filters = {}) => {
-    if (failList?.(collection, filters, records)) throw Object.assign(new Error('list failure'), { status: 502 })
+    if (await failList?.(collection, filters, records)) throw Object.assign(new Error('list failure'), { status: 502 })
     if (collection === COLLECTIONS.ratingAttributes) return [
       { id: 2, is_scored: 1, weighting: 1 }, { id: 3, is_scored: 1, weighting: 1 }
     ]
@@ -39,7 +39,7 @@ const installMemoryProvider = ({ cellar, failCreate, failGet, failList, failUpda
     return (records[collection] || []).filter((item) => Object.entries(filters).every(([key, value]) => String(item[key]) === String(value)))
   }
   dataProvider.create = async (collection, value) => {
-    if (failCreate?.(collection, value, records)) throw Object.assign(new Error('upstream failure'), { status: 502 })
+    if (await failCreate?.(collection, value, records)) throw Object.assign(new Error('upstream failure'), { status: 502 })
     const uniqueField = collection === COLLECTIONS.ratings ? 'submission_key' : 'uniqueness_key'
     if (records[collection].some((item) => item[uniqueField] === value[uniqueField])) {
       throw Object.assign(new Error('conflict'), { status: 409 })
@@ -51,6 +51,15 @@ const installMemoryProvider = ({ cellar, failCreate, failGet, failList, failUpda
   dataProvider.update = async (collection, id, value) => {
     if (failUpdate?.(collection, id, value)) throw Object.assign(new Error('update failure'), { status: 502 })
     const item = records[collection].find((candidate) => candidate.id === id)
+    Object.assign(item, value)
+    return item
+  }
+  dataProvider.compareAndSet = async (collection, id, expectedVersion, value) => {
+    if (failUpdate?.(collection, id, value)) throw Object.assign(new Error('update failure'), { status: 502 })
+    const item = records[collection].find((candidate) => candidate.id === id)
+    if (Number(item.submission_version) !== expectedVersion) {
+      throw Object.assign(new Error('conflict'), { status: 409 })
+    }
     Object.assign(item, value)
     return item
   }
@@ -185,11 +194,72 @@ test('a post-write workflow-state timeout never reports success and retry confir
     }
     return false
   } })
-  await assert.rejects(submit(), /incomplete/)
-  assert.equal(records.ratings[0].submission_state, 'failed')
+  const reconciled = await submit()
+  assert.equal(reconciled.statusCode, 200)
+  assert.equal(records.ratings[0].submission_state, 'complete')
   const retried = await submit()
   assert.equal(retried.statusCode, 200)
   assert.equal(records.ratings[0].submission_state, 'complete')
+})
+
+test('a concurrent child-write failure cannot demote another retry completion', async () => {
+  let releaseFailure
+  const failureMayContinue = new Promise((resolve) => { releaseFailure = resolve })
+  let blocked = false
+  const records = installMemoryProvider({ async failCreate(collection) {
+    if (collection === COLLECTIONS.ratingScores && !blocked) {
+      blocked = true
+      await failureMayContinue
+      return true
+    }
+    return false
+  } })
+
+  const failing = submit()
+  while (!blocked) await new Promise((resolve) => setImmediate(resolve))
+  const completing = await submit()
+  releaseFailure()
+  const reconciledFailure = await failing
+
+  assert.equal(completing.statusCode, 200)
+  assert.equal(reconciledFailure.statusCode, 200)
+  assert.equal(records.ratings[0].submission_state, 'complete')
+  assert.equal(records.ratings.length, 1)
+  assert.equal(records.rating_scores.length, 2)
+  assert.equal(records.bonus_attribute_rating_mapping.length, 1)
+  assert.equal((await submit()).statusCode, 200)
+})
+
+test('a concurrent failed-state update cannot demote another retry completion', async () => {
+  let releaseFailure
+  const failureMayContinue = new Promise((resolve) => { releaseFailure = resolve })
+  let blockVerification = true
+  let blocked = false
+  const records = installMemoryProvider({ async failList(collection, filters) {
+    if (collection === COLLECTIONS.ratingScores && filters.rating_id && blockVerification && !blocked) {
+      blocked = true
+      await failureMayContinue
+      return true
+    }
+    return false
+  } })
+
+  const failing = submit()
+  while (!blocked) await new Promise((resolve) => setImmediate(resolve))
+  blockVerification = false
+  const completing = await submit()
+  releaseFailure()
+  const reconciledFailure = await failing
+
+  assert.equal(completing.statusCode, 200)
+  assert.equal(reconciledFailure.statusCode, 200)
+  assert.equal(records.ratings[0].submission_state, 'complete')
+  assert.equal(records.ratings.length, 1)
+  assert.equal(records.rating_scores.length, 2)
+  assert.equal(records.bonus_attribute_rating_mapping.length, 1)
+  const retry = await submit()
+  assert.equal(retry.statusCode, 200)
+  assert.equal(retry.body.duplicate, true)
 })
 
 test('success requires a durable complete workflow-state re-read', async () => {

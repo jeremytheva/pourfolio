@@ -135,7 +135,7 @@ const TABLE_RULES = [
     table: 'ratings',
     requiredColumns: [
       'user_id', 'rating_id', 'product_id', 'date_rated', 'submission_key',
-      'submission_fingerprint', 'submission_state', 'expected_score_count',
+      'submission_fingerprint', 'submission_state', 'submission_version', 'expected_score_count',
       'expected_bonus_count'
     ],
     uniqueKeys: [['user_id', 'rating_id'], ['submission_key']]
