@@ -24,6 +24,25 @@ deployment and immutable release candidate. Do not use this public file for
 secrets, bearer tokens, cookies, email addresses, raw response bodies or full
 record identifiers.
 
+
+## 5 August 2026 execution attempt
+
+A connected staging execution was attempted from `/workspace/pourfolio` on
+5 August 2026 UTC for the requested `profiles`, `ratings`, `rating_scores`,
+`bonus_attribute_rating_mapping` and `cellar` permission matrix. The local
+environment inspection found `NOCODEBACKEND_DATA_BASE_URL` only. It did not
+provide the server-only NoCodeBackend secret, auth base URL, staging deployment
+identity, seeded Owner A/Owner B accounts, expired or revoked session material,
+reviewer-approved provider policy bundle reference, or approved private evidence
+destination required to run mutable probes safely.
+
+Because those inputs were absent, no connected request was sent, no disposable
+row was created or deleted, no provider request ID was generated, and no
+before/after digest or cleanup proof is claimed. The request ledger, invariant
+matrix and cleanup proof therefore remain `BLOCKED`; Launch Readiness G06 and
+G13 must remain open until a single connected staging run supplies passing
+evidence for every row below.
+
 ## Report identity
 
 | Item | Required evidence | Current result |
