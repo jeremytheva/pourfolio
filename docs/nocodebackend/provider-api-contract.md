@@ -11,10 +11,11 @@ RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1 \
 NOCODEBACKEND_DATA_BASE_URL=https://example.invalid/api/data \
 NOCODEBACKEND_SECRET_KEY=<redacted> \
 NCB_CONTRACT_PRODUCT_ID=<existing-product-id> \
+NCB_CONTRACT_TRANSCRIPT_PATH=artifacts/provider-contract/redacted-transcript.json \
 npm run test:provider-contract
 ```
 
-The default `npm test` run skips the suite unless `RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1` is set. The suite creates records with a `contract-<timestamp>-<random>` prefix and attempts to delete every created record during cleanup.
+The default `npm test` run skips the suite unless `RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1` is set. The suite creates records with a `contract-<timestamp>-<random>` prefix and attempts to delete every created record during cleanup. Set `NCB_CONTRACT_TRANSCRIPT_PATH` to retain a JSON transcript of provider requests and responses; the recorder redacts the configured provider base URL, bearer token, generated contract run/user identifiers, and configured product identifier before writing the artifact.
 
 ## Transport contract
 

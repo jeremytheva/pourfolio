@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict'
+import { mkdir, writeFile } from 'node:fs/promises'
+import path from 'node:path'
 import test from 'node:test'
 import { dataProvider } from '../dataProvider.js'
 
@@ -14,6 +16,78 @@ const unique = `contract-${Date.now()}-${Math.random().toString(36).slice(2)}`
 const created = []
 const userId = `${unique}-user`
 const productId = process.env.NCB_CONTRACT_PRODUCT_ID
+
+const transcriptPath = process.env.NCB_CONTRACT_TRANSCRIPT_PATH
+const transcript = []
+const originalFetch = globalThis.fetch
+
+const redactions = [
+  [process.env.NOCODEBACKEND_DATA_BASE_URL, '<provider-base-url>'],
+  [process.env.NOCODEBACKEND_SECRET_KEY, '<provider-secret>'],
+  [unique, '<contract-run-id>'],
+  [userId, '<contract-user-id>'],
+  [productId, '<contract-product-id>']
+].filter(([needle]) => needle)
+
+const redactText = (value) => redactions.reduce(
+  (text, [needle, replacement]) => text.replaceAll(needle, replacement),
+  String(value)
+)
+
+const redactValue = (value) => {
+  if (value === null || value === undefined) return value
+  if (typeof value === 'string') return redactText(value)
+  if (Array.isArray(value)) return value.map(redactValue)
+  if (typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, redactValue(entry)]))
+  }
+  return value
+}
+
+const parseBody = (body) => {
+  if (body === undefined || body === null) return null
+  if (typeof body !== 'string') return '<non-string-body>'
+  try {
+    return redactValue(JSON.parse(body))
+  } catch {
+    return '<non-json-body>'
+  }
+}
+
+const headersToObject = (headers = {}) => {
+  const entries = headers instanceof Headers ? [...headers.entries()] : Object.entries(headers)
+  return Object.fromEntries(entries.map(([key, value]) => [key.toLowerCase(), key.toLowerCase() === 'authorization' ? 'Bearer <redacted>' : redactText(value)]))
+}
+
+const captureFetch = async (input, init = {}) => {
+  const startedAt = Date.now()
+  const url = new URL(typeof input === 'string' ? input : input.url)
+  const request = {
+    method: init.method || 'GET',
+    path: redactText(`${url.pathname}${url.search}`),
+    headers: headersToObject(init.headers),
+    body: parseBody(init.body)
+  }
+
+  try {
+    const response = await originalFetch(input, init)
+    const clone = response.clone()
+    let responseBody = null
+    try {
+      const text = await clone.text()
+      responseBody = text ? redactValue(JSON.parse(text)) : null
+    } catch {
+      responseBody = '<non-json-body>'
+    }
+    transcript.push({ request, response: { status: response.status, body: responseBody }, duration_ms: Date.now() - startedAt })
+    return response
+  } catch (error) {
+    transcript.push({ request, error: { name: error?.name || 'Error', message: redactText(error?.message || '') }, duration_ms: Date.now() - startedAt })
+    throw error
+  }
+}
+
+if (enabled && transcriptPath) globalThis.fetch = captureFetch
 
 const remember = (collection, record) => {
   if (record?.id !== undefined && record?.id !== null) created.push([collection, record.id])
@@ -45,6 +119,11 @@ const createScore = async (rating, suffix, overrides = {}) => remember('rating_s
 })))
 
 test.after(async () => {
+  if (enabled && transcriptPath) {
+    const resolved = path.resolve(transcriptPath)
+    await mkdir(path.dirname(resolved), { recursive: true })
+    await writeFile(resolved, `${JSON.stringify({ generated_at: new Date().toISOString(), entries: transcript }, null, 2)}\n`)
+  }
   if (!enabled) return
   for (const [collection, id] of created.reverse()) {
     try {
