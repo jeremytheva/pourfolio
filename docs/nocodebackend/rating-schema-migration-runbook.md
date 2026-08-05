@@ -9,20 +9,31 @@ only after approval, to production.
 
 NoCodeBackend is the system of record. This repository has no executable
 migration runner and the delivery environment has no provider administration
-credential. Therefore the only acceptable mechanism is the **provider-supported,
-repeatable managed schema-change and bulk-data job mechanism that operations
-verifies in the target NoCodeBackend tenant**. The provider or an authorised
-operator must execute a versioned change plan through that mechanism and return
-immutable change/job and audit-log identifiers. An undocumented dashboard edit,
-an ad-hoc production console/SQL session, importing the source dump, or a script
-using the public collection API is not an approved migration mechanism.
+credential. The mechanism-selection result in this checkout is therefore
+**`BLOCKED — provider mechanism not evidenced`**. Neither the committed SQL
+export nor the NoCodeBackend collection API is a migration interface. Before a
+rehearsal, the provider must identify the **provider-supported, repeatable
+managed schema-change, permission-policy and bulk-data job mechanism available
+in the named production-equivalent tenant**. The provider or an authorised
+operator then executes a versioned change plan through that mechanism and
+returns immutable change/job and audit-log identifiers.
+
+This runbook deliberately does not invent a product feature name or claim that
+an unreferenced mechanism is supported. Change the result above to `APPROVED`
+only when the authority record contains the exact provider facility name and
+version, tenant applicability, documentation/support reference identifiers and
+named approvals. An undocumented dashboard edit, an ad-hoc production
+console/SQL session, importing the source dump, or a script using the public
+collection API is not an approved migration mechanism.
 
 The rollout is **STOPPED** until all blanks in this authority record are filled:
 
 | Required authority | Recorded value |
 | --- | --- |
 | Provider product and production-equivalent tenant/environment ID | `<required>` |
-| Supported managed-change mechanism and version | `<required>` |
+| Supported managed schema/permission mechanism and version | `<required — rollout blocked>` |
+| Supported bulk-data/backfill mechanism and version | `<required — rollout blocked>` |
+| Tenant/version applicability statement | `<required — rollout blocked>` |
 | Provider documentation title, revision/date and reference/URL | `<required>` |
 | Provider support/change ticket ID | `<required>` |
 | Versioned schema plan/job ID | `<required>` |
@@ -131,8 +142,8 @@ input only. The authoritative rollout baseline is a **fresh, transactionally
 consistent export taken immediately before the rehearsal or production change**;
 it must receive its own digest and immutable evidence-store reference.
 
-The dated source has the 25 findings partitioned in
-[schema preflight](schema-preflight.md): one missing table, seven missing
+The dated source has the 26 findings partitioned in
+[schema preflight](schema-preflight.md): one missing table, eight missing
 columns, ten nullable required columns, six missing unique constraints and one
 mutable timestamp default. Do not assume the live baseline still has those
 findings. Audit and compare a fresh export before every run.
@@ -158,11 +169,24 @@ The target is the complete persisted rating contract in
   additional identity constraint.
 
 The preceding list contains **six rating-workflow unique constraints plus the
-profile identity constraint**. The “ten non-null” preflight finding describes
-the ten already-present nullable legacy columns (four ratings, four scores and
-three bonus mapping columns, less the already non-null `date_rated`). The final
-audit checks every target field, including newly added fields and `profiles`;
-do not misread the finding count as the size of the final contract.
+profile identity constraint**. The ten legacy columns that require the
+preflight's nullable-to-non-null change are:
+
+1. `ratings.user_id`;
+2. `ratings.rating_id`;
+3. `ratings.product_id`;
+4. `rating_scores.user_id`;
+5. `rating_scores.rating_id`;
+6. `rating_scores.attribute_id`;
+7. `rating_scores.attribute_score`;
+8. `bonus_attribute_rating_mapping.user_id`;
+9. `bonus_attribute_rating_mapping.rating_id`; and
+10. `bonus_attribute_rating_mapping.bonus_attributes_id`.
+
+`ratings.date_rated` was already non-null in the dated source. The newly added
+workflow and uniqueness fields, plus `profiles.user_id`, must also be non-null
+in the final target. The final audit checks every target field; do not misread
+the ten legacy nullability findings as the size of the final contract.
 
 ## Evidence ledger and count sheet
 
@@ -345,7 +369,8 @@ After discovery returns zero violations, apply the plan in this order:
 1. foreign keys and checks;
 2. the six rating-workflow unique constraints listed above plus unique
    `profiles(user_id)`; and
-3. non-null rules on every target field.
+3. the ten enumerated legacy nullable-to-non-null rules, followed by non-null
+   rules for `profiles.user_id` and every newly added workflow/uniqueness field.
 
 The provider-managed definition must enforce:
 
