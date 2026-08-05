@@ -33,6 +33,12 @@ The rollout is **STOPPED** until all blanks in this authority record are filled:
 | Named security/data approver | `<required>` |
 | Named release approver | `<required>` |
 | Approval record and timestamp | `<required>` |
+| Provider change ticket/PR | `<required>` |
+| Permission-policy prerequisites and evidence reference | `<required>` |
+| Backup/restore proof reference | `<required>` |
+| Rollback rehearsal evidence reference | `<required>` |
+| Retained post-migration schema audit reference | `<required>` |
+| Final migrated export reference | `<required>` |
 
 “Supported” means the provider documentation or support response explicitly
 covers schema changes, constraints, permissions, consistent exports and restore
@@ -40,6 +46,81 @@ for this tenant and engine version. A screenshot showing that a button exists is
 not sufficient. If the provider cannot supply a repeatable managed mechanism,
 immutable job references and a supported recovery path, stop and obtain an
 approved architecture decision; do not substitute console edits.
+
+
+## Migration execution evidence record
+
+This section is the migration design record's public evidence index. It must be
+completed with safe references to the approved private evidence store before any
+launch-readiness gate is closed. Do not commit raw exports, personal data,
+provider secrets, request bodies or unredacted transcripts here.
+
+### Approval and provider-change references
+
+| Evidence item | Required retained proof | Recorded reference |
+| --- | --- | --- |
+| Migration approval | Named migration owner, security/data approver and release approver approving the exact provider mechanism, plans, rollback limits and candidate commit. | `<required>` |
+| Provider change ticket/PR | Provider support/change ticket and provider or operations PR/change record covering schema, backfill, constraints, permissions, backup, restore and rollback. | `<required>` |
+| Provider documentation | Documentation title, revision/date and URL or private support response proving the managed mechanism is supported for this tenant/version. | `<required>` |
+| Versioned schema plan | Immutable schema plan/job identifier and approved diff. | `<required>` |
+| Versioned backfill plan | Immutable backfill plan/job identifier, deterministic serialisation test vectors and restart/idempotency semantics. | `<required>` |
+| Permission-policy deployment | Versioned provider permission bundle and deployment/change identifier. | `<required>` |
+| Final approval | Named independent reviewer approval after post-migration audit `PASS`, zero blockers, count reconciliation and final migrated export retention. | `<required>` |
+
+### Backup, restore and rollback proof
+
+| Evidence item | Required retained proof | Recorded reference |
+| --- | --- | --- |
+| B0 backup/export | Fresh production-equivalent backup/export ID, UTC interval, consistency token, schema/data/config checksums, encryption/key-custodian reference and retention/expiry. | `<required>` |
+| Isolated restore | Restore job ID into a new isolated environment, restored schema/data digests, count-sheet totals, representative owner relationships and historical `date_rated` comparison. | `<required>` |
+| Restore smoke checks | Old gateway read-only smoke checks against the restored copy and approval by the migration owner plus security/data approver. | `<required>` |
+| Rollback rehearsal | Rehearsed provider rollback or safe-forward recovery path, abort thresholds, restore order, validation queries, operator, reviewer and outcome. | `<required>` |
+| Deployment rollback | Gateway/client deployment rollback rehearsal proving rating writes remain fenced or safely resumed without weakening the new schema/permissions. | `<required>` |
+
+### Permission prerequisites
+
+Before executing the provider migration, retain evidence that these prerequisites
+are already true in the target tenant:
+
+| Prerequisite | Required retained proof | Recorded reference |
+| --- | --- | --- |
+| Write fence | Rating create, delete and reconcile disabled at the gateway for the migration window; direct browser/provider-public writes denied. | `<required>` |
+| Service identity | Only the gateway service identity can create rating children and write owner, workflow, deterministic key, fingerprint, count and state fields. | `<required>` |
+| Negative actors | Unauthenticated, owner attempting immutable-field changes, other-user and over-privileged negative cases fail closed for every affected collection. | `<required>` |
+| Compatibility reads | Old gateway read-only catalogue/rating projections continue without exposing unsafe fields during the compatibility window. | `<required>` |
+| Residual controls | Any provider limitation that cannot enforce ownership or atomic workflow directly is recorded with named security/data approval and gateway enforcement evidence. | `<required>` |
+
+### Execution timestamps and checkpoints
+
+Record every timestamp in UTC and tie it to immutable provider job IDs and the
+release candidate commit.
+
+| Checkpoint | Start UTC | End UTC | Job/export/reference | Result |
+| --- | --- | --- | --- | --- |
+| Write freeze confirmed | `<required>` | `<required>` | `<required>` | `<required>` |
+| Phase 0 backup/export | `<required>` | `<required>` | `<required>` | `<required>` |
+| Phase 0 isolated restore proof | `<required>` | `<required>` | `<required>` | `<required>` |
+| Phase 1 additive schema | `<required>` | `<required>` | `<required>` | `<required>` |
+| Phase 2 discovery/quarantine/backfill | `<required>` | `<required>` | `<required>` | `<required>` |
+| Phase 3 timestamp definition | `<required>` | `<required>` | `<required>` | `<required>` |
+| Phase 4 constraints/relationship controls | `<required>` | `<required>` | `<required>` | `<required>` |
+| Phase 5 permissions/workflow certification | `<required>` | `<required>` | `<required>` | `<required>` |
+| Gateway canary start/end | `<required>` | `<required>` | `<required>` | `<required>` |
+| Compatibility window start/end | `<required>` | `<required>` | `<required>` | `<required>` |
+
+### Retained post-migration audit and final migrated export
+
+The launch-readiness rows G10, G11, G12, G16 and G28 must not be changed from
+blocked/open to complete until this retained audit row reports `PASS` with zero
+blockers and the supporting evidence rows above are complete.
+
+| Evidence item | Required retained proof | Recorded reference/result |
+| --- | --- | --- |
+| Audit command | Exact `npm run audit:schema -- --schema <export>` command, repository commit, Node/npm versions, stdout JSON, stderr and exit status. | `<required>` |
+| Audit result | Retained JSON reports `"status": "PASS"`, blocker count `0`, and an export taken after constraints and permissions were applied. | `<required>` |
+| Final migrated schema export | Immutable provider export/job ID, UTC interval, SHA-256 digest, schema artefact reference and permission-policy version. | `<required>` |
+| Final migrated data export | Immutable provider export/job ID, UTC interval, SHA-256 digest, aggregate count manifest and quarantined/remediated ledger reference. | `<required>` |
+| Post-migration connected evidence | Timestamp digest, ownership, score-range, relationship, permission-negative, workflow, duplicate retry and forced partial-write evidence references. | `<required>` |
 
 ## Immutable baseline and target contract
 
