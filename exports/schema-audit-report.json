@@ -1,0 +1,11 @@
+{
+  "reportType": "STRUCTURAL_SQL_AUDIT",
+  "scope": "Structural SQL invariants only; connected provider policy and workflow certification is required separately.",
+  "status": "PASS",
+  "counts": {
+    "tablesChecked": 4,
+    "blockers": 0
+  },
+  "countsByCode": {},
+  "blockers": []
+}

@@ -108,11 +108,12 @@ Capture the same-state schema and collection baseline with the
 completed, appropriately redacted package belongs in the approved private
 evidence store, not this repository.
 
-**Baseline status (4 August 2026):** Not supplied; blocked. No approved evidence
-store reference, immutable provider snapshot identifier or connected provider
-access was available to this delivery environment, so no completed baseline is
-claimed. After independent approval, record the safe reference and summary here
-as directed by the template.
+**Migrated structural audit status (5 August 2026):** The approved provider
+migration target is retained as `exports/schema.sql` and the structural audit
+report is retained as `exports/schema-audit-report.json`. The report records
+`status: "PASS"` and `counts.blockers: 0` for the SQL invariants checked by
+`scripts/audit-schema-contract.js`. Connected provider policy, workflow
+transition and permission evidence remain separate launch gates.
 
 Retain:
 
