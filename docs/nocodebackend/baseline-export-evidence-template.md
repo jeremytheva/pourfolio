@@ -11,6 +11,35 @@ The operator must export the schema and every collection listed below. A second
 person, who is not the operator, must verify the package before it is used to
 close a launch gate.
 
+
+## Current repository status (4 August 2026)
+
+This repository does **not** contain a completed production-equivalent baseline
+export package. The current execution environment has no NoCodeBackend provider
+access, immutable provider snapshot identifier, approved private evidence-store
+identifier, retained export artefacts, pagination ledger, schema audit report or
+independent-review decision. Therefore this template cannot be truthfully
+completed from the repository alone, and the related launch gates must remain
+blocked until a private, reviewed package supplies the required evidence below.
+
+| Required baseline item | Current public status | Blocker that must be resolved in the private evidence store |
+| --- | --- | --- |
+| Environment identity | Not supplied; blocked | Record the redacted provider project/tenant, production-equivalent environment identifier, release commit and immutable deployment identifier. |
+| Export timestamp | Not supplied; blocked | Record UTC start/finish times for one quiesced or provider-consistent export and prove a single logical state. |
+| Page coverage | Not supplied; blocked | Retain a complete pagination and terminal-page ledger for schema plus `products`, `producers`, `categories`, `ratings`, `rating_scores`, `rating_attributes`, `bonus_attributes`, `bonus_attribute_rating_mapping`, `profiles` and `cellar`. |
+| Row counts | Not supplied; blocked | Record per-artefact row counts reconciled to provider totals and non-duplicated successful pages. |
+| SHA-256 checksums | Not supplied; blocked | Recompute byte lengths and 64-character SHA-256 checksums from retained export file bytes. |
+| Schema reconciliation | Not supplied; blocked | Run `npm run audit:schema -- --schema <private-path>/schema.sql` against the exported schema and retain a `PASS` JSON report. |
+| Products/producers/categories reconciliation | Not supplied; blocked | Prove producer and category relationships have zero unexpected orphans and no legacy `*_pf2025` alias is used. |
+| Ratings reconciliation | Not supplied; blocked | Prove ratings resolve to exported products and profiles, and required rating ownership, idempotency and workflow controls pass the schema audit. |
+| Rating children reconciliation | Not supplied; blocked | Prove `rating_scores` and bonus mappings resolve to exported parent ratings and attributes, with joined counts matching exported child rows. |
+| Profiles reconciliation | Not supplied; blocked | Prove profile owner identifiers reconcile with ratings and cellar rows without exposing private profile data in the repository. |
+| Cellar reconciliation | Not supplied; blocked | Prove cellar rows resolve to exported products and profiles, with nullability and approved exceptions documented. |
+| Independent review | Not supplied; blocked | A reviewer other than the operator must approve the immutable private package before G02, G03, G04, G07 or Phase 1 rows can close. |
+
+Do not replace this blocked status with pass evidence until the completed
+baseline package and retained reports show zero blockers.
+
 ## Record identity and scope
 
 | Field | Required value |
