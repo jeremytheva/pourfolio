@@ -33,7 +33,9 @@ npm run audit:import -- \
   --products ./exports/products.csv \
   --producers ./exports/producers.csv \
   --ratings ./exports/Ready_Ratings.csv \
-  --cellar ./exports/cellar.csv
+  --cellar ./exports/cellar.csv \
+  --bonus-decisions <private-evidence>/bonus-decision-ledger.csv \
+  --cellar-identity <private-evidence>/cellar-identity-ledger.csv
 ```
 
 The command emits a JSON report containing the byte length and SHA-256 checksum
@@ -45,8 +47,15 @@ rerun used identical inputs. The command uses these exit codes:
 - `1`: deterministic integrity blockers were found;
 - `2`: input or CSV contract error.
 
-Both ratings and cellar inputs are optional so each import stage can be checked
-independently. Products and producers are always required.
+Ratings, cellar, bonus-decision and cellar-identity inputs are optional so each
+import stage can be checked independently. Products and producers are always
+required. Supplying the bonus-decision ledger additionally proves that the 10
+unmatched variants total 69 selections and each variant is either mapped to a
+positive canonical bonus ID or rejected with a reason. Supplying the
+cellar-identity ledger proves that exactly 399 source cellar rows have a
+non-empty verified owner ID, verification method, evidence reference and unique
+positive confirmed destination cellar ID. Keep both completed ledgers only in
+the private evidence store.
 
 ## Required reconciliation evidence
 

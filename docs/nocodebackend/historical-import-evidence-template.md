@@ -21,12 +21,17 @@ npm run audit:import -- \
   --products <products.csv> \
   --producers <producers.csv> \
   --ratings <ratings.csv> \
-  --cellar <cellar.csv>
+  --cellar <cellar.csv> \
+  --bonus-decisions <bonus-decision-ledger.csv> \
+  --cellar-identity <cellar-identity-ledger.csv>
 ```
 
 The retained JSON must say `PASS`. Record its SHA-256 checksums and byte lengths.
 Confirm every export belongs to one provider snapshot, all product references
-resolve, and each product has a positive producer ID found in the paired export.
+resolve, each product has a positive producer ID found in the paired export, all
+10 bonus variants accounting for 69 source selections have reviewed decisions,
+and all 399 cellar identity rows have verified owners plus confirmed destination
+cellar IDs.
 
 ## Bonus decision ledger
 
@@ -49,6 +54,11 @@ Keep exactly 399 rows in the private store with these columns:
 Use provider/account identifiers rather than names or email addresses. Email
 alone is not identity evidence. Commit only the ledger schema and aggregate
 counts, never the populated ledger.
+
+The preflight accepts the completed private ledger as an optional
+`--cellar-identity` input and fails unless exactly 399 rows are supplied with a
+source record key, verified owner ID, verification method, evidence reference
+and unique positive confirmed destination cellar ID.
 
 ## Backup and isolated restore
 
