@@ -136,22 +136,27 @@ reference.
 ## 5 August 2026 execution record
 
 **Result:** Blocked. The procedure was re-run from this repository workspace at
-commit `63c0777fd8fea676783f759791ba806fdcfff51a`, but this environment still
-has no authenticated access to staging or production deployment settings, the
-NoCodeBackend tenant, the Upstash database, deployed endpoint logs or the
-private evidence store. Therefore this public record cannot prove that any
-credential is configured in server-side staging/production scopes, cannot
-confirm provider endpoint identity, cannot supply deployment request IDs, and
-cannot name an independent approver. Do not close G01 or G08 from this record.
+commit `af13281edaffc2aaa508c19c7e8a85b35c46f989`. This environment has no
+authenticated access to staging or production deployment settings, the
+NoCodeBackend tenant, the Upstash database, deployed endpoint logs, deployment
+provider inventories or the private evidence store. Therefore this public
+record cannot prove that any credential is configured in server-side
+staging/production scopes, cannot confirm provider endpoint identity, cannot
+supply deployment request IDs, and cannot name an independent approver. Do not
+close G01 or G08 from this record.
 
 Repository-local controls that could be completed without secret access:
 
 | Check | Evidence captured | Result |
 | --- | --- | --- |
-| Candidate commit identity | Git SHA `63c0777fd8fea676783f759791ba806fdcfff51a` | pass |
+| Candidate commit identity | Git SHA `af13281edaffc2aaa508c19c7e8a85b35c46f989` | pass |
+| Runtime disclosure | Local shell reported Node.js `v24.15.0`; required launch validation must be repeated with Node.js 20 LTS before using this as release evidence | warning |
 | Browser production build | `npm run build` completed and emitted only `dist/index.html`, CSS and JavaScript assets; no `.map` artefacts were emitted | pass |
 | Browser secret/source-map scanner | `npm run check:release-security` reported `Browser release security check passed.` | pass |
 | Artefact manifest hashes | SHA-256 hashes for generated `dist/` files were retained in the command transcript for this documentation change | pass |
+| Full repository validation | `npm run validate` ran lint, unit/policy tests and production audit; lint and tests passed, but `npm audit --omit=dev --audit-level=high` failed with `403 Forbidden` from the npm security advisory endpoint before the later validation steps could run | warning |
+| Playwright browser installation | `npx playwright install --with-deps chromium` failed while installing system/browser dependencies because Ubuntu, mise and LLVM package requests returned proxy `403 Forbidden` responses | warning |
+| Browser end-to-end run | `npm run test:e2e` started but all Chromium tests failed before page execution because the Playwright Chromium executable was absent after the blocked install | warning |
 
 Evidence that remains missing and must be supplied only in the access-controlled
 private release record before G01 or G08 can close:
