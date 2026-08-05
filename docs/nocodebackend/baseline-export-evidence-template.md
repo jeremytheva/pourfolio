@@ -12,15 +12,20 @@ person, who is not the operator, must verify the package before it is used to
 close a launch gate.
 
 
-## Current repository status (4 August 2026)
+## Current repository status (5 August 2026)
 
 This repository does **not** contain a completed production-equivalent baseline
-export package. The current execution environment has no NoCodeBackend provider
-access, immutable provider snapshot identifier, approved private evidence-store
-identifier, retained export artefacts, pagination ledger, schema audit report or
-independent-review decision. Therefore this template cannot be truthfully
-completed from the repository alone, and the related launch gates must remain
-blocked until a private, reviewed package supplies the required evidence below.
+export package. A public schema-only export is present at `exports/schema.sql`,
+and `npm run audit:schema -- --schema exports/schema.sql` returns `PASS` with
+zero structural blockers in `exports/schema-audit-report.json`. That schema-only
+artefact is not a retained baseline package because the current execution
+environment still has no NoCodeBackend provider access, immutable provider
+snapshot identifier, approved private evidence-store identifier, collection
+export artefacts, pagination ledger, collection row-count/checksum manifest,
+relationship reconciliation reports or independent-review decision. Therefore
+this template cannot be truthfully completed from the repository alone, and the
+related launch gates must remain blocked until a private, reviewed package
+supplies the required zero-blocker evidence below.
 
 | Required baseline item | Current public status | Blocker that must be resolved in the private evidence store |
 | --- | --- | --- |
@@ -29,7 +34,7 @@ blocked until a private, reviewed package supplies the required evidence below.
 | Page coverage | Not supplied; blocked | Retain a complete pagination and terminal-page ledger for schema plus `products`, `producers`, `categories`, `ratings`, `rating_scores`, `rating_attributes`, `bonus_attributes`, `bonus_attribute_rating_mapping`, `profiles` and `cellar`. |
 | Row counts | Not supplied; blocked | Record per-artefact row counts reconciled to provider totals and non-duplicated successful pages. |
 | SHA-256 checksums | Not supplied; blocked | Recompute byte lengths and 64-character SHA-256 checksums from retained export file bytes. |
-| Schema reconciliation | Not supplied; blocked | Run `npm run audit:schema -- --schema <private-path>/schema.sql` against the exported schema and retain a `PASS` JSON report. |
+| Schema reconciliation | Public schema-only audit supplied; baseline still blocked | `npm run audit:schema -- --schema exports/schema.sql` returns `PASS` with zero structural blockers, but the schema is not bound to an approved same-state collection baseline or private evidence-store package. |
 | Products/producers/categories reconciliation | Not supplied; blocked | Prove producer and category relationships have zero unexpected orphans and no legacy `*_pf2025` alias is used. |
 | Ratings reconciliation | Not supplied; blocked | Prove ratings resolve to exported products and profiles, and required rating ownership, idempotency and workflow controls pass the schema audit. |
 | Rating children reconciliation | Not supplied; blocked | Prove `rating_scores` and bonus mappings resolve to exported parent ratings and attributes, with joined counts matching exported child rows. |
@@ -38,7 +43,10 @@ blocked until a private, reviewed package supplies the required evidence below.
 | Independent review | Not supplied; blocked | A reviewer other than the operator must approve the immutable private package before G02, G03, G04, G07 or Phase 1 rows can close. |
 
 Do not replace this blocked status with pass evidence until the completed
-baseline package and retained reports show zero blockers.
+baseline package and retained reports show zero blockers. The public schema-only
+`PASS` is useful preflight evidence, but it must not be used to close baseline
+or launch gates without same-state collection exports, reconciliation and
+independent approval.
 
 ## Record identity and scope
 
@@ -97,7 +105,7 @@ do not hash a count, a displayed response, a reserialised copy or a pathname.
 
 | Artefact | Snapshot/logical-state ID | UTC first request | UTC terminal response | Rows | Bytes | SHA-256 | Pagination-ledger reference |
 | --- | --- | --- | --- | ---: | ---: | --- | --- |
-| Schema | | | | N/A | | | N/A |
+| Schema | Not supplied for approved private baseline; public schema-only artefact is not snapshot-bound | Not supplied | Not supplied | N/A | 4,607 | `206438dcaab8b828dde2f4b1a7a655ddde8e078fd5eb5604d8112c3fe53a155e` | N/A |
 | `products` | | | | | | | |
 | `producers` | | | | | | | |
 | `categories` | | | | | | | |
