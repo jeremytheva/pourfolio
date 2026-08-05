@@ -104,7 +104,102 @@ const checkProductReferences = (records, collection, productIds, blockers) => {
   }
 }
 
-export const auditImportData = ({ products, producers, ratings = [], cellar = [] }) => {
+const normaliseDecision = (value) => String(value ?? '').trim().toLowerCase()
+
+const checkBonusDecisionLedger = (records, blockers) => {
+  if (!records.length) return
+  requireColumns(
+    records,
+    ['Source variant', 'Source count', 'Decision', 'Canonical bonus ID', 'Rejection reason'],
+    'Bonus decision ledger'
+  )
+
+  let sourceCountTotal = 0
+  const variants = new Set()
+  for (const record of records) {
+    const variant = String(record['Source variant'] ?? '').trim()
+    const sourceCount = String(record['Source count'] ?? '').trim()
+    const decision = normaliseDecision(record.Decision)
+    const canonicalBonusId = String(record['Canonical bonus ID'] ?? '').trim()
+    const rejectionReason = String(record['Rejection reason'] ?? '').trim()
+
+    if (!variant) {
+      blockers.push({ code: 'BONUS_DECISION_MISSING_VARIANT', collection: 'bonus_decisions', row: record.__row })
+    } else if (variants.has(variant)) {
+      blockers.push({ code: 'BONUS_DECISION_DUPLICATE_VARIANT', collection: 'bonus_decisions', row: record.__row, value: variant })
+    } else {
+      variants.add(variant)
+    }
+
+    if (!POSITIVE_INTEGER.test(sourceCount)) {
+      blockers.push({ code: 'BONUS_DECISION_INVALID_SOURCE_COUNT', collection: 'bonus_decisions', row: record.__row, value: sourceCount || null })
+    } else {
+      sourceCountTotal += Number(sourceCount)
+    }
+
+    if (decision === 'accepted' || decision === 'mapped') {
+      if (!POSITIVE_INTEGER.test(canonicalBonusId)) {
+        blockers.push({ code: 'BONUS_DECISION_MISSING_CANONICAL_ID', collection: 'bonus_decisions', row: record.__row, value: canonicalBonusId || null })
+      }
+    } else if (decision === 'rejected') {
+      if (!rejectionReason) {
+        blockers.push({ code: 'BONUS_DECISION_MISSING_REJECTION_REASON', collection: 'bonus_decisions', row: record.__row })
+      }
+    } else {
+      blockers.push({ code: 'BONUS_DECISION_INVALID_DECISION', collection: 'bonus_decisions', row: record.__row, value: record.Decision || null })
+    }
+  }
+
+  if (variants.size !== 10) {
+    blockers.push({ code: 'BONUS_DECISION_VARIANT_COUNT_MISMATCH', collection: 'bonus_decisions', expected: 10, actual: variants.size })
+  }
+  if (sourceCountTotal !== 69) {
+    blockers.push({ code: 'BONUS_DECISION_SOURCE_TOTAL_MISMATCH', collection: 'bonus_decisions', expected: 69, actual: sourceCountTotal })
+  }
+}
+
+const checkCellarIdentityLedger = (records, blockers) => {
+  if (!records.length) return
+  requireColumns(
+    records,
+    ['Source record key', 'Verified owner ID', 'Verification method', 'Evidence reference', 'Confirmed destination cellar ID'],
+    'Cellar identity ledger'
+  )
+
+  const sourceKeys = new Set()
+  const destinationIds = new Set()
+  for (const record of records) {
+    const sourceKey = String(record['Source record key'] ?? '').trim()
+    const ownerId = String(record['Verified owner ID'] ?? '').trim()
+    const method = String(record['Verification method'] ?? '').trim()
+    const evidence = String(record['Evidence reference'] ?? '').trim()
+    const destinationId = String(record['Confirmed destination cellar ID'] ?? '').trim()
+
+    if (!sourceKey) {
+      blockers.push({ code: 'CELLAR_IDENTITY_MISSING_SOURCE_KEY', collection: 'cellar_identity', row: record.__row })
+    } else if (sourceKeys.has(sourceKey)) {
+      blockers.push({ code: 'CELLAR_IDENTITY_DUPLICATE_SOURCE_KEY', collection: 'cellar_identity', row: record.__row, value: sourceKey })
+    } else {
+      sourceKeys.add(sourceKey)
+    }
+    if (!ownerId) blockers.push({ code: 'CELLAR_IDENTITY_MISSING_OWNER', collection: 'cellar_identity', row: record.__row })
+    if (!method) blockers.push({ code: 'CELLAR_IDENTITY_MISSING_METHOD', collection: 'cellar_identity', row: record.__row })
+    if (!evidence) blockers.push({ code: 'CELLAR_IDENTITY_MISSING_EVIDENCE', collection: 'cellar_identity', row: record.__row })
+    if (!POSITIVE_INTEGER.test(destinationId)) {
+      blockers.push({ code: 'CELLAR_IDENTITY_INVALID_DESTINATION_ID', collection: 'cellar_identity', row: record.__row, value: destinationId || null })
+    } else if (destinationIds.has(destinationId)) {
+      blockers.push({ code: 'CELLAR_IDENTITY_DUPLICATE_DESTINATION_ID', collection: 'cellar_identity', row: record.__row, value: destinationId })
+    } else {
+      destinationIds.add(destinationId)
+    }
+  }
+
+  if (records.length !== 399) {
+    blockers.push({ code: 'CELLAR_IDENTITY_ROW_COUNT_MISMATCH', collection: 'cellar_identity', expected: 399, actual: records.length })
+  }
+}
+
+export const auditImportData = ({ products, producers, ratings = [], cellar = [], bonusDecisions = [], cellarIdentity = [] }) => {
   requireColumns(products, ['id', 'product_name', 'producer_id'], 'Products CSV')
   requireColumns(producers, ['id', 'producer_name'], 'Producers CSV')
   if (ratings.length) {
@@ -134,6 +229,8 @@ export const auditImportData = ({ products, producers, ratings = [], cellar = []
 
   checkProductReferences(ratings, 'ratings', productIds, blockers)
   checkProductReferences(cellar, 'cellar', productIds, blockers)
+  checkBonusDecisionLedger(bonusDecisions, blockers)
+  checkCellarIdentityLedger(cellarIdentity, blockers)
 
   const countsByCode = blockers.reduce((counts, blocker) => {
     counts[blocker.code] = (counts[blocker.code] || 0) + 1
@@ -147,6 +244,8 @@ export const auditImportData = ({ products, producers, ratings = [], cellar = []
       producers: producers.length,
       ratings: ratings.length,
       cellar: cellar.length,
+      bonusDecisions: bonusDecisions.length,
+      cellarIdentity: cellarIdentity.length,
       blockers: blockers.length
     },
     countsByCode,
@@ -182,7 +281,7 @@ const parseArguments = (arguments_) => {
 
 export const runCli = (arguments_) => {
   const options = parseArguments(arguments_)
-  const suppliedInputs = ['products', 'producers', 'ratings', 'cellar']
+  const suppliedInputs = ['products', 'producers', 'ratings', 'cellar', 'bonus-decisions', 'cellar-identity']
     .filter((name) => options[name])
   const inputs = Object.fromEntries(
     suppliedInputs.map((name) => [name, fingerprintCsv(options[name])])
@@ -191,7 +290,9 @@ export const runCli = (arguments_) => {
     products: readCsv(options.products),
     producers: readCsv(options.producers),
     ratings: options.ratings ? readCsv(options.ratings) : [],
-    cellar: options.cellar ? readCsv(options.cellar) : []
+    cellar: options.cellar ? readCsv(options.cellar) : [],
+    bonusDecisions: options['bonus-decisions'] ? readCsv(options['bonus-decisions']) : [],
+    cellarIdentity: options['cellar-identity'] ? readCsv(options['cellar-identity']) : []
   })
   process.stdout.write(`${JSON.stringify({ ...report, inputs }, null, 2)}\n`)
   return report.status === 'PASS' ? 0 : 1

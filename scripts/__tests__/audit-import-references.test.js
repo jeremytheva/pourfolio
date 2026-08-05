@@ -28,6 +28,72 @@ test('preflight passes when catalogue relationships are complete', () => {
   assert.equal(report.counts.blockers, 0)
 })
 
+test('preflight validates completed bonus and cellar evidence ledgers', () => {
+  const bonusDecisions = Array.from({ length: 10 }, (_, index) => ({
+    __row: index + 2,
+    'Source variant': `variant-${index + 1}`,
+    'Source count': index === 0 ? '6' : '7',
+    Decision: index === 9 ? 'rejected' : 'accepted',
+    'Canonical bonus ID': index === 9 ? '' : String(index + 1),
+    'Rejection reason': index === 9 ? 'Not a launch bonus attribute' : ''
+  }))
+  const cellarIdentity = Array.from({ length: 399 }, (_, index) => ({
+    __row: index + 2,
+    'Source record key': `source-${index + 1}`,
+    'Verified owner ID': `provider-user-${index + 1}`,
+    'Verification method': 'provider account match',
+    'Evidence reference': `PRIVATE-EVIDENCE-${index + 1}`,
+    'Confirmed destination cellar ID': String(index + 1)
+  }))
+
+  const report = auditImportData({
+    producers: [{ __row: 2, id: '9', producer_name: 'Brewery' }],
+    products: [{ __row: 2, id: '20', product_name: 'Beer', producer_id: '9' }],
+    bonusDecisions,
+    cellarIdentity
+  })
+
+  assert.equal(report.status, 'PASS')
+  assert.equal(report.counts.bonusDecisions, 10)
+  assert.equal(report.counts.cellarIdentity, 399)
+})
+
+test('preflight blocks incomplete bonus and cellar evidence ledgers', () => {
+  const report = auditImportData({
+    producers: [{ __row: 2, id: '9', producer_name: 'Brewery' }],
+    products: [{ __row: 2, id: '20', product_name: 'Beer', producer_id: '9' }],
+    bonusDecisions: [{
+      __row: 2,
+      'Source variant': '',
+      'Source count': '68',
+      Decision: 'accepted',
+      'Canonical bonus ID': '',
+      'Rejection reason': ''
+    }],
+    cellarIdentity: [{
+      __row: 2,
+      'Source record key': 'source-1',
+      'Verified owner ID': '',
+      'Verification method': '',
+      'Evidence reference': '',
+      'Confirmed destination cellar ID': 'not-an-id'
+    }]
+  })
+
+  assert.equal(report.status, 'BLOCKED')
+  assert.deepEqual(report.countsByCode, {
+    BONUS_DECISION_MISSING_VARIANT: 1,
+    BONUS_DECISION_SOURCE_TOTAL_MISMATCH: 1,
+    BONUS_DECISION_MISSING_CANONICAL_ID: 1,
+    BONUS_DECISION_VARIANT_COUNT_MISMATCH: 1,
+    CELLAR_IDENTITY_MISSING_OWNER: 1,
+    CELLAR_IDENTITY_MISSING_METHOD: 1,
+    CELLAR_IDENTITY_MISSING_EVIDENCE: 1,
+    CELLAR_IDENTITY_INVALID_DESTINATION_ID: 1,
+    CELLAR_IDENTITY_ROW_COUNT_MISMATCH: 1
+  })
+})
+
 test('preflight blocks zero producers and missing product references', () => {
   const report = auditImportData({
     producers: [{ __row: 2, id: '9', producer_name: 'Brewery' }],
