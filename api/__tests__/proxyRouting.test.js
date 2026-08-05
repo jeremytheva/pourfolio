@@ -136,3 +136,22 @@ test('authentication proxy reports allowed methods before requiring upstream con
   assert.equal(response.headers.Allow, 'POST')
   assert.equal(response.body.error, 'Method not allowed.')
 })
+
+
+test('authentication proxy identifies missing server-only configuration safely', async () => {
+  const previousSecret = process.env.NOCODEBACKEND_SECRET_KEY
+  delete process.env.NOCODEBACKEND_SECRET_KEY
+  const response = createResponse()
+
+  try {
+    await authHandler({ method: 'GET', headers: {}, query: { path: ['providers'] } }, response)
+  } finally {
+    if (previousSecret === undefined) delete process.env.NOCODEBACKEND_SECRET_KEY
+    else process.env.NOCODEBACKEND_SECRET_KEY = previousSecret
+  }
+
+  assert.equal(response.statusCode, 503)
+  assert.equal(response.body.error, 'Authentication is not configured.')
+  assert.equal(response.body.code, 'auth_configuration_missing')
+  assert.equal(typeof response.body.requestId, 'string')
+})

@@ -14,11 +14,12 @@ const PROVIDER_NAME_KEYS = ['name', 'provider', 'id', 'type', 'key']
 const PROVIDER_STATE_KEYS = ['enabled', 'isEnabled', 'active']
 
 export class ApiError extends Error {
-  constructor(message, { status = 0, requestId = null } = {}) {
+  constructor(message, { status = 0, requestId = null, code = null } = {}) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.requestId = requestId
+    this.code = code
   }
 }
 
@@ -67,7 +68,8 @@ const request = async (baseUrl, path, options = {}) => {
   if (!response.ok || payload?.error) {
     throw new ApiError(payload?.error || 'The request could not be completed.', {
       status: response.status,
-      requestId: payload?.requestId || response.headers.get('x-request-id')
+      requestId: payload?.requestId || response.headers.get('x-request-id'),
+      code: payload?.code || null
     })
   }
 

@@ -13,6 +13,13 @@ const initialProviders = {
 const hasReliableProviderState = (enabled) => enabled &&
   ['emailPassword', 'emailOtp', 'google'].every((provider) => typeof enabled[provider] === 'boolean')
 
+const friendlyAuthError = (error) => {
+  if (error?.code === 'auth_configuration_missing') {
+    return 'Authentication is not configured for this deployment. Please contact support and include the request ID if shown.'
+  }
+  return error?.message || 'Authentication could not be completed.'
+}
+
 function AuthForm({ mode, onToggleMode }) {
   const [form, setForm] = useState({
     email: '',
@@ -38,10 +45,11 @@ function AuthForm({ mode, onToggleMode }) {
         setProviders(enabled)
         setActiveMethod(enabled.emailPassword ? 'emailPassword' : enabled.emailOtp ? 'emailOtp' : 'google')
       })
-      .catch(() => {
+      .catch((providerError) => {
         if (!active) return
         setProviders(initialProviders)
         setActiveMethod('emailPassword')
+        if (providerError?.code === 'auth_configuration_missing') setError(friendlyAuthError(providerError))
       })
     return () => {
       active = false
@@ -89,7 +97,7 @@ function AuthForm({ mode, onToggleMode }) {
         if (result.error) throw result.error
       }
     } catch (submissionError) {
-      setError(submissionError.message || 'Authentication could not be completed.')
+      setError(friendlyAuthError(submissionError))
     } finally {
       setIsSubmitting(false)
     }
