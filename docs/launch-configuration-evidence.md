@@ -133,9 +133,55 @@ team or role. Approval requires the dated deployment SHA, request IDs, probe
 results, redaction proof, rotation owner, rollback owner and evidence-store
 reference.
 
+## 5 August 2026 execution record
+
+**Result:** Blocked. The procedure was re-run from this repository workspace at
+commit `63c0777fd8fea676783f759791ba806fdcfff51a`, but this environment still
+has no authenticated access to staging or production deployment settings, the
+NoCodeBackend tenant, the Upstash database, deployed endpoint logs or the
+private evidence store. Therefore this public record cannot prove that any
+credential is configured in server-side staging/production scopes, cannot
+confirm provider endpoint identity, cannot supply deployment request IDs, and
+cannot name an independent approver. Do not close G01 or G08 from this record.
+
+Repository-local controls that could be completed without secret access:
+
+| Check | Evidence captured | Result |
+| --- | --- | --- |
+| Candidate commit identity | Git SHA `63c0777fd8fea676783f759791ba806fdcfff51a` | pass |
+| Browser production build | `npm run build` completed and emitted only `dist/index.html`, CSS and JavaScript assets; no `.map` artefacts were emitted | pass |
+| Browser secret/source-map scanner | `npm run check:release-security` reported `Browser release security check passed.` | pass |
+| Artefact manifest hashes | SHA-256 hashes for generated `dist/` files were retained in the command transcript for this documentation change | pass |
+
+Evidence that remains missing and must be supplied only in the access-controlled
+private release record before G01 or G08 can close:
+
+- presence-only provider inventory rows for `NOCODEBACKEND_SECRET_KEY`,
+  `NOCODEBACKEND_DATA_BASE_URL`, `UPSTASH_REDIS_REST_URL`,
+  `UPSTASH_REDIS_REST_TOKEN`, `RATE_LIMIT_KEY_SECRET` and any configured
+  `NOCODEBACKEND_AUTH_BASE_URL` or `ALLOWED_ORIGINS` in both staging and
+  production server-side scopes;
+- explicit negative proof that the same names and values are absent from Vite,
+  client/browser, preview-public and repository/evidence scopes;
+- redacted request IDs or provider correlation IDs for each least-privilege
+  NoCodeBackend, Upstash limiter and origin-policy probe;
+- immutable deployment SHA and deployed endpoint/environment identity for both
+  staging and production;
+- deployed browser bundle and source-map absence checks for the promoted
+  artefacts, including any private monitoring upload restrictions if source
+  maps are generated outside this repository build;
+- redacted application, platform, NoCodeBackend, Upstash and central-log query
+  output proving the failure probes omitted secrets, cookies, tokens, raw
+  request/response bodies, provider URLs, emails, owner IDs and synthetic
+  sentinel values;
+- individually named rotation owner, rollback owner and independent approver
+  for each credential family; and
+- private evidence-store reference that ties the dated evidence package to the
+  exact candidate deployment.
+
 ## Current public status
 
-As of 4 August 2026, this repository environment has no access to the staging or
+As of 5 August 2026, this repository environment has no access to the staging or
 production deployment settings, NoCodeBackend tenant, Upstash database, central
 logs or private evidence store. Therefore no credential presence, provider
 identity, least-privilege probe, production bundle inspection, redacted-log
