@@ -70,26 +70,60 @@ public report may include only redacted stable references.
 | Revoked session | Owner A session invalidated by logout, provider revocation or password/session reset before reuse. | **BLOCKED — not run.** |
 | Product and attributes | Existing launch product, rating attributes and bonus attribute identifiers from the same staging snapshot. | **BLOCKED — not supplied.** |
 
-## Connected request ledger
+## Connected permission matrix and request ledger
 
-Record one row for every connected request that supports the matrix. Request
-IDs must be redacted enough for public review but resolvable in the private log
-store by the independent reviewer.
+This matrix is deliberately collection-by-fixture rather than grouping several
+collections behind one result. A connected operator must replace each
+`BLOCKED` cell with the resolvable, redacted evidence from one run. `Before / after`
+means a SHA-256 digest of a canonical, owner-scoped row inventory retained in
+the private evidence package; denied requests must show the same digest on both
+sides. Request IDs must be redacted enough for public review but resolvable in
+the private log store by the independent reviewer.
 
-| Scenario | Collection | Method/path shape | Principal | Expected outcome | Redacted request ID(s) | Actual outcome | Mutation check |
+| Collection | Fixture | Connected operation | Expected result | Redacted request ID | Before / after digest | No-mutation or owner-mutation proof | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Missing session denied | `profiles` | Gateway read/update plus direct provider read/write if available | none | 401/403 and zero row change | **BLOCKED — not run** | Not run | Not run |
-| Forged session denied | `profiles` | Gateway read/update plus direct provider read/write if available | forged Owner A/B claim | 401/403 and zero row change | **BLOCKED — not run** | Not run | Not run |
-| Expired session denied | `profiles` | Gateway read/update plus direct provider read/write if available | expired Owner A | 401/403 and zero row change | **BLOCKED — not run** | Not run | Not run |
-| Revoked session denied | `profiles` | Gateway read/update plus direct provider read/write if available | revoked Owner A | 401/403 and zero row change | **BLOCKED — not run** | Not run | Not run |
-| Cross-account denied | `profiles` | Read/update Owner B profile | Owner A | 403/404 and Owner B unchanged | **BLOCKED — not run** | Not run | Not run |
-| Owner profile flow | `profiles` | Read allowed fields, update allowed editable fields | Owner A | 200 and only allowlisted fields mutate | **BLOCKED — not run** | Not run | Not run |
-| Owner rating graph flow | `ratings`, `rating_scores`, `bonus_attribute_rating_mapping` | Create rating with exact scores and optional bonus mapping; read through history; delete through owner flow | Owner A | One complete owner graph; deterministic child keys; totals and state server-controlled | **BLOCKED — not run** | Not run | Not run |
-| Rating graph missing/forged/expired/revoked sessions denied | `ratings`, `rating_scores`, `bonus_attribute_rating_mapping` | Create/read/update/delete attempts | none, forged, expired, revoked | 401/403 and zero row change | **BLOCKED — not run** | Not run | Not run |
-| Rating graph cross-account denied | `ratings`, `rating_scores`, `bonus_attribute_rating_mapping` | Read/update/delete Owner B graph or attach Owner B parent/child IDs | Owner A | 403/404 and Owner B graph unchanged | **BLOCKED — not run** | Not run | Not run |
-| Owner cellar flow | `cellar` | Create, list, read, update and delete owner cellar row | Owner A | 200/201/204 as applicable; only Owner A row mutates | **BLOCKED — not run** | Not run | Not run |
-| Cellar missing/forged/expired/revoked sessions denied | `cellar` | Create/list/read/update/delete attempts | none, forged, expired, revoked | 401/403 and zero row change | **BLOCKED — not run** | Not run | Not run |
-| Cellar cross-account denied | `cellar` | Read/update/delete Owner B cellar row or link Owner B cellar to Owner A rating | Owner A | 403/404 and Owner B cellar unchanged | **BLOCKED — not run** | Not run | Not run |
+| `profiles` | Owner A | Read own profile; update only editable fields | 200; Owner A allowlisted fields only | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `profiles` | Owner B | Owner A reads and updates Owner B profile | 403/404; Owner B unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `profiles` | Missing session | Read and update Owner A profile | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `profiles` | Forged session | Read and update with a tampered Owner A/B claim | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `profiles` | Expired session | Read and update Owner A profile | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `profiles` | Revoked session | Read and update Owner A profile | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `ratings` | Owner A | Create, read through history and delete own rating | 200/201/204; exact owner graph only | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `ratings` | Owner B | Owner A reads, updates or deletes Owner B rating | 403/404; Owner B graph unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `ratings` | Missing session | Create/read/update/delete | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `ratings` | Forged session | Create/read/update/delete with a tampered claim | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `ratings` | Expired session | Create/read/update/delete | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `ratings` | Revoked session | Create/read/update/delete | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `rating_scores` | Owner A | Create exact scores through Owner A rating flow; read and delete | Exact deterministic children; scores and owner preserved | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `rating_scores` | Owner B | Attach, alter or delete an Owner B score/parent as Owner A | 403/404; Owner B graph unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `rating_scores` | Missing session | Create/read/update/delete | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `rating_scores` | Forged session | Create/read/update/delete with a tampered claim | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `rating_scores` | Expired session | Create/read/update/delete | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `rating_scores` | Revoked session | Create/read/update/delete | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `bonus_attribute_rating_mapping` | Owner A | Create optional mapping through own rating flow; read and delete | One deterministic owner mapping | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `bonus_attribute_rating_mapping` | Owner B | Attach, alter or delete Owner B mapping/parent as Owner A | 403/404; Owner B graph unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `bonus_attribute_rating_mapping` | Missing session | Create/read/update/delete | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `bonus_attribute_rating_mapping` | Forged session | Create/read/update/delete with a tampered claim | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `bonus_attribute_rating_mapping` | Expired session | Create/read/update/delete | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `bonus_attribute_rating_mapping` | Revoked session | Create/read/update/delete | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `cellar` | Owner A | Create, list, read, update and delete own row | 200/201/204; Owner A row only | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `cellar` | Owner B | Owner A reads, updates, deletes or cross-links Owner B row | 403/404; Owner B row unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `cellar` | Missing session | Create/list/read/update/delete | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `cellar` | Forged session | Create/list/read/update/delete with a tampered claim | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `cellar` | Expired session | Create/list/read/update/delete | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+| `cellar` | Revoked session | Create/list/read/update/delete | 401/403; unchanged | Not generated | Not captured | Not captured | **BLOCKED — not run** |
+
+### Evidence references for this attempted run
+
+| Evidence item | Public record |
+| --- | --- |
+| Redacted request-ID set | **Not generated:** no connected request was sent. |
+| Before/after digest set | **Not captured:** no authorised owner-scoped baseline query was possible. |
+| Denied-request no-mutation proof | **Not captured:** without both baseline access and the six fixtures, a digest comparison would be invalid. |
+| Provider policy bundle reference | **Not supplied:** no immutable version/export or reviewer-approved private reference was available. |
+| Environment identity | **Not supplied:** the available data base URL alone does not establish tenant, region, staging isolation or production equivalence. |
+| Deployment identity | **Not supplied:** local checkout `e114e4754893095dd269b67813687e305b5c2f17` was not tied to an immutable staging deployment. |
+| Cleanup proof | **Not generated:** no disposable fixture or mutation was created; this is not a substitute for post-run zero-row queries and unchanged seed-data digests. |
 
 ## Invariant evidence matrix
 
