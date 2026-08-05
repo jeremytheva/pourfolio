@@ -72,3 +72,30 @@ test('rejects absent, empty, malformed, unrecognised, and ambiguous payloads', (
     assert.equal(normalizeProviders(payload), null)
   }
 })
+
+test('ApiError preserves safe upstream error codes', async () => {
+  const { authRequest } = await import('../nocodeBackend.js')
+  const previousWindow = globalThis.window
+  const previousFetch = globalThis.fetch
+  globalThis.window = { setTimeout, clearTimeout }
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    error: 'Authentication is not configured.',
+    code: 'auth_configuration_missing',
+    requestId: 'request-123'
+  }), { status: 503 })
+
+  try {
+    await assert.rejects(
+      authRequest('/providers', { method: 'GET' }),
+      (error) => {
+        assert.equal(error.status, 503)
+        assert.equal(error.code, 'auth_configuration_missing')
+        assert.equal(error.requestId, 'request-123')
+        return true
+      }
+    )
+  } finally {
+    globalThis.window = previousWindow
+    globalThis.fetch = previousFetch
+  }
+})

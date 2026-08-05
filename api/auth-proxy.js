@@ -131,7 +131,11 @@ export default async function handler(request, response) {
 
   const secret = process.env.NOCODEBACKEND_SECRET_KEY
   if (!secret) {
-    response.status(503).json({ error: 'Authentication is not configured.', requestId: correlationId })
+    response.status(503).json({
+      error: 'Authentication is not configured.',
+      code: 'auth_configuration_missing',
+      requestId: correlationId
+    })
     return
   }
   if (!enforceRequestSize(request, response) || !enforceOrigin(request, response)) return
