@@ -142,16 +142,18 @@ schema and all launch collections from one quiesced or provider-consistent
 snapshot. Retain the completed, appropriately redacted package in the approved
 private evidence store.
 
-**Completed baseline reference (4 August 2026):** Not supplied; blocked. The
-NoCodeBackend baseline template now records the exact missing production-
-equivalent snapshot evidence: environment identity, export timestamp, page
-coverage, row counts, SHA-256 checksums, schema report, relationship
-reconciliation for products, producers, categories, ratings, rating children,
-profiles and cellar, and independent review. This delivery environment has no
-provider access, immutable provider snapshot identifier, retained export
-artefacts, pagination ledger, schema audit report or approved private evidence
-destination. It therefore cannot truthfully export or retain the requested
-private records. G02, G03, G04, G07 and Phase 1 remain open. Once an
+**Completed baseline reference (5 August 2026):** Not supplied; blocked. The
+repository contains a public schema-only export (`exports/schema.sql`, 4,607
+bytes, SHA-256
+`206438dcaab8b828dde2f4b1a7a655ddde8e078fd5eb5604d8112c3fe53a155e`)
+and `npm run audit:schema -- --schema exports/schema.sql` returns `PASS` with
+zero structural blockers. That does not complete the NoCodeBackend baseline: no
+approved private production-equivalent snapshot package supplies environment
+identity, export interval, same-state page coverage, collection row counts,
+collection SHA-256 checksums, relationship reconciliation for products,
+producers, categories, ratings, rating children, profiles and cellar, or
+independent approval. G02, G03, G04, G07 and Phase 1 remain open until the
+retained baseline package and schema audit together show zero blockers. Once an
 independent reviewer approves a completed package with zero blockers, replace
 this status only with the safe evidence-store reference, immutable package and
 snapshot identifiers, UTC interval, candidate commit/deployment identifier and
@@ -274,12 +276,12 @@ the action has an accountable owner.
 | Gate | Accountable owner | Dated, redacted evidence | Result on frozen candidate |
 | --- | --- | --- | --- |
 | <a id="evidence-g01"></a>G01: Presence-only evidence confirms that `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_DATA_BASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `RATE_LIMIT_KEY_SECRET` and any deliberately configured `NOCODEBACKEND_AUTH_BASE_URL`/`ALLOWED_ORIGINS` are present as server-only variables in isolated staging and production scopes and absent from browser bundles, source maps, repository files, command transcripts and evidence; no value may appear in the evidence, and presence alone is not operational provider or Redis evidence. | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G01`: repository-local build and browser release-security scan passed for commit `63c0777fd8fea676783f759791ba806fdcfff51a`, but private staging/production provider inventories, server-side scope proof, redacted request IDs, endpoint identities, log evidence, named owners and approver are not supplied | **BLOCKED** |
-| <a id="evidence-g02"></a>G02: The canonical collections in | `@jeremytheva` | 4 August 2026 — `PRR-2026-08-04-G02`: baseline export package not supplied; no same-state collection inventory, page ledger, row counts, checksums or legacy-alias report is available | **BLOCKED** |
-| <a id="evidence-g03"></a>G03: A production-equivalent, same-state schema export has been audite… | `@jeremytheva` | 4 August 2026 — `PRR-2026-08-04-G03`: no production-equivalent schema export, immutable snapshot identifier or retained `npm run audit:schema -- --schema <private-path>/schema.sql` `PASS` report is available | **BLOCKED** |
-| <a id="evidence-g04"></a>G04: The schema evidence proves required non-null fields and uniqueness | `@jeremytheva` | 4 August 2026 — `PRR-2026-08-04-G04`: no retained schema report or controlled `ratings.date_rated` update evidence is available to prove non-null, uniqueness, immutable ownership, idempotency or workflow controls | **BLOCKED** |
+| <a id="evidence-g02"></a>G02: The canonical collections in | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G02`: public schema-only audit passes, but the baseline export package is not supplied; no same-state collection inventory, page ledger, row counts, collection checksums or legacy-alias report is available | **BLOCKED** |
+| <a id="evidence-g03"></a>G03: A production-equivalent, same-state schema export has been audite… | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G03`: `npm run audit:schema -- --schema exports/schema.sql` returns `PASS` for the public schema-only export, but no production-equivalent baseline package binds that schema to an immutable provider snapshot, private evidence-store record or same-state collection exports | **BLOCKED** |
+| <a id="evidence-g04"></a>G04: The schema evidence proves required non-null fields and uniqueness | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G04`: public structural schema audit has zero blockers, but no retained private baseline, connected permission evidence or controlled `ratings.date_rated` update evidence is available to prove the complete non-null, uniqueness, immutable ownership, idempotency and workflow controls | **BLOCKED** |
 | <a id="evidence-g05"></a>G05: Redacted provider transcripts exercise the precise paths, filters… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G05`: not supplied | **BLOCKED** |
 | <a id="evidence-g06"></a>G06: For every launch collection exposed by | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G06`: connected policy certification now specifies required missing, forged, expired, revoked and cross-account session evidence for `profiles`, `ratings`, `rating_scores`, `bonus_attribute_rating_mapping` and `cellar`, but no connected staging run, redacted request IDs, provider policy export or cleanup proof is supplied | **BLOCKED** |
-| <a id="evidence-g07"></a>G07: Evidence is dated, redacted, tied to the environment and release … | `@jeremytheva` | 4 August 2026 — `PRR-2026-08-04-G07`: completed baseline, retained reports, environment/deployment identifiers and independent-review approval are not supplied; related Phase 1 rows remain open | **BLOCKED** |
+| <a id="evidence-g07"></a>G07: Evidence is dated, redacted, tied to the environment and release … | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G07`: public schema-only audit evidence is available, but completed baseline collection exports, relationship reports, environment/deployment identifiers and independent-review approval are not supplied; related Phase 1 rows remain open | **BLOCKED** |
 | <a id="evidence-g08"></a>G08: Configure `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_DATA_BASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `RATE_LIMIT_KEY_SECRET` and any deliberately configured `NOCODEBACKEND_AUTH_BASE_URL`/`ALLOWED_ORIGINS` as server-only variables in staging and production, without recording their values in evidence; retain dated, redacted least-privilege probes, endpoint/environment identity confirmation, browser bundle/source-map inspection, redacted-log failure proof, rotation ownership, rollback ownership, deployment SHA, request IDs and approver identity. | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G08`: procedure rerun recorded in `docs/launch-configuration-evidence.md`; local browser bundle/source-map absence checks passed, but server-side staging/production configuration proof, least-privilege probes, redacted logs, rotation owner, rollback owner and independent approval are not supplied | **BLOCKED** |
 | <a id="evidence-g09"></a>G09: Verify the configured data base URL accepts the gateway’s collect… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G09`: not supplied | **BLOCKED** |
 | <a id="evidence-g10"></a>G10: Provision the canonical schema without `*_pf2025` aliases and mak… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G10`: not supplied | **BLOCKED** |
