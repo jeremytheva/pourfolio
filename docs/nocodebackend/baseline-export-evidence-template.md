@@ -48,6 +48,25 @@ baseline package and retained reports show zero blockers. The public schema-only
 or launch gates without same-state collection exports, reconciliation and
 independent approval.
 
+
+## Same-snapshot completion ledger
+
+Use this ledger when populating the private package from the production-equivalent
+backend snapshot. Every row must reference the same provider snapshot or
+quiescence identifier recorded above; if any item is missing, from a different
+logical state, or has a non-zero blocker, the package is incomplete and must not
+be used to close G02, G03, G04 or G07.
+
+| Evidence area | Required retained artefacts | Completion rule | Current repository state |
+| --- | --- | --- | --- |
+| Environment identity | Redacted provider tenant/project, production-equivalent environment, full release commit, immutable deployment ID and operator/reviewer identities | All identifiers present, immutable and tied to the export package | Not supplied; blocked |
+| Export interval | UTC quiescence or provider-consistent snapshot acquisition, first request and final terminal response times | One logical-state interval covers schema plus every collection export | Not supplied; blocked |
+| Schema export | Provider-native schema file, permission/constraint manifest where separate, byte count, SHA-256 and `npm run audit:schema -- --schema <private-path>/schema.sql` JSON report | Audit report status is `PASS` with zero blockers and is bound to the same snapshot as the collections | Public schema-only preflight passes, but no same-state private baseline is supplied |
+| Launch catalogue exports | `products`, `producers` and `categories` files, page ledger, provider totals, row counts, byte counts and SHA-256 values | Counts reconcile to non-duplicated successful pages and provider totals; no `*_pf2025` aliases or unexpected catalogue orphans | Not supplied; blocked |
+| Rating exports | `ratings`, `rating_scores`, `rating_attributes`, `bonus_attributes` and `bonus_attribute_rating_mapping` files, page ledger, provider totals, row counts, byte counts and SHA-256 values | Parent/child joins, duplicate-key checks, null-key checks and per-parent distributions reconcile exactly | Not supplied; blocked |
+| Profile and cellar exports | `profiles` and `cellar` files, page ledger, provider totals, row counts, byte counts and SHA-256 values | Profile ownership identifiers reconcile with ratings and cellar without exposing private profile data in the repository | Not supplied; blocked |
+| Independent review | Reviewer recomputation report, pagination replay notes, reconciliation report, redaction check and approve/reject decision | Reviewer is not the operator, approves the immutable package version and records zero blockers | Not supplied; blocked |
+
 ## Record identity and scope
 
 | Field | Required value |
