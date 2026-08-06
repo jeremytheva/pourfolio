@@ -51,11 +51,14 @@ Ratings, cellar, bonus-decision and cellar-identity inputs are optional so each
 import stage can be checked independently. Products and producers are always
 required. Supplying the bonus-decision ledger additionally proves that the 10
 unmatched variants total 69 selections and each variant is either mapped to a
-positive canonical bonus ID or rejected with a reason. Supplying the
+positive canonical bonus ID or rejected with a reason. Each ledger row must also
+record its evidence reference, operator, distinct independent reviewer and a
+valid UTC review timestamp; incomplete or self-reviewed rows fail. Supplying the
 cellar-identity ledger proves that exactly 399 source cellar rows have a
 non-empty verified owner ID, verification method, evidence reference and unique
-positive confirmed destination cellar ID. Keep both completed ledgers only in
-the private evidence store.
+positive confirmed destination cellar ID, with the same operator, independent-
+reviewer and review-timestamp controls. Keep both completed ledgers only in the
+private evidence store.
 
 ## Required reconciliation evidence
 
