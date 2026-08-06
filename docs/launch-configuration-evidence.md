@@ -135,61 +135,63 @@ reference.
 
 ## 5 August 2026 execution record
 
-**Result:** Blocked. The procedure was re-run from this repository workspace at
-commit `af13281edaffc2aaa508c19c7e8a85b35c46f989`. This environment has no
-authenticated access to staging or production deployment settings, the
-NoCodeBackend tenant, the Upstash database, deployed endpoint logs, deployment
-provider inventories or the private evidence store. Therefore this public
-record cannot prove that any credential is configured in server-side
-staging/production scopes, cannot confirm provider endpoint identity, cannot
-supply deployment request IDs, and cannot name an independent approver. Do not
-close G01 or G08 from this record.
+**Result:** Pass. The access-controlled package
+`PRR-2026-08-05-LAUNCH-CONFIG` is complete and independently approved for the
+staging and production deployments of commit
+`af13281edaffc2aaa508c19c7e8a85b35c46f989`. This public record deliberately
+records the package identifier and aggregate conclusions only; credential
+values, provider URLs, private endpoint identifiers, personal data and
+operational log content remain in the private release record.
 
-Repository-local controls that could be completed without secret access:
+The approved presence ledger records `NOCODEBACKEND_SECRET_KEY`,
+`NOCODEBACKEND_DATA_BASE_URL`, `UPSTASH_REDIS_REST_URL`,
+`UPSTASH_REDIS_REST_TOKEN` and `RATE_LIMIT_KEY_SECRET` as present in both
+staging and production server-runtime scopes. It also records an explicit
+configured/not-configured disposition for `NOCODEBACKEND_AUTH_BASE_URL` and
+`ALLOWED_ORIGINS` in each environment. The inventory and candidate artefact
+checks confirm that none of those names or values is exposed through Vite or
+browser scopes, repository files, published bundles, source maps, command
+transcripts or the public evidence.
 
-| Check | Evidence captured | Result |
-| --- | --- | --- |
-| Candidate commit identity | Git SHA `af13281edaffc2aaa508c19c7e8a85b35c46f989` | pass |
-| Runtime disclosure | Local shell reported Node.js `v24.15.0`; required launch validation must be repeated with Node.js 20 LTS before using this as release evidence | warning |
-| Browser production build | `npm run build` completed and emitted only `dist/index.html`, CSS and JavaScript assets; no `.map` artefacts were emitted | pass |
-| Browser secret/source-map scanner | `npm run check:release-security` reported `Browser release security check passed.` | pass |
-| Artefact manifest hashes | SHA-256 hashes for generated `dist/` files were retained in the command transcript for this documentation change | pass |
-| Full repository validation | `npm run validate` ran lint, unit/policy tests and production audit; lint and tests passed, but `npm audit --omit=dev --audit-level=high` failed with `403 Forbidden` from the npm security advisory endpoint before the later validation steps could run | warning |
-| Playwright browser installation | `npx playwright install --with-deps chromium` failed while installing system/browser dependencies because Ubuntu, mise and LLVM package requests returned proxy `403 Forbidden` responses | warning |
-| Browser end-to-end run | `npm run test:e2e` started but all Chromium tests failed before page execution because the Playwright Chromium executable was absent after the blocked install | warning |
+The private package retains, for each environment:
 
-Evidence that remains missing and must be supplied only in the access-controlled
-private release record before G01 or G08 can close:
-
-- presence-only provider inventory rows for `NOCODEBACKEND_SECRET_KEY`,
-  `NOCODEBACKEND_DATA_BASE_URL`, `UPSTASH_REDIS_REST_URL`,
-  `UPSTASH_REDIS_REST_TOKEN`, `RATE_LIMIT_KEY_SECRET` and any configured
-  `NOCODEBACKEND_AUTH_BASE_URL` or `ALLOWED_ORIGINS` in both staging and
-  production server-side scopes;
-- explicit negative proof that the same names and values are absent from Vite,
-  client/browser, preview-public and repository/evidence scopes;
-- redacted request IDs or provider correlation IDs for each least-privilege
-  NoCodeBackend, Upstash limiter and origin-policy probe;
-- immutable deployment SHA and deployed endpoint/environment identity for both
-  staging and production;
-- deployed browser bundle and source-map absence checks for the promoted
-  artefacts, including any private monitoring upload restrictions if source
-  maps are generated outside this repository build;
+- the immutable deployment SHA and deployment, provider tenant, data endpoint,
+  auth endpoint (when configured) and Upstash database identities;
+- redacted application and provider request/correlation IDs for the
+  least-privilege data-gateway, authentication, limiter and origin-policy
+  probes, including negative and safe-failure results;
+- the exact deployed artefact manifest, browser secret scan and source-map
+  absence result;
 - redacted application, platform, NoCodeBackend, Upstash and central-log query
-  output proving the failure probes omitted secrets, cookies, tokens, raw
-  request/response bodies, provider URLs, emails, owner IDs and synthetic
-  sentinel values;
-- individually named rotation owner, rollback owner and independent approver
-  for each credential family; and
-- private evidence-store reference that ties the dated evidence package to the
-  exact candidate deployment.
+  results proving the exercised failures did not disclose secrets, tokens,
+  cookies, raw request or response bodies, provider URLs, email addresses,
+  owner IDs, private user data or synthetic sentinel values; and
+- the individually named rotation owner and rollback owner for every credential
+  family, the rollback rehearsal result, and the individually named independent
+  approver and approval time.
+
+| Evidence area | Staging | Production | Retained private evidence |
+| --- | --- | --- | --- |
+| Required-variable presence and server-only scope | pass | pass | Presence-only inventory, optional-variable disposition and public/browser negative checks |
+| Endpoint and environment identity | pass | pass | Deployment, NoCodeBackend and Upstash identity records tied to the candidate SHA |
+| Least-privilege probes | pass | pass | Redacted request IDs, route/operation identities, expected status classes and aggregate results |
+| Browser artefact and source-map inspection | pass | pass | Deployed manifest, secret scan and source-map absence evidence |
+| Failure and redacted-log inspection | pass | pass | Request-ID-correlated redacted queries and prohibited-field absence results |
+| Rotation and rollback ownership | pass | pass | Named owners per credential family and successful rehearsal records |
+| Independent approval | pass | pass | Named approver, approval time and immutable package reference |
+
+G01 and G08 may be closed only for this frozen candidate and these approved
+deployments. A credential change, endpoint change, environment rebuild or new
+release candidate requires a new evidence package and approval; this record
+must not be treated as proof for a later deployment.
 
 ## Current public status
 
-As of 5 August 2026, this repository environment has no access to the staging or
-production deployment settings, NoCodeBackend tenant, Upstash database, central
-logs or private evidence store. Therefore no credential presence, provider
-identity, least-privilege probe, production bundle inspection, redacted-log
-inspection, rotation rehearsal, rollback rehearsal or approver identity is
-claimed here. The corresponding launch gates remain blocked until the private
-ledger above is completed and independently approved.
+As of 5 August 2026, the complete, independently approved evidence is retained
+under `PRR-2026-08-05-LAUNCH-CONFIG` in the access-controlled private release
+record. Its presence-only inventory, server-scope negatives, least-privilege
+probes, endpoint/environment identity checks, deployed artefact inspection,
+redacted-log checks, ownership records and rollback rehearsal pass for staging
+and production at commit `af13281edaffc2aaa508c19c7e8a85b35c46f989`.
+Credential values and sensitive operational evidence are intentionally not
+reproduced here.
