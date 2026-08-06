@@ -35,7 +35,11 @@ test('preflight validates completed bonus and cellar evidence ledgers', () => {
     'Source count': index === 0 ? '6' : '7',
     Decision: index === 9 ? 'rejected' : 'accepted',
     'Canonical bonus ID': index === 9 ? '' : String(index + 1),
-    'Rejection reason': index === 9 ? 'Not a launch bonus attribute' : ''
+    'Rejection reason': index === 9 ? 'Not a launch bonus attribute' : '',
+    'Evidence reference': `PRIVATE-BONUS-${index + 1}`,
+    Operator: 'operator-1',
+    Reviewer: 'reviewer-1',
+    'Reviewed at (UTC)': '2026-08-06T10:00:00Z'
   }))
   const cellarIdentity = Array.from({ length: 399 }, (_, index) => ({
     __row: index + 2,
@@ -43,7 +47,10 @@ test('preflight validates completed bonus and cellar evidence ledgers', () => {
     'Verified owner ID': `provider-user-${index + 1}`,
     'Verification method': 'provider account match',
     'Evidence reference': `PRIVATE-EVIDENCE-${index + 1}`,
-    'Confirmed destination cellar ID': String(index + 1)
+    'Confirmed destination cellar ID': String(index + 1),
+    Operator: 'operator-1',
+    Reviewer: 'reviewer-1',
+    'Reviewed at (UTC)': '2026-08-06T10:00:00Z'
   }))
 
   const report = auditImportData({
@@ -68,7 +75,11 @@ test('preflight blocks incomplete bonus and cellar evidence ledgers', () => {
       'Source count': '68',
       Decision: 'accepted',
       'Canonical bonus ID': '',
-      'Rejection reason': ''
+      'Rejection reason': '',
+      'Evidence reference': 'PRIVATE-BONUS-1',
+      Operator: 'operator-1',
+      Reviewer: 'reviewer-1',
+      'Reviewed at (UTC)': '2026-08-06T10:00:00Z'
     }],
     cellarIdentity: [{
       __row: 2,
@@ -76,7 +87,10 @@ test('preflight blocks incomplete bonus and cellar evidence ledgers', () => {
       'Verified owner ID': '',
       'Verification method': '',
       'Evidence reference': '',
-      'Confirmed destination cellar ID': 'not-an-id'
+      'Confirmed destination cellar ID': 'not-an-id',
+      Operator: 'operator-1',
+      Reviewer: 'reviewer-1',
+      'Reviewed at (UTC)': '2026-08-06T10:00:00Z'
     }]
   })
 
@@ -90,7 +104,8 @@ test('preflight blocks incomplete bonus and cellar evidence ledgers', () => {
     CELLAR_IDENTITY_MISSING_METHOD: 1,
     CELLAR_IDENTITY_MISSING_EVIDENCE: 1,
     CELLAR_IDENTITY_INVALID_DESTINATION_ID: 1,
-    CELLAR_IDENTITY_ROW_COUNT_MISMATCH: 1
+    CELLAR_IDENTITY_ROW_COUNT_MISMATCH: 1,
+    EVIDENCE_REFERENCE_MISSING: 1
   })
 })
 

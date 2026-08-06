@@ -106,17 +106,35 @@ const checkProductReferences = (records, collection, productIds, blockers) => {
 
 const normaliseDecision = (value) => String(value ?? '').trim().toLowerCase()
 
+const checkIndependentReview = (record, collection, blockers) => {
+  const operator = String(record.Operator ?? '').trim()
+  const reviewer = String(record.Reviewer ?? '').trim()
+  const reviewedAt = String(record['Reviewed at (UTC)'] ?? '').trim()
+  const evidence = String(record['Evidence reference'] ?? '').trim()
+
+  if (!evidence) blockers.push({ code: 'EVIDENCE_REFERENCE_MISSING', collection, row: record.__row })
+  if (!operator) blockers.push({ code: 'OPERATOR_MISSING', collection, row: record.__row })
+  if (!reviewer) blockers.push({ code: 'REVIEWER_MISSING', collection, row: record.__row })
+  if (operator && reviewer && operator === reviewer) {
+    blockers.push({ code: 'REVIEWER_NOT_INDEPENDENT', collection, row: record.__row })
+  }
+  if (!reviewedAt || Number.isNaN(Date.parse(reviewedAt))) {
+    blockers.push({ code: 'REVIEWED_AT_INVALID', collection, row: record.__row, value: reviewedAt || null })
+  }
+}
+
 const checkBonusDecisionLedger = (records, blockers) => {
   if (!records.length) return
   requireColumns(
     records,
-    ['Source variant', 'Source count', 'Decision', 'Canonical bonus ID', 'Rejection reason'],
+    ['Source variant', 'Source count', 'Decision', 'Canonical bonus ID', 'Rejection reason', 'Evidence reference', 'Operator', 'Reviewer', 'Reviewed at (UTC)'],
     'Bonus decision ledger'
   )
 
   let sourceCountTotal = 0
   const variants = new Set()
   for (const record of records) {
+    checkIndependentReview(record, 'bonus_decisions', blockers)
     const variant = String(record['Source variant'] ?? '').trim()
     const sourceCount = String(record['Source count'] ?? '').trim()
     const decision = normaliseDecision(record.Decision)
@@ -162,13 +180,14 @@ const checkCellarIdentityLedger = (records, blockers) => {
   if (!records.length) return
   requireColumns(
     records,
-    ['Source record key', 'Verified owner ID', 'Verification method', 'Evidence reference', 'Confirmed destination cellar ID'],
+    ['Source record key', 'Verified owner ID', 'Verification method', 'Evidence reference', 'Confirmed destination cellar ID', 'Operator', 'Reviewer', 'Reviewed at (UTC)'],
     'Cellar identity ledger'
   )
 
   const sourceKeys = new Set()
   const destinationIds = new Set()
   for (const record of records) {
+    checkIndependentReview(record, 'cellar_identity', blockers)
     const sourceKey = String(record['Source record key'] ?? '').trim()
     const ownerId = String(record['Verified owner ID'] ?? '').trim()
     const method = String(record['Verification method'] ?? '').trim()
