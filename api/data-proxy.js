@@ -64,11 +64,36 @@ const findProfile = async (userId) => {
 }
 
 const indexById = (records) => new Map(records.map((record) => [String(record.id), record]))
+const parseCatalogueSearch = (value) => {
+  const search = String(value || '').trim()
+  if (search.length > 100 || [...search].some((character) => {
+    const codePoint = character.codePointAt(0)
+    return codePoint < 32 || codePoint === 127
+  })) {
+    const error = new Error('Catalogue search is invalid.')
+    error.status = 400
+    throw error
+  }
+  return search
+}
 
-const loadCatalogueRelationships = async () => {
+const distinctIds = (records, field) => [...new Set(records
+  .map((record) => record?.[field])
+  .filter((id) => id !== undefined && id !== null && String(id).trim())
+  .map(String))]
+
+const loadRecordsById = async (collection, ids) => normaliseList(await Promise.all(
+  [...new Set(ids.map(String))].map((id) => dataProvider.get(collection, id))
+))
+
+const loadCatalogueRelationships = async (products, targeted = false) => {
   const [producers, categories] = await Promise.all([
-    dataProvider.list(COLLECTIONS.producers),
-    dataProvider.list(COLLECTIONS.categories)
+    targeted
+      ? loadRecordsById(COLLECTIONS.producers, distinctIds(products, 'producer_id'))
+      : dataProvider.list(COLLECTIONS.producers),
+    targeted
+      ? loadRecordsById(COLLECTIONS.categories, distinctIds(products, 'product_category_id'))
+      : dataProvider.list(COLLECTIONS.categories)
   ])
 
   return {
@@ -77,8 +102,8 @@ const loadCatalogueRelationships = async () => {
   }
 }
 
-const hydrateProducts = async (products) => {
-  const relationships = await loadCatalogueRelationships()
+const hydrateProducts = async (products, targeted = false) => {
+  const relationships = await loadCatalogueRelationships(products, targeted)
   return products.map((product) => projectProduct(
     product,
     relationships.producers.get(String(product.producer_id)),
@@ -87,27 +112,19 @@ const hydrateProducts = async (products) => {
 }
 
 const listProducts = async (request, response) => {
-  const search = String(request.query?.q || '').trim().toLocaleLowerCase()
+  const search = parseCatalogueSearch(request.query?.q)
   const page = Math.max(1, Number.parseInt(request.query?.page, 10) || 1)
   const limit = Math.min(100, Math.max(1, Number.parseInt(request.query?.limit, 10) || 24))
-  const products = normaliseList(await dataProvider.list(COLLECTIONS.products))
-  const hydrated = await hydrateProducts(products)
-  const filtered = search
-    ? hydrated.filter((product) => [
-        product.product_name,
-        product.declared_category,
-        product.producer?.producer_name,
-        product.category?.category_name
-      ].some((value) => String(value || '').toLocaleLowerCase().includes(search)))
-    : hydrated
-
-  const offset = (page - 1) * limit
+  const providerPage = await dataProvider.listPage(COLLECTIONS.products, {
+    search: search || undefined, page, limit, orderBy: 'product_name', order: 'asc'
+  })
+  const hydrated = await hydrateProducts(normaliseList(providerPage.items), true)
   response.status(200).json({
-    items: filtered.slice(offset, offset + limit),
-    page,
-    pageSize: limit,
-    total: filtered.length,
-    totalPages: Math.max(1, Math.ceil(filtered.length / limit))
+    items: hydrated,
+    page: providerPage.page,
+    pageSize: providerPage.pageSize,
+    total: providerPage.total,
+    totalPages: providerPage.totalPages
   })
 }
 
@@ -403,8 +420,8 @@ const submitRating = async (request, response, user, correlationId) => {
 const listUserRatings = async (response, user) => {
   const ratings = normaliseList(await dataProvider.list(COLLECTIONS.ratings, { user_id: user.id }))
     .filter((rating) => isOwnedBy(rating, user.id) && isCompletedRating(rating))
-  const products = normaliseList(await dataProvider.list(COLLECTIONS.products))
-  const hydratedProducts = await hydrateProducts(products)
+  const products = await loadRecordsById(COLLECTIONS.products, distinctIds(ratings, 'product_id'))
+  const hydratedProducts = await hydrateProducts(products, true)
   const productsById = indexById(hydratedProducts)
 
   response.status(200).json({
@@ -523,7 +540,9 @@ const projectCellarRecord = (record, product = null) => ({
 const listCellar = async (response, user) => {
   const records = normaliseList(await dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }))
     .filter((record) => isOwnedBy(record, user.id))
-  const products = await hydrateProducts(normaliseList(await dataProvider.list(COLLECTIONS.products)))
+  const products = await hydrateProducts(
+    await loadRecordsById(COLLECTIONS.products, distinctIds(records, 'product_id')), true
+  )
   const productsById = indexById(products)
   response.status(200).json({
     items: records.map((record) => projectCellarRecord(record, productsById.get(String(record.product_id)) || null))
@@ -1115,7 +1134,9 @@ export const __testables = {
   updateCellar,
   compareAndSet,
   submitRating,
+  listProducts,
   listUserRatings,
+  listCellar,
   deleteRating,
   createBrewDoneItGame, joinBrewDoneItGame, selectBrewDoneItProduct, submitBrewDoneItGuess,
   showBrewDoneItGame, brewDoneItStats, resolveBrewDoneItHistoryQuestion, transitionBrewDoneItGame,
