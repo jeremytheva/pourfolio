@@ -15,6 +15,7 @@ describe('formatDate', () => {
 
   it('returns the safe fallback for impossible values', () => {
     assert.equal(formatDate('not-a-date'), DATE_NOT_RECORDED)
+    assert.equal(formatDate('2026-02-30'), DATE_NOT_RECORDED)
     assert.equal(formatDate({ date: '2026-08-14' }), DATE_NOT_RECORDED)
   })
 
