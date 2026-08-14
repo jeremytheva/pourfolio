@@ -7,6 +7,13 @@ provider permissions or workflow behaviour. Launch therefore also requires a
 completed [connected-policy certification](connected-policy-certification.md)
 from the same release candidate and environment.
 
+The final-contract audit is intentionally separate from the
+[Phase 1 additive schema preflight](additive-schema-preflight.md). The additive
+audit compares the immutable before/after exports at migration Checkpoint S1
+and must reject premature non-null, unique or unrelated changes. A final target
+cannot be used as an additive-stage `PASS`, and an additive-stage `PASS` cannot
+be used as final-contract evidence.
+
 Launch is `PASS` only when **both** reports say `PASS` and each reports zero
 blockers. A missing, stale or mismatched report is a launch blocker; one report
 must never be used as a substitute for the other.
@@ -54,7 +61,7 @@ The launch application does not expose a rating-update route, but the timestamp
 definition is still unsafe for imports, administrative changes and future
 workflows.
 
-## Run the audit
+## Run the final-contract audit
 
 Export the complete production-equivalent schema as SQL, then run:
 

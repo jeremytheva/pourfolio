@@ -247,7 +247,9 @@ rollback plan.
 ## Phase 1 — additive compatibility schema
 
 Submit one versioned managed schema plan, or provider-documented resumable
-sub-jobs with an explicit dependency order:
+sub-jobs with an explicit dependency order. The repository-side structural
+allowlist is versioned as `PF-P1-S1-ADDITIVE-COMPATIBILITY-V1` and documented in
+the [Phase 1 additive schema preflight](additive-schema-preflight.md):
 
 1. Provision `profiles` with provider-generated primary key as applicable,
    nullable editable `name`, `description` and `avatar_url`, and a `user_id`
@@ -274,6 +276,19 @@ are unchanged. On failure, keep writes fenced. Resume the provider job if its
 documented idempotency semantics allow it. Otherwise restore B0 into a clean
 environment. Drop newly added empty/nullable fields only through a separately
 recorded managed rollback job; never improvise a partial console reversal.
+
+Run the structural part of S1 against the exact before/after exports:
+
+```bash
+npm run audit:schema:additive -- \
+  --baseline <private-evidence>/schema-before.sql \
+  --candidate <private-evidence>/schema-after-additive.sql \
+  --output <private-evidence>/phase1-additive-schema-audit.json
+```
+
+A `PASS` proves only the approved structural delta. Counts, timestamp digests,
+gateway compatibility, provider job identity, write-fence evidence and named
+approval remain mandatory connected S1 evidence.
 
 ## Phase 2 — deterministic discovery, quarantine and backfill
 

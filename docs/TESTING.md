@@ -116,9 +116,13 @@ workflow must still be run with an immutable HTTPS deployment and its full
 deployed SHA, after which its URL, totals and final result must replace the
 blocked entry above.
 
-The schema and import audit CLIs are exercised through their Node regression
-tests. Environment-specific exports are intentionally supplied at release time
-rather than committed to the repository.
+The final-schema, additive-schema-delta and import audit CLIs are exercised
+through their Node regression tests. Environment-specific exports are
+intentionally supplied at release time rather than committed to the repository.
+Checkpoint S1 uses `npm run audit:schema:additive -- --baseline <before.sql>
+--candidate <after.sql>` to reject changed legacy definitions, unapproved
+tables or fields, premature constraints and incompatible compatibility-column
+types before backfill begins.
 
 The opt-in provider-contract suite uses the canonical rating and score fields,
 verifies that a controlled non-date update preserves `date_rated`, exercises
