@@ -60,6 +60,35 @@ test('list normalises every supported list envelope', async () => {
   }
 })
 
+test('paginated list sends documented search, page, limit and ordering parameters', async () => {
+  let requestedUrl
+  global.fetch = async (url) => {
+    requestedUrl = String(url)
+    return response({
+      items: [{ id: 2 }],
+      pagination: { page: 2, pageSize: 25, total: 51, totalPages: 3 }
+    })
+  }
+
+  assert.deepEqual(await dataProvider.listPage('products', {
+    search: 'porter', page: 2, limit: 25, orderBy: 'product_name', order: 'asc'
+  }), { items: [{ id: 2 }], page: 2, pageSize: 25, total: 51, totalPages: 3 })
+  assert.equal(requestedUrl,
+    'https://provider.example.test/data/products?search=porter&page=2&limit=25&order_by=product_name&order=asc')
+})
+
+test('paginated list preserves empty search totals and rejects missing metadata', async () => {
+  global.fetch = async () => response({ items: [], meta: { page: 1, limit: 100, total_count: 0, total_pages: 0 } })
+  assert.deepEqual(await dataProvider.listPage('products', {
+    search: 'no matches', page: 1, limit: 100, orderBy: 'product_name'
+  }), { items: [], page: 1, pageSize: 100, total: 0, totalPages: 0 })
+
+  global.fetch = async () => response({ items: [] })
+  await assert.rejects(dataProvider.listPage('products', {
+    page: 1, limit: 24, orderBy: 'product_name'
+  }), { status: 502, code: 'PROVIDER_ERROR' })
+})
+
 test('get and writes normalise every supported single-record envelope', async () => {
   const envelopes = [
     [{ data: { id: 1 } }, { id: 1 }],

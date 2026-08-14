@@ -10,6 +10,24 @@ const normalisePayload = (payload) => {
   return payload
 }
 
+const normalisePage = (payload, requestedPage, requestedLimit) => {
+  const records = normalisePayload(payload)
+  const items = Array.isArray(records) ? records : records ? [records] : []
+  const metadata = payload?.pagination || payload?.meta || payload || {}
+  const page = Number(metadata.page ?? metadata.current_page ?? requestedPage)
+  const pageSize = Number(metadata.pageSize ?? metadata.per_page ?? metadata.limit ?? requestedLimit)
+  const total = Number(metadata.total ?? metadata.total_count)
+  const totalPages = Number(metadata.totalPages ?? metadata.total_pages ?? Math.ceil(total / pageSize))
+  if (![page, pageSize, total, totalPages].every(Number.isSafeInteger) || page < 1 ||
+      pageSize < 1 || total < 0 || totalPages < 0) {
+    const error = new Error(safeErrorMessage(502))
+    error.status = 502
+    error.code = 'PROVIDER_ERROR'
+    throw error
+  }
+  return { items, page, pageSize, total, totalPages }
+}
+
 const getProviderErrorCode = (status, filters = {}) => {
   if (status === 409 && filters?.expected_version !== undefined) return 'VERSION_CONFLICT'
   if (status === 409) return 'UNIQUE_CONFLICT'
@@ -40,7 +58,7 @@ const buildUrl = (baseUrl, path, filters = {}) => {
   return url
 }
 
-const providerRequest = async (path, { method = 'GET', body, filters } = {}) => {
+const providerRequest = async (path, { method = 'GET', body, filters, preserveEnvelope = false } = {}) => {
   const { baseUrl, secret } = getConfiguration()
   let upstream
   try {
@@ -79,7 +97,7 @@ const providerRequest = async (path, { method = 'GET', body, filters } = {}) => 
     throw error
   }
 
-  return normalisePayload(payload)
+  return preserveEnvelope ? payload : normalisePayload(payload)
 }
 
 export const dataProvider = {
@@ -90,6 +108,13 @@ export const dataProvider = {
     const payload = await providerRequest(collection, { filters })
     if (Array.isArray(payload)) return payload
     return payload ? [payload] : []
+  },
+
+  async listPage(collection, { search, page, limit, orderBy, order = 'asc', filters = {} }) {
+    const payload = await providerRequest(collection, {
+      filters: { ...filters, search, page, limit, order_by: orderBy, order }, preserveEnvelope: true
+    })
+    return normalisePage(payload, page, limit)
   },
 
   async get(collection, id) {
