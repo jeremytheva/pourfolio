@@ -4,6 +4,7 @@ import { Link, useParams } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import { beverageService } from '../services/beverageService.js'
 import { cellarService } from '../services/cellarService.js'
+import { formatDate } from '../utils/dateFormatting.js'
 
 const FALLBACK_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540"%3E%3Crect width="960" height="540" fill="%23fef3c7"/%3E%3Ctext x="480" y="285" text-anchor="middle" font-family="sans-serif" font-size="64" fill="%2392400e"%3EPourfolio%3C/text%3E%3C/svg%3E'
 
@@ -16,10 +17,6 @@ const initialCellarForm = {
   date_received: new Date().toISOString().slice(0, 10),
   notes: ''
 }
-
-const formatDate = (value) => value
-  ? new Intl.DateTimeFormat('en-AU', { dateStyle: 'medium' }).format(new Date(value))
-  : 'Date not recorded'
 
 function BeerDetails() {
   const { productId } = useParams()

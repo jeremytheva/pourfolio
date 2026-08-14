@@ -3,10 +3,7 @@ import { FiEdit3, FiRefreshCw, FiSearch, FiTrash2, FiX } from 'react-icons/fi'
 import { Link } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import { cellarService } from '../services/cellarService.js'
-
-const formatDate = (value) => value
-  ? new Intl.DateTimeFormat('en-AU', { dateStyle: 'medium' }).format(new Date(value))
-  : 'Date not recorded'
+import { formatDate } from '../utils/dateFormatting.js'
 
 function Cellar() {
   const [items, setItems] = useState([])

@@ -4,10 +4,7 @@ import { Link } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { ratingService } from '../services/ratingService.js'
-
-const formatDate = (value) => value
-  ? new Intl.DateTimeFormat('en-AU', { dateStyle: 'medium' }).format(new Date(value))
-  : 'Date not recorded'
+import { formatDate } from '../utils/dateFormatting.js'
 
 function Profile() {
   const { user, updateProfile } = useAuth()
