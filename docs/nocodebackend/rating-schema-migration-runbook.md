@@ -254,10 +254,10 @@ sub-jobs with an explicit dependency order:
    password, token or provider metadata into the profile.
 2. Add nullable compatibility columns to `ratings`:
    `submission_key`, `submission_fingerprint`, `submission_state`,
-   `submission_version`, `expected_score_count`, and `expected_bonus_count`.
-   Use target-capable types: fingerprint stores a full SHA-256 digest; versions
+   `submission_version`, `expected_score_count`, `expected_bonus_count`, and nullable
+   `deleted_at`. Use target-capable types: fingerprint stores a full SHA-256 digest; versions
    and counts store non-negative integers; state stores only `pending`,
-   `complete`, or `failed`. Do not install a default that conceals an unbackfilled
+   `complete`, `failed`, `deleting`, or `deleted`. Do not install a default that conceals an unbackfilled
    legacy row.
 3. Add nullable `uniqueness_key` columns to `rating_scores` and
    `bonus_attribute_rating_mapping`, sized for the deterministic values below.
@@ -313,6 +313,8 @@ quarantine manifest.
 * `ratings.submission_version`: `0` for a deterministically reconciled legacy
   header. Backfill must not invoke the workflow transition endpoint or increment
   it.
+* `ratings.deleted_at`: `null` for every migrated active or quarantined row.
+  Do not infer deletion timestamps or backfill deletion states from missing children.
 * `rating_scores.uniqueness_key`: exact
   `<user_id>:<client-rating_id>:score:<attribute_id>`, where client rating ID is
   the parent header's `rating_id`, not the provider parent primary key.
@@ -410,9 +412,19 @@ version, expected counts, totals or child parent/owner fields. Only the gateway
 service identity can create children and write workflow fields.
 
 The provider must atomically compare `submission_version` with
-`expected_version`; stale writes return a conflict without mutation. Permit only
-`pending -> failed` and `pending|failed -> complete`; `complete` is terminal and
-each successful transition increments the version exactly once. Test two
+`expected_version`; stale writes return a conflict without mutation. Permit only `pending -> failed`, `pending|failed -> complete`,
+`pending|failed|complete -> deleting`, and `deleting -> deleted`; `deleted` is
+terminal and each successful transition increments the version exactly once.
+The first deletion transition must exclude the header from reads before child
+cleanup begins. The current provider contract has no certified cross-collection
+atomic delete, so certify resumable deletion by forcing a failure after every
+score and bonus removal, retrying, racing two deletions, and proving that every
+child list/get/delete and final reconciliation is scoped to both owner and
+parent. Preserve the `deleting` tombstone on failure and the `deleted` tombstone
+on success. Only replace this process after production-equivalent certification
+proves an atomic graph-delete endpoint commits the parent and all children
+together, aborts without mutation at every forced failure point, and enforces
+the same owner policy. Test two
 owners, a non-owner, unauthenticated actor and gateway identity for allowed and
 denied operations; cross-owner parent/cellar attacks; invalid scores and
 references; concurrent duplicate header/child creates; stale transitions;

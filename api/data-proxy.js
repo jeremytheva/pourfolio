@@ -429,19 +429,75 @@ const deleteRating = async (ratingId, response, user) => {
     return
   }
 
-  const [scores, bonuses] = await Promise.all([
-    dataProvider.list(COLLECTIONS.ratingScores, { rating_id: id, user_id: user.id }),
-    dataProvider.list(COLLECTIONS.bonusRatingMappings, { rating_id: id, user_id: user.id })
-  ])
-  for (const child of [...normaliseList(scores), ...normaliseList(bonuses)]) {
-    if (isOwnedBy(child, user.id)) {
-      const collection = child.bonus_attributes_id === undefined
-        ? COLLECTIONS.ratingScores
-        : COLLECTIONS.bonusRatingMappings
-      await dataProvider.remove(collection, child.id)
+  if (rating.submission_state === 'deleted') {
+    response.status(204).end()
+    return
+  }
+
+  if (rating.submission_state !== 'deleting') {
+    const version = Number(rating.submission_version)
+    if (!Number.isSafeInteger(version) || version < 0) throw new Error('The rating workflow version is invalid.')
+    try {
+      await dataProvider.compareAndSet(COLLECTIONS.ratings, id, version, {
+        submission_state: 'deleting', submission_version: version + 1
+      })
+    } catch (error) {
+      if (error?.code !== 'VERSION_CONFLICT') throw error
+    }
+    const deleting = await dataProvider.get(COLLECTIONS.ratings, id)
+    if (!isOwnedBy(deleting, user.id)) {
+      const error = new Error('The rating ownership changed during deletion.')
+      error.status = 409
+      throw error
+    }
+    if (deleting.submission_state === 'deleted') {
+      response.status(204).end()
+      return
+    }
+    if (deleting.submission_state !== 'deleting') {
+      const error = new Error('The rating changed before deletion could start.')
+      error.status = 409
+      throw error
     }
   }
-  await dataProvider.remove(COLLECTIONS.ratings, id)
+
+  const childCollections = [COLLECTIONS.ratingScores, COLLECTIONS.bonusRatingMappings]
+  for (const collection of childCollections) {
+    const children = normaliseList(await dataProvider.list(collection, { rating_id: id, user_id: user.id }))
+    for (const listedChild of children) {
+      const child = await dataProvider.get(collection, listedChild.id)
+      if (!isOwnedBy(child, user.id) || String(child.rating_id) !== id) continue
+      try {
+        await dataProvider.remove(collection, child.id)
+      } catch (error) {
+        if (error?.status !== 404) throw error
+      }
+    }
+  }
+
+  for (const collection of childCollections) {
+    const remaining = normaliseList(await dataProvider.list(collection, { rating_id: id, user_id: user.id }))
+      .filter((child) => isOwnedBy(child, user.id) && String(child.rating_id) === id)
+    if (remaining.length) throw new Error('Rating deletion reconciliation remains incomplete.')
+  }
+
+  const persisted = await dataProvider.get(COLLECTIONS.ratings, id)
+  if (!isOwnedBy(persisted, user.id)) throw new Error('The rating ownership changed during deletion.')
+  if (persisted.submission_state !== 'deleted') {
+    const version = Number(persisted.submission_version)
+    if (persisted.submission_state !== 'deleting' || !Number.isSafeInteger(version) || version < 0) {
+      throw new Error('The rating deletion workflow state is invalid.')
+    }
+    try {
+      await dataProvider.compareAndSet(COLLECTIONS.ratings, id, version, {
+        submission_state: 'deleted', submission_version: version + 1, deleted_at: new Date().toISOString()
+      })
+    } catch (error) {
+      if (error?.code !== 'VERSION_CONFLICT') throw error
+      const reconciled = await dataProvider.get(COLLECTIONS.ratings, id)
+      if (!isOwnedBy(reconciled, user.id) || reconciled.submission_state !== 'deleted') throw error
+    }
+  }
   response.status(204).end()
 }
 
@@ -1060,7 +1116,8 @@ export const __testables = {
   compareAndSet,
   submitRating,
   listUserRatings,
+  deleteRating,
   createBrewDoneItGame, joinBrewDoneItGame, selectBrewDoneItProduct, submitBrewDoneItGuess,
   showBrewDoneItGame, brewDoneItStats, resolveBrewDoneItHistoryQuestion, transitionBrewDoneItGame,
-  HISTORY_PREDICATES, MAX_HISTORY_QUESTIONS_PER_ROUND
+  HISTORY_PREDICATES, MAX_HISTORY_QUESTIONS_PER_ROUND, activeRatingMatches
 }

@@ -69,7 +69,7 @@ these exit codes:
 | Table | Required controls |
 | --- | --- |
 | `profiles` | Non-null, unique `user_id`. |
-| `ratings` | Non-null fields and unique keys listed previously; `product_id -> products.id` and, when present, `cellar_id -> cellar.id`; state limited to `pending`, `complete`, or `failed`; non-negative integer version and expected counts; `date_rated` defaults on create and has no automatic update clause. |
+| `ratings` | Non-null fields and unique keys listed previously; `product_id -> products.id` and, when present, `cellar_id -> cellar.id`; state limited to `pending`, `complete`, `failed`, `deleting`, or `deleted`; nullable `deleted_at`; non-negative integer version and expected counts; `date_rated` defaults on create and has no automatic update clause. |
 | `rating_scores` | Non-null fields and unique keys; `rating_id -> ratings.id`; `attribute_id -> rating_attributes.id`; integer `attribute_score` from 1 through 7. |
 | `bonus_attribute_rating_mapping` | Non-null fields and unique keys; `rating_id -> ratings.id`; `bonus_attributes_id -> bonus_attributes.id`. |
 

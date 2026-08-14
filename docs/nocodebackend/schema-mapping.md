@@ -135,22 +135,36 @@ provider metadata are never accepted from a profile update.
 | `total_unweighted`, `total_weighted` | Calculated by the server from normalised scores and current attribute weights. |
 | `submission_key` | Non-null deterministic `<user_id>:<rating_id>` key; unique. |
 | `submission_fingerprint` | Non-null SHA-256 digest of the canonical product, owner cellar, scores and bonus selection; never accepts client input. |
-| `submission_state` | Non-null enum/string limited to `pending`, `complete`, or `failed`; server write only. |
+| `submission_state` | Non-null enum/string limited to `pending`, `complete`, `failed`, `deleting`, or `deleted`; server write only. `deleting` and `deleted` are excluded from every history and aggregate read. |
 | `submission_version` | Non-null non-negative integer, initially `0`; incremented exactly once by every conditional workflow-state transition. |
 | `expected_score_count`, `expected_bonus_count` | Non-negative integers fixed from validated input and used to prevent premature duplicate success. |
+| `deleted_at` | Nullable server timestamp. Set only with the terminal `deleting -> deleted` transition after owner-scoped child reconciliation succeeds. |
 
 The supplied database does not contain a rating-notes field. The launch form therefore does not pretend to persist review text. Adding notes requires an approved schema change and migration.
 
 The provider must atomically compare `submission_version` with the supplied
 `expected_version` while updating both `submission_state` and
 `submission_version`. Permissions must restrict these fields to the privileged
-data gateway and enforce only `pending -> failed` and `pending|failed ->
-complete`; `complete` is terminal. Owner filters, fingerprint checks and a
+data gateway and enforce `pending -> failed`, `pending|failed -> complete`,
+`pending|failed|complete -> deleting`, and `deleting -> deleted`; `deleted` is
+terminal. A rating becomes invisible at the first `deleting` transition, before
+any child is removed. Owner filters, fingerprint checks and a
 pre-write read remain defence in depth, but must not replace the provider-side
 compare-and-set. A version mismatch must return a conflict without changing the
 record. Deploy and certify these fields and rules before deploying the gateway
 change; existing non-production headers require a reviewed backfill to version
 `0`.
+
+Cross-collection atomic deletion is not certified for the current provider
+contract. Until certification supplies an atomic commit/abort endpoint, deletion
+retains the parent as a recoverable tombstone: conditionally transition its
+state/version to `deleting`, repeatedly list/get/delete children with both
+`rating_id` and authenticated `user_id`, prove no owner-scoped children remain,
+then conditionally transition to `deleted` and set `deleted_at`. Retries and
+concurrent requests resume from either persisted deletion state. They never
+delete a child whose re-read owner or parent does not match. If an atomic graph
+delete is later certified, record the endpoint, owner-policy and forced-abort
+evidence here before replacing this workflow.
 
 ### `rating_scores`
 
