@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -206,6 +207,7 @@ const TABLE_RULES = [
       'submission_fingerprint', 'submission_state', 'submission_version', 'expected_score_count',
       'expected_bonus_count'
     ],
+    requiredNullableColumns: ['deleted_at'],
     uniqueKeys: [['user_id', 'rating_id'], ['submission_key']],
     foreignKeys: [
       { column: 'product_id', parentTable: 'products', parentColumn: 'id' }
@@ -262,6 +264,23 @@ export const auditSchemaContract = (sql) => {
       } else if (!/\bNOT\s+NULL\b/i.test(definition)) {
         blockers.push({
           code: 'NULLABLE_REQUIRED_COLUMN',
+          table: rule.table,
+          column: columnName
+        })
+      }
+    }
+
+    for (const columnName of rule.requiredNullableColumns || []) {
+      const definition = table.columns.get(columnName)
+      if (!definition) {
+        blockers.push({
+          code: 'MISSING_REQUIRED_COLUMN',
+          table: rule.table,
+          column: columnName
+        })
+      } else if (/\bNOT\s+NULL\b/i.test(definition)) {
+        blockers.push({
+          code: 'NON_NULLABLE_REQUIRED_COLUMN',
           table: rule.table,
           column: columnName
         })
@@ -341,18 +360,48 @@ export const auditSchemaContract = (sql) => {
   }
 }
 
-const parseArguments = (arguments_) => {
-  if (arguments_.length !== 2 || arguments_[0] !== '--schema' || !arguments_[1]) {
-    throw new Error('Use --schema followed by the path to a SQL schema export.')
+export const fingerprintSchema = (contents) => {
+  const bytes = Buffer.isBuffer(contents) ? contents : Buffer.from(contents)
+  return {
+    bytes: bytes.byteLength,
+    sha256: createHash('sha256').update(bytes).digest('hex')
   }
-  return { schema: arguments_[1] }
+}
+
+const parseArguments = (arguments_) => {
+  if (!arguments_.length || arguments_.length % 2 !== 0) {
+    throw new Error('Use --schema <path> with optional --output <path>.')
+  }
+
+  const options = {}
+  for (let index = 0; index < arguments_.length; index += 2) {
+    const key = arguments_[index]
+    const value = arguments_[index + 1]
+    if (!['--schema', '--output'].includes(key) || !value || options[key.slice(2)]) {
+      throw new Error('Use --schema <path> with optional --output <path>.')
+    }
+    options[key.slice(2)] = value
+  }
+  if (!options.schema) throw new Error('Use --schema <path> with optional --output <path>.')
+  return options
 }
 
 export const runCli = (arguments_) => {
   const options = parseArguments(arguments_)
-  const sql = fs.readFileSync(path.resolve(options.schema), 'utf8')
-  const report = auditSchemaContract(sql)
-  process.stdout.write(`${JSON.stringify(report, null, 2)}\n`)
+  const schemaPath = path.resolve(options.schema)
+  const contents = fs.readFileSync(schemaPath)
+  const report = {
+    ...auditSchemaContract(contents.toString('utf8')),
+    inputs: {
+      schema: {
+        file: path.basename(schemaPath),
+        ...fingerprintSchema(contents)
+      }
+    }
+  }
+  const rendered = `${JSON.stringify(report, null, 2)}\n`
+  if (options.output) fs.writeFileSync(path.resolve(options.output), rendered)
+  process.stdout.write(rendered)
   return report.status === 'PASS' ? 0 : 1
 }
 

@@ -142,9 +142,10 @@ input only. The authoritative rollout baseline is a **fresh, transactionally
 consistent export taken immediately before the rehearsal or production change**;
 it must receive its own digest and immutable evidence-store reference.
 
-The dated source has the 26 findings partitioned in
-[schema preflight](schema-preflight.md): one missing table, eight missing
-columns, ten nullable required columns, six missing unique constraints and one
+The dated source has the 34 findings partitioned in
+[schema preflight](schema-preflight.md): one missing table, nine missing
+columns, ten nullable required columns, six missing unique constraints, six
+missing foreign keys, one missing integer score-range constraint and one
 mutable timestamp default. Do not assume the live baseline still has those
 findings. Audit and compare a fresh export before every run.
 
@@ -156,6 +157,8 @@ The target is the complete persisted rating contract in
   `submission_key`, `submission_fingerprint`, `submission_state`,
   `submission_version`, `expected_score_count`, `expected_bonus_count`) are
   non-null;
+* `ratings.deleted_at` exists and remains nullable for the recoverable deletion
+  tombstone;
 * all five `rating_scores` fields (`user_id`, `rating_id`, `attribute_id`,
   `attribute_score`, `uniqueness_key`) are non-null;
 * all four `bonus_attribute_rating_mapping` fields (`user_id`, `rating_id`,
@@ -501,7 +504,7 @@ same-state schema and data exports**. Run from the repository root with Node.js
 20:
 
 ```bash
-npm run audit:schema -- --schema <export>
+npm run audit:schema -- --schema <export> --output <report-path>
 ```
 
 Retain the exact command, export/job ID and SHA-256, repository commit, Node/npm

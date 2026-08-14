@@ -8,13 +8,24 @@ unknown producer ID is also a blocker.
 
 ## Current source-set finding
 
-The supplied source set is blocked:
+The supplied source set was rechecked on 15 August 2026. Exporting the
+workbook's 593 `Ready_Ratings` rows to CSV and auditing them with the supplied
+350 products, 159 producers and 500 cellar rows returns `BLOCKED` with **46
+record-level blockers**. The redacted, machine-readable result is retained as
+[`legacy-import-audit-report.json`](../../exports/legacy-import-audit-report.json):
 
-- the products export contains IDs `1–350`;
-- ready ratings reference absent product IDs `351`, `352`, `356`, `361`,
-  `364`, `365`, and `370–373`;
-- the historical cellar CSV also references absent product IDs `357–358`;
-- products `318–324` use producer ID `0`, which is not a valid producer;
+- **29 `MISSING_PRODUCER_REFERENCE`:** products `187`, `318–327`, `329`,
+  `331–332`, `334`, `336–341` and `343–350` include blank, zero or unresolved
+  producer references;
+- **14 rating `MISSING_PRODUCT_REFERENCE`:** ready ratings reference absent
+  product IDs `351`, `352`, `356`, `361`, `364`, `365`, and `370–373`;
+- **3 cellar `MISSING_PRODUCT_REFERENCE`:** the supplied cellar CSV references
+  absent product IDs `357–358`;
+- the workbook still contains 10 pending bonus decisions representing 69
+  selections;
+- the workbook's 399 historical cellar staging rows still have blank owner IDs;
+- the products export contains IDs `1–350`, so the absent references cannot be
+  certified from this catalogue snapshot; and
 - the workbook's `Cellar_Validation` check reports zero unresolved product IDs,
   but it checks that IDs are populated rather than reconciling them to the
   supplied products export.
@@ -35,13 +46,15 @@ npm run audit:import -- \
   --ratings ./exports/Ready_Ratings.csv \
   --cellar ./exports/cellar.csv \
   --bonus-decisions <private-evidence>/bonus-decision-ledger.csv \
-  --cellar-identity <private-evidence>/cellar-identity-ledger.csv
+  --cellar-identity <private-evidence>/cellar-identity-ledger.csv \
+  --output <private-evidence>/import-preflight.json
 ```
 
-The command emits a JSON report containing the byte length and SHA-256 checksum
-of every supplied input. Retain the report from each run and compare the
-checksums directly; matching file names are not evidence that an idempotency
-rerun used identical inputs. The command uses these exit codes:
+The command emits a JSON report containing the file name, byte length and
+SHA-256 checksum of every supplied input. `--output` is optional and writes the
+same report that is emitted to stdout. Retain the report from each run and
+compare the checksums directly; matching file names are not evidence that an
+idempotency rerun used identical inputs. The command uses these exit codes:
 
 - `0`: all supplied references pass;
 - `1`: deterministic integrity blockers were found;

@@ -8,14 +8,29 @@ The connected suite is destructive and must only run against an isolated product
 
 ```bash
 RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1 \
+NCB_CONTRACT_ENVIRONMENT=isolated-staging \
+NCB_CONTRACT_ALLOW_DESTRUCTIVE=1 \
 NOCODEBACKEND_DATA_BASE_URL=https://example.invalid/api/data \
 NOCODEBACKEND_SECRET_KEY=<redacted> \
+NCB_CONTRACT_USER_ID=<disposable-staging-user-id> \
 NCB_CONTRACT_PRODUCT_ID=<existing-product-id> \
+NCB_CONTRACT_ATTRIBUTE_ID=<existing-scored-attribute-id> \
 NCB_CONTRACT_TRANSCRIPT_PATH=artifacts/provider-contract/redacted-transcript.json \
 npm run test:provider-contract
 ```
 
-The default `npm test` run skips the suite unless `RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1` is set. The suite creates records with a `contract-<timestamp>-<random>` prefix and attempts to delete every created record during cleanup. Set `NCB_CONTRACT_TRANSCRIPT_PATH` to retain a JSON transcript of provider requests and responses; the recorder redacts the configured provider base URL, bearer token, generated contract run/user identifiers, and configured product identifier before writing the artifact.
+The default `npm test` run skips the suite unless
+`RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1` is set. Even then, the suite fails
+before creating data unless `NCB_CONTRACT_ENVIRONMENT=isolated-staging`,
+`NCB_CONTRACT_ALLOW_DESTRUCTIVE=1` and all fixture identifiers are present.
+The user must be disposable and the product and attribute must be
+cleanup-safe staging fixtures. The suite creates canonical rating and score
+records, deletes them in dependency order and fails unless re-reads prove that
+every created record is absent. Set
+`NCB_CONTRACT_TRANSCRIPT_PATH` to retain a JSON transcript of provider requests
+and responses; the recorder redacts the configured provider base URL, bearer
+token, user, product and attribute identifiers and generated run prefix before
+writing the artefact.
 
 ## Transport contract
 
@@ -33,7 +48,19 @@ All operations are same-origin from the browser to `api/data-proxy.js`; only ser
 
 ## Filters, pagination, and ordering
 
-Supported filters are equality filters on concrete provider fields used by the gateway: `id`, `user_id`, `product_id`, `rating_id`, `submission_id`, `round_id`, `game_id`, `turn_index`, and `expected_version` for compare-and-set writes. Multiple filters are conjunctive: a record must match every supplied field. Catalogue reads additionally support case-insensitive `search`, one-based `page`, `limit` up to 100, `order_by`, and `order` (`asc` or `desc`). The catalogue gateway fixes ordering to `product_name asc` so page boundaries remain deterministic. Totals come from the provider's pagination metadata; the gateway does not infer a total from the current page. Relationship hydration uses record reads for only the distinct producer and category identifiers referenced by that page. Owner-scoped rating and cellar queries remain scoped by `user_id`, and only product identifiers referenced by those returned records are hydrated.
+Supported filters are equality filters on concrete provider fields used by the
+gateway: `id`, `user_id`, `product_id`, `rating_id`, `submission_key`,
+`uniqueness_key`, `attribute_id`, `round_id`, `game_id`, `turn_index`, and
+`expected_version` for compare-and-set writes. Multiple filters are
+conjunctive: a record must match every supplied field. Catalogue reads
+additionally support case-insensitive `search`, one-based `page`, `limit` up to
+100, `order_by`, and `order` (`asc` or `desc`). The catalogue gateway fixes
+ordering to `product_name asc` so page boundaries remain deterministic. Totals
+come from the provider's pagination metadata; the gateway does not infer a
+total from the current page. Relationship hydration uses record reads for only
+the distinct producer and category identifiers referenced by that page.
+Owner-scoped rating and cellar queries remain scoped by `user_id`, and only
+product identifiers referenced by those returned records are hydrated.
 
 ## Error and conflict contract
 
@@ -48,8 +75,21 @@ Provider error details are never forwarded to browsers. The adapter preserves sa
 
 ## Multi-write, timeout, retry, and idempotency expectations
 
-Rating submission in `api/data-proxy.js` is intentionally defensive because the provider does not expose cross-collection transactions. The gateway creates or reuses an idempotent draft rating, idempotently creates score and bonus child rows, and only transitions the rating to `complete` with `compareAndSet` on `submission_version` after child writes have completed. A partial child-write failure must leave the parent in a recoverable draft state, and a retry with the same `submission_id` must reuse the draft instead of creating a duplicate parent.
+Rating submission in `api/data-proxy.js` is intentionally defensive because
+the provider does not expose certified cross-collection transactions. The
+gateway creates or reuses an idempotent `pending` rating, idempotently creates
+score and bonus child rows, and only transitions the rating to `complete` with
+`compareAndSet` on `submission_version` after child writes have completed. A
+partial child-write failure must leave the parent in recoverable `pending` or
+`failed` state, and a retry with the same owner-scoped `rating_id` and
+`submission_key` must reuse the parent instead of creating a duplicate.
 
-Timeout behaviour is classified in two phases: timeouts before a persisted write return a safe gateway error and do not create a recoverable record; timeouts after a persisted write are followed by idempotency lookups on retry. Connected verification covers both provider adapter timeout mapping and gateway retry behaviour by using deterministic idempotency keys and checking persisted state after retry.
+Timeout behaviour is classified in two phases: timeouts before a persisted
+write return a safe gateway error and do not create a recoverable record;
+timeouts after a persisted write are followed by idempotency lookups on retry.
+Local policy tests inject failures before and after persistent boundaries. The
+connected provider suite verifies a client abort and canonical idempotency
+replay, but production-equivalent certification must additionally use a
+provider-supported fault mechanism to prove the post-write timeout paths.
 
 Concurrent stale-version verification sends two `compareAndSet` requests for the same `submission_version`. Exactly one request must transition the row; the loser must receive `409 VERSION_CONFLICT`, and the final row must contain only the winning transition.

@@ -2,22 +2,18 @@
 
 ## Tracker status and administrator action
 
-The system of record is the repository's **GitHub Issues** tracker and its
-milestones. Its location must be recorded as the stable repository identifier
-`<github-host>/<owner>/<repository>/issues` once an administrator supplies the
-canonical host, owner and repository name. Issue creation must wait until the
-administrator enables Issues and verifies access; the contracts below are not
-issues and their identifiers are not substitutes for GitHub issue numbers.
+The system of record is the repository's [GitHub Issues
+tracker](https://github.com/jeremytheva/pourfolio/issues) and its milestones.
+Issues are enabled. `PF-P0-01` is represented by
+[#143](https://github.com/jeremytheva/pourfolio/issues/143), and `PF-P1-01` is
+represented by [#144](https://github.com/jeremytheva/pourfolio/issues/144).
 
-As at 3 August 2026, this checkout has no Git remote, GitHub CLI, canonical
-repository URL or administrator evidence. Consequently no milestone, issue,
-assignee, blocking link or tracker setting can truthfully be claimed as created
-or verified from this environment. **No alternative tracker exception has been
-approved.** If GitHub Issues cannot be enabled, release work remains blocked
-until an authorised decision records exactly one alternative tracker, one
-individually named owner, its URL or stable identifier, the complete field
-contract below, its access controls and the reason for the exception. Do not
-infer approval from this document.
+On 15 August 2026, the accountable owner explicitly authorised Phase 1
+implementation to proceed while #143 remains open. This is a sequencing
+exception only: it does not close or waive Phase 0, permit production promotion,
+or relax Phase 1's connected evidence and independent-review requirements.
+The Phase 0 milestone exists; the Phase 1–6 milestones and remaining outcome
+issues still require administrator creation and mapping.
 
 The repository administrator must:
 
@@ -49,10 +45,10 @@ evidence has been independently reviewed.
 
 | Contract | Exact milestone name | Backlog outcome | Priority | Accountable owner | GitHub issue |
 | --- | --- | --- | --- | --- | --- |
-| `PF-P0-01` | Phase 0 — Governed delivery ready | Repository changes can reach production only through an evidenced, protected delivery path. | P0 | `@jeremytheva` | Pending Issues enablement |
-| `PF-P1-01` | Phase 1 — Backend contract certified | The production-equivalent backend enforces and proves the canonical launch data contract. | P0 | `@jeremytheva` | Pending `PF-P0-01` issue link |
-| `PF-P2-01` | Phase 2 — Identity lifecycle safe | A user can securely register, authenticate, recover, verify, export and delete their account. | P0 | `@jeremytheva` | Pending `PF-P1-01` issue link |
-| `PF-P3-01` | Phase 3 — Beer discovery dependable | A user can reliably browse, search and open canonical beer details. | P1 | `@jeremytheva` | Pending `PF-P1-01` issue link |
+| `PF-P0-01` | Phase 0 — Governed delivery ready | Repository changes can reach production only through an evidenced, protected delivery path. | P0 | `@jeremytheva` | [#143](https://github.com/jeremytheva/pourfolio/issues/143) |
+| `PF-P1-01` | Phase 1 — Backend contract certified | The production-equivalent backend enforces and proves the canonical launch data contract. | P0 | `@jeremytheva` | [#144](https://github.com/jeremytheva/pourfolio/issues/144) — milestone assignment pending |
+| `PF-P2-01` | Phase 2 — Identity lifecycle safe | A user can securely register, authenticate, recover, verify, export and delete their account. | P0 | `@jeremytheva` | Pending; depends on [#144](https://github.com/jeremytheva/pourfolio/issues/144) |
+| `PF-P3-01` | Phase 3 — Beer discovery dependable | A user can reliably browse, search and open canonical beer details. | P1 | `@jeremytheva` | Pending; depends on [#144](https://github.com/jeremytheva/pourfolio/issues/144) |
 | `PF-P4-01` | Phase 4 — Ratings trustworthy | A user can create, retry, view and delete only their own internally consistent rating. | P0 | `@jeremytheva` | Pending Phase 1 and 3 issue links |
 | `PF-P5-01` | Phase 5 — Cellar and profile owner-safe | A user can manage only their own cellar records and allowed profile fields. | P1 | `@jeremytheva` | Pending Phase 1 and 2 issue links |
 | `PF-P6-01` | Phase 6 — Launch evidence approved | The exact production candidate is deployed and independently approved from complete, redacted evidence. | P0 | `@jeremytheva` | Pending all Phase 0–5 issue links |
@@ -86,8 +82,10 @@ evidence has been independently reviewed.
   launch records while unauthenticated and cross-owner operations fail closed.
 - **Owner / milestone / priority:** `@jeremytheva`; **Phase 1 — Backend contract
   certified**; **P0**.
-- **Dependencies:** blocked by the created `PF-P0-01` issue; link provider access
-  and approved schema rollout decisions.
+- **Dependencies:** [#143](https://github.com/jeremytheva/pourfolio/issues/143)
+  remains open. The owner authorised implementation to proceed on 15 August
+  2026, but Phase 1 closure still requires the governed delivery path, provider
+  access and approved schema rollout decisions.
 - **Acceptance criteria:** same-state schema and import preflights pass;
   canonical collections and required constraints exist; provider CRUD/error
   envelopes match the gateway; permission-negative and duplicate/concurrent

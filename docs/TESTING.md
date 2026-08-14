@@ -39,7 +39,9 @@ Tests cover:
 - canonical relational collection names;
 - optional nullable sharing series/edition relationships;
 - historical import CSV parsing, required headers, positive unique IDs, and product/producer referential integrity;
-- SQL schema parsing and required profile/rating non-null, uniqueness and immutable timestamp controls;
+- SQL schema parsing, exact-input fingerprints, required profile/rating
+  non-null and uniqueness controls, the nullable deletion tombstone, the full
+  five-state workflow and immutable rating timestamps;
 - response field projection;
 - zero, one and multiple-rating catalogue aggregates, including rejection of non-finite totals and absence of individual rating or cellar identifiers;
 - score 1 validity and complete 1–7 rating validation;
@@ -117,6 +119,14 @@ blocked entry above.
 The schema and import audit CLIs are exercised through their Node regression
 tests. Environment-specific exports are intentionally supplied at release time
 rather than committed to the repository.
+
+The opt-in provider-contract suite uses the canonical rating and score fields,
+verifies that a controlled non-date update preserves `date_rated`, exercises
+duplicate and compare-and-set conflicts and retains a redacted transcript when
+configured. It refuses destructive execution unless the operator supplies the
+exact `isolated-staging` environment marker, an explicit destructive opt-in and
+disposable user/product/attribute fixture identifiers. The default unit run
+continues to skip this connected suite.
 
 ## Required pre-launch environment tests
 

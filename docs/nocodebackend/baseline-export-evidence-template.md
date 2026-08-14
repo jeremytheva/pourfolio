@@ -124,7 +124,7 @@ do not hash a count, a displayed response, a reserialised copy or a pathname.
 
 | Artefact | Snapshot/logical-state ID | UTC first request | UTC terminal response | Rows | Bytes | SHA-256 | Pagination-ledger reference |
 | --- | --- | --- | --- | ---: | ---: | --- | --- |
-| Schema | Not supplied for approved private baseline; public schema-only artefact is not snapshot-bound | Not supplied | Not supplied | N/A | 4,607 | `206438dcaab8b828dde2f4b1a7a655ddde8e078fd5eb5604d8112c3fe53a155e` | N/A |
+| Schema | Not supplied for approved private baseline; public schema-only artefact is not snapshot-bound | Not supplied | Not supplied | N/A | 4,658 | `1da03ff080e882c61e550b8202be0df2403b165868aad378eb50f66642e89f11` | N/A |
 | `products` | | | | | | | |
 | `producers` | | | | | | | |
 | `categories` | | | | | | | |

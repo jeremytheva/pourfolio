@@ -13,17 +13,17 @@ must never be used as a substitute for the other.
 
 ## Current source-set finding
 
-The current baseline applies specifically to the supplied
-`54026_rating_export(2).sql` source snapshot, audited on 29 July 2026 against
-the earlier `scripts/audit-schema-contract.js` contract. That historical audit
-is superseded by the expanded structural contract: the export must be rerun and
-a fresh blocker count retained. It previously recorded 26
-deterministic findings:
+The supplied `54026_rating_export(2).sql` source snapshot was re-audited on
+15 August 2026 against the current structural contract. The retained
+[`legacy-schema-audit-report.json`](../../exports/legacy-schema-audit-report.json)
+identifies the exact 25,869 source bytes by SHA-256 and records **34
+deterministic findings**:
 
 - **1 `MISSING_TABLE`:** the required `profiles` table is absent;
-- **8 `MISSING_REQUIRED_COLUMN`:** `ratings` lacks `submission_key`,
+- **9 `MISSING_REQUIRED_COLUMN`:** `ratings` lacks `submission_key`,
   `submission_fingerprint`, `submission_state`, `submission_version`, `expected_score_count` and
-  `expected_bonus_count`; `rating_scores` and
+  `expected_bonus_count` plus the nullable deletion tombstone `deleted_at`;
+  `rating_scores` and
   `bonus_attribute_rating_mapping` each lack `uniqueness_key`;
 - **10 `NULLABLE_REQUIRED_COLUMN`:** the four existing required columns on
   `ratings`, the four on `rating_scores` and the three on
@@ -34,14 +34,21 @@ deterministic findings:
   `rating_scores(rating_id, attribute_id)`,
   `rating_scores(uniqueness_key)`,
   `bonus_attribute_rating_mapping(rating_id, bonus_attributes_id)` and
-  `bonus_attribute_rating_mapping(uniqueness_key)`; and
+  `bonus_attribute_rating_mapping(uniqueness_key)`;
+- **6 `MISSING_FOREIGN_KEY`:** the snapshot does not enforce the canonical
+  rating-to-product, optional rating-to-cellar, score-to-rating,
+  score-to-attribute, bonus-mapping-to-rating and bonus-mapping-to-bonus
+  relationships;
+- **1 `MISSING_SCORE_INTEGER_RANGE_ENFORCEMENT`:**
+  `rating_scores.attribute_score` is not structurally constrained to integer
+  values from 1 through 7; and
 - **1 `MUTABLE_RATING_TIMESTAMP_DEFAULT`:** `ratings.date_rated` uses
   `ON UPDATE CURRENT_TIMESTAMP`, so later record changes overwrite the original
   rating date.
 
-These categories sum to 26 (1 + 8 + 10 + 6 + 1). They describe only that dated
-source snapshot; a newer production-equivalent export requires a fresh audit
-and must not inherit this baseline by assumption.
+These categories sum to 34 (1 + 9 + 10 + 6 + 6 + 1 + 1). They describe only
+that supplied source snapshot; a newer production-equivalent export requires a
+fresh audit and must not inherit this baseline by assumption.
 
 The launch application does not expose a rating-update route, but the timestamp
 definition is still unsafe for imports, administrative changes and future
@@ -52,11 +59,15 @@ workflows.
 Export the complete production-equivalent schema as SQL, then run:
 
 ```bash
-npm run audit:schema -- --schema ./exports/schema.sql
+npm run audit:schema -- \
+  --schema ./exports/schema.sql \
+  --output ./exports/schema-audit-report.json
 ```
 
-The command reads the export without modifying it and emits a JSON report
-explicitly labelled `STRUCTURAL_SQL_AUDIT`. It uses
+The command reads the schema without modifying it and emits a JSON report
+explicitly labelled `STRUCTURAL_SQL_AUDIT`. The report identifies the audited
+file name, byte length and SHA-256. `--output` is optional; when supplied, the
+same JSON written to stdout is retained at that path. The command uses
 these exit codes:
 
 - `0`: all represented structural controls (tables, fields, keys, checks and
@@ -108,11 +119,15 @@ Capture the same-state schema and collection baseline with the
 completed, appropriately redacted package belongs in the approved private
 evidence store, not this repository.
 
-**Migrated structural audit status (5 August 2026):** The approved provider
-migration target is retained as `exports/schema.sql` and the structural audit
-report is retained as `exports/schema-audit-report.json`. The report records
-`status: "PASS"` and `counts.blockers: 0` for the SQL invariants checked by
-`scripts/audit-schema-contract.js`. Connected provider policy, workflow
+**Canonical target preflight (15 August 2026):** The provider migration target
+is retained as `exports/schema.sql` and its structural audit report is retained
+as `exports/schema-audit-report.json`. The report records `status: "PASS"`,
+`counts.blockers: 0`, 4,658 bytes and SHA-256
+`1da03ff080e882c61e550b8202be0df2403b165868aad378eb50f66642e89f11`.
+This repository target is not a fresh provider export. The five-state deletion
+workflow and nullable `deleted_at` field were added after the 5 August connected
+evidence, so a new provider migration/export and connected certification are
+required before the current contract can close. Provider policy, workflow
 transition and permission evidence remain separate launch gates.
 
 Retain:
@@ -120,8 +135,8 @@ Retain:
 1. the schema export name, environment, source-snapshot identifier and
    timestamp;
 2. the complete JSON report, including `counts.blockers`, `countsByCode` and
-   every blocker (the dated supplied-snapshot baseline is 26, partitioned as
-   1/8/10/6/1 above); the launch evidence must be a fresh `PASS` report;
+   every blocker (the dated supplied-snapshot baseline is 34, partitioned as
+   1/9/10/6/6/1/1 above); the launch evidence must be a fresh `PASS` report;
 3. duplicate/null cleanup counts before and after remediation;
 4. redacted API evidence for concurrent retry and timestamp preservation;
 5. permission-negative, rollback and recovery evidence;

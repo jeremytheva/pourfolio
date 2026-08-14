@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { auditSchemaContract } from '../audit-schema-contract.js'
+import { auditSchemaContract, fingerprintSchema } from '../audit-schema-contract.js'
 
 const compliantSchema = `
   CREATE TABLE profiles (
@@ -101,7 +101,7 @@ test('schema preflight blocks the supplied legacy rating shape', () => {
   assert.equal(report.status, 'BLOCKED')
   assert.deepEqual(report.countsByCode, {
     MISSING_TABLE: 1,
-    MISSING_REQUIRED_COLUMN: 8,
+    MISSING_REQUIRED_COLUMN: 9,
     NULLABLE_REQUIRED_COLUMN: 10,
     MISSING_UNIQUE_CONSTRAINT: 6,
     MISSING_FOREIGN_KEY: 5,
@@ -162,6 +162,19 @@ test('structural audit requires the exact allowed submission states', () => {
   assert.deepEqual(report.countsByCode, { MISSING_SUBMISSION_STATE_CHECK: 1 })
 })
 
+test('structural audit requires a nullable deletion tombstone timestamp', () => {
+  const missing = auditSchemaContract(compliantSchema
+    .replace('    deleted_at timestamp NULL,\n', ''))
+  assert.deepEqual(missing.countsByCode, { MISSING_REQUIRED_COLUMN: 1 })
+  assert.ok(missing.blockers.some((blocker) =>
+    blocker.table === 'ratings' && blocker.column === 'deleted_at'
+  ))
+
+  const nonNullable = auditSchemaContract(compliantSchema
+    .replace('deleted_at timestamp NULL', 'deleted_at timestamp NOT NULL'))
+  assert.deepEqual(nonNullable.countsByCode, { NON_NULLABLE_REQUIRED_COLUMN: 1 })
+})
+
 test('structural audit accepts equivalent unsigned counters and enum state enforcement', () => {
   const report = auditSchemaContract(compliantSchema
     .replace('submission_state varchar(16) NOT NULL,', "submission_state enum('failed', 'pending', 'complete', 'deleting', 'deleted') NOT NULL,")
@@ -188,4 +201,11 @@ test('schema preflight rejects empty or structurally incomplete SQL', () => {
     () => auditSchemaContract('CREATE TABLE ratings (id bigint;'),
     /unbalanced parentheses/
   )
+})
+
+test('schema fingerprints identify the exact audited bytes', () => {
+  assert.deepEqual(fingerprintSchema('CREATE TABLE ratings ();\n'), {
+    bytes: 25,
+    sha256: 'e6bbec45f88d332b0785464ba65b824412a49f5bc04b024a90a0ad388a8e909b'
+  })
 })

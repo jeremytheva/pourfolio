@@ -1,0 +1,223 @@
+{
+  "reportType": "STRUCTURAL_SQL_AUDIT",
+  "scope": "Structural SQL invariants only; connected provider policy and workflow certification is required separately.",
+  "status": "BLOCKED",
+  "counts": {
+    "tablesChecked": 4,
+    "blockers": 34
+  },
+  "countsByCode": {
+    "MISSING_TABLE": 1,
+    "NULLABLE_REQUIRED_COLUMN": 10,
+    "MISSING_REQUIRED_COLUMN": 9,
+    "MISSING_UNIQUE_CONSTRAINT": 6,
+    "MISSING_FOREIGN_KEY": 6,
+    "MUTABLE_RATING_TIMESTAMP_DEFAULT": 1,
+    "MISSING_SCORE_INTEGER_RANGE_ENFORCEMENT": 1
+  },
+  "blockers": [
+    {
+      "code": "MISSING_TABLE",
+      "table": "profiles"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "user_id"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "rating_id"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "product_id"
+    },
+    {
+      "code": "MISSING_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "submission_key"
+    },
+    {
+      "code": "MISSING_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "submission_fingerprint"
+    },
+    {
+      "code": "MISSING_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "submission_state"
+    },
+    {
+      "code": "MISSING_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "submission_version"
+    },
+    {
+      "code": "MISSING_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "expected_score_count"
+    },
+    {
+      "code": "MISSING_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "expected_bonus_count"
+    },
+    {
+      "code": "MISSING_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "deleted_at"
+    },
+    {
+      "code": "MISSING_UNIQUE_CONSTRAINT",
+      "table": "ratings",
+      "columns": [
+        "user_id",
+        "rating_id"
+      ]
+    },
+    {
+      "code": "MISSING_UNIQUE_CONSTRAINT",
+      "table": "ratings",
+      "columns": [
+        "submission_key"
+      ]
+    },
+    {
+      "code": "MISSING_FOREIGN_KEY",
+      "table": "ratings",
+      "column": "product_id",
+      "parentTable": "products",
+      "parentColumn": "id"
+    },
+    {
+      "code": "MISSING_FOREIGN_KEY",
+      "table": "ratings",
+      "column": "cellar_id",
+      "parentTable": "cellar",
+      "parentColumn": "id"
+    },
+    {
+      "code": "MUTABLE_RATING_TIMESTAMP_DEFAULT",
+      "table": "ratings",
+      "column": "date_rated"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "rating_scores",
+      "column": "user_id"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "rating_scores",
+      "column": "rating_id"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "rating_scores",
+      "column": "attribute_id"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "rating_scores",
+      "column": "attribute_score"
+    },
+    {
+      "code": "MISSING_REQUIRED_COLUMN",
+      "table": "rating_scores",
+      "column": "uniqueness_key"
+    },
+    {
+      "code": "MISSING_UNIQUE_CONSTRAINT",
+      "table": "rating_scores",
+      "columns": [
+        "rating_id",
+        "attribute_id"
+      ]
+    },
+    {
+      "code": "MISSING_UNIQUE_CONSTRAINT",
+      "table": "rating_scores",
+      "columns": [
+        "uniqueness_key"
+      ]
+    },
+    {
+      "code": "MISSING_FOREIGN_KEY",
+      "table": "rating_scores",
+      "column": "rating_id",
+      "parentTable": "ratings",
+      "parentColumn": "id"
+    },
+    {
+      "code": "MISSING_FOREIGN_KEY",
+      "table": "rating_scores",
+      "column": "attribute_id",
+      "parentTable": "rating_attributes",
+      "parentColumn": "id"
+    },
+    {
+      "code": "MISSING_SCORE_INTEGER_RANGE_ENFORCEMENT",
+      "table": "rating_scores",
+      "column": "attribute_score"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "bonus_attribute_rating_mapping",
+      "column": "user_id"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "bonus_attribute_rating_mapping",
+      "column": "rating_id"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "bonus_attribute_rating_mapping",
+      "column": "bonus_attributes_id"
+    },
+    {
+      "code": "MISSING_REQUIRED_COLUMN",
+      "table": "bonus_attribute_rating_mapping",
+      "column": "uniqueness_key"
+    },
+    {
+      "code": "MISSING_UNIQUE_CONSTRAINT",
+      "table": "bonus_attribute_rating_mapping",
+      "columns": [
+        "rating_id",
+        "bonus_attributes_id"
+      ]
+    },
+    {
+      "code": "MISSING_UNIQUE_CONSTRAINT",
+      "table": "bonus_attribute_rating_mapping",
+      "columns": [
+        "uniqueness_key"
+      ]
+    },
+    {
+      "code": "MISSING_FOREIGN_KEY",
+      "table": "bonus_attribute_rating_mapping",
+      "column": "rating_id",
+      "parentTable": "ratings",
+      "parentColumn": "id"
+    },
+    {
+      "code": "MISSING_FOREIGN_KEY",
+      "table": "bonus_attribute_rating_mapping",
+      "column": "bonus_attributes_id",
+      "parentTable": "bonus_attributes",
+      "parentColumn": "id"
+    }
+  ],
+  "inputs": {
+    "schema": {
+      "file": "08-54026_rating_export-2-.sql",
+      "bytes": 25869,
+      "sha256": "65a88a92486bc9999816e2c1919a9784ab3f63c292b13272b619583ef43df1aa"
+    }
+  }
+}

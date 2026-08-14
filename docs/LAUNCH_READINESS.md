@@ -143,9 +143,9 @@ snapshot. Retain the completed, appropriately redacted package in the approved
 private evidence store.
 
 **Completed baseline reference (5 August 2026):** Not supplied; blocked. The
-repository contains a public schema-only export (`exports/schema.sql`, 4,607
+repository contains a public schema-only export (`exports/schema.sql`, 4,658
 bytes, SHA-256
-`206438dcaab8b828dde2f4b1a7a655ddde8e078fd5eb5604d8112c3fe53a155e`)
+`1da03ff080e882c61e550b8202be0df2403b165868aad378eb50f66642e89f11`)
 and `npm run audit:schema -- --schema exports/schema.sql` returns `PASS` with
 zero structural blockers. That does not complete the NoCodeBackend baseline: no
 approved private production-equivalent snapshot package supplies environment
@@ -290,7 +290,7 @@ the action has an accountable owner.
 | <a id="evidence-g13"></a>G13: Prove unauthenticated, owner, other-user and privileged negative permission cases for `profiles`, `ratings`, `rating_scores`, `bonus_attribute_rating_mapping` and `cellar`, including missing, forged, expired, revoked and cross-account sessions, positive owner flows, negative no-mutation checks, redacted request IDs, environment/deployment identity and cleanup proof. | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G13`: public certification checklist updated in `docs/nocodebackend/connected-policy-certification.md`; connected staging credentials, request IDs, policy bundle, before/after digests, cleanup proof and independent approval are not supplied, so this row remains open | **BLOCKED** |
 | <a id="evidence-g14"></a>G14: Prove sequential and concurrent duplicate-rating retries return o… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G14`: not supplied | **BLOCKED** |
 | <a id="evidence-g15"></a>G15: Repeat the atomic-workflow capability probe with configured stagi… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G15`: not supplied | **BLOCKED** |
-| <a id="evidence-g16"></a>G16: Apply and prove the documented idempotency fields, constraints, s… | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G16`: private staging evidence records the added workflow/idempotency fields (`submission_key`, `submission_fingerprint`, `submission_state`, `submission_version`, `expected_score_count`, `expected_bonus_count` and child `uniqueness_key` fields), uniqueness enforcement, state permissions, owner-safe reconciliation workflow, duplicate retry proof, forced partial-write proof and failed-state update proof; the retained `npm run audit:schema -- --schema <private-path>/schema.sql` report shows `status: "PASS"` and blocker count `0` after the constraints and permissions were applied | **PASS** |
+| <a id="evidence-g16"></a>G16: Apply and prove the documented idempotency fields, constraints, s… | `@jeremytheva` | 15 August 2026 — `PRR-2026-08-15-G16-RECERTIFY`: the 5 August evidence predates the recoverable-deletion expansion committed on 14 August. The current canonical target now requires `deleting` and `deleted` workflow states plus nullable `deleted_at`; the local structural target passes, but no fresh provider migration/export, state-permission transcript, deletion recovery/concurrency run, cleanup proof or independent approval is supplied for the expanded contract | **BLOCKED** |
 | <a id="evidence-g17"></a>G17: Obtain complete, same-state products/producers exports and make t… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G17`: not supplied | **BLOCKED** |
 | <a id="evidence-g18"></a>G18: Resolve the 69 unmatched historical bonus selections. | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G18`: not supplied | **BLOCKED** |
 | <a id="evidence-g19"></a>G19: Assign valid owners and confirmed IDs to all 399 historical cella… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G19`: not supplied | **BLOCKED** |
