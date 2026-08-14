@@ -21,12 +21,13 @@ const compliantSchema = `
     submission_version int NOT NULL DEFAULT 0,
     expected_score_count int NOT NULL,
     expected_bonus_count int NOT NULL,
+    deleted_at timestamp NULL,
     total_weighted decimal(10,2),
     PRIMARY KEY (id),
     UNIQUE KEY uq_ratings_user_submission (user_id, rating_id),
     UNIQUE KEY uq_ratings_submission_key (submission_key),
     CONSTRAINT fk_ratings_product FOREIGN KEY (product_id) REFERENCES products (id),
-    CONSTRAINT chk_submission_state CHECK (submission_state IN ('pending', 'complete', 'failed')),
+    CONSTRAINT chk_submission_state CHECK (submission_state IN ('pending', 'complete', 'failed', 'deleting', 'deleted')),
     CONSTRAINT chk_submission_version CHECK (submission_version >= 0),
     CONSTRAINT chk_expected_score_count CHECK (expected_score_count >= 0),
     CONSTRAINT chk_expected_bonus_count CHECK (expected_bonus_count >= 0)
@@ -156,15 +157,15 @@ test('structural audit requires integer score range and non-negative workflow co
 
 test('structural audit requires the exact allowed submission states', () => {
   const report = auditSchemaContract(compliantSchema
-    .replace("('pending', 'complete', 'failed')", "('pending', 'complete', 'cancelled')"))
+    .replace("('pending', 'complete', 'failed', 'deleting', 'deleted')", "('pending', 'complete', 'cancelled')"))
 
   assert.deepEqual(report.countsByCode, { MISSING_SUBMISSION_STATE_CHECK: 1 })
 })
 
 test('structural audit accepts equivalent unsigned counters and enum state enforcement', () => {
   const report = auditSchemaContract(compliantSchema
-    .replace('submission_state varchar(16) NOT NULL,', "submission_state enum('failed', 'pending', 'complete') NOT NULL,")
-    .replace("    CONSTRAINT chk_submission_state CHECK (submission_state IN ('pending', 'complete', 'failed')),\n", '')
+    .replace('submission_state varchar(16) NOT NULL,', "submission_state enum('failed', 'pending', 'complete', 'deleting', 'deleted') NOT NULL,")
+    .replace("    CONSTRAINT chk_submission_state CHECK (submission_state IN ('pending', 'complete', 'failed', 'deleting', 'deleted')),\n", '')
     .replace('submission_version int NOT NULL DEFAULT 0,', 'submission_version int unsigned NOT NULL DEFAULT 0,')
     .replace('expected_score_count int NOT NULL,', 'expected_score_count int unsigned NOT NULL,')
     .replace('expected_bonus_count int NOT NULL,', 'expected_bonus_count int unsigned NOT NULL,')

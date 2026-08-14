@@ -178,7 +178,7 @@ const hasScoreRangeCheck = (table) => hasCheck(table, [
 
 const hasSubmissionStateEnforcement = (table) => {
   const definition = normaliseCheck(table.columns.get('submission_state') || '')
-  const allowedValues = ['complete', 'failed', 'pending']
+  const allowedValues = ['complete', 'deleted', 'deleting', 'failed', 'pending']
   const enumMatch = /^enum\(([^)]+)\)/.exec(definition)
   if (enumMatch) {
     const values = enumMatch[1].split(',').map((value) => value.replaceAll("'", '')).sort()
