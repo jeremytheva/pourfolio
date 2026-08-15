@@ -112,6 +112,13 @@ passes; see the
 - Owner checks for profile, cellar and rating mutation.
 - Explicit response projections that exclude `secret_key`, raw provider payloads and private owner fields.
 - Catalogue product details expose rating aggregates only (count and average), never rating, submission or cellar identifiers, dates, or individual scores; personal history remains owner-only at `/ratings/mine`.
+- Both browser catalogue reads validate an exact render-safe public response
+  contract before updating state. Unknown, hidden, symbolic or accessor fields,
+  incoherent pagination, duplicate/invalid stable IDs, relationship mismatch,
+  malformed aggregates and individual rating entries fail with one non-echoing
+  error and use the existing alert/retry UI. The validator copies and deeply
+  freezes accepted data without mutating its input; see the
+  [catalogue response contract](catalogue-response-contract.md).
 - Complete 1–7 rating validation, server-calculated totals, idempotency and compensating rollback.
 - CSP, HSTS, clickjacking, MIME-sniffing, referrer and permissions headers.
 - Production source maps disabled.

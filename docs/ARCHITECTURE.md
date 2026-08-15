@@ -66,6 +66,15 @@ Public sign-up supplies only email, password, name and non-authoritative display
 - projects every response through explicit public/owner field lists;
 - assigns a correlation ID without logging request bodies or personal data.
 
+Successful catalogue JSON crosses a second, browser-side shape boundary before
+React state. `src/services/catalogueResponse.js` allowlists the public page,
+product, producer/category and aggregate-rating fields; proves pagination and
+relationship coherence; rejects individual ratings and unrenderable values;
+and returns a deeply frozen copy. Both reads in `beverageService` use the
+boundary, so malformed HTTP 200 data follows the existing page-level
+error/retry state instead of reaching render code. See the
+[catalogue response contract](catalogue-response-contract.md).
+
 The canonical data contract is [schema mapping](nocodebackend/schema-mapping.md).
 
 ## Account lifecycle boundary

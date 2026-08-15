@@ -65,7 +65,7 @@ evidence has been independently reviewed.
 | `PF-P0-01` | Phase 0 — Governed delivery ready | Repository changes can reach production only through an evidenced, protected delivery path. | P0 | `@jeremytheva` | [#143](https://github.com/jeremytheva/pourfolio/issues/143) |
 | `PF-P1-01` | Phase 1 — Backend contract certified | The production-equivalent backend enforces and proves the canonical launch data contract. | P0 | `@jeremytheva` | [#144](https://github.com/jeremytheva/pourfolio/issues/144) — milestone assignment pending |
 | `PF-P2-01` | Phase 2 — Identity lifecycle safe | A user can securely register, authenticate, recover, verify, export and delete their account. | P0 | `@jeremytheva` | Parent outcome issue pending; source-only children [#146](https://github.com/jeremytheva/pourfolio/issues/146), [#148](https://github.com/jeremytheva/pourfolio/issues/148), [#150](https://github.com/jeremytheva/pourfolio/issues/150), [#152](https://github.com/jeremytheva/pourfolio/issues/152) and [#153](https://github.com/jeremytheva/pourfolio/issues/153) in progress; sequencing dependency [#144](https://github.com/jeremytheva/pourfolio/issues/144) remains open |
-| `PF-P3-01` | Phase 3 — Beer discovery dependable | A user can reliably browse, search and open canonical beer details. | P1 | `@jeremytheva` | Pending; depends on [#144](https://github.com/jeremytheva/pourfolio/issues/144) |
+| `PF-P3-01` | Phase 3 — Beer discovery dependable | A user can reliably browse, search and open canonical beer details. | P1 | `@jeremytheva` | Started in [#154](https://github.com/jeremytheva/pourfolio/issues/154); completion remains blocked by [#144](https://github.com/jeremytheva/pourfolio/issues/144) and catalogue evidence |
 | `PF-P4-01` | Phase 4 — Ratings trustworthy | A user can create, retry, view and delete only their own internally consistent rating. | P0 | `@jeremytheva` | Pending Phase 1 and 3 issue links |
 | `PF-P5-01` | Phase 5 — Cellar and profile owner-safe | A user can manage only their own cellar records and allowed profile fields. | P1 | `@jeremytheva` | Pending Phase 1 and 2 issue links |
 | `PF-P6-01` | Phase 6 — Launch evidence approved | The exact production candidate is deployed and independently approved from complete, redacted evidence. | P0 | `@jeremytheva` | Pending all Phase 0–5 issue links |
@@ -161,8 +161,10 @@ evidence has been independently reviewed.
   stable detail route with honest loading, empty and failure states.
 - **Owner / milestone / priority:** `@jeremytheva`; **Phase 3 — Beer discovery
   dependable**; **P1**.
-- **Dependencies:** blocked by the created `PF-P1-01` issue; link catalogue data
-  reconciliation work.
+- **Dependencies:** tracked in [#154](https://github.com/jeremytheva/pourfolio/issues/154)
+  and blocked for completion by the created `PF-P1-01` issue; link catalogue
+  data reconciliation work. Source-only response validation proceeds under the
+  owner's explicit sequencing exception without closing either dependency.
 - **Acceptance criteria:** canonical product/producer/category references
   reconcile; browse, search, direct detail route, no-result, malformed-data and
   upstream-failure cases pass; all controls, focus order and result/status
@@ -174,6 +176,12 @@ evidence has been independently reviewed.
   and run reference.
 - **Exclusions:** beer only; no wine/spirits, producer claims, venues, events,
   analytics, social features, photos or deferred prototype routes.
+- **Current source evidence:** both browser catalogue reads now enforce the
+  [catalogue response contract](catalogue-response-contract.md), which rejects
+  malformed successful pages/details and individual rating records before
+  render state. Focused Node and mocked-browser cases cover the safe alert/retry
+  path. Canonical reference reconciliation, connected direct-route/failure
+  evidence and WCAG 2.2 AA evidence remain open, so `PF-P3-01` is not complete.
 
 ### `PF-P4-01` — Prove trustworthy owner-scoped ratings
 

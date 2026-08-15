@@ -1,16 +1,20 @@
 import { apiRequest } from '../lib/nocodeBackend.js'
+import { validateCataloguePage, validateCatalogueProduct } from './catalogueResponse.js'
 
 export const beverageService = {
-  getProducts({ search = '', page = 1, limit = 24 } = {}) {
+  async getProducts({ search = '', page = 1, limit = 24 } = {}) {
     const params = new URLSearchParams({
       page: String(page),
       limit: String(limit)
     })
     if (search.trim()) params.set('q', search.trim())
-    return apiRequest(`/catalog/products?${params}`)
+    return validateCataloguePage(await apiRequest(`/catalog/products?${params}`), {
+      expectedPage: page,
+      expectedPageSize: limit
+    })
   },
 
-  getProduct(productId) {
-    return apiRequest(`/catalog/products/${encodeURIComponent(productId)}`)
+  async getProduct(productId) {
+    return validateCatalogueProduct(await apiRequest(`/catalog/products/${encodeURIComponent(productId)}`))
   }
 }

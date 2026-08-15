@@ -53,6 +53,38 @@ test('product details render an aggregate-only rating response', async ({ page }
   await expect(page.getByRole('heading', { name: 'Something went wrong' })).toHaveCount(0)
 })
 
+test('malformed successful product data uses the recoverable error state', async ({ page }) => {
+  await page.route('**/api/nocodebackend/catalog/products/4', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ ...product, ratingSummary: { count: 1, average: null } })
+  }))
+
+  await page.goto('/products/4')
+
+  await expect(page.getByRole('heading', { name: 'Product unavailable' })).toBeVisible()
+  await expect(page.getByText('The server returned invalid catalogue data. Please try again.')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Something went wrong' })).toHaveCount(0)
+})
+
+test('malformed successful catalogue data announces failure instead of a false result count', async ({ page }) => {
+  await page.route('**/api/nocodebackend/catalog/products?**', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ items: [{ id: 0 }], page: 1, pageSize: 24, total: 1, totalPages: 1 })
+  }))
+
+  await page.goto('/home')
+
+  await expect(page.getByRole('alert').getByText('Products are unavailable')).toBeVisible()
+  await expect(page.getByText('The server returned invalid catalogue data. Please try again.')).toBeVisible()
+  await expect(page.getByText('Products could not be loaded.')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible()
+  await expect(page.getByText(/products? found/)).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Something went wrong' })).toHaveCount(0)
+})
+
 test('cellar records load, update and delete through server endpoints', async ({ page }) => {
   await page.goto('/cellar')
   await expect(page.getByRole('heading', { name: 'My cellar' })).toBeVisible()

@@ -8,7 +8,7 @@ function HomePage({ searchMode = false }) {
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [page, setPage] = useState(1)
-  const [result, setResult] = useState({ items: [], total: 0, totalPages: 1 })
+  const [result, setResult] = useState({ items: [], total: 0, totalPages: 0 })
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
@@ -34,11 +34,7 @@ function HomePage({ searchMode = false }) {
     beverageService.getProducts({ search: debouncedQuery, page, limit: 24 })
       .then((payload) => {
         if (!active) return
-        setResult({
-          items: payload.items || [],
-          total: payload.total || 0,
-          totalPages: payload.totalPages || 1
-        })
+        setResult({ items: payload.items, total: payload.total, totalPages: payload.totalPages })
         setStatus('ready')
       })
       .catch((requestError) => {
@@ -77,7 +73,11 @@ function HomePage({ searchMode = false }) {
           />
         </div>
         <p className="mt-3 text-sm text-gray-600" aria-live="polite">
-          {status === 'loading' ? 'Loading products…' : `${result.total} product${result.total === 1 ? '' : 's'} found`}
+          {status === 'loading'
+            ? 'Loading products…'
+            : status === 'error'
+              ? 'Products could not be loaded.'
+              : `${result.total} product${result.total === 1 ? '' : 's'} found`}
         </p>
       </section>
 
