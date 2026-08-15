@@ -12,6 +12,12 @@ authentication, provider access and public-field projection. The validator does
 not grant browser authority, query the provider, repair historical records or
 replace connected provider-policy evidence.
 
+The server provider adapter independently binds successful paginated reads to
+the requested page and size, verifies total-page and item-count arithmetic, and
+binds every direct record response to the requested identifier. Mismatches are
+safe `502 PROVIDER_ERROR` failures before projection. A filtered-list fallback
+after provider `404` selects only an exact identifier match.
+
 ## Catalogue page
 
 A page has exactly `items`, `page`, `pageSize`, `total` and `totalPages`.
@@ -50,6 +56,16 @@ finite average from 1 through 7. An omitted or empty `ratings` array is
 canonicalised to an immutable empty array. Any individual rating entry fails
 closed because personal rating history belongs only in its owner-scoped route.
 
+The browser service accepts only a canonical positive decimal product ID; zero,
+signs, fractions, leading zeroes, whitespace and encoded path syntax fail with a
+safe 400 error before any request. A successful detail response must contain
+that exact requested identifier (numeric and decimal-string representations are
+equivalent). The gateway repeats the identity comparison, so a provider cannot
+substitute a different product whose links would target rating or cellar flows.
+The invalid-route state offers a direct “Back to products” link and omits the
+retry action because repeating the same non-canonical identifier cannot recover;
+remote and not-found failures retain both back and retry recovery actions.
+
 ## Failure and immutability
 
 Validation creates a new deeply frozen public value and never freezes or mutates
@@ -67,12 +83,14 @@ boundary.
 
 ## Evidence and limits
 
-Node tests cover valid, empty and malformed pages; pagination and duplicate
+Node tests cover valid, empty and malformed pages; exact provider/request page
+boundaries and terminal counts; direct/fallback record identity; duplicate
 identifiers; renderable fields and relationship agreement; aggregate-only
-details; private rating rejection; input immutability; safe errors; and wiring
-of both catalogue service reads. Playwright cases cover recoverable browse and
-detail failure states when malformed HTTP 200 responses are supplied, including
-the browse status announcement replacing any stale result count.
+details; requested product identity; non-canonical route rejection before
+network access; exact not-found behaviour; private rating rejection; input
+immutability; safe errors; and wiring of both catalogue service reads.
+Playwright cases cover recoverable browse/detail malformed-success states plus
+non-canonical and exact-missing direct routes.
 
 These source tests do not reconcile the supplied catalogue exports or prove
 connected NoCodeBackend responses, stable deployment routes, keyboard/screen-

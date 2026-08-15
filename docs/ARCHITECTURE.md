@@ -75,6 +75,14 @@ boundary, so malformed HTTP 200 data follows the existing page-level
 error/retry state instead of reaching render code. See the
 [catalogue response contract](catalogue-response-contract.md).
 
+The provider adapter binds paginated results to the exact requested page/size
+and checks total-page/terminal-item arithmetic. Direct provider records must
+match their requested ID, including the filtered-list fallback after a 404.
+Product details repeat this comparison at the gateway and browser boundaries;
+non-canonical browser route IDs fail before network access. These checks keep a
+successful response for another page or product from being labelled with the
+current route.
+
 The canonical data contract is [schema mapping](nocodebackend/schema-mapping.md).
 
 ## Account lifecycle boundary

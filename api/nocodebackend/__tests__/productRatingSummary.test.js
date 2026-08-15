@@ -97,3 +97,47 @@ test('product details average multiple finite totals and ignore untrusted non-fi
   assert.deepEqual(product.ratingSummary, { count: 2, average: 4.67 })
   assert.deepEqual(Object.keys(product).filter((key) => /rating|cellar|score|date/i.test(key)), ['ratingSummary', 'ratings'])
 })
+
+test('product details reject a non-canonical route identifier before provider access', async () => {
+  dataProvider.get = async () => assert.fail('an invalid route identifier must not reach the provider')
+  const response = createResponse()
+
+  await assert.rejects(__testables.getProduct(' 42 ', response), (error) => {
+    assert.equal(error.status, 400)
+    assert.equal(error.message, 'Product identifier is invalid.')
+    return true
+  })
+  assert.equal(response.statusCode, null)
+})
+
+test('product details return not found for an exact missing identifier', async () => {
+  dataProvider.get = async (collection, id) => {
+    assert.equal(collection, COLLECTIONS.products)
+    assert.equal(id, '42')
+    return null
+  }
+  const response = createResponse()
+
+  await __testables.getProduct('42', response)
+
+  assert.equal(response.statusCode, 404)
+  assert.deepEqual(response.body, { error: 'Product not found.' })
+})
+
+test('product details fail closed when a provider returns a different product identity', async () => {
+  dataProvider.get = async (collection, id) => {
+    assert.equal(collection, COLLECTIONS.products)
+    assert.equal(id, '42')
+    return { id: 43, product_name: 'Wrong product' }
+  }
+  dataProvider.list = async () => assert.fail('a mismatched product must not hydrate or load ratings')
+  const response = createResponse()
+
+  await assert.rejects(__testables.getProduct('42', response), (error) => {
+    assert.equal(error.status, 502)
+    assert.equal(error.code, 'PROVIDER_ERROR')
+    assert.doesNotMatch(error.message, /wrong product/i)
+    return true
+  })
+  assert.equal(response.statusCode, null)
+})

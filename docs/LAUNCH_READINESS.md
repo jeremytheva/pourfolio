@@ -44,6 +44,10 @@ Source-controlled launch hardening is implemented for a beer-first MVP, but prod
   fields, verifies coherent pagination/stable IDs/optional relationships and
   aggregate-only details, and routes malformed successful responses to the
   existing alert/retry UI.
+- Request-bound catalogue reads: provider page metadata/items and direct record
+  IDs must match the request, product detail identity is rechecked at the
+  gateway and browser, and non-canonical direct-route IDs fail before network
+  access.
 - Complete applicable 1–7 rating form; score `1` remains valid.
 - Server-calculated totals, durable retry ID, optional bonus selections and compensating rollback.
 - Owner-scoped rating history and delete.

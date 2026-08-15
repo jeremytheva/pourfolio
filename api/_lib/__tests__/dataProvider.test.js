@@ -62,17 +62,18 @@ test('list normalises every supported list envelope', async () => {
 
 test('paginated list sends documented search, page, limit and ordering parameters', async () => {
   let requestedUrl
+  const items = Array.from({ length: 25 }, (_, index) => ({ id: index + 1 }))
   global.fetch = async (url) => {
     requestedUrl = String(url)
     return response({
-      items: [{ id: 2 }],
+      items,
       pagination: { page: 2, pageSize: 25, total: 51, totalPages: 3 }
     })
   }
 
   assert.deepEqual(await dataProvider.listPage('products', {
     search: 'porter', page: 2, limit: 25, orderBy: 'product_name', order: 'asc'
-  }), { items: [{ id: 2 }], page: 2, pageSize: 25, total: 51, totalPages: 3 })
+  }), { items, page: 2, pageSize: 25, total: 51, totalPages: 3 })
   assert.equal(requestedUrl,
     'https://provider.example.test/data/products?search=porter&page=2&limit=25&order_by=product_name&order=asc')
 })
@@ -87,6 +88,24 @@ test('paginated list preserves empty search totals and rejects missing metadata'
   await assert.rejects(dataProvider.listPage('products', {
     page: 1, limit: 24, orderBy: 'product_name'
   }), { status: 502, code: 'PROVIDER_ERROR' })
+})
+
+test('paginated list rejects response metadata or item counts for a different request boundary', async () => {
+  const validItems = [{ id: 1 }, { id: 2 }]
+  const malformedPages = [
+    { items: validItems, pagination: { page: 2, pageSize: 2, total: 3, totalPages: 2 } },
+    { items: validItems, pagination: { page: 1, pageSize: 3, total: 3, totalPages: 1 } },
+    { items: validItems, pagination: { page: 1, pageSize: 2, total: 3, totalPages: 3 } },
+    { items: [{ id: 1 }], pagination: { page: 1, pageSize: 2, total: 3, totalPages: 2 } },
+    { items: [], pagination: { page: 1, pageSize: 2, total: 1, totalPages: 1 } }
+  ]
+
+  for (const payload of malformedPages) {
+    global.fetch = async () => response(payload)
+    await assert.rejects(dataProvider.listPage('products', {
+      page: 1, limit: 2, orderBy: 'product_name'
+    }), { status: 502, code: 'PROVIDER_ERROR' })
+  }
 })
 
 test('get and writes normalise every supported single-record envelope', async () => {
@@ -123,14 +142,28 @@ test('get uses the record path and falls back to a filtered list after not found
   global.fetch = async (url) => {
     urls.push(String(url))
     if (urls.length === 1) return response({ error: 'missing' }, { status: 404 })
-    return response({ items: [{ id: 9 }] })
+    return response({ items: [{ id: 'id/with slash' }] })
   }
 
-  assert.deepEqual(await dataProvider.get('ratings', 'id/with slash'), { id: 9 })
+  assert.deepEqual(await dataProvider.get('ratings', 'id/with slash'), { id: 'id/with slash' })
   assert.deepEqual(urls, [
     'https://provider.example.test/data/ratings/id%2Fwith%20slash',
     'https://provider.example.test/data/ratings?id=id%2Fwith+slash'
   ])
+})
+
+test('get rejects a mismatched direct record and never accepts a mismatched fallback record', async () => {
+  global.fetch = async () => response({ data: { id: 8 } })
+  await assert.rejects(dataProvider.get('products', 7), { status: 502, code: 'PROVIDER_ERROR' })
+
+  let requests = 0
+  global.fetch = async () => {
+    requests += 1
+    return requests === 1
+      ? response({ error: 'missing' }, { status: 404 })
+      : response({ items: [{ id: 8 }] })
+  }
+  assert.equal(await dataProvider.get('products', 7), null)
 })
 
 test('create, update, compare-and-set and delete use the exact provider contract', async () => {

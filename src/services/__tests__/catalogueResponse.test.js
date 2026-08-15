@@ -2,7 +2,11 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import { ApiError } from '../../lib/nocodeBackend.js'
-import { beverageService } from '../beverageService.js'
+import {
+  beverageService,
+  CATALOGUE_PRODUCT_ID_ERROR,
+  normaliseCatalogueProductId
+} from '../beverageService.js'
 import {
   CATALOGUE_RESPONSE_ERROR,
   validateCataloguePage,
@@ -50,6 +54,14 @@ const isSafeCatalogueError = (error) => {
   assert.equal(error.message, CATALOGUE_RESPONSE_ERROR.message)
   assert.equal(error.code, CATALOGUE_RESPONSE_ERROR.code)
   assert.equal(error.status, 502)
+  return true
+}
+
+const isInvalidProductIdError = (error) => {
+  assert.equal(error instanceof ApiError, true)
+  assert.equal(error.message, CATALOGUE_PRODUCT_ID_ERROR.message)
+  assert.equal(error.code, CATALOGUE_PRODUCT_ID_ERROR.code)
+  assert.equal(error.status, 400)
   return true
 }
 
@@ -163,6 +175,12 @@ test('validates aggregate-only product details and canonicalises an omitted rati
   })
 })
 
+test('binds a successful product detail to the requested stable identifier', () => {
+  assert.deepEqual(validateCatalogueProduct(detail, { expectedProductId: '4' }), detail)
+  assert.deepEqual(validateCatalogueProduct(detail, { expectedProductId: 4 }), detail)
+  assert.throws(() => validateCatalogueProduct(detail, { expectedProductId: '5' }), isSafeCatalogueError)
+})
+
 test('rejects malformed aggregates and individual rating records from public details', () => {
   const malformedDetails = [
     product,
@@ -220,6 +238,20 @@ test('both beverage service reads enforce the catalogue response boundary', asyn
       '/api/nocodebackend/catalog/products?page=1&limit=24&q=pale+ale',
       '/api/nocodebackend/catalog/products/4'
     ])
+
+    assert.equal(normaliseCatalogueProductId(4), '4')
+    assert.equal(normaliseCatalogueProductId('4'), '4')
+    for (const invalidId of [0, -1, 1.5, Number.NaN, '04', ' 4 ', '4/5', '', null, {}]) {
+      assert.throws(() => normaliseCatalogueProductId(invalidId), isInvalidProductIdError)
+      await assert.rejects(beverageService.getProduct(invalidId), isInvalidProductIdError)
+    }
+    assert.equal(requests.length, 2)
+
+    globalThis.fetch = async () => new Response(JSON.stringify({ ...detail, id: 5 }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' }
+    })
+    await assert.rejects(beverageService.getProduct(4), isSafeCatalogueError)
 
     globalThis.fetch = async () => new Response(JSON.stringify({ privateProviderValue: 'do not echo' }), {
       status: 200,

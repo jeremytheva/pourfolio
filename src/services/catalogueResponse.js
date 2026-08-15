@@ -232,7 +232,11 @@ export const validateCataloguePage = (payload, { expectedPage, expectedPageSize 
   }
 })
 
-export const validateCatalogueProduct = (payload) => validate(() => validateProduct(payload, { detail: true }))
+export const validateCatalogueProduct = (payload, { expectedProductId } = {}) => validate(() => {
+  const product = validateProduct(payload, { detail: true })
+  if (expectedProductId !== undefined && !sameId(product.id, validateStableId(expectedProductId))) invalid()
+  return product
+})
 
 export const CATALOGUE_RESPONSE_ERROR = Object.freeze({
   message: INVALID_CATALOGUE_MESSAGE,

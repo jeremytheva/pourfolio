@@ -119,6 +119,12 @@ passes; see the
   error and use the existing alert/retry UI. The validator copies and deeply
   freezes accepted data without mutating its input; see the
   [catalogue response contract](catalogue-response-contract.md).
+- Provider pagination must match the requested page/size and reconcile its
+  totals with the exact full/terminal item count. Direct and fallback provider
+  reads accept only the requested record ID; the gateway and browser repeat the
+  product-detail ID check. Non-canonical product route IDs fail before browser
+  network access, preventing a substituted product from driving rating or
+  cellar links.
 - Complete 1–7 rating validation, server-calculated totals, idempotency and compensating rollback.
 - CSP, HSTS, clickjacking, MIME-sniffing, referrer and permissions headers.
 - Production source maps disabled.

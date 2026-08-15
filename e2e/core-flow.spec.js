@@ -85,6 +85,37 @@ test('malformed successful catalogue data announces failure instead of a false r
   await expect(page.getByRole('heading', { name: 'Something went wrong' })).toHaveCount(0)
 })
 
+test('a non-canonical product route fails before a catalogue request', async ({ page }) => {
+  let productRequests = 0
+  page.on('request', (request) => {
+    if (request.url().includes('/api/nocodebackend/catalog/products/04')) productRequests += 1
+  })
+
+  await page.goto('/products/04')
+
+  await expect(page.getByRole('heading', { name: 'Product unavailable' })).toBeVisible()
+  await expect(page.getByText('Product identifier is invalid.')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Back to products' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Try again' })).toHaveCount(0)
+  expect(productRequests).toBe(0)
+})
+
+test('an exact missing product route uses the recoverable not-found state', async ({ page }) => {
+  await page.route('**/api/nocodebackend/catalog/products/999', (route) => route.fulfill({
+    status: 404,
+    contentType: 'application/json',
+    body: JSON.stringify({ error: 'Product not found.' })
+  }))
+
+  await page.goto('/products/999')
+
+  await expect(page.getByRole('heading', { name: 'Product unavailable' })).toBeVisible()
+  await expect(page.getByText('Product not found.')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Back to products' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Something went wrong' })).toHaveCount(0)
+})
+
 test('cellar records load, update and delete through server endpoints', async ({ page }) => {
   await page.goto('/cellar')
   await expect(page.getByRole('heading', { name: 'My cellar' })).toBeVisible()

@@ -179,9 +179,12 @@ evidence has been independently reviewed.
 - **Current source evidence:** both browser catalogue reads now enforce the
   [catalogue response contract](catalogue-response-contract.md), which rejects
   malformed successful pages/details and individual rating records before
-  render state. Focused Node and mocked-browser cases cover the safe alert/retry
-  path. Canonical reference reconciliation, connected direct-route/failure
-  evidence and WCAG 2.2 AA evidence remain open, so `PF-P3-01` is not complete.
+  render state. Provider pages and records are bound to the exact request, and
+  gateway/browser detail responses must match the canonical route ID. Focused
+  Node and mocked-browser cases cover safe alert/retry, invalid-without-network
+  and exact-not-found paths. Canonical reference reconciliation, connected
+  direct-route/failure evidence and WCAG 2.2 AA evidence remain open, so
+  `PF-P3-01` is not complete.
 
 ### `PF-P4-01` — Prove trustworthy owner-scoped ratings
 
