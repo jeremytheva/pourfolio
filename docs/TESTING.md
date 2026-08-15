@@ -55,6 +55,11 @@ Tests cover:
   bytes and final line feed, Unicode byte length, fixed SHA-256, constant frozen
   filename/headers, empty data, malicious filename/content inputs, fail-closed
   manifest composition, retry determinism and route/provider isolation;
+- the source-only account-deletion discovery contract: exact owner matching,
+  fixed child-first order, numeric/string ID normalisation, exact counts, empty
+  data, body/identity/other-user exclusion, malformed and duplicate records,
+  multiple profiles, orphan children, cross-owner/cross-product cellar links,
+  deep immutability, retry determinism and route/provider isolation;
 - zero, one and multiple-rating catalogue aggregates, including rejection of non-finite totals and absence of individual rating or cellar identifiers;
 - score 1 validity and complete 1–7 rating validation;
 - weighted/unweighted totals and submission IDs;
@@ -81,6 +86,14 @@ Profile-page download, because none of those surfaces is implemented. The
 endpoint entry criteria in `docs/account-export-contract.md` require separate
 policy, integration, browser, accessibility and connected staging coverage
 before a user-facing export can be claimed.
+
+The account-deletion discovery tests exercise
+`api/_lib/accountDeletionPlan.js` directly. They do not perform provider reads,
+authenticate or confirm a request, persist a job, fence writes, delete records,
+revoke sessions, remove an authentication identity or prove final absence. The
+executable-workflow entry criteria in
+`docs/account-deletion-plan-contract.md` require separate policy, provider,
+integration, failure-injection and connected staging evidence.
 
 `e2e/accessibility.spec.js` runs the WCAG 2.2-targeted axe rules against every
 reachable launch page. The unreachable remote game is not represented as an

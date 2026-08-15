@@ -84,19 +84,31 @@ filename, JSON media type, `no-store`/attachment/`nosniff` metadata, byte length
 and SHA-256 without using request or exported values in headers. It performs no
 response write, storage, logging, provider operation or environment access.
 
-Neither module is imported by `api/data-proxy.js`, any browser service or any
-page. The current provider session contract contains no verified
+`api/_lib/accountDeletionPlan.js` is the separate source-only whole-account
+discovery boundary. Given the five owner-data collections, it exact-matches the
+supplied server identity, validates owner relationships and returns immutable,
+stable record IDs and counts in child-first order. It adds no separate
+authentication-identity field and excludes every record body. It performs no
+provider read, delete, job write, session operation, logging or network request.
+
+None of these modules is imported by `api/auth-proxy.js`,
+`api/data-proxy.js`, any browser service or any page. The current provider
+session contract contains no verified
 recent-authentication timestamp, and the current collection API has no proved
-consistent multi-collection snapshot. Exposing either module now would therefore
-create an incomplete security and data-consistency boundary. The endpoint entry
+consistent multi-collection snapshot. Exposing any module now would therefore
+create an incomplete security and data-consistency boundary. The export endpoint
 criteria and portable fields are defined in the
-[account export contract](account-export-contract.md).
+[account export contract](account-export-contract.md); destructive-workflow
+criteria are defined in the
+[deletion-plan contract](account-deletion-plan-contract.md).
 
 Recovery, explicit verification, session revocation and authentication-identity
 deletion also remain absent from the fixed auth action matrix. Account-deletion
-orchestration remains absent until a durable server-only job store, write fence,
-provider identity operation and approved retention policy exist. The complete
-gate is tracked in the [account lifecycle readiness review](account-lifecycle-readiness.md).
+orchestration remains absent: the source-only discovery plan is not a route,
+job, delete operation or receipt. A durable server-only job store, write fence,
+provider identity operation and approved retention policy remain required. The
+complete gate is tracked in the
+[account lifecycle readiness review](account-lifecycle-readiness.md).
 
 ## Brew Done It containment boundary
 
