@@ -144,8 +144,10 @@ unexpected values.
 Do not import the planner or reconciler into a route or worker until every entry
 criterion in the [deletion-plan contract](account-deletion-plan-contract.md) is
 resolved and evidenced. In particular, future orchestration must prove a recent
-session, exact confirmation, a complete provider snapshot protocol, an approved
-job store and retention model, write fencing, exact-owner checks immediately
+session, use the source-only
+[confirmation contract](account-deletion-confirmation-contract.md) inside the
+approved endpoint, prove a complete provider snapshot protocol, an approved job
+store and retention model, write fencing, exact-owner checks immediately
 before deletion, final provider queries, session/identity invalidation, safe
 retry and connected owner/other-user/failure/concurrency tests.
 

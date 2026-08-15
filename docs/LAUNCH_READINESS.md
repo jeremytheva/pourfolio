@@ -218,8 +218,9 @@ portable-export manifest and in-memory artifact builders are tracked by issues
 #146 and #148, and the source-only account-deletion discovery plan is tracked by
 #150. Source-only count reconciliation for a caller-supplied later snapshot is
 tracked by #152. They have no recent-authentication check, consistent provider
-reader, route, destructive workflow or browser workflow and are not gate
-evidence. The
+reader, route, destructive workflow or browser workflow. Exact source-only
+confirmation validation is tracked by #153 and likewise provides no endpoint or
+authorisation. These modules are not gate evidence. The
 exact requirements and honest current values are in
 [the publication and release evidence procedure](PUBLICATION_AND_RELEASE_EVIDENCE.md).
 
@@ -303,7 +304,7 @@ the action has an accountable owner.
 | <a id="evidence-g20"></a>G20: Run the historical import in non-production, rerun it to prove id… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G20`: not supplied | **BLOCKED** |
 | <a id="evidence-g21"></a>G21: Rotate any credential that may have matched the former published … | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G21`: not supplied | **BLOCKED** |
 | <a id="evidence-g22"></a>G22: Run browser end-to-end and WCAG 2.2 AA checks against the connect… | `@jeremytheva` | 4 August 2026 — `PRR-2026-08-04-G22`: blocked execution recorded in `docs/TESTING.md`; no immutable staging URL, deployed SHA, hosted workflow URL, credentials, test totals or final result were available | **BLOCKED** |
-| <a id="evidence-g23"></a>G23: Implement and evidence the recovery, verification, export and del… | `@jeremytheva` | 15 August 2026 — source-only export projection/reconciliation, deterministic in-memory artifact, account-deletion discovery and count reconciliation cores tracked by #146, #148, #150 and #152; no recovery, verification, recent-authenticated route, provider-backed final absence, destructive deletion workflow, connected exercise, approved policy or independent review supplied | **BLOCKED** |
+| <a id="evidence-g23"></a>G23: Implement and evidence the recovery, verification, export and del… | `@jeremytheva` | 15 August 2026 — source-only export projection/reconciliation, deterministic in-memory artifact, account-deletion discovery, count reconciliation and exact-confirmation cores tracked by #146, #148, #150, #152 and #153; no recovery, verification, recent-authenticated route, provider-backed final absence, destructive deletion workflow, connected exercise, approved policy or independent review supplied | **BLOCKED** |
 | <a id="evidence-g24"></a>G24: Publish reviewed privacy policy, terms, moderation/escalation pro… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G24`: not supplied | **BLOCKED** |
 | <a id="evidence-g25"></a>G25: Complete appropriate Australian privacy/legal review and record t… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G25`: not supplied | **BLOCKED** |
 | <a id="evidence-g26"></a>G26: Complete the documented production-equivalent export/deletion exe… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G26`: not supplied | **BLOCKED** |

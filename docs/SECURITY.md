@@ -87,6 +87,19 @@ remove an identity. It must remain unreachable until the same destructive-entry
 criteria pass; see the
 [reconciliation contract](account-deletion-reconciliation-contract.md).
 
+`api/_lib/accountDeletionConfirmation.js` adds only exact request-shape and
+phrase validation. It requires one enumerable data property, performs no
+trimming/case-folding/Unicode normalisation/coercion, rejects accessors and every
+extra identity/record/job field, and returns no supplied text. Symbols and
+non-enumerable smuggled values also fail. Generic errors do not echo inputs.
+
+The result is not authentication, recent-authentication evidence, CSRF/origin
+protection, rate limiting, account identity, replay protection or deletion
+authorisation. It must remain unreachable until a size-limited protected route
+derives identity only from the session and every destructive-entry criterion
+passes; see the
+[confirmation contract](account-deletion-confirmation-contract.md).
+
 ## Implemented launch controls
 
 - Fixed auth action/method allowlist.
