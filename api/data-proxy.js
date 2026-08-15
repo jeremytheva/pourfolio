@@ -55,6 +55,24 @@ const parsePositiveId = (value, label = 'Record identifier') => {
   return text
 }
 
+const parseCatalogueProductId = (value) => {
+  const raw = String(value ?? '')
+  const identifier = parsePositiveId(raw, 'Product identifier')
+  if (raw !== identifier) {
+    const error = new Error('Product identifier is invalid.')
+    error.status = 400
+    throw error
+  }
+  return identifier
+}
+
+const invalidProviderResponse = () => {
+  const error = new Error(safeErrorMessage(502))
+  error.status = 502
+  error.code = 'PROVIDER_ERROR'
+  return error
+}
+
 const normaliseList = (value) => asArray(value).filter((item) => item && typeof item === 'object')
 const isCompletedRating = (rating) => rating?.submission_state === 'complete'
 
@@ -129,11 +147,13 @@ const listProducts = async (request, response) => {
 }
 
 const getProduct = async (productId, response) => {
-  const product = await dataProvider.get(COLLECTIONS.products, parsePositiveId(productId, 'Product identifier'))
+  const requestedProductId = parseCatalogueProductId(productId)
+  const product = await dataProvider.get(COLLECTIONS.products, requestedProductId)
   if (!product) {
     response.status(404).json({ error: 'Product not found.' })
     return
   }
+  if (String(product.id) !== requestedProductId) throw invalidProviderResponse()
 
   const [hydrated] = await hydrateProducts([product])
   const ratings = normaliseList(await dataProvider.list(COLLECTIONS.ratings, {

@@ -51,7 +51,34 @@ Tests cover:
   empty/complete accounts, other-user sentinels, malformed snapshots, duplicate
   IDs, orphan relationships, missing referenced context, invalid lifecycle
   values/scores/dates and zero/multiple-profile cases;
+- the source-only account-export artifact contract: exact pretty-printed JSON
+  bytes and final line feed, Unicode byte length, fixed SHA-256, constant frozen
+  filename/headers, empty data, malicious filename/content inputs, fail-closed
+  manifest composition, retry determinism and route/provider isolation;
+- the source-only account-deletion discovery contract: exact owner matching,
+  fixed child-first order, numeric/string ID normalisation, exact counts, empty
+  data, body/identity/other-user exclusion, malformed and duplicate records,
+  multiple profiles, orphan children, cross-owner/cross-product cellar links,
+  deep immutability, retry determinism and route/provider isolation;
+- the source-only account-deletion reconciliation contract: strict persisted-plan
+  shape/version/time/order/ID/count validation, complete/partial/empty states,
+  later unplanned owner records, exact count-only output, invalid later
+  relationships, deep immutability, retry determinism and route/provider
+  isolation;
+- the source-only account-deletion confirmation contract: exact ASCII phrase,
+  plain one-field shape, case/whitespace/control/invisible/Unicode negatives,
+  identity/record/job-field smuggling, symbols/non-enumerable fields, accessors,
+  non-coercion, safe errors, immutable output and route/provider isolation;
 - zero, one and multiple-rating catalogue aggregates, including rejection of non-finite totals and absence of individual rating or cellar identifiers;
+- the browser catalogue response boundary: exact public field shapes, coherent
+  empty/full/final-page metadata, unique stable IDs, render-safe scalar/image
+  values, matching optional producer/category relationships, aggregate-only
+  detail summaries, private-rating rejection, safe non-echoing errors, deep
+  immutability and enforcement by both service reads;
+- request-bound catalogue identity: exact provider page/page-size and
+  full/terminal item counts, direct/fallback provider record IDs, canonical
+  browser product IDs rejected before network access, exact detail response ID
+  matching, safe not-found behaviour and provider substitution failure;
 - score 1 validity and complete 1–7 rating validation;
 - weighted/unweighted totals and submission IDs;
 - profile/cellar input allowlists and ownership predicates;
@@ -69,13 +96,52 @@ automated accessibility checks on the reachable launch pages. This suite verifie
 browser behaviour without requiring production credentials; it does not replace
 the connected staging tests below.
 
-The account-export tests exercise `api/_lib/accountExport.js` directly. They do
-not exercise an HTTP response, recent authentication, provider reads, a
-consistent remote snapshot, artefact retention or a Profile-page download,
-because none of those surfaces is implemented. The endpoint entry criteria in
-`docs/account-export-contract.md` require separate policy, integration, browser,
-accessibility and connected staging coverage before a user-facing export can be
-claimed.
+The catalogue fixture now follows the aggregate-only detail contract. Focused
+browser cases supply malformed successful browse and detail responses, a
+non-canonical direct route and an exact missing route. They check that labelled
+alerts and keyboard-operable retry buttons appear without the application error
+boundary, that an invalid ID makes no catalogue request, and that browse failure
+replaces the result count with an announced failure status. The invalid-route
+state exposes a back link instead of a futile retry, while exact not-found and
+remote failures retain both recovery choices. A mocked browser
+pass still does not prove the
+connected provider, deployment or WCAG evidence required by `PF-P3-01`; see the
+[catalogue response contract](catalogue-response-contract.md).
+
+The account-export tests exercise `api/_lib/accountExport.js` and
+`api/_lib/accountExportArtifact.js` directly. They prove the exact in-memory
+body and metadata, but do not exercise an HTTP response, recent authentication,
+provider reads, a consistent remote snapshot, artefact retention or a
+Profile-page download, because none of those surfaces is implemented. The
+endpoint entry criteria in `docs/account-export-contract.md` require separate
+policy, integration, browser, accessibility and connected staging coverage
+before a user-facing export can be claimed.
+
+The account-deletion discovery tests exercise
+`api/_lib/accountDeletionPlan.js` directly. They do not perform provider reads,
+authenticate or confirm a request, persist a job, fence writes, delete records,
+revoke sessions, remove an authentication identity or prove final absence. The
+executable-workflow entry criteria in
+`docs/account-deletion-plan-contract.md` require separate policy, provider,
+integration, failure-injection and connected staging evidence.
+
+The account-deletion reconciliation tests exercise
+`api/_lib/accountDeletionReconciliation.js` directly. They prove that planned,
+removed, remaining and unplanned counts reconcile and that new owner data keeps
+the result incomplete without exposing IDs. They still operate on a
+caller-supplied in-memory snapshot: no provider query, write fence, deletion,
+job state, session/identity check or final provider absence is exercised. The
+entry criteria in `docs/account-deletion-reconciliation-contract.md` require
+separate orchestration, provider and connected evidence.
+
+The account-deletion confirmation tests exercise
+`api/_lib/accountDeletionConfirmation.js` directly. They prove exact text and
+request-shape behaviour without creating an endpoint. They do not exercise JSON
+body limits, same-origin protection, rate limiting, recent authentication,
+session-derived identity, an accessible confirmation UI, provider operations or
+deletion. The entry criteria in
+`docs/account-deletion-confirmation-contract.md` require separate integration,
+browser, accessibility, security and connected evidence.
 
 `e2e/accessibility.spec.js` runs the WCAG 2.2-targeted axe rules against every
 reachable launch page. The unreachable remote game is not represented as an

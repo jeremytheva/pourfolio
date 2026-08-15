@@ -21,6 +21,30 @@ The browser cannot write `user_id`, `secret_key`, roles, rating totals or provid
 
 The portable account export is a versioned JSON projection, not a new provider
 collection. Its source-only manifest contract exact-filters the five owner-data
-groups above and adds only referenced catalogue/attribute context. It persists
-no export job or artefact and does not change the canonical schema; see
-[Portable account-export manifest contract](account-export-contract.md).
+groups above and adds only referenced catalogue/attribute context. Its
+source-only artifact contract deterministically serialises that manifest as an
+in-memory UTF-8 JSON string with fixed safe metadata, byte length and SHA-256.
+It persists no export job or artefact and does not change the canonical schema;
+see [Portable account-export manifest contract](account-export-contract.md).
+
+The source-only account-deletion discovery plan is also not a provider
+collection. It contains only immutable exact-owner record IDs and counts for
+`bonus_attribute_rating_mapping`, `rating_scores`, `ratings`, `cellar` and
+`profiles`, in that child-first order. It stores no record bodies, account
+identity field, job or receipt. A profile record ID may equal the account ID,
+but remains an operational record identifier. The planner changes no schema;
+see the
+[Account-deletion discovery-plan contract](account-deletion-plan-contract.md).
+
+The source-only account-deletion reconciliation is also an in-memory projection,
+not a provider collection or persisted receipt. It consumes a validated plan and
+one later complete logical owner snapshot, compares record IDs internally, and
+returns only planned, removed, remaining and unplanned counts. No ID or record
+body enters the result, and no schema changes; see the
+[Account-deletion reconciliation contract](account-deletion-reconciliation-contract.md).
+
+The source-only account-deletion confirmation result is a frozen in-memory
+format/version/boolean value, not a provider collection, job, receipt or account
+field. It contains no phrase, identity, timestamp or record selector and changes
+no schema; see the
+[Account-deletion confirmation contract](account-deletion-confirmation-contract.md).

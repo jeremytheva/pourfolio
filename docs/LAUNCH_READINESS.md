@@ -40,6 +40,14 @@ Source-controlled launch hardening is implemented for a beer-first MVP, but prod
 - Authenticated application data gateway with owner enforcement and explicit response projections.
 - Canonical `products`/`product_id`, `ratings`, normalised `rating_scores`, `cellar` contract.
 - Stable product routes and live catalogue/search/detail states.
+- A browser catalogue response boundary that allowlists render-safe public
+  fields, verifies coherent pagination/stable IDs/optional relationships and
+  aggregate-only details, and routes malformed successful responses to the
+  existing alert/retry UI.
+- Request-bound catalogue reads: provider page metadata/items and direct record
+  IDs must match the request, product detail identity is rechecked at the
+  gateway and browser, and non-canonical direct-route IDs fail before network
+  access.
 - Complete applicable 1–7 rating form; score `1` remains valid.
 - Server-calculated totals, durable retry ID, optional bonus selections and compensating rollback.
 - Owner-scoped rating history and delete.
@@ -52,6 +60,12 @@ Source-controlled launch hardening is implemented for a beer-first MVP, but prod
 - Read-only import and rating-schema preflights that fail closed on incomplete
   catalogue references, missing profile/rating controls, duplicate-permitting
   schema and mutable rating timestamps.
+
+The response boundary is the first source-only slice of
+[`PF-P3-01`](https://github.com/jeremytheva/pourfolio/issues/154). It does not
+repair or approve the supplied catalogue sources and does not establish
+connected route, provider-failure or accessibility evidence. The historical
+import blockers and every earlier external gate below remain unchanged.
 
 ## Historical import evidence
 
@@ -213,11 +227,15 @@ performed from frozen commit
 `2b7fb6b7ccd33c7c2b605bd68f201daeb7e50701`; no remote configuration or
 connected execution can be attributed to it. Accordingly G22 and G24–G32
 remain open. G23 also remains open because its provider contract, durable job
-store, rollout and production-equivalent evidence are absent. A source-only
-portable-export manifest builder started under issue #146 on 15 August 2026,
-but it has no recent-authentication check, consistent provider reader, route or
-browser workflow and is not gate evidence. The exact requirements and honest
-current values are in
+store, rollout and production-equivalent evidence are absent. Source-only
+portable-export manifest and in-memory artifact builders are tracked by issues
+#146 and #148, and the source-only account-deletion discovery plan is tracked by
+#150. Source-only count reconciliation for a caller-supplied later snapshot is
+tracked by #152. They have no recent-authentication check, consistent provider
+reader, route, destructive workflow or browser workflow. Exact source-only
+confirmation validation is tracked by #153 and likewise provides no endpoint or
+authorisation. These modules are not gate evidence. The
+exact requirements and honest current values are in
 [the publication and release evidence procedure](PUBLICATION_AND_RELEASE_EVIDENCE.md).
 
 - [ ] [G22](#evidence-g22) — Run browser end-to-end and WCAG 2.2 AA checks against the connected staging backend.
@@ -300,7 +318,7 @@ the action has an accountable owner.
 | <a id="evidence-g20"></a>G20: Run the historical import in non-production, rerun it to prove id… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G20`: not supplied | **BLOCKED** |
 | <a id="evidence-g21"></a>G21: Rotate any credential that may have matched the former published … | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G21`: not supplied | **BLOCKED** |
 | <a id="evidence-g22"></a>G22: Run browser end-to-end and WCAG 2.2 AA checks against the connect… | `@jeremytheva` | 4 August 2026 — `PRR-2026-08-04-G22`: blocked execution recorded in `docs/TESTING.md`; no immutable staging URL, deployed SHA, hosted workflow URL, credentials, test totals or final result were available | **BLOCKED** |
-| <a id="evidence-g23"></a>G23: Implement and evidence the recovery, verification, export and del… | `@jeremytheva` | 15 August 2026 — source-only export projection/reconciliation core tracked by #146; no recovery, verification, recent-authenticated export route, deletion workflow, connected exercise, approved policy or independent review supplied | **BLOCKED** |
+| <a id="evidence-g23"></a>G23: Implement and evidence the recovery, verification, export and del… | `@jeremytheva` | 15 August 2026 — source-only export projection/reconciliation, deterministic in-memory artifact, account-deletion discovery, count reconciliation and exact-confirmation cores tracked by #146, #148, #150, #152 and #153; no recovery, verification, recent-authenticated route, provider-backed final absence, destructive deletion workflow, connected exercise, approved policy or independent review supplied | **BLOCKED** |
 | <a id="evidence-g24"></a>G24: Publish reviewed privacy policy, terms, moderation/escalation pro… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G24`: not supplied | **BLOCKED** |
 | <a id="evidence-g25"></a>G25: Complete appropriate Australian privacy/legal review and record t… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G25`: not supplied | **BLOCKED** |
 | <a id="evidence-g26"></a>G26: Complete the documented production-equivalent export/deletion exe… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G26`: not supplied | **BLOCKED** |

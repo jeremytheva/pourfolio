@@ -10,6 +10,13 @@ const normalisePayload = (payload) => {
   return payload
 }
 
+const providerContractError = () => {
+  const error = new Error(safeErrorMessage(502))
+  error.status = 502
+  error.code = 'PROVIDER_ERROR'
+  return error
+}
+
 const normalisePage = (payload, requestedPage, requestedLimit) => {
   const records = normalisePayload(payload)
   const items = Array.isArray(records) ? records : records ? [records] : []
@@ -20,12 +27,23 @@ const normalisePage = (payload, requestedPage, requestedLimit) => {
   const totalPages = Number(metadata.totalPages ?? metadata.total_pages ?? Math.ceil(total / pageSize))
   if (![page, pageSize, total, totalPages].every(Number.isSafeInteger) || page < 1 ||
       pageSize < 1 || total < 0 || totalPages < 0) {
-    const error = new Error(safeErrorMessage(502))
-    error.status = 502
-    error.code = 'PROVIDER_ERROR'
-    throw error
+    throw providerContractError()
   }
+
+  const expectedTotalPages = total === 0 ? 0 : Math.ceil(total / pageSize)
+  const expectedItems = total === 0
+    ? 0
+    : page < totalPages
+      ? pageSize
+      : total - (pageSize * (totalPages - 1))
+  if (page !== requestedPage || pageSize !== requestedLimit || totalPages !== expectedTotalPages ||
+      page > Math.max(1, totalPages) || items.length !== expectedItems) throw providerContractError()
   return { items, page, pageSize, total, totalPages }
+}
+
+const requireExpectedRecord = (record, id) => {
+  if (record && String(record.id) !== String(id)) throw providerContractError()
+  return record
 }
 
 const getProviderErrorCode = (status, filters = {}) => {
@@ -120,12 +138,11 @@ export const dataProvider = {
   async get(collection, id) {
     try {
       const payload = await providerRequest(`${collection}/${encodeURIComponent(id)}`)
-      if (Array.isArray(payload)) return payload[0] || null
-      return payload
+      return requireExpectedRecord(Array.isArray(payload) ? payload[0] || null : payload, id)
     } catch (error) {
       if (error.status !== 404) throw error
       const records = await this.list(collection, { id })
-      return records[0] || null
+      return records.find((record) => record && String(record.id) === String(id)) || null
     }
   },
 

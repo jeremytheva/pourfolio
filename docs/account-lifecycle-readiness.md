@@ -10,14 +10,29 @@ workflow is enabled. It must not be used as evidence that the external privacy,
 legal or production-equivalent gates have passed.
 
 On 15 August 2026, the owner authorised Phase 2 source work to begin while the
-Phase 1 provider-evidence issue remains open. Issue
-[#146](https://github.com/jeremytheva/pourfolio/issues/146) implements only the
-pure, server-side [portable export manifest contract](account-export-contract.md):
+Phase 1 provider-evidence issue remains open. Issues
+[#146](https://github.com/jeremytheva/pourfolio/issues/146) and
+[#148](https://github.com/jeremytheva/pourfolio/issues/148) implement only the
+pure, server-side [portable export contract](account-export-contract.md):
 exact-owner projection, relationship validation, stable ordering and count
-reconciliation for one already-consistent snapshot. It performs no provider
-read, exposes no route and creates no artefact. This sequencing exception does
-not waive recent authentication, snapshot consistency, privacy/retention review
-or connected evidence.
+reconciliation for one already-consistent snapshot, followed by deterministic
+in-memory UTF-8 JSON with fixed safe response metadata. They perform no provider
+read, expose no route and persist no artefact. Issue
+[#150](https://github.com/jeremytheva/pourfolio/issues/150) adds only the pure
+[account-deletion discovery plan](account-deletion-plan-contract.md): immutable
+exact-owner identifiers and counts in the documented child-first order. It
+performs no deletion, job persistence or identity operation. Issue
+[#152](https://github.com/jeremytheva/pourfolio/issues/152) adds only the pure,
+count-only [account-deletion reconciliation
+contract](account-deletion-reconciliation-contract.md). It distinguishes
+planned records that remain from later unplanned owner records without exposing
+identifiers. Neither helper performs or proves provider queries. This sequencing
+exception also includes issue
+[#153](https://github.com/jeremytheva/pourfolio/issues/153), whose source-only
+[exact-confirmation contract](account-deletion-confirmation-contract.md) rejects
+near-match phrases and all browser targeting fields but authenticates and
+authorises nothing. It does not waive recent authentication, snapshot consistency,
+privacy/retention review or connected evidence.
 
 The current launch router exposes only authentication, beer catalogue, rating,
 cellar and profile journeys. Deferred social, venue, event, administrator,
@@ -32,6 +47,10 @@ photo, analytics and non-beer modules must remain unreachable during this work.
 | Ratings | Owner deletion removes a rating and its loaded score/mapping children sequentially. | A child-delete failure can leave a partial result; there is no durable deletion job or retry status. | Replace whole-account use of this endpoint with a server-owned, idempotent deletion workflow. |
 | Cellar | Owner CRUD is enforced in the gateway. | There is no account-wide export or deletion workflow. | Include every owner cellar row in the snapshot and deletion manifest. |
 | Export manifest core | `api/_lib/accountExport.js` and its focused tests implement a versioned projection for one complete logical snapshot. | The builder has no provider adapter, recent-authentication check, HTTP route or browser caller. | Preserve this server-only boundary and meet every entry criterion in the portable export contract before exposing a download. |
+| Export artifact core | `api/_lib/accountExportArtifact.js` deterministically serialises a valid manifest with a constant filename, JSON/no-store/nosniff metadata, UTF-8 byte length and SHA-256. | The helper creates only an in-memory value; it does not write a response, store a file or prove response bytes. | Future endpoint code must use this contract unchanged and prove actual bytes/headers only after every authentication, snapshot, policy and connected-test entry criterion passes. |
+| Deletion discovery core | `api/_lib/accountDeletionPlan.js` builds an immutable exact-owner ID/count plan for the five owner collections in fixed child-first order. | The planner has no provider adapter, route, recent-authentication/confirmation check, job store, deletion call, identity operation or provider-backed final reconciliation. | Preserve the source-only boundary and meet every executable-workflow entry criterion before importing it into a handler or worker. |
+| Deletion reconciliation core | `api/_lib/accountDeletionReconciliation.js` strictly validates a plan and compares its IDs internally with one later exact-owner snapshot, returning immutable counts only. | The reconciler has no provider adapter, route, snapshot-consistency proof, write fence, job state, deletion call, session/identity check or persisted evidence. | Use it only after approved orchestration supplies a proved complete later snapshot; never treat its in-memory `complete` flag as identity-deletion authorisation. |
+| Deletion confirmation core | `api/_lib/accountDeletionConfirmation.js` accepts only a one-field plain object containing the exact ASCII phrase and returns an identity-free immutable boolean result. | The validator has no route, request-size/origin/rate-limit controls, session or recent-authentication check, account identity, job state, deletion call or accessible UI. | Use it only inside the future approved endpoint after transport and authentication controls; never treat text confirmation as destructive authorisation by itself. |
 | Browser transport | Launch services use the same-origin data gateway. | No user-facing lifecycle service exists. | Add explicit lifecycle service functions only after their server workflows are approved; do not restore arbitrary browser collection authority. |
 | Policy and evidence | Launch readiness lists privacy/legal work as an external gate. | No reviewed publication or production-equivalent exercise is evidenced in this repository. | Complete the evidence registers below without committing personal data or privileged transcripts. |
 
@@ -104,9 +123,12 @@ photo, analytics and non-beer modules must remain unreachable during this work.
 ### Account deletion
 
 1. A recently authenticated owner must enter the exact phrase `DELETE MY
-   ACCOUNT` after being shown the scope, irreversibility, retention exceptions
-   and export option. The destructive control is not the default focus and is
-   inaccessible to another user.
+   ACCOUNT`, validated by the source-only
+   [confirmation contract](account-deletion-confirmation-contract.md), after
+   being shown the scope, irreversibility, retention exceptions and export
+   option. The helper does not prove authentication or UI behaviour. The
+   destructive control is not the default focus and is inaccessible to another
+   user.
 2. The gateway derives identity exclusively from the session. The request does
    not accept a `user_id`, profile ID or list of records from the browser.
 3. One idempotent server workflow enumerates and deletes only the owner's bonus
@@ -136,18 +158,25 @@ photo, analytics and non-beer modules must remain unreachable during this work.
 
 ### Proposed lifecycle
 
-1. **Confirm:** require recent authentication and exact irreversible-action
-   confirmation; offer export before proceeding.
+1. **Confirm:** require recent authentication and use the source-only
+   [confirmation contract](account-deletion-confirmation-contract.md) inside the
+   protected endpoint for exact irreversible-action confirmation; offer export
+   before proceeding. The current helper provides no endpoint or authorisation.
 2. **Fence:** create an idempotency key on the server, revoke sessions and prevent
    new owner writes.
-3. **Discover:** owner-query each collection and freeze a manifest containing
-   identifiers and counts, not record bodies.
+3. **Discover:** owner-query each collection and use the source-only
+   [deletion-plan contract](account-deletion-plan-contract.md) to freeze a
+   manifest containing identifiers and counts, not record bodies. The current
+   planner does not perform or prove the owner queries.
 4. **Delete children:** delete `bonus_attribute_rating_mapping` then
    `rating_scores`, re-reading with both `user_id` and parent relationship.
 5. **Delete parents:** delete `ratings`, then `cellar`, then `profiles`.
 6. **Delete identity:** invoke the reviewed authentication-provider operation.
-7. **Verify:** repeat owner-scoped queries, reconcile every count to zero and
-   verify that all sessions and identity access are invalid.
+7. **Verify:** repeat owner-scoped queries, use the source-only
+   [reconciliation contract](account-deletion-reconciliation-contract.md) to
+   reconcile every count to zero, and verify that all sessions and identity
+   access are invalid. The current helper compares only a supplied snapshot and
+   does not perform or prove the queries.
 8. **Receipt:** retain only the minimal operational deletion receipt described
    in the approved retention schedule; do not retain former profile content.
 
@@ -192,6 +221,21 @@ owner-enforcing application-data gateway.
 - `api/_lib/accountExport.js`: keep the implemented manifest builder pure and
   server-only. Supply it only with a proved consistent snapshot; do not let it
   perform provider reads or treat it as recent-authentication enforcement.
+- `api/_lib/accountExportArtifact.js`: keep the implemented artifact builder
+  pure and server-only. Do not accept filenames or response metadata from a
+  request, and do not treat its checksum as authorisation or retention evidence.
+- `api/_lib/accountDeletionPlan.js`: keep the implemented discovery planner pure
+  and server-only. Do not import it into a route or worker until the documented
+  recent-authentication, snapshot, fencing, job-store, retention and connected
+  evidence criteria pass.
+- `api/_lib/accountDeletionReconciliation.js`: keep the implemented count-only
+  reconciler pure and server-only. Supply only a validated plan and proved
+  complete later snapshot; do not treat `complete` as provider or identity
+  evidence.
+- `api/_lib/accountDeletionConfirmation.js`: keep the implemented exact-phrase
+  validator pure and server-only. A future caller must enforce body size,
+  origin, rate limits, recent authentication and session-derived identity before
+  using its result.
 - Provider configuration: add a server-only deletion-job/receipt store and
   approved constraints/permissions only through a reviewed rollout and rollback
   plan. Update the canonical schema mapping before merging that change.
@@ -219,15 +263,19 @@ distinct sentinels. Then:
    tokens, emails, record bodies or personal data.
 
 **Current result (rechecked 15 August 2026): partially implemented and still
-blocked for user use.** The source-only export manifest core is covered by local
-projection and reconciliation tests, but this environment contains no approved
+blocked for user use.** The source-only export manifest, export artifact,
+deletion discovery, deletion reconciliation and exact-confirmation cores are
+covered by local projection, count reconciliation, deterministic-byte,
+safe-metadata, checksum, exact-owner ID/count, new-owner detection,
+dependency-order and near-match/input-smuggling tests, but this environment
+contains no approved
 recent-authentication contract, consistent provider snapshot operation,
 connected export exercise, reviewed lifecycle policy or legal approval.
 Recovery artefact ownership, expiry and replay protection, durable
 export/deletion retries, identity deletion and post-restore erasure also remain
 unproved. No HTTP download or production-equivalent export/deletion claim has
-been made, and the source module must not be mistaken for a completed lifecycle
-workflow or G23 evidence.
+been made, and the source modules must not be mistaken for a completed lifecycle
+workflow, provider-backed final-absence proof or G23 evidence.
 
 ## Privacy, legal and operational approval record
 
