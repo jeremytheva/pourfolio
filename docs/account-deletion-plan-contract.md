@@ -91,6 +91,10 @@ The fixed dependency order is:
 This order does not authorise a caller to execute it. A future workflow must
 re-read every candidate with both owner and relationship predicates, handle
 not-found idempotently, reconcile after every stage and prove final absence.
+The source-only
+[reconciliation contract](account-deletion-reconciliation-contract.md)
+strictly validates this envelope and can compare it with one caller-supplied
+later snapshot, but it performs no query and cannot prove provider completeness.
 
 ## Privacy boundary
 
@@ -129,8 +133,11 @@ or browser code until all of the following are resolved and evidenced:
 5. Sessions and new writes can be fenced before destructive work begins.
 6. Each planned ID is re-read and exact-owner checked immediately before a
    child-first delete; provider `404` and partial failures converge safely.
-7. Final owner queries reconcile every application count to zero before the
-   reviewed authentication-provider identity operation can complete.
+7. Final owner queries use the source-only
+   [reconciliation contract](account-deletion-reconciliation-contract.md) to
+   reconcile every application count to zero before the reviewed
+   authentication-provider identity operation can complete; the helper's
+   count-only result does not itself prove those queries occurred.
 8. Backup expiry, restore suppression, lawful exceptions and support procedures
    match the published reviewed policy.
 9. Owner, other-user, expired-session, malformed-confirmation, partial-failure,

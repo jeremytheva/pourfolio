@@ -91,6 +91,14 @@ stable record IDs and counts in child-first order. It adds no separate
 authentication-identity field and excludes every record body. It performs no
 provider read, delete, job write, session operation, logging or network request.
 
+`api/_lib/accountDeletionReconciliation.js` is the count-only follow-on
+boundary. It strictly validates a deletion plan, reuses the discovery rules for
+one later complete logical snapshot and compares identifiers only in memory. It
+reports planned, removed, remaining and unplanned counts, with `complete` true
+only when no later exact-owner records remain. It returns no record IDs and
+performs no provider read, delete, job write, session operation, logging or
+network request.
+
 None of these modules is imported by `api/auth-proxy.js`,
 `api/data-proxy.js`, any browser service or any page. The current provider
 session contract contains no verified
@@ -100,13 +108,15 @@ create an incomplete security and data-consistency boundary. The export endpoint
 criteria and portable fields are defined in the
 [account export contract](account-export-contract.md); destructive-workflow
 criteria are defined in the
-[deletion-plan contract](account-deletion-plan-contract.md).
+[deletion-plan contract](account-deletion-plan-contract.md) and
+[reconciliation contract](account-deletion-reconciliation-contract.md).
 
 Recovery, explicit verification, session revocation and authentication-identity
 deletion also remain absent from the fixed auth action matrix. Account-deletion
-orchestration remains absent: the source-only discovery plan is not a route,
-job, delete operation or receipt. A durable server-only job store, write fence,
-provider identity operation and approved retention policy remain required. The
+orchestration remains absent: the source-only plan and count reconciliation are
+not routes, provider queries, jobs, delete operations, final provider proof or
+receipts. A durable server-only job store, write fence, provider identity
+operation and approved retention policy remain required. The
 complete gate is tracked in the
 [account lifecycle readiness review](account-lifecycle-readiness.md).
 

@@ -73,6 +73,20 @@ or authentication-identity deletion. Those controls and connected negatives are
 mandatory before any destructive workflow; see the
 [deletion-plan contract](account-deletion-plan-contract.md).
 
+`api/_lib/accountDeletionReconciliation.js` consumes that sensitive plan only
+inside a pure function, strictly validates its allowlisted shape and compares
+its IDs with a later snapshot without returning any identifier. Its immutable
+output contains per-collection and aggregate counts and remains incomplete when
+new owner records appear after discovery. Unexpected plan fields and count or
+ordering drift fail closed without echoing the supplied values.
+
+This count-only result is not provider-backed erasure evidence. The reconciler
+does not query the provider, prove a complete/consistent snapshot, authenticate
+a request, fence writes, inspect job state, delete data, revoke sessions or
+remove an identity. It must remain unreachable until the same destructive-entry
+criteria pass; see the
+[reconciliation contract](account-deletion-reconciliation-contract.md).
+
 ## Implemented launch controls
 
 - Fixed auth action/method allowlist.
