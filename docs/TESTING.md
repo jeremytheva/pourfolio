@@ -46,6 +46,12 @@ Tests cover:
 - weighted/unweighted totals and submission IDs;
 - profile/cellar input allowlists and ownership predicates;
 - immutable session identity extraction;
+- sign-in/sign-up acknowledgement fallback to the authoritative session endpoint
+  and rejection when no authenticated session can be resolved;
+- fail-closed provider discovery loading, malformed, configuration and service
+  failure states with no inferred password form;
+- safe public shared-limiter configuration-versus-service error codes, request
+  correlation and secret-redaction behaviour;
 - same-origin, request-size and rate-limit helpers;
 - authentication action/method, redirect policy, and proxied cookie domain/path normalisation;
 - the existing rating calculation utility.

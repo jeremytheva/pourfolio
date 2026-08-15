@@ -1,8 +1,12 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { authRequest, getGoogleSignInUrl, toAuthError } from '../lib/nocodeBackend.js'
+import { ApiError, authRequest, getGoogleSignInUrl, toAuthError } from '../lib/nocodeBackend.js'
 import { getCurrentUserProfile, updateCurrentUserProfile } from '../services/profileService.js'
 
 const AuthContext = createContext(null)
+
+export const AUTH_ERROR_CODES = Object.freeze({
+  SESSION_MISSING: 'auth_session_missing'
+})
 
 const getStableIdentity = (candidate) => {
   if (!candidate || typeof candidate !== 'object') return null
@@ -28,6 +32,23 @@ export const normalizeAuthUser = (payload) => {
     email: candidate.email || candidate.emailAddress || null,
     name: candidate.name || candidate.user_metadata?.name || null
   }
+}
+
+export const resolveAuthenticatedSession = async (payload, {
+  applySession,
+  getSession = () => authRequest('/get-session', { method: 'GET' })
+}) => {
+  const directSession = await applySession(payload)
+  if (directSession) return directSession
+
+  const refreshedPayload = await getSession()
+  const refreshedSession = await applySession(refreshedPayload)
+  if (refreshedSession) return refreshedSession
+
+  throw new ApiError(
+    'Authentication completed, but no authenticated session was established. Please try again.',
+    { code: AUTH_ERROR_CODES.SESSION_MISSING }
+  )
 }
 
 const buildProfile = (authUser, profilePayload = null) => {
@@ -69,6 +90,10 @@ export function AuthProvider({ children }) {
     return { user: nextAuthUser, profile: nextProfile }
   }, [])
 
+  const resolveSession = useCallback((payload) => resolveAuthenticatedSession(payload, {
+    applySession
+  }), [applySession])
+
   useEffect(() => {
     let mounted = true
 
@@ -105,7 +130,7 @@ export function AuthProvider({ children }) {
           }
         }
       })
-      const state = await applySession(payload)
+      const state = await resolveSession(payload)
       if (state && userData.name) {
         try {
           const saved = await updateCurrentUserProfile({ name: userData.name })
@@ -119,7 +144,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       return { data: null, error: toAuthError(error) }
     }
-  }, [applySession])
+  }, [resolveSession])
 
   const signIn = useCallback(async (email, password) => {
     try {
@@ -127,11 +152,11 @@ export function AuthProvider({ children }) {
         method: 'POST',
         body: { email, password }
       })
-      return { data: await applySession(payload), error: null }
+      return { data: await resolveSession(payload), error: null }
     } catch (error) {
       return { data: null, error: toAuthError(error) }
     }
-  }, [applySession])
+  }, [resolveSession])
 
   const requestEmailOtp = useCallback(async (email) => {
     try {
@@ -153,11 +178,11 @@ export function AuthProvider({ children }) {
         method: 'POST',
         body: { email, otp }
       })
-      return { data: await applySession(payload), error: null }
+      return { data: await resolveSession(payload), error: null }
     } catch (error) {
       return { data: null, error: toAuthError(error) }
     }
-  }, [applySession])
+  }, [resolveSession])
 
   const signInWithGoogle = useCallback(() => {
     window.location.assign(getGoogleSignInUrl())

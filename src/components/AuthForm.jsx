@@ -4,20 +4,43 @@ import SafeIcon from '../common/SafeIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { getAuthProviders } from '../lib/nocodeBackend.js'
 
-const initialProviders = {
-  emailPassword: true,
+const unavailableProviders = Object.freeze({
+  emailPassword: false,
   emailOtp: false,
   google: false
-}
+})
+
+const CONFIGURATION_ERROR_CODES = new Set([
+  'auth_configuration_missing',
+  'rate_limit_configuration_missing'
+])
 
 const hasReliableProviderState = (enabled) => enabled &&
   ['emailPassword', 'emailOtp', 'google'].every((provider) => typeof enabled[provider] === 'boolean')
 
+const withRequestId = (message, error) => error?.requestId
+  ? `${message} Request ID: ${error.requestId}.`
+  : message
+
 const friendlyAuthError = (error) => {
-  if (error?.code === 'auth_configuration_missing') {
-    return 'Authentication is not configured for this deployment. Please contact support and include the request ID if shown.'
+  if (CONFIGURATION_ERROR_CODES.has(error?.code)) {
+    return withRequestId(
+      'Authentication is not configured for this deployment. Please contact support.',
+      error
+    )
   }
-  return error?.message || 'Authentication could not be completed.'
+  if (error?.code === 'rate_limit_service_unavailable') {
+    return withRequestId('Authentication is temporarily unavailable. Please try again later.', error)
+  }
+  return withRequestId(error?.message || 'Authentication could not be completed.', error)
+}
+
+const friendlyProviderError = (error) => {
+  if (CONFIGURATION_ERROR_CODES.has(error?.code)) return friendlyAuthError(error)
+  return withRequestId(
+    'Sign-in options are temporarily unavailable. Please try again later or contact support.',
+    error
+  )
 }
 
 function AuthForm({ mode, onToggleMode }) {
@@ -28,7 +51,8 @@ function AuthForm({ mode, onToggleMode }) {
     name: '',
     otp: ''
   })
-  const [providers, setProviders] = useState(initialProviders)
+  const [providers, setProviders] = useState(unavailableProviders)
+  const [providerStatus, setProviderStatus] = useState('loading')
   const [activeMethod, setActiveMethod] = useState('emailPassword')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [otpSent, setOtpSent] = useState(false)
@@ -43,13 +67,20 @@ function AuthForm({ mode, onToggleMode }) {
         if (!active) return
         if (!hasReliableProviderState(enabled)) throw new Error('Invalid authentication provider response.')
         setProviders(enabled)
-        setActiveMethod(enabled.emailPassword ? 'emailPassword' : enabled.emailOtp ? 'emailOtp' : 'google')
+        if (Object.values(enabled).some(Boolean)) {
+          setActiveMethod(enabled.emailPassword ? 'emailPassword' : enabled.emailOtp ? 'emailOtp' : 'google')
+          setProviderStatus('ready')
+          return
+        }
+        setProviderStatus('unavailable')
+        setError('No sign-in methods are currently enabled. Please contact support.')
       })
       .catch((providerError) => {
         if (!active) return
-        setProviders(initialProviders)
+        setProviders(unavailableProviders)
         setActiveMethod('emailPassword')
-        if (providerError?.code === 'auth_configuration_missing') setError(friendlyAuthError(providerError))
+        setProviderStatus('unavailable')
+        setError(friendlyProviderError(providerError))
       })
     return () => {
       active = false
@@ -63,8 +94,8 @@ function AuthForm({ mode, onToggleMode }) {
   }, [activeMethod, mode])
 
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
-  const canUsePassword = providers.emailPassword && activeMethod === 'emailPassword'
-  const canUseOtp = mode === 'signin' && providers.emailOtp && activeMethod === 'emailOtp'
+  const canUsePassword = providerStatus === 'ready' && providers.emailPassword && activeMethod === 'emailPassword'
+  const canUseOtp = providerStatus === 'ready' && mode === 'signin' && providers.emailOtp && activeMethod === 'emailOtp'
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -116,8 +147,13 @@ function AuthForm({ mode, onToggleMode }) {
 
       {error && <div className="mb-5 rounded-lg border border-red-200 bg-red-50 p-3 text-red-800" role="alert">{error}</div>}
       {notice && <div className="mb-5 rounded-lg border border-green-200 bg-green-50 p-3 text-green-800" role="status">{notice}</div>}
+      {providerStatus === 'loading' && (
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-center text-gray-700" role="status">
+          Loading sign-in options…
+        </div>
+      )}
 
-      {mode === 'signin' && providers.emailPassword && providers.emailOtp && (
+      {providerStatus === 'ready' && mode === 'signin' && providers.emailPassword && providers.emailOtp && (
         <div className="mb-6 grid grid-cols-2 gap-2 rounded-lg bg-gray-100 p-1" aria-label="Sign-in method">
           <button type="button" onClick={() => setActiveMethod('emailPassword')} className={`rounded-md px-3 py-2 text-sm font-medium ${activeMethod === 'emailPassword' ? 'bg-white text-amber-700 shadow-sm' : 'text-gray-600'}`}>
             Password
@@ -169,14 +205,14 @@ function AuthForm({ mode, onToggleMode }) {
         </form>
       )}
 
-      {mode === 'signin' && providers.google && (
+      {providerStatus === 'ready' && mode === 'signin' && providers.google && (
         <button type="button" onClick={signInWithGoogle} className="mt-5 flex w-full items-center justify-center rounded-lg border border-gray-300 px-4 py-3 font-medium text-gray-700 hover:bg-gray-50">
           <SafeIcon icon={FiChrome} className="mr-2 h-5 w-5" />
           Continue with Google
         </button>
       )}
 
-      {providers.emailPassword && (
+      {providerStatus === 'ready' && providers.emailPassword && (
         <div className="mt-6 text-center text-sm text-gray-600">
           {mode === 'signup' ? 'Already have an account?' : 'New to Pourfolio?'}
           <button type="button" onClick={onToggleMode} className="ml-2 font-medium text-amber-700 hover:underline">

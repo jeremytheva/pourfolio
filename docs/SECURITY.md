@@ -60,6 +60,13 @@ sustained changes. Never log Redis tokens, opaque keys, account identifiers or
 request bodies. Rotate the REST token and `RATE_LIMIT_KEY_SECRET` through encrypted
 Vercel environment settings; rotation intentionally starts fresh buckets.
 
+The public 503 body remains generic but includes one safe diagnostic code:
+`rate_limit_configuration_missing` only when required limiter configuration is
+absent, or `rate_limit_service_unavailable` for client, connection, command and
+result failures. These codes must not reveal which Redis variable is absent,
+provider identity, addresses, credential validity, keys or raw errors. Provider
+discovery exposes no authentication control while pending or failed.
+
 ## Logging
 
 Server errors log only correlation ID, status/name and operation counts needed for support. Never log request bodies, passwords, tokens, cookies, user IDs, cellar contents, rating selections, email addresses or provider responses. Return the correlation ID to the client for support.
