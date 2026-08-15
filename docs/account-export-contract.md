@@ -3,10 +3,13 @@
 ## Status
 
 `api/_lib/accountExport.js` implements the source-only manifest builder for
-[Phase 2 issue #146](https://github.com/jeremytheva/pourfolio/issues/146). It is
-not connected to an HTTP route, browser control or provider reader. It therefore
-does not make account export available to users and is not evidence that launch
-gate G23 or Phase 2 is complete.
+[Phase 2 issue #146](https://github.com/jeremytheva/pourfolio/issues/146).
+`api/_lib/accountExportArtifact.js` implements the in-memory UTF-8 JSON artifact
+envelope for
+[Phase 2 issue #148](https://github.com/jeremytheva/pourfolio/issues/148).
+Neither module is connected to an HTTP route, browser control or provider
+reader. They therefore do not make account export available to users and are
+not evidence that launch gate G23 or Phase 2 is complete.
 
 The builder accepts one already-consistent logical snapshot. A future adapter
 must prove recent authentication and provider snapshot semantics before calling
@@ -43,6 +46,11 @@ The function returns one plain JSON-compatible object only after it has
 validated the complete input, ownership, relationships, referenced context,
 dates and score range. A thrown validation error returns no partial manifest.
 The module performs no read, write, logging or network operation.
+
+The artifact builder accepts the same options and delegates validation and
+projection to `buildAccountExportManifest`. It does not accept or derive an
+owner selector, filename, media type or response header from a browser. Unknown
+option keys have no effect on the fixed artifact metadata.
 
 ## Ownership and relationship rules
 
@@ -116,6 +124,38 @@ Text remains ordinary JSON string data. A future download response must use a
 non-executable JSON content type and must never interpolate exported strings
 into HTML.
 
+## In-memory artifact envelope
+
+`buildAccountExportArtifact(options)` returns an immutable server value only
+after the complete manifest succeeds:
+
+| Field | Contract |
+| --- | --- |
+| `filename` | Constant ASCII value `pourfolio-account-data.json`. |
+| `media_type` | Constant `application/json; charset=utf-8`. |
+| `body` | `JSON.stringify(manifest, null, 2)` followed by exactly one line-feed character. |
+| `byte_length` | Exact `Buffer.byteLength(body, 'utf8')`; this is not JavaScript string length. |
+| `checksum` | Lowercase SHA-256 of the exact UTF-8 body, with explicit `algorithm` and `value` fields. |
+| `headers` | Frozen constant response metadata described below. |
+
+The response metadata is fixed at module load time and contains no account,
+exported-text or caller-supplied value:
+
+| Header | Constant value |
+| --- | --- |
+| `Cache-Control` | `no-store` |
+| `Content-Disposition` | `attachment; filename="pourfolio-account-data.json"` |
+| `Content-Type` | `application/json; charset=utf-8` |
+| `X-Content-Type-Options` | `nosniff` |
+
+The body is an immutable JavaScript string. The returned artifact, checksum and
+headers objects are frozen so downstream code cannot silently change metadata
+after reconciliation. The checksum and byte length are request-local integrity
+metadata, not authorisation, proof of a consistent provider snapshot or
+permission to log or retain a personal-data-derived value. This helper creates
+no HTTP response, file, job, object-store entry, log or retention obligation by
+itself.
+
 ## Future endpoint entry criteria
 
 Do not expose this builder through `api/data-proxy.js` or a new route until all
@@ -128,8 +168,10 @@ of the following are resolved and evidenced:
 3. Owner-scoped reads are proved against an isolated production-equivalent
    environment with another-account sentinels.
 4. Partial provider failures produce no artefact and a safe retry response.
-5. The response uses UTF-8 JSON, `Cache-Control: no-store`, a constant safe
-   attachment filename and `X-Content-Type-Options: nosniff`.
+5. The endpoint uses `buildAccountExportArtifact` without accepting a filename,
+   applies its UTF-8 JSON, `no-store`, constant attachment and `nosniff`
+   metadata unchanged, and verifies the actual response bytes match its length
+   and checksum in integration tests.
 6. Same-origin, request-size and export-specific rate limits are enforced; no
    exported value, account ID, email, cookie, token or provider response is
    logged.
@@ -145,6 +187,11 @@ other-user sentinels, field stripping, deterministic order, explicit nulls,
 count reconciliation, missing collections, duplicate IDs, orphan children,
 missing catalogue/definition context, cross-product cellar links, invalid
 lifecycle values, scores and dates, and zero/multiple-profile cases.
+
+`api/_lib/__tests__/accountExportArtifact.test.js` covers the exact deterministic
+body, final line feed, Unicode byte length, fixed fixture SHA-256, empty data,
+frozen metadata, malicious filename/content inputs, manifest failure, changed
+content and timestamp digests, and static provider/route/browser isolation.
 
 The repository release gate remains authoritative; passing these unit tests is
 source evidence only and does not satisfy the future endpoint entry criteria.

@@ -10,12 +10,14 @@ workflow is enabled. It must not be used as evidence that the external privacy,
 legal or production-equivalent gates have passed.
 
 On 15 August 2026, the owner authorised Phase 2 source work to begin while the
-Phase 1 provider-evidence issue remains open. Issue
-[#146](https://github.com/jeremytheva/pourfolio/issues/146) implements only the
-pure, server-side [portable export manifest contract](account-export-contract.md):
+Phase 1 provider-evidence issue remains open. Issues
+[#146](https://github.com/jeremytheva/pourfolio/issues/146) and
+[#148](https://github.com/jeremytheva/pourfolio/issues/148) implement only the
+pure, server-side [portable export contract](account-export-contract.md):
 exact-owner projection, relationship validation, stable ordering and count
-reconciliation for one already-consistent snapshot. It performs no provider
-read, exposes no route and creates no artefact. This sequencing exception does
+reconciliation for one already-consistent snapshot, followed by deterministic
+in-memory UTF-8 JSON with fixed safe response metadata. They perform no provider
+read, expose no route and persist no artefact. This sequencing exception does
 not waive recent authentication, snapshot consistency, privacy/retention review
 or connected evidence.
 
@@ -32,6 +34,7 @@ photo, analytics and non-beer modules must remain unreachable during this work.
 | Ratings | Owner deletion removes a rating and its loaded score/mapping children sequentially. | A child-delete failure can leave a partial result; there is no durable deletion job or retry status. | Replace whole-account use of this endpoint with a server-owned, idempotent deletion workflow. |
 | Cellar | Owner CRUD is enforced in the gateway. | There is no account-wide export or deletion workflow. | Include every owner cellar row in the snapshot and deletion manifest. |
 | Export manifest core | `api/_lib/accountExport.js` and its focused tests implement a versioned projection for one complete logical snapshot. | The builder has no provider adapter, recent-authentication check, HTTP route or browser caller. | Preserve this server-only boundary and meet every entry criterion in the portable export contract before exposing a download. |
+| Export artifact core | `api/_lib/accountExportArtifact.js` deterministically serialises a valid manifest with a constant filename, JSON/no-store/nosniff metadata, UTF-8 byte length and SHA-256. | The helper creates only an in-memory value; it does not write a response, store a file or prove response bytes. | Future endpoint code must use this contract unchanged and prove actual bytes/headers only after every authentication, snapshot, policy and connected-test entry criterion passes. |
 | Browser transport | Launch services use the same-origin data gateway. | No user-facing lifecycle service exists. | Add explicit lifecycle service functions only after their server workflows are approved; do not restore arbitrary browser collection authority. |
 | Policy and evidence | Launch readiness lists privacy/legal work as an external gate. | No reviewed publication or production-equivalent exercise is evidenced in this repository. | Complete the evidence registers below without committing personal data or privileged transcripts. |
 
@@ -192,6 +195,9 @@ owner-enforcing application-data gateway.
 - `api/_lib/accountExport.js`: keep the implemented manifest builder pure and
   server-only. Supply it only with a proved consistent snapshot; do not let it
   perform provider reads or treat it as recent-authentication enforcement.
+- `api/_lib/accountExportArtifact.js`: keep the implemented artifact builder
+  pure and server-only. Do not accept filenames or response metadata from a
+  request, and do not treat its checksum as authorisation or retention evidence.
 - Provider configuration: add a server-only deletion-job/receipt store and
   approved constraints/permissions only through a reviewed rollout and rollback
   plan. Update the canonical schema mapping before merging that change.
@@ -219,8 +225,9 @@ distinct sentinels. Then:
    tokens, emails, record bodies or personal data.
 
 **Current result (rechecked 15 August 2026): partially implemented and still
-blocked for user use.** The source-only export manifest core is covered by local
-projection and reconciliation tests, but this environment contains no approved
+blocked for user use.** The source-only export manifest and artifact cores are
+covered by local projection, reconciliation, deterministic-byte, safe-metadata
+and checksum tests, but this environment contains no approved
 recent-authentication contract, consistent provider snapshot operation,
 connected export exercise, reviewed lifecycle policy or legal approval.
 Recovery artefact ownership, expiry and replay protection, durable

@@ -21,6 +21,8 @@ The browser cannot write `user_id`, `secret_key`, roles, rating totals or provid
 
 The portable account export is a versioned JSON projection, not a new provider
 collection. Its source-only manifest contract exact-filters the five owner-data
-groups above and adds only referenced catalogue/attribute context. It persists
-no export job or artefact and does not change the canonical schema; see
-[Portable account-export manifest contract](account-export-contract.md).
+groups above and adds only referenced catalogue/attribute context. Its
+source-only artifact contract deterministically serialises that manifest as an
+in-memory UTF-8 JSON string with fixed safe metadata, byte length and SHA-256.
+It persists no export job or artefact and does not change the canonical schema;
+see [Portable account-export manifest contract](account-export-contract.md).

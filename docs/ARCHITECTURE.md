@@ -78,10 +78,16 @@ catalogue context, strips provider-only fields, sorts stable string IDs and
 returns a versioned manifest with exact counts. It performs no provider read,
 write, logging or network request.
 
-The module is deliberately not imported by `api/data-proxy.js`, any browser
-service or any page. The current provider session contract contains no verified
+`api/_lib/accountExportArtifact.js` composes only that validated manifest into
+an immutable, deterministic in-memory UTF-8 JSON artifact. It fixes the ASCII
+filename, JSON media type, `no-store`/attachment/`nosniff` metadata, byte length
+and SHA-256 without using request or exported values in headers. It performs no
+response write, storage, logging, provider operation or environment access.
+
+Neither module is imported by `api/data-proxy.js`, any browser service or any
+page. The current provider session contract contains no verified
 recent-authentication timestamp, and the current collection API has no proved
-consistent multi-collection snapshot. Exposing the builder now would therefore
+consistent multi-collection snapshot. Exposing either module now would therefore
 create an incomplete security and data-consistency boundary. The endpoint entry
 criteria and portable fields are defined in the
 [account export contract](account-export-contract.md).
