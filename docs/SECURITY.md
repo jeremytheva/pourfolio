@@ -35,13 +35,21 @@ unrecognised metadata from crossing the projection boundary. Other-user rows and
 unreferenced catalogue rows are excluded even if they appear in the supplied
 snapshot.
 
-This module is not authentication, authorisation of an HTTP request or proof of
-snapshot consistency. It must remain unreachable until the provider supplies a
-server-verifiable recent-authentication contract and a consistent snapshot (or
-an approved equivalent fence/reconciliation workflow). A future endpoint must
-add same-origin and export-specific rate controls, `no-store` and safe attachment
-headers, all-or-nothing provider failure handling, a constant filename and
-connected other-user/expired-session tests. Exported values, account IDs,
+`api/_lib/accountExportArtifact.js` adds the source-only serialization boundary.
+It emits deterministic UTF-8 JSON with an immutable constant ASCII filename,
+`application/json; charset=utf-8`, `Cache-Control: no-store`, attachment content
+disposition and `X-Content-Type-Options: nosniff`. It calculates byte length and
+SHA-256 over the exact body. No request or personal-data value can enter a
+header, and the helper performs no response write, persistence or logging.
+
+These modules are not authentication, authorisation of an HTTP request or proof
+of snapshot consistency. They must remain unreachable until the provider
+supplies a server-verifiable recent-authentication contract and a consistent
+snapshot (or an approved equivalent fence/reconciliation workflow). A future endpoint must
+add same-origin and export-specific rate controls, apply the artifact helper's
+fixed response metadata, prove actual response bytes, provide all-or-nothing
+provider failure handling, and pass connected other-user/expired-session tests.
+Exported values, artifact checksums, account IDs,
 emails, cookies, tokens and provider responses must never be logged. See the
 [portable export contract](account-export-contract.md).
 

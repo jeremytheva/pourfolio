@@ -10,9 +10,11 @@ represented by [#144](https://github.com/jeremytheva/pourfolio/issues/144).
 
 On 15 August 2026, the accountable owner also authorised Phase 2 source work to
 start while #144 remains open, with blocked work skipped rather than waived.
-The first focused child is
+The first focused children are
 [#146](https://github.com/jeremytheva/pourfolio/issues/146), the owner-safe
-account-export manifest core. It exposes no route and does not satisfy the full
+account-export manifest core, and
+[#148](https://github.com/jeremytheva/pourfolio/issues/148), the deterministic
+in-memory artifact envelope. They expose no route and do not satisfy the full
 `PF-P2-01` outcome, G23, recent-authentication, policy or connected-evidence
 requirements.
 
@@ -55,7 +57,7 @@ evidence has been independently reviewed.
 | --- | --- | --- | --- | --- | --- |
 | `PF-P0-01` | Phase 0 — Governed delivery ready | Repository changes can reach production only through an evidenced, protected delivery path. | P0 | `@jeremytheva` | [#143](https://github.com/jeremytheva/pourfolio/issues/143) |
 | `PF-P1-01` | Phase 1 — Backend contract certified | The production-equivalent backend enforces and proves the canonical launch data contract. | P0 | `@jeremytheva` | [#144](https://github.com/jeremytheva/pourfolio/issues/144) — milestone assignment pending |
-| `PF-P2-01` | Phase 2 — Identity lifecycle safe | A user can securely register, authenticate, recover, verify, export and delete their account. | P0 | `@jeremytheva` | Parent outcome issue pending; source-only export child [#146](https://github.com/jeremytheva/pourfolio/issues/146) in progress; sequencing dependency [#144](https://github.com/jeremytheva/pourfolio/issues/144) remains open |
+| `PF-P2-01` | Phase 2 — Identity lifecycle safe | A user can securely register, authenticate, recover, verify, export and delete their account. | P0 | `@jeremytheva` | Parent outcome issue pending; source-only export children [#146](https://github.com/jeremytheva/pourfolio/issues/146) and [#148](https://github.com/jeremytheva/pourfolio/issues/148) in progress; sequencing dependency [#144](https://github.com/jeremytheva/pourfolio/issues/144) remains open |
 | `PF-P3-01` | Phase 3 — Beer discovery dependable | A user can reliably browse, search and open canonical beer details. | P1 | `@jeremytheva` | Pending; depends on [#144](https://github.com/jeremytheva/pourfolio/issues/144) |
 | `PF-P4-01` | Phase 4 — Ratings trustworthy | A user can create, retry, view and delete only their own internally consistent rating. | P0 | `@jeremytheva` | Pending Phase 1 and 3 issue links |
 | `PF-P5-01` | Phase 5 — Cellar and profile owner-safe | A user can manage only their own cellar records and allowed profile fields. | P1 | `@jeremytheva` | Pending Phase 1 and 2 issue links |
@@ -124,9 +126,11 @@ evidence has been independently reviewed.
 - **Dependencies:** [#144](https://github.com/jeremytheva/pourfolio/issues/144)
   and approved privacy, retention and deletion decisions remain closure and
   user-facing-workflow blockers. The owner authorised unblocked source work to
-  proceed on 15 August 2026; child
-  [#146](https://github.com/jeremytheva/pourfolio/issues/146) implements only the
-  portable export manifest core under that sequencing exception.
+  proceed on 15 August 2026; children
+  [#146](https://github.com/jeremytheva/pourfolio/issues/146) and
+  [#148](https://github.com/jeremytheva/pourfolio/issues/148) implement only the
+  portable export manifest and in-memory artifact cores under that sequencing
+  exception.
 - **Acceptance criteria:** lifecycle happy paths and expired/replayed/other-user
   negatives pass; export is complete and deletion follows the published policy;
   errors reveal no account existence or secrets; accessible status and error
