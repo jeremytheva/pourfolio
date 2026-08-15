@@ -40,6 +40,14 @@ Source-controlled launch hardening is implemented for a beer-first MVP, but prod
 - Authenticated application data gateway with owner enforcement and explicit response projections.
 - Canonical `products`/`product_id`, `ratings`, normalised `rating_scores`, `cellar` contract.
 - Stable product routes and live catalogue/search/detail states.
+- A browser catalogue response boundary that allowlists render-safe public
+  fields, verifies coherent pagination/stable IDs/optional relationships and
+  aggregate-only details, and routes malformed successful responses to the
+  existing alert/retry UI.
+- Request-bound catalogue reads: provider page metadata/items and direct record
+  IDs must match the request, product detail identity is rechecked at the
+  gateway and browser, and non-canonical direct-route IDs fail before network
+  access.
 - Complete applicable 1–7 rating form; score `1` remains valid.
 - Server-calculated totals, durable retry ID, optional bonus selections and compensating rollback.
 - Owner-scoped rating history and delete.
@@ -52,6 +60,12 @@ Source-controlled launch hardening is implemented for a beer-first MVP, but prod
 - Read-only import and rating-schema preflights that fail closed on incomplete
   catalogue references, missing profile/rating controls, duplicate-permitting
   schema and mutable rating timestamps.
+
+The response boundary is the first source-only slice of
+[`PF-P3-01`](https://github.com/jeremytheva/pourfolio/issues/154). It does not
+repair or approve the supplied catalogue sources and does not establish
+connected route, provider-failure or accessibility evidence. The historical
+import blockers and every earlier external gate below remain unchanged.
 
 ## Historical import evidence
 

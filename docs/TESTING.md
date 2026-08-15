@@ -70,6 +70,15 @@ Tests cover:
   identity/record/job-field smuggling, symbols/non-enumerable fields, accessors,
   non-coercion, safe errors, immutable output and route/provider isolation;
 - zero, one and multiple-rating catalogue aggregates, including rejection of non-finite totals and absence of individual rating or cellar identifiers;
+- the browser catalogue response boundary: exact public field shapes, coherent
+  empty/full/final-page metadata, unique stable IDs, render-safe scalar/image
+  values, matching optional producer/category relationships, aggregate-only
+  detail summaries, private-rating rejection, safe non-echoing errors, deep
+  immutability and enforcement by both service reads;
+- request-bound catalogue identity: exact provider page/page-size and
+  full/terminal item counts, direct/fallback provider record IDs, canonical
+  browser product IDs rejected before network access, exact detail response ID
+  matching, safe not-found behaviour and provider substitution failure;
 - score 1 validity and complete 1–7 rating validation;
 - weighted/unweighted totals and submission IDs;
 - profile/cellar input allowlists and ownership predicates;
@@ -86,6 +95,18 @@ no game API request occurs. It also runs
 automated accessibility checks on the reachable launch pages. This suite verifies
 browser behaviour without requiring production credentials; it does not replace
 the connected staging tests below.
+
+The catalogue fixture now follows the aggregate-only detail contract. Focused
+browser cases supply malformed successful browse and detail responses, a
+non-canonical direct route and an exact missing route. They check that labelled
+alerts and keyboard-operable retry buttons appear without the application error
+boundary, that an invalid ID makes no catalogue request, and that browse failure
+replaces the result count with an announced failure status. The invalid-route
+state exposes a back link instead of a futile retry, while exact not-found and
+remote failures retain both recovery choices. A mocked browser
+pass still does not prove the
+connected provider, deployment or WCAG evidence required by `PF-P3-01`; see the
+[catalogue response contract](catalogue-response-contract.md).
 
 The account-export tests exercise `api/_lib/accountExport.js` and
 `api/_lib/accountExportArtifact.js` directly. They prove the exact in-memory

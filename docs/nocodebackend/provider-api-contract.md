@@ -58,8 +58,8 @@ All operations are same-origin from the browser to `api/data-proxy.js`; only ser
 | Adapter operation | Method and path | Query | Body | Success status and envelope | Empty or missing response |
 | --- | --- | --- | --- | --- | --- |
 | `list(collection, filters)` | `GET /{collection}` | Equality filters as query parameters. Blank, `null`, and `undefined` filters are omitted. | none | `200` with one of `{ data: [] }`, `{ records: [] }`, `{ items: [] }`, `{ results: [] }`, or a bare array. | Empty lists return an empty array. |
-| `listPage(collection, options)` | `GET /{collection}` | Equality filters plus `search`, one-based `page`, `limit`, `order_by`, and `order`. | none | `200` with a supported list envelope and pagination metadata (either `pagination`, `meta`, or top-level) containing page, page size, total count, and total pages. | Empty pages return an empty list and zero totals. Missing or malformed pagination metadata fails closed as a provider error. |
-| `get(collection, id)` | `GET /{collection}/{encodeURIComponent(id)}` | none | none | `200` with `{ data: record }`, `{ record: record }`, `{ records: [record] }`, `{ items: [record] }`, `{ results: record }`, or a bare record. | `404` is treated as missing; the adapter retries `GET /{collection}?id={id}` and returns the first record or `null`. |
+| `listPage(collection, options)` | `GET /{collection}` | Equality filters plus `search`, one-based `page`, `limit`, `order_by`, and `order`. | none | `200` with a supported list envelope and pagination metadata (either `pagination`, `meta`, or top-level) containing the exact requested page/page size, total count and mathematically consistent total pages/items. | Empty first pages return an empty list and zero totals. Missing, malformed, mismatched or internally inconsistent pagination fails closed as `502 PROVIDER_ERROR`. |
+| `get(collection, id)` | `GET /{collection}/{encodeURIComponent(id)}` | none | none | `200` with `{ data: record }`, `{ record: record }`, `{ records: [record] }`, `{ items: [record] }`, `{ results: record }`, or a bare record whose `id` exactly matches the request. | `404` is treated as missing; the adapter retries `GET /{collection}?id={id}` and selects only an exact identifier match or returns `null`. A mismatched direct record fails closed as `502 PROVIDER_ERROR`. |
 | `create(collection, body)` | `POST /{collection}` | none | JSON record payload | `200` or `201` with the created record in a supported single-record envelope. | n/a |
 | `update(collection, id, body)` | `PUT /{collection}/{encodeURIComponent(id)}` | none | JSON partial record payload | `200` with the updated record in a supported single-record envelope. | `404` remains a safe not-found provider error. |
 | `compareAndSet(collection, id, expectedVersion, body)` | `PUT /{collection}/{encodeURIComponent(id)}?expected_version={expectedVersion}` | `expected_version` | JSON partial record payload, including the next `submission_version` or `version`. | `200` with the updated record. | Stale `expected_version` returns `409` and maps to `VERSION_CONFLICT`. |
@@ -76,8 +76,13 @@ additionally support case-insensitive `search`, one-based `page`, `limit` up to
 100, `order_by`, and `order` (`asc` or `desc`). The catalogue gateway fixes
 ordering to `product_name asc` so page boundaries remain deterministic. Totals
 come from the provider's pagination metadata; the gateway does not infer a
-total from the current page. Relationship hydration uses record reads for only
-the distinct producer and category identifiers referenced by that page.
+total from the current page. The adapter proves the returned page and size equal
+the request, total pages equal `ceil(total / pageSize)`, the page exists, and
+the item count equals the full-page or terminal-page remainder. Relationship
+hydration uses record reads for only the distinct producer and category
+identifiers referenced by that page. Every direct record read is also bound to
+the requested identifier; the filtered-list fallback never accepts the first
+unrelated record if a provider ignores the `id` filter.
 Owner-scoped rating and cellar queries remain scoped by `user_id`, and only
 product identifiers referenced by those returned records are hydrated.
 
