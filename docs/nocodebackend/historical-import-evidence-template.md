@@ -86,6 +86,22 @@ import write is approved.
 
 ## Import and reconciliation
 
+Place private before, first-run and rerun collection exports beside the
+rehearsal manifest, then run:
+
+```bash
+npm run audit:import:rehearsal -- \
+  --manifest <private-evidence>/import-rehearsal-manifest.json \
+  --output <private-evidence>/import-rehearsal-audit.json
+```
+
+Use [the import rehearsal auditor contract](historical-import-rehearsal-auditor.md)
+to populate the manifest. The command recomputes retained export counts, byte
+lengths and SHA-256 values, verifies frozen source totals and rejected-record
+coverage, rejects unexpected writes to non-target collections, requires zero
+orphans and duplicates after both writes, and proves that the rerun has zero
+creates, updates or deletes with byte-identical first-run/rerun exports.
+
 Retain the approved dry-run diff, first-run log, rejected-record ledger and
 post-import orphan checks. Complete this table with before, first-run and rerun
 counts and stable content hashes:

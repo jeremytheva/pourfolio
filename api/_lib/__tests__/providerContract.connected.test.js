@@ -158,6 +158,7 @@ const createScore = async (rating, overrides = {}) => {
 
 test.after(async () => {
   if (!enabled) return
+  const cleanupAttempted = created.length
   const cleanupFailures = []
   for (const [collection, id] of created.reverse()) {
     try {
@@ -175,7 +176,15 @@ test.after(async () => {
   if (transcriptPath) {
     const resolved = path.resolve(transcriptPath)
     await mkdir(path.dirname(resolved), { recursive: true })
-    await writeFile(resolved, `${JSON.stringify({ generated_at: new Date().toISOString(), entries: transcript }, null, 2)}\n`)
+    await writeFile(resolved, `${JSON.stringify({
+      generated_at: new Date().toISOString(),
+      entries: transcript,
+      cleanup: {
+        attempted: cleanupAttempted,
+        failures: cleanupFailures.length,
+        status: cleanupFailures.length ? 'BLOCKED' : 'PASS'
+      }
+    }, null, 2)}\n`)
   }
   assert.deepEqual(cleanupFailures, [], 'Connected contract cleanup must leave no created records.')
 })

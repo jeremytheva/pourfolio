@@ -6,6 +6,15 @@ This document records the production-equivalent NoCodeBackend data-provider cont
 
 The connected suite is destructive and must only run against an isolated production-equivalent provider workspace seeded for contract verification, never against a shared production dataset.
 
+The repository provides the manual **Connected provider contract** workflow for
+the approved execution path. It checks out the exact full SHA, runs only behind
+the protected `staging-release` environment, requires the literal destructive
+confirmation `isolated-staging-destructive-provider-contract`, reads provider
+and fixture values from protected environment secrets, and retains a redacted
+transcript plus machine-checked cleanup evidence. It has no automatic `push` or
+`pull_request` trigger. Environment reviewers must confirm that the workspace
+and all three fixtures are disposable before approving a run.
+
 ```bash
 RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1 \
 NCB_CONTRACT_ENVIRONMENT=isolated-staging \
@@ -30,7 +39,17 @@ every created record is absent. Set
 `NCB_CONTRACT_TRANSCRIPT_PATH` to retain a JSON transcript of provider requests
 and responses; the recorder redacts the configured provider base URL, bearer
 token, user, product and attribute identifiers and generated run prefix before
-writing the artefact.
+writing the artefact. The transcript also contains aggregate cleanup attempts,
+failure count and `PASS`/`BLOCKED` status. The workflow runs
+`check:provider-contract-transcript` before upload; the check blocks an empty
+transcript, missing cleanup proof, any cleanup failure, or any configured
+secret or fixture value remaining in the retained JSON.
+
+For a reviewed run, retain the workflow URL, release SHA, protected-environment
+approval, artefact name, transcript verification report, test result and
+independent reviewer decision in the private release record. A passing workflow
+proves only this provider-contract scope; it does not close permission,
+migration, baseline, import or rollback gates.
 
 ## Transport contract
 

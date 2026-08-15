@@ -135,6 +135,20 @@ exact `isolated-staging` environment marker, an explicit destructive opt-in and
 disposable user/product/attribute fixture identifiers. The default unit run
 continues to skip this connected suite.
 
+The manual `Connected provider contract` workflow is the protected connected
+execution path. It is full-SHA pinned, gated by the `staging-release`
+environment and an exact destructive confirmation, and retains a redacted
+transcript whose cleanup section is verified before upload. The default test
+run also statically checks that those controls cannot be removed unnoticed.
+
+`npm run audit:baseline -- --manifest <manifest>` verifies a private same-state
+baseline package. `npm run audit:import:rehearsal -- --manifest <manifest>`
+verifies the three private before/first/rerun export sets, exact historical
+reconciliation, rejected-record coverage, orphan/duplicate zeroes and rerun
+idempotency. Both commands fail closed, emit aggregate JSON only and are
+covered by synthetic regression fixtures; neither command makes a connected
+provider claim without the private evidence files and independent review.
+
 ## Required pre-launch environment tests
 
 Source-only tests cannot replace these staging checks:
