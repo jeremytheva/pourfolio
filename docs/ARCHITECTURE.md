@@ -99,6 +99,12 @@ only when no later exact-owner records remain. It returns no record IDs and
 performs no provider read, delete, job write, session operation, logging or
 network request.
 
+`api/_lib/accountDeletionConfirmation.js` is the exact-text boundary. It accepts
+only a plain one-field request object containing the exact ASCII phrase, rejects
+all browser identities/selectors and returns a frozen format/version/boolean
+result without copying request text. It performs no request parsing,
+authentication, provider operation, deletion, logging or network request.
+
 None of these modules is imported by `api/auth-proxy.js`,
 `api/data-proxy.js`, any browser service or any page. The current provider
 session contract contains no verified
@@ -109,13 +115,16 @@ criteria and portable fields are defined in the
 [account export contract](account-export-contract.md); destructive-workflow
 criteria are defined in the
 [deletion-plan contract](account-deletion-plan-contract.md) and
-[reconciliation contract](account-deletion-reconciliation-contract.md).
+[reconciliation contract](account-deletion-reconciliation-contract.md), with
+exact text handling defined by the
+[confirmation contract](account-deletion-confirmation-contract.md).
 
 Recovery, explicit verification, session revocation and authentication-identity
 deletion also remain absent from the fixed auth action matrix. Account-deletion
-orchestration remains absent: the source-only plan and count reconciliation are
-not routes, provider queries, jobs, delete operations, final provider proof or
-receipts. A durable server-only job store, write fence, provider identity
+orchestration remains absent: the source-only confirmation, plan and count
+reconciliation are not routes, authentication decisions, provider queries,
+jobs, delete operations, final provider proof or receipts. A durable server-only
+job store, write fence, provider identity
 operation and approved retention policy remain required. The
 complete gate is tracked in the
 [account lifecycle readiness review](account-lifecycle-readiness.md).

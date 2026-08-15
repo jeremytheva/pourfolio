@@ -18,7 +18,9 @@ in-memory artifact envelope, and
 [#150](https://github.com/jeremytheva/pourfolio/issues/150), the source-only
 account-deletion discovery plan, and
 [#152](https://github.com/jeremytheva/pourfolio/issues/152), the source-only
-count reconciliation core. They expose no route or destructive operation and do
+count reconciliation core, and
+[#153](https://github.com/jeremytheva/pourfolio/issues/153), the source-only
+exact-confirmation core. They expose no route or destructive operation and do
 not satisfy the full
 `PF-P2-01` outcome, G23, recent-authentication, policy or connected-evidence
 requirements.
@@ -62,7 +64,7 @@ evidence has been independently reviewed.
 | --- | --- | --- | --- | --- | --- |
 | `PF-P0-01` | Phase 0 — Governed delivery ready | Repository changes can reach production only through an evidenced, protected delivery path. | P0 | `@jeremytheva` | [#143](https://github.com/jeremytheva/pourfolio/issues/143) |
 | `PF-P1-01` | Phase 1 — Backend contract certified | The production-equivalent backend enforces and proves the canonical launch data contract. | P0 | `@jeremytheva` | [#144](https://github.com/jeremytheva/pourfolio/issues/144) — milestone assignment pending |
-| `PF-P2-01` | Phase 2 — Identity lifecycle safe | A user can securely register, authenticate, recover, verify, export and delete their account. | P0 | `@jeremytheva` | Parent outcome issue pending; source-only children [#146](https://github.com/jeremytheva/pourfolio/issues/146), [#148](https://github.com/jeremytheva/pourfolio/issues/148), [#150](https://github.com/jeremytheva/pourfolio/issues/150) and [#152](https://github.com/jeremytheva/pourfolio/issues/152) in progress; sequencing dependency [#144](https://github.com/jeremytheva/pourfolio/issues/144) remains open |
+| `PF-P2-01` | Phase 2 — Identity lifecycle safe | A user can securely register, authenticate, recover, verify, export and delete their account. | P0 | `@jeremytheva` | Parent outcome issue pending; source-only children [#146](https://github.com/jeremytheva/pourfolio/issues/146), [#148](https://github.com/jeremytheva/pourfolio/issues/148), [#150](https://github.com/jeremytheva/pourfolio/issues/150), [#152](https://github.com/jeremytheva/pourfolio/issues/152) and [#153](https://github.com/jeremytheva/pourfolio/issues/153) in progress; sequencing dependency [#144](https://github.com/jeremytheva/pourfolio/issues/144) remains open |
 | `PF-P3-01` | Phase 3 — Beer discovery dependable | A user can reliably browse, search and open canonical beer details. | P1 | `@jeremytheva` | Pending; depends on [#144](https://github.com/jeremytheva/pourfolio/issues/144) |
 | `PF-P4-01` | Phase 4 — Ratings trustworthy | A user can create, retry, view and delete only their own internally consistent rating. | P0 | `@jeremytheva` | Pending Phase 1 and 3 issue links |
 | `PF-P5-01` | Phase 5 — Cellar and profile owner-safe | A user can manage only their own cellar records and allowed profile fields. | P1 | `@jeremytheva` | Pending Phase 1 and 2 issue links |
@@ -138,8 +140,9 @@ evidence has been independently reviewed.
   [#150](https://github.com/jeremytheva/pourfolio/issues/150) implements only the
   source-only account-deletion discovery plan and
   [#152](https://github.com/jeremytheva/pourfolio/issues/152) implements only
-  count reconciliation for one supplied later snapshot under that sequencing
-  exception.
+  count reconciliation for one supplied later snapshot and
+  [#153](https://github.com/jeremytheva/pourfolio/issues/153) implements only
+  exact phrase/request-shape validation under that sequencing exception.
 - **Acceptance criteria:** lifecycle happy paths and expired/replayed/other-user
   negatives pass; export is complete and deletion follows the published policy;
   errors reveal no account existence or secrets; accessible status and error

@@ -42,3 +42,9 @@ one later complete logical owner snapshot, compares record IDs internally, and
 returns only planned, removed, remaining and unplanned counts. No ID or record
 body enters the result, and no schema changes; see the
 [Account-deletion reconciliation contract](account-deletion-reconciliation-contract.md).
+
+The source-only account-deletion confirmation result is a frozen in-memory
+format/version/boolean value, not a provider collection, job, receipt or account
+field. It contains no phrase, identity, timestamp or record selector and changes
+no schema; see the
+[Account-deletion confirmation contract](account-deletion-confirmation-contract.md).

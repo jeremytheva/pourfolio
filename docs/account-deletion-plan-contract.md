@@ -124,8 +124,10 @@ or browser code until all of the following are resolved and evidenced:
 
 1. A server-verifiable recent-authentication or approved re-authentication
    contract exists.
-2. Exact `DELETE MY ACCOUNT` confirmation is validated by a same-origin,
-   request-size-limited and deletion-specific rate-limited server endpoint.
+2. Exact `DELETE MY ACCOUNT` confirmation is checked with the source-only
+   [confirmation contract](account-deletion-confirmation-contract.md) inside a
+   same-origin, request-size-limited and deletion-specific rate-limited server
+   endpoint; the helper alone is not authorisation.
 3. The provider supplies a consistent five-collection snapshot or an approved
    write fence and reconciliation protocol that proves equivalent completeness.
 4. A server-only idempotent job/receipt schema, access policy, retry state model,
