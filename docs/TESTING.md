@@ -46,6 +46,11 @@ Tests cover:
   non-null and uniqueness controls, the nullable deletion tombstone, the full
   five-state workflow and immutable rating timestamps;
 - response field projection;
+- the source-only account-export manifest contract: exact owner filtering,
+  explicit portable projections, stable ordering, explicit nulls, exact counts,
+  empty/complete accounts, other-user sentinels, malformed snapshots, duplicate
+  IDs, orphan relationships, missing referenced context, invalid lifecycle
+  values/scores/dates and zero/multiple-profile cases;
 - zero, one and multiple-rating catalogue aggregates, including rejection of non-finite totals and absence of individual rating or cellar identifiers;
 - score 1 validity and complete 1–7 rating validation;
 - weighted/unweighted totals and submission IDs;
@@ -63,6 +68,14 @@ no game API request occurs. It also runs
 automated accessibility checks on the reachable launch pages. This suite verifies
 browser behaviour without requiring production credentials; it does not replace
 the connected staging tests below.
+
+The account-export tests exercise `api/_lib/accountExport.js` directly. They do
+not exercise an HTTP response, recent authentication, provider reads, a
+consistent remote snapshot, artefact retention or a Profile-page download,
+because none of those surfaces is implemented. The endpoint entry criteria in
+`docs/account-export-contract.md` require separate policy, integration, browser,
+accessibility and connected staging coverage before a user-facing export can be
+claimed.
 
 `e2e/accessibility.spec.js` runs the WCAG 2.2-targeted axe rules against every
 reachable launch page. The unreachable remote game is not represented as an

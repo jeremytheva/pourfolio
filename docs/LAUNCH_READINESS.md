@@ -213,8 +213,11 @@ performed from frozen commit
 `2b7fb6b7ccd33c7c2b605bd68f201daeb7e50701`; no remote configuration or
 connected execution can be attributed to it. Accordingly G22 and G24–G32
 remain open. G23 also remains open because its provider contract, durable job
-store, rollout and production-equivalent evidence are absent. The exact
-requirements and honest current values are in
+store, rollout and production-equivalent evidence are absent. A source-only
+portable-export manifest builder started under issue #146 on 15 August 2026,
+but it has no recent-authentication check, consistent provider reader, route or
+browser workflow and is not gate evidence. The exact requirements and honest
+current values are in
 [the publication and release evidence procedure](PUBLICATION_AND_RELEASE_EVIDENCE.md).
 
 - [ ] [G22](#evidence-g22) — Run browser end-to-end and WCAG 2.2 AA checks against the connected staging backend.
@@ -297,7 +300,7 @@ the action has an accountable owner.
 | <a id="evidence-g20"></a>G20: Run the historical import in non-production, rerun it to prove id… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G20`: not supplied | **BLOCKED** |
 | <a id="evidence-g21"></a>G21: Rotate any credential that may have matched the former published … | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G21`: not supplied | **BLOCKED** |
 | <a id="evidence-g22"></a>G22: Run browser end-to-end and WCAG 2.2 AA checks against the connect… | `@jeremytheva` | 4 August 2026 — `PRR-2026-08-04-G22`: blocked execution recorded in `docs/TESTING.md`; no immutable staging URL, deployed SHA, hosted workflow URL, credentials, test totals or final result were available | **BLOCKED** |
-| <a id="evidence-g23"></a>G23: Implement and evidence the recovery, verification, export and del… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G23`: not supplied | **BLOCKED** |
+| <a id="evidence-g23"></a>G23: Implement and evidence the recovery, verification, export and del… | `@jeremytheva` | 15 August 2026 — source-only export projection/reconciliation core tracked by #146; no recovery, verification, recent-authenticated export route, deletion workflow, connected exercise, approved policy or independent review supplied | **BLOCKED** |
 | <a id="evidence-g24"></a>G24: Publish reviewed privacy policy, terms, moderation/escalation pro… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G24`: not supplied | **BLOCKED** |
 | <a id="evidence-g25"></a>G25: Complete appropriate Australian privacy/legal review and record t… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G25`: not supplied | **BLOCKED** |
 | <a id="evidence-g26"></a>G26: Complete the documented production-equivalent export/deletion exe… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G26`: not supplied | **BLOCKED** |
