@@ -68,6 +68,30 @@ Public sign-up supplies only email, password, name and non-authoritative display
 
 The canonical data contract is [schema mapping](nocodebackend/schema-mapping.md).
 
+## Account lifecycle boundary
+
+`api/_lib/accountExport.js` is a pure server-side projection and validation
+module for the future portable account export. Given one already-consistent
+logical snapshot and a server-supplied account identity, it exact-matches owner
+rows, validates rating/score/bonus/cellar relationships, selects only referenced
+catalogue context, strips provider-only fields, sorts stable string IDs and
+returns a versioned manifest with exact counts. It performs no provider read,
+write, logging or network request.
+
+The module is deliberately not imported by `api/data-proxy.js`, any browser
+service or any page. The current provider session contract contains no verified
+recent-authentication timestamp, and the current collection API has no proved
+consistent multi-collection snapshot. Exposing the builder now would therefore
+create an incomplete security and data-consistency boundary. The endpoint entry
+criteria and portable fields are defined in the
+[account export contract](account-export-contract.md).
+
+Recovery, explicit verification, session revocation and authentication-identity
+deletion also remain absent from the fixed auth action matrix. Account-deletion
+orchestration remains absent until a durable server-only job store, write fence,
+provider identity operation and approved retention policy exist. The complete
+gate is tracked in the [account lifecycle readiness review](account-lifecycle-readiness.md).
+
 ## Brew Done It containment boundary
 
 Brew Done It is absent from the launch route table and primary navigation. The
@@ -123,4 +147,7 @@ Optional server variables:
 
 ## Remaining external controls
 
-Source code cannot prove remote collection permissions, production environment values, import reconciliation, backup/restore, alert routing, legal text, account deletion/export or operational support ownership. These remain release gates in [Launch Readiness](LAUNCH_READINESS.md).
+Source code cannot prove remote collection permissions, production environment
+values, import reconciliation, backup/restore, alert routing, legal text,
+recently authenticated account export, account deletion or operational support
+ownership. These remain release gates in [Launch Readiness](LAUNCH_READINESS.md).

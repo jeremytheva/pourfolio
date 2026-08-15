@@ -23,6 +23,28 @@ statistics, and refresh or sign-out clears all game data.
 - Owner IDs, roles, totals and provider secrets supplied by a browser are discarded.
 - Remote NoCodeBackend permissions remain a required defence in depth and must be tested independently.
 
+## Account export projection boundary
+
+The future export's source-only projection is implemented in
+`api/_lib/accountExport.js`, but no export route exists. The module derives its
+owner solely from a supplied server-authenticated account identity, exact-matches
+`user_id`, rejects ambiguous/missing relationships and returns no partial
+manifest on validation failure. Explicit field objects prevent provider
+secrets, raw owner fields, idempotency keys, fingerprints, workflow versions and
+unrecognised metadata from crossing the projection boundary. Other-user rows and
+unreferenced catalogue rows are excluded even if they appear in the supplied
+snapshot.
+
+This module is not authentication, authorisation of an HTTP request or proof of
+snapshot consistency. It must remain unreachable until the provider supplies a
+server-verifiable recent-authentication contract and a consistent snapshot (or
+an approved equivalent fence/reconciliation workflow). A future endpoint must
+add same-origin and export-specific rate controls, `no-store` and safe attachment
+headers, all-or-nothing provider failure handling, a constant filename and
+connected other-user/expired-session tests. Exported values, account IDs,
+emails, cookies, tokens and provider responses must never be logged. See the
+[portable export contract](account-export-contract.md).
+
 ## Implemented launch controls
 
 - Fixed auth action/method allowlist.
