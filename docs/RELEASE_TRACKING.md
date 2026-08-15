@@ -100,7 +100,9 @@ evidence has been independently reviewed.
   template](nocodebackend/baseline-export-evidence-template.md); the completed
   package remains in the approved private evidence store. Its repository-safe
   reference is currently **not supplied**, so this evidence item remains
-  blocked and no completed export is claimed.
+  blocked and no completed export is claimed. The repository can generate and
+  validate the private historical-reference decision ledger, but no completed
+  decisions or transformed candidate import are claimed.
 - **Exclusions:** no browser-direct provider access, legacy aliases, Supabase
   migration, fabricated data reconciliation or deferred collection exposure.
 

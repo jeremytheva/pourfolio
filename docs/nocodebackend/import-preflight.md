@@ -34,6 +34,60 @@ Do not create substitute catalogue rows or remap these references by product
 name alone. Obtain a fresh complete products/producers export from the same
 backend state that assigned the workbook IDs, then repeat the audit.
 
+## Prepare reviewed reference decisions
+
+The 46 record-level reference blockers collapse deterministically into **41
+review tasks**: one task for each of the 29 products with a missing producer and
+12 tasks for the distinct absent product IDs used by ratings or cellar rows.
+Generate the private decision template with:
+
+```bash
+npm run audit:import:remediation -- \
+  --products ./exports/products.csv \
+  --producers ./exports/producers.csv \
+  --ratings ./exports/Ready_Ratings.csv \
+  --cellar ./exports/cellar.csv \
+  --template <private-evidence>/reference-decision-ledger.csv \
+  --output <private-evidence>/reference-decision-audit.json
+```
+
+The first run is expected to return `BLOCKED` because every generated task has
+an empty decision. The template groups repeated uses of the same absent
+positive product ID, preserves source rows and record IDs for traceability, and
+includes only product/producer labels. It never copies source `user_id`, owner
+or rater-name fields. Spreadsheet-formula prefixes in source labels are
+neutralised before CSV output.
+
+For every row, set `Decision` to either `mapped` or `rejected`:
+
+- `mapped` requires a positive `Canonical ID` present in the supplied products
+  or producers export, as appropriate;
+- `rejected` requires a reason and means every occurrence in that task will be
+  quarantined, not silently discarded; and
+- both outcomes require an evidence reference, operator, distinct independent
+  reviewer and valid UTC review timestamp.
+
+Do not change the generated task/provenance columns. Audit the completed ledger
+against the same frozen inputs:
+
+```bash
+npm run audit:import:remediation -- \
+  --products ./exports/products.csv \
+  --producers ./exports/producers.csv \
+  --ratings ./exports/Ready_Ratings.csv \
+  --cellar ./exports/cellar.csv \
+  --decisions <private-evidence>/reference-decision-ledger.csv \
+  --output <private-evidence>/reference-decision-audit.json
+```
+
+A `PASS` from this command certifies only that the decision ledger is complete,
+independently reviewed and tied to canonical IDs in the frozen catalogue. Its
+JSON deliberately retains `sourceImportStatus: BLOCKED` while the source files
+still contain bad references. The command never rewrites or uploads source
+data. Apply the approved mappings or quarantines through the controlled import
+preparation process, then run `audit:import` on the resulting candidate files;
+only that later `PASS` clears the reference gate.
+
 ## Run the audit
 
 Export `Ready_Ratings` from the workbook as CSV. Its

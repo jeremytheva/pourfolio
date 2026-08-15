@@ -39,6 +39,9 @@ Tests cover:
 - canonical relational collection names;
 - optional nullable sharing series/edition relationships;
 - historical import CSV parsing, required headers, positive unique IDs, and product/producer referential integrity;
+- deterministic historical-reference task grouping, identity-field exclusion,
+  spreadsheet-formula neutralisation, canonical mapping validation and
+  independently reviewed map/quarantine decisions;
 - SQL schema parsing, exact-input fingerprints, required profile/rating
   non-null and uniqueness controls, the nullable deletion tombstone, the full
   five-state workflow and immutable rating timestamps;

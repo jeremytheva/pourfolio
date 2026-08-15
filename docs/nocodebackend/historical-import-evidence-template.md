@@ -33,6 +33,22 @@ resolve, each product has a positive producer ID found in the paired export, all
 and all 399 cellar identity rows have verified owners plus confirmed destination
 cellar IDs.
 
+## Catalogue reference decision ledger
+
+Before changing the historical source files, generate and retain the private
+ledger with `npm run audit:import:remediation`. Keep the generated provenance
+columns unchanged and complete one row for every task:
+
+| Task key | Issue code | Source collections | Source rows | Source record IDs | Source reference ID | Product name | Producer name | Occurrence count | Decision | Canonical ID | Rejection reason | Evidence reference | Operator | Reviewer | Reviewed at (UTC) |
+| --- | --- | --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- | --- | --- | --- | --- |
+
+Retain the completed ledger, its audit JSON and all input checksums together.
+`mapped` canonical IDs must exist in the frozen paired catalogue; `rejected`
+tasks must state the quarantine reason. A passing decision-ledger audit does not
+change the source data or make the historical import preflight pass. Retain the
+separate transformation/dry-run diff, then rerun `audit:import` against the
+corrected candidate files and require zero unresolved references.
+
 ## Bonus decision ledger
 
 Keep one row per unmatched source variant with these columns:
