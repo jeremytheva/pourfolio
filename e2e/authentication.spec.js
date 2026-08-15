@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test'
 import { product } from './mockApi.js'
 
 const unavailableMessages = [
-  'Sign-in options are temporarily unavailable.',
-  'No sign-in methods are currently enabled.'
+  'Sign-in options are temporarily unavailable. Please try again later or contact support.',
+  'No sign-in methods are currently enabled. Please contact support.'
 ]
 
 const mockSignedOutSession = async (page) => {
@@ -66,7 +66,7 @@ for (const response of [
 }
 
 for (const status of [404, 500]) {
-  test(`password form remains usable after provider discovery returns ${status}`, async ({ page }) => {
+  test(`provider discovery failure ${status} is visible and exposes no password form`, async ({ page }) => {
     const sessionRequests = await mockSignedOutSession(page)
     await page.route('**/api/nocodebackend/auth/providers', (route) => route.fulfill({
       status,
@@ -78,11 +78,50 @@ for (const status of [404, 500]) {
     await page.goto('/login')
     await discoveryResponse
     await expect.poll(sessionRequests).toBe(1)
-    await assertPasswordFormIsUsable(page)
+    await expect(page.getByRole('alert')).toContainText(unavailableMessages[0])
+    await expect(page.getByLabel('Email')).toHaveCount(0)
+    await expect(page.getByLabel('Password')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toHaveCount(0)
   })
 }
 
-test('password form renders without waiting for pending provider discovery', async ({ page }) => {
+for (const code of ['auth_configuration_missing', 'rate_limit_configuration_missing']) {
+  test(`provider configuration failure ${code} is visible with its safe request reference`, async ({ page }) => {
+    const sessionRequests = await mockSignedOutSession(page)
+    await page.route('**/api/nocodebackend/auth/providers', (route) => route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        error: 'Authentication is not configured.',
+        code,
+        requestId: 'request-123'
+      })
+    }))
+
+    await page.goto('/login')
+    await expect.poll(sessionRequests).toBe(1)
+    await expect(page.getByRole('alert')).toContainText('Authentication is not configured for this deployment.')
+    await expect(page.getByRole('alert')).toContainText('Request ID: request-123.')
+    await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toHaveCount(0)
+  })
+}
+
+test('an authoritative response with every provider disabled shows no authentication controls', async ({ page }) => {
+  const sessionRequests = await mockSignedOutSession(page)
+  await page.route('**/api/nocodebackend/auth/providers', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ providers: [{ name: 'email-password', enabled: false }] })
+  }))
+
+  await page.goto('/login')
+  await expect.poll(sessionRequests).toBe(1)
+  await expect(page.getByRole('alert')).toContainText(unavailableMessages[1])
+  await expect(page.getByLabel('Email')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toHaveCount(0)
+})
+
+test('provider discovery remains fail-closed while the request is pending', async ({ page }) => {
   const sessionRequests = await mockSignedOutSession(page)
   let releaseDiscovery
   await page.route('**/api/nocodebackend/auth/providers', async (route) => {
@@ -91,16 +130,29 @@ test('password form renders without waiting for pending provider discovery', asy
   })
 
   await page.goto('/login')
-  await assertPasswordFormIsUsable(page)
-  await page.waitForTimeout(1_000)
-  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeEnabled()
+  await expect(page.getByRole('status')).toHaveText('Loading sign-in options…')
+  await expect(page.getByLabel('Email')).toHaveCount(0)
+  await expect(page.getByLabel('Password')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toHaveCount(0)
   await expect.poll(sessionRequests).toBe(1)
-  expect(releaseDiscovery).toBeDefined()
+  await expect.poll(() => Boolean(releaseDiscovery)).toBe(true)
   releaseDiscovery()
+  await expect(page.getByRole('alert')).toContainText(unavailableMessages[0])
 })
 
-test('create-account mode submits the expected email sign-up request', async ({ page }) => {
-  const sessionRequests = await mockSignedOutSession(page)
+test('create-account mode resolves an acknowledged sign-up through the session endpoint', async ({ page }) => {
+  let signedIn = false
+  let sessionRequests = 0
+  await page.route('**/api/nocodebackend/auth/get-session', (route) => {
+    sessionRequests += 1
+    return route.fulfill({
+      status: signedIn ? 200 : 401,
+      contentType: 'application/json',
+      body: JSON.stringify(signedIn
+        ? { user: { id: 'user-1', email: 'new@example.com', name: 'New Drinker' } }
+        : { error: 'Authentication is required.' })
+    })
+  })
   await page.route('**/api/nocodebackend/auth/providers', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
@@ -113,8 +165,19 @@ test('create-account mode submits the expected email sign-up request', async ({ 
       name: 'New Drinker',
       metadata: { name: 'New Drinker' }
     })
+    signedIn = true
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ accepted: true }) })
   })
+  await page.route('**/api/nocodebackend/profile', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ profile: { id: 'user-1', name: 'New Drinker', description: '', avatar_url: null } })
+  }))
+  await page.route('**/api/nocodebackend/catalog/products?**', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ items: [product], page: 1, pageSize: 24, total: 1, totalPages: 1 })
+  }))
 
   await page.goto('/login')
   await page.getByRole('button', { name: 'Create account' }).click()
@@ -127,8 +190,8 @@ test('create-account mode submits the expected email sign-up request', async ({ 
   await page.getByLabel('Password', { exact: true }).fill('correct-horse')
   await page.getByLabel('Confirm password', { exact: true }).fill('correct-horse')
   await page.getByRole('button', { name: 'Create account' }).click()
-  await expect(page.getByText('Account created. Check your email if verification is required.')).toBeVisible()
-  await expect.poll(sessionRequests).toBe(1)
+  await expect(page).toHaveURL(/\/home$/)
+  await expect.poll(() => sessionRequests).toBe(2)
 })
 
 test('password sign-in discovers the provider and enters the launch app', async ({ page }) => {
@@ -165,4 +228,27 @@ test('password sign-in discovers the provider and enters the launch app', async 
   await expect(page).toHaveURL(/\/home$/)
   await expect(page.getByRole('heading', { name: 'Discover beer worth remembering' })).toBeVisible()
   expect(sessionRequests).toBe(1)
+})
+
+test('an acknowledged sign-in without a resolvable session returns a visible error', async ({ page }) => {
+  const sessionRequests = await mockSignedOutSession(page)
+  await page.route('**/api/nocodebackend/auth/providers', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ providers: [{ name: 'email-password', enabled: true }] })
+  }))
+  await page.route('**/api/nocodebackend/auth/sign-in/email', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ accepted: true })
+  }))
+
+  await page.goto('/login')
+  await page.getByLabel('Email').fill('jeremy@example.com')
+  await page.getByLabel('Password').fill('correct-horse')
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click()
+
+  await expect(page).toHaveURL(/\/login$/)
+  await expect(page.getByRole('alert')).toContainText('Authentication is required.')
+  await expect.poll(sessionRequests).toBe(2)
 })

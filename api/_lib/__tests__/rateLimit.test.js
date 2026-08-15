@@ -5,7 +5,8 @@ import {
   buildSharedRateLimitKey,
   checkSharedRateLimit,
   enforceSharedRateLimit,
-  normaliseAccountIdentifier
+  normaliseAccountIdentifier,
+  RATE_LIMIT_PUBLIC_ERROR_CODES
 } from '../rateLimit.js'
 import { createInMemoryRedis } from './inMemoryRedis.js'
 
@@ -206,6 +207,7 @@ test('missing configuration fails closed with a safe correlated category', async
     assert.equal(response.statusCode, 503)
     assert.deepEqual(response.body, {
       error: 'Authentication is temporarily unavailable.',
+      code: RATE_LIMIT_PUBLIC_ERROR_CODES.CONFIGURATION_MISSING,
       requestId: 'request-123'
     })
     assertFailureTelemetry(logs, 'configuration')
@@ -216,6 +218,21 @@ test('missing configuration fails closed with a safe correlated category', async
     if (previousToken === undefined) delete process.env.UPSTASH_REDIS_REST_TOKEN
     else process.env.UPSTASH_REDIS_REST_TOKEN = previousToken
   }
+})
+
+test('a missing rate-limit key secret has the safe configuration code', async () => {
+  const { response, logs } = await captureFailure({
+    keySecret: '',
+    redis: { eval: async () => [1, 60_000] }
+  })
+
+  assert.equal(response.statusCode, 503)
+  assert.deepEqual(response.body, {
+    error: 'Authentication is temporarily unavailable.',
+    code: RATE_LIMIT_PUBLIC_ERROR_CODES.CONFIGURATION_MISSING,
+    requestId: 'request-123'
+  })
+  assertFailureTelemetry(logs, 'configuration')
 })
 
 test('SDK command failures fail closed without leaking private inputs or raw errors', async () => {
@@ -234,6 +251,7 @@ test('SDK command failures fail closed without leaking private inputs or raw err
   assert.equal(response.statusCode, 503)
   assert.deepEqual(response.body, {
     error: 'Authentication is temporarily unavailable.',
+    code: RATE_LIMIT_PUBLIC_ERROR_CODES.SERVICE_UNAVAILABLE,
     requestId: 'request-123'
   })
   assertFailureTelemetry(logs, 'sdk_command')
@@ -278,6 +296,7 @@ for (const [name, result] of [
     })
 
     assert.equal(response.statusCode, 503)
+    assert.equal(response.body.code, RATE_LIMIT_PUBLIC_ERROR_CODES.SERVICE_UNAVAILABLE)
     assertFailureTelemetry(logs, 'invalid_result')
     assert.equal(JSON.stringify({ response, logs }).includes(invalidProviderPrivateValue), false)
   })

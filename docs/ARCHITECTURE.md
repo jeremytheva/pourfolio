@@ -42,6 +42,14 @@ Chat, Drinking Buddies, events, venues, analytics, producer claims, administrati
 
 `api/auth-proxy.js` exposes a fixed action/method matrix. It adds the server-only provider secret, forwards the session cookie, validates unsafe request origins, limits request size and rate, times out upstream requests, and maps provider failures to safe errors. Upstream authentication cookies are rewritten as host-only, root-path cookies for the Pourfolio deployment and retain their expiry and explicit SameSite policy while always receiving `HttpOnly` and `Secure`.
 
+The browser treats provider discovery as authoritative and fail-closed: no
+authentication method is exposed until a valid `/providers` response enables
+it, and a discovery failure produces a visible unavailable state. Successful
+password sign-in, sign-up and OTP verification must resolve a stable user. If
+the action response is only an acknowledgement, the client performs one
+`/get-session` fallback; an absent or malformed refreshed session is an error,
+never a null success.
+
 Authentication throttling uses an Upstash Redis database provisioned through the
 approved Vercel Marketplace integration. `api/_lib/rateLimit.js` performs one
 atomic Redis script operation to increment a bucket and set its expiry. Sign-in,
@@ -107,6 +115,13 @@ Rating submission is a coordinated server operation across `ratings`, `rating_sc
 prefix. The Upstash client is initialised with `Redis.fromEnv()`. Authentication
 fails closed when the shared store is unavailable; there is no in-memory
 production fallback.
+
+Shared-limiter HTTP 503 responses preserve a generic public message and a
+correlation ID. The safe code `rate_limit_configuration_missing` is limited to
+absent limiter key or Upstash URL/token configuration. Client initialisation,
+command, connection and result-contract failures use
+`rate_limit_service_unavailable`; their detailed category remains server-side
+telemetry only.
 
 Required server variables:
 

@@ -13,6 +13,11 @@ export const RATE_LIMIT_ERROR_CODES = Object.freeze({
   CONFIGURATION_MISSING: 'RATE_LIMIT_CONFIGURATION_MISSING'
 })
 
+export const RATE_LIMIT_PUBLIC_ERROR_CODES = Object.freeze({
+  CONFIGURATION_MISSING: 'rate_limit_configuration_missing',
+  SERVICE_UNAVAILABLE: 'rate_limit_service_unavailable'
+})
+
 export class RateLimitError extends Error {
   constructor(code) {
     super('Shared rate limiter failed')
@@ -30,6 +35,13 @@ const safeFailureCategory = (error) => {
   if (error?.code === REDIS_ERROR_CODES.RESULT_INVALID) return 'invalid_result'
   return 'unknown'
 }
+
+const publicFailureCode = (error) => (
+  error?.code === RATE_LIMIT_ERROR_CODES.CONFIGURATION_MISSING ||
+  error?.code === REDIS_ERROR_CODES.CONFIGURATION_MISSING
+    ? RATE_LIMIT_PUBLIC_ERROR_CODES.CONFIGURATION_MISSING
+    : RATE_LIMIT_PUBLIC_ERROR_CODES.SERVICE_UNAVAILABLE
+)
 
 export const AUTH_RATE_LIMITS = Object.freeze({
   'sign-in/email': { name: 'signin', limit: 10, windowMs: 15 * 60_000, account: true },
@@ -114,6 +126,7 @@ export const enforceSharedRateLimit = async (request, response, path, options) =
     }))
     response.status(503).json({
       error: 'Authentication is temporarily unavailable.',
+      code: publicFailureCode(error),
       ...(requestId ? { requestId } : {})
     })
     return false

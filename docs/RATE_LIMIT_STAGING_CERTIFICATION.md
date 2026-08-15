@@ -67,18 +67,19 @@ For every row:
 
 Use provider-supported staging controls or a temporary network policy; never
 damage production or print a raw exception. For each case, the auth provider
-must not receive the request, the response must be the same generic `503` with
-the response correlation ID, and the single application log event must contain
-only `Shared authentication rate limiter unavailable`, its safe category and
-that correlation ID.
+must not receive the request. Every response must retain the same generic `503`
+message and correlation ID. Missing required configuration must return
+`rate_limit_configuration_missing`; every runtime/provider failure must return
+`rate_limit_service_unavailable`. The single application log event must contain
+only its allowlisted safe category and that correlation ID.
 
-| Simulation | Expected safe category |
-| --- | --- |
-| Remove one variable in a disposable deployment | `configuration` |
-| Prevent client creation or provider connection | `sdk_connection` |
-| Reject or interrupt `EVAL` | `sdk_command` |
-| Return malformed tuple, non-integer count, `PTTL` `-1`/`-2`, or TTL beyond the configured window using an isolated contract stub | `invalid_result` |
-| Add provider latency below and above the function timeout | Successful decision or platform-generic failure; never fail open |
+| Simulation | Public code | Expected telemetry category |
+| --- | --- | --- |
+| Remove one variable in a disposable deployment | `rate_limit_configuration_missing` | `configuration` |
+| Prevent client creation or provider connection | `rate_limit_service_unavailable` | `sdk_connection` |
+| Reject or interrupt `EVAL` | `rate_limit_service_unavailable` | `sdk_command` |
+| Return malformed tuple, non-integer count, `PTTL` `-1`/`-2`, or TTL beyond the configured window using an isolated contract stub | `rate_limit_service_unavailable` | `invalid_result` |
+| Add provider latency below and above the function timeout | Successful decision or `rate_limit_service_unavailable`; never fail open | Platform-safe failure category |
 
 Search the allowlisted central event fields for sentinel Redis address,
 credential, HMAC secret, raw opaque key, documentation IP, synthetic account
@@ -104,4 +105,3 @@ seven-day same-hour baseline. The central pipeline must discard all fields
 outside its allowlist. Record dashboard and alert identifiers, test delivery,
 primary/backup acknowledgement and redaction evidence privately; until then,
 monitoring remains a release blocker.
-

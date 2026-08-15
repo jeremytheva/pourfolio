@@ -25,5 +25,10 @@ properties must be booleans and agree.
 Optional email OTP and Google sign-in are enabled only by a positively reported
 entry. Email/password remains enabled when absent and becomes disabled only when
 a recognised email/password entry explicitly reports `false`. Empty, malformed,
-ambiguous, and wholly unrecognised responses are rejected, which leaves the
-authentication form's safe email/password-only fallback in place.
+ambiguous, and wholly unrecognised responses are rejected.
+
+Provider discovery is fail-closed in the browser. No authentication control is
+shown while the request is pending. A rejected payload, HTTP error, timeout or
+network failure leaves every method disabled and shows an accessible deployment
+or service error, including the safe request ID when supplied. The browser must
+never infer that email/password is enabled after `/providers` fails.
