@@ -45,13 +45,33 @@ header, and the helper performs no response write, persistence or logging.
 These modules are not authentication, authorisation of an HTTP request or proof
 of snapshot consistency. They must remain unreachable until the provider
 supplies a server-verifiable recent-authentication contract and a consistent
-snapshot (or an approved equivalent fence/reconciliation workflow). A future endpoint must
-add same-origin and export-specific rate controls, apply the artifact helper's
-fixed response metadata, prove actual response bytes, provide all-or-nothing
-provider failure handling, and pass connected other-user/expired-session tests.
-Exported values, artifact checksums, account IDs,
-emails, cookies, tokens and provider responses must never be logged. See the
+snapshot (or an approved equivalent fence/reconciliation workflow). A future
+endpoint must add same-origin and export-specific rate controls, apply the
+artifact helper's fixed response metadata, prove actual response bytes, provide
+all-or-nothing provider failure handling, and pass connected
+other-user/expired-session tests. Exported values, artifact checksums, account
+IDs, emails, cookies, tokens and provider responses must never be logged. See the
 [portable export contract](account-export-contract.md).
+
+## Account-deletion discovery boundary
+
+`api/_lib/accountDeletionPlan.js` implements only the pure discovery projection
+for a future whole-account deletion workflow. It requires all five owner-data
+collections, exact-matches the supplied server identity, rejects ambiguous and
+cross-owner relationships, and returns only immutable record IDs and counts in
+the fixed child-first order. It excludes every record body, catalogue
+definition, provider workflow field and request value. It adds
+no separate authentication-identity field, although a profile record ID may
+equal the account ID under the canonical schema.
+
+Provider record IDs remain sensitive operational data. The planner must not be
+imported by a route or worker, returned to a browser, logged or persisted until
+a reviewed job-store and retention contract exists. It does not verify a recent
+session, confirmation phrase, snapshot completeness, write fence, provider
+ownership at deletion time, idempotent retry, final absence, session revocation
+or authentication-identity deletion. Those controls and connected negatives are
+mandatory before any destructive workflow; see the
+[deletion-plan contract](account-deletion-plan-contract.md).
 
 ## Implemented launch controls
 
