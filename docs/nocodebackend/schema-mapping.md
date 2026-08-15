@@ -73,7 +73,11 @@ profile row, and no browser-supplied lifecycle status may be trusted. Whole-acco
 export and executable deletion are therefore not implemented against this
 contract. The source-only
 [deletion discovery planner](../account-deletion-plan-contract.md) creates no
-provider object and does not change that status.
+provider object and does not change that status. The source-only
+[deletion reconciler](../account-deletion-reconciliation-contract.md) likewise
+creates no collection or receipt: it compares plan identifiers in memory and
+returns counts only. Its `complete` flag describes the supplied later snapshot,
+not provider-backed erasure.
 
 The proposed owner-data boundary and dependency order are documented in the
 [account lifecycle readiness review](../account-lifecycle-readiness.md). It

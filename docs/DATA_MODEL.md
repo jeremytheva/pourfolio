@@ -35,3 +35,10 @@ identity field, job or receipt. A profile record ID may equal the account ID,
 but remains an operational record identifier. The planner changes no schema;
 see the
 [Account-deletion discovery-plan contract](account-deletion-plan-contract.md).
+
+The source-only account-deletion reconciliation is also an in-memory projection,
+not a provider collection or persisted receipt. It consumes a validated plan and
+one later complete logical owner snapshot, compares record IDs internally, and
+returns only planned, removed, remaining and unplanned counts. No ID or record
+body enters the result, and no schema changes; see the
+[Account-deletion reconciliation contract](account-deletion-reconciliation-contract.md).

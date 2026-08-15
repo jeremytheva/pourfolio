@@ -60,6 +60,11 @@ Tests cover:
   data, body/identity/other-user exclusion, malformed and duplicate records,
   multiple profiles, orphan children, cross-owner/cross-product cellar links,
   deep immutability, retry determinism and route/provider isolation;
+- the source-only account-deletion reconciliation contract: strict persisted-plan
+  shape/version/time/order/ID/count validation, complete/partial/empty states,
+  later unplanned owner records, exact count-only output, invalid later
+  relationships, deep immutability, retry determinism and route/provider
+  isolation;
 - zero, one and multiple-rating catalogue aggregates, including rejection of non-finite totals and absence of individual rating or cellar identifiers;
 - score 1 validity and complete 1–7 rating validation;
 - weighted/unweighted totals and submission IDs;
@@ -94,6 +99,15 @@ revoke sessions, remove an authentication identity or prove final absence. The
 executable-workflow entry criteria in
 `docs/account-deletion-plan-contract.md` require separate policy, provider,
 integration, failure-injection and connected staging evidence.
+
+The account-deletion reconciliation tests exercise
+`api/_lib/accountDeletionReconciliation.js` directly. They prove that planned,
+removed, remaining and unplanned counts reconcile and that new owner data keeps
+the result incomplete without exposing IDs. They still operate on a
+caller-supplied in-memory snapshot: no provider query, write fence, deletion,
+job state, session/identity check or final provider absence is exercised. The
+entry criteria in `docs/account-deletion-reconciliation-contract.md` require
+separate orchestration, provider and connected evidence.
 
 `e2e/accessibility.spec.js` runs the WCAG 2.2-targeted axe rules against every
 reachable launch page. The unreachable remote game is not represented as an
