@@ -6,16 +6,50 @@ This document records the production-equivalent NoCodeBackend data-provider cont
 
 The connected suite is destructive and must only run against an isolated production-equivalent provider workspace seeded for contract verification, never against a shared production dataset.
 
+The repository provides the manual **Connected provider contract** workflow for
+the approved execution path. It checks out the exact full SHA, runs only behind
+the protected `staging-release` environment, requires the literal destructive
+confirmation `isolated-staging-destructive-provider-contract`, reads provider
+and fixture values from protected environment secrets, and retains a redacted
+transcript plus machine-checked cleanup evidence. It has no automatic `push` or
+`pull_request` trigger. Environment reviewers must confirm that the workspace
+and all three fixtures are disposable before approving a run.
+
 ```bash
 RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1 \
+NCB_CONTRACT_ENVIRONMENT=isolated-staging \
+NCB_CONTRACT_ALLOW_DESTRUCTIVE=1 \
 NOCODEBACKEND_DATA_BASE_URL=https://example.invalid/api/data \
 NOCODEBACKEND_SECRET_KEY=<redacted> \
+NCB_CONTRACT_USER_ID=<disposable-staging-user-id> \
 NCB_CONTRACT_PRODUCT_ID=<existing-product-id> \
+NCB_CONTRACT_ATTRIBUTE_ID=<existing-scored-attribute-id> \
 NCB_CONTRACT_TRANSCRIPT_PATH=artifacts/provider-contract/redacted-transcript.json \
 npm run test:provider-contract
 ```
 
-The default `npm test` run skips the suite unless `RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1` is set. The suite creates records with a `contract-<timestamp>-<random>` prefix and attempts to delete every created record during cleanup. Set `NCB_CONTRACT_TRANSCRIPT_PATH` to retain a JSON transcript of provider requests and responses; the recorder redacts the configured provider base URL, bearer token, generated contract run/user identifiers, and configured product identifier before writing the artifact.
+The default `npm test` run skips the suite unless
+`RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1` is set. Even then, the suite fails
+before creating data unless `NCB_CONTRACT_ENVIRONMENT=isolated-staging`,
+`NCB_CONTRACT_ALLOW_DESTRUCTIVE=1` and all fixture identifiers are present.
+The user must be disposable and the product and attribute must be
+cleanup-safe staging fixtures. The suite creates canonical rating and score
+records, deletes them in dependency order and fails unless re-reads prove that
+every created record is absent. Set
+`NCB_CONTRACT_TRANSCRIPT_PATH` to retain a JSON transcript of provider requests
+and responses; the recorder redacts the configured provider base URL, bearer
+token, user, product and attribute identifiers and generated run prefix before
+writing the artefact. The transcript also contains aggregate cleanup attempts,
+failure count and `PASS`/`BLOCKED` status. The workflow runs
+`check:provider-contract-transcript` before upload; the check blocks an empty
+transcript, missing cleanup proof, any cleanup failure, or any configured
+secret or fixture value remaining in the retained JSON.
+
+For a reviewed run, retain the workflow URL, release SHA, protected-environment
+approval, artefact name, transcript verification report, test result and
+independent reviewer decision in the private release record. A passing workflow
+proves only this provider-contract scope; it does not close permission,
+migration, baseline, import or rollback gates.
 
 ## Transport contract
 
@@ -24,8 +58,8 @@ All operations are same-origin from the browser to `api/data-proxy.js`; only ser
 | Adapter operation | Method and path | Query | Body | Success status and envelope | Empty or missing response |
 | --- | --- | --- | --- | --- | --- |
 | `list(collection, filters)` | `GET /{collection}` | Equality filters as query parameters. Blank, `null`, and `undefined` filters are omitted. | none | `200` with one of `{ data: [] }`, `{ records: [] }`, `{ items: [] }`, `{ results: [] }`, or a bare array. | Empty lists return an empty array. |
-| `listPage(collection, options)` | `GET /{collection}` | Equality filters plus `search`, one-based `page`, `limit`, `order_by`, and `order`. | none | `200` with a supported list envelope and pagination metadata (either `pagination`, `meta`, or top-level) containing page, page size, total count, and total pages. | Empty pages return an empty list and zero totals. Missing or malformed pagination metadata fails closed as a provider error. |
-| `get(collection, id)` | `GET /{collection}/{encodeURIComponent(id)}` | none | none | `200` with `{ data: record }`, `{ record: record }`, `{ records: [record] }`, `{ items: [record] }`, `{ results: record }`, or a bare record. | `404` is treated as missing; the adapter retries `GET /{collection}?id={id}` and returns the first record or `null`. |
+| `listPage(collection, options)` | `GET /{collection}` | Equality filters plus `search`, one-based `page`, `limit`, `order_by`, and `order`. | none | `200` with a supported list envelope and pagination metadata (either `pagination`, `meta`, or top-level) containing the exact requested page/page size, total count and mathematically consistent total pages/items. | Empty first pages return an empty list and zero totals. Missing, malformed, mismatched or internally inconsistent pagination fails closed as `502 PROVIDER_ERROR`. |
+| `get(collection, id)` | `GET /{collection}/{encodeURIComponent(id)}` | none | none | `200` with `{ data: record }`, `{ record: record }`, `{ records: [record] }`, `{ items: [record] }`, `{ results: record }`, or a bare record whose `id` exactly matches the request. | `404` is treated as missing; the adapter retries `GET /{collection}?id={id}` and selects only an exact identifier match or returns `null`. A mismatched direct record fails closed as `502 PROVIDER_ERROR`. |
 | `create(collection, body)` | `POST /{collection}` | none | JSON record payload | `200` or `201` with the created record in a supported single-record envelope. | n/a |
 | `update(collection, id, body)` | `PUT /{collection}/{encodeURIComponent(id)}` | none | JSON partial record payload | `200` with the updated record in a supported single-record envelope. | `404` remains a safe not-found provider error. |
 | `compareAndSet(collection, id, expectedVersion, body)` | `PUT /{collection}/{encodeURIComponent(id)}?expected_version={expectedVersion}` | `expected_version` | JSON partial record payload, including the next `submission_version` or `version`. | `200` with the updated record. | Stale `expected_version` returns `409` and maps to `VERSION_CONFLICT`. |
@@ -33,7 +67,24 @@ All operations are same-origin from the browser to `api/data-proxy.js`; only ser
 
 ## Filters, pagination, and ordering
 
-Supported filters are equality filters on concrete provider fields used by the gateway: `id`, `user_id`, `product_id`, `rating_id`, `submission_id`, `round_id`, `game_id`, `turn_index`, and `expected_version` for compare-and-set writes. Multiple filters are conjunctive: a record must match every supplied field. Catalogue reads additionally support case-insensitive `search`, one-based `page`, `limit` up to 100, `order_by`, and `order` (`asc` or `desc`). The catalogue gateway fixes ordering to `product_name asc` so page boundaries remain deterministic. Totals come from the provider's pagination metadata; the gateway does not infer a total from the current page. Relationship hydration uses record reads for only the distinct producer and category identifiers referenced by that page. Owner-scoped rating and cellar queries remain scoped by `user_id`, and only product identifiers referenced by those returned records are hydrated.
+Supported filters are equality filters on concrete provider fields used by the
+gateway: `id`, `user_id`, `product_id`, `rating_id`, `submission_key`,
+`uniqueness_key`, `attribute_id`, `round_id`, `game_id`, `turn_index`, and
+`expected_version` for compare-and-set writes. Multiple filters are
+conjunctive: a record must match every supplied field. Catalogue reads
+additionally support case-insensitive `search`, one-based `page`, `limit` up to
+100, `order_by`, and `order` (`asc` or `desc`). The catalogue gateway fixes
+ordering to `product_name asc` so page boundaries remain deterministic. Totals
+come from the provider's pagination metadata; the gateway does not infer a
+total from the current page. The adapter proves the returned page and size equal
+the request, total pages equal `ceil(total / pageSize)`, the page exists, and
+the item count equals the full-page or terminal-page remainder. Relationship
+hydration uses record reads for only the distinct producer and category
+identifiers referenced by that page. Every direct record read is also bound to
+the requested identifier; the filtered-list fallback never accepts the first
+unrelated record if a provider ignores the `id` filter.
+Owner-scoped rating and cellar queries remain scoped by `user_id`, and only
+product identifiers referenced by those returned records are hydrated.
 
 ## Error and conflict contract
 
@@ -48,8 +99,21 @@ Provider error details are never forwarded to browsers. The adapter preserves sa
 
 ## Multi-write, timeout, retry, and idempotency expectations
 
-Rating submission in `api/data-proxy.js` is intentionally defensive because the provider does not expose cross-collection transactions. The gateway creates or reuses an idempotent draft rating, idempotently creates score and bonus child rows, and only transitions the rating to `complete` with `compareAndSet` on `submission_version` after child writes have completed. A partial child-write failure must leave the parent in a recoverable draft state, and a retry with the same `submission_id` must reuse the draft instead of creating a duplicate parent.
+Rating submission in `api/data-proxy.js` is intentionally defensive because
+the provider does not expose certified cross-collection transactions. The
+gateway creates or reuses an idempotent `pending` rating, idempotently creates
+score and bonus child rows, and only transitions the rating to `complete` with
+`compareAndSet` on `submission_version` after child writes have completed. A
+partial child-write failure must leave the parent in recoverable `pending` or
+`failed` state, and a retry with the same owner-scoped `rating_id` and
+`submission_key` must reuse the parent instead of creating a duplicate.
 
-Timeout behaviour is classified in two phases: timeouts before a persisted write return a safe gateway error and do not create a recoverable record; timeouts after a persisted write are followed by idempotency lookups on retry. Connected verification covers both provider adapter timeout mapping and gateway retry behaviour by using deterministic idempotency keys and checking persisted state after retry.
+Timeout behaviour is classified in two phases: timeouts before a persisted
+write return a safe gateway error and do not create a recoverable record;
+timeouts after a persisted write are followed by idempotency lookups on retry.
+Local policy tests inject failures before and after persistent boundaries. The
+connected provider suite verifies a client abort and canonical idempotency
+replay, but production-equivalent certification must additionally use a
+provider-supported fault mechanism to prove the post-write timeout paths.
 
 Concurrent stale-version verification sends two `compareAndSet` requests for the same `submission_version`. Exactly one request must transition the row; the loser must receive `409 VERSION_CONFLICT`, and the final row must contain only the winning transition.

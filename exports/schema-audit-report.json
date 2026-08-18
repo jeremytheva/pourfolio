@@ -7,5 +7,12 @@
     "blockers": 0
   },
   "countsByCode": {},
-  "blockers": []
+  "blockers": [],
+  "inputs": {
+    "schema": {
+      "file": "schema.sql",
+      "bytes": 4658,
+      "sha256": "1da03ff080e882c61e550b8202be0df2403b165868aad378eb50f66642e89f11"
+    }
+  }
 }

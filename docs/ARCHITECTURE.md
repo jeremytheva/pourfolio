@@ -74,7 +74,85 @@ Public sign-up supplies only email, password, name and non-authoritative display
 - projects every response through explicit public/owner field lists;
 - assigns a correlation ID without logging request bodies or personal data.
 
+Successful catalogue JSON crosses a second, browser-side shape boundary before
+React state. `src/services/catalogueResponse.js` allowlists the public page,
+product, producer/category and aggregate-rating fields; proves pagination and
+relationship coherence; rejects individual ratings and unrenderable values;
+and returns a deeply frozen copy. Both reads in `beverageService` use the
+boundary, so malformed HTTP 200 data follows the existing page-level
+error/retry state instead of reaching render code. See the
+[catalogue response contract](catalogue-response-contract.md).
+
+The provider adapter binds paginated results to the exact requested page/size
+and checks total-page/terminal-item arithmetic. Direct provider records must
+match their requested ID, including the filtered-list fallback after a 404.
+Product details repeat this comparison at the gateway and browser boundaries;
+non-canonical browser route IDs fail before network access. These checks keep a
+successful response for another page or product from being labelled with the
+current route.
+
 The canonical data contract is [schema mapping](nocodebackend/schema-mapping.md).
+
+## Account lifecycle boundary
+
+`api/_lib/accountExport.js` is a pure server-side projection and validation
+module for the future portable account export. Given one already-consistent
+logical snapshot and a server-supplied account identity, it exact-matches owner
+rows, validates rating/score/bonus/cellar relationships, selects only referenced
+catalogue context, strips provider-only fields, sorts stable string IDs and
+returns a versioned manifest with exact counts. It performs no provider read,
+write, logging or network request.
+
+`api/_lib/accountExportArtifact.js` composes only that validated manifest into
+an immutable, deterministic in-memory UTF-8 JSON artifact. It fixes the ASCII
+filename, JSON media type, `no-store`/attachment/`nosniff` metadata, byte length
+and SHA-256 without using request or exported values in headers. It performs no
+response write, storage, logging, provider operation or environment access.
+
+`api/_lib/accountDeletionPlan.js` is the separate source-only whole-account
+discovery boundary. Given the five owner-data collections, it exact-matches the
+supplied server identity, validates owner relationships and returns immutable,
+stable record IDs and counts in child-first order. It adds no separate
+authentication-identity field and excludes every record body. It performs no
+provider read, delete, job write, session operation, logging or network request.
+
+`api/_lib/accountDeletionReconciliation.js` is the count-only follow-on
+boundary. It strictly validates a deletion plan, reuses the discovery rules for
+one later complete logical snapshot and compares identifiers only in memory. It
+reports planned, removed, remaining and unplanned counts, with `complete` true
+only when no later exact-owner records remain. It returns no record IDs and
+performs no provider read, delete, job write, session operation, logging or
+network request.
+
+`api/_lib/accountDeletionConfirmation.js` is the exact-text boundary. It accepts
+only a plain one-field request object containing the exact ASCII phrase, rejects
+all browser identities/selectors and returns a frozen format/version/boolean
+result without copying request text. It performs no request parsing,
+authentication, provider operation, deletion, logging or network request.
+
+None of these modules is imported by `api/auth-proxy.js`,
+`api/data-proxy.js`, any browser service or any page. The current provider
+session contract contains no verified
+recent-authentication timestamp, and the current collection API has no proved
+consistent multi-collection snapshot. Exposing any module now would therefore
+create an incomplete security and data-consistency boundary. The export endpoint
+criteria and portable fields are defined in the
+[account export contract](account-export-contract.md); destructive-workflow
+criteria are defined in the
+[deletion-plan contract](account-deletion-plan-contract.md) and
+[reconciliation contract](account-deletion-reconciliation-contract.md), with
+exact text handling defined by the
+[confirmation contract](account-deletion-confirmation-contract.md).
+
+Recovery, explicit verification, session revocation and authentication-identity
+deletion also remain absent from the fixed auth action matrix. Account-deletion
+orchestration remains absent: the source-only confirmation, plan and count
+reconciliation are not routes, authentication decisions, provider queries,
+jobs, delete operations, final provider proof or receipts. A durable server-only
+job store, write fence, provider identity
+operation and approved retention policy remain required. The
+complete gate is tracked in the
+[account lifecycle readiness review](account-lifecycle-readiness.md).
 
 ## Brew Done It containment boundary
 
@@ -138,4 +216,7 @@ Optional server variables:
 
 ## Remaining external controls
 
-Source code cannot prove remote collection permissions, production environment values, import reconciliation, backup/restore, alert routing, legal text, account deletion/export or operational support ownership. These remain release gates in [Launch Readiness](LAUNCH_READINESS.md).
+Source code cannot prove remote collection permissions, production environment
+values, import reconciliation, backup/restore, alert routing, legal text,
+recently authenticated account export, account deletion or operational support
+ownership. These remain release gates in [Launch Readiness](LAUNCH_READINESS.md).

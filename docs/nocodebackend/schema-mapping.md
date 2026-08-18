@@ -70,7 +70,17 @@ rejected stale write and the final persisted version.
 The existing schema has no deletion-job, deletion-receipt, export-job,
 verification-status or retention-control fields. None is implied by an editable
 profile row, and no browser-supplied lifecycle status may be trusted. Whole-account
-export and deletion are therefore not implemented against this contract.
+export and executable deletion are therefore not implemented against this
+contract. The source-only
+[deletion discovery planner](../account-deletion-plan-contract.md) creates no
+provider object and does not change that status. The source-only
+[deletion reconciler](../account-deletion-reconciliation-contract.md) likewise
+creates no collection or receipt: it compares plan identifiers in memory and
+returns counts only. Its `complete` flag describes the supplied later snapshot,
+not provider-backed erasure. The source-only
+[confirmation validator](../account-deletion-confirmation-contract.md) creates no
+provider object either; its format/version/boolean result is not a job, receipt
+or permission field.
 
 The proposed owner-data boundary and dependency order are documented in the
 [account lifecycle readiness review](../account-lifecycle-readiness.md). It
@@ -78,9 +88,10 @@ includes `profiles`, `ratings`, `rating_scores`,
 `bonus_attribute_rating_mapping` and `cellar`; shared catalogue and attribute
 definitions are not owner data and must not be deleted with an account.
 
-Before implementation, a reviewed provider change must define a server-only,
-idempotent deletion job/receipt store, write fencing, authentication identity
-deletion, backup-expiry behaviour, permissions, indexes and rollback. Any job
+Before any executable or persisted whole-account workflow, a reviewed provider
+change must define a server-only, idempotent deletion job/receipt store, write
+fencing, authentication identity deletion, backup-expiry behaviour,
+permissions, indexes and rollback. Any job
 record must contain only the minimum operational identifiers, state, timestamps
 and aggregate counts—not exported personal-data bodies. This document must be
 updated with the exact approved fields and relationships before persistence is

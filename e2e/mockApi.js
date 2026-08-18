@@ -54,7 +54,7 @@ export const installMockApi = async (page) => {
     body: JSON.stringify({
       ...product,
       ratingSummary: { count: 1, average: 4 },
-      ratings: [rating]
+      ratings: []
     })
   }))
 

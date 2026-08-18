@@ -1,0 +1,71 @@
+name: Connected provider contract
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Full commit SHA deployed to the isolated staging provider
+        required: true
+        type: string
+      destructive_confirmation:
+        description: Type isolated-staging-destructive-provider-contract
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: connected-provider-contract-${{ inputs.release_sha }}
+  cancel-in-progress: false
+
+jobs:
+  connected-provider-contract:
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Validate destructive execution request
+        shell: bash
+        run: |
+          [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$DESTRUCTIVE_CONFIRMATION" = "isolated-staging-destructive-provider-contract"
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          DESTRUCTIVE_CONFIRMATION: ${{ inputs.destructive_confirmation }}
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.release_sha }}
+      - name: Confirm checked-out release candidate
+        run: test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Run destructive provider contract in isolated staging
+        run: npm run test:provider-contract
+        env: &provider-contract-environment
+          RUN_NOCODEBACKEND_PROVIDER_CONTRACT: "1"
+          NCB_CONTRACT_ENVIRONMENT: isolated-staging
+          NCB_CONTRACT_ALLOW_DESTRUCTIVE: "1"
+          NCB_CONTRACT_TRANSCRIPT_PATH: artifacts/provider-contract/redacted-transcript.json
+          NOCODEBACKEND_DATA_BASE_URL: ${{ secrets.NOCODEBACKEND_DATA_BASE_URL }}
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NCB_CONTRACT_USER_ID: ${{ secrets.NCB_CONTRACT_USER_ID }}
+          NCB_CONTRACT_PRODUCT_ID: ${{ secrets.NCB_CONTRACT_PRODUCT_ID }}
+          NCB_CONTRACT_ATTRIBUTE_ID: ${{ secrets.NCB_CONTRACT_ATTRIBUTE_ID }}
+      - name: Verify redaction and cleanup evidence
+        if: always()
+        run: npm run check:provider-contract-transcript -- --transcript artifacts/provider-contract/redacted-transcript.json | tee artifacts/provider-contract/verification.json
+        env: *provider-contract-environment
+      - name: Retain redacted provider evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: connected-provider-contract-${{ inputs.release_sha }}
+          path: artifacts/provider-contract/
+          if-no-files-found: error
+          retention-days: 30

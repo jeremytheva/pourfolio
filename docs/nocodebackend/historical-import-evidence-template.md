@@ -33,6 +33,22 @@ resolve, each product has a positive producer ID found in the paired export, all
 and all 399 cellar identity rows have verified owners plus confirmed destination
 cellar IDs.
 
+## Catalogue reference decision ledger
+
+Before changing the historical source files, generate and retain the private
+ledger with `npm run audit:import:remediation`. Keep the generated provenance
+columns unchanged and complete one row for every task:
+
+| Task key | Issue code | Source collections | Source rows | Source record IDs | Source reference ID | Product name | Producer name | Occurrence count | Decision | Canonical ID | Rejection reason | Evidence reference | Operator | Reviewer | Reviewed at (UTC) |
+| --- | --- | --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- | --- | --- | --- | --- |
+
+Retain the completed ledger, its audit JSON and all input checksums together.
+`mapped` canonical IDs must exist in the frozen paired catalogue; `rejected`
+tasks must state the quarantine reason. A passing decision-ledger audit does not
+change the source data or make the historical import preflight pass. Retain the
+separate transformation/dry-run diff, then rerun `audit:import` against the
+corrected candidate files and require zero unresolved references.
+
 ## Bonus decision ledger
 
 Keep one row per unmatched source variant with these columns:
@@ -69,6 +85,22 @@ abort thresholds and reviewer approval. Counts and hashes must match before any
 import write is approved.
 
 ## Import and reconciliation
+
+Place private before, first-run and rerun collection exports beside the
+rehearsal manifest, then run:
+
+```bash
+npm run audit:import:rehearsal -- \
+  --manifest <private-evidence>/import-rehearsal-manifest.json \
+  --output <private-evidence>/import-rehearsal-audit.json
+```
+
+Use [the import rehearsal auditor contract](historical-import-rehearsal-auditor.md)
+to populate the manifest. The command recomputes retained export counts, byte
+lengths and SHA-256 values, verifies frozen source totals and rejected-record
+coverage, rejects unexpected writes to non-target collections, requires zero
+orphans and duplicates after both writes, and proves that the rerun has zero
+creates, updates or deletes with byte-identical first-run/rerun exports.
 
 Retain the approved dry-run diff, first-run log, rejected-record ledger and
 post-import orphan checks. Complete this table with before, first-run and rerun

@@ -1,12 +1,13 @@
 import fs from 'node:fs'
+import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-const extractCreateTableBody = (sql, tableName) => {
+const extractCreateTable = (sql, tableName) => {
   const pattern = new RegExp(
-    'CREATE\\s+TABLE\\s+(?:IF\\s+NOT\\s+EXISTS\\s+)?(?:`[^`]+`\\.)?`?' +
+    'CREATE\\s+TABLE\\s+(?:IF\\s+NOT\\s+EXISTS\\s+)?(?:(?:`[^`]+`|[\\w$]+)\\.)?`?' +
       escapeRegExp(tableName) +
       '`?\\s*\\(',
     'i'
@@ -38,7 +39,13 @@ const extractCreateTableBody = (sql, tableName) => {
       depth += 1
     } else if (character === ')') {
       depth -= 1
-      if (depth === 0) return sql.slice(openIndex + 1, index)
+      if (depth === 0) {
+        const statementEnd = sql.indexOf(';', index + 1)
+        return {
+          body: sql.slice(openIndex + 1, index),
+          options: statementEnd === -1 ? '' : sql.slice(index + 1, statementEnd).trim()
+        }
+      }
     }
   }
 
@@ -97,12 +104,13 @@ const normaliseIndexColumn = (value) => value
   .toLowerCase()
 
 const parseTable = (sql, tableName) => {
-  const body = extractCreateTableBody(sql, tableName)
-  if (body === null) return null
+  const extracted = extractCreateTable(sql, tableName)
+  if (extracted === null) return null
 
-  const definitions = splitTopLevel(body)
+  const definitions = splitTopLevel(extracted.body)
   const columns = new Map()
   const uniqueKeys = []
+  const indexes = []
   const foreignKeys = []
   const checks = []
 
@@ -115,12 +123,19 @@ const parseTable = (sql, tableName) => {
     const key = /^(?:CONSTRAINT\s+`?[\w$]+`?\s+)?(?:PRIMARY\s+KEY|UNIQUE(?:\s+(?:KEY|INDEX))?(?:\s+`?[\w$]+`?)?)\s*\((.+)\)$/is.exec(definition)
     if (key) uniqueKeys.push(splitTopLevel(key[1]).map(normaliseIndexColumn))
 
-    const foreignKey = /^(?:CONSTRAINT\s+`?[\w$]+`?\s+)?FOREIGN\s+KEY\s*\(([^)]+)\)\s+REFERENCES\s+(?:`[^`]+`\.)?`?([\w$]+)`?\s*\(([^)]+)\)/is.exec(definition)
+    const index = /^(?:KEY|INDEX)(?:\s+`?[\w$]+`?)?\s*\((.+)\)$/is.exec(definition)
+    if (index) indexes.push(splitTopLevel(index[1]).map(normaliseIndexColumn))
+
+    const foreignKey = /^(?:CONSTRAINT\s+`?[\w$]+`?\s+)?FOREIGN\s+KEY\s*\(([^)]+)\)\s+REFERENCES\s+(?:(?:`[^`]+`|[\w$]+)\.)?`?([\w$]+)`?\s*\(([^)]+)\)/is.exec(definition)
     if (foreignKey) {
+      const onDelete = /\bON\s+DELETE\s+(RESTRICT|CASCADE|SET\s+NULL|NO\s+ACTION|SET\s+DEFAULT)\b/i.exec(definition)
+      const onUpdate = /\bON\s+UPDATE\s+(RESTRICT|CASCADE|SET\s+NULL|NO\s+ACTION|SET\s+DEFAULT)\b/i.exec(definition)
       foreignKeys.push({
         columns: splitTopLevel(foreignKey[1]).map(normaliseIndexColumn),
         parentTable: foreignKey[2].toLowerCase(),
-        parentColumns: splitTopLevel(foreignKey[3]).map(normaliseIndexColumn)
+        parentColumns: splitTopLevel(foreignKey[3]).map(normaliseIndexColumn),
+        onDelete: onDelete ? onDelete[1].replace(/\s+/g, ' ').toLowerCase() : null,
+        onUpdate: onUpdate ? onUpdate[1].replace(/\s+/g, ' ').toLowerCase() : null
       })
     }
 
@@ -128,7 +143,25 @@ const parseTable = (sql, tableName) => {
     if (check) checks.push(check[1])
   }
 
-  return { columns, uniqueKeys, foreignKeys, checks }
+  return { columns, uniqueKeys, indexes, foreignKeys, checks, options: extracted.options }
+}
+
+export const parseSchemaTable = (sql, tableName) => parseTable(sql, tableName)
+
+export const listSchemaTables = (sql) => {
+  if (typeof sql !== 'string' || !sql.trim()) throw new Error('Schema SQL is required.')
+  const tables = []
+  const seen = new Set()
+  const pattern = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:(?:`[^`]+`|[\w$]+)\.)?`?([\w$]+)`?\s*\(/gi
+  let match
+  while ((match = pattern.exec(sql)) !== null) {
+    const table = match[1].toLowerCase()
+    if (!seen.has(table)) {
+      seen.add(table)
+      tables.push(table)
+    }
+  }
+  return tables
 }
 
 const hasExactUniqueKey = (table, requiredColumns) => {
@@ -206,6 +239,7 @@ const TABLE_RULES = [
       'submission_fingerprint', 'submission_state', 'submission_version', 'expected_score_count',
       'expected_bonus_count'
     ],
+    requiredNullableColumns: ['deleted_at'],
     uniqueKeys: [['user_id', 'rating_id'], ['submission_key']],
     foreignKeys: [
       { column: 'product_id', parentTable: 'products', parentColumn: 'id' }
@@ -262,6 +296,23 @@ export const auditSchemaContract = (sql) => {
       } else if (!/\bNOT\s+NULL\b/i.test(definition)) {
         blockers.push({
           code: 'NULLABLE_REQUIRED_COLUMN',
+          table: rule.table,
+          column: columnName
+        })
+      }
+    }
+
+    for (const columnName of rule.requiredNullableColumns || []) {
+      const definition = table.columns.get(columnName)
+      if (!definition) {
+        blockers.push({
+          code: 'MISSING_REQUIRED_COLUMN',
+          table: rule.table,
+          column: columnName
+        })
+      } else if (/\bNOT\s+NULL\b/i.test(definition)) {
+        blockers.push({
+          code: 'NON_NULLABLE_REQUIRED_COLUMN',
           table: rule.table,
           column: columnName
         })
@@ -341,18 +392,48 @@ export const auditSchemaContract = (sql) => {
   }
 }
 
-const parseArguments = (arguments_) => {
-  if (arguments_.length !== 2 || arguments_[0] !== '--schema' || !arguments_[1]) {
-    throw new Error('Use --schema followed by the path to a SQL schema export.')
+export const fingerprintSchema = (contents) => {
+  const bytes = Buffer.isBuffer(contents) ? contents : Buffer.from(contents)
+  return {
+    bytes: bytes.byteLength,
+    sha256: createHash('sha256').update(bytes).digest('hex')
   }
-  return { schema: arguments_[1] }
+}
+
+const parseArguments = (arguments_) => {
+  if (!arguments_.length || arguments_.length % 2 !== 0) {
+    throw new Error('Use --schema <path> with optional --output <path>.')
+  }
+
+  const options = {}
+  for (let index = 0; index < arguments_.length; index += 2) {
+    const key = arguments_[index]
+    const value = arguments_[index + 1]
+    if (!['--schema', '--output'].includes(key) || !value || options[key.slice(2)]) {
+      throw new Error('Use --schema <path> with optional --output <path>.')
+    }
+    options[key.slice(2)] = value
+  }
+  if (!options.schema) throw new Error('Use --schema <path> with optional --output <path>.')
+  return options
 }
 
 export const runCli = (arguments_) => {
   const options = parseArguments(arguments_)
-  const sql = fs.readFileSync(path.resolve(options.schema), 'utf8')
-  const report = auditSchemaContract(sql)
-  process.stdout.write(`${JSON.stringify(report, null, 2)}\n`)
+  const schemaPath = path.resolve(options.schema)
+  const contents = fs.readFileSync(schemaPath)
+  const report = {
+    ...auditSchemaContract(contents.toString('utf8')),
+    inputs: {
+      schema: {
+        file: path.basename(schemaPath),
+        ...fingerprintSchema(contents)
+      }
+    }
+  }
+  const rendered = `${JSON.stringify(report, null, 2)}\n`
+  if (options.output) fs.writeFileSync(path.resolve(options.output), rendered)
+  process.stdout.write(rendered)
   return report.status === 'PASS' ? 0 : 1
 }
 

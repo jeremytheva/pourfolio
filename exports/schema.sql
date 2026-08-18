@@ -1,6 +1,6 @@
--- Pourfolio production-equivalent NoCodeBackend schema export
+-- Pourfolio canonical NoCodeBackend schema target
 -- Provider migration target: rating workflow/idempotency structural contract
--- Exported for structural audit retention on 2026-08-05.
+-- Updated for recoverable rating deletion on 2026-08-15.
 
 CREATE TABLE profiles (
   id bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -75,10 +75,11 @@ CREATE TABLE ratings (
   total_weighted decimal(10,2) DEFAULT NULL,
   submission_key varchar(255) NOT NULL,
   submission_fingerprint char(64) NOT NULL,
-  submission_state enum('pending','complete','failed') NOT NULL,
+  submission_state enum('pending','complete','failed','deleting','deleted') NOT NULL,
   submission_version int unsigned NOT NULL DEFAULT 0,
   expected_score_count int unsigned NOT NULL,
   expected_bonus_count int unsigned NOT NULL,
+  deleted_at timestamp NULL DEFAULT NULL,
   created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),

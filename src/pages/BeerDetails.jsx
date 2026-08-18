@@ -23,6 +23,7 @@ function BeerDetails() {
   const [product, setProduct] = useState(null)
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
+  const [errorCode, setErrorCode] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
   const [showCellarForm, setShowCellarForm] = useState(false)
   const [cellarForm, setCellarForm] = useState(initialCellarForm)
@@ -33,6 +34,7 @@ function BeerDetails() {
     let active = true
     setStatus('loading')
     setError('')
+    setErrorCode('')
     beverageService.getProduct(productId)
       .then((payload) => {
         if (!active) return
@@ -42,6 +44,7 @@ function BeerDetails() {
       .catch((requestError) => {
         if (!active) return
         setError(requestError.message || 'Product details could not be loaded.')
+        setErrorCode(requestError.code || '')
         setStatus('error')
       })
     return () => {
@@ -80,10 +83,18 @@ function BeerDetails() {
         <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-900" role="alert">
           <h1 className="text-lg font-semibold">Product unavailable</h1>
           <p className="mt-1">{error}</p>
-          <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-4 inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-white">
-            <SafeIcon icon={FiRefreshCw} className="mr-2 h-4 w-4" />
-            Try again
-          </button>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link to="/home" className="inline-flex items-center rounded-lg border border-red-300 bg-white px-4 py-2 font-medium text-red-900">
+              <SafeIcon icon={FiArrowLeft} className="mr-2 h-4 w-4" />
+              Back to products
+            </Link>
+            {errorCode !== 'invalid_product_identifier' && (
+              <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-white">
+                <SafeIcon icon={FiRefreshCw} className="mr-2 h-4 w-4" />
+                Try again
+              </button>
+            )}
+          </div>
         </div>
       </div>
     )

@@ -1,0 +1,345 @@
+{
+  "status": "BLOCKED",
+  "counts": {
+    "products": 350,
+    "producers": 159,
+    "ratings": 593,
+    "cellar": 500,
+    "bonusDecisions": 0,
+    "cellarIdentity": 0,
+    "blockers": 46
+  },
+  "countsByCode": {
+    "MISSING_PRODUCER_REFERENCE": 29,
+    "MISSING_PRODUCT_REFERENCE": 17
+  },
+  "blockers": [
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 188,
+      "recordId": "187",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 319,
+      "recordId": "318",
+      "value": "0"
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 320,
+      "recordId": "319",
+      "value": "0"
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 321,
+      "recordId": "320",
+      "value": "0"
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 322,
+      "recordId": "321",
+      "value": "0"
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 323,
+      "recordId": "322",
+      "value": "0"
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 324,
+      "recordId": "323",
+      "value": "0"
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 325,
+      "recordId": "324",
+      "value": "0"
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 326,
+      "recordId": "325",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 327,
+      "recordId": "326",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 328,
+      "recordId": "327",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 330,
+      "recordId": "329",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 332,
+      "recordId": "331",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 333,
+      "recordId": "332",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 335,
+      "recordId": "334",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 337,
+      "recordId": "336",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 338,
+      "recordId": "337",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 339,
+      "recordId": "338",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 340,
+      "recordId": "339",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 341,
+      "recordId": "340",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 342,
+      "recordId": "341",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 344,
+      "recordId": "343",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 345,
+      "recordId": "344",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 346,
+      "recordId": "345",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 347,
+      "recordId": "346",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 348,
+      "recordId": "347",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 349,
+      "recordId": "348",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 350,
+      "recordId": "349",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCER_REFERENCE",
+      "collection": "products",
+      "row": 351,
+      "recordId": "350",
+      "value": ""
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "ratings",
+      "row": 222,
+      "value": "373"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "ratings",
+      "row": 450,
+      "value": "352"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "ratings",
+      "row": 488,
+      "value": "356"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "ratings",
+      "row": 568,
+      "value": "370"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "ratings",
+      "row": 573,
+      "value": "365"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "ratings",
+      "row": 579,
+      "value": "361"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "ratings",
+      "row": 580,
+      "value": "361"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "ratings",
+      "row": 583,
+      "value": "371"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "ratings",
+      "row": 584,
+      "value": "371"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "ratings",
+      "row": 587,
+      "value": "351"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "ratings",
+      "row": 588,
+      "value": "351"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "ratings",
+      "row": 592,
+      "value": "364"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "ratings",
+      "row": 593,
+      "value": "364"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "ratings",
+      "row": 594,
+      "value": "372"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "cellar",
+      "row": 195,
+      "value": "357"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "cellar",
+      "row": 341,
+      "value": "358"
+    },
+    {
+      "code": "MISSING_PRODUCT_REFERENCE",
+      "collection": "cellar",
+      "row": 342,
+      "value": "358"
+    }
+  ],
+  "inputs": {
+    "products": {
+      "file": "03-54026_rating_products.csv",
+      "bytes": 16216,
+      "sha256": "cc4f5b24b040afcf6c2717e20dbada8b53b7df5648537f26924f46e0d7dab2d7"
+    },
+    "producers": {
+      "file": "05-54026_rating_producers.csv",
+      "bytes": 4425,
+      "sha256": "8ef062d486877dca6a80d96f77fcfc3516066f73312382e8730bb2968266dce4"
+    },
+    "ratings": {
+      "file": "ready_ratings.csv",
+      "bytes": 73541,
+      "sha256": "909b6a549632085f491fbc8869672ed995468af0c7dd763fe2d8198775464c7d"
+    },
+    "cellar": {
+      "file": "04-54026_rating_cellar.csv",
+      "bytes": 15887,
+      "sha256": "7cc754bc9905be84090a95b0e02267cbbf26a113a5d42af0fb23cfe759878dd0"
+    }
+  }
+}
