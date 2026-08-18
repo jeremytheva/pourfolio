@@ -6,6 +6,22 @@
       "destination": "/api/auth-proxy"
     },
     {
+      "source": "/api/nocodebackend/catalog/:path*",
+      "destination": "/api/current-data-proxy"
+    },
+    {
+      "source": "/api/nocodebackend/rating-form",
+      "destination": "/api/current-data-proxy"
+    },
+    {
+      "source": "/api/nocodebackend/ratings/:path*",
+      "destination": "/api/current-data-proxy"
+    },
+    {
+      "source": "/api/nocodebackend/cellar/:path*",
+      "destination": "/api/current-data-proxy"
+    },
+    {
       "source": "/api/nocodebackend/:path*",
       "destination": "/api/data-proxy"
     },
