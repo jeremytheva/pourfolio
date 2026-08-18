@@ -7,7 +7,7 @@
     },
     {
       "source": "/api/nocodebackend/:path*",
-      "destination": "/api/data-proxy"
+      "destination": "/api/data-router"
     },
     {
       "source": "/((?!api(?:/|$)).*)",

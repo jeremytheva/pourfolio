@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import authHandler, { __testables as authProxy } from '../auth-proxy.js'
-import { __testables as dataProxy } from '../data-proxy.js'
+import { pathSegments as dataRouterPathSegments, __testables as dataRouter } from '../data-router.js'
 
 const loadVercelConfiguration = async () => JSON.parse(
   await readFile(new URL('../../vercel.json', import.meta.url), 'utf8')
@@ -70,7 +70,7 @@ test('Vercel routes public catch-all paths to flat proxy entrypoints before the 
     },
     {
       source: '/api/nocodebackend/:path*',
-      destination: '/api/data-proxy'
+      destination: '/api/data-router'
     },
     {
       source: '/((?!api(?:/|$)).*)',
@@ -93,8 +93,8 @@ test('Vercel wildcard captures preserve every path segment and unrelated query v
     ['/api/nocodebackend/auth/sign-up/email', '/api/auth-proxy', ['sign-up', 'email']],
     ['/api/nocodebackend/auth/sign-in/email', '/api/auth-proxy', ['sign-in', 'email']],
     ['/api/nocodebackend/auth/get-session', '/api/auth-proxy', ['get-session']],
-    ['/api/nocodebackend/catalog/products', '/api/data-proxy', ['catalog', 'products']],
-    ['/api/nocodebackend/catalog/products/featured/seasonal', '/api/data-proxy', ['catalog', 'products', 'featured', 'seasonal']]
+    ['/api/nocodebackend/catalog/products', '/api/data-router', ['catalog', 'products']],
+    ['/api/nocodebackend/catalog/products/featured/seasonal', '/api/data-router', ['catalog', 'products', 'featured', 'seasonal']]
   ]
   const originalQuery = {
     redirectTo: 'https://pourfolio.example/profile',
@@ -114,9 +114,16 @@ test('Vercel wildcard captures preserve every path segment and unrelated query v
     if (destination === '/api/auth-proxy') {
       assert.equal(authProxy.getRequestPath({ query: resolved.query }), expectedPath.join('/'))
     } else {
-      assert.deepEqual(dataProxy.pathSegments({ query: resolved.query }), expectedPath)
+      assert.deepEqual(dataRouterPathSegments({ query: resolved.query }), expectedPath)
     }
   }
+})
+
+test('schema-aware data router owns only database-aligned launch resources', () => {
+  assert.deepEqual(
+    [...dataRouter.CURRENT_SCHEMA_RESOURCES].sort(),
+    ['catalog', 'cellar', 'rating-form', 'ratings']
+  )
 })
 
 test('authentication proxy rejects unknown actions without contacting an upstream service', async () => {
@@ -136,7 +143,6 @@ test('authentication proxy reports allowed methods before requiring upstream con
   assert.equal(response.headers.Allow, 'POST')
   assert.equal(response.body.error, 'Method not allowed.')
 })
-
 
 test('authentication proxy identifies missing server-only configuration safely', async () => {
   const previousSecret = process.env.NOCODEBACKEND_SECRET_KEY
