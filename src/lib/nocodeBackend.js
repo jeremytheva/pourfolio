@@ -1,7 +1,5 @@
-const PROXY_BASE = 'https://rmvzorxcl35mttidiexhtp5g2m0hpsqo.lambda-url.us-east-2.on.aws'
-const DATA_API_BASE_URL = '/data'
-const AUTH_API_BASE_URL = '/auth'
-const INSTANCE_NAME = '54026_rating'
+const DATA_API_BASE_URL = '/api/nocodebackend'
+const AUTH_API_BASE_URL = '/api/nocodebackend/auth'
 const REQUEST_TIMEOUT_MS = 12_000
 
 const PROVIDER_ALIASES = {
@@ -52,11 +50,7 @@ const fetchWithTimeout = async (url, options) => {
 }
 
 const request = async (baseUrl, path, options = {}) => {
-  // Use the central NoCodeBackend Lambda proxy instead of local origin
-  const url = new URL(`${baseUrl}${path}`, PROXY_BASE)
-  url.searchParams.set('Instance', INSTANCE_NAME)
-  
-  const response = await fetchWithTimeout(url.toString(), {
+  const response = await fetchWithTimeout(`${baseUrl}${path}`, {
     credentials: 'include',
     method: options.method || 'GET',
     headers: {
@@ -132,7 +126,7 @@ const collectProviderNames = (source, providers = []) => {
 
   return Object.entries(source).reduce((collected, [name, value]) => {
     if (collected === null) return null
-    if (!PROVIDER_NAMES.has(name.toLowerCase())) return collected // Ignore unknown keys like public_signup
+    if (!PROVIDER_NAMES.has(name.toLowerCase())) return collected
     if (typeof value === 'boolean') return [...collected, { name, enabled: value }]
     if (!value || typeof value !== 'object' || Array.isArray(value)) return null
     if (Object.keys(value).some((key) => !PROVIDER_STATE_KEYS.includes(key))) return null
@@ -142,10 +136,7 @@ const collectProviderNames = (source, providers = []) => {
 }
 
 const getProviderEntries = (payload) => {
-  // Handle standard NoCodeBackend envelope
-  if (payload?.status === 'success' && payload?.data) {
-    payload = payload.data;
-  }
+  if (payload?.status === 'success' && payload?.data) payload = payload.data
 
   if (Array.isArray(payload)) return collectProviderNames(payload)
   if (!payload || typeof payload !== 'object') return null
@@ -195,50 +186,53 @@ export const getAuthProviders = async () => {
 }
 
 export const getGoogleSignInUrl = (redirectTo = window.location.origin) => {
-  const params = new URLSearchParams({ redirectTo, Instance: INSTANCE_NAME })
-  return `${PROXY_BASE}${AUTH_API_BASE_URL}/sign-in/google?${params}`
+  const params = new URLSearchParams({ redirectTo })
+  return `${AUTH_API_BASE_URL}/sign-in/google?${params}`
 }
 
+// Legacy collection access is retained only for currently disabled prototype
+// modules. Launch routes use explicit service endpoints so browser code cannot
+// silently expand its data authority or bypass server-side ownership policy.
 export const nocodeBackend = {
   async list(collection, { filters = {} } = {}) {
     const params = new URLSearchParams(filters)
     try {
-      const payload = await apiRequest(`/read/${encodeURIComponent(collection)}?${params}`)
-      return { data: payload?.data || [], error: null }
+      const payload = await apiRequest(`/collections/${encodeURIComponent(collection)}?${params}`)
+      return { data: payload?.items || [], error: null }
     } catch (error) {
       return { data: [], error }
     }
   },
   async get(collection, id) {
     try {
-      const payload = await apiRequest(`/read/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`)
-      return { data: payload?.data || null, error: null }
+      const payload = await apiRequest(`/collections/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`)
+      return { data: payload?.item || null, error: null }
     } catch (error) {
       return { data: null, error }
     }
   },
   async create(collection, data) {
     try {
-      const payload = await apiRequest(`/create/${encodeURIComponent(collection)}`, { method: 'POST', body: data })
-      return { data: payload?.data || null, error: null }
+      const payload = await apiRequest(`/collections/${encodeURIComponent(collection)}`, { method: 'POST', body: data })
+      return { data: payload?.item || null, error: null }
     } catch (error) {
       return { data: null, error }
     }
   },
   async update(collection, id, data) {
     try {
-      const payload = await apiRequest(`/update/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`, {
+      const payload = await apiRequest(`/collections/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`, {
         method: 'PUT',
         body: data
       })
-      return { data: payload?.data || null, error: null }
+      return { data: payload?.item || null, error: null }
     } catch (error) {
       return { data: null, error }
     }
   },
   async remove(collection, id) {
     try {
-      await apiRequest(`/delete/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`, { method: 'DELETE' })
+      await apiRequest(`/collections/${encodeURIComponent(collection)}/${encodeURIComponent(id)}`, { method: 'DELETE' })
       return { data: true, error: null }
     } catch (error) {
       return { data: null, error }
