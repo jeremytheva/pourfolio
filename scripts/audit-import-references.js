@@ -284,13 +284,18 @@ const readCsv = (filePath) => parseCsv(fs.readFileSync(path.resolve(filePath), '
 
 const parseArguments = (arguments_) => {
   const options = {}
+  const allowed = new Set([
+    'products', 'producers', 'ratings', 'cellar', 'bonus-decisions',
+    'cellar-identity', 'output'
+  ])
   for (let index = 0; index < arguments_.length; index += 2) {
     const key = arguments_[index]
     const value = arguments_[index + 1]
-    if (!key?.startsWith('--') || !value) {
+    const name = key?.startsWith('--') ? key.slice(2) : ''
+    if (!allowed.has(name) || !value || options[name]) {
       throw new Error('Arguments must use --name path pairs.')
     }
-    options[key.slice(2)] = value
+    options[name] = value
   }
   if (!options.products || !options.producers) {
     throw new Error('--products and --producers are required.')
@@ -303,7 +308,10 @@ export const runCli = (arguments_) => {
   const suppliedInputs = ['products', 'producers', 'ratings', 'cellar', 'bonus-decisions', 'cellar-identity']
     .filter((name) => options[name])
   const inputs = Object.fromEntries(
-    suppliedInputs.map((name) => [name, fingerprintCsv(options[name])])
+    suppliedInputs.map((name) => [name, {
+      file: path.basename(path.resolve(options[name])),
+      ...fingerprintCsv(options[name])
+    }])
   )
   const report = auditImportData({
     products: readCsv(options.products),
@@ -313,7 +321,9 @@ export const runCli = (arguments_) => {
     bonusDecisions: options['bonus-decisions'] ? readCsv(options['bonus-decisions']) : [],
     cellarIdentity: options['cellar-identity'] ? readCsv(options['cellar-identity']) : []
   })
-  process.stdout.write(`${JSON.stringify({ ...report, inputs }, null, 2)}\n`)
+  const rendered = `${JSON.stringify({ ...report, inputs }, null, 2)}\n`
+  if (options.output) fs.writeFileSync(path.resolve(options.output), rendered)
+  process.stdout.write(rendered)
   return report.status === 'PASS' ? 0 : 1
 }
 

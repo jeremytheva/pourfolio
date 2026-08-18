@@ -23,6 +23,83 @@ statistics, and refresh or sign-out clears all game data.
 - Owner IDs, roles, totals and provider secrets supplied by a browser are discarded.
 - Remote NoCodeBackend permissions remain a required defence in depth and must be tested independently.
 
+## Account export projection boundary
+
+The future export's source-only projection is implemented in
+`api/_lib/accountExport.js`, but no export route exists. The module derives its
+owner solely from a supplied server-authenticated account identity, exact-matches
+`user_id`, rejects ambiguous/missing relationships and returns no partial
+manifest on validation failure. Explicit field objects prevent provider
+secrets, raw owner fields, idempotency keys, fingerprints, workflow versions and
+unrecognised metadata from crossing the projection boundary. Other-user rows and
+unreferenced catalogue rows are excluded even if they appear in the supplied
+snapshot.
+
+`api/_lib/accountExportArtifact.js` adds the source-only serialization boundary.
+It emits deterministic UTF-8 JSON with an immutable constant ASCII filename,
+`application/json; charset=utf-8`, `Cache-Control: no-store`, attachment content
+disposition and `X-Content-Type-Options: nosniff`. It calculates byte length and
+SHA-256 over the exact body. No request or personal-data value can enter a
+header, and the helper performs no response write, persistence or logging.
+
+These modules are not authentication, authorisation of an HTTP request or proof
+of snapshot consistency. They must remain unreachable until the provider
+supplies a server-verifiable recent-authentication contract and a consistent
+snapshot (or an approved equivalent fence/reconciliation workflow). A future
+endpoint must add same-origin and export-specific rate controls, apply the
+artifact helper's fixed response metadata, prove actual response bytes, provide
+all-or-nothing provider failure handling, and pass connected
+other-user/expired-session tests. Exported values, artifact checksums, account
+IDs, emails, cookies, tokens and provider responses must never be logged. See the
+[portable export contract](account-export-contract.md).
+
+## Account-deletion discovery boundary
+
+`api/_lib/accountDeletionPlan.js` implements only the pure discovery projection
+for a future whole-account deletion workflow. It requires all five owner-data
+collections, exact-matches the supplied server identity, rejects ambiguous and
+cross-owner relationships, and returns only immutable record IDs and counts in
+the fixed child-first order. It excludes every record body, catalogue
+definition, provider workflow field and request value. It adds
+no separate authentication-identity field, although a profile record ID may
+equal the account ID under the canonical schema.
+
+Provider record IDs remain sensitive operational data. The planner must not be
+imported by a route or worker, returned to a browser, logged or persisted until
+a reviewed job-store and retention contract exists. It does not verify a recent
+session, confirmation phrase, snapshot completeness, write fence, provider
+ownership at deletion time, idempotent retry, final absence, session revocation
+or authentication-identity deletion. Those controls and connected negatives are
+mandatory before any destructive workflow; see the
+[deletion-plan contract](account-deletion-plan-contract.md).
+
+`api/_lib/accountDeletionReconciliation.js` consumes that sensitive plan only
+inside a pure function, strictly validates its allowlisted shape and compares
+its IDs with a later snapshot without returning any identifier. Its immutable
+output contains per-collection and aggregate counts and remains incomplete when
+new owner records appear after discovery. Unexpected plan fields and count or
+ordering drift fail closed without echoing the supplied values.
+
+This count-only result is not provider-backed erasure evidence. The reconciler
+does not query the provider, prove a complete/consistent snapshot, authenticate
+a request, fence writes, inspect job state, delete data, revoke sessions or
+remove an identity. It must remain unreachable until the same destructive-entry
+criteria pass; see the
+[reconciliation contract](account-deletion-reconciliation-contract.md).
+
+`api/_lib/accountDeletionConfirmation.js` adds only exact request-shape and
+phrase validation. It requires one enumerable data property, performs no
+trimming/case-folding/Unicode normalisation/coercion, rejects accessors and every
+extra identity/record/job field, and returns no supplied text. Symbols and
+non-enumerable smuggled values also fail. Generic errors do not echo inputs.
+
+The result is not authentication, recent-authentication evidence, CSRF/origin
+protection, rate limiting, account identity, replay protection or deletion
+authorisation. It must remain unreachable until a size-limited protected route
+derives identity only from the session and every destructive-entry criterion
+passes; see the
+[confirmation contract](account-deletion-confirmation-contract.md).
+
 ## Implemented launch controls
 
 - Fixed auth action/method allowlist.
@@ -35,6 +112,19 @@ statistics, and refresh or sign-out clears all game data.
 - Owner checks for profile, cellar and rating mutation.
 - Explicit response projections that exclude `secret_key`, raw provider payloads and private owner fields.
 - Catalogue product details expose rating aggregates only (count and average), never rating, submission or cellar identifiers, dates, or individual scores; personal history remains owner-only at `/ratings/mine`.
+- Both browser catalogue reads validate an exact render-safe public response
+  contract before updating state. Unknown, hidden, symbolic or accessor fields,
+  incoherent pagination, duplicate/invalid stable IDs, relationship mismatch,
+  malformed aggregates and individual rating entries fail with one non-echoing
+  error and use the existing alert/retry UI. The validator copies and deeply
+  freezes accepted data without mutating its input; see the
+  [catalogue response contract](catalogue-response-contract.md).
+- Provider pagination must match the requested page/size and reconcile its
+  totals with the exact full/terminal item count. Direct and fallback provider
+  reads accept only the requested record ID; the gateway and browser repeat the
+  product-detail ID check. Non-canonical product route IDs fail before browser
+  network access, preventing a substituted product from driving rating or
+  cellar links.
 - Complete 1–7 rating validation, server-calculated totals, idempotency and compensating rollback.
 - CSP, HSTS, clickjacking, MIME-sniffing, referrer and permissions headers.
 - Production source maps disabled.

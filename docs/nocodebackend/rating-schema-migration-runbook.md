@@ -142,9 +142,10 @@ input only. The authoritative rollout baseline is a **fresh, transactionally
 consistent export taken immediately before the rehearsal or production change**;
 it must receive its own digest and immutable evidence-store reference.
 
-The dated source has the 26 findings partitioned in
-[schema preflight](schema-preflight.md): one missing table, eight missing
-columns, ten nullable required columns, six missing unique constraints and one
+The dated source has the 34 findings partitioned in
+[schema preflight](schema-preflight.md): one missing table, nine missing
+columns, ten nullable required columns, six missing unique constraints, six
+missing foreign keys, one missing integer score-range constraint and one
 mutable timestamp default. Do not assume the live baseline still has those
 findings. Audit and compare a fresh export before every run.
 
@@ -156,6 +157,8 @@ The target is the complete persisted rating contract in
   `submission_key`, `submission_fingerprint`, `submission_state`,
   `submission_version`, `expected_score_count`, `expected_bonus_count`) are
   non-null;
+* `ratings.deleted_at` exists and remains nullable for the recoverable deletion
+  tombstone;
 * all five `rating_scores` fields (`user_id`, `rating_id`, `attribute_id`,
   `attribute_score`, `uniqueness_key`) are non-null;
 * all four `bonus_attribute_rating_mapping` fields (`user_id`, `rating_id`,
@@ -244,7 +247,9 @@ rollback plan.
 ## Phase 1 — additive compatibility schema
 
 Submit one versioned managed schema plan, or provider-documented resumable
-sub-jobs with an explicit dependency order:
+sub-jobs with an explicit dependency order. The repository-side structural
+allowlist is versioned as `PF-P1-S1-ADDITIVE-COMPATIBILITY-V1` and documented in
+the [Phase 1 additive schema preflight](additive-schema-preflight.md):
 
 1. Provision `profiles` with provider-generated primary key as applicable,
    nullable editable `name`, `description` and `avatar_url`, and a `user_id`
@@ -271,6 +276,19 @@ are unchanged. On failure, keep writes fenced. Resume the provider job if its
 documented idempotency semantics allow it. Otherwise restore B0 into a clean
 environment. Drop newly added empty/nullable fields only through a separately
 recorded managed rollback job; never improvise a partial console reversal.
+
+Run the structural part of S1 against the exact before/after exports:
+
+```bash
+npm run audit:schema:additive -- \
+  --baseline <private-evidence>/schema-before.sql \
+  --candidate <private-evidence>/schema-after-additive.sql \
+  --output <private-evidence>/phase1-additive-schema-audit.json
+```
+
+A `PASS` proves only the approved structural delta. Counts, timestamp digests,
+gateway compatibility, provider job identity, write-fence evidence and named
+approval remain mandatory connected S1 evidence.
 
 ## Phase 2 — deterministic discovery, quarantine and backfill
 
@@ -501,7 +519,7 @@ same-state schema and data exports**. Run from the repository root with Node.js
 20:
 
 ```bash
-npm run audit:schema -- --schema <export>
+npm run audit:schema -- --schema <export> --output <report-path>
 ```
 
 Retain the exact command, export/job ID and SHA-256, repository commit, Node/npm

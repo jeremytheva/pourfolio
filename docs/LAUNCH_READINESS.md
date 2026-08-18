@@ -40,6 +40,14 @@ Source-controlled launch hardening is implemented for a beer-first MVP, but prod
 - Authenticated application data gateway with owner enforcement and explicit response projections.
 - Canonical `products`/`product_id`, `ratings`, normalised `rating_scores`, `cellar` contract.
 - Stable product routes and live catalogue/search/detail states.
+- A browser catalogue response boundary that allowlists render-safe public
+  fields, verifies coherent pagination/stable IDs/optional relationships and
+  aggregate-only details, and routes malformed successful responses to the
+  existing alert/retry UI.
+- Request-bound catalogue reads: provider page metadata/items and direct record
+  IDs must match the request, product detail identity is rechecked at the
+  gateway and browser, and non-canonical direct-route IDs fail before network
+  access.
 - Complete applicable 1–7 rating form; score `1` remains valid.
 - Server-calculated totals, durable retry ID, optional bonus selections and compensating rollback.
 - Owner-scoped rating history and delete.
@@ -52,6 +60,12 @@ Source-controlled launch hardening is implemented for a beer-first MVP, but prod
 - Read-only import and rating-schema preflights that fail closed on incomplete
   catalogue references, missing profile/rating controls, duplicate-permitting
   schema and mutable rating timestamps.
+
+The response boundary is the first source-only slice of
+[`PF-P3-01`](https://github.com/jeremytheva/pourfolio/issues/154). It does not
+repair or approve the supplied catalogue sources and does not establish
+connected route, provider-failure or accessibility evidence. The historical
+import blockers and every earlier external gate below remain unchanged.
 
 ## Historical import evidence
 
@@ -67,7 +81,7 @@ The supplied workbook currently reports:
 | Historical cellar records | 399 | All currently lack `user_id` and confirmed cellar ID. |
 | Rating-to-cellar links | 593 | 592 await cellar import; one intentionally has no cellar metadata. |
 
-The previously missing products, cellar, bonus-attribute and SQL exports are now present in the supplied source set. Their presence does not complete import reconciliation. The [historical import preflight](nocodebackend/import-preflight.md) currently blocks the source set because catalogue and producer references do not reconcile.
+The previously missing products, cellar, bonus-attribute and SQL exports are now present in the supplied source set. Their presence does not complete import reconciliation. The [historical import preflight](nocodebackend/import-preflight.md) currently blocks the source set because catalogue and producer references do not reconcile. The repository can now generate and validate a private, identity-field-free decision ledger for the 41 distinct remediation tasks represented by the 46 failures; no completed or reviewed ledger has been supplied.
 
 The [rating schema preflight](nocodebackend/schema-preflight.md) also blocks the
 supplied `54026_rating_export(2).sql` source snapshot. As audited on 29 July
@@ -92,7 +106,7 @@ personal data, credentials or raw staging exports in this repository.
 | Step | Required evidence | Current result |
 | --- | --- | --- |
 | Same-state catalogue export | Complete products and producers exports with provider snapshot/export identifiers and timestamps. | Not supplied; blocked. |
-| Catalogue reconciliation | Every rating and cellar product resolves; every product has a positive producer ID resolving in the paired producers export. No name-only substitutions. | Known missing product references and producer ID `0`; blocked. |
+| Catalogue reconciliation | Every rating and cellar product resolves; every product has a positive producer ID resolving in the paired producers export. No name-only substitutions. | Known missing product references and producer ID `0`; blocked. Deterministic generation and validation of the 41-task private decision ledger is implemented, but no decisions or corrected candidate files are supplied. |
 | Bonus decisions | A decision ledger containing every unmatched source variant, source count, mapped canonical bonus ID or explicit rejection reason, reviewer and totals. Variant counts must sum to 69 and final accepted/rejected totals must be stated. | Ten variant names and decisions are not supplied; blocked. |
 | Cellar identity | A 399-row ledger containing the source record key, verified account owner ID, verification method/evidence reference and confirmed destination cellar ID. Email alone is not identity evidence. | Owners and confirmed IDs are not supplied; blocked. |
 | Read-only preflight | Exact command, input checksums and retained JSON report from `npm run audit:import -- --ratings <ratings.csv> --products <products.csv> --producers <producers.csv> --cellar <cellar.csv>` showing `PASS`. | Cannot run against absent reconciled inputs; blocked. |
@@ -143,9 +157,9 @@ snapshot. Retain the completed, appropriately redacted package in the approved
 private evidence store.
 
 **Completed baseline reference (5 August 2026):** Not supplied; blocked. The
-repository contains a public schema-only export (`exports/schema.sql`, 4,607
+repository contains a public schema-only export (`exports/schema.sql`, 4,658
 bytes, SHA-256
-`206438dcaab8b828dde2f4b1a7a655ddde8e078fd5eb5604d8112c3fe53a155e`)
+`1da03ff080e882c61e550b8202be0df2403b165868aad378eb50f66642e89f11`)
 and `npm run audit:schema -- --schema exports/schema.sql` returns `PASS` with
 zero structural blockers. That does not complete the NoCodeBackend baseline: no
 approved private production-equivalent snapshot package supplies environment
@@ -213,8 +227,15 @@ performed from frozen commit
 `2b7fb6b7ccd33c7c2b605bd68f201daeb7e50701`; no remote configuration or
 connected execution can be attributed to it. Accordingly G22 and G24–G32
 remain open. G23 also remains open because its provider contract, durable job
-store, rollout and production-equivalent evidence are absent. The exact
-requirements and honest current values are in
+store, rollout and production-equivalent evidence are absent. Source-only
+portable-export manifest and in-memory artifact builders are tracked by issues
+#146 and #148, and the source-only account-deletion discovery plan is tracked by
+#150. Source-only count reconciliation for a caller-supplied later snapshot is
+tracked by #152. They have no recent-authentication check, consistent provider
+reader, route, destructive workflow or browser workflow. Exact source-only
+confirmation validation is tracked by #153 and likewise provides no endpoint or
+authorisation. These modules are not gate evidence. The
+exact requirements and honest current values are in
 [the publication and release evidence procedure](PUBLICATION_AND_RELEASE_EVIDENCE.md).
 
 - [ ] [G22](#evidence-g22) — Run browser end-to-end and WCAG 2.2 AA checks against the connected staging backend.
@@ -284,20 +305,20 @@ the action has an accountable owner.
 | <a id="evidence-g07"></a>G07: Evidence is dated, redacted, tied to the environment and release … | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G07`: public schema-only audit evidence is available, but the completed package is not retained in the private evidence store; environment identity, export interval, page coverage, row counts, SHA-256 checksums, reconciliation reports and independent-review approval are not supplied, so related Phase 1 rows remain open | **BLOCKED** |
 | <a id="evidence-g08"></a>G08: Configure `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_DATA_BASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `RATE_LIMIT_KEY_SECRET` and any deliberately configured `NOCODEBACKEND_AUTH_BASE_URL`/`ALLOWED_ORIGINS` as server-only variables in staging and production, without recording their values in evidence; retain dated, redacted least-privilege probes, endpoint/environment identity confirmation, browser bundle/source-map inspection, redacted-log failure proof, rotation ownership, rollback ownership, deployment SHA, request IDs and approver identity. | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-LAUNCH-CONFIG`: the approved private package proves the required server-runtime configuration in staging and production for commit `af13281edaffc2aaa508c19c7e8a85b35c46f989` and retains configured/not-configured optional-variable dispositions, endpoint/environment identities, redacted request IDs, least-privilege and safe-failure probe results, deployed bundle/source-map checks, redacted-log proof, named rotation and rollback owners, rollback rehearsal and named independent approval | **PASS** |
 | <a id="evidence-g09"></a>G09: Verify the configured data base URL accepts the gateway’s collect… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G09`: not supplied | **BLOCKED** |
-| <a id="evidence-g10"></a>G10: Provision the canonical schema without `*_pf2025` aliases and mak… | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G10`: staging migration evidence retained in the private release record shows the provider-safe managed schema plan provisioned canonical `profiles`, `ratings`, `rating_scores` and `bonus_attribute_rating_mapping` collections without `*_pf2025` aliases; the final migrated schema export is retained privately as `<private-path>/schema.sql`, and `npm run audit:schema -- --schema <private-path>/schema.sql` reports `status: "PASS"` with blocker count `0` | **PASS** |
-| <a id="evidence-g11"></a>G11: Apply non-null and unique rating controls through an approved pro… | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G11`: private staging runbook evidence records approved provider managed-change job IDs for additive schema, deterministic cleanup/backfill, non-null enforcement and uniqueness constraints; the retained post-migration schema export/audit shows required non-null fields and uniqueness constraints for `profiles.user_id`, `ratings` submission keys, `rating_scores` uniqueness keys and `bonus_attribute_rating_mapping` uniqueness keys with zero blockers, with backup, isolated restore, rollback rehearsal, compatibility and cleanup evidence stored in the same private record | **PASS** |
-| <a id="evidence-g12"></a>G12: Prove `date_rated` remains unchanged during controlled non-date u… | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G12`: private staging evidence records removal of `ON UPDATE CURRENT_TIMESTAMP` from `ratings.date_rated`; retained timestamp digest comparison and a controlled non-date update against a disposable staging rating show `date_rated` remained byte-for-byte unchanged after the update, and the post-migration schema audit reports zero mutable-timestamp blockers | **PASS** |
+| <a id="evidence-g10"></a>G10: Provision the canonical schema without `*_pf2025` aliases and mak… | `@jeremytheva` | 15 August 2026 — `PRR-2026-08-15-G10-RECERTIFY`: the retained 5 August schema result is historical evidence for the earlier target, but it predates the five-state recoverable-deletion contract and nullable `ratings.deleted_at`. No fresh provider export tied to the current candidate proves the expanded canonical schema or supplies a current zero-blocker audit, so the earlier result cannot close this gate | **BLOCKED** |
+| <a id="evidence-g11"></a>G11: Apply non-null and unique rating controls through an approved pro… | `@jeremytheva` | 15 August 2026 — `PRR-2026-08-15-G11-RECERTIFY`: the retained 5 August managed-change, cleanup, backup and rollback evidence remains historical, but it does not cover the later `deleting`/`deleted` state expansion or nullable deletion tombstone. A fresh provider change record, compatibility/backfill proof, post-change export, restore/rollback rehearsal and independent approval are required for the current target | **BLOCKED** |
+| <a id="evidence-g12"></a>G12: Prove `date_rated` remains unchanged during controlled non-date u… | `@jeremytheva` | 15 August 2026 — `PRR-2026-08-15-G12-RECERTIFY`: the 5 August controlled update remains useful historical evidence, but it is not bound to the current five-state provider migration or release candidate. Repeat the byte-for-byte `date_rated` comparison on a disposable rating after applying the current target and retain the redacted transcript, cleanup proof and independent approval | **BLOCKED** |
 | <a id="evidence-g13"></a>G13: Prove unauthenticated, owner, other-user and privileged negative permission cases for `profiles`, `ratings`, `rating_scores`, `bonus_attribute_rating_mapping` and `cellar`, including missing, forged, expired, revoked and cross-account sessions, positive owner flows, negative no-mutation checks, redacted request IDs, environment/deployment identity and cleanup proof. | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G13`: public certification checklist updated in `docs/nocodebackend/connected-policy-certification.md`; connected staging credentials, request IDs, policy bundle, before/after digests, cleanup proof and independent approval are not supplied, so this row remains open | **BLOCKED** |
 | <a id="evidence-g14"></a>G14: Prove sequential and concurrent duplicate-rating retries return o… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G14`: not supplied | **BLOCKED** |
 | <a id="evidence-g15"></a>G15: Repeat the atomic-workflow capability probe with configured stagi… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G15`: not supplied | **BLOCKED** |
-| <a id="evidence-g16"></a>G16: Apply and prove the documented idempotency fields, constraints, s… | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G16`: private staging evidence records the added workflow/idempotency fields (`submission_key`, `submission_fingerprint`, `submission_state`, `submission_version`, `expected_score_count`, `expected_bonus_count` and child `uniqueness_key` fields), uniqueness enforcement, state permissions, owner-safe reconciliation workflow, duplicate retry proof, forced partial-write proof and failed-state update proof; the retained `npm run audit:schema -- --schema <private-path>/schema.sql` report shows `status: "PASS"` and blocker count `0` after the constraints and permissions were applied | **PASS** |
+| <a id="evidence-g16"></a>G16: Apply and prove the documented idempotency fields, constraints, s… | `@jeremytheva` | 15 August 2026 — `PRR-2026-08-15-G16-RECERTIFY`: the 5 August evidence predates the recoverable-deletion expansion committed on 14 August. The current canonical target now requires `deleting` and `deleted` workflow states plus nullable `deleted_at`; the local structural target passes, but no fresh provider migration/export, state-permission transcript, deletion recovery/concurrency run, cleanup proof or independent approval is supplied for the expanded contract | **BLOCKED** |
 | <a id="evidence-g17"></a>G17: Obtain complete, same-state products/producers exports and make t… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G17`: not supplied | **BLOCKED** |
 | <a id="evidence-g18"></a>G18: Resolve the 69 unmatched historical bonus selections. | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G18`: not supplied | **BLOCKED** |
 | <a id="evidence-g19"></a>G19: Assign valid owners and confirmed IDs to all 399 historical cella… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G19`: not supplied | **BLOCKED** |
 | <a id="evidence-g20"></a>G20: Run the historical import in non-production, rerun it to prove id… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G20`: not supplied | **BLOCKED** |
 | <a id="evidence-g21"></a>G21: Rotate any credential that may have matched the former published … | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G21`: not supplied | **BLOCKED** |
 | <a id="evidence-g22"></a>G22: Run browser end-to-end and WCAG 2.2 AA checks against the connect… | `@jeremytheva` | 4 August 2026 — `PRR-2026-08-04-G22`: blocked execution recorded in `docs/TESTING.md`; no immutable staging URL, deployed SHA, hosted workflow URL, credentials, test totals or final result were available | **BLOCKED** |
-| <a id="evidence-g23"></a>G23: Implement and evidence the recovery, verification, export and del… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G23`: not supplied | **BLOCKED** |
+| <a id="evidence-g23"></a>G23: Implement and evidence the recovery, verification, export and del… | `@jeremytheva` | 15 August 2026 — source-only export projection/reconciliation, deterministic in-memory artifact, account-deletion discovery, count reconciliation and exact-confirmation cores tracked by #146, #148, #150, #152 and #153; no recovery, verification, recent-authenticated route, provider-backed final absence, destructive deletion workflow, connected exercise, approved policy or independent review supplied | **BLOCKED** |
 | <a id="evidence-g24"></a>G24: Publish reviewed privacy policy, terms, moderation/escalation pro… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G24`: not supplied | **BLOCKED** |
 | <a id="evidence-g25"></a>G25: Complete appropriate Australian privacy/legal review and record t… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G25`: not supplied | **BLOCKED** |
 | <a id="evidence-g26"></a>G26: Complete the documented production-equivalent export/deletion exe… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G26`: not supplied | **BLOCKED** |

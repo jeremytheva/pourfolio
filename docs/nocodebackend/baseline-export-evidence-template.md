@@ -27,6 +27,24 @@ this template cannot be truthfully completed from the repository alone, and the
 related launch gates must remain blocked until a private, reviewed package
 supplies the required zero-blocker evidence below.
 
+After assembling the private package, run the repository auditor from the
+repository root:
+
+```bash
+npm run audit:baseline -- \
+  --manifest <private-evidence>/baseline-manifest.json \
+  --output <private-evidence>/baseline-audit.json
+```
+
+The manifest contract is documented in
+[the baseline bundle auditor](baseline-bundle-auditor.md). The command
+recomputes retained file byte counts and SHA-256 values, counts CSV records,
+requires complete terminal-page coverage for all ten collections, runs the
+five-state schema contract audit, checks primary-key uniqueness and reconciles
+catalogue, profile, rating-child and cellar relationships. A non-zero blocker
+or unreadable artefact exits with status `1`; only a report with `status:
+"PASS"` may be offered for independent review.
+
 | Required baseline item | Current public status | Blocker that must be resolved in the private evidence store |
 | --- | --- | --- |
 | Environment identity | Not supplied; blocked | Record the redacted provider project/tenant, production-equivalent environment identifier, release commit and immutable deployment identifier. |
@@ -124,7 +142,7 @@ do not hash a count, a displayed response, a reserialised copy or a pathname.
 
 | Artefact | Snapshot/logical-state ID | UTC first request | UTC terminal response | Rows | Bytes | SHA-256 | Pagination-ledger reference |
 | --- | --- | --- | --- | ---: | ---: | --- | --- |
-| Schema | Not supplied for approved private baseline; public schema-only artefact is not snapshot-bound | Not supplied | Not supplied | N/A | 4,607 | `206438dcaab8b828dde2f4b1a7a655ddde8e078fd5eb5604d8112c3fe53a155e` | N/A |
+| Schema | Not supplied for approved private baseline; public schema-only artefact is not snapshot-bound | Not supplied | Not supplied | N/A | 4,658 | `1da03ff080e882c61e550b8202be0df2403b165868aad378eb50f66642e89f11` | N/A |
 | `products` | | | | | | | |
 | `producers` | | | | | | | |
 | `categories` | | | | | | | |
