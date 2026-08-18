@@ -73,6 +73,7 @@ const buildUrl = (baseUrl, path, filters = {}) => {
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value))
   })
+  url.searchParams.set('Instance', '54026_rating')
   return url
 }
 
@@ -129,8 +130,9 @@ export const dataProvider = {
   },
 
   async listPage(collection, { search, page, limit, orderBy, order = 'asc', filters = {} }) {
+    const searchFilter = search ? { 'product_name[like]': search } : {}
     const payload = await providerRequest(collection, {
-      filters: { ...filters, search, page, limit, order_by: orderBy, order }, preserveEnvelope: true
+      filters: { ...filters, ...searchFilter, page, limit, sort: orderBy, order }, preserveEnvelope: true
     })
     return normalisePage(payload, page, limit)
   },

@@ -56,6 +56,8 @@ const buildUpstreamUrl = (request, path) => {
     if (redirectTo) url.searchParams.set('redirectTo', redirectTo)
   }
 
+  url.searchParams.set('Instance', '54026_rating')
+
   return url
 }
 
