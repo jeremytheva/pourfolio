@@ -68,6 +68,15 @@ const getConfiguration = () => {
   }
 }
 
+const usesManagedDataProxy = (baseUrl) => {
+  try {
+    const { hostname } = new URL(baseUrl)
+    return hostname.includes('.lambda-url.') && hostname.endsWith('.on.aws')
+  } catch {
+    return false
+  }
+}
+
 const buildUrl = (baseUrl, path, filters = {}) => {
   const url = new URL(`${baseUrl}/${String(path).replace(/^\/+/, '')}`)
   Object.entries(filters).forEach(([key, value]) => {
@@ -85,13 +94,14 @@ const operationPath = (operation, collection, id) => {
 
 const providerRequest = async (path, { method = 'GET', body, filters, preserveEnvelope = false } = {}) => {
   const { baseUrl, secret } = getConfiguration()
+  const managedProxy = usesManagedDataProxy(baseUrl)
   let upstream
   try {
     upstream = await withTimeout((signal) => fetch(buildUrl(baseUrl, path, filters), {
       method,
       headers: {
         accept: 'application/json',
-        authorization: `Bearer ${secret}`,
+        ...(managedProxy ? {} : { authorization: `Bearer ${secret}` }),
         ...(body === undefined ? {} : { 'content-type': 'application/json' })
       },
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -173,4 +183,4 @@ export const dataProvider = {
   }
 }
 
-export const __testables = { operationPath }
+export const __testables = { operationPath, usesManagedDataProxy }
