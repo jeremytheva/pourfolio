@@ -16,9 +16,14 @@ export class RedisError extends Error {
   }
 }
 
+export const resolveRedisRestConfig = (environment = process.env) => ({
+  url: environment.pourfolio_KV_REST_API_URL || environment.UPSTASH_REDIS_REST_URL || '',
+  token: environment.pourfolio_KV_REST_API_TOKEN || environment.UPSTASH_REDIS_REST_TOKEN || ''
+})
+
 export const createRedisClientAccessor = ({
   environment = process.env,
-  createClient = () => Redis.fromEnv()
+  createClient = ({ url, token }) => new Redis({ url, token })
 } = {}) => {
   let productionRedis
 
@@ -30,12 +35,13 @@ export const createRedisClientAccessor = ({
       return injectedClient
     }
 
-    if (!environment.UPSTASH_REDIS_REST_URL || !environment.UPSTASH_REDIS_REST_TOKEN) {
+    const config = resolveRedisRestConfig(environment)
+    if (!config.url || !config.token) {
       throw new RedisError(REDIS_ERROR_CODES.CONFIGURATION_MISSING)
     }
 
     try {
-      productionRedis ||= createClient()
+      productionRedis ||= createClient(config)
     } catch (error) {
       throw new RedisError(REDIS_ERROR_CODES.CONNECTION_FAILED, { cause: error })
     }
