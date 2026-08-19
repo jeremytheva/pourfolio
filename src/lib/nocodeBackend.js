@@ -135,23 +135,30 @@ const collectProviderNames = (source, providers = []) => {
   }, providers)
 }
 
+const providerContainerKeys = (source) => (
+  source && typeof source === 'object' && !Array.isArray(source)
+    ? PROVIDER_CONTAINER_KEYS.filter((key) => Object.hasOwn(source, key))
+    : []
+)
+
 const getProviderEntries = (payload) => {
-  if (payload?.status === 'success' && payload?.data) payload = payload.data
+  if (payload?.status === 'success' && payload?.data && providerContainerKeys(payload).length === 0) {
+    payload = payload.data
+  }
 
   if (Array.isArray(payload)) return collectProviderNames(payload)
   if (!payload || typeof payload !== 'object') return null
 
-  const keys = Object.keys(payload)
-  if (keys.length === 1 && PROVIDER_CONTAINER_KEYS.includes(keys[0])) {
-    return collectProviderNames(payload[keys[0]])
-  }
-  if (keys.length === 1 && keys[0] === 'data') {
-    const data = payload.data
-    if (!data || typeof data !== 'object' || Array.isArray(data)) return null
-    const dataKeys = Object.keys(data)
-    if (dataKeys.length !== 1 || !PROVIDER_CONTAINER_KEYS.includes(dataKeys[0])) return null
-    return collectProviderNames(data[dataKeys[0]])
-  }
+  const topLevelContainers = providerContainerKeys(payload)
+  const nestedData = payload.data && typeof payload.data === 'object' && !Array.isArray(payload.data)
+    ? payload.data
+    : null
+  const nestedContainers = providerContainerKeys(nestedData)
+
+  if (topLevelContainers.length > 1 || nestedContainers.length > 1) return null
+  if (topLevelContainers.length === 1 && nestedContainers.length === 1) return null
+  if (topLevelContainers.length === 1) return collectProviderNames(payload[topLevelContainers[0]])
+  if (nestedContainers.length === 1) return collectProviderNames(nestedData[nestedContainers[0]])
 
   return collectProviderNames(payload)
 }

@@ -27,6 +27,16 @@ test('normalises aliases in each authoritative provider response shape', () => {
   }
 })
 
+test('accepts the live NoCodeBackend provider envelope while ignoring unrelated metadata', () => {
+  assert.deepEqual(normalizeProviders({
+    providers: { email: true, google: false },
+    baseUrl: 'https://provider.example.test/api/user-auth',
+    requiredHeaders: {
+      'X-Database-Instance': 'example-instance'
+    }
+  }), safeProviders)
+})
+
 test('accepts alias-keyed maps and enables optional providers only when true', () => {
   assert.deepEqual(normalizeProviders({
     providers: {

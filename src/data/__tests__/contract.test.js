@@ -14,8 +14,8 @@ test('canonical contract uses the supplied relational collection names', () => {
   assert.equal(COLLECTIONS.cellar, 'cellar')
 })
 
-test('sharing series and edition relationships remain optional', () => {
-  assert.deepEqual(NULLABLE_CELLAR_RELATIONSHIPS, ['sharing_series_id', 'series_edition_id'])
+test('sharing series and version relationships match the exported cellar schema', () => {
+  assert.deepEqual(NULLABLE_CELLAR_RELATIONSHIPS, ['sharing_series_id', 'series_version_id'])
   assert.equal(normaliseNullableId(''), null)
   assert.equal(normaliseNullableId(null), null)
 })

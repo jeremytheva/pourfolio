@@ -1,4 +1,5 @@
 import catalogueHandler from './catalog-data-proxy.js'
+import cellarHandler from './cellar-data-proxy.js'
 import currentSchemaHandler from './current-data-proxy.js'
 import legacyHandler from './data-proxy.js'
 
@@ -16,6 +17,7 @@ export default async function handler(request, response) {
   if (resource === 'catalog' || resource === 'rating-form') {
     return catalogueHandler(request, response)
   }
+  if (resource === 'cellar') return cellarHandler(request, response)
   if (CURRENT_SCHEMA_RESOURCES.has(resource)) {
     return currentSchemaHandler(request, response)
   }

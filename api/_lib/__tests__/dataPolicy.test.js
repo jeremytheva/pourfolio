@@ -56,10 +56,10 @@ test('optional cellar series relationships are normalised to null', () => {
   const result = sanitiseCellarInput({
     product_id: 12,
     sharing_series_id: '',
-    series_edition_id: null
+    series_version_id: null
   })
   assert.equal(result.sharing_series_id, null)
-  assert.equal(result.series_edition_id, null)
+  assert.equal(result.series_version_id, null)
 })
 
 test('zero is not accepted as a fabricated optional relationship id', () => {

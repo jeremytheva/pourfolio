@@ -21,7 +21,7 @@ export const SCORE_RANGE = Object.freeze({ min: 1, max: 7 })
 
 export const NULLABLE_CELLAR_RELATIONSHIPS = Object.freeze([
   'sharing_series_id',
-  'series_edition_id'
+  'series_version_id'
 ])
 
 export const PROFILE_EDITABLE_FIELDS = Object.freeze([
@@ -40,7 +40,7 @@ export const CELLAR_EDITABLE_FIELDS = Object.freeze([
   'retail_price',
   'date_received',
   'sharing_series_id',
-  'series_edition_id',
+  'series_version_id',
   'purchase_location_id',
   'purchased_by_id',
   'gift',
