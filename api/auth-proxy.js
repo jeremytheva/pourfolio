@@ -10,6 +10,7 @@ import { enforceSharedRateLimit, rateLimitPolicyFor } from './_lib/rateLimit.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 
 const DEFAULT_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
+const DATABASE_INSTANCE = '54026_rating'
 const AUTH_ACTIONS = Object.freeze({
   providers: ['GET'],
   'get-session': ['GET'],
@@ -50,15 +51,32 @@ const safeRedirectTarget = (request, value) => {
 const buildUpstreamUrl = (request, path) => {
   const baseUrl = (process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL).replace(/\/+$/, '')
   const url = new URL(`${baseUrl}/${path.split('/').map(encodeURIComponent).join('/')}`)
+  url.searchParams.set('instance', DATABASE_INSTANCE)
 
   if (path === 'sign-in/google') {
     const redirectTo = safeRedirectTarget(request, request.query?.redirectTo)
     if (redirectTo) url.searchParams.set('redirectTo', redirectTo)
   }
 
-  url.searchParams.set('Instance', '54026_rating')
-
   return url
+}
+
+const buildUpstreamHeaders = (request, secret) => ({
+  accept: 'application/json',
+  'content-type': 'application/json',
+  'x-database-instance': DATABASE_INSTANCE,
+  authorization: `Bearer ${secret}`,
+  cookie: request.headers?.cookie || ''
+})
+
+const sanitizeProviderBody = (body) => {
+  try {
+    const payload = JSON.parse(Buffer.from(body).toString('utf8'))
+    if (!payload?.providers || typeof payload.providers !== 'object' || Array.isArray(payload.providers)) return null
+    return Buffer.from(JSON.stringify({ providers: payload.providers }))
+  } catch {
+    return null
+  }
 }
 
 const splitSetCookieHeader = (header) => String(header || '')
@@ -148,12 +166,7 @@ export default async function handler(request, response) {
   try {
     const upstream = await withTimeout((signal) => fetch(buildUpstreamUrl(request, path), {
       method: request.method,
-      headers: {
-        accept: 'application/json',
-        authorization: `Bearer ${secret}`,
-        cookie: request.headers?.cookie || '',
-        ...(getRequestBody(request) === undefined ? {} : { 'content-type': 'application/json' })
-      },
+      headers: buildUpstreamHeaders(request, secret),
       body: getRequestBody(request),
       redirect: 'manual',
       signal
@@ -175,6 +188,19 @@ export default async function handler(request, response) {
       return
     }
 
+    if (path === 'providers') {
+      const safeBody = sanitizeProviderBody(body)
+      if (!safeBody) {
+        response.status(502).json({
+          error: 'Authentication service is temporarily unavailable.',
+          requestId: correlationId
+        })
+        return
+      }
+      response.status(upstream.status).send(safeBody)
+      return
+    }
+
     response.status(upstream.status).send(Buffer.from(body))
   } catch (error) {
     writeTelemetryError(runtimeTelemetry({
@@ -191,8 +217,12 @@ export default async function handler(request, response) {
 
 export const __testables = {
   AUTH_ACTIONS,
+  DATABASE_INSTANCE,
+  buildUpstreamHeaders,
+  buildUpstreamUrl,
   getRequestPath,
   safeRedirectTarget,
+  sanitizeProviderBody,
   splitSetCookieHeader,
   secureCookie
 }
