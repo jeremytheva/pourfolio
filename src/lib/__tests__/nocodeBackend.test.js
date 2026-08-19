@@ -32,8 +32,7 @@ test('accepts the live NoCodeBackend provider envelope while ignoring unrelated 
     providers: { email: true, google: false },
     baseUrl: 'https://provider.example.test/api/user-auth',
     requiredHeaders: {
-      'X-Database-Instance': 'example-instance',
-      Authorization: 'Bearer <SECRET_KEY>'
+      'X-Database-Instance': 'example-instance'
     }
   }), safeProviders)
 })
