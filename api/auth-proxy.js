@@ -22,6 +22,15 @@ const AUTH_ACTIONS = Object.freeze({
   'sign-out': ['POST']
 })
 
+const PROVIDER_CREDENTIAL_ACTIONS = new Set([
+  'providers',
+  'sign-up/email',
+  'sign-in/email',
+  'sign-in/otp',
+  'verify-otp',
+  'sign-in/google'
+])
+
 const getRequestPath = (request) => {
   const path = request.query?.path
   const segments = Array.isArray(path) ? path : path ? String(path).split('/') : []
@@ -132,6 +141,25 @@ const copyResponseHeaders = (upstream, response) => {
   }
 }
 
+const providerCredentialFailure = (path, status) => (
+  PROVIDER_CREDENTIAL_ACTIONS.has(path) && (status === 401 || status === 403)
+)
+
+const safeUpstreamAuthError = (path, status, requestId) => {
+  if (providerCredentialFailure(path, status)) {
+    return {
+      error: 'Authentication service configuration is invalid.',
+      code: 'auth_provider_unauthorised',
+      requestId
+    }
+  }
+
+  return {
+    error: safeErrorMessage(status),
+    requestId
+  }
+}
+
 export default async function handler(request, response) {
   const correlationId = safeCorrelationId(request.headers?.['x-request-id'], crypto.randomUUID)
   response.setHeader('X-Request-Id', correlationId)
@@ -181,10 +209,16 @@ export default async function handler(request, response) {
 
     const body = await upstream.arrayBuffer()
     if (!upstream.ok) {
-      response.status(upstream.status).json({
-        error: safeErrorMessage(upstream.status),
-        requestId: correlationId
-      })
+      if (providerCredentialFailure(path, upstream.status)) {
+        writeTelemetryError(runtimeTelemetry({
+          route_template: '/api/nocodebackend/auth/:action',
+          method: request.method,
+          status_class: '4xx',
+          event_name: 'auth_provider_unauthorised',
+          correlation_id: correlationId
+        }))
+      }
+      response.status(upstream.status).json(safeUpstreamAuthError(path, upstream.status, correlationId))
       return
     }
 
@@ -218,10 +252,13 @@ export default async function handler(request, response) {
 export const __testables = {
   AUTH_ACTIONS,
   DATABASE_INSTANCE,
+  PROVIDER_CREDENTIAL_ACTIONS,
   buildUpstreamHeaders,
   buildUpstreamUrl,
   getRequestPath,
+  providerCredentialFailure,
   safeRedirectTarget,
+  safeUpstreamAuthError,
   sanitizeProviderBody,
   splitSetCookieHeader,
   secureCookie
