@@ -141,16 +141,17 @@ const getProviderEntries = (payload) => {
   if (Array.isArray(payload)) return collectProviderNames(payload)
   if (!payload || typeof payload !== 'object') return null
 
+  const containerKeys = PROVIDER_CONTAINER_KEYS.filter((key) => Object.hasOwn(payload, key))
+  if (containerKeys.length > 1) return null
+  if (containerKeys.length === 1) return collectProviderNames(payload[containerKeys[0]])
+
   const keys = Object.keys(payload)
-  if (keys.length === 1 && PROVIDER_CONTAINER_KEYS.includes(keys[0])) {
-    return collectProviderNames(payload[keys[0]])
-  }
   if (keys.length === 1 && keys[0] === 'data') {
     const data = payload.data
     if (!data || typeof data !== 'object' || Array.isArray(data)) return null
-    const dataKeys = Object.keys(data)
-    if (dataKeys.length !== 1 || !PROVIDER_CONTAINER_KEYS.includes(dataKeys[0])) return null
-    return collectProviderNames(data[dataKeys[0]])
+    const dataContainerKeys = PROVIDER_CONTAINER_KEYS.filter((key) => Object.hasOwn(data, key))
+    if (dataContainerKeys.length !== 1) return null
+    return collectProviderNames(data[dataContainerKeys[0]])
   }
 
   return collectProviderNames(payload)
