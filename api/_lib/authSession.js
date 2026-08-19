@@ -1,6 +1,7 @@
 import { withTimeout } from './httpSecurity.js'
 
 const DEFAULT_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
+const DATABASE_INSTANCE = '54026_rating'
 
 export const extractSessionUser = (payload) => {
   if (!payload || typeof payload !== 'object') return null
@@ -29,6 +30,20 @@ export const extractSessionUser = (payload) => {
   return null
 }
 
+export const buildSessionUrl = () => {
+  const authBaseUrl = (process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL).replace(/\/+$/, '')
+  const url = new URL(`${authBaseUrl}/get-session`)
+  url.searchParams.set('instance', DATABASE_INSTANCE)
+  return url
+}
+
+export const buildSessionHeaders = (request, secret) => ({
+  accept: 'application/json',
+  authorization: `Bearer ${secret}`,
+  'x-database-instance': DATABASE_INSTANCE,
+  cookie: request.headers?.cookie || ''
+})
+
 export const requireSessionUser = async (request) => {
   const secret = process.env.NOCODEBACKEND_SECRET_KEY
   if (!secret) {
@@ -37,14 +52,9 @@ export const requireSessionUser = async (request) => {
     throw error
   }
 
-  const authBaseUrl = (process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL).replace(/\/+$/, '')
-  const upstream = await withTimeout((signal) => fetch(`${authBaseUrl}/get-session`, {
+  const upstream = await withTimeout((signal) => fetch(buildSessionUrl(), {
     method: 'GET',
-    headers: {
-      accept: 'application/json',
-      authorization: `Bearer ${secret}`,
-      cookie: request.headers?.cookie || ''
-    },
+    headers: buildSessionHeaders(request, secret),
     signal
   }))
 
@@ -63,4 +73,10 @@ export const requireSessionUser = async (request) => {
   }
 
   return user
+}
+
+export const __testables = {
+  DATABASE_INSTANCE,
+  buildSessionHeaders,
+  buildSessionUrl
 }
