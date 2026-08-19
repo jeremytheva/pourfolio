@@ -1,3 +1,4 @@
+import cellarHandler from './cellar-data-proxy.js'
 import currentSchemaHandler from './current-data-proxy.js'
 import legacyHandler from './data-proxy.js'
 
@@ -12,6 +13,7 @@ export const pathSegments = (request) => {
 
 export default async function handler(request, response) {
   const [resource] = pathSegments(request)
+  if (resource === 'cellar') return cellarHandler(request, response)
   if (CURRENT_SCHEMA_RESOURCES.has(resource)) {
     return currentSchemaHandler(request, response)
   }
