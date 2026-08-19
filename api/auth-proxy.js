@@ -56,8 +56,6 @@ const buildUpstreamUrl = (request, path) => {
     if (redirectTo) url.searchParams.set('redirectTo', redirectTo)
   }
 
-  url.searchParams.set('Instance', '54026_rating')
-
   return url
 }
 
@@ -191,6 +189,7 @@ export default async function handler(request, response) {
 
 export const __testables = {
   AUTH_ACTIONS,
+  buildUpstreamUrl,
   getRequestPath,
   safeRedirectTarget,
   splitSetCookieHeader,
