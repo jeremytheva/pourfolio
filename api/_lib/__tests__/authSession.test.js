@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { extractSessionUser } from '../authSession.js'
+import { extractSessionUser, __testables } from '../authSession.js'
+
+const { DATABASE_INSTANCE, buildSessionHeaders, buildSessionUrl } = __testables
 
 test('session identity accepts a documented user payload', () => {
   assert.deepEqual(
@@ -19,4 +21,17 @@ test('email alone is never treated as an immutable identity', () => {
 
 test('unrelated nested identifiers are not recursively scanned', () => {
   assert.equal(extractSessionUser({ data: { unrelated: { id: 'wrong' } } }), null)
+})
+
+test('data gateway session lookup uses the same NoCodeBackend database instance as the auth proxy', () => {
+  const url = buildSessionUrl()
+  assert.equal(url.pathname.endsWith('/get-session'), true)
+  assert.equal(url.searchParams.get('instance'), DATABASE_INSTANCE)
+})
+
+test('data gateway session lookup forwards the instance header and session cookie', () => {
+  const headers = buildSessionHeaders({ headers: { cookie: 'session=value' } }, 'server-secret')
+  assert.equal(headers['x-database-instance'], DATABASE_INSTANCE)
+  assert.equal(headers.authorization, 'Bearer server-secret')
+  assert.equal(headers.cookie, 'session=value')
 })
