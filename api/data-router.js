@@ -2,7 +2,7 @@ import catalogueHandler from './catalog-data-proxy.js'
 import currentSchemaHandler from './current-data-proxy.js'
 import legacyHandler from './data-proxy.js'
 
-const CURRENT_SCHEMA_RESOURCES = new Set(['ratings', 'cellar'])
+const CURRENT_SCHEMA_RESOURCES = new Set(['catalog', 'rating-form', 'ratings', 'cellar'])
 
 export const pathSegments = (request) => {
   const raw = request.query?.path
