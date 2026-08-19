@@ -13,6 +13,12 @@ const getStableIdentity = (candidate) => {
   return candidate.id || candidate.user_id || candidate.userId || candidate._id || null
 }
 
+export const buildSignUpPayload = (email, password, userData = {}) => ({
+  name: String(userData.name || '').trim(),
+  email,
+  password
+})
+
 export const normalizeAuthUser = (payload) => {
   if (!payload || typeof payload !== 'object') return null
 
@@ -121,14 +127,7 @@ export function AuthProvider({ children }) {
     try {
       const payload = await authRequest('/sign-up/email', {
         method: 'POST',
-        body: {
-          email,
-          password,
-          name: String(userData.name || '').trim(),
-          metadata: {
-            name: String(userData.name || '').trim()
-          }
-        }
+        body: buildSignUpPayload(email, password, userData)
       })
       const state = await resolveSession(payload)
       if (state && userData.name) {
