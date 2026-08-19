@@ -9,6 +9,8 @@ if count == 1 then redis.call('PEXPIRE', KEYS[1], ARGV[1]) end
 return {count, redis.call('PTTL', KEYS[1])}
 `
 
+const RATE_LIMIT_KEY_CONTEXT = 'pourfolio-rate-limit-key-v1'
+
 export const RATE_LIMIT_ERROR_CODES = Object.freeze({
   CONFIGURATION_MISSING: 'RATE_LIMIT_CONFIGURATION_MISSING'
 })
@@ -65,6 +67,14 @@ const accountFromRequest = (request) => {
 
 const opaqueKey = (value, secret) => crypto.createHmac('sha256', secret).update(value).digest('base64url')
 
+export const resolveRateLimitKeySecret = (environment = process.env) => {
+  if (environment.RATE_LIMIT_KEY_SECRET) return environment.RATE_LIMIT_KEY_SECRET
+  if (!environment.NOCODEBACKEND_SECRET_KEY) return ''
+  return crypto.createHmac('sha256', environment.NOCODEBACKEND_SECRET_KEY)
+    .update(RATE_LIMIT_KEY_CONTEXT)
+    .digest('base64url')
+}
+
 export const rateLimitPolicyFor = (path) => AUTH_RATE_LIMITS[path] || {
   name: 'general', limit: 120, windowMs: 60_000, account: false
 }
@@ -78,7 +88,7 @@ export const buildSharedRateLimitKey = (request, path, secret) => {
 
 export const checkSharedRateLimit = async (request, path, {
   redis,
-  keySecret = process.env.RATE_LIMIT_KEY_SECRET
+  keySecret = resolveRateLimitKeySecret()
 } = {}) => {
   if (!keySecret) throw new RateLimitError(RATE_LIMIT_ERROR_CODES.CONFIGURATION_MISSING)
   const policy = rateLimitPolicyFor(path)
@@ -95,9 +105,6 @@ export const checkSharedRateLimit = async (request, path, {
   }
   const count = Number(result[0])
   const ttlMs = Number(result[1])
-  // PTTL returns negative sentinel values when the bucket has no usable expiry.
-  // Treat those, fractional values and non-positive counters as a provider
-  // contract failure rather than accidentally allowing an unbounded bucket.
   if (!Number.isSafeInteger(count) || count < 1 ||
       !Number.isSafeInteger(ttlMs) || ttlMs < 1 || ttlMs > policy.windowMs) {
     throw new RedisError(REDIS_ERROR_CODES.RESULT_INVALID)

@@ -6,7 +6,7 @@ const upstreamAuthDomain = /https?:\/\/[^\s"'`]*nocodebackend\.com\/api\/user-au
 const upstreamDataDomain = /https?:\/\/[^\s"'`]*nocodebackend\.com\/(?:api\/)?(?:database|data|collections)(?:[/:?#"'`)]|$)/gi
 const sourceMapReference = /(?:sourceMappingURL=|"sourcesContent"\s*:|"mappings"\s*:)/g
 const secretBearingHeader = /(?:authorization|x-api-key|api-key|x-nocodebackend-secret|upstash-redis-rest-token)\s*[:=]\s*[`"']?(?:Bearer\s+)?[^`"'\s,}]+/gi
-const credentialAssignment = /(?:NOCODEBACKEND_SECRET_KEY|NOCODEBACKEND_DATA_BASE_URL|NOCODEBACKEND_AUTH_BASE_URL|ALLOWED_ORIGINS|UPSTASH_REDIS_REST_TOKEN|RATE_LIMIT_KEY_SECRET|UPSTASH_REDIS_REST_URL)\s*[=:]\s*["']?([^\s"',}]+)/g
+const credentialAssignment = /(?:NOCODEBACKEND_SECRET_KEY|NOCODEBACKEND_DATA_BASE_URL|NOCODEBACKEND_AUTH_BASE_URL|ALLOWED_ORIGINS|UPSTASH_REDIS_REST_TOKEN|RATE_LIMIT_KEY_SECRET|UPSTASH_REDIS_REST_URL|pourfolio_KV_REST_API_TOKEN|pourfolio_KV_REST_API_URL|pourfolio_KV_REST_API_READ_ONLY_TOKEN|pourfolio_KV_URL|pourfolio_REDIS_URL)\s*[=:]\s*["']?([^\s"',}]+)/g
 const placeholderValue = /^(?:example|placeholder|replace[-_]?me|your[-_]|<|\$\{|https?:\/\/example\.)/i
 const upstashBrowserImport = /(?:from\s*|import\s*\(|require\s*\()\s*["']@upstash\/redis(?:[/'"])/
 const directUpstashRestRequest = /(?:fetch|axios(?:\.(?:get|post|put|patch|delete))?)\s*\([^)]*https?:\/\/[^\s"'`)]*\.upstash\.io(?:[/:?"'`)])/gis
@@ -15,6 +15,11 @@ const serverOnlyVariableNames = [
   ['NOCODEBACKEND_DATA_BASE_URL', 'NoCodeBackend data upstream'],
   ['NOCODEBACKEND_AUTH_BASE_URL', 'NoCodeBackend auth upstream'],
   ['ALLOWED_ORIGINS', 'allowed origins configuration'],
+  ['pourfolio_KV_REST_API_TOKEN', 'Vercel KV REST token'],
+  ['pourfolio_KV_REST_API_URL', 'Vercel KV REST URL'],
+  ['pourfolio_KV_REST_API_READ_ONLY_TOKEN', 'Vercel KV read-only token'],
+  ['pourfolio_KV_URL', 'Vercel KV connection URL'],
+  ['pourfolio_REDIS_URL', 'Vercel Redis URL'],
   ['UPSTASH_REDIS_REST_TOKEN', 'Upstash token'],
   ['UPSTASH_REDIS_REST_URL', 'Upstash URL'],
   ['RATE_LIMIT_KEY_SECRET', 'rate-limit secret']
@@ -44,9 +49,12 @@ export const inspectBrowserRelease = ({
   browserDirectories = ['src', 'dist'],
   nocodeBackendSecret = process.env.NOCODEBACKEND_SECRET_KEY,
   dataUpstream = process.env.NOCODEBACKEND_DATA_BASE_URL,
-  upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN,
+  upstashToken = process.env.pourfolio_KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN,
   rateLimitSecret = process.env.RATE_LIMIT_KEY_SECRET,
-  upstashUrl = process.env.UPSTASH_REDIS_REST_URL,
+  upstashUrl = process.env.pourfolio_KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL,
+  kvReadOnlyToken = process.env.pourfolio_KV_REST_API_READ_ONLY_TOKEN,
+  kvUrl = process.env.pourfolio_KV_URL,
+  redisUrl = process.env.pourfolio_REDIS_URL,
   authUpstream = process.env.NOCODEBACKEND_AUTH_BASE_URL,
   allowedOrigins = process.env.ALLOWED_ORIGINS
 }) => {
@@ -76,6 +84,15 @@ export const inspectBrowserRelease = ({
       }
       if (upstashUrl && !placeholderValue.test(upstashUrl) && content.includes(upstashUrl)) {
         findings.push(`${relativePath}: exposes the configured Upstash URL`)
+      }
+      if (kvReadOnlyToken && !placeholderValue.test(kvReadOnlyToken) && content.includes(kvReadOnlyToken)) {
+        findings.push(`${relativePath}: exposes the configured Vercel KV read-only token`)
+      }
+      if (kvUrl && !placeholderValue.test(kvUrl) && content.includes(kvUrl)) {
+        findings.push(`${relativePath}: exposes the configured Vercel KV URL`)
+      }
+      if (redisUrl && !placeholderValue.test(redisUrl) && content.includes(redisUrl)) {
+        findings.push(`${relativePath}: exposes the configured Vercel Redis URL`)
       }
       if (authUpstream && !placeholderValue.test(authUpstream) && content.includes(authUpstream)) {
         findings.push(`${relativePath}: exposes the configured NoCodeBackend auth upstream`)

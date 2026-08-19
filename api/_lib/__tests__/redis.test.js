@@ -4,7 +4,8 @@ import {
   createRedisClientAccessor,
   getRedisClient,
   REDIS_ERROR_CODES,
-  RedisError
+  RedisError,
+  resolveRedisRestConfig
 } from '../redis.js'
 
 test('an injected Redis-compatible client does not require production configuration', () => {
@@ -21,16 +22,38 @@ test('an injected client must provide eval', () => {
   })
 })
 
-test('the production client requires both Upstash environment variables', () => {
+test('Vercel integration variable names are the preferred Redis REST configuration', () => {
+  assert.deepEqual(resolveRedisRestConfig({
+    pourfolio_KV_REST_API_URL: 'https://vercel-kv.example.test',
+    pourfolio_KV_REST_API_TOKEN: 'vercel-token',
+    UPSTASH_REDIS_REST_URL: 'https://legacy.example.test',
+    UPSTASH_REDIS_REST_TOKEN: 'legacy-token'
+  }), {
+    url: 'https://vercel-kv.example.test',
+    token: 'vercel-token'
+  })
+})
+
+test('legacy Upstash variable names remain a compatibility fallback', () => {
+  assert.deepEqual(resolveRedisRestConfig({
+    UPSTASH_REDIS_REST_URL: 'https://legacy.example.test',
+    UPSTASH_REDIS_REST_TOKEN: 'legacy-token'
+  }), {
+    url: 'https://legacy.example.test',
+    token: 'legacy-token'
+  })
+})
+
+test('the production client requires both Redis REST values', () => {
   const missingVariables = [
-    'UPSTASH_REDIS_REST_URL',
-    'UPSTASH_REDIS_REST_TOKEN'
+    'pourfolio_KV_REST_API_URL',
+    'pourfolio_KV_REST_API_TOKEN'
   ]
 
   for (const missingVariable of missingVariables) {
     const environment = {
-      UPSTASH_REDIS_REST_URL: 'https://example.test',
-      UPSTASH_REDIS_REST_TOKEN: 'test-token'
+      pourfolio_KV_REST_API_URL: 'https://example.test',
+      pourfolio_KV_REST_API_TOKEN: 'test-token'
     }
     delete environment[missingVariable]
     const accessor = createRedisClientAccessor({ environment })
@@ -44,25 +67,22 @@ test('the production client requires both Upstash environment variables', () => 
   }
 })
 
-test('the production accessor creates one Upstash client from standard variables', () => {
+test('the production accessor creates one Redis client from Vercel KV values', () => {
   const environment = {
-    UPSTASH_REDIS_REST_URL: 'https://example.test',
-    UPSTASH_REDIS_REST_TOKEN: 'test-token'
+    pourfolio_KV_REST_API_URL: 'https://example.test',
+    pourfolio_KV_REST_API_TOKEN: 'test-token'
   }
   const redis = { eval: async () => [1, 60_000] }
-  let fromEnvCalls = 0
-  const Redis = {
-    fromEnv() {
-      fromEnvCalls += 1
-      return redis
-    }
-  }
+  const receivedConfigs = []
   const accessor = createRedisClientAccessor({
     environment,
-    createClient: () => Redis.fromEnv()
+    createClient: (config) => {
+      receivedConfigs.push(config)
+      return redis
+    }
   })
 
   assert.equal(accessor(), redis)
   assert.equal(accessor(), redis)
-  assert.equal(fromEnvCalls, 1)
+  assert.deepEqual(receivedConfigs, [{ url: 'https://example.test', token: 'test-token' }])
 })
