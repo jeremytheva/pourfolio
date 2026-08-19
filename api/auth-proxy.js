@@ -51,6 +51,7 @@ const safeRedirectTarget = (request, value) => {
 const buildUpstreamUrl = (request, path) => {
   const baseUrl = (process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL).replace(/\/+$/, '')
   const url = new URL(`${baseUrl}/${path.split('/').map(encodeURIComponent).join('/')}`)
+  url.searchParams.set('instance', DATABASE_INSTANCE)
 
   if (path === 'sign-in/google') {
     const redirectTo = safeRedirectTarget(request, request.query?.redirectTo)
