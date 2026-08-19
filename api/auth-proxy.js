@@ -10,6 +10,7 @@ import { enforceSharedRateLimit, rateLimitPolicyFor } from './_lib/rateLimit.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 
 const DEFAULT_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
+const DATABASE_INSTANCE = '54026_rating'
 const AUTH_ACTIONS = Object.freeze({
   providers: ['GET'],
   'get-session': ['GET'],
@@ -58,6 +59,14 @@ const buildUpstreamUrl = (request, path) => {
 
   return url
 }
+
+const buildUpstreamHeaders = (request, secret) => ({
+  accept: 'application/json',
+  'content-type': 'application/json',
+  'x-database-instance': DATABASE_INSTANCE,
+  authorization: `Bearer ${secret}`,
+  cookie: request.headers?.cookie || ''
+})
 
 const splitSetCookieHeader = (header) => String(header || '')
   .split(/,(?=\s*[^;,\s]+=)/)
@@ -146,12 +155,7 @@ export default async function handler(request, response) {
   try {
     const upstream = await withTimeout((signal) => fetch(buildUpstreamUrl(request, path), {
       method: request.method,
-      headers: {
-        accept: 'application/json',
-        authorization: `Bearer ${secret}`,
-        cookie: request.headers?.cookie || '',
-        ...(getRequestBody(request) === undefined ? {} : { 'content-type': 'application/json' })
-      },
+      headers: buildUpstreamHeaders(request, secret),
       body: getRequestBody(request),
       redirect: 'manual',
       signal
@@ -189,6 +193,8 @@ export default async function handler(request, response) {
 
 export const __testables = {
   AUTH_ACTIONS,
+  DATABASE_INSTANCE,
+  buildUpstreamHeaders,
   buildUpstreamUrl,
   getRequestPath,
   safeRedirectTarget,
