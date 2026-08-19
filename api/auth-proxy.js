@@ -69,23 +69,14 @@ const buildUpstreamHeaders = (request, secret) => ({
   cookie: request.headers?.cookie || ''
 })
 
-const previewDiagnostic = (path, upstream, body, correlationId) => {
-  if (process.env.VERCEL_ENV !== 'preview' || !['providers', 'get-session'].includes(path)) return
-  let payload = null
+const sanitizeProviderBody = (body) => {
   try {
-    payload = JSON.parse(Buffer.from(body).toString('utf8'))
+    const payload = JSON.parse(Buffer.from(body).toString('utf8'))
+    if (!payload?.providers || typeof payload.providers !== 'object' || Array.isArray(payload.providers)) return null
+    return Buffer.from(JSON.stringify({ providers: payload.providers }))
   } catch {
-    payload = null
+    return null
   }
-  const short = (value) => typeof value === 'string' ? value.slice(0, 160) : null
-  console.error(JSON.stringify({
-    event_name: 'preview_auth_upstream_rejected',
-    correlation_id: correlationId,
-    upstream_status: upstream.status,
-    response_keys: payload && typeof payload === 'object' ? Object.keys(payload).slice(0, 10) : [],
-    upstream_code: short(payload?.code),
-    upstream_message: short(payload?.error || payload?.message)
-  }))
 }
 
 const splitSetCookieHeader = (header) => String(header || '')
@@ -190,11 +181,23 @@ export default async function handler(request, response) {
 
     const body = await upstream.arrayBuffer()
     if (!upstream.ok) {
-      previewDiagnostic(path, upstream, body, correlationId)
       response.status(upstream.status).json({
         error: safeErrorMessage(upstream.status),
         requestId: correlationId
       })
+      return
+    }
+
+    if (path === 'providers') {
+      const safeBody = sanitizeProviderBody(body)
+      if (!safeBody) {
+        response.status(502).json({
+          error: 'Authentication service is temporarily unavailable.',
+          requestId: correlationId
+        })
+        return
+      }
+      response.status(upstream.status).send(safeBody)
       return
     }
 
@@ -219,6 +222,7 @@ export const __testables = {
   buildUpstreamUrl,
   getRequestPath,
   safeRedirectTarget,
+  sanitizeProviderBody,
   splitSetCookieHeader,
   secureCookie
 }
