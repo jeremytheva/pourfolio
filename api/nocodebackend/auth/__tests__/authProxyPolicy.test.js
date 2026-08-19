@@ -20,6 +20,13 @@ test('authentication upstream URLs do not carry the data instance selector', () 
   }
 })
 
+test('authentication upstream requests carry the database instance in a server-side header', () => {
+  const headers = __testables.buildUpstreamHeaders({ headers: { cookie: 'session=abc' } }, 'server-secret')
+  assert.equal(headers['x-database-instance'], '54026_rating')
+  assert.equal(headers.authorization, 'Bearer server-secret')
+  assert.equal(headers.cookie, 'session=abc')
+})
+
 test('Google redirect targets must match the current request host', () => {
   const request = { headers: { host: 'pourfolio.example' } }
   assert.equal(__testables.safeRedirectTarget(request, 'https://pourfolio.example/profile'), 'https://pourfolio.example')
