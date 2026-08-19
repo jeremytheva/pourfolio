@@ -77,6 +77,12 @@ const buildUrl = (baseUrl, path, filters = {}) => {
   return url
 }
 
+const operationPath = (operation, collection, id) => {
+  const encodedCollection = encodeURIComponent(String(collection))
+  const encodedId = id === undefined || id === null ? '' : `/${encodeURIComponent(String(id))}`
+  return `${operation}/${encodedCollection}${encodedId}`
+}
+
 const providerRequest = async (path, { method = 'GET', body, filters, preserveEnvelope = false } = {}) => {
   const { baseUrl, secret } = getConfiguration()
   let upstream
@@ -124,14 +130,14 @@ export const dataProvider = {
     return error?.code === 'UNIQUE_CONFLICT'
   },
   async list(collection, filters = {}) {
-    const payload = await providerRequest(collection, { filters })
+    const payload = await providerRequest(operationPath('read', collection), { filters })
     if (Array.isArray(payload)) return payload
     return payload ? [payload] : []
   },
 
   async listPage(collection, { search, page, limit, orderBy, order = 'asc', filters = {} }) {
     const searchFilter = search ? { 'product_name[like]': search } : {}
-    const payload = await providerRequest(collection, {
+    const payload = await providerRequest(operationPath('read', collection), {
       filters: { ...filters, ...searchFilter, page, limit, sort: orderBy, order }, preserveEnvelope: true
     })
     return normalisePage(payload, page, limit)
@@ -139,7 +145,7 @@ export const dataProvider = {
 
   async get(collection, id) {
     try {
-      const payload = await providerRequest(`${collection}/${encodeURIComponent(id)}`)
+      const payload = await providerRequest(operationPath('read', collection, id))
       return requireExpectedRecord(Array.isArray(payload) ? payload[0] || null : payload, id)
     } catch (error) {
       if (error.status !== 404) throw error
@@ -149,20 +155,22 @@ export const dataProvider = {
   },
 
   create(collection, body) {
-    return providerRequest(collection, { method: 'POST', body })
+    return providerRequest(operationPath('create', collection), { method: 'POST', body })
   },
 
   update(collection, id, body) {
-    return providerRequest(`${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body })
+    return providerRequest(operationPath('update', collection, id), { method: 'PUT', body })
   },
 
   compareAndSet(collection, id, expectedVersion, body) {
-    return providerRequest(`${collection}/${encodeURIComponent(id)}`, {
+    return providerRequest(operationPath('update', collection, id), {
       method: 'PUT', body, filters: { expected_version: expectedVersion }
     })
   },
 
   remove(collection, id) {
-    return providerRequest(`${collection}/${encodeURIComponent(id)}`, { method: 'DELETE' })
+    return providerRequest(operationPath('delete', collection, id), { method: 'DELETE' })
   }
 }
+
+export const __testables = { operationPath }
