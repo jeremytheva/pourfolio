@@ -1,7 +1,8 @@
+import catalogueHandler from './catalog-data-proxy.js'
 import currentSchemaHandler from './current-data-proxy.js'
 import legacyHandler from './data-proxy.js'
 
-const CURRENT_SCHEMA_RESOURCES = new Set(['catalog', 'rating-form', 'ratings', 'cellar'])
+const CURRENT_SCHEMA_RESOURCES = new Set(['ratings', 'cellar'])
 
 export const pathSegments = (request) => {
   const raw = request.query?.path
@@ -12,6 +13,9 @@ export const pathSegments = (request) => {
 
 export default async function handler(request, response) {
   const [resource] = pathSegments(request)
+  if (resource === 'catalog' || resource === 'rating-form') {
+    return catalogueHandler(request, response)
+  }
   if (CURRENT_SCHEMA_RESOURCES.has(resource)) {
     return currentSchemaHandler(request, response)
   }
