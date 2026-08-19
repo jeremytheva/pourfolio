@@ -11,10 +11,29 @@ test('catch-all path parsing preserves only requested action segments', () => {
   assert.equal(__testables.getRequestPath({ query: { path: ['sign-in', 'email'] } }), 'sign-in/email')
 })
 
+test('authentication upstream URLs do not carry the data instance selector', () => {
+  const request = { query: {}, headers: { host: 'pourfolio.example' } }
+  for (const action of ['providers', 'get-session', 'sign-in/email']) {
+    const url = __testables.buildUpstreamUrl(request, action)
+    assert.equal(url.searchParams.has('Instance'), false)
+    assert.equal(url.pathname.endsWith(`/api/user-auth/${action}`), true)
+  }
+})
+
 test('Google redirect targets must match the current request host', () => {
   const request = { headers: { host: 'pourfolio.example' } }
   assert.equal(__testables.safeRedirectTarget(request, 'https://pourfolio.example/profile'), 'https://pourfolio.example')
   assert.equal(__testables.safeRedirectTarget(request, 'https://attacker.example'), null)
+})
+
+test('Google auth keeps the safe same-origin redirect without adding an Instance selector', () => {
+  const request = {
+    headers: { host: 'pourfolio.example' },
+    query: { redirectTo: 'https://pourfolio.example/profile' }
+  }
+  const url = __testables.buildUpstreamUrl(request, 'sign-in/google')
+  assert.equal(url.searchParams.get('redirectTo'), 'https://pourfolio.example')
+  assert.equal(url.searchParams.has('Instance'), false)
 })
 
 test('session cookies are scoped to the Pourfolio host and root path', () => {
