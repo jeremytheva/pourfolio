@@ -2,6 +2,7 @@ export const COLLECTIONS = Object.freeze({
   profiles: 'profiles',
   products: 'products',
   producers: 'producers',
+  productProducers: 'product_producers',
   categories: 'categories',
   ratings: 'ratings',
   ratingScores: 'rating_scores',
