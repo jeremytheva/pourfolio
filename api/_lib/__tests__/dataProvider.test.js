@@ -38,11 +38,10 @@ test('list sends filters and normalises records envelope', async () => {
   }
 
   assert.deepEqual(await dataProvider.list('ratings', { user_id: 'owner', ignored: '' }), [{ id: 7 }])
-  assert.equal(requests[0].url, 'https://provider.example.test/data/ratings?user_id=owner&Instance=54026_rating')
+  assert.equal(requests[0].url, 'https://provider.example.test/data/read/ratings?user_id=owner&Instance=54026_rating')
   assert.equal(requests[0].options.method, 'GET')
   assert.equal(requests[0].options.headers.authorization, 'Bearer test-secret')
 })
-
 
 test('list normalises every supported list envelope', async () => {
   const envelopes = [
@@ -75,7 +74,7 @@ test('paginated list sends documented search, page, limit and ordering parameter
     search: 'porter', page: 2, limit: 25, orderBy: 'product_name', order: 'asc'
   }), { items, page: 2, pageSize: 25, total: 51, totalPages: 3 })
   assert.equal(requestedUrl,
-    'https://provider.example.test/data/products?product_name%5Blike%5D=porter&page=2&limit=25&sort=product_name&order=asc&Instance=54026_rating')
+    'https://provider.example.test/data/read/products?product_name%5Blike%5D=porter&page=2&limit=25&sort=product_name&order=asc&Instance=54026_rating')
 })
 
 test('paginated list preserves empty search totals and rejects missing metadata', async () => {
@@ -147,8 +146,8 @@ test('get uses the record path and falls back to a filtered list after not found
 
   assert.deepEqual(await dataProvider.get('ratings', 'id/with slash'), { id: 'id/with slash' })
   assert.deepEqual(urls, [
-    'https://provider.example.test/data/ratings/id%2Fwith%20slash?Instance=54026_rating',
-    'https://provider.example.test/data/ratings?id=id%2Fwith+slash&Instance=54026_rating'
+    'https://provider.example.test/data/read/ratings/id%2Fwith%20slash?Instance=54026_rating',
+    'https://provider.example.test/data/read/ratings?id=id%2Fwith+slash&Instance=54026_rating'
   ])
 })
 
@@ -179,10 +178,10 @@ test('create, update, compare-and-set and delete use the exact provider contract
   await dataProvider.remove('cellar', 3)
 
   assert.deepEqual(requests.map(({ url, options }) => [url, options.method, options.body]), [
-    ['https://provider.example.test/data/cellar?Instance=54026_rating', 'POST', '{"product_id":1}'],
-    ['https://provider.example.test/data/cellar/3?Instance=54026_rating', 'PUT', '{"quantity":2}'],
-    ['https://provider.example.test/data/cellar/3?expected_version=4&Instance=54026_rating', 'PUT', '{"version":5}'],
-    ['https://provider.example.test/data/cellar/3?Instance=54026_rating', 'DELETE', undefined]
+    ['https://provider.example.test/data/create/cellar?Instance=54026_rating', 'POST', '{"product_id":1}'],
+    ['https://provider.example.test/data/update/cellar/3?Instance=54026_rating', 'PUT', '{"quantity":2}'],
+    ['https://provider.example.test/data/update/cellar/3?expected_version=4&Instance=54026_rating', 'PUT', '{"version":5}'],
+    ['https://provider.example.test/data/delete/cellar/3?Instance=54026_rating', 'DELETE', undefined]
   ])
 })
 
