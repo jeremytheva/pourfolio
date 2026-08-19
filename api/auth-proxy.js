@@ -22,14 +22,7 @@ const AUTH_ACTIONS = Object.freeze({
   'sign-out': ['POST']
 })
 
-const PROVIDER_CREDENTIAL_ACTIONS = new Set([
-  'providers',
-  'sign-up/email',
-  'sign-in/email',
-  'sign-in/otp',
-  'verify-otp',
-  'sign-in/google'
-])
+const PROVIDER_CREDENTIAL_ACTIONS = new Set(['providers'])
 
 const getRequestPath = (request) => {
   const path = request.query?.path
@@ -70,12 +63,23 @@ const buildUpstreamUrl = (request, path) => {
   return url
 }
 
+// The browser origin is validated locally by enforceOrigin before this header is
+// used. The upstream auth service is a separate origin and applies its own
+// first-login CSRF checks to sign-up/sign-in POSTs. Present the auth service's
+// own origin upstream so the reverse proxy, rather than the browser, is the
+// trusted CSRF boundary.
+const upstreamAuthOrigin = () => {
+  const baseUrl = process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL
+  return new URL(baseUrl).origin
+}
+
 const buildUpstreamHeaders = (request, secret) => ({
   accept: 'application/json',
   'content-type': 'application/json',
   'x-database-instance': DATABASE_INSTANCE,
   authorization: `Bearer ${secret}`,
-  cookie: request.headers?.cookie || ''
+  cookie: request.headers?.cookie || '',
+  origin: upstreamAuthOrigin()
 })
 
 const sanitizeProviderBody = (body) => {
@@ -154,6 +158,14 @@ const safeUpstreamAuthError = (path, status, requestId) => {
     }
   }
 
+  if (status === 403 && path === 'sign-up/email') {
+    return {
+      error: 'The authentication provider rejected sign-up.',
+      code: 'auth_signup_rejected',
+      requestId
+    }
+  }
+
   return {
     error: safeErrorMessage(status),
     requestId
@@ -209,12 +221,17 @@ export default async function handler(request, response) {
 
     const body = await upstream.arrayBuffer()
     if (!upstream.ok) {
-      if (providerCredentialFailure(path, upstream.status)) {
+      const eventName = providerCredentialFailure(path, upstream.status)
+        ? 'auth_provider_unauthorised'
+        : upstream.status === 403 && path === 'sign-up/email'
+          ? 'auth_signup_rejected'
+          : null
+      if (eventName) {
         writeTelemetryError(runtimeTelemetry({
           route_template: '/api/nocodebackend/auth/:action',
           method: request.method,
           status_class: '4xx',
-          event_name: 'auth_provider_unauthorised',
+          event_name: eventName,
           correlation_id: correlationId
         }))
       }
@@ -261,5 +278,6 @@ export const __testables = {
   safeUpstreamAuthError,
   sanitizeProviderBody,
   splitSetCookieHeader,
-  secureCookie
+  secureCookie,
+  upstreamAuthOrigin
 }
