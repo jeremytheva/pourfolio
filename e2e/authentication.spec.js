@@ -40,7 +40,7 @@ const assertPasswordFormIsUsable = async (page) => {
 }
 
 for (const response of [
-  { name: 'email/password', body: { providers: [{ name: 'email-password', enabled: true }] } },
+  { name: 'email/password', body: { providers: { email: true, google: false } } },
   { name: 'email OTP', body: { providers: [{ name: 'email-otp', enabled: true }] } },
   { name: 'Google', body: { providers: [{ name: 'google', enabled: true }] } }
 ]) {
