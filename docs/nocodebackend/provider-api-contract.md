@@ -31,6 +31,8 @@ The canonical generated table API root for this repository is therefore:
 https://app.nocodebackend.com/api/data
 ```
 
+`NCB_*` names are the preferred configuration contract. Existing `NOCODEBACKEND_*` variables remain supported as compatibility aliases while deployments are migrated, but an alias must not silently change the canonical endpoint or instance.
+
 Every generated table request includes:
 
 ```http
