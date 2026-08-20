@@ -1,0 +1,1 @@
+Source basis: retained project file `Bug Fixing - Mising Data.pdf`, specifically the NoCodeBackend client implementation showing `getAuthHeaders`, `getOriginHeaders`, `buildUrl`, and `ncbRequest` behaviour. The repository copy records the recovered contract without embedding credentials or personal data.
