@@ -1,7 +1,5 @@
 # NoCodeBackend Auth Proxy Setup Guide
 
-> **IMPORTANT:** Save this file as `auth_proxy_setup.md` in your project root.
-
 ## Overview
 
 The auth proxy handles user authentication by proxying requests to NCB Auth API and managing session cookies.
@@ -15,22 +13,20 @@ The auth proxy handles user authentication by proxying requests to NCB Auth API 
 
 ## Environment Variables
 
-Create `.env.local` in the project root:
-
 ```env
 NCB_INSTANCE=54026_rating
 NCB_AUTH_API_URL=https://app.nocodebackend.com/api/user-auth
 NCB_DATA_API_URL=https://app.nocodebackend.com/api/data
 NCB_APP_URL=https://app.nocodebackend.com
-NCB_SECRET_KEY=<the server-only key returned by create_database>
+NCB_SECRET_KEY=<server-only key returned by create_database>
 ```
 
 **Rules:**
 - Read values only from `process.env`
-- Do NOT hardcode values
-- Do NOT expose to client
-- Do NOT use `NEXT_PUBLIC_*`
-- `NCB_SECRET_KEY` is required by the Account gateway and must remain server-only
+- Do not hardcode values
+- Do not expose them to the client
+- Do not use browser/public-prefixed variables
+- `NCB_SECRET_KEY` is required by the Account gateway and remains server-only
 
 ## Auth Proxy Contract
 
@@ -44,23 +40,11 @@ NCB_SECRET_KEY=<the server-only key returned by create_database>
 
 ## Cookie Handling
 
-### When Receiving from NCB (Set-Cookie)
+NCB accepts both prefixed and unprefixed Better Auth session cookies. Forward only Better Auth cookies stored by the browser.
 
-NCB sends cookies with `__Secure-` prefix. Localhost development may strip `__Secure-`/`__Host-`, `Domain`, and `Secure`, and use `SameSite=Lax`. Production should retain secure cookie semantics on HTTPS.
-
-### When Forwarding to NCB
-
-NCB accepts cookies in BOTH formats:
-- `better-auth.session_token`
-- `__Secure-better-auth.session_token`
-
-Forward only Better Auth cookies stored by the browser.
-
-## Auth Providers Endpoint
+## Provider Discovery
 
 Fetch enabled providers from the server before rendering authentication controls. Do not hardcode providers.
-
-Expected provider shape:
 
 ```json
 {
@@ -72,36 +56,16 @@ Expected provider shape:
 }
 ```
 
-Provider types are distinct:
-- `email`: email + password
-- `google`: Google OAuth
-- `emailOTP`: passwordless email OTP
+`email`, `google`, and `emailOTP` are distinct providers.
 
-## Authentication Usage
+## Authentication Endpoints
 
-### Session Retrieval
-
-`GET /api/auth/get-session` with credentials included.
-
-### Email/password
-
-- Sign in: `POST /api/auth/sign-in/email` with `{ email, password }`
-- Sign up: `POST /api/auth/sign-up/email` with `{ email, password, name }`
-
-### Google OAuth
-
-Only render when `providers.google === true`. Route through the auth proxy and return through an application callback page.
-
-### Email OTP
-
-Only render when `providers.emailOTP === true`.
-
-- Send: `POST /api/auth/email-otp/send-verification-otp` with `{ email, type: "sign-in" }`
-- Verify: `POST /api/auth/sign-in/email-otp` with `{ email, otp }`
-
-### Sign Out
-
-`POST /api/auth/sign-out`; always clear local Better Auth cookies.
+- Session: `GET /api/auth/get-session`
+- Email sign-in: `POST /api/auth/sign-in/email`
+- Email sign-up: `POST /api/auth/sign-up/email`
+- OTP send: `POST /api/auth/email-otp/send-verification-otp`
+- OTP verify: `POST /api/auth/sign-in/email-otp`
+- Sign-out: `POST /api/auth/sign-out`
 
 ## Completion Checklist
 
