@@ -4,13 +4,19 @@ import { dataProvider, __testables } from '../dataProvider.js'
 
 const originalFetch = global.fetch
 const originalEnvironment = {
+  NCB_DATA_API_URL: process.env.NCB_DATA_API_URL,
+  NCB_SECRET_KEY: process.env.NCB_SECRET_KEY,
+  NCB_INSTANCE: process.env.NCB_INSTANCE,
   NOCODEBACKEND_DATA_BASE_URL: process.env.NOCODEBACKEND_DATA_BASE_URL,
   NOCODEBACKEND_SECRET_KEY: process.env.NOCODEBACKEND_SECRET_KEY,
   NOCODEBACKEND_INSTANCE: process.env.NOCODEBACKEND_INSTANCE
 }
 
 test.beforeEach(() => {
-  process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://api.nocodebackend.com'
+  delete process.env.NCB_DATA_API_URL
+  delete process.env.NCB_SECRET_KEY
+  delete process.env.NCB_INSTANCE
+  process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://app.nocodebackend.com/api/data'
   process.env.NOCODEBACKEND_SECRET_KEY = 'test-secret'
   process.env.NOCODEBACKEND_INSTANCE = '54026_rating'
 })
@@ -40,14 +46,33 @@ test('list uses the generated table read route, instance selector and server bea
   }
 
   assert.deepEqual(await dataProvider.list('ratings', { user_id: 'owner', ignored: '' }), [{ id: 7 }])
-  assert.equal(request.url, 'https://api.nocodebackend.com/read/ratings?Instance=54026_rating&user_id=owner')
+  assert.equal(request.url, 'https://app.nocodebackend.com/api/data/read/ratings?Instance=54026_rating&user_id=owner')
   assert.equal(request.options.method, 'GET')
   assert.equal(request.options.headers.authorization, 'Bearer test-secret')
   assert.equal(request.options.headers['x-database-instance'], '54026_rating')
   assert.equal(request.options.headers.cookie, undefined)
 })
 
-test('legacy Lambda configuration is automatically bypassed in favour of the canonical table API', async () => {
+test('NCB environment names are preferred when supplied', async () => {
+  process.env.NCB_DATA_API_URL = 'https://app.nocodebackend.com/api/data'
+  process.env.NCB_SECRET_KEY = 'ncb-secret'
+  process.env.NCB_INSTANCE = '54026_rating'
+  process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://wrong.example.test'
+  process.env.NOCODEBACKEND_SECRET_KEY = 'wrong-secret'
+  process.env.NOCODEBACKEND_INSTANCE = 'wrong-instance'
+
+  let request
+  global.fetch = async (url, options) => {
+    request = { url: String(url), options }
+    return response({ status: 'success', data: [] })
+  }
+
+  assert.deepEqual(await dataProvider.list('products'), [])
+  assert.equal(request.url, 'https://app.nocodebackend.com/api/data/read/products?Instance=54026_rating')
+  assert.equal(request.options.headers.authorization, 'Bearer ncb-secret')
+})
+
+test('legacy Lambda configuration is automatically bypassed in favour of the configured NCB data API root', async () => {
   process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://example.lambda-url.us-east-2.on.aws/data'
   let requestedUrl
   global.fetch = async (url) => {
@@ -57,7 +82,7 @@ test('legacy Lambda configuration is automatically bypassed in favour of the can
 
   assert.equal(__testables.looksLikeLegacyLambdaProxy(process.env.NOCODEBACKEND_DATA_BASE_URL), true)
   assert.deepEqual(await dataProvider.list('products'), [])
-  assert.equal(requestedUrl, 'https://api.nocodebackend.com/read/products?Instance=54026_rating')
+  assert.equal(requestedUrl, 'https://app.nocodebackend.com/api/data/read/products?Instance=54026_rating')
 })
 
 test('list normalises supported provider list envelopes', async () => {
@@ -92,7 +117,7 @@ test('paginated product list uses documented column search, sort, order, page an
     search: 'porter', page: 2, limit: 25, orderBy: 'product_name', order: 'asc'
   }), { items, page: 2, pageSize: 25, total: 51, totalPages: 3 })
   assert.equal(requestedUrl,
-    'https://api.nocodebackend.com/read/products?Instance=54026_rating&product_name%5Blike%5D=porter&page=2&limit=25&sort=product_name&order=asc')
+    'https://app.nocodebackend.com/api/data/read/products?Instance=54026_rating&product_name%5Blike%5D=porter&page=2&limit=25&sort=product_name&order=asc')
 })
 
 test('paginated list remains usable when the provider omits pagination metadata', async () => {
@@ -135,8 +160,8 @@ test('get uses generated read-by-id route and filtered fallback after 404', asyn
 
   assert.deepEqual(await dataProvider.get('ratings', 'id/with slash'), { id: 'id/with slash' })
   assert.deepEqual(urls, [
-    'https://api.nocodebackend.com/read/ratings/id%2Fwith%20slash?Instance=54026_rating',
-    'https://api.nocodebackend.com/read/ratings?Instance=54026_rating&id=id%2Fwith+slash'
+    'https://app.nocodebackend.com/api/data/read/ratings/id%2Fwith%20slash?Instance=54026_rating',
+    'https://app.nocodebackend.com/api/data/read/ratings?Instance=54026_rating&id=id%2Fwith+slash'
   ])
 })
 
@@ -158,10 +183,10 @@ test('create, update, compare-and-set and delete use generated operation routes'
   await dataProvider.remove('cellar', 3)
 
   assert.deepEqual(requests.map(({ url, options }) => [url, options.method, options.body]), [
-    ['https://api.nocodebackend.com/create/cellar?Instance=54026_rating', 'POST', '{"product_id":1}'],
-    ['https://api.nocodebackend.com/update/cellar/3?Instance=54026_rating', 'PUT', '{"quantity":2}'],
-    ['https://api.nocodebackend.com/update/cellar/3?Instance=54026_rating&expected_version=4', 'PUT', '{"version":5}'],
-    ['https://api.nocodebackend.com/delete/cellar/3?Instance=54026_rating', 'DELETE', undefined]
+    ['https://app.nocodebackend.com/api/data/create/cellar?Instance=54026_rating', 'POST', '{"product_id":1}'],
+    ['https://app.nocodebackend.com/api/data/update/cellar/3?Instance=54026_rating', 'PUT', '{"quantity":2}'],
+    ['https://app.nocodebackend.com/api/data/update/cellar/3?Instance=54026_rating&expected_version=4', 'PUT', '{"version":5}'],
+    ['https://app.nocodebackend.com/api/data/delete/cellar/3?Instance=54026_rating', 'DELETE', undefined]
   ])
   assert.ok(requests.every(({ options }) => options.headers.authorization === 'Bearer test-secret'))
 })
@@ -204,6 +229,7 @@ test('upstream network failures become safe gateway errors', async () => {
 })
 
 test('missing secret fails closed without making a provider request', async () => {
+  delete process.env.NCB_SECRET_KEY
   delete process.env.NOCODEBACKEND_SECRET_KEY
   global.fetch = async () => assert.fail('fetch must not be called')
   await assert.rejects(dataProvider.list('products'), {
