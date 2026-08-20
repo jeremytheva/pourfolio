@@ -1,4 +1,5 @@
 import { safeErrorMessage, withTimeout } from './httpSecurity.js'
+import { getDataRequestContext } from './dataRequestContext.js'
 
 const DEFAULT_DATA_BASE_URL = 'https://app.nocodebackend.com/api/data'
 const DEFAULT_INSTANCE = '54026_rating'
@@ -113,18 +114,26 @@ const buildUrl = (baseUrl, path, filters = {}, instance = DEFAULT_INSTANCE) => {
   return url
 }
 
+const buildProviderHeaders = ({ secret, instance, body }) => {
+  const context = getDataRequestContext()
+  return {
+    accept: 'application/json',
+    authorization: `Bearer ${secret}`,
+    'x-database-instance': instance,
+    ...(context.cookie ? { cookie: context.cookie } : {}),
+    ...(context.origin ? { origin: context.origin } : {}),
+    ...(context.referer ? { referer: context.referer } : {}),
+    ...(body === undefined ? {} : { 'content-type': 'application/json' })
+  }
+}
+
 const providerRequest = async (path, { method = 'GET', body, filters, preserveEnvelope = false } = {}) => {
   const { baseUrl, secret, instance } = getConfiguration()
   let upstream
   try {
     upstream = await withTimeout((signal) => fetch(buildUrl(baseUrl, path, filters, instance), {
       method,
-      headers: {
-        accept: 'application/json',
-        authorization: `Bearer ${secret}`,
-        'x-database-instance': instance,
-        ...(body === undefined ? {} : { 'content-type': 'application/json' })
-      },
+      headers: buildProviderHeaders({ secret, instance, body }),
       body: body === undefined ? undefined : JSON.stringify(body),
       signal
     }))
@@ -205,4 +214,10 @@ export const dataProvider = {
   }
 }
 
-export const __testables = { looksLikeLegacyLambdaProxy, normalisePage, DEFAULT_DATA_BASE_URL, DEFAULT_INSTANCE }
+export const __testables = {
+  looksLikeLegacyLambdaProxy,
+  normalisePage,
+  buildProviderHeaders,
+  DEFAULT_DATA_BASE_URL,
+  DEFAULT_INSTANCE
+}
