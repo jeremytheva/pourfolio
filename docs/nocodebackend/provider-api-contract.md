@@ -153,4 +153,4 @@ Before changing endpoint shape, operation paths, instance selection, authenticat
 4. run the full release gate and connected smoke matrix;
 5. verify `/api/readiness` and authenticated production reads after deployment.
 
-A guessed provider URL or inferred CRUD convention is a release blocker.
+The remediation PR must not be merged while any required release, browser/accessibility, dependency-review, or CodeQL check is missing or failing. A guessed provider URL or inferred CRUD convention is a release blocker.
