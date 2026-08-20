@@ -5,12 +5,14 @@ import { dataProvider, __testables } from '../dataProvider.js'
 const originalFetch = global.fetch
 const originalEnvironment = {
   NOCODEBACKEND_DATA_BASE_URL: process.env.NOCODEBACKEND_DATA_BASE_URL,
-  NOCODEBACKEND_SECRET_KEY: process.env.NOCODEBACKEND_SECRET_KEY
+  NOCODEBACKEND_SECRET_KEY: process.env.NOCODEBACKEND_SECRET_KEY,
+  NOCODEBACKEND_INSTANCE: process.env.NOCODEBACKEND_INSTANCE
 }
 
 test.beforeEach(() => {
-  process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://provider.example.test/data/'
+  process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://api.nocodebackend.com'
   process.env.NOCODEBACKEND_SECRET_KEY = 'test-secret'
+  process.env.NOCODEBACKEND_INSTANCE = '54026_rating'
 })
 
 test.afterEach(() => {
@@ -30,18 +32,32 @@ const response = (payload, { status = 200, raw } = {}) => ({
   text: async () => raw ?? (payload === null ? '' : JSON.stringify(payload))
 })
 
-test('list uses the documented V2 resource path, bearer auth and equality filters', async () => {
+test('list uses the generated table read route, instance selector and server bearer auth', async () => {
   let request
   global.fetch = async (url, options) => {
     request = { url: String(url), options }
-    return response({ records: [{ id: 7 }] })
+    return response({ status: 'success', data: [{ id: 7 }] })
   }
 
   assert.deepEqual(await dataProvider.list('ratings', { user_id: 'owner', ignored: '' }), [{ id: 7 }])
-  assert.equal(request.url, 'https://provider.example.test/data/ratings?user_id=owner')
+  assert.equal(request.url, 'https://api.nocodebackend.com/read/ratings?Instance=54026_rating&user_id=owner')
   assert.equal(request.options.method, 'GET')
   assert.equal(request.options.headers.authorization, 'Bearer test-secret')
+  assert.equal(request.options.headers['x-database-instance'], '54026_rating')
   assert.equal(request.options.headers.cookie, undefined)
+})
+
+test('legacy Lambda configuration is automatically bypassed in favour of the canonical table API', async () => {
+  process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://example.lambda-url.us-east-2.on.aws/data'
+  let requestedUrl
+  global.fetch = async (url) => {
+    requestedUrl = String(url)
+    return response({ status: 'success', data: [] })
+  }
+
+  assert.equal(__testables.looksLikeLegacyLambdaProxy(process.env.NOCODEBACKEND_DATA_BASE_URL), true)
+  assert.deepEqual(await dataProvider.list('products'), [])
+  assert.equal(requestedUrl, 'https://api.nocodebackend.com/read/products?Instance=54026_rating')
 })
 
 test('list normalises supported provider list envelopes', async () => {
@@ -60,14 +76,15 @@ test('list normalises supported provider list envelopes', async () => {
   }
 })
 
-test('paginated list uses search, page, limit and order_by from the certified contract', async () => {
+test('paginated product list uses documented column search, sort, order, page and limit parameters', async () => {
   let requestedUrl
   const items = Array.from({ length: 25 }, (_, index) => ({ id: index + 1 }))
   global.fetch = async (url) => {
     requestedUrl = String(url)
     return response({
-      items,
-      pagination: { page: 2, pageSize: 25, total: 51, totalPages: 3 }
+      status: 'success',
+      data: items,
+      pagination: { page: 2, limit: 25, total: 51, total_pages: 3 }
     })
   }
 
@@ -75,36 +92,51 @@ test('paginated list uses search, page, limit and order_by from the certified co
     search: 'porter', page: 2, limit: 25, orderBy: 'product_name', order: 'asc'
   }), { items, page: 2, pageSize: 25, total: 51, totalPages: 3 })
   assert.equal(requestedUrl,
-    'https://provider.example.test/data/products?search=porter&page=2&limit=25&order_by=product_name&order=asc')
+    'https://api.nocodebackend.com/read/products?Instance=54026_rating&product_name%5Blike%5D=porter&page=2&limit=25&sort=product_name&order=asc')
 })
 
-test('paginated list fails closed on missing or inconsistent metadata', async () => {
-  global.fetch = async () => response({ items: [] })
-  await assert.rejects(dataProvider.listPage('products', {
+test('paginated list remains usable when the provider omits pagination metadata', async () => {
+  global.fetch = async () => response({ status: 'success', data: [{ id: 1 }, { id: 2 }] })
+  assert.deepEqual(await dataProvider.listPage('products', {
     page: 1, limit: 24, orderBy: 'product_name'
-  }), { status: 502, code: 'PROVIDER_ERROR' })
+  }), {
+    items: [{ id: 1 }, { id: 2 }],
+    page: 1,
+    pageSize: 24,
+    total: 2,
+    totalPages: 1,
+    totalIsEstimate: false
+  })
 
+  global.fetch = async () => response({ status: 'success', data: Array.from({ length: 24 }, (_, index) => ({ id: index + 1 })) })
+  const fullPage = await dataProvider.listPage('products', { page: 1, limit: 24, orderBy: 'product_name' })
+  assert.equal(fullPage.total, 25)
+  assert.equal(fullPage.totalPages, 2)
+  assert.equal(fullPage.totalIsEstimate, true)
+})
+
+test('paginated list still fails closed on inconsistent explicit metadata', async () => {
   global.fetch = async () => response({
-    items: [{ id: 1 }],
-    pagination: { page: 1, pageSize: 2, total: 3, totalPages: 2 }
+    data: [{ id: 1 }],
+    pagination: { page: 1, limit: 2, total: 3, total_pages: 2 }
   })
   await assert.rejects(dataProvider.listPage('products', {
     page: 1, limit: 2, orderBy: 'product_name'
   }), { status: 502, code: 'PROVIDER_ERROR' })
 })
 
-test('get uses the REST record path and filtered fallback after 404', async () => {
+test('get uses generated read-by-id route and filtered fallback after 404', async () => {
   const urls = []
   global.fetch = async (url) => {
     urls.push(String(url))
     if (urls.length === 1) return response({ error: 'missing' }, { status: 404 })
-    return response({ items: [{ id: 'id/with slash' }] })
+    return response({ data: [{ id: 'id/with slash' }] })
   }
 
   assert.deepEqual(await dataProvider.get('ratings', 'id/with slash'), { id: 'id/with slash' })
   assert.deepEqual(urls, [
-    'https://provider.example.test/data/ratings/id%2Fwith%20slash',
-    'https://provider.example.test/data/ratings?id=id%2Fwith+slash'
+    'https://api.nocodebackend.com/read/ratings/id%2Fwith%20slash?Instance=54026_rating',
+    'https://api.nocodebackend.com/read/ratings?Instance=54026_rating&id=id%2Fwith+slash'
   ])
 })
 
@@ -113,11 +145,11 @@ test('get rejects a provider record whose id does not match the requested record
   await assert.rejects(dataProvider.get('products', 7), { status: 502, code: 'PROVIDER_ERROR' })
 })
 
-test('create, update, compare-and-set and delete use REST resource paths', async () => {
+test('create, update, compare-and-set and delete use generated operation routes', async () => {
   const requests = []
   global.fetch = async (url, options) => {
     requests.push({ url: String(url), options })
-    return response({ data: { id: 3 } })
+    return response({ status: 'success', data: { id: 3 } })
   }
 
   await dataProvider.create('cellar', { product_id: 1 })
@@ -126,10 +158,10 @@ test('create, update, compare-and-set and delete use REST resource paths', async
   await dataProvider.remove('cellar', 3)
 
   assert.deepEqual(requests.map(({ url, options }) => [url, options.method, options.body]), [
-    ['https://provider.example.test/data/cellar', 'POST', '{"product_id":1}'],
-    ['https://provider.example.test/data/cellar/3', 'PUT', '{"quantity":2}'],
-    ['https://provider.example.test/data/cellar/3?expected_version=4', 'PUT', '{"version":5}'],
-    ['https://provider.example.test/data/cellar/3', 'DELETE', undefined]
+    ['https://api.nocodebackend.com/create/cellar?Instance=54026_rating', 'POST', '{"product_id":1}'],
+    ['https://api.nocodebackend.com/update/cellar/3?Instance=54026_rating', 'PUT', '{"quantity":2}'],
+    ['https://api.nocodebackend.com/update/cellar/3?Instance=54026_rating&expected_version=4', 'PUT', '{"version":5}'],
+    ['https://api.nocodebackend.com/delete/cellar/3?Instance=54026_rating', 'DELETE', undefined]
   ])
   assert.ok(requests.every(({ options }) => options.headers.authorization === 'Bearer test-secret'))
 })
@@ -153,9 +185,9 @@ test('unique and stale-version conflicts remain machine-readable without leaking
   })
 })
 
-test('provider success=false and malformed responses fail closed', async () => {
-  global.fetch = async () => response({ success: false, message: 'private detail' })
-  await assert.rejects(dataProvider.list('products'), { status: 502, code: 'PROVIDER_ERROR' })
+test('provider error envelopes and malformed responses fail closed', async () => {
+  global.fetch = async () => response({ status: 'error', message: 'private detail' })
+  await assert.rejects(dataProvider.list('products'), { status: 200, code: 'PROVIDER_ERROR' })
 
   global.fetch = async () => response(null, { raw: '<html>failure</html>' })
   await assert.rejects(dataProvider.list('products'), { status: 502, code: 'PROVIDER_ERROR' })
@@ -171,22 +203,11 @@ test('upstream network failures become safe gateway errors', async () => {
   })
 })
 
-test('missing server configuration fails closed without making a provider request', async () => {
+test('missing secret fails closed without making a provider request', async () => {
   delete process.env.NOCODEBACKEND_SECRET_KEY
   global.fetch = async () => assert.fail('fetch must not be called')
   await assert.rejects(dataProvider.list('products'), {
     status: 503,
     code: 'DATA_CONFIGURATION_MISSING'
-  })
-})
-
-test('legacy Lambda data proxy configuration is rejected explicitly', async () => {
-  process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://example.lambda-url.us-east-2.on.aws/data'
-  global.fetch = async () => assert.fail('legacy proxy must not be called')
-
-  assert.equal(__testables.looksLikeLegacyLambdaProxy(process.env.NOCODEBACKEND_DATA_BASE_URL), true)
-  await assert.rejects(dataProvider.list('products'), {
-    status: 503,
-    code: 'DATA_PROVIDER_LEGACY_PROXY'
   })
 })
