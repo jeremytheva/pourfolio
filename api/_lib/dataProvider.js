@@ -1,5 +1,8 @@
 import { safeErrorMessage, withTimeout } from './httpSecurity.js'
 
+const DEFAULT_DATA_BASE_URL = 'https://api.nocodebackend.com'
+const DEFAULT_INSTANCE = '54026_rating'
+
 const normalisePayload = (payload) => {
   if (payload === undefined || payload === null) return null
   if (payload.data !== undefined) return payload.data
@@ -23,10 +26,27 @@ const normalisePage = (payload, requestedPage, requestedLimit) => {
   const metadata = payload?.pagination || payload?.meta || payload || {}
   const page = Number(metadata.page ?? metadata.current_page ?? requestedPage)
   const pageSize = Number(metadata.pageSize ?? metadata.per_page ?? metadata.limit ?? requestedLimit)
-  const total = Number(metadata.total ?? metadata.total_count)
-  const totalPages = Number(metadata.totalPages ?? metadata.total_pages ?? Math.ceil(total / pageSize))
-  if (![page, pageSize, total, totalPages].every(Number.isSafeInteger) || page < 1 ||
-      pageSize < 1 || total < 0 || totalPages < 0) {
+  const explicitTotal = metadata.total ?? metadata.total_count
+  const explicitTotalPages = metadata.totalPages ?? metadata.total_pages
+
+  if (![page, pageSize].every(Number.isSafeInteger) || page < 1 || pageSize < 1) {
+    throw providerContractError()
+  }
+
+  if (explicitTotal === undefined || explicitTotal === null || explicitTotal === '') {
+    if (page !== requestedPage || pageSize !== requestedLimit || items.length > requestedLimit) {
+      throw providerContractError()
+    }
+    const completedBefore = (page - 1) * pageSize
+    const hasPotentialNextPage = items.length === pageSize
+    const total = completedBefore + items.length + (hasPotentialNextPage ? 1 : 0)
+    const totalPages = hasPotentialNextPage ? page + 1 : page
+    return { items, page, pageSize, total, totalPages, totalIsEstimate: hasPotentialNextPage }
+  }
+
+  const total = Number(explicitTotal)
+  const totalPages = Number(explicitTotalPages ?? Math.ceil(total / pageSize))
+  if (![total, totalPages].every(Number.isSafeInteger) || total < 0 || totalPages < 0) {
     throw providerContractError()
   }
 
@@ -62,31 +82,31 @@ const looksLikeLegacyLambdaProxy = (baseUrl) => {
 }
 
 const getConfiguration = () => {
-  const baseUrl = process.env.NOCODEBACKEND_DATA_BASE_URL
+  const configuredBaseUrl = process.env.NOCODEBACKEND_DATA_BASE_URL?.trim()
   const secret = process.env.NOCODEBACKEND_SECRET_KEY
+  const instance = process.env.NOCODEBACKEND_INSTANCE || DEFAULT_INSTANCE
 
-  if (!baseUrl || !secret) {
+  if (!secret) {
     const error = new Error('The production data service is not configured.')
     error.status = 503
     error.code = 'DATA_CONFIGURATION_MISSING'
     throw error
   }
 
-  if (looksLikeLegacyLambdaProxy(baseUrl)) {
-    const error = new Error('The production data service is configured with an obsolete proxy endpoint.')
-    error.status = 503
-    error.code = 'DATA_PROVIDER_LEGACY_PROXY'
-    throw error
-  }
+  const baseUrl = !configuredBaseUrl || looksLikeLegacyLambdaProxy(configuredBaseUrl)
+    ? DEFAULT_DATA_BASE_URL
+    : configuredBaseUrl
 
   return {
     baseUrl: baseUrl.replace(/\/+$/, ''),
-    secret
+    secret,
+    instance
   }
 }
 
-const buildUrl = (baseUrl, path, filters = {}) => {
+const buildUrl = (baseUrl, path, filters = {}, instance = DEFAULT_INSTANCE) => {
   const url = new URL(`${baseUrl}/${String(path).replace(/^\/+/, '')}`)
+  url.searchParams.set('Instance', instance)
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value))
   })
@@ -94,14 +114,15 @@ const buildUrl = (baseUrl, path, filters = {}) => {
 }
 
 const providerRequest = async (path, { method = 'GET', body, filters, preserveEnvelope = false } = {}) => {
-  const { baseUrl, secret } = getConfiguration()
+  const { baseUrl, secret, instance } = getConfiguration()
   let upstream
   try {
-    upstream = await withTimeout((signal) => fetch(buildUrl(baseUrl, path, filters), {
+    upstream = await withTimeout((signal) => fetch(buildUrl(baseUrl, path, filters, instance), {
       method,
       headers: {
         accept: 'application/json',
         authorization: `Bearer ${secret}`,
+        'x-database-instance': instance,
         ...(body === undefined ? {} : { 'content-type': 'application/json' })
       },
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -125,7 +146,7 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
     throw error
   }
 
-  if (!upstream.ok || payload?.error || payload?.success === false) {
+  if (!upstream.ok || payload?.error || payload?.success === false || payload?.status === 'error') {
     const error = new Error(safeErrorMessage(upstream.status))
     error.status = upstream.status >= 400 && upstream.status < 600 ? upstream.status : 502
     error.code = getProviderErrorCode(error.status, filters)
@@ -141,21 +162,22 @@ export const dataProvider = {
   },
 
   async list(collection, filters = {}) {
-    const payload = await providerRequest(collection, { filters })
+    const payload = await providerRequest(`read/${collection}`, { filters })
     if (Array.isArray(payload)) return payload
     return payload ? [payload] : []
   },
 
   async listPage(collection, { search, page, limit, orderBy, order = 'asc', filters = {} }) {
-    const payload = await providerRequest(collection, {
-      filters: { ...filters, search, page, limit, order_by: orderBy, order }, preserveEnvelope: true
+    const searchFilter = search && collection === 'products' ? { 'product_name[like]': search } : {}
+    const payload = await providerRequest(`read/${collection}`, {
+      filters: { ...filters, ...searchFilter, page, limit, sort: orderBy, order }, preserveEnvelope: true
     })
     return normalisePage(payload, page, limit)
   },
 
   async get(collection, id) {
     try {
-      const payload = await providerRequest(`${collection}/${encodeURIComponent(id)}`)
+      const payload = await providerRequest(`read/${collection}/${encodeURIComponent(id)}`)
       return requireExpectedRecord(Array.isArray(payload) ? payload[0] || null : payload, id)
     } catch (error) {
       if (error.status !== 404) throw error
@@ -165,22 +187,22 @@ export const dataProvider = {
   },
 
   create(collection, body) {
-    return providerRequest(collection, { method: 'POST', body })
+    return providerRequest(`create/${collection}`, { method: 'POST', body })
   },
 
   update(collection, id, body) {
-    return providerRequest(`${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body })
+    return providerRequest(`update/${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body })
   },
 
   compareAndSet(collection, id, expectedVersion, body) {
-    return providerRequest(`${collection}/${encodeURIComponent(id)}`, {
+    return providerRequest(`update/${collection}/${encodeURIComponent(id)}`, {
       method: 'PUT', body, filters: { expected_version: expectedVersion }
     })
   },
 
   remove(collection, id) {
-    return providerRequest(`${collection}/${encodeURIComponent(id)}`, { method: 'DELETE' })
+    return providerRequest(`delete/${collection}/${encodeURIComponent(id)}`, { method: 'DELETE' })
   }
 }
 
-export const __testables = { looksLikeLegacyLambdaProxy }
+export const __testables = { looksLikeLegacyLambdaProxy, normalisePage, DEFAULT_DATA_BASE_URL, DEFAULT_INSTANCE }
