@@ -83,21 +83,43 @@ test('reports the rate limiter as unconfigured when either Redis REST value is m
   t.after(() => configureEnvironment())
 })
 
-test('health identifies direct V2 data transport and rejects legacy Lambda configuration', (t) => {
+test('health identifies the generated table API including automatic legacy-Lambda bypass', (t) => {
   configureEnvironment({
     NOCODEBACKEND_SECRET_KEY: 'server-secret',
-    NOCODEBACKEND_DATA_BASE_URL: 'https://provider.example.test/data',
+    NOCODEBACKEND_DATA_BASE_URL: 'https://api.nocodebackend.com',
     pourfolio_KV_REST_API_URL: 'https://redis.example.test',
     pourfolio_KV_REST_API_TOKEN: 'redis-token-value'
   })
   let result = invokeHealthHandler()
   assert.equal(result.body.checks.dataConfigured, true)
-  assert.equal(result.body.checks.dataTransport, 'direct-v2')
+  assert.equal(result.body.checks.dataTransport, 'generated-table-api')
 
   process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://example.lambda-url.us-east-2.on.aws/data'
   result = invokeHealthHandler()
+  assert.equal(result.body.checks.dataConfigured, true)
+  assert.equal(result.body.checks.dataTransport, 'generated-table-api')
+
+  delete process.env.NOCODEBACKEND_DATA_BASE_URL
+  result = invokeHealthHandler()
+  assert.equal(result.body.checks.dataConfigured, true)
+  assert.equal(result.body.checks.dataTransport, 'generated-table-api')
+
+  t.after(() => configureEnvironment())
+})
+
+test('health identifies a custom table API and rejects malformed data endpoint configuration', (t) => {
+  configureEnvironment({
+    NOCODEBACKEND_SECRET_KEY: 'server-secret',
+    NOCODEBACKEND_DATA_BASE_URL: 'https://provider.example.test/data'
+  })
+  let result = invokeHealthHandler()
+  assert.equal(result.body.checks.dataConfigured, true)
+  assert.equal(result.body.checks.dataTransport, 'custom-table-api')
+
+  process.env.NOCODEBACKEND_DATA_BASE_URL = 'not-a-url'
+  result = invokeHealthHandler()
   assert.equal(result.body.checks.dataConfigured, false)
-  assert.equal(result.body.checks.dataTransport, 'legacy-proxy')
+  assert.equal(result.body.checks.dataTransport, 'invalid')
 
   t.after(() => configureEnvironment())
 })
