@@ -70,6 +70,8 @@ const requireExpectedRecord = (record, id) => {
 const getProviderErrorCode = (status, filters = {}) => {
   if (status === 409 && filters?.expected_version !== undefined) return 'VERSION_CONFLICT'
   if (status === 409) return 'UNIQUE_CONFLICT'
+  if (status === 401) return 'DATA_PROVIDER_UNAUTHENTICATED'
+  if (status === 403) return 'DATA_PROVIDER_FORBIDDEN'
   return 'PROVIDER_ERROR'
 }
 
@@ -80,6 +82,33 @@ const looksLikeLegacyLambdaProxy = (baseUrl) => {
   } catch {
     return false
   }
+}
+
+const canonicalDataUrl = (value) => {
+  try {
+    const url = new URL(value)
+    return url.origin === 'https://app.nocodebackend.com' && url.pathname.replace(/\/+$/, '') === '/api/data'
+  } catch {
+    return false
+  }
+}
+
+const resolveDataBaseUrl = (configuredBaseUrl) => {
+  if (!configuredBaseUrl || looksLikeLegacyLambdaProxy(configuredBaseUrl)) return DEFAULT_DATA_BASE_URL
+  if (canonicalDataUrl(configuredBaseUrl)) return DEFAULT_DATA_BASE_URL
+
+  if (process.env.NCB_ALLOW_CUSTOM_DATA_API === '1') {
+    try {
+      return new URL(configuredBaseUrl).toString().replace(/\/+$/, '')
+    } catch {
+      const error = new Error('The production data service endpoint is invalid.')
+      error.status = 503
+      error.code = 'DATA_CONFIGURATION_INVALID'
+      throw error
+    }
+  }
+
+  return DEFAULT_DATA_BASE_URL
 }
 
 const getConfiguration = () => {
@@ -94,12 +123,8 @@ const getConfiguration = () => {
     throw error
   }
 
-  const baseUrl = !configuredBaseUrl || looksLikeLegacyLambdaProxy(configuredBaseUrl)
-    ? DEFAULT_DATA_BASE_URL
-    : configuredBaseUrl
-
   return {
-    baseUrl: baseUrl.replace(/\/+$/, ''),
+    baseUrl: resolveDataBaseUrl(configuredBaseUrl),
     secret,
     instance
   }
@@ -137,7 +162,8 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
       body: body === undefined ? undefined : JSON.stringify(body),
       signal
     }))
-  } catch {
+  } catch (cause) {
+    if (cause?.code === 'DATA_CONFIGURATION_INVALID') throw cause
     const error = new Error(safeErrorMessage(502))
     error.status = 502
     error.code = 'PROVIDER_ERROR'
@@ -216,6 +242,8 @@ export const dataProvider = {
 
 export const __testables = {
   looksLikeLegacyLambdaProxy,
+  canonicalDataUrl,
+  resolveDataBaseUrl,
   normalisePage,
   buildProviderHeaders,
   DEFAULT_DATA_BASE_URL,
