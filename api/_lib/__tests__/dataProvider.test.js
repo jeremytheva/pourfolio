@@ -187,7 +187,7 @@ test('unique and stale-version conflicts remain machine-readable without leaking
 
 test('provider error envelopes and malformed responses fail closed', async () => {
   global.fetch = async () => response({ status: 'error', message: 'private detail' })
-  await assert.rejects(dataProvider.list('products'), { status: 200, code: 'PROVIDER_ERROR' })
+  await assert.rejects(dataProvider.list('products'), { status: 502, code: 'PROVIDER_ERROR' })
 
   global.fetch = async () => response(null, { raw: '<html>failure</html>' })
   await assert.rejects(dataProvider.list('products'), { status: 502, code: 'PROVIDER_ERROR' })
