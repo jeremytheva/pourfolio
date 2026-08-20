@@ -6,6 +6,7 @@ import handler from '../health.js'
 const environmentVariables = [
   'NCB_SECRET_KEY',
   'NCB_DATA_API_URL',
+  'NCB_ALLOW_CUSTOM_DATA_API',
   'NOCODEBACKEND_SECRET_KEY',
   'NOCODEBACKEND_DATA_BASE_URL',
   'pourfolio_KV_REST_API_URL',
@@ -85,44 +86,47 @@ test('reports the rate limiter as unconfigured when either Redis REST value is m
   t.after(() => configureEnvironment())
 })
 
-test('health identifies the supplied generated table API including automatic legacy-Lambda bypass', (t) => {
+test('health enforces the supplied generated table API and ignores stale overrides', (t) => {
   configureEnvironment({
     NCB_SECRET_KEY: 'server-secret',
-    NCB_DATA_API_URL: 'https://app.nocodebackend.com/api/data',
-    pourfolio_KV_REST_API_URL: 'https://redis.example.test',
-    pourfolio_KV_REST_API_TOKEN: 'redis-token-value'
+    NCB_DATA_API_URL: 'https://app.nocodebackend.com/api/data'
   })
   let result = invokeHealthHandler()
   assert.equal(result.body.checks.dataConfigured, true)
   assert.equal(result.body.checks.dataTransport, 'generated-table-api')
+  assert.equal(result.body.checks.dataOverride, 'none')
 
   delete process.env.NCB_DATA_API_URL
   process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://example.lambda-url.us-east-2.on.aws/data'
   result = invokeHealthHandler()
-  assert.equal(result.body.checks.dataConfigured, true)
   assert.equal(result.body.checks.dataTransport, 'generated-table-api')
+  assert.equal(result.body.checks.dataOverride, 'ignored')
 
-  delete process.env.NOCODEBACKEND_DATA_BASE_URL
+  process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://wrong.example.test/data'
   result = invokeHealthHandler()
   assert.equal(result.body.checks.dataConfigured, true)
   assert.equal(result.body.checks.dataTransport, 'generated-table-api')
+  assert.equal(result.body.checks.dataOverride, 'ignored')
 
   t.after(() => configureEnvironment())
 })
 
-test('health identifies a custom table API and rejects malformed data endpoint configuration', (t) => {
+test('custom table API requires explicit opt-in and malformed opted-in configuration fails closed', (t) => {
   configureEnvironment({
     NOCODEBACKEND_SECRET_KEY: 'server-secret',
-    NOCODEBACKEND_DATA_BASE_URL: 'https://provider.example.test/data'
+    NOCODEBACKEND_DATA_BASE_URL: 'https://provider.example.test/data',
+    NCB_ALLOW_CUSTOM_DATA_API: '1'
   })
   let result = invokeHealthHandler()
   assert.equal(result.body.checks.dataConfigured, true)
   assert.equal(result.body.checks.dataTransport, 'custom-table-api')
+  assert.equal(result.body.checks.dataOverride, 'accepted')
 
   process.env.NOCODEBACKEND_DATA_BASE_URL = 'not-a-url'
   result = invokeHealthHandler()
   assert.equal(result.body.checks.dataConfigured, false)
   assert.equal(result.body.checks.dataTransport, 'invalid')
+  assert.equal(result.body.checks.dataOverride, 'invalid')
 
   t.after(() => configureEnvironment())
 })
