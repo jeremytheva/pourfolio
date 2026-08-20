@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "test": "node --test",
     "test:e2e": "playwright test",
+    "test:provider-smoke": "RUN_NOCODEBACKEND_PROVIDER_SMOKE=1 node --test api/_lib/__tests__/providerSmoke.connected.test.js",
     "test:provider-contract": "RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1 node --test api/_lib/__tests__/providerContract.connected.test.js",
     "check:provider-contract-transcript": "node scripts/check-provider-contract-transcript.js",
     "test:release": "playwright test --config=playwright.release.config.js",
