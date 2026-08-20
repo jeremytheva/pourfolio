@@ -1,5 +1,4 @@
 import { safeErrorMessage, withTimeout } from './httpSecurity.js'
-import { getDataRequestContext } from './dataRequestContext.js'
 
 const normalisePayload = (payload) => {
   if (payload === undefined || payload === null) return null
@@ -53,6 +52,15 @@ const getProviderErrorCode = (status, filters = {}) => {
   return 'PROVIDER_ERROR'
 }
 
+const looksLikeLegacyLambdaProxy = (baseUrl) => {
+  try {
+    const { hostname } = new URL(baseUrl)
+    return hostname.includes('.lambda-url.') && hostname.endsWith('.on.aws')
+  } catch {
+    return false
+  }
+}
+
 const getConfiguration = () => {
   const baseUrl = process.env.NOCODEBACKEND_DATA_BASE_URL
   const secret = process.env.NOCODEBACKEND_SECRET_KEY
@@ -60,6 +68,14 @@ const getConfiguration = () => {
   if (!baseUrl || !secret) {
     const error = new Error('The production data service is not configured.')
     error.status = 503
+    error.code = 'DATA_CONFIGURATION_MISSING'
+    throw error
+  }
+
+  if (looksLikeLegacyLambdaProxy(baseUrl)) {
+    const error = new Error('The production data service is configured with an obsolete proxy endpoint.')
+    error.status = 503
+    error.code = 'DATA_PROVIDER_LEGACY_PROXY'
     throw error
   }
 
@@ -69,46 +85,23 @@ const getConfiguration = () => {
   }
 }
 
-const usesManagedDataProxy = (baseUrl) => {
-  try {
-    const { hostname } = new URL(baseUrl)
-    return hostname.includes('.lambda-url.') && hostname.endsWith('.on.aws')
-  } catch {
-    return false
-  }
-}
-
 const buildUrl = (baseUrl, path, filters = {}) => {
   const url = new URL(`${baseUrl}/${String(path).replace(/^\/+/, '')}`)
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value))
   })
-  url.searchParams.set('Instance', '54026_rating')
   return url
-}
-
-const operationPath = (operation, collection, id) => {
-  const encodedCollection = encodeURIComponent(String(collection))
-  const encodedId = id === undefined || id === null ? '' : `/${encodeURIComponent(String(id))}`
-  return `${operation}/${encodedCollection}${encodedId}`
 }
 
 const providerRequest = async (path, { method = 'GET', body, filters, preserveEnvelope = false } = {}) => {
   const { baseUrl, secret } = getConfiguration()
-  const managedProxy = usesManagedDataProxy(baseUrl)
-  const requestContext = getDataRequestContext()
   let upstream
   try {
     upstream = await withTimeout((signal) => fetch(buildUrl(baseUrl, path, filters), {
       method,
       headers: {
         accept: 'application/json',
-        ...(managedProxy
-          ? {
-              ...(requestContext.cookie ? { cookie: requestContext.cookie } : {}),
-              ...(requestContext.origin ? { origin: requestContext.origin } : {})
-            }
-          : { authorization: `Bearer ${secret}` }),
+        authorization: `Bearer ${secret}`,
         ...(body === undefined ? {} : { 'content-type': 'application/json' })
       },
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -146,23 +139,23 @@ export const dataProvider = {
   isUniqueConflict(error) {
     return error?.code === 'UNIQUE_CONFLICT'
   },
+
   async list(collection, filters = {}) {
-    const payload = await providerRequest(operationPath('read', collection), { filters })
+    const payload = await providerRequest(collection, { filters })
     if (Array.isArray(payload)) return payload
     return payload ? [payload] : []
   },
 
   async listPage(collection, { search, page, limit, orderBy, order = 'asc', filters = {} }) {
-    const searchFilter = search ? { 'product_name[like]': search } : {}
-    const payload = await providerRequest(operationPath('read', collection), {
-      filters: { ...filters, ...searchFilter, page, limit, sort: orderBy, order }, preserveEnvelope: true
+    const payload = await providerRequest(collection, {
+      filters: { ...filters, search, page, limit, order_by: orderBy, order }, preserveEnvelope: true
     })
     return normalisePage(payload, page, limit)
   },
 
   async get(collection, id) {
     try {
-      const payload = await providerRequest(operationPath('read', collection, id))
+      const payload = await providerRequest(`${collection}/${encodeURIComponent(id)}`)
       return requireExpectedRecord(Array.isArray(payload) ? payload[0] || null : payload, id)
     } catch (error) {
       if (error.status !== 404) throw error
@@ -172,22 +165,22 @@ export const dataProvider = {
   },
 
   create(collection, body) {
-    return providerRequest(operationPath('create', collection), { method: 'POST', body })
+    return providerRequest(collection, { method: 'POST', body })
   },
 
   update(collection, id, body) {
-    return providerRequest(operationPath('update', collection, id), { method: 'PUT', body })
+    return providerRequest(`${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body })
   },
 
   compareAndSet(collection, id, expectedVersion, body) {
-    return providerRequest(operationPath('update', collection, id), {
+    return providerRequest(`${collection}/${encodeURIComponent(id)}`, {
       method: 'PUT', body, filters: { expected_version: expectedVersion }
     })
   },
 
   remove(collection, id) {
-    return providerRequest(operationPath('delete', collection, id), { method: 'DELETE' })
+    return providerRequest(`${collection}/${encodeURIComponent(id)}`, { method: 'DELETE' })
   }
 }
 
-export const __testables = { operationPath, usesManagedDataProxy }
+export const __testables = { looksLikeLegacyLambdaProxy }
