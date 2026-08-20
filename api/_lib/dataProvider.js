@@ -1,6 +1,7 @@
 import { safeErrorMessage, withTimeout } from './httpSecurity.js'
 
 const DEFAULT_DATA_BASE_URL = 'https://api.nocodebackend.com'
+const DEFAULT_INSTANCE = '54026_rating'
 
 const normalisePayload = (payload) => {
   if (payload === undefined || payload === null) return null
@@ -28,27 +29,41 @@ const normalisePage = (payload, requestedPage, requestedLimit) => {
   const explicitTotal = metadata.total ?? metadata.total_count
   const explicitTotalPages = metadata.totalPages ?? metadata.total_pages
 
-  if (![page, pageSize].every(Number.isSafeInteger) || page < 1 || pageSize < 1 || items.length > requestedLimit) {
+  if (![page, pageSize].every(Number.isSafeInteger) || page < 1 || pageSize < 1) {
     throw providerContractError()
   }
 
   if (explicitTotal === undefined || explicitTotal === null || explicitTotal === '') {
+    if (page !== requestedPage || pageSize !== requestedLimit || items.length > requestedLimit) {
+      throw providerContractError()
+    }
     const completedBefore = (page - 1) * pageSize
     const hasPotentialNextPage = items.length === pageSize
-    return {
-      items,
-      page,
-      pageSize,
-      total: completedBefore + items.length + (hasPotentialNextPage ? 1 : 0),
-      totalPages: hasPotentialNextPage ? page + 1 : page,
-      totalIsEstimate: hasPotentialNextPage
-    }
+    const total = completedBefore + items.length + (hasPotentialNextPage ? 1 : 0)
+    const totalPages = hasPotentialNextPage ? page + 1 : page
+    return { items, page, pageSize, total, totalPages, totalIsEstimate: hasPotentialNextPage }
   }
 
   const total = Number(explicitTotal)
   const totalPages = Number(explicitTotalPages ?? Math.ceil(total / pageSize))
-  if (![total, totalPages].every(Number.isSafeInteger) || total < 0 || totalPages < 0) throw providerContractError()
+  if (![total, totalPages].every(Number.isSafeInteger) || total < 0 || totalPages < 0) {
+    throw providerContractError()
+  }
+
+  const expectedTotalPages = total === 0 ? 0 : Math.ceil(total / pageSize)
+  const expectedItems = total === 0
+    ? 0
+    : page < totalPages
+      ? pageSize
+      : total - (pageSize * (totalPages - 1))
+  if (page !== requestedPage || pageSize !== requestedLimit || totalPages !== expectedTotalPages ||
+      page > Math.max(1, totalPages) || items.length !== expectedItems) throw providerContractError()
   return { items, page, pageSize, total, totalPages }
+}
+
+const requireExpectedRecord = (record, id) => {
+  if (record && String(record.id) !== String(id)) throw providerContractError()
+  return record
 }
 
 const getProviderErrorCode = (status, filters = {}) => {
@@ -69,20 +84,29 @@ const looksLikeLegacyLambdaProxy = (baseUrl) => {
 const getConfiguration = () => {
   const configuredBaseUrl = process.env.NOCODEBACKEND_DATA_BASE_URL?.trim()
   const secret = process.env.NOCODEBACKEND_SECRET_KEY
+  const instance = process.env.NOCODEBACKEND_INSTANCE || DEFAULT_INSTANCE
+
   if (!secret) {
     const error = new Error('The production data service is not configured.')
     error.status = 503
     error.code = 'DATA_CONFIGURATION_MISSING'
     throw error
   }
+
   const baseUrl = !configuredBaseUrl || looksLikeLegacyLambdaProxy(configuredBaseUrl)
     ? DEFAULT_DATA_BASE_URL
     : configuredBaseUrl
-  return { baseUrl: baseUrl.replace(/\/+$/, ''), secret }
+
+  return {
+    baseUrl: baseUrl.replace(/\/+$/, ''),
+    secret,
+    instance
+  }
 }
 
-const buildUrl = (baseUrl, path, filters = {}) => {
+const buildUrl = (baseUrl, path, filters = {}, instance = DEFAULT_INSTANCE) => {
   const url = new URL(`${baseUrl}/${String(path).replace(/^\/+/, '')}`)
+  url.searchParams.set('Instance', instance)
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value))
   })
@@ -90,14 +114,15 @@ const buildUrl = (baseUrl, path, filters = {}) => {
 }
 
 const providerRequest = async (path, { method = 'GET', body, filters, preserveEnvelope = false } = {}) => {
-  const { baseUrl, secret } = getConfiguration()
+  const { baseUrl, secret, instance } = getConfiguration()
   let upstream
   try {
-    upstream = await withTimeout((signal) => fetch(buildUrl(baseUrl, path, filters), {
+    upstream = await withTimeout((signal) => fetch(buildUrl(baseUrl, path, filters, instance), {
       method,
       headers: {
         accept: 'application/json',
         authorization: `Bearer ${secret}`,
+        'x-database-instance': instance,
         ...(body === undefined ? {} : { 'content-type': 'application/json' })
       },
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -115,7 +140,10 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
     const text = await upstream.text()
     payload = text ? JSON.parse(text) : null
   } catch {
-    throw providerContractError()
+    const error = new Error(safeErrorMessage(502))
+    error.status = 502
+    error.code = 'PROVIDER_ERROR'
+    throw error
   }
 
   if (!upstream.ok || payload?.error || payload?.success === false || payload?.status === 'error') {
@@ -124,41 +152,57 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
     error.code = getProviderErrorCode(error.status, filters)
     throw error
   }
+
   return preserveEnvelope ? payload : normalisePayload(payload)
 }
 
 export const dataProvider = {
-  isUniqueConflict(error) { return error?.code === 'UNIQUE_CONFLICT' },
+  isUniqueConflict(error) {
+    return error?.code === 'UNIQUE_CONFLICT'
+  },
+
   async list(collection, filters = {}) {
-    const payload = await providerRequest(collection, { filters })
+    const payload = await providerRequest(`read/${collection}`, { filters })
     if (Array.isArray(payload)) return payload
     return payload ? [payload] : []
   },
+
   async listPage(collection, { search, page, limit, orderBy, order = 'asc', filters = {} }) {
-    const payload = await providerRequest(collection, {
-      filters: { ...filters, search, page, limit, order_by: orderBy, order },
-      preserveEnvelope: true
+    const searchFilter = search && collection === 'products' ? { 'product_name[like]': search } : {}
+    const payload = await providerRequest(`read/${collection}`, {
+      filters: { ...filters, ...searchFilter, page, limit, sort: orderBy, order }, preserveEnvelope: true
     })
     return normalisePage(payload, page, limit)
   },
+
   async get(collection, id) {
     try {
-      const payload = await providerRequest(`${collection}/${encodeURIComponent(id)}`)
-      const record = Array.isArray(payload) ? payload[0] || null : payload
-      if (record && String(record.id) !== String(id)) throw providerContractError()
-      return record
+      const payload = await providerRequest(`read/${collection}/${encodeURIComponent(id)}`)
+      return requireExpectedRecord(Array.isArray(payload) ? payload[0] || null : payload, id)
     } catch (error) {
       if (error.status !== 404) throw error
       const records = await this.list(collection, { id })
       return records.find((record) => record && String(record.id) === String(id)) || null
     }
   },
-  create(collection, body) { return providerRequest(collection, { method: 'POST', body }) },
-  update(collection, id, body) { return providerRequest(`${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body }) },
-  compareAndSet(collection, id, expectedVersion, body) {
-    return providerRequest(`${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body, filters: { expected_version: expectedVersion } })
+
+  create(collection, body) {
+    return providerRequest(`create/${collection}`, { method: 'POST', body })
   },
-  remove(collection, id) { return providerRequest(`${collection}/${encodeURIComponent(id)}`, { method: 'DELETE' }) }
+
+  update(collection, id, body) {
+    return providerRequest(`update/${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body })
+  },
+
+  compareAndSet(collection, id, expectedVersion, body) {
+    return providerRequest(`update/${collection}/${encodeURIComponent(id)}`, {
+      method: 'PUT', body, filters: { expected_version: expectedVersion }
+    })
+  },
+
+  remove(collection, id) {
+    return providerRequest(`delete/${collection}/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  }
 }
 
-export const __testables = { looksLikeLegacyLambdaProxy, normalisePage, DEFAULT_DATA_BASE_URL }
+export const __testables = { looksLikeLegacyLambdaProxy, normalisePage, DEFAULT_DATA_BASE_URL, DEFAULT_INSTANCE }
