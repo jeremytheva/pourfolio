@@ -105,7 +105,7 @@ test('optional collaboration enrichment denial does not make core products unava
   })
 })
 
-test('secondary producer and category enrichment failures return a valid core product', async () => {
+test('secondary producer and category enrichment failures preserve the core product payload', async () => {
   await withProviderStubs({
     async list(collection) {
       if (collection === 'product_producers') return []
