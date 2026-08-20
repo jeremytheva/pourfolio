@@ -1,10 +1,11 @@
 const dataTransportState = () => {
-  const baseUrl = process.env.NOCODEBACKEND_DATA_BASE_URL
-  if (!baseUrl) return 'missing'
+  const configured = process.env.NOCODEBACKEND_DATA_BASE_URL?.trim()
+  if (!configured) return 'generated-table-api'
   try {
-    const { hostname } = new URL(baseUrl)
-    if (hostname.includes('.lambda-url.') && hostname.endsWith('.on.aws')) return 'legacy-proxy'
-    return 'direct-v2'
+    const { hostname } = new URL(configured)
+    if (hostname.includes('.lambda-url.') && hostname.endsWith('.on.aws')) return 'generated-table-api'
+    if (hostname === 'api.nocodebackend.com') return 'generated-table-api'
+    return 'custom-table-api'
   } catch {
     return 'invalid'
   }
@@ -18,7 +19,7 @@ export default function handler(_request, response) {
     service: 'pourfolio',
     checks: {
       authenticationConfigured: Boolean(process.env.NOCODEBACKEND_SECRET_KEY),
-      dataConfigured: dataTransport === 'direct-v2',
+      dataConfigured: Boolean(process.env.NOCODEBACKEND_SECRET_KEY) && dataTransport !== 'invalid',
       dataTransport,
       rateLimiterConfigured: Boolean(
         (process.env.pourfolio_KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL) &&
