@@ -37,11 +37,13 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Verify NoCodeBackend V2 read contract
+      - name: Verify NoCodeBackend launch read matrix
         run: npm run test:provider-smoke
         env: &release-server-environment
-          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
-          NOCODEBACKEND_DATA_BASE_URL: ${{ secrets.NOCODEBACKEND_DATA_BASE_URL }}
+          NCB_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NCB_DATA_API_URL: https://app.nocodebackend.com/api/data
+          NCB_INSTANCE: 54026_rating
+          EXPECT_PRODUCT_PRODUCERS: ${{ vars.EXPECT_PRODUCT_PRODUCERS }}
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
           UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
           RATE_LIMIT_KEY_SECRET: ${{ secrets.RATE_LIMIT_KEY_SECRET }}

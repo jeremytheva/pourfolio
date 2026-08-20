@@ -37,11 +37,19 @@ const parsePositiveId = (value, label = 'Record identifier') => {
   return text
 }
 
+const safeProviderGet = async (collection, id) => {
+  try {
+    return await dataProvider.get(collection, id)
+  } catch {
+    return null
+  }
+}
+
 const hydrateProduct = async (product) => {
   if (!product) return null
   const [producer, category] = await Promise.all([
-    product.producer_id ? dataProvider.get(COLLECTIONS.producers, product.producer_id) : null,
-    product.product_category_id ? dataProvider.get(COLLECTIONS.categories, product.product_category_id) : null
+    product.producer_id ? safeProviderGet(COLLECTIONS.producers, product.producer_id) : null,
+    product.product_category_id ? safeProviderGet(COLLECTIONS.categories, product.product_category_id) : null
   ])
   return projectProduct(product, producer, category)
 }
@@ -76,7 +84,7 @@ const listCellar = async (response, user) => {
   const records = normaliseList(await dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }))
     .filter((record) => isOwnedBy(record, user.id))
   const productIds = [...new Set(records.map((record) => record.product_id).filter(Boolean).map(String))]
-  const products = await Promise.all(productIds.map(async (id) => hydrateProduct(await dataProvider.get(COLLECTIONS.products, id))))
+  const products = await Promise.all(productIds.map(async (id) => hydrateProduct(await safeProviderGet(COLLECTIONS.products, id))))
   const productsById = new Map(products.filter(Boolean).map((product) => [String(product.id), product]))
   response.status(200).json({
     items: records.map((record) => projectCellarRecord(record, productsById.get(String(record.product_id)) || null))
@@ -125,7 +133,7 @@ const updateCellar = async (id, request, response, user) => {
   }
   const updated = firstRecord(await dataProvider.update(COLLECTIONS.cellar, existing.id, updates))
   const merged = { ...existing, ...updated }
-  const product = await dataProvider.get(COLLECTIONS.products, merged.product_id)
+  const product = await safeProviderGet(COLLECTIONS.products, merged.product_id)
   response.status(200).json({ item: projectCellarRecord(merged, await hydrateProduct(product)) })
 }
 
@@ -178,7 +186,10 @@ export default async function handler(request, response) {
     }
     response.status(status).json(error.payload || {
       error: status < 500 && error.message ? error.message : safeErrorMessage(status),
+      code: error.code,
       requestId: correlationId
     })
   }
 }
+
+export const __testables = { safeProviderGet, hydrateProduct }
