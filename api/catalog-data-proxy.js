@@ -56,19 +56,23 @@ const parseCatalogueSearch = (value) => {
 const projectProducer = (record) => pickFields(record, PRODUCER_FIELDS)
 const projectCategory = (record) => pickFields(record, CATEGORY_FIELDS)
 
-const loadProductProducerRows = async (productIds) => {
+const safeRelationshipList = async (collection, filters) => {
   try {
-    const batches = await Promise.all(productIds.map((productId) =>
-      dataProvider.list(COLLECTIONS.productProducers, { product_id: productId })
-    ))
-    return normaliseList(batches.flat())
-  } catch (error) {
-    if (error?.status === 404) return []
-    throw error
+    return normaliseList(await dataProvider.list(collection, filters))
+  } catch {
+    return []
   }
 }
 
+const loadProductProducerRows = async (productIds) => {
+  if (!productIds.length) return []
+  return safeRelationshipList(COLLECTIONS.productProducers, {
+    'product_id[in]': productIds.join(',')
+  })
+}
+
 const hydrateProducts = async (products) => {
+  if (!products.length) return []
   const productIds = [...new Set(products.map((product) => String(product.id)))]
   const junctionRows = await loadProductProducerRows(productIds)
   const junctionByProduct = new Map()
@@ -90,11 +94,15 @@ const hydrateProducts = async (products) => {
   }
 
   const [producers, categories] = await Promise.all([
-    Promise.all([...producerIds].map((id) => dataProvider.get(COLLECTIONS.producers, id))),
-    Promise.all([...categoryIds].map((id) => dataProvider.get(COLLECTIONS.categories, id)))
+    producerIds.size
+      ? safeRelationshipList(COLLECTIONS.producers, { 'id[in]': [...producerIds].join(',') })
+      : [],
+    categoryIds.size
+      ? safeRelationshipList(COLLECTIONS.categories, { 'id[in]': [...categoryIds].join(',') })
+      : []
   ])
-  const producersById = indexById(normaliseList(producers))
-  const categoriesById = indexById(normaliseList(categories))
+  const producersById = indexById(producers)
+  const categoriesById = indexById(categories)
 
   return products.map((product) => {
     const rows = junctionByProduct.get(String(product.id)) || []
@@ -215,9 +223,10 @@ export default async function handler(request, response) {
     }
     response.status(status).json(error.payload || {
       error: status < 500 && error.message ? error.message : safeErrorMessage(status),
+      code: error.code,
       requestId: correlationId
     })
   }
 }
 
-export const __testables = { hydrateProducts, loadProductProducerRows }
+export const __testables = { hydrateProducts, loadProductProducerRows, safeRelationshipList }
