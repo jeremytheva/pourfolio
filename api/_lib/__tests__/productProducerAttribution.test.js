@@ -14,27 +14,29 @@ const withProviderStubs = async (stubs, callback) => {
 }
 
 test('catalogue exposes every attributed collaboration producer while retaining a primary producer', async () => {
+  const calls = []
   await withProviderStubs({
-    async list(collection, filters) {
-      if (collection === 'product_producers' && String(filters.product_id) === '319') {
+    async list(collection, filters = {}) {
+      calls.push({ collection, filters })
+      if (collection === 'product_producers') {
+        assert.equal(filters['product_id[in]'], '319')
         return [
           { id: 1, product_id: 319, producer_id: 114, is_primary: 1 },
           { id: 2, product_id: 319, producer_id: 85, is_primary: 0 }
         ]
       }
-      return []
-    },
-    async get(collection, id) {
-      const records = {
-        producers: {
-          114: { id: 114, producer_name: 'Range' },
-          85: { id: 85, producer_name: 'Kicks Brewing' }
-        },
-        categories: {
-          26: { id: 26, category_name: 'Double IPA' }
-        }
+      if (collection === 'producers') {
+        assert.equal(filters['id[in]'], '114,85')
+        return [
+          { id: 114, producer_name: 'Range' },
+          { id: 85, producer_name: 'Kicks Brewing' }
+        ]
       }
-      return records[collection]?.[id] || null
+      if (collection === 'categories') {
+        assert.equal(filters['id[in]'], '26')
+        return [{ id: 26, category_name: 'Double IPA' }]
+      }
+      return []
     }
   }, async () => {
     const [product] = await __testables.hydrateProducts([{
@@ -47,6 +49,7 @@ test('catalogue exposes every attributed collaboration producer while retaining 
 
     assert.equal(product.producer.producer_name, 'Range')
     assert.deepEqual(product.producers.map((producer) => producer.producer_name), ['Range', 'Kicks Brewing'])
+    assert.equal(calls.length, 3)
   })
 })
 
@@ -58,11 +61,8 @@ test('catalogue remains compatible before the junction collection is deployed', 
         error.status = 404
         throw error
       }
+      if (collection === 'producers') return [{ id: 49, producer_name: 'Legacy Brewery' }]
       return []
-    },
-    async get(collection, id) {
-      if (collection === 'producers' && String(id) === '49') return { id: 49, producer_name: 'Legacy Brewery' }
-      return null
     }
   }, async () => {
     const [product] = await __testables.hydrateProducts([{
@@ -73,5 +73,26 @@ test('catalogue remains compatible before the junction collection is deployed', 
     }])
     assert.equal(product.producer.producer_name, 'Legacy Brewery')
     assert.deepEqual(product.producers.map((producer) => producer.producer_name), ['Legacy Brewery'])
+  })
+})
+
+test('optional relationship failures do not make core products unavailable', async () => {
+  await withProviderStubs({
+    async list() {
+      const error = new Error('provider unavailable')
+      error.status = 403
+      throw error
+    }
+  }, async () => {
+    const [product] = await __testables.hydrateProducts([{
+      id: 2,
+      product_name: 'Core product',
+      producer_id: 49,
+      product_category_id: 26
+    }])
+    assert.equal(product.product_name, 'Core product')
+    assert.equal(product.producer, null)
+    assert.deepEqual(product.producers, [])
+    assert.equal(product.category, null)
   })
 })
