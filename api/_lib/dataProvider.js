@@ -1,4 +1,5 @@
 import { safeErrorMessage, withTimeout } from './httpSecurity.js'
+import { getDataRequestContext } from './dataRequestContext.js'
 
 const normalisePayload = (payload) => {
   if (payload === undefined || payload === null) return null
@@ -95,13 +96,19 @@ const operationPath = (operation, collection, id) => {
 const providerRequest = async (path, { method = 'GET', body, filters, preserveEnvelope = false } = {}) => {
   const { baseUrl, secret } = getConfiguration()
   const managedProxy = usesManagedDataProxy(baseUrl)
+  const requestContext = getDataRequestContext()
   let upstream
   try {
     upstream = await withTimeout((signal) => fetch(buildUrl(baseUrl, path, filters), {
       method,
       headers: {
         accept: 'application/json',
-        ...(managedProxy ? {} : { authorization: `Bearer ${secret}` }),
+        ...(managedProxy
+          ? {
+              ...(requestContext.cookie ? { cookie: requestContext.cookie } : {}),
+              ...(requestContext.origin ? { origin: requestContext.origin } : {})
+            }
+          : { authorization: `Bearer ${secret}` }),
         ...(body === undefined ? {} : { 'content-type': 'application/json' })
       },
       body: body === undefined ? undefined : JSON.stringify(body),
