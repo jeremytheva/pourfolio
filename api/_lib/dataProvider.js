@@ -1,6 +1,6 @@
 import { safeErrorMessage, withTimeout } from './httpSecurity.js'
 
-const DEFAULT_DATA_BASE_URL = 'https://api.nocodebackend.com'
+const DEFAULT_DATA_BASE_URL = 'https://app.nocodebackend.com/api/data'
 const DEFAULT_INSTANCE = '54026_rating'
 
 const normalisePayload = (payload) => {
@@ -82,9 +82,9 @@ const looksLikeLegacyLambdaProxy = (baseUrl) => {
 }
 
 const getConfiguration = () => {
-  const configuredBaseUrl = process.env.NOCODEBACKEND_DATA_BASE_URL?.trim()
-  const secret = process.env.NOCODEBACKEND_SECRET_KEY
-  const instance = process.env.NOCODEBACKEND_INSTANCE || DEFAULT_INSTANCE
+  const configuredBaseUrl = process.env.NCB_DATA_API_URL?.trim() || process.env.NOCODEBACKEND_DATA_BASE_URL?.trim()
+  const secret = process.env.NCB_SECRET_KEY || process.env.NOCODEBACKEND_SECRET_KEY
+  const instance = process.env.NCB_INSTANCE || process.env.NOCODEBACKEND_INSTANCE || DEFAULT_INSTANCE
 
   if (!secret) {
     const error = new Error('The production data service is not configured.')
