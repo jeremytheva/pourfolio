@@ -4,6 +4,8 @@ import test from 'node:test'
 import handler from '../health.js'
 
 const environmentVariables = [
+  'NCB_SECRET_KEY',
+  'NCB_DATA_API_URL',
   'NOCODEBACKEND_SECRET_KEY',
   'NOCODEBACKEND_DATA_BASE_URL',
   'pourfolio_KV_REST_API_URL',
@@ -83,10 +85,10 @@ test('reports the rate limiter as unconfigured when either Redis REST value is m
   t.after(() => configureEnvironment())
 })
 
-test('health identifies the generated table API including automatic legacy-Lambda bypass', (t) => {
+test('health identifies the supplied generated table API including automatic legacy-Lambda bypass', (t) => {
   configureEnvironment({
-    NOCODEBACKEND_SECRET_KEY: 'server-secret',
-    NOCODEBACKEND_DATA_BASE_URL: 'https://api.nocodebackend.com',
+    NCB_SECRET_KEY: 'server-secret',
+    NCB_DATA_API_URL: 'https://app.nocodebackend.com/api/data',
     pourfolio_KV_REST_API_URL: 'https://redis.example.test',
     pourfolio_KV_REST_API_TOKEN: 'redis-token-value'
   })
@@ -94,6 +96,7 @@ test('health identifies the generated table API including automatic legacy-Lambd
   assert.equal(result.body.checks.dataConfigured, true)
   assert.equal(result.body.checks.dataTransport, 'generated-table-api')
 
+  delete process.env.NCB_DATA_API_URL
   process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://example.lambda-url.us-east-2.on.aws/data'
   result = invokeHealthHandler()
   assert.equal(result.body.checks.dataConfigured, true)
@@ -126,8 +129,8 @@ test('health identifies a custom table API and rejects malformed data endpoint c
 
 test('health response never exposes configured credential values', (t) => {
   const configuredEnvironment = {
-    NOCODEBACKEND_SECRET_KEY: 'private-server-secret',
-    NOCODEBACKEND_DATA_BASE_URL: 'https://provider.example.test/data',
+    NCB_SECRET_KEY: 'private-server-secret',
+    NCB_DATA_API_URL: 'https://app.nocodebackend.com/api/data',
     pourfolio_KV_REST_API_URL: 'https://private-redis.example.test',
     pourfolio_KV_REST_API_TOKEN: 'private-redis-token-value',
     RATE_LIMIT_KEY_SECRET: 'private-rate-limit-secret-value'
