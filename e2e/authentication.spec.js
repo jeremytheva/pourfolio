@@ -162,8 +162,7 @@ test('create-account mode resolves an acknowledged sign-up through the session e
     expect(route.request().postDataJSON()).toEqual({
       email: 'new@example.com',
       password: 'correct-horse',
-      name: 'New Drinker',
-      metadata: { name: 'New Drinker' }
+      name: 'New Drinker'
     })
     signedIn = true
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ accepted: true }) })
