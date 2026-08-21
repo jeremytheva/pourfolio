@@ -5,6 +5,8 @@ import { runWithDataRequestContext } from './_lib/dataRequestContext.js'
 const providerState = (error) => {
   if (error?.code === 'DATA_CONFIGURATION_MISSING' || error?.code === 'DATA_CONFIGURATION_INVALID') return 'misconfigured'
   if (error?.code === 'DATA_PROVIDER_UNAUTHENTICATED') return 'unauthenticated'
+  if (error?.code === 'DATA_PROVIDER_FORBIDDEN_NO_SESSION') return 'forbidden-no-session'
+  if (error?.code === 'DATA_PROVIDER_FORBIDDEN_WITH_SESSION') return 'forbidden-with-session'
   if (error?.code === 'DATA_PROVIDER_FORBIDDEN') return 'forbidden'
   if (error?.status === 404) return 'contract-mismatch'
   return 'unavailable'
