@@ -3,7 +3,7 @@ import { dataProvider } from './_lib/dataProvider.js'
 import { runWithDataRequestContext } from './_lib/dataRequestContext.js'
 
 const providerState = (error) => {
-  if (error?.code === 'DATA_CONFIGURATION_MISSING' || error?.code === 'DATA_CONFIGURATION_INVALID') return 'misconfigured'
+  if (['DATA_CONFIGURATION_MISSING', 'DATA_CONFIGURATION_INVALID', 'DATA_CREDENTIAL_MISSING'].includes(error?.code)) return 'misconfigured'
   if (error?.code === 'DATA_PROVIDER_UNAUTHENTICATED') return 'unauthenticated'
   if (error?.code === 'DATA_PROVIDER_FORBIDDEN_NO_SESSION') return 'forbidden-no-session'
   if (error?.code === 'DATA_PROVIDER_FORBIDDEN_WITH_SESSION') return 'forbidden-with-session'

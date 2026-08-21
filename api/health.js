@@ -1,3 +1,5 @@
+import { credentialConfigurationState } from './_lib/ncbCredentials.js'
+
 const CANONICAL_DATA_BASE_URL = 'https://app.nocodebackend.com/api/data'
 
 const canonicalDataUrl = (value) => {
@@ -47,18 +49,19 @@ const secretAliasState = () => {
 
 export default function handler(_request, response) {
   const dataState = dataTransportState()
-  const secretState = secretAliasState()
-  const secretConfigured = secretState !== 'missing' && secretState !== 'conflicting'
+  const credentials = credentialConfigurationState()
   response.setHeader('Cache-Control', 'no-store')
   response.status(200).json({
     status: 'ok',
     service: 'pourfolio',
     checks: {
-      authenticationConfigured: secretConfigured,
-      dataConfigured: secretConfigured && dataState.transport !== 'invalid',
+      authenticationConfigured: credentials.authConfigured,
+      dataConfigured: credentials.dataConfigured && dataState.transport !== 'invalid',
       dataTransport: dataState.transport,
       dataOverride: dataState.override,
-      secretAliasState: secretState,
+      secretAliasState: secretAliasState(),
+      authCredentialSource: credentials.authCredential,
+      dataCredentialSource: credentials.dataCredential,
       rateLimiterConfigured: Boolean(
         (process.env.pourfolio_KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL) &&
         (process.env.pourfolio_KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN)

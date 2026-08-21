@@ -6,6 +6,8 @@ const originalFetch = global.fetch
 const originalEnvironment = {
   NCB_DATA_API_URL: process.env.NCB_DATA_API_URL,
   NCB_SECRET_KEY: process.env.NCB_SECRET_KEY,
+  NCB_API_KEY: process.env.NCB_API_KEY,
+  NOCODEBACKEND_API_KEY: process.env.NOCODEBACKEND_API_KEY,
   NCB_INSTANCE: process.env.NCB_INSTANCE,
   NOCODEBACKEND_DATA_BASE_URL: process.env.NOCODEBACKEND_DATA_BASE_URL,
   NOCODEBACKEND_SECRET_KEY: process.env.NOCODEBACKEND_SECRET_KEY,
@@ -14,10 +16,12 @@ const originalEnvironment = {
 
 test.beforeEach(() => {
   delete process.env.NCB_DATA_API_URL
-  delete process.env.NCB_SECRET_KEY
+  process.env.NCB_SECRET_KEY = 'test-secret'
+  delete process.env.NCB_API_KEY
+  delete process.env.NOCODEBACKEND_API_KEY
   delete process.env.NCB_INSTANCE
   process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://app.nocodebackend.com/api/data'
-  process.env.NOCODEBACKEND_SECRET_KEY = 'test-secret'
+  delete process.env.NOCODEBACKEND_SECRET_KEY
   process.env.NOCODEBACKEND_INSTANCE = '54026_rating'
 })
 
@@ -58,7 +62,7 @@ test('NCB environment names are preferred when supplied', async () => {
   process.env.NCB_SECRET_KEY = 'ncb-secret'
   process.env.NCB_INSTANCE = '54026_rating'
   process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://wrong.example.test'
-  process.env.NOCODEBACKEND_SECRET_KEY = 'wrong-secret'
+  process.env.NOCODEBACKEND_SECRET_KEY = 'wrong-auth-secret'
   process.env.NOCODEBACKEND_INSTANCE = 'wrong-instance'
 
   let request
@@ -70,6 +74,23 @@ test('NCB environment names are preferred when supplied', async () => {
   assert.deepEqual(await dataProvider.list('products'), [])
   assert.equal(request.url, 'https://app.nocodebackend.com/api/data/read/products?Instance=54026_rating')
   assert.equal(request.options.headers.authorization, 'Bearer ncb-secret')
+})
+
+test('documented generated-table API key aliases are supported', async () => {
+  delete process.env.NCB_SECRET_KEY
+  process.env.NCB_API_KEY = 'api-key'
+  let request
+  global.fetch = async (url, options) => {
+    request = { url: String(url), options }
+    return response({ status: 'success', data: [] })
+  }
+  assert.deepEqual(await dataProvider.list('products'), [])
+  assert.equal(request.options.headers.authorization, 'Bearer api-key')
+
+  delete process.env.NCB_API_KEY
+  process.env.NOCODEBACKEND_API_KEY = 'legacy-api-key'
+  assert.deepEqual(await dataProvider.list('products'), [])
+  assert.equal(request.options.headers.authorization, 'Bearer legacy-api-key')
 })
 
 test('legacy Lambda configuration is automatically bypassed in favour of the configured NCB data API root', async () => {
@@ -228,12 +249,14 @@ test('upstream network failures become safe gateway errors', async () => {
   })
 })
 
-test('missing secret fails closed without making a provider request', async () => {
+test('legacy auth secret alone fails closed without making a provider request', async () => {
   delete process.env.NCB_SECRET_KEY
-  delete process.env.NOCODEBACKEND_SECRET_KEY
+  delete process.env.NCB_API_KEY
+  delete process.env.NOCODEBACKEND_API_KEY
+  process.env.NOCODEBACKEND_SECRET_KEY = 'auth-only-secret'
   global.fetch = async () => assert.fail('fetch must not be called')
   await assert.rejects(dataProvider.list('products'), {
     status: 503,
-    code: 'DATA_CONFIGURATION_MISSING'
+    code: 'DATA_CREDENTIAL_MISSING'
   })
 })

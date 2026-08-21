@@ -1,5 +1,6 @@
 import { safeErrorMessage, withTimeout } from './httpSecurity.js'
 import { getDataRequestContext } from './dataRequestContext.js'
+import { resolveDataCredential } from './ncbCredentials.js'
 
 const DEFAULT_DATA_BASE_URL = 'https://app.nocodebackend.com/api/data'
 const DEFAULT_INSTANCE = '54026_rating'
@@ -115,19 +116,21 @@ const resolveDataBaseUrl = (configuredBaseUrl) => {
 
 const getConfiguration = () => {
   const configuredBaseUrl = process.env.NCB_DATA_API_URL?.trim() || process.env.NOCODEBACKEND_DATA_BASE_URL?.trim()
-  const secret = process.env.NCB_SECRET_KEY || process.env.NOCODEBACKEND_SECRET_KEY
   const instance = process.env.NCB_INSTANCE || process.env.NOCODEBACKEND_INSTANCE || DEFAULT_INSTANCE
+  let credential
 
-  if (!secret) {
-    const error = new Error('The production data service is not configured.')
+  try {
+    credential = resolveDataCredential()
+  } catch (cause) {
+    const error = new Error('The production data service credential is not configured.')
     error.status = 503
-    error.code = 'DATA_CONFIGURATION_MISSING'
+    error.code = cause?.code === 'DATA_CREDENTIAL_MISSING' ? 'DATA_CREDENTIAL_MISSING' : 'DATA_CONFIGURATION_INVALID'
     throw error
   }
 
   return {
     baseUrl: resolveDataBaseUrl(configuredBaseUrl),
-    secret,
+    secret: credential.value,
     instance
   }
 }
@@ -167,7 +170,7 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
       signal
     }))
   } catch (cause) {
-    if (cause?.code === 'DATA_CONFIGURATION_INVALID') throw cause
+    if (cause?.code === 'DATA_CONFIGURATION_INVALID' || cause?.code === 'DATA_CREDENTIAL_MISSING') throw cause
     const error = new Error(safeErrorMessage(502))
     error.status = 502
     error.code = 'PROVIDER_ERROR'
@@ -251,6 +254,7 @@ export const __testables = {
   normalisePage,
   buildProviderHeaders,
   getProviderErrorCode,
+  getConfiguration,
   DEFAULT_DATA_BASE_URL,
   DEFAULT_INSTANCE
 }
