@@ -7,53 +7,44 @@ const entries = () => ({
   legacySecret: normalise(process.env.NOCODEBACKEND_SECRET_KEY)
 })
 
-const uniqueValues = (values) => [...new Set(values.filter(Boolean))]
-
-export const credentialState = () => {
-  const values = entries()
-  const configured = Object.entries(values).filter(([, value]) => value)
-  const distinct = uniqueValues(configured.map(([, value]) => value))
-
-  return {
-    configuredAliases: configured.map(([name]) => name),
-    conflict: distinct.length > 1,
-    missing: configured.length === 0
-  }
-}
-
-const resolve = (orderedAliases) => {
-  const values = entries()
-  const state = credentialState()
-  if (state.conflict) {
-    const error = new Error('NoCodeBackend credential configuration is inconsistent.')
-    error.status = 503
-    error.code = 'NCB_CREDENTIAL_CONFLICT'
-    throw error
-  }
-
-  for (const alias of orderedAliases) {
+const firstConfigured = (values, aliases) => {
+  for (const alias of aliases) {
     if (values[alias]) return { value: values[alias], source: alias }
   }
-
-  const error = new Error('NoCodeBackend credential is not configured.')
-  error.status = 503
-  error.code = 'NCB_CREDENTIAL_MISSING'
-  throw error
+  return null
 }
 
-export const resolveAuthCredential = () => resolve([
-  'canonicalSecret',
-  'legacySecret',
-  'canonicalApiKey',
-  'legacyApiKey'
-])
+const missingCredential = (kind) => {
+  const error = new Error(`NoCodeBackend ${kind} credential is not configured.`)
+  error.status = 503
+  error.code = kind === 'data' ? 'DATA_CREDENTIAL_MISSING' : 'AUTH_CREDENTIAL_MISSING'
+  return error
+}
 
-export const resolveDataCredential = () => resolve([
-  'canonicalSecret',
-  'canonicalApiKey',
-  'legacyApiKey',
-  'legacySecret'
-])
+export const resolveAuthCredential = () => {
+  const resolved = firstConfigured(entries(), [
+    'canonicalSecret',
+    'legacySecret',
+    'canonicalApiKey',
+    'legacyApiKey'
+  ])
+  if (!resolved) throw missingCredential('auth')
+  return resolved
+}
+
+// Recovered NoCodeBackend data-client evidence defines the generated-table
+// credential chain as NCB_SECRET_KEY -> NCB_API_KEY -> NOCODEBACKEND_API_KEY.
+// NOCODEBACKEND_SECRET_KEY remains an auth compatibility alias only and must
+// not silently stand in for the table API credential.
+export const resolveDataCredential = () => {
+  const resolved = firstConfigured(entries(), [
+    'canonicalSecret',
+    'canonicalApiKey',
+    'legacyApiKey'
+  ])
+  if (!resolved) throw missingCredential('data')
+  return resolved
+}
 
 export const credentialSourceLabel = (source) => ({
   canonicalSecret: 'ncb-secret-key',
@@ -62,4 +53,16 @@ export const credentialSourceLabel = (source) => ({
   legacySecret: 'nocodebackend-secret-key'
 }[source] || 'missing')
 
-export const __testables = { entries, uniqueValues }
+export const credentialConfigurationState = () => {
+  const values = entries()
+  const auth = firstConfigured(values, ['canonicalSecret', 'legacySecret', 'canonicalApiKey', 'legacyApiKey'])
+  const data = firstConfigured(values, ['canonicalSecret', 'canonicalApiKey', 'legacyApiKey'])
+  return {
+    authCredential: credentialSourceLabel(auth?.source),
+    dataCredential: credentialSourceLabel(data?.source),
+    authConfigured: Boolean(auth),
+    dataConfigured: Boolean(data)
+  }
+}
+
+export const __testables = { entries, firstConfigured }
