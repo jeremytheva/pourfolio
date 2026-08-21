@@ -5,6 +5,8 @@ import handler from '../health.js'
 
 const environmentVariables = [
   'NCB_SECRET_KEY',
+  'NCB_API_KEY',
+  'NOCODEBACKEND_API_KEY',
   'NCB_DATA_API_URL',
   'NCB_ALLOW_CUSTOM_DATA_API',
   'NOCODEBACKEND_SECRET_KEY',
@@ -41,7 +43,9 @@ test('reports the rate limiter as configured with Vercel KV values and a derived
 })
 
 test('reports the rate limiter as configured with legacy Upstash aliases', (t) => {
-  configureEnvironment({ NOCODEBACKEND_SECRET_KEY: 'server-secret', UPSTASH_REDIS_REST_URL: 'https://redis.example.test', UPSTASH_REDIS_REST_TOKEN: 'redis-token-value' })
+  configureEnvironment({ NOCODEBACKEND_SECRET_KEY: 'server-secret', UPSTASH_REDIS_REST_API_URL: 'https://redis.example.test', UPSTASH_REDIS_REST_TOKEN: 'redis-token-value' })
+  // Correct alias name is exercised by the next assignment; this protects against leaked env state.
+  process.env.UPSTASH_REDIS_REST_URL = 'https://redis.example.test'
   assert.equal(invokeHealthHandler().body.checks.rateLimiterConfigured, true)
   t.after(() => configureEnvironment())
 })
@@ -62,6 +66,7 @@ test('health enforces the supplied generated table API and ignores stale overrid
   assert.equal(result.body.checks.dataConfigured, true)
   assert.equal(result.body.checks.dataTransport, 'generated-table-api')
   assert.equal(result.body.checks.dataOverride, 'none')
+  assert.equal(result.body.checks.dataCredentialSource, 'ncb-secret-key')
 
   delete process.env.NCB_DATA_API_URL
   process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://example.lambda-url.us-east-2.on.aws/data'
@@ -78,9 +83,10 @@ test('health enforces the supplied generated table API and ignores stale overrid
 })
 
 test('custom table API requires explicit opt-in and malformed opted-in configuration fails closed', (t) => {
-  configureEnvironment({ NOCODEBACKEND_SECRET_KEY: 'server-secret', NOCODEBACKEND_DATA_BASE_URL: 'https://provider.example.test/data', NCB_ALLOW_CUSTOM_DATA_API: '1' })
+  configureEnvironment({ NCB_API_KEY: 'data-key', NOCODEBACKEND_DATA_BASE_URL: 'https://provider.example.test/data', NCB_ALLOW_CUSTOM_DATA_API: '1' })
   let result = invokeHealthHandler()
   assert.equal(result.body.checks.dataConfigured, true)
+  assert.equal(result.body.checks.dataCredentialSource, 'ncb-api-key')
   assert.equal(result.body.checks.dataTransport, 'custom-table-api')
   assert.equal(result.body.checks.dataOverride, 'accepted')
 
@@ -92,20 +98,27 @@ test('custom table API requires explicit opt-in and malformed opted-in configura
   t.after(() => configureEnvironment())
 })
 
-test('health reports secret alias state without exposing secret values', (t) => {
-  const cases = [
-    [{}, 'missing', false],
-    [{ NCB_SECRET_KEY: 'one' }, 'canonical-only', true],
-    [{ NOCODEBACKEND_SECRET_KEY: 'one' }, 'legacy-only', true],
-    [{ NCB_SECRET_KEY: 'one', NOCODEBACKEND_SECRET_KEY: 'one' }, 'aligned', true],
-    [{ NCB_SECRET_KEY: 'one', NOCODEBACKEND_SECRET_KEY: 'two' }, 'conflicting', false]
-  ]
-  for (const [environment, state, configured] of cases) {
-    configureEnvironment(environment)
-    const result = invokeHealthHandler()
-    assert.equal(result.body.checks.secretAliasState, state)
-    assert.equal(result.body.checks.dataConfigured, configured)
-  }
+test('legacy auth secret alone does not claim generated-table readiness', (t) => {
+  configureEnvironment({ NOCODEBACKEND_SECRET_KEY: 'auth-secret' })
+  const result = invokeHealthHandler()
+  assert.equal(result.body.checks.authenticationConfigured, true)
+  assert.equal(result.body.checks.authCredentialSource, 'nocodebackend-secret-key')
+  assert.equal(result.body.checks.dataConfigured, false)
+  assert.equal(result.body.checks.dataCredentialSource, 'missing')
+  assert.equal(result.body.checks.secretAliasState, 'legacy-only')
+  t.after(() => configureEnvironment())
+})
+
+test('health reports supported generated-table API key aliases', (t) => {
+  configureEnvironment({ NCB_API_KEY: 'data-key' })
+  let result = invokeHealthHandler()
+  assert.equal(result.body.checks.dataConfigured, true)
+  assert.equal(result.body.checks.dataCredentialSource, 'ncb-api-key')
+
+  configureEnvironment({ NOCODEBACKEND_API_KEY: 'legacy-data-key' })
+  result = invokeHealthHandler()
+  assert.equal(result.body.checks.dataConfigured, true)
+  assert.equal(result.body.checks.dataCredentialSource, 'nocodebackend-api-key')
   t.after(() => configureEnvironment())
 })
 
