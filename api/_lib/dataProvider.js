@@ -67,11 +67,13 @@ const requireExpectedRecord = (record, id) => {
   return record
 }
 
-const getProviderErrorCode = (status, filters = {}) => {
+const getProviderErrorCode = (status, filters = {}, hasSessionContext = false) => {
   if (status === 409 && filters?.expected_version !== undefined) return 'VERSION_CONFLICT'
   if (status === 409) return 'UNIQUE_CONFLICT'
   if (status === 401) return 'DATA_PROVIDER_UNAUTHENTICATED'
-  if (status === 403) return 'DATA_PROVIDER_FORBIDDEN'
+  if (status === 403) return hasSessionContext
+    ? 'DATA_PROVIDER_FORBIDDEN_WITH_SESSION'
+    : 'DATA_PROVIDER_FORBIDDEN_NO_SESSION'
   return 'PROVIDER_ERROR'
 }
 
@@ -154,6 +156,8 @@ const buildProviderHeaders = ({ secret, instance, body }) => {
 
 const providerRequest = async (path, { method = 'GET', body, filters, preserveEnvelope = false } = {}) => {
   const { baseUrl, secret, instance } = getConfiguration()
+  const context = getDataRequestContext()
+  const hasSessionContext = Boolean(context.cookie)
   let upstream
   try {
     upstream = await withTimeout((signal) => fetch(buildUrl(baseUrl, path, filters, instance), {
@@ -184,7 +188,7 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
   if (!upstream.ok || payload?.error || payload?.success === false || payload?.status === 'error') {
     const error = new Error(safeErrorMessage(upstream.status))
     error.status = upstream.status >= 400 && upstream.status < 600 ? upstream.status : 502
-    error.code = getProviderErrorCode(error.status, filters)
+    error.code = getProviderErrorCode(error.status, filters, hasSessionContext)
     throw error
   }
 
@@ -246,6 +250,7 @@ export const __testables = {
   resolveDataBaseUrl,
   normalisePage,
   buildProviderHeaders,
+  getProviderErrorCode,
   DEFAULT_DATA_BASE_URL,
   DEFAULT_INSTANCE
 }
