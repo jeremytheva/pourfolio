@@ -12,14 +12,14 @@ const originalEnvironment = {
   NOCODEBACKEND_DATA_BASE_URL: process.env.NOCODEBACKEND_DATA_BASE_URL
 }
 
-const invoke = async () => {
+const invoke = async (headers = {}) => {
   const result = { headers: {} }
   const response = {
     setHeader(name, value) { result.headers[name] = value },
     status(statusCode) { result.statusCode = statusCode; return this },
     json(body) { result.body = body; return this }
   }
-  await handler({ method: 'GET', headers: {} }, response)
+  await handler({ method: 'GET', headers }, response)
   return result
 }
 
@@ -49,7 +49,7 @@ test('readiness reports ready after a bounded products read', async () => {
   assert.deepEqual(result.body, { status: 'ready', checks: { dataProvider: 'ok' } })
 })
 
-test('readiness reports provider authorisation failures without leaking details', async () => {
+test('readiness reports provider authorisation failures without a session distinctly and without leaking details', async () => {
   global.fetch = async () => ({
     ok: false,
     status: 403,
@@ -57,13 +57,26 @@ test('readiness reports provider authorisation failures without leaking details'
   })
   const result = await invoke()
   assert.equal(result.statusCode, 503)
-  assert.deepEqual(result.body, { status: 'degraded', checks: { dataProvider: 'forbidden' } })
+  assert.deepEqual(result.body, { status: 'degraded', checks: { dataProvider: 'forbidden-no-session' } })
   assert.equal(JSON.stringify(result.body).includes('private upstream detail'), false)
+})
+
+test('readiness distinguishes an authenticated session rejected by the provider', async () => {
+  global.fetch = async () => ({
+    ok: false,
+    status: 403,
+    text: async () => JSON.stringify({ error: 'private upstream detail' })
+  })
+  const result = await invoke({ cookie: 'better-auth.session_token=test-token' })
+  assert.equal(result.statusCode, 503)
+  assert.deepEqual(result.body, { status: 'degraded', checks: { dataProvider: 'forbidden-with-session' } })
 })
 
 test('provider readiness states remain stable and machine-readable', () => {
   assert.equal(__testables.providerState({ code: 'DATA_CONFIGURATION_MISSING' }), 'misconfigured')
   assert.equal(__testables.providerState({ code: 'DATA_PROVIDER_UNAUTHENTICATED' }), 'unauthenticated')
+  assert.equal(__testables.providerState({ code: 'DATA_PROVIDER_FORBIDDEN_NO_SESSION' }), 'forbidden-no-session')
+  assert.equal(__testables.providerState({ code: 'DATA_PROVIDER_FORBIDDEN_WITH_SESSION' }), 'forbidden-with-session')
   assert.equal(__testables.providerState({ code: 'DATA_PROVIDER_FORBIDDEN' }), 'forbidden')
   assert.equal(__testables.providerState({ status: 404 }), 'contract-mismatch')
   assert.equal(__testables.providerState({ status: 502 }), 'unavailable')
