@@ -36,9 +36,19 @@ const dataTransportState = () => {
   }
 }
 
+const secretAliasState = () => {
+  const canonical = process.env.NCB_SECRET_KEY?.trim()
+  const legacy = process.env.NOCODEBACKEND_SECRET_KEY?.trim()
+  if (!canonical && !legacy) return 'missing'
+  if (canonical && !legacy) return 'canonical-only'
+  if (!canonical && legacy) return 'legacy-only'
+  return canonical === legacy ? 'aligned' : 'conflicting'
+}
+
 export default function handler(_request, response) {
   const dataState = dataTransportState()
-  const secretConfigured = Boolean(process.env.NCB_SECRET_KEY || process.env.NOCODEBACKEND_SECRET_KEY)
+  const secretState = secretAliasState()
+  const secretConfigured = secretState !== 'missing' && secretState !== 'conflicting'
   response.setHeader('Cache-Control', 'no-store')
   response.status(200).json({
     status: 'ok',
@@ -48,6 +58,7 @@ export default function handler(_request, response) {
       dataConfigured: secretConfigured && dataState.transport !== 'invalid',
       dataTransport: dataState.transport,
       dataOverride: dataState.override,
+      secretAliasState: secretState,
       rateLimiterConfigured: Boolean(
         (process.env.pourfolio_KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL) &&
         (process.env.pourfolio_KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN)
@@ -56,4 +67,4 @@ export default function handler(_request, response) {
   })
 }
 
-export const __testables = { dataTransportState, canonicalDataUrl, CANONICAL_DATA_BASE_URL }
+export const __testables = { dataTransportState, secretAliasState, canonicalDataUrl, CANONICAL_DATA_BASE_URL }
