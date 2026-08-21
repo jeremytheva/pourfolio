@@ -19,19 +19,10 @@ const environmentVariables = [
 function invokeHealthHandler() {
   const result = { headers: {} }
   const response = {
-    setHeader(name, value) {
-      result.headers[name] = value
-    },
-    status(statusCode) {
-      result.statusCode = statusCode
-      return this
-    },
-    json(body) {
-      result.body = body
-      return this
-    }
+    setHeader(name, value) { result.headers[name] = value },
+    status(statusCode) { result.statusCode = statusCode; return this },
+    json(body) { result.body = body; return this }
   }
-
   handler({}, response)
   return result
 }
@@ -44,53 +35,29 @@ function configureEnvironment(environment = {}) {
 }
 
 test('reports the rate limiter as configured with Vercel KV values and a derived key source', (t) => {
-  configureEnvironment({
-    NOCODEBACKEND_SECRET_KEY: 'server-secret',
-    pourfolio_KV_REST_API_URL: 'https://redis.example.test',
-    pourfolio_KV_REST_API_TOKEN: 'redis-token-value'
-  })
-
-  const result = invokeHealthHandler()
-  assert.equal(result.body.checks.rateLimiterConfigured, true)
-
+  configureEnvironment({ NOCODEBACKEND_SECRET_KEY: 'server-secret', pourfolio_KV_REST_API_URL: 'https://redis.example.test', pourfolio_KV_REST_API_TOKEN: 'redis-token-value' })
+  assert.equal(invokeHealthHandler().body.checks.rateLimiterConfigured, true)
   t.after(() => configureEnvironment())
 })
 
 test('reports the rate limiter as configured with legacy Upstash aliases', (t) => {
-  configureEnvironment({
-    NOCODEBACKEND_SECRET_KEY: 'server-secret',
-    UPSTASH_REDIS_REST_URL: 'https://redis.example.test',
-    UPSTASH_REDIS_REST_TOKEN: 'redis-token-value'
-  })
-
-  const result = invokeHealthHandler()
-  assert.equal(result.body.checks.rateLimiterConfigured, true)
-
+  configureEnvironment({ NOCODEBACKEND_SECRET_KEY: 'server-secret', UPSTASH_REDIS_REST_URL: 'https://redis.example.test', UPSTASH_REDIS_REST_TOKEN: 'redis-token-value' })
+  assert.equal(invokeHealthHandler().body.checks.rateLimiterConfigured, true)
   t.after(() => configureEnvironment())
 })
 
 test('reports the rate limiter as unconfigured when either Redis REST value is missing', (t) => {
   for (const missingVariable of ['pourfolio_KV_REST_API_URL', 'pourfolio_KV_REST_API_TOKEN']) {
-    const configuredEnvironment = {
-      NOCODEBACKEND_SECRET_KEY: 'server-secret',
-      pourfolio_KV_REST_API_URL: 'https://redis.example.test',
-      pourfolio_KV_REST_API_TOKEN: 'redis-token-value'
-    }
+    const configuredEnvironment = { NOCODEBACKEND_SECRET_KEY: 'server-secret', pourfolio_KV_REST_API_URL: 'https://redis.example.test', pourfolio_KV_REST_API_TOKEN: 'redis-token-value' }
     delete configuredEnvironment[missingVariable]
     configureEnvironment(configuredEnvironment)
-
-    const result = invokeHealthHandler()
-    assert.equal(result.body.checks.rateLimiterConfigured, false, `${missingVariable} should be required`)
+    assert.equal(invokeHealthHandler().body.checks.rateLimiterConfigured, false, `${missingVariable} should be required`)
   }
-
   t.after(() => configureEnvironment())
 })
 
 test('health enforces the supplied generated table API and ignores stale overrides', (t) => {
-  configureEnvironment({
-    NCB_SECRET_KEY: 'server-secret',
-    NCB_DATA_API_URL: 'https://app.nocodebackend.com/api/data'
-  })
+  configureEnvironment({ NCB_SECRET_KEY: 'server-secret', NCB_DATA_API_URL: 'https://app.nocodebackend.com/api/data' })
   let result = invokeHealthHandler()
   assert.equal(result.body.checks.dataConfigured, true)
   assert.equal(result.body.checks.dataTransport, 'generated-table-api')
@@ -107,16 +74,11 @@ test('health enforces the supplied generated table API and ignores stale overrid
   assert.equal(result.body.checks.dataConfigured, true)
   assert.equal(result.body.checks.dataTransport, 'generated-table-api')
   assert.equal(result.body.checks.dataOverride, 'ignored')
-
   t.after(() => configureEnvironment())
 })
 
 test('custom table API requires explicit opt-in and malformed opted-in configuration fails closed', (t) => {
-  configureEnvironment({
-    NOCODEBACKEND_SECRET_KEY: 'server-secret',
-    NOCODEBACKEND_DATA_BASE_URL: 'https://provider.example.test/data',
-    NCB_ALLOW_CUSTOM_DATA_API: '1'
-  })
+  configureEnvironment({ NOCODEBACKEND_SECRET_KEY: 'server-secret', NOCODEBACKEND_DATA_BASE_URL: 'https://provider.example.test/data', NCB_ALLOW_CUSTOM_DATA_API: '1' })
   let result = invokeHealthHandler()
   assert.equal(result.body.checks.dataConfigured, true)
   assert.equal(result.body.checks.dataTransport, 'custom-table-api')
@@ -127,7 +89,23 @@ test('custom table API requires explicit opt-in and malformed opted-in configura
   assert.equal(result.body.checks.dataConfigured, false)
   assert.equal(result.body.checks.dataTransport, 'invalid')
   assert.equal(result.body.checks.dataOverride, 'invalid')
+  t.after(() => configureEnvironment())
+})
 
+test('health reports secret alias state without exposing secret values', (t) => {
+  const cases = [
+    [{}, 'missing', false],
+    [{ NCB_SECRET_KEY: 'one' }, 'canonical-only', true],
+    [{ NOCODEBACKEND_SECRET_KEY: 'one' }, 'legacy-only', true],
+    [{ NCB_SECRET_KEY: 'one', NOCODEBACKEND_SECRET_KEY: 'one' }, 'aligned', true],
+    [{ NCB_SECRET_KEY: 'one', NOCODEBACKEND_SECRET_KEY: 'two' }, 'conflicting', false]
+  ]
+  for (const [environment, state, configured] of cases) {
+    configureEnvironment(environment)
+    const result = invokeHealthHandler()
+    assert.equal(result.body.checks.secretAliasState, state)
+    assert.equal(result.body.checks.dataConfigured, configured)
+  }
   t.after(() => configureEnvironment())
 })
 
@@ -140,15 +118,10 @@ test('health response never exposes configured credential values', (t) => {
     RATE_LIMIT_KEY_SECRET: 'private-rate-limit-secret-value'
   }
   configureEnvironment(configuredEnvironment)
-
   const result = invokeHealthHandler()
   const serialisedResponse = JSON.stringify(result.body)
-
   assert.equal(result.statusCode, 200)
   assert.equal(result.body.checks.rateLimiterConfigured, true)
-  for (const credentialValue of Object.values(configuredEnvironment)) {
-    assert.equal(serialisedResponse.includes(credentialValue), false)
-  }
-
+  for (const credentialValue of Object.values(configuredEnvironment)) assert.equal(serialisedResponse.includes(credentialValue), false)
   t.after(() => configureEnvironment())
 })
