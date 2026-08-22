@@ -8,8 +8,9 @@ import { dataProvider } from '../dataProvider.js'
 const enabled = process.env.RUN_NOCODEBACKEND_PROVIDER_CONTRACT === '1'
 const contractTest = enabled ? test : test.skip
 const requiredEnvironment = [
-  'NOCODEBACKEND_DATA_BASE_URL',
-  'NOCODEBACKEND_SECRET_KEY',
+  'NCB_DATA_API_URL',
+  'NCB_SECRET_KEY',
+  'NCB_INSTANCE',
   'NCB_CONTRACT_ENVIRONMENT',
   'NCB_CONTRACT_ALLOW_DESTRUCTIVE',
   'NCB_CONTRACT_USER_ID',
@@ -23,6 +24,9 @@ const ratingPayloads = new Map()
 const userId = process.env.NCB_CONTRACT_USER_ID
 const productId = process.env.NCB_CONTRACT_PRODUCT_ID
 const attributeId = process.env.NCB_CONTRACT_ATTRIBUTE_ID
+const dataBaseUrl = process.env.NCB_DATA_API_URL?.replace(/\/+$/, '')
+const dataSecret = process.env.NCB_SECRET_KEY
+const instance = process.env.NCB_INSTANCE
 let ratingSequence = 0
 
 const transcriptPath = process.env.NCB_CONTRACT_TRANSCRIPT_PATH
@@ -30,8 +34,8 @@ const transcript = []
 const originalFetch = globalThis.fetch
 
 const redactions = [
-  [process.env.NOCODEBACKEND_DATA_BASE_URL, '<provider-base-url>'],
-  [process.env.NOCODEBACKEND_SECRET_KEY, '<provider-secret>'],
+  [dataBaseUrl, '<provider-base-url>'],
+  [dataSecret, '<provider-secret>'],
   [unique, '<contract-run-id>'],
   [userId, '<contract-user-id>'],
   [productId, '<contract-product-id>'],
@@ -110,7 +114,23 @@ const requireContractEnvironment = () => {
   assert.deepEqual(missing, [], `Missing connected contract environment: ${missing.join(', ')}`)
   assert.equal(process.env.NCB_CONTRACT_ENVIRONMENT, 'isolated-staging')
   assert.equal(process.env.NCB_CONTRACT_ALLOW_DESTRUCTIVE, '1')
+  assert.equal(process.env.NCB_INSTANCE, '54026_rating')
 }
+
+const rawProviderUrl = (operation, collection, query = {}) => {
+  const url = new URL(`${dataBaseUrl}/${operation}/${collection}`)
+  url.searchParams.set('Instance', instance)
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== null) url.searchParams.set(key, String(value))
+  }
+  return url
+}
+
+const rawProviderHeaders = (secret = dataSecret) => ({
+  accept: 'application/json',
+  authorization: `Bearer ${secret}`,
+  'x-database-instance': instance
+})
 
 const nextRatingId = () => {
   ratingSequence += 1
@@ -191,7 +211,7 @@ test.after(async () => {
 
 contractTest('provider contract environment is explicit and isolated', () => {
   requireContractEnvironment()
-  assert.match(process.env.NOCODEBACKEND_DATA_BASE_URL, /^https:\/\//)
+  assert.match(process.env.NCB_DATA_API_URL, /^https:\/\//)
   assert.match(String(userId), /\S/)
   assert.match(String(productId), /^[1-9]\d*$/)
   assert.match(String(attributeId), /^[1-9]\d*$/)
@@ -241,15 +261,15 @@ contractTest('POST, PUT, DELETE, duplicate conflict and retry idempotency behavi
 
 contractTest('malformed, unauthorised, 404 and 409 provider behaviours are safe and machine-readable', async () => {
   requireContractEnvironment()
-  const malformed = await fetch(`${process.env.NOCODEBACKEND_DATA_BASE_URL.replace(/\/+$/, '')}/ratings`, {
+  const malformed = await fetch(rawProviderUrl('create', 'ratings'), {
     method: 'POST',
-    headers: { authorization: `Bearer ${process.env.NOCODEBACKEND_SECRET_KEY}`, 'content-type': 'application/json' },
+    headers: { ...rawProviderHeaders(), 'content-type': 'application/json' },
     body: '{'
   })
   assert.equal(malformed.status >= 400, true)
 
-  const unauthorised = await fetch(`${process.env.NOCODEBACKEND_DATA_BASE_URL.replace(/\/+$/, '')}/ratings`, {
-    headers: { authorization: 'Bearer redacted-invalid-contract-token' }
+  const unauthorised = await fetch(rawProviderUrl('read', 'ratings'), {
+    headers: rawProviderHeaders('redacted-invalid-contract-token')
   })
   assert.ok([401, 403].includes(unauthorised.status))
 
@@ -301,10 +321,11 @@ contractTest('concurrent compare-and-set on submission_version allows exactly on
 
 contractTest('provider pagination, terminal-page and ordering observations are captured without adapter dependency', async () => {
   requireContractEnvironment()
-  const base = process.env.NOCODEBACKEND_DATA_BASE_URL.replace(/\/+$/, '')
-  const response = await fetch(`${base}/ratings?user_id=${encodeURIComponent(userId)}&limit=1&page=999999`, {
-    headers: { accept: 'application/json', authorization: `Bearer ${process.env.NOCODEBACKEND_SECRET_KEY}` }
-  })
+  const response = await fetch(rawProviderUrl('read', 'ratings', {
+    user_id: userId,
+    limit: 1,
+    page: 999999
+  }), { headers: rawProviderHeaders() })
   assert.equal(response.ok, true)
   const payload = await response.json()
   const records = payload?.data ?? payload?.records ?? payload?.items ?? payload?.results ?? payload
@@ -317,8 +338,8 @@ contractTest('a client abort does not weaken canonical idempotency replay', asyn
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
-    await assert.rejects(fetch(`${process.env.NOCODEBACKEND_DATA_BASE_URL.replace(/\/+$/, '')}/ratings`, {
-      headers: { authorization: `Bearer ${process.env.NOCODEBACKEND_SECRET_KEY}` },
+    await assert.rejects(fetch(rawProviderUrl('read', 'ratings'), {
+      headers: rawProviderHeaders(),
       signal: controller.signal
     }))
   } finally {
