@@ -40,9 +40,10 @@ jobs:
       - name: Verify NoCodeBackend launch read matrix
         run: npm run test:provider-smoke
         env: &release-server-environment
-          NCB_SECRET_KEY: ${{ secrets.NCB_SECRET_KEY || secrets.NOCODEBACKEND_API_KEY }}
-          NCB_DATA_API_URL: https://app.nocodebackend.com/api/data
-          NCB_INSTANCE: 54026_rating
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NOCODEBACKEND_AUTH_BASE_URL: https://app.nocodebackend.com/api/user-auth
+          NOCODEBACKEND_DATA_BASE_URL: https://app.nocodebackend.com/api/data
+          NOCODEBACKEND_INSTANCE: 54026_rating
           EXPECT_PRODUCT_PRODUCERS: ${{ vars.EXPECT_PRODUCT_PRODUCERS }}
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
           UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
