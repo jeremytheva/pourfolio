@@ -1,10 +1,10 @@
 const normalise = (value) => typeof value === 'string' && value.trim() ? value.trim() : null
 
-const entries = () => ({
-  canonicalSecret: normalise(process.env.NCB_SECRET_KEY),
-  canonicalApiKey: normalise(process.env.NCB_API_KEY),
-  legacyApiKey: normalise(process.env.NOCODEBACKEND_API_KEY),
-  legacySecret: normalise(process.env.NOCODEBACKEND_SECRET_KEY)
+const entries = (environment = process.env) => ({
+  canonicalSecret: normalise(environment.NCB_SECRET_KEY),
+  canonicalApiKey: normalise(environment.NCB_API_KEY),
+  legacyApiKey: normalise(environment.NOCODEBACKEND_API_KEY),
+  legacySecret: normalise(environment.NOCODEBACKEND_SECRET_KEY)
 })
 
 const firstConfigured = (values, aliases) => {
@@ -21,8 +21,8 @@ const missingCredential = (kind) => {
   return error
 }
 
-export const resolveAuthCredential = () => {
-  const resolved = firstConfigured(entries(), [
+export const resolveAuthCredential = (environment = process.env) => {
+  const resolved = firstConfigured(entries(environment), [
     'canonicalSecret',
     'legacySecret',
     'canonicalApiKey',
@@ -36,8 +36,8 @@ export const resolveAuthCredential = () => {
 // credential chain as NCB_SECRET_KEY -> NCB_API_KEY -> NOCODEBACKEND_API_KEY.
 // NOCODEBACKEND_SECRET_KEY remains an auth compatibility alias only and must
 // not silently stand in for the table API credential.
-export const resolveDataCredential = () => {
-  const resolved = firstConfigured(entries(), [
+export const resolveDataCredential = (environment = process.env) => {
+  const resolved = firstConfigured(entries(environment), [
     'canonicalSecret',
     'canonicalApiKey',
     'legacyApiKey'
@@ -53,8 +53,8 @@ export const credentialSourceLabel = (source) => ({
   legacySecret: 'nocodebackend-secret-key'
 }[source] || 'missing')
 
-export const credentialConfigurationState = () => {
-  const values = entries()
+export const credentialConfigurationState = (environment = process.env) => {
+  const values = entries(environment)
   const auth = firstConfigured(values, ['canonicalSecret', 'legacySecret', 'canonicalApiKey', 'legacyApiKey'])
   const data = firstConfigured(values, ['canonicalSecret', 'canonicalApiKey', 'legacyApiKey'])
   return {

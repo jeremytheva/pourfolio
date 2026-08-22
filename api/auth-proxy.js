@@ -7,6 +7,7 @@ import {
   withTimeout
 } from './_lib/httpSecurity.js'
 import { enforceSharedRateLimit, rateLimitPolicyFor } from './_lib/rateLimit.js'
+import { resolveAuthCredential } from './_lib/ncbCredentials.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 
 const DEFAULT_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
@@ -23,6 +24,8 @@ const AUTH_ACTIONS = Object.freeze({
 })
 
 const PROVIDER_CREDENTIAL_ACTIONS = new Set(['providers'])
+const configuredInstance = () => process.env.NCB_INSTANCE || process.env.NOCODEBACKEND_INSTANCE || DATABASE_INSTANCE
+const configuredAuthBaseUrl = () => process.env.NCB_AUTH_API_URL || process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL
 
 const getRequestPath = (request) => {
   const path = request.query?.path
@@ -51,9 +54,9 @@ const safeRedirectTarget = (request, value) => {
 }
 
 const buildUpstreamUrl = (request, path) => {
-  const baseUrl = (process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL).replace(/\/+$/, '')
+  const baseUrl = configuredAuthBaseUrl().replace(/\/+$/, '')
   const url = new URL(`${baseUrl}/${path.split('/').map(encodeURIComponent).join('/')}`)
-  url.searchParams.set('instance', DATABASE_INSTANCE)
+  url.searchParams.set('instance', configuredInstance())
 
   if (path === 'sign-in/google') {
     const redirectTo = safeRedirectTarget(request, request.query?.redirectTo)
@@ -68,15 +71,12 @@ const buildUpstreamUrl = (request, path) => {
 // first-login CSRF checks to sign-up/sign-in POSTs. Present the auth service's
 // own origin upstream so the reverse proxy, rather than the browser, is the
 // trusted CSRF boundary.
-const upstreamAuthOrigin = () => {
-  const baseUrl = process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL
-  return new URL(baseUrl).origin
-}
+const upstreamAuthOrigin = () => new URL(configuredAuthBaseUrl()).origin
 
 const buildUpstreamHeaders = (request, secret) => ({
   accept: 'application/json',
   'content-type': 'application/json',
-  'x-database-instance': DATABASE_INSTANCE,
+  'x-database-instance': configuredInstance(),
   authorization: `Bearer ${secret}`,
   cookie: request.headers?.cookie || '',
   origin: upstreamAuthOrigin()
@@ -189,8 +189,10 @@ export default async function handler(request, response) {
     return
   }
 
-  const secret = process.env.NOCODEBACKEND_SECRET_KEY
-  if (!secret) {
+  let secret
+  try {
+    secret = resolveAuthCredential().value
+  } catch {
     response.status(503).json({
       error: 'Authentication is not configured.',
       code: 'auth_configuration_missing',
@@ -272,6 +274,8 @@ export const __testables = {
   PROVIDER_CREDENTIAL_ACTIONS,
   buildUpstreamHeaders,
   buildUpstreamUrl,
+  configuredAuthBaseUrl,
+  configuredInstance,
   getRequestPath,
   providerCredentialFailure,
   safeRedirectTarget,
