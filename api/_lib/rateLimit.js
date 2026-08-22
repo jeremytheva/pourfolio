@@ -1,5 +1,6 @@
 import crypto from 'node:crypto'
 import { getClientAddress } from './httpSecurity.js'
+import { resolveAuthCredential } from './ncbCredentials.js'
 import { REDIS_ERROR_CODES, RedisError, getRedisClient } from './redis.js'
 import { runtimeTelemetry, writeTelemetryError } from './telemetry.js'
 
@@ -69,10 +70,14 @@ const opaqueKey = (value, secret) => crypto.createHmac('sha256', secret).update(
 
 export const resolveRateLimitKeySecret = (environment = process.env) => {
   if (environment.RATE_LIMIT_KEY_SECRET) return environment.RATE_LIMIT_KEY_SECRET
-  if (!environment.NOCODEBACKEND_SECRET_KEY) return ''
-  return crypto.createHmac('sha256', environment.NOCODEBACKEND_SECRET_KEY)
-    .update(RATE_LIMIT_KEY_CONTEXT)
-    .digest('base64url')
+  try {
+    const authCredential = resolveAuthCredential(environment).value
+    return crypto.createHmac('sha256', authCredential)
+      .update(RATE_LIMIT_KEY_CONTEXT)
+      .digest('base64url')
+  } catch {
+    return ''
+  }
 }
 
 export const rateLimitPolicyFor = (path) => AUTH_RATE_LIMITS[path] || {
