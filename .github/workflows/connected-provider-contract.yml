@@ -52,8 +52,9 @@ jobs:
           NCB_CONTRACT_ENVIRONMENT: isolated-staging
           NCB_CONTRACT_ALLOW_DESTRUCTIVE: "1"
           NCB_CONTRACT_TRANSCRIPT_PATH: artifacts/provider-contract/redacted-transcript.json
-          NOCODEBACKEND_DATA_BASE_URL: ${{ secrets.NOCODEBACKEND_DATA_BASE_URL }}
-          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NCB_DATA_API_URL: https://app.nocodebackend.com/api/data
+          NCB_INSTANCE: 54026_rating
+          NCB_SECRET_KEY: ${{ secrets.NCB_SECRET_KEY || secrets.NOCODEBACKEND_API_KEY }}
           NCB_CONTRACT_USER_ID: ${{ secrets.NCB_CONTRACT_USER_ID }}
           NCB_CONTRACT_PRODUCT_ID: ${{ secrets.NCB_CONTRACT_PRODUCT_ID }}
           NCB_CONTRACT_ATTRIBUTE_ID: ${{ secrets.NCB_CONTRACT_ATTRIBUTE_ID }}
