@@ -31,14 +31,10 @@ const normalisePage = (payload, requestedPage, requestedLimit) => {
   const explicitTotal = metadata.total ?? metadata.total_count
   const explicitTotalPages = metadata.totalPages ?? metadata.total_pages
 
-  if (![page, pageSize].every(Number.isSafeInteger) || page < 1 || pageSize < 1) {
-    throw providerContractError()
-  }
+  if (![page, pageSize].every(Number.isSafeInteger) || page < 1 || pageSize < 1) throw providerContractError()
 
   if (explicitTotal === undefined || explicitTotal === null || explicitTotal === '') {
-    if (page !== requestedPage || pageSize !== requestedLimit || items.length > requestedLimit) {
-      throw providerContractError()
-    }
+    if (page !== requestedPage || pageSize !== requestedLimit || items.length > requestedLimit) throw providerContractError()
     const completedBefore = (page - 1) * pageSize
     const hasPotentialNextPage = items.length === pageSize
     const total = completedBefore + items.length + (hasPotentialNextPage ? 1 : 0)
@@ -48,16 +44,10 @@ const normalisePage = (payload, requestedPage, requestedLimit) => {
 
   const total = Number(explicitTotal)
   const totalPages = Number(explicitTotalPages ?? Math.ceil(total / pageSize))
-  if (![total, totalPages].every(Number.isSafeInteger) || total < 0 || totalPages < 0) {
-    throw providerContractError()
-  }
+  if (![total, totalPages].every(Number.isSafeInteger) || total < 0 || totalPages < 0) throw providerContractError()
 
   const expectedTotalPages = total === 0 ? 0 : Math.ceil(total / pageSize)
-  const expectedItems = total === 0
-    ? 0
-    : page < totalPages
-      ? pageSize
-      : total - (pageSize * (totalPages - 1))
+  const expectedItems = total === 0 ? 0 : page < totalPages ? pageSize : total - (pageSize * (totalPages - 1))
   if (page !== requestedPage || pageSize !== requestedLimit || totalPages !== expectedTotalPages ||
       page > Math.max(1, totalPages) || items.length !== expectedItems) throw providerContractError()
   return { items, page, pageSize, total, totalPages }
@@ -72,9 +62,7 @@ const getProviderErrorCode = (status, filters = {}, hasSessionContext = false) =
   if (status === 409 && filters?.expected_version !== undefined) return 'VERSION_CONFLICT'
   if (status === 409) return 'UNIQUE_CONFLICT'
   if (status === 401) return 'DATA_PROVIDER_UNAUTHENTICATED'
-  if (status === 403) return hasSessionContext
-    ? 'DATA_PROVIDER_FORBIDDEN_WITH_SESSION'
-    : 'DATA_PROVIDER_FORBIDDEN_NO_SESSION'
+  if (status === 403) return hasSessionContext ? 'DATA_PROVIDER_FORBIDDEN_WITH_SESSION' : 'DATA_PROVIDER_FORBIDDEN_NO_SESSION'
   return 'PROVIDER_ERROR'
 }
 
@@ -99,24 +87,12 @@ const canonicalDataUrl = (value) => {
 const resolveDataBaseUrl = (configuredBaseUrl) => {
   if (!configuredBaseUrl || looksLikeLegacyLambdaProxy(configuredBaseUrl)) return DEFAULT_DATA_BASE_URL
   if (canonicalDataUrl(configuredBaseUrl)) return DEFAULT_DATA_BASE_URL
-
-  if (process.env.NCB_ALLOW_CUSTOM_DATA_API === '1') {
-    try {
-      return new URL(configuredBaseUrl).toString().replace(/\/+$/, '')
-    } catch {
-      const error = new Error('The production data service endpoint is invalid.')
-      error.status = 503
-      error.code = 'DATA_CONFIGURATION_INVALID'
-      throw error
-    }
-  }
-
   return DEFAULT_DATA_BASE_URL
 }
 
 const getConfiguration = () => {
-  const configuredBaseUrl = process.env.NCB_DATA_API_URL?.trim() || process.env.NOCODEBACKEND_DATA_BASE_URL?.trim()
-  const instance = process.env.NCB_INSTANCE || process.env.NOCODEBACKEND_INSTANCE || DEFAULT_INSTANCE
+  const configuredBaseUrl = process.env.NOCODEBACKEND_DATA_BASE_URL?.trim()
+  const instance = process.env.NOCODEBACKEND_INSTANCE || DEFAULT_INSTANCE
   let credential
 
   try {
@@ -128,11 +104,7 @@ const getConfiguration = () => {
     throw error
   }
 
-  return {
-    baseUrl: resolveDataBaseUrl(configuredBaseUrl),
-    secret: credential.value,
-    instance
-  }
+  return { baseUrl: resolveDataBaseUrl(configuredBaseUrl), secret: credential.value, instance }
 }
 
 const buildUrl = (baseUrl, path, filters = {}, instance = DEFAULT_INSTANCE) => {
@@ -199,16 +171,12 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
 }
 
 export const dataProvider = {
-  isUniqueConflict(error) {
-    return error?.code === 'UNIQUE_CONFLICT'
-  },
-
+  isUniqueConflict(error) { return error?.code === 'UNIQUE_CONFLICT' },
   async list(collection, filters = {}) {
     const payload = await providerRequest(`read/${collection}`, { filters })
     if (Array.isArray(payload)) return payload
     return payload ? [payload] : []
   },
-
   async listPage(collection, { search, page, limit, orderBy, order = 'asc', filters = {} }) {
     const searchFilter = search && collection === 'products' ? { 'product_name[like]': search } : {}
     const payload = await providerRequest(`read/${collection}`, {
@@ -216,7 +184,6 @@ export const dataProvider = {
     })
     return normalisePage(payload, page, limit)
   },
-
   async get(collection, id) {
     try {
       const payload = await providerRequest(`read/${collection}/${encodeURIComponent(id)}`)
@@ -227,24 +194,12 @@ export const dataProvider = {
       return records.find((record) => record && String(record.id) === String(id)) || null
     }
   },
-
-  create(collection, body) {
-    return providerRequest(`create/${collection}`, { method: 'POST', body })
-  },
-
-  update(collection, id, body) {
-    return providerRequest(`update/${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body })
-  },
-
+  create(collection, body) { return providerRequest(`create/${collection}`, { method: 'POST', body }) },
+  update(collection, id, body) { return providerRequest(`update/${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body }) },
   compareAndSet(collection, id, expectedVersion, body) {
-    return providerRequest(`update/${collection}/${encodeURIComponent(id)}`, {
-      method: 'PUT', body, filters: { expected_version: expectedVersion }
-    })
+    return providerRequest(`update/${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body, filters: { expected_version: expectedVersion } })
   },
-
-  remove(collection, id) {
-    return providerRequest(`delete/${collection}/${encodeURIComponent(id)}`, { method: 'DELETE' })
-  }
+  remove(collection, id) { return providerRequest(`delete/${collection}/${encodeURIComponent(id)}`, { method: 'DELETE' }) }
 }
 
 export const __testables = {
