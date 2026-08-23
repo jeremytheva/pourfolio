@@ -30,7 +30,7 @@ const response = (payload, { status = 200, raw } = {}) => ({
   text: async () => raw ?? (payload === null ? '' : JSON.stringify(payload))
 })
 
-test('list uses Vercel NoCodeBackend variables, read route, instance and bearer auth', async () => {
+test('list matches Swagger read route, instance query and bearer headers', async () => {
   let request
   global.fetch = async (url, options) => {
     request = { url: String(url), options }
@@ -39,8 +39,10 @@ test('list uses Vercel NoCodeBackend variables, read route, instance and bearer 
 
   assert.deepEqual(await dataProvider.list('ratings', { user_id: 'owner' }), [{ id: 7 }])
   assert.equal(request.url, 'https://api.nocodebackend.com/read/ratings?Instance=54026_rating&user_id=owner')
-  assert.equal(request.options.headers.authorization, 'Bearer test-secret')
-  assert.equal(request.options.headers['x-database-instance'], '54026_rating')
+  assert.deepEqual(request.options.headers, {
+    accept: 'application/json',
+    authorization: 'Bearer test-secret'
+  })
 })
 
 test('hardcoded data fallback is api.nocodebackend.com', () => {
@@ -83,7 +85,7 @@ test('get uses read-by-id and filtered fallback after 404', async () => {
   ])
 })
 
-test('create, update, compare-and-set and delete use operation routes', async () => {
+test('create, update, compare-and-set and delete use operation routes and JSON content type', async () => {
   const requests = []
   global.fetch = async (url, options) => {
     requests.push({ url: String(url), options })
@@ -101,12 +103,22 @@ test('create, update, compare-and-set and delete use operation routes', async ()
     ['https://api.nocodebackend.com/update/cellar/3?Instance=54026_rating&expected_version=4', 'PUT'],
     ['https://api.nocodebackend.com/delete/cellar/3?Instance=54026_rating', 'DELETE']
   ])
+  assert.equal(requests[0].options.headers['content-type'], 'application/json')
+  assert.equal(requests[3].options.headers['content-type'], undefined)
+  assert.ok(requests.every(({ options }) => options.headers.authorization === 'Bearer test-secret'))
+  assert.ok(requests.every(({ options }) => options.headers.cookie === undefined))
+  assert.ok(requests.every(({ options }) => options.headers.origin === undefined))
+  assert.ok(requests.every(({ options }) => options.headers.referer === undefined))
+  assert.ok(requests.every(({ options }) => options.headers['x-database-instance'] === undefined))
 })
 
 test('provider conflict and error responses remain machine-readable', async () => {
   global.fetch = async () => response({ error: 'private detail' }, { status: 409 })
   await assert.rejects(dataProvider.create('ratings', {}), { status: 409, code: 'UNIQUE_CONFLICT' })
   await assert.rejects(dataProvider.compareAndSet('ratings', 3, 4, {}), { status: 409, code: 'VERSION_CONFLICT' })
+
+  global.fetch = async () => response({ error: 'forbidden' }, { status: 403 })
+  await assert.rejects(dataProvider.list('products'), { status: 403, code: 'DATA_PROVIDER_FORBIDDEN' })
 
   global.fetch = async () => response({ status: 'error' })
   await assert.rejects(dataProvider.list('products'), { status: 502, code: 'PROVIDER_ERROR' })
