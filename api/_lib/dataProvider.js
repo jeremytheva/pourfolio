@@ -2,7 +2,7 @@ import { safeErrorMessage, withTimeout } from './httpSecurity.js'
 import { getDataRequestContext } from './dataRequestContext.js'
 import { resolveDataCredential } from './ncbCredentials.js'
 
-const DEFAULT_DATA_BASE_URL = 'https://app.nocodebackend.com/api/data'
+const DEFAULT_DATA_BASE_URL = 'https://api.nocodebackend.com/'
 const DEFAULT_INSTANCE = '54026_rating'
 
 const normalisePayload = (payload) => {
@@ -66,28 +66,16 @@ const getProviderErrorCode = (status, filters = {}, hasSessionContext = false) =
   return 'PROVIDER_ERROR'
 }
 
-const looksLikeLegacyLambdaProxy = (baseUrl) => {
-  try {
-    const { hostname } = new URL(baseUrl)
-    return hostname.includes('.lambda-url.') && hostname.endsWith('.on.aws')
-  } catch {
-    return false
-  }
-}
-
-const canonicalDataUrl = (value) => {
-  try {
-    const url = new URL(value)
-    return url.origin === 'https://app.nocodebackend.com' && url.pathname.replace(/\/+$/, '') === '/api/data'
-  } catch {
-    return false
-  }
-}
-
 const resolveDataBaseUrl = (configuredBaseUrl) => {
-  if (!configuredBaseUrl || looksLikeLegacyLambdaProxy(configuredBaseUrl)) return DEFAULT_DATA_BASE_URL
-  if (canonicalDataUrl(configuredBaseUrl)) return DEFAULT_DATA_BASE_URL
-  return DEFAULT_DATA_BASE_URL
+  const value = configuredBaseUrl?.trim() || DEFAULT_DATA_BASE_URL
+  try {
+    return new URL(value).toString().replace(/\/+$/, '')
+  } catch {
+    const error = new Error('The production data service endpoint is invalid.')
+    error.status = 503
+    error.code = 'DATA_CONFIGURATION_INVALID'
+    throw error
+  }
 }
 
 const getConfiguration = () => {
@@ -203,8 +191,6 @@ export const dataProvider = {
 }
 
 export const __testables = {
-  looksLikeLegacyLambdaProxy,
-  canonicalDataUrl,
   resolveDataBaseUrl,
   normalisePage,
   buildProviderHeaders,
