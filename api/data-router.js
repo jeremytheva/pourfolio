@@ -2,7 +2,6 @@ import catalogueHandler from './catalog-data-proxy.js'
 import cellarHandler from './cellar-data-proxy.js'
 import currentSchemaHandler from './current-data-proxy.js'
 import legacyHandler from './data-proxy.js'
-import { runWithDataRequestContext } from './_lib/dataRequestContext.js'
 
 const CURRENT_SCHEMA_RESOURCES = new Set(['catalog', 'rating-form', 'ratings', 'cellar'])
 
@@ -26,7 +25,7 @@ const routeRequest = async (request, response) => {
 }
 
 export default async function handler(request, response) {
-  return runWithDataRequestContext(request, () => routeRequest(request, response))
+  return routeRequest(request, response)
 }
 
 export const __testables = { CURRENT_SCHEMA_RESOURCES }
