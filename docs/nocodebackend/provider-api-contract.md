@@ -24,7 +24,7 @@ NOCODEBACKEND_SECRET_KEY=<server-only key>
 NOCODEBACKEND_INSTANCE=54026_rating
 ```
 
-No alternative NoCodeBackend application environment-variable aliases are supported.
+No environment variable beginning with the retired short-form NoCodeBackend prefix is permitted anywhere in the repository. Isolated contract-test controls use `NOCODEBACKEND_CONTRACT_*` names.
 
 ## Authentication API
 
