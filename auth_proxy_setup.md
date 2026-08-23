@@ -2,37 +2,36 @@
 
 ## Overview
 
-The auth proxy handles user authentication by proxying requests to NCB Auth API and managing session cookies.
+The auth proxy handles user authentication by proxying requests to the NoCodeBackend Auth API and managing session cookies.
 
-**Key Points:**
-- Session cookies are the only authentication mechanism needed.
-- NCB accepts cookies in both formats:
-  - `better-auth.session_token`
-  - `__Secure-better-auth.session_token`
-- NCB dynamically finds any cookie ending with `better-auth.session_token`.
+**Key points:**
+- Session cookies are the browser authentication mechanism.
+- NoCodeBackend accepts Better Auth session cookies with or without the secure prefix.
+- The NoCodeBackend server secret remains server-only.
 
 ## Environment Variables
 
+Use only these application variables:
+
 ```env
-NCB_INSTANCE=54026_rating
-NCB_AUTH_API_URL=https://app.nocodebackend.com/api/user-auth
-NCB_DATA_API_URL=https://app.nocodebackend.com/api/data
-NCB_APP_URL=https://app.nocodebackend.com
-NCB_SECRET_KEY=<the server-only key returned by create_database>
+NOCODEBACKEND_AUTH_BASE_URL=https://app.nocodebackend.com/api/user-auth
+NOCODEBACKEND_DATA_BASE_URL=https://api.nocodebackend.com/
+NOCODEBACKEND_SECRET_KEY=<server-only secret>
+NOCODEBACKEND_INSTANCE=54026_rating
 ```
 
 Rules:
 - Read values only from `process.env`.
-- Do not hardcode values.
-- Do not expose them to the client.
+- Do not expose the secret to the browser.
 - Do not use public/browser-prefixed variables.
-- `NCB_SECRET_KEY` is required by the Account gateway and remains server-only.
+- Do not introduce alternate NoCodeBackend environment-variable aliases.
 
 ## Auth Proxy Contract
 
-- Proxy authentication through `NCB_AUTH_API_URL`.
-- Include the database instance via query/header.
-- Forward only Better Auth cookies.
+- Proxy authentication through `NOCODEBACKEND_AUTH_BASE_URL`.
+- Include `NOCODEBACKEND_INSTANCE` via query/header where required by the upstream API.
+- Use `NOCODEBACKEND_SECRET_KEY` only on the server.
+- Forward only Better Auth cookies when session context is needed.
 - Preserve session cookies through the application proxy.
 - Provider discovery must be authoritative and drive the rendered auth methods.
 - Sign-out must clear local Better Auth cookies even if the upstream sign-out call fails.
@@ -72,7 +71,8 @@ Expected shape:
 - [ ] Session endpoint returns user info.
 - [ ] Refresh preserves the session.
 - [ ] Sign-out clears cookies and UI state.
+- [ ] Data operations use `NOCODEBACKEND_DATA_BASE_URL=https://api.nocodebackend.com/`.
 
-## Next Step
+## Data Operations
 
-Use `data_proxy_setup.md` as the authoritative source for CRUD/data operations. Do not infer the data API contract from this auth guide.
+CRUD/data operations are a separate concern from authentication. The repository data adapter uses `NOCODEBACKEND_DATA_BASE_URL`, `NOCODEBACKEND_SECRET_KEY`, and `NOCODEBACKEND_INSTANCE`; authentication uses `NOCODEBACKEND_AUTH_BASE_URL` with the same server-only secret and instance.
