@@ -6,9 +6,9 @@ import { runWithDataRequestContext } from '../dataRequestContext.js'
 
 const originalFetch = global.fetch
 const originalEnvironment = {
-  NCB_DATA_API_URL: process.env.NCB_DATA_API_URL,
-  NCB_SECRET_KEY: process.env.NCB_SECRET_KEY,
-  NCB_INSTANCE: process.env.NCB_INSTANCE
+  NOCODEBACKEND_DATA_BASE_URL: process.env.NOCODEBACKEND_DATA_BASE_URL,
+  NOCODEBACKEND_SECRET_KEY: process.env.NOCODEBACKEND_SECRET_KEY,
+  NOCODEBACKEND_INSTANCE: process.env.NOCODEBACKEND_INSTANCE
 }
 
 test.after(() => {
@@ -20,9 +20,9 @@ test.after(() => {
 })
 
 test('data request forwards authenticated session context required by NoCodeBackend', async () => {
-  process.env.NCB_DATA_API_URL = 'https://app.nocodebackend.com/api/data'
-  process.env.NCB_SECRET_KEY = 'server-secret'
-  process.env.NCB_INSTANCE = '54026_rating'
+  process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://api.nocodebackend.com/'
+  process.env.NOCODEBACKEND_SECRET_KEY = 'server-secret'
+  process.env.NOCODEBACKEND_INSTANCE = '54026_rating'
 
   let request
   global.fetch = async (url, options) => {
@@ -44,7 +44,7 @@ test('data request forwards authenticated session context required by NoCodeBack
   const result = await runWithDataRequestContext(incoming, () => dataProvider.list('products'))
 
   assert.deepEqual(result, [{ id: 1 }])
-  assert.equal(request.url, 'https://app.nocodebackend.com/api/data/read/products?Instance=54026_rating')
+  assert.equal(request.url, 'https://api.nocodebackend.com/read/products?Instance=54026_rating')
   assert.equal(request.options.headers.authorization, 'Bearer server-secret')
   assert.equal(request.options.headers['x-database-instance'], '54026_rating')
   assert.equal(request.options.headers.cookie, '__Secure-better-auth.session_token=session-value')

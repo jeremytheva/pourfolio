@@ -5,8 +5,9 @@ import { dataProvider } from '../dataProvider.js'
 const enabled = process.env.RUN_NOCODEBACKEND_PROVIDER_SMOKE === '1'
 
 const requireConnectedConfiguration = () => {
-  const secret = process.env.NCB_SECRET_KEY || process.env.NOCODEBACKEND_SECRET_KEY
-  assert.ok(secret, 'NCB_SECRET_KEY or NOCODEBACKEND_SECRET_KEY is required for connected provider smoke testing')
+  assert.ok(process.env.NOCODEBACKEND_SECRET_KEY, 'NOCODEBACKEND_SECRET_KEY is required for connected provider smoke testing')
+  assert.ok(process.env.NOCODEBACKEND_DATA_BASE_URL, 'NOCODEBACKEND_DATA_BASE_URL is required for connected provider smoke testing')
+  assert.ok(process.env.NOCODEBACKEND_INSTANCE, 'NOCODEBACKEND_INSTANCE is required for connected provider smoke testing')
 }
 
 test('connected NoCodeBackend generated table API read contract is usable for launch collections', { skip: !enabled }, async () => {

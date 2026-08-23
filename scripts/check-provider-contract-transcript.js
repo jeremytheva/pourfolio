@@ -5,23 +5,17 @@ import { pathToFileURL } from 'node:url'
 const sensitiveEnvironment = [
   'NOCODEBACKEND_DATA_BASE_URL',
   'NOCODEBACKEND_SECRET_KEY',
-  'NCB_CONTRACT_USER_ID',
-  'NCB_CONTRACT_PRODUCT_ID',
-  'NCB_CONTRACT_ATTRIBUTE_ID'
+  'NOCODEBACKEND_CONTRACT_USER_ID',
+  'NOCODEBACKEND_CONTRACT_PRODUCT_ID',
+  'NOCODEBACKEND_CONTRACT_ATTRIBUTE_ID'
 ]
 
 export const checkProviderContractTranscript = (transcript, sensitiveValues = []) => {
   const blockers = []
   if (!transcript || typeof transcript !== 'object') blockers.push({ code: 'TRANSCRIPT_INVALID' })
-  if (!Array.isArray(transcript?.entries) || transcript.entries.length === 0) {
-    blockers.push({ code: 'TRANSCRIPT_ENTRIES_MISSING' })
-  }
-  if (!Number.isInteger(transcript?.cleanup?.attempted) || transcript.cleanup.attempted < 1) {
-    blockers.push({ code: 'CLEANUP_ATTEMPTS_MISSING' })
-  }
-  if (transcript?.cleanup?.status !== 'PASS' || transcript?.cleanup?.failures !== 0) {
-    blockers.push({ code: 'CLEANUP_NOT_PROVEN' })
-  }
+  if (!Array.isArray(transcript?.entries) || transcript.entries.length === 0) blockers.push({ code: 'TRANSCRIPT_ENTRIES_MISSING' })
+  if (!Number.isInteger(transcript?.cleanup?.attempted) || transcript.cleanup.attempted < 1) blockers.push({ code: 'CLEANUP_ATTEMPTS_MISSING' })
+  if (transcript?.cleanup?.status !== 'PASS' || transcript?.cleanup?.failures !== 0) blockers.push({ code: 'CLEANUP_NOT_PROVEN' })
 
   const rendered = JSON.stringify(transcript)
   for (const value of sensitiveValues.filter(Boolean)) {
@@ -39,9 +33,7 @@ export const checkProviderContractTranscript = (transcript, sensitiveValues = []
 }
 
 const parseArguments = (arguments_) => {
-  if (arguments_.length !== 2 || arguments_[0] !== '--transcript' || !arguments_[1]) {
-    throw new Error('Use --transcript <path>.')
-  }
+  if (arguments_.length !== 2 || arguments_[0] !== '--transcript' || !arguments_[1]) throw new Error('Use --transcript <path>.')
   return path.resolve(arguments_[1])
 }
 

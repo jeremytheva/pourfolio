@@ -5,11 +5,9 @@ import handler, { __testables } from '../readiness.js'
 
 const originalFetch = global.fetch
 const originalEnvironment = {
-  NCB_SECRET_KEY: process.env.NCB_SECRET_KEY,
-  NCB_DATA_API_URL: process.env.NCB_DATA_API_URL,
-  NCB_INSTANCE: process.env.NCB_INSTANCE,
   NOCODEBACKEND_SECRET_KEY: process.env.NOCODEBACKEND_SECRET_KEY,
-  NOCODEBACKEND_DATA_BASE_URL: process.env.NOCODEBACKEND_DATA_BASE_URL
+  NOCODEBACKEND_DATA_BASE_URL: process.env.NOCODEBACKEND_DATA_BASE_URL,
+  NOCODEBACKEND_INSTANCE: process.env.NOCODEBACKEND_INSTANCE
 }
 
 const invoke = async (headers = {}) => {
@@ -24,9 +22,9 @@ const invoke = async (headers = {}) => {
 }
 
 test.beforeEach(() => {
-  process.env.NCB_SECRET_KEY = 'server-secret'
-  process.env.NCB_DATA_API_URL = 'https://app.nocodebackend.com/api/data'
-  process.env.NCB_INSTANCE = '54026_rating'
+  process.env.NOCODEBACKEND_SECRET_KEY = 'server-secret'
+  process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://api.nocodebackend.com/'
+  process.env.NOCODEBACKEND_INSTANCE = '54026_rating'
 })
 
 test.afterEach(() => { global.fetch = originalFetch })

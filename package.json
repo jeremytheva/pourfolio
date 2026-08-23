@@ -14,6 +14,7 @@
     "test:provider-smoke": "RUN_NOCODEBACKEND_PROVIDER_SMOKE=1 node --test api/_lib/__tests__/providerSmoke.connected.test.js",
     "test:provider-contract": "RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1 node --test api/_lib/__tests__/providerContract.connected.test.js",
     "check:provider-contract-transcript": "node scripts/check-provider-contract-transcript.js",
+    "check:nocodebackend-env": "node scripts/check-nocodebackend-environment-contract.js",
     "test:release": "playwright test --config=playwright.release.config.js",
     "audit:production": "npm audit --omit=dev --audit-level=high",
     "audit:import": "node scripts/audit-import-references.js",
@@ -25,7 +26,7 @@
     "check:bundle": "node scripts/check-bundle-size.js",
     "check:brew-containment": "node scripts/check-brew-done-it-containment.js",
     "check:release-security": "node scripts/check-browser-release-security.js",
-    "validate": "npm run lint && npm test && npm run audit:production && npm run build && npm run check:bundle && npm run check:brew-containment && npm run check:release-security"
+    "validate": "npm run check:nocodebackend-env && npm run lint && npm test && npm run audit:production && npm run build && npm run check:bundle && npm run check:brew-containment && npm run check:release-security"
   },
   "dependencies": {
     "@upstash/redis": "^1.38.2",

@@ -24,8 +24,8 @@ const AUTH_ACTIONS = Object.freeze({
 })
 
 const PROVIDER_CREDENTIAL_ACTIONS = new Set(['providers'])
-const configuredInstance = () => process.env.NCB_INSTANCE || process.env.NOCODEBACKEND_INSTANCE || DATABASE_INSTANCE
-const configuredAuthBaseUrl = () => process.env.NCB_AUTH_API_URL || process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL
+const configuredInstance = () => process.env.NOCODEBACKEND_INSTANCE || DATABASE_INSTANCE
+const configuredAuthBaseUrl = () => process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL
 
 const getRequestPath = (request) => {
   const path = request.query?.path
@@ -66,11 +66,6 @@ const buildUpstreamUrl = (request, path) => {
   return url
 }
 
-// The browser origin is validated locally by enforceOrigin before this header is
-// used. The upstream auth service is a separate origin and applies its own
-// first-login CSRF checks to sign-up/sign-in POSTs. Present the auth service's
-// own origin upstream so the reverse proxy, rather than the browser, is the
-// trusted CSRF boundary.
 const upstreamAuthOrigin = () => new URL(configuredAuthBaseUrl()).origin
 
 const buildUpstreamHeaders = (request, secret) => ({
@@ -116,14 +111,7 @@ const secureCookie = (cookie) => {
     attributes.push(attribute)
   }
 
-  return [
-    nameValue.trim(),
-    ...attributes,
-    'Path=/',
-    'HttpOnly',
-    'Secure',
-    sameSite || 'SameSite=Lax'
-  ].join('; ')
+  return [nameValue.trim(), ...attributes, 'Path=/', 'HttpOnly', 'Secure', sameSite || 'SameSite=Lax'].join('; ')
 }
 
 const getSetCookies = (headers) => {
@@ -140,9 +128,7 @@ const copyResponseHeaders = (upstream, response) => {
   response.setHeader('Cache-Control', 'no-store')
 
   const cookies = getSetCookies(upstream.headers)
-  if (cookies.length) {
-    response.setHeader('Set-Cookie', cookies.map(secureCookie))
-  }
+  if (cookies.length) response.setHeader('Set-Cookie', cookies.map(secureCookie))
 }
 
 const providerCredentialFailure = (path, status) => (
@@ -151,25 +137,14 @@ const providerCredentialFailure = (path, status) => (
 
 const safeUpstreamAuthError = (path, status, requestId) => {
   if (providerCredentialFailure(path, status)) {
-    return {
-      error: 'Authentication service configuration is invalid.',
-      code: 'auth_provider_unauthorised',
-      requestId
-    }
+    return { error: 'Authentication service configuration is invalid.', code: 'auth_provider_unauthorised', requestId }
   }
 
   if (status === 403 && path === 'sign-up/email') {
-    return {
-      error: 'The authentication provider rejected sign-up.',
-      code: 'auth_signup_rejected',
-      requestId
-    }
+    return { error: 'The authentication provider rejected sign-up.', code: 'auth_signup_rejected', requestId }
   }
 
-  return {
-    error: safeErrorMessage(status),
-    requestId
-  }
+  return { error: safeErrorMessage(status), requestId }
 }
 
 export default async function handler(request, response) {
@@ -193,11 +168,7 @@ export default async function handler(request, response) {
   try {
     secret = resolveAuthCredential().value
   } catch {
-    response.status(503).json({
-      error: 'Authentication is not configured.',
-      code: 'auth_configuration_missing',
-      requestId: correlationId
-    })
+    response.status(503).json({ error: 'Authentication is not configured.', code: 'auth_configuration_missing', requestId: correlationId })
     return
   }
   if (!enforceRequestSize(request, response) || !enforceOrigin(request, response)) return
@@ -225,9 +196,7 @@ export default async function handler(request, response) {
     if (!upstream.ok) {
       const eventName = providerCredentialFailure(path, upstream.status)
         ? 'auth_provider_unauthorised'
-        : upstream.status === 403 && path === 'sign-up/email'
-          ? 'auth_signup_rejected'
-          : null
+        : upstream.status === 403 && path === 'sign-up/email' ? 'auth_signup_rejected' : null
       if (eventName) {
         writeTelemetryError(runtimeTelemetry({
           route_template: '/api/nocodebackend/auth/:action',
@@ -244,10 +213,7 @@ export default async function handler(request, response) {
     if (path === 'providers') {
       const safeBody = sanitizeProviderBody(body)
       if (!safeBody) {
-        response.status(502).json({
-          error: 'Authentication service is temporarily unavailable.',
-          requestId: correlationId
-        })
+        response.status(502).json({ error: 'Authentication service is temporarily unavailable.', requestId: correlationId })
         return
       }
       response.status(upstream.status).send(safeBody)
@@ -261,10 +227,7 @@ export default async function handler(request, response) {
       event_name: error.name === 'AbortError' ? 'provider_timeout' : 'authentication_provider_failure',
       correlation_id: correlationId
     }))
-    response.status(502).json({
-      error: 'Authentication service is temporarily unavailable.',
-      requestId: correlationId
-    })
+    response.status(502).json({ error: 'Authentication service is temporarily unavailable.', requestId: correlationId })
   }
 }
 

@@ -8,28 +8,28 @@ import { dataProvider } from '../dataProvider.js'
 const enabled = process.env.RUN_NOCODEBACKEND_PROVIDER_CONTRACT === '1'
 const contractTest = enabled ? test : test.skip
 const requiredEnvironment = [
-  'NCB_DATA_API_URL',
-  'NCB_SECRET_KEY',
-  'NCB_INSTANCE',
-  'NCB_CONTRACT_ENVIRONMENT',
-  'NCB_CONTRACT_ALLOW_DESTRUCTIVE',
-  'NCB_CONTRACT_USER_ID',
-  'NCB_CONTRACT_PRODUCT_ID',
-  'NCB_CONTRACT_ATTRIBUTE_ID'
+  'NOCODEBACKEND_DATA_BASE_URL',
+  'NOCODEBACKEND_SECRET_KEY',
+  'NOCODEBACKEND_INSTANCE',
+  'NOCODEBACKEND_CONTRACT_ENVIRONMENT',
+  'NOCODEBACKEND_CONTRACT_ALLOW_DESTRUCTIVE',
+  'NOCODEBACKEND_CONTRACT_USER_ID',
+  'NOCODEBACKEND_CONTRACT_PRODUCT_ID',
+  'NOCODEBACKEND_CONTRACT_ATTRIBUTE_ID'
 ]
 
 const unique = `contract-${Date.now()}-${Math.random().toString(36).slice(2)}`
 const created = []
 const ratingPayloads = new Map()
-const userId = process.env.NCB_CONTRACT_USER_ID
-const productId = process.env.NCB_CONTRACT_PRODUCT_ID
-const attributeId = process.env.NCB_CONTRACT_ATTRIBUTE_ID
-const dataBaseUrl = process.env.NCB_DATA_API_URL?.replace(/\/+$/, '')
-const dataSecret = process.env.NCB_SECRET_KEY
-const instance = process.env.NCB_INSTANCE
+const userId = process.env.NOCODEBACKEND_CONTRACT_USER_ID
+const productId = process.env.NOCODEBACKEND_CONTRACT_PRODUCT_ID
+const attributeId = process.env.NOCODEBACKEND_CONTRACT_ATTRIBUTE_ID
+const dataBaseUrl = process.env.NOCODEBACKEND_DATA_BASE_URL?.replace(/\/+$/, '')
+const dataSecret = process.env.NOCODEBACKEND_SECRET_KEY
+const instance = process.env.NOCODEBACKEND_INSTANCE
 let ratingSequence = 0
 
-const transcriptPath = process.env.NCB_CONTRACT_TRANSCRIPT_PATH
+const transcriptPath = process.env.NOCODEBACKEND_CONTRACT_TRANSCRIPT_PATH
 const transcript = []
 const originalFetch = globalThis.fetch
 
@@ -51,20 +51,14 @@ const redactValue = (value) => {
   if (value === null || value === undefined) return value
   if (typeof value === 'string') return redactText(value)
   if (Array.isArray(value)) return value.map(redactValue)
-  if (typeof value === 'object') {
-    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, redactValue(entry)]))
-  }
+  if (typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, redactValue(entry)]))
   return value
 }
 
 const parseBody = (body) => {
   if (body === undefined || body === null) return null
   if (typeof body !== 'string') return '<non-string-body>'
-  try {
-    return redactValue(JSON.parse(body))
-  } catch {
-    return '<non-json-body>'
-  }
+  try { return redactValue(JSON.parse(body)) } catch { return '<non-json-body>' }
 }
 
 const headersToObject = (headers = {}) => {
@@ -112,9 +106,9 @@ const first = (value) => (Array.isArray(value) ? value[0] : value)
 const requireContractEnvironment = () => {
   const missing = requiredEnvironment.filter((key) => !process.env[key])
   assert.deepEqual(missing, [], `Missing connected contract environment: ${missing.join(', ')}`)
-  assert.equal(process.env.NCB_CONTRACT_ENVIRONMENT, 'isolated-staging')
-  assert.equal(process.env.NCB_CONTRACT_ALLOW_DESTRUCTIVE, '1')
-  assert.equal(process.env.NCB_INSTANCE, '54026_rating')
+  assert.equal(process.env.NOCODEBACKEND_CONTRACT_ENVIRONMENT, 'isolated-staging')
+  assert.equal(process.env.NOCODEBACKEND_CONTRACT_ALLOW_DESTRUCTIVE, '1')
+  assert.equal(process.env.NOCODEBACKEND_INSTANCE, '54026_rating')
 }
 
 const rawProviderUrl = (operation, collection, query = {}) => {
@@ -186,11 +180,7 @@ test.after(async () => {
       const remaining = await dataProvider.get(collection, id)
       if (remaining) cleanupFailures.push({ collection, code: 'RECORD_REMAINS' })
     } catch (error) {
-      cleanupFailures.push({
-        collection,
-        status: Number.isInteger(error?.status) ? error.status : null,
-        code: error?.code || 'CLEANUP_FAILED'
-      })
+      cleanupFailures.push({ collection, status: Number.isInteger(error?.status) ? error.status : null, code: error?.code || 'CLEANUP_FAILED' })
     }
   }
   if (transcriptPath) {
@@ -199,11 +189,7 @@ test.after(async () => {
     await writeFile(resolved, `${JSON.stringify({
       generated_at: new Date().toISOString(),
       entries: transcript,
-      cleanup: {
-        attempted: cleanupAttempted,
-        failures: cleanupFailures.length,
-        status: cleanupFailures.length ? 'BLOCKED' : 'PASS'
-      }
+      cleanup: { attempted: cleanupAttempted, failures: cleanupFailures.length, status: cleanupFailures.length ? 'BLOCKED' : 'PASS' }
     }, null, 2)}\n`)
   }
   assert.deepEqual(cleanupFailures, [], 'Connected contract cleanup must leave no created records.')
@@ -211,7 +197,7 @@ test.after(async () => {
 
 contractTest('provider contract environment is explicit and isolated', () => {
   requireContractEnvironment()
-  assert.match(process.env.NCB_DATA_API_URL, /^https:\/\//)
+  assert.match(process.env.NOCODEBACKEND_DATA_BASE_URL, /^https:\/\//)
   assert.match(String(userId), /\S/)
   assert.match(String(productId), /^[1-9]\d*$/)
   assert.match(String(attributeId), /^[1-9]\d*$/)
@@ -250,11 +236,7 @@ contractTest('POST, PUT, DELETE, duplicate conflict and retry idempotency behavi
   const after = await dataProvider.get('ratings', rating.id)
   assert.equal(String(after.date_rated), String(before.date_rated))
 
-  await assert.rejects(
-    dataProvider.create('ratings', payload),
-    (error) => error.status === 409 && dataProvider.isUniqueConflict(error)
-  )
-
+  await assert.rejects(dataProvider.create('ratings', payload), (error) => error.status === 409 && dataProvider.isUniqueConflict(error))
   const replayed = await dataProvider.list('ratings', { user_id: userId, rating_id: payload.rating_id })
   assert.deepEqual(replayed.map((record) => String(record.id)), [String(rating.id)])
 })
@@ -268,11 +250,8 @@ contractTest('malformed, unauthorised, 404 and 409 provider behaviours are safe 
   })
   assert.equal(malformed.status >= 400, true)
 
-  const unauthorised = await fetch(rawProviderUrl('read', 'ratings'), {
-    headers: rawProviderHeaders('redacted-invalid-contract-token')
-  })
+  const unauthorised = await fetch(rawProviderUrl('read', 'ratings'), { headers: rawProviderHeaders('redacted-invalid-contract-token') })
   assert.ok([401, 403].includes(unauthorised.status))
-
   await assert.rejects(dataProvider.update('ratings', `999999${Date.now()}`, { total_weighted: 4.5 }), { status: 404 })
 })
 
@@ -293,10 +272,7 @@ contractTest('partial multi-collection failure leaves a pending parent that can 
   assert.equal(Number(persisted.submission_version), 0)
 
   await createScore(rating)
-  const transitioned = first(await dataProvider.compareAndSet('ratings', rating.id, 0, {
-    submission_state: 'complete',
-    submission_version: 1
-  }))
+  const transitioned = first(await dataProvider.compareAndSet('ratings', rating.id, 0, { submission_state: 'complete', submission_version: 1 }))
   assert.equal(transitioned.submission_state, 'complete')
 })
 
@@ -321,11 +297,7 @@ contractTest('concurrent compare-and-set on submission_version allows exactly on
 
 contractTest('provider pagination, terminal-page and ordering observations are captured without adapter dependency', async () => {
   requireContractEnvironment()
-  const response = await fetch(rawProviderUrl('read', 'ratings', {
-    user_id: userId,
-    limit: 1,
-    page: 999999
-  }), { headers: rawProviderHeaders() })
+  const response = await fetch(rawProviderUrl('read', 'ratings', { user_id: userId, limit: 1, page: 999999 }), { headers: rawProviderHeaders() })
   assert.equal(response.ok, true)
   const payload = await response.json()
   const records = payload?.data ?? payload?.records ?? payload?.items ?? payload?.results ?? payload
@@ -334,22 +306,16 @@ contractTest('provider pagination, terminal-page and ordering observations are c
 
 contractTest('a client abort does not weaken canonical idempotency replay', async () => {
   requireContractEnvironment()
-  const timeoutMs = Number.parseInt(process.env.NCB_CONTRACT_CLIENT_TIMEOUT_MS || '1', 10)
+  const timeoutMs = Number.parseInt(process.env.NOCODEBACKEND_CONTRACT_CLIENT_TIMEOUT_MS || '1', 10)
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
-    await assert.rejects(fetch(rawProviderUrl('read', 'ratings'), {
-      headers: rawProviderHeaders(),
-      signal: controller.signal
-    }))
+    await assert.rejects(fetch(rawProviderUrl('read', 'ratings'), { headers: rawProviderHeaders(), signal: controller.signal }))
   } finally {
     clearTimeout(timer)
   }
 
   const rating = await createRating('timeout-after')
-  const replayed = await dataProvider.list('ratings', {
-    user_id: userId,
-    rating_id: ratingPayload(rating).rating_id
-  })
+  const replayed = await dataProvider.list('ratings', { user_id: userId, rating_id: ratingPayload(rating).rating_id })
   assert.deepEqual(replayed.map((record) => String(record.id)), [String(rating.id)])
 })

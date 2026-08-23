@@ -18,9 +18,6 @@ const extractAuthCookies = (cookieHeader = '') => String(cookieHeader)
   .join('; ')
 
 const requestOrigin = (request) => {
-  const explicit = process.env.NCB_REQUEST_ORIGIN?.trim()
-  if (explicit) return explicit.replace(/\/$/, '')
-
   const origin = request?.headers?.origin
   if (origin) {
     try { return new URL(String(origin)).origin } catch { /* fall through */ }
