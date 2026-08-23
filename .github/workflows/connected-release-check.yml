@@ -42,7 +42,7 @@ jobs:
         env: &release-server-environment
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
           NOCODEBACKEND_AUTH_BASE_URL: https://app.nocodebackend.com/api/user-auth
-          NOCODEBACKEND_DATA_BASE_URL: https://app.nocodebackend.com/api/data
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
           NOCODEBACKEND_INSTANCE: 54026_rating
           EXPECT_PRODUCT_PRODUCERS: ${{ vars.EXPECT_PRODUCT_PRODUCERS }}
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
