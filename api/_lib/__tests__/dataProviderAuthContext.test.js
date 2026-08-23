@@ -19,7 +19,7 @@ test.after(() => {
   }
 })
 
-test('data request forwards authenticated session context required by NoCodeBackend', async () => {
+test('data request keeps browser session context inside Pourfolio and matches Swagger upstream headers', async () => {
   process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://api.nocodebackend.com/'
   process.env.NOCODEBACKEND_SECRET_KEY = 'server-secret'
   process.env.NOCODEBACKEND_INSTANCE = '54026_rating'
@@ -45,9 +45,8 @@ test('data request forwards authenticated session context required by NoCodeBack
 
   assert.deepEqual(result, [{ id: 1 }])
   assert.equal(request.url, 'https://api.nocodebackend.com/read/products?Instance=54026_rating')
-  assert.equal(request.options.headers.authorization, 'Bearer server-secret')
-  assert.equal(request.options.headers['x-database-instance'], '54026_rating')
-  assert.equal(request.options.headers.cookie, '__Secure-better-auth.session_token=session-value')
-  assert.equal(request.options.headers.origin, 'https://pourfolio.example.test')
-  assert.equal(request.options.headers.referer, 'https://pourfolio.example.test/')
+  assert.deepEqual(request.options.headers, {
+    accept: 'application/json',
+    authorization: 'Bearer server-secret'
+  })
 })
