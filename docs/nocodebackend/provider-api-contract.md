@@ -11,7 +11,7 @@ Browser
   -> NoCodeBackend APIs
 ```
 
-The browser never receives the NoCodeBackend server secret.
+The browser never receives the NoCodeBackend server secret. Browser authentication and ownership checks are enforced by Pourfolio before data-provider operations are executed.
 
 ## Production environment contract
 
@@ -46,20 +46,20 @@ https://api.nocodebackend.com/
 
 Data requests use `NOCODEBACKEND_DATA_BASE_URL`, `NOCODEBACKEND_SECRET_KEY`, and `NOCODEBACKEND_INSTANCE`.
 
-Every generated table request includes:
+The Swagger contract for instance `54026_rating` proves that generated table requests require:
 
 ```http
+Accept: application/json
 Authorization: Bearer <server-only secret>
-X-Database-Instance: 54026_rating
 ```
 
-and:
+with the instance supplied as a query parameter:
 
 ```text
 Instance=54026_rating
 ```
 
-When an authenticated browser request is available, the server forwards only Better Auth session cookies plus trusted Origin/Referer request context.
+Pourfolio does not forward browser cookies, `Origin`, `Referer`, or `X-Database-Instance` to the generated table API. Those headers are not part of the supplied Swagger request contract. Browser session context remains inside Pourfolio's own session/policy layer.
 
 ## Generated operation routes
 
@@ -73,9 +73,20 @@ When an authenticated browser request is available, the server forwards only Bet
 | `compareAndSet(collection, id, expectedVersion, body)` | `PUT /update/{collection}/{id}` | `Instance`, `expected_version`; JSON body |
 | `remove(collection, id)` | `DELETE /delete/{collection}/{id}` | `Instance` |
 
+For requests with a JSON body, Pourfolio additionally sends `Content-Type: application/json`.
+
 ## Filtering, search and pagination
 
-Column filtering uses generated API bracket operators where supported, including `field[in]` and `field[like]`.
+Column filtering uses generated API bracket operators documented by Swagger:
+
+- `field=value` — equal;
+- `field[ne]=value` — not equal;
+- `field[gt]=value` — greater than;
+- `field[gte]=value` — greater than or equal;
+- `field[lt]=value` — less than;
+- `field[lte]=value` — less than or equal;
+- `field[in]=a,b,c` — list membership;
+- `field[like]=value` — partial match.
 
 Catalogue search maps to:
 
@@ -87,7 +98,34 @@ page=1
 limit=24
 ```
 
-The adapter accepts provider envelopes including `data`, `records`, `items`, `results`, or a bare array. Explicit pagination metadata is validated. A valid list response without metadata remains usable with an estimated total when necessary.
+The adapter accepts provider envelopes including `data`, `records`, `items`, `results`, or a bare array. The Swagger sample confirms the normal success envelope is:
+
+```json
+{
+  "status": "success",
+  "data": []
+}
+```
+
+Explicit pagination metadata is validated. A valid list response without metadata remains usable with an estimated total when necessary.
+
+## Product schema confirmed by Swagger
+
+The supplied `/read/products` Swagger contract identifies these fields:
+
+- `id`;
+- `user_id`;
+- `product_name`;
+- `product_category_id`;
+- `producer_id`;
+- `abv`;
+- `ibu`;
+- `declared_category`;
+- `edition`;
+- `collaboration`;
+- `product_image`.
+
+`producer_id` remains the default/legacy producer relationship. `product_producers` is optional collaboration enrichment and must not block the core catalogue.
 
 ## Relationship hydration policy
 
@@ -103,7 +141,7 @@ Core product and cellar records must remain usable when optional relationship en
 Provider failures never expose raw provider bodies or credentials to browser responses.
 
 - `401` -> `DATA_PROVIDER_UNAUTHENTICATED`.
-- `403` -> safe forbidden code that distinguishes session context for diagnostics.
+- `403` -> `DATA_PROVIDER_FORBIDDEN`.
 - `404` -> safe not-found handling.
 - `409` ordinary write -> `UNIQUE_CONFLICT`.
 - `409` compare-and-set -> `VERSION_CONFLICT`.
@@ -113,7 +151,7 @@ Provider failures never expose raw provider bodies or credentials to browser res
 
 `/api/health` reports configuration state without exposing values.
 
-`/api/readiness` performs a bounded, non-destructive products read and reports a safe dependency state without returning provider records, credentials, configured URLs, or raw upstream errors.
+`/api/readiness` performs a bounded, non-destructive products read using the same Swagger-proven Bearer + `Instance` contract and reports a safe dependency state without returning provider records, credentials, configured URLs, or raw upstream errors.
 
 ## Connected verification
 
@@ -123,9 +161,10 @@ Connected smoke verification must use the same four `NOCODEBACKEND_*` applicatio
 
 Before changing endpoint shape, operation paths, instance selection, authentication headers, or response semantics:
 
-1. update this contract and the adapter together;
-2. update unit and connected contract tests;
-3. run the full release gate and connected smoke matrix;
-4. verify health/readiness and authenticated production reads after deployment.
+1. compare against the generated Swagger contract for `54026_rating`;
+2. update this contract and the adapter together;
+3. update unit and connected contract tests;
+4. run the full release gate and connected smoke matrix;
+5. verify health/readiness and authenticated production reads after deployment.
 
 The repository validation guard must fail if a retired NoCodeBackend environment-variable prefix or the retired data URL is reintroduced.
