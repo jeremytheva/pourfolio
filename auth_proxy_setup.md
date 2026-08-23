@@ -25,6 +25,7 @@ Rules:
 - Do not expose the secret to the browser.
 - Do not use public/browser-prefixed variables.
 - Do not introduce alternate NoCodeBackend environment-variable aliases.
+- Retired short-form NoCodeBackend environment-variable names are prohibited.
 
 ## Auth Proxy Contract
 
