@@ -1,5 +1,4 @@
 import { safeErrorMessage, withTimeout } from './httpSecurity.js'
-import { getDataRequestContext } from './dataRequestContext.js'
 import { resolveDataCredential } from './ncbCredentials.js'
 
 const DEFAULT_DATA_BASE_URL = 'https://api.nocodebackend.com/'
@@ -58,11 +57,11 @@ const requireExpectedRecord = (record, id) => {
   return record
 }
 
-const getProviderErrorCode = (status, filters = {}, hasSessionContext = false) => {
+const getProviderErrorCode = (status, filters = {}) => {
   if (status === 409 && filters?.expected_version !== undefined) return 'VERSION_CONFLICT'
   if (status === 409) return 'UNIQUE_CONFLICT'
   if (status === 401) return 'DATA_PROVIDER_UNAUTHENTICATED'
-  if (status === 403) return hasSessionContext ? 'DATA_PROVIDER_FORBIDDEN_WITH_SESSION' : 'DATA_PROVIDER_FORBIDDEN_NO_SESSION'
+  if (status === 403) return 'DATA_PROVIDER_FORBIDDEN'
   return 'PROVIDER_ERROR'
 }
 
@@ -104,28 +103,19 @@ const buildUrl = (baseUrl, path, filters = {}, instance = DEFAULT_INSTANCE) => {
   return url
 }
 
-const buildProviderHeaders = ({ secret, instance, body }) => {
-  const context = getDataRequestContext()
-  return {
-    accept: 'application/json',
-    authorization: `Bearer ${secret}`,
-    'x-database-instance': instance,
-    ...(context.cookie ? { cookie: context.cookie } : {}),
-    ...(context.origin ? { origin: context.origin } : {}),
-    ...(context.referer ? { referer: context.referer } : {}),
-    ...(body === undefined ? {} : { 'content-type': 'application/json' })
-  }
-}
+const buildProviderHeaders = ({ secret, body }) => ({
+  accept: 'application/json',
+  authorization: `Bearer ${secret}`,
+  ...(body === undefined ? {} : { 'content-type': 'application/json' })
+})
 
 const providerRequest = async (path, { method = 'GET', body, filters, preserveEnvelope = false } = {}) => {
   const { baseUrl, secret, instance } = getConfiguration()
-  const context = getDataRequestContext()
-  const hasSessionContext = Boolean(context.cookie)
   let upstream
   try {
     upstream = await withTimeout((signal) => fetch(buildUrl(baseUrl, path, filters, instance), {
       method,
-      headers: buildProviderHeaders({ secret, instance, body }),
+      headers: buildProviderHeaders({ secret, body }),
       body: body === undefined ? undefined : JSON.stringify(body),
       signal
     }))
@@ -151,7 +141,7 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
   if (!upstream.ok || payload?.error || payload?.success === false || payload?.status === 'error') {
     const error = new Error(safeErrorMessage(upstream.status))
     error.status = upstream.status >= 400 && upstream.status < 600 ? upstream.status : 502
-    error.code = getProviderErrorCode(error.status, filters, hasSessionContext)
+    error.code = getProviderErrorCode(error.status, filters)
     throw error
   }
 
