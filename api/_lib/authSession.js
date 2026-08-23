@@ -32,16 +32,16 @@ export const extractSessionUser = (payload) => {
 }
 
 export const buildSessionUrl = () => {
-  const authBaseUrl = (process.env.NCB_AUTH_API_URL || process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL).replace(/\/+$/, '')
+  const authBaseUrl = (process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL).replace(/\/+$/, '')
   const url = new URL(`${authBaseUrl}/get-session`)
-  url.searchParams.set('instance', process.env.NCB_INSTANCE || process.env.NOCODEBACKEND_INSTANCE || DATABASE_INSTANCE)
+  url.searchParams.set('instance', process.env.NOCODEBACKEND_INSTANCE || DATABASE_INSTANCE)
   return url
 }
 
 export const buildSessionHeaders = (request, secret) => ({
   accept: 'application/json',
   authorization: `Bearer ${secret}`,
-  'x-database-instance': process.env.NCB_INSTANCE || process.env.NOCODEBACKEND_INSTANCE || DATABASE_INSTANCE,
+  'x-database-instance': process.env.NOCODEBACKEND_INSTANCE || DATABASE_INSTANCE,
   cookie: request.headers?.cookie || ''
 })
 
