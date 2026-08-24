@@ -3,7 +3,7 @@
 ## Status snapshot
 
 **Project:** Pourfolio  
-**Snapshot date:** 23 August 2026  
+**Snapshot date:** 24 August 2026  
 **Overall state:** Active implementation; **not production-ready**.
 
 The codebase has a strong server-mediated launch architecture and substantial source-level validation. Production release remains blocked by external governance, connected-provider certification, data reconciliation and selected reliability controls.
@@ -17,11 +17,11 @@ The codebase has a strong server-mediated launch architecture and substantial so
 | Phase 2 | Identity lifecycle safe | **Source foundations implemented; executable lifecycle incomplete** | Export/deletion projection, artifact, discovery, reconciliation and exact-confirmation cores exist as source-only boundaries. Recent-auth, provider orchestration, durable jobs, identity deletion and retention approval remain blocked. |
 | Phase 3 | Beer discovery dependable | **In progress** | Browser response boundary and request-identity protections are implemented. Canonical catalogue reconciliation, connected browser evidence and WCAG evidence remain open. |
 
-## Immediate release blocker
+## Immediate delivery focus
 
-Open issue **#174 — Align dataProvider regression tests with current NoCodeBackend request contract** currently represents the clearest repository release-gate correction. The production adapter already uses `Instance=54026_rating` and current NoCodeBackend search/sort query semantics, while the committed regression tests still assert an older request contract.
+Issue **#174 — Align dataProvider regression tests with current NoCodeBackend request contract** is now closed. Merged PR #197 aligned the Swagger request contract and the regression expectations on `main`; its pull-request validation and CodeQL runs passed. The merge SHA still reports a Vercel build-rate-limit status, which is independent deployment-account capacity rather than a `dataProvider` test-contract failure.
 
-Best next action: complete #174, rerun `npm run validate`, then use the clean baseline to evaluate the remaining open phase work.
+The next implementation focus is the remaining Phase 3 catalogue reconciliation work in #159/#154, while #165 remains the key rating-write data-integrity dependency.
 
 ## Important open reliability / data work
 
@@ -133,15 +133,14 @@ The following cannot be certified by source code alone:
 
 ## Recommended sequence
 
-1. Close #174 and restore a clean repository validation baseline.
-2. Re-run the full validation suite on `main`.
-3. Continue #159 source catalogue reconciliation without inventing remediation decisions.
-4. Complete remaining #154 connected discovery and accessibility evidence.
-5. Deploy and certify the rating idempotency schema in #165.
-6. Complete Phase 1 same-state provider/import certification in #144.
-7. Finish Phase 0 governance controls in #143.
-8. Reassess Phase 2 executable account lifecycle only after recent-authentication, provider consistency, durable-job and retention decisions are available.
-9. Run a final launch-readiness audit against the exact candidate SHA.
+1. Continue #159 source catalogue reconciliation without inventing remediation decisions.
+2. Complete remaining #154 connected discovery and accessibility evidence.
+3. Deploy and certify the rating idempotency schema in #165.
+4. Complete Phase 1 same-state provider/import certification in #144.
+5. Finish Phase 0 governance controls in #143.
+6. Reassess Phase 2 executable account lifecycle only after recent-authentication, provider consistency, durable-job and retention decisions are available.
+7. Resolve independent deployment-account capacity failures affecting Vercel evidence.
+8. Run a final launch-readiness audit against the exact candidate SHA.
 
 ## Status rule
 
