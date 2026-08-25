@@ -24,12 +24,11 @@ Recent merged reliability slices on `main`:
 - **PR #212** — machine-checkable rating migration evidence gate. It verifies a redacted exact-SHA evidence manifest covering provider authority, backup/restore/rollback, final schema audit, export fingerprints, connected-provider verification and independent approval. This gate does **not** perform the NoCodeBackend migration or enable `/ratings/reconcile`.
 - **PR #214** — Vite native config-loader compatibility fix. `vite.config.js` now uses the ESM-native directory reference and the previous `__dirname` compatibility warning is removed.
 - **PR #216** — deterministic `package.json` / `package-lock.json` root dependency contract gate. `npm run validate` now fails early if dependency names or specifiers drift between the manifest and lockfile.
+- **PR #162** — refreshed development minor/patch dependency maintenance, rebased onto the post-#216 `main` and merged only after the new package-lock contract and all hosted gates passed. The update includes `@axe-core/playwright` 4.13.0, ESLint 10.9.0, `eslint-plugin-react-refresh` 0.5.4, `globals` 17.11.0 and Vite 8.2.2.
 
 Issue **#159** is closed: the deterministic read-only catalogue source reconciliation slice has been implemented. It must not be presented as an active next task.
 
 Issue **#165** is open. Its repository-side migration tooling is implemented, but the retained evidence explicitly confirms that the real NoCodeBackend rating idempotency migration has not yet occurred. Closing #165 requires the deployed-schema and connected verification acceptance criteria, not merely source tooling.
-
-Dependabot PR **#162** has been recreated for current dependency versions and is being refreshed against the latest `main`. It must be merged only after validation of a candidate that includes the current package-lock contract gate; stale pre-#216 validation is insufficient.
 
 ## Immediate delivery focus
 
@@ -134,7 +133,7 @@ npm run validate
 
 The validation sequence now starts with the deterministic package manifest/lock contract and then covers the NoCodeBackend environment contract, linting, unit/policy tests, production dependency audit, production build, bundle limits, Brew Done It containment and browser release-security checks. Pull requests additionally run browser/accessibility, dependency-review and CodeQL gates.
 
-The exact PR #216 candidate passed 354 tests: 345 passed, 9 connected-provider tests skipped by design, 0 failed. Its production dependency audit reported zero vulnerabilities, and Release gate, Browser/accessibility, Dependency Review and CodeQL all passed.
+The exact refreshed PR #162 candidate passed the package-lock contract and 354 tests: 345 passed, 9 connected-provider tests skipped by design, 0 failed. Its production dependency audit reported zero vulnerabilities, and Release gate, Browser/accessibility, Dependency Review and CodeQL all passed. `npm ci` still reports one high-severity advisory in the full development dependency tree; that advisory is not treated as a production vulnerability and is not claimed resolved by #162.
 
 Connected-provider, migration, governance and production/browser evidence remain separately required where source-only tests cannot prove deployed behaviour.
 
@@ -160,7 +159,7 @@ The following cannot be certified by source code alone:
 3. Complete Phase 1 same-state provider/import/recovery certification and approvals in #144.
 4. Complete Phase 0 administrator governance/security evidence in #143.
 5. Reassess Phase 2 executable account lifecycle only after recent-authentication, provider consistency, durable-job and retention decisions are available.
-6. Merge dependency maintenance only from current-main candidates that pass the package-lock contract and hosted gates.
+6. Continue dependency maintenance only from current-main candidates that pass the package-lock contract and hosted gates.
 7. Run a final launch-readiness audit against the exact release candidate SHA.
 
 ## Status rule
