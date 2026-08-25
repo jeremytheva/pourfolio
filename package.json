@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@upstash/redis": "^1.38.2",
-    "framer-motion": "^12.42.2",
+    "framer-motion": "^13.1.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-icons": "^5.4.0"
