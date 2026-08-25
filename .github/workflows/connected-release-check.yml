@@ -59,6 +59,7 @@ jobs:
         run: npm run test:release
         env:
           RELEASE_BASE_URL: ${{ inputs.release_url }}
+          RELEASE_SHA: ${{ inputs.release_sha }}
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
           RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}
