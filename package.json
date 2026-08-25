@@ -26,6 +26,7 @@
     "audit:baseline": "node scripts/audit-baseline-bundle.js",
     "audit:schema:additive": "node scripts/audit-additive-schema-contract.js",
     "audit:schema": "node scripts/audit-schema-contract.js",
+    "audit:rating:migration-evidence": "node scripts/audit-rating-migration-evidence.js",
     "check:bundle": "node scripts/check-bundle-size.js",
     "check:brew-containment": "node scripts/check-brew-done-it-containment.js",
     "check:release-security": "node scripts/check-browser-release-security.js",
