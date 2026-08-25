@@ -29,8 +29,9 @@
   "remediation": {
     "status": "BLOCKED",
     "tasks": 193,
-    "completedDecisions": 0,
-    "countsByIssueCode": {
+    "decisionsCompleted": 0,
+    "decisionFieldsBlank": true,
+    "taskCountsByIssueCode": {
       "CATEGORY_CYCLE": 22,
       "CATEGORY_SELF_LINK": 1,
       "DUPLICATE_PRODUCT_SORT_KEY": 9,
@@ -39,7 +40,7 @@
       "PRODUCT_CATEGORY_ANCESTRY_INVALID": 127,
       "PUBLIC_TEXT_ENCODING_SUSPECT": 1
     },
-    "occurrencesByIssueCode": {
+    "occurrenceCountsByIssueCode": {
       "CATEGORY_CYCLE": 22,
       "CATEGORY_SELF_LINK": 1,
       "DUPLICATE_PRODUCT_SORT_KEY": 25,
@@ -49,5 +50,5 @@
       "PUBLIC_TEXT_ENCODING_SUSPECT": 1
     }
   },
-  "evidenceBoundary": "This workload materialises the exact supplied-source blocker set into governed human decision tasks. It contains no remediation decisions and does not modify, approve, or certify catalogue data."
+  "evidenceNote": "This workload materialises governed decision tasks from the exact supplied catalogue source bundle. It records no remediation decisions, applies no corrections, and is not canonical catalogue or connected-provider certification."
 }
