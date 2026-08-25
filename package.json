@@ -21,6 +21,7 @@
     "audit:import:remediation": "node scripts/audit-reference-remediation.js",
     "audit:import:rehearsal": "node scripts/audit-import-rehearsal.js",
     "audit:catalogue": "node scripts/audit-catalogue-source.js",
+    "audit:catalogue:remediation": "node scripts/audit-catalogue-remediation.js",
     "audit:baseline": "node scripts/audit-baseline-bundle.js",
     "audit:schema:additive": "node scripts/audit-additive-schema-contract.js",
     "audit:schema": "node scripts/audit-schema-contract.js",
