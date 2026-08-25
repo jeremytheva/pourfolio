@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), previewApiBoundary(apiProxyTarget)],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src')
+        '@': path.resolve(import.meta.dirname, './src')
       }
     },
     server: {
