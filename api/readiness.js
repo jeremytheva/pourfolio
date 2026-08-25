@@ -1,5 +1,6 @@
 import { COLLECTIONS } from '../src/data/contract.js'
 import { dataProvider } from './_lib/dataProvider.js'
+import { releaseProvenance } from './_lib/releaseProvenance.js'
 
 const providerState = (error) => {
   if (['DATA_CONFIGURATION_MISSING', 'DATA_CONFIGURATION_INVALID', 'DATA_CREDENTIAL_MISSING'].includes(error?.code)) return 'misconfigured'
@@ -17,6 +18,8 @@ export default async function handler(request, response) {
     return
   }
 
+  const release = releaseProvenance()
+
   try {
     await dataProvider.listPage(COLLECTIONS.products, {
       page: 1,
@@ -26,11 +29,13 @@ export default async function handler(request, response) {
     })
     response.status(200).json({
       status: 'ready',
+      release,
       checks: { dataProvider: 'ok' }
     })
   } catch (error) {
     response.status(503).json({
       status: 'degraded',
+      release,
       checks: { dataProvider: providerState(error) }
     })
   }
