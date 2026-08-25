@@ -7,7 +7,9 @@ const originalFetch = global.fetch
 const originalEnvironment = {
   NOCODEBACKEND_SECRET_KEY: process.env.NOCODEBACKEND_SECRET_KEY,
   NOCODEBACKEND_DATA_BASE_URL: process.env.NOCODEBACKEND_DATA_BASE_URL,
-  NOCODEBACKEND_INSTANCE: process.env.NOCODEBACKEND_INSTANCE
+  NOCODEBACKEND_INSTANCE: process.env.NOCODEBACKEND_INSTANCE,
+  VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA,
+  VERCEL_ENV: process.env.VERCEL_ENV
 }
 
 const invoke = async () => {
@@ -25,6 +27,8 @@ test.beforeEach(() => {
   process.env.NOCODEBACKEND_SECRET_KEY = 'server-secret'
   process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://api.nocodebackend.com/'
   process.env.NOCODEBACKEND_INSTANCE = '54026_rating'
+  process.env.VERCEL_GIT_COMMIT_SHA = 'abcdef0123456789abcdef0123456789abcdef01'
+  process.env.VERCEL_ENV = 'production'
 })
 
 test.afterEach(() => { global.fetch = originalFetch })
@@ -44,7 +48,14 @@ test('readiness reports ready after a bounded products read', async () => {
   })
   const result = await invoke()
   assert.equal(result.statusCode, 200)
-  assert.deepEqual(result.body, { status: 'ready', checks: { dataProvider: 'ok' } })
+  assert.deepEqual(result.body, {
+    status: 'ready',
+    release: {
+      commitSha: 'abcdef0123456789abcdef0123456789abcdef01',
+      environment: 'production'
+    },
+    checks: { dataProvider: 'ok' }
+  })
 })
 
 test('readiness reports provider authorisation failures without leaking upstream details', async () => {
@@ -55,7 +66,14 @@ test('readiness reports provider authorisation failures without leaking upstream
   })
   const result = await invoke()
   assert.equal(result.statusCode, 503)
-  assert.deepEqual(result.body, { status: 'degraded', checks: { dataProvider: 'forbidden' } })
+  assert.deepEqual(result.body, {
+    status: 'degraded',
+    release: {
+      commitSha: 'abcdef0123456789abcdef0123456789abcdef01',
+      environment: 'production'
+    },
+    checks: { dataProvider: 'forbidden' }
+  })
   assert.equal(JSON.stringify(result.body).includes('private upstream detail'), false)
 })
 
