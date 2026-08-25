@@ -1,4 +1,5 @@
 import { credentialConfigurationState } from './_lib/ncbCredentials.js'
+import { releaseProvenance } from './_lib/releaseProvenance.js'
 
 const CANONICAL_DATA_BASE_URL = 'https://api.nocodebackend.com/'
 
@@ -29,6 +30,7 @@ export default function handler(_request, response) {
   response.status(200).json({
     status: 'ok',
     service: 'pourfolio',
+    release: releaseProvenance(),
     checks: {
       authenticationConfigured: credentials.authConfigured,
       dataConfigured: credentials.dataConfigured && dataState.endpointValid,

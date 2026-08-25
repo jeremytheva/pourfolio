@@ -12,7 +12,9 @@ const environmentVariables = [
   'pourfolio_KV_REST_API_TOKEN',
   'UPSTASH_REDIS_REST_URL',
   'UPSTASH_REDIS_REST_TOKEN',
-  'RATE_LIMIT_KEY_SECRET'
+  'RATE_LIMIT_KEY_SECRET',
+  'VERCEL_GIT_COMMIT_SHA',
+  'VERCEL_ENV'
 ]
 
 function invokeHealthHandler() {
@@ -76,6 +78,27 @@ test('reports the rate limiter as configured with Vercel KV values', () => {
     pourfolio_KV_REST_API_TOKEN: 'redis-token-value'
   })
   assert.equal(invokeHealthHandler().body.checks.rateLimiterConfigured, true)
+})
+
+test('health reports only canonical release provenance values', () => {
+  configureEnvironment({
+    VERCEL_GIT_COMMIT_SHA: 'ABCDEF0123456789ABCDEF0123456789ABCDEF01',
+    VERCEL_ENV: 'PRODUCTION'
+  })
+  assert.deepEqual(invokeHealthHandler().body.release, {
+    commitSha: 'abcdef0123456789abcdef0123456789abcdef01',
+    environment: 'production'
+  })
+})
+
+test('health fails closed on malformed release provenance without echoing it', () => {
+  configureEnvironment({
+    VERCEL_GIT_COMMIT_SHA: 'private-or-malformed-sha-value',
+    VERCEL_ENV: 'private-environment-value'
+  })
+  const release = invokeHealthHandler().body.release
+  assert.deepEqual(release, { commitSha: null, environment: null })
+  assert.equal(JSON.stringify(release).includes('private'), false)
 })
 
 test('health response never exposes configured credential values', () => {
