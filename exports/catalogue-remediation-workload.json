@@ -1,0 +1,54 @@
+{
+  "schema": "pourfolio.catalogue-remediation-workload.v1",
+  "sourceAudit": {
+    "status": "BLOCKED",
+    "rootCategoryId": "1",
+    "blockerOccurrences": 209,
+    "bundleSha256": "23343915eced1e4cac15b0b49f149cf808addd57d1697dab1e83b7063fb1bae2",
+    "inputs": [
+      {
+        "file": "54026_rating_products.csv",
+        "bytes": 16216,
+        "rows": 350,
+        "sha256": "cc4f5b24b040afcf6c2717e20dbada8b53b7df5648537f26924f46e0d7dab2d7"
+      },
+      {
+        "file": "54026_rating_producers.csv",
+        "bytes": 4425,
+        "rows": 159,
+        "sha256": "8ef062d486877dca6a80d96f77fcfc3516066f73312382e8730bb2968266dce4"
+      },
+      {
+        "file": "54026_rating_categories(1).csv",
+        "bytes": 9158,
+        "rows": 331,
+        "sha256": "f56c8dbeee696e034bb63aade002694dbb2fca5a5b570c66ee404e655e322170"
+      }
+    ]
+  },
+  "remediation": {
+    "status": "BLOCKED",
+    "tasks": 193,
+    "decisionsCompleted": 0,
+    "decisionFieldsBlank": true,
+    "taskCountsByIssueCode": {
+      "CATEGORY_CYCLE": 22,
+      "CATEGORY_SELF_LINK": 1,
+      "DUPLICATE_PRODUCT_SORT_KEY": 9,
+      "MISSING_CATEGORY_REFERENCE": 4,
+      "MISSING_PRODUCER_REFERENCE": 29,
+      "PRODUCT_CATEGORY_ANCESTRY_INVALID": 127,
+      "PUBLIC_TEXT_ENCODING_SUSPECT": 1
+    },
+    "occurrenceCountsByIssueCode": {
+      "CATEGORY_CYCLE": 22,
+      "CATEGORY_SELF_LINK": 1,
+      "DUPLICATE_PRODUCT_SORT_KEY": 25,
+      "MISSING_CATEGORY_REFERENCE": 4,
+      "MISSING_PRODUCER_REFERENCE": 29,
+      "PRODUCT_CATEGORY_ANCESTRY_INVALID": 127,
+      "PUBLIC_TEXT_ENCODING_SUSPECT": 1
+    }
+  },
+  "evidenceNote": "This workload materialises governed decision tasks from the exact supplied catalogue source bundle. It records no remediation decisions, applies no corrections, and is not canonical catalogue or connected-provider certification."
+}
