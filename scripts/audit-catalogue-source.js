@@ -5,7 +5,6 @@ import { pathToFileURL } from 'node:url'
 import { parseCsv } from './audit-import-references.js'
 
 const POSITIVE_INTEGER = /^[1-9]\d*$/
-const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/
 const UNSAFE_TEXT = /\uFFFD|Ã.|Â.|â(?:€|€™|€œ|€œ|€“|€”)/
 
 const requiredHeaders = {
@@ -17,6 +16,13 @@ const requiredHeaders = {
 const sha256 = (value) => createHash('sha256').update(value).digest('hex')
 const clean = (value) => String(value ?? '').trim()
 const normaliseSortKey = (value) => clean(value).normalize('NFKC').toLocaleLowerCase('en-AU').replace(/\s+/g, ' ')
+const containsControlCharacter = (value) => {
+  for (const character of String(value ?? '')) {
+    const code = character.codePointAt(0)
+    if ((code >= 0 && code <= 8) || code === 11 || code === 12 || (code >= 14 && code <= 31) || code === 127) return true
+  }
+  return false
+}
 
 const headersOf = (text) => {
   const firstLine = text.replace(/^\uFEFF/, '').split(/\r?\n/, 1)[0] || ''
@@ -43,7 +49,7 @@ const validateIdentityAndText = (records, collection, nameField, blockers) => {
     else if (ids.has(id)) add(blockers, 'DUPLICATE_PRIMARY_ID', collection, record.__row, id)
     else ids.add(id)
     if (!name || name !== name.trim()) add(blockers, 'INVALID_PUBLIC_NAME', collection, record.__row, id || null)
-    if (CONTROL.test(name)) add(blockers, 'PUBLIC_TEXT_CONTROL_CHARACTER', collection, record.__row, id || null)
+    if (containsControlCharacter(name)) add(blockers, 'PUBLIC_TEXT_CONTROL_CHARACTER', collection, record.__row, id || null)
     if (UNSAFE_TEXT.test(name)) add(blockers, 'PUBLIC_TEXT_ENCODING_SUSPECT', collection, record.__row, id || null)
     if (clean(record.user_id)) add(blockers, 'CATALOGUE_OWNER_NOT_BLANK', collection, record.__row, id || null)
   }
@@ -109,7 +115,7 @@ export const auditCatalogue = ({ products, producers, categories, rootCategoryId
     if (collaboration && !['true', 'false', '0', '1', 'yes', 'no'].includes(collaboration)) add(blockers, 'INVALID_COLLABORATION_FLAG', 'products', product.__row, id)
     for (const field of ['declared_category', 'edition']) {
       const value = String(product[field] ?? '')
-      if (CONTROL.test(value)) add(blockers, 'PUBLIC_TEXT_CONTROL_CHARACTER', 'products', product.__row, id, { field })
+      if (containsControlCharacter(value)) add(blockers, 'PUBLIC_TEXT_CONTROL_CHARACTER', 'products', product.__row, id, { field })
       if (UNSAFE_TEXT.test(value)) add(blockers, 'PUBLIC_TEXT_ENCODING_SUSPECT', 'products', product.__row, id, { field })
     }
     const key = normaliseSortKey(product.product_name)
