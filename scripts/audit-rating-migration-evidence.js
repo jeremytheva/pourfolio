@@ -20,6 +20,10 @@ const canonicalise = (value) => {
 
 const digest = (value) => createHash('sha256').update(value).digest('hex')
 const isPlainObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype
+const hasControlCharacters = (value) => [...value].some((character) => {
+  const codePoint = character.codePointAt(0)
+  return codePoint <= 31 || codePoint === 127
+})
 
 const add = (blockers, code, field) => blockers.push({ code, field })
 
@@ -44,7 +48,7 @@ const requireRef = (value, field, blockers) => {
 }
 
 const requireText = (value, field, blockers) => {
-  if (typeof value !== 'string' || !value.trim() || value !== value.trim() || value.length > 120 || /[\u0000-\u001f\u007f]/.test(value) || SENSITIVE.test(value)) {
+  if (typeof value !== 'string' || !value.trim() || value !== value.trim() || value.length > 120 || hasControlCharacters(value) || SENSITIVE.test(value)) {
     add(blockers, 'INVALID_SAFE_TEXT', field)
   }
 }
