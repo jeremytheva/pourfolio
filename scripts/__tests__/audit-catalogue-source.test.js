@@ -50,6 +50,15 @@ test('duplicate browse sort keys, ownership and unsafe text are privacy-safe blo
   assert.equal(JSON.stringify(result).includes('Brewery �'), false)
 })
 
+test('control characters in public text are detected without echoing source text', () => {
+  const input = valid()
+  input.products[0].product_name = `Pale${String.fromCharCode(7)} Ale`
+  const result = auditCatalogue({ ...input, rootCategoryId: '1' })
+  assert.equal(result.status, 'BLOCKED')
+  assert.equal(result.countsByCode.PUBLIC_TEXT_CONTROL_CHARACTER, 1)
+  assert.equal(JSON.stringify(result).includes(input.products[0].product_name), false)
+})
+
 test('malformed optional numeric and collaboration fields fail closed', () => {
   const input = valid()
   input.products[0].abv = 'unknown'
