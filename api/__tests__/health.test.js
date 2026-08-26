@@ -51,29 +51,56 @@ test('reports NoCodeBackend configured from the four Vercel variables', () => {
   assert.equal(checks.dataEndpointConfigured, true)
   assert.equal(checks.dataEndpointCanonical, true)
   assert.equal(checks.instanceConfigured, true)
+  assert.equal(checks.instanceCanonical, true)
   assert.equal(checks.authCredentialSource, 'nocodebackend-secret-key')
   assert.equal(checks.dataCredentialSource, 'nocodebackend-secret-key')
 })
 
-test('hardcoded data endpoint is the Vercel endpoint', async () => {
+test('hardcoded data endpoint and instance are canonical', async () => {
   const { __testables } = await import('../health.js')
   assert.equal(__testables.CANONICAL_DATA_BASE_URL, 'https://api.nocodebackend.com/')
+  assert.equal(__testables.CANONICAL_INSTANCE, '54026_rating')
 })
 
 test('invalid data endpoint reports data as unconfigured', () => {
   configureEnvironment({
     NOCODEBACKEND_DATA_BASE_URL: 'not-a-url',
-    NOCODEBACKEND_SECRET_KEY: 'server-secret'
+    NOCODEBACKEND_SECRET_KEY: 'server-secret',
+    NOCODEBACKEND_INSTANCE: '54026_rating'
   })
   const checks = invokeHealthHandler().body.checks
   assert.equal(checks.dataConfigured, false)
   assert.equal(checks.dataTransport, 'invalid')
   assert.equal(checks.dataEndpointCanonical, false)
+  assert.equal(checks.instanceCanonical, true)
+})
+
+test('wrong or missing instance cannot report the data configuration as ready', () => {
+  configureEnvironment({
+    NOCODEBACKEND_DATA_BASE_URL: 'https://api.nocodebackend.com/',
+    NOCODEBACKEND_SECRET_KEY: 'server-secret',
+    NOCODEBACKEND_INSTANCE: 'wrong_instance'
+  })
+  let checks = invokeHealthHandler().body.checks
+  assert.equal(checks.instanceConfigured, true)
+  assert.equal(checks.instanceCanonical, false)
+  assert.equal(checks.dataConfigured, false)
+  assert.equal(JSON.stringify(checks).includes('wrong_instance'), false)
+
+  configureEnvironment({
+    NOCODEBACKEND_DATA_BASE_URL: 'https://api.nocodebackend.com/',
+    NOCODEBACKEND_SECRET_KEY: 'server-secret'
+  })
+  checks = invokeHealthHandler().body.checks
+  assert.equal(checks.instanceConfigured, false)
+  assert.equal(checks.instanceCanonical, false)
+  assert.equal(checks.dataConfigured, false)
 })
 
 test('reports the rate limiter as configured with Vercel KV values', () => {
   configureEnvironment({
     NOCODEBACKEND_SECRET_KEY: 'server-secret',
+    NOCODEBACKEND_INSTANCE: '54026_rating',
     pourfolio_KV_REST_API_URL: 'https://redis.example.test',
     pourfolio_KV_REST_API_TOKEN: 'redis-token-value'
   })

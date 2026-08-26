@@ -50,6 +50,23 @@ test('hardcoded data fallback is api.nocodebackend.com', () => {
   assert.equal(__testables.resolveDataBaseUrl(undefined), 'https://api.nocodebackend.com')
 })
 
+test('canonical instance is enforced before provider requests', async () => {
+  assert.equal(__testables.DEFAULT_INSTANCE, '54026_rating')
+  assert.equal(__testables.resolveDataInstance(undefined), '54026_rating')
+  assert.equal(__testables.resolveDataInstance(' 54026_rating '), '54026_rating')
+  assert.throws(() => __testables.resolveDataInstance('wrong_instance'), {
+    status: 503,
+    code: 'DATA_INSTANCE_MISMATCH'
+  })
+
+  process.env.NOCODEBACKEND_INSTANCE = 'wrong_instance'
+  global.fetch = async () => assert.fail('fetch must not be called for a mismatched instance')
+  await assert.rejects(dataProvider.list('products'), {
+    status: 503,
+    code: 'DATA_INSTANCE_MISMATCH'
+  })
+})
+
 test('configured data base URL is respected', () => {
   assert.equal(__testables.resolveDataBaseUrl('https://api.nocodebackend.com/'), 'https://api.nocodebackend.com')
   assert.throws(() => __testables.resolveDataBaseUrl('not-a-url'), { code: 'DATA_CONFIGURATION_INVALID' })

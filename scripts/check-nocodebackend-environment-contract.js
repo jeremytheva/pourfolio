@@ -8,6 +8,7 @@ const environmentPrefix = 'NC' + 'B_'
 const forbiddenDataUrl = ['https://app.nocodebackend.com', '/api/data'].join('')
 const requiredDataUrl = 'https://api.nocodebackend.com/'
 const requiredAuthUrl = 'https://app.nocodebackend.com/api/user-auth'
+const requiredInstance = '54026_rating'
 const textExtensions = new Set(['.js', '.jsx', '.ts', '.tsx', '.json', '.md', '.yml', '.yaml', '.env', '.example'])
 
 const violations = []
@@ -31,8 +32,9 @@ const inspect = (filePath) => {
     ]) {
       if (!content.includes(variable)) violations.push(`${relative}: missing ${variable}`)
     }
-    if (!content.includes(requiredDataUrl)) violations.push(`${relative}: missing canonical data URL ${requiredDataUrl}`)
-    if (!content.includes(requiredAuthUrl)) violations.push(`${relative}: missing canonical auth URL ${requiredAuthUrl}`)
+    if (!content.includes(`NOCODEBACKEND_DATA_BASE_URL=${requiredDataUrl}`)) violations.push(`${relative}: missing canonical data URL ${requiredDataUrl}`)
+    if (!content.includes(`NOCODEBACKEND_AUTH_BASE_URL=${requiredAuthUrl}`)) violations.push(`${relative}: missing canonical auth URL ${requiredAuthUrl}`)
+    if (!content.includes(`NOCODEBACKEND_INSTANCE=${requiredInstance}`)) violations.push(`${relative}: missing canonical instance ${requiredInstance}`)
   }
 }
 
