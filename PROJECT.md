@@ -7,7 +7,7 @@ Beer-first discovery, structured rating and private cellar platform.
 
 **Repository:** `jeremytheva/pourfolio`  
 **Primary branch:** `main`  
-**Project control baseline:** 23 August 2026
+**Project control baseline:** 26 August 2026
 
 ## Purpose
 
@@ -36,6 +36,22 @@ The intended first public release is a reliable beer portfolio with:
 
 Ratings and cellar records do **not** require a sharing series or edition. Those relationships are optional and must remain null when not applicable.
 
+## Master standards inherited
+
+Pourfolio inherits the current master software-development rules supplied for the portfolio, including:
+
+- **AI-First Platform Development Framework v3.0** — overarching architecture, whole-system, autonomy and continuity framework;
+- **AI Platform Development Standard v1.1** — implementation protocol, execution gates, Continue/Next behaviour and work-state rules;
+- **Testing, Validation & Release Standard v1.1** — evidence, canonical validation, deployment and completion rules;
+- **Project Documentation Standard v1.1** — project-document ownership, continuity and source-of-truth rules;
+- the applicable Platform Engineering, Design, Data/Migration, Security, Observability and provider reference standards where their rules apply to this project.
+
+Project-specific facts and exceptions belong in this repository. Master rules should be referenced rather than copied into project documents.
+
+### Project-specific deviations
+
+No intentional project deviation currently overrides the master security, data-integrity or validation rules. Provider limitations and unresolved runtime evidence are recorded as blockers rather than treated as exceptions.
+
 ## Product principles
 
 - Beer-first launch scope.
@@ -60,12 +76,12 @@ Ratings and cellar records do **not** require a sharing series or edition. Those
 | Backend provider | NoCodeBackend |
 | Server boundary | Vercel Functions under `api/` |
 | Rate limiting | Vercel KV / Upstash-compatible Redis integration |
-| CI / validation | GitHub Actions plus repository validation scripts |
+| CI / validation | GitHub Actions plus `npm run platform:validate` |
 | Browser routing | Small same-origin History API router |
 
 ## Provider configuration contract
 
-The repository currently standardises on these server-only NoCodeBackend variables:
+The repository standardises on these server-only NoCodeBackend variables:
 
 - `NOCODEBACKEND_AUTH_BASE_URL`
 - `NOCODEBACKEND_DATA_BASE_URL`
@@ -82,26 +98,29 @@ Browser code must not receive the provider secret or bypass the Pourfolio same-o
 
 ## Repository authority
 
-Use the following source hierarchy:
+Use the following project source hierarchy, while applying the inherited master standards as governing rules:
 
 1. implemented code and configuration;
 2. `AGENTS.md`;
-3. repository product, architecture, data, security, testing and decision documents;
-4. GitHub issues;
-5. pull requests and validation evidence;
-6. milestones / project tracking;
-7. ChatGPT conversation context.
+3. current project documentation and accepted decisions;
+4. active provider/deployment state where the fact is provider/runtime-owned;
+5. tests and runtime evidence;
+6. GitHub issues, PRs and validation evidence;
+7. prior chat/context;
+8. inference.
 
-Conflicts must be identified and resolved explicitly rather than silently reconciled.
+Conflicts must be investigated rather than silently reconciled.
 
 ## Canonical repository documents
 
-This project-control set is intended to sit above the detailed repository documents rather than replace them.
-
-- `PROJECT.md` — durable project purpose, scope and operating context.
-- `STATUS.md` — current implementation and delivery state.
+- `PROJECT.md` — durable project purpose, scope, inheritance and operating context.
+- `STATUS.md` — current implementation, execution gate and blocker state.
+- `ARCHITECTURE.md` — concise current architecture summary.
+- `DATA_MODEL.md` — concise current domain/data summary.
+- `ROADMAP.md` — intended phase/milestone direction and dependencies.
+- `SYSTEM_MAP.md` — compact implementation relationship map for whole-system analysis.
 - `docs/ARCHITECTURE.md` — detailed technical architecture.
-- `docs/DATA_MODEL.md` — current deployed data contract.
+- `docs/DATA_MODEL.md` — detailed deployed data contract.
 - `docs/SECURITY.md` — security model and controls.
 - `docs/TESTING.md` — validation strategy.
 - `docs/LAUNCH_READINESS.md` — production gate evidence.
@@ -118,7 +137,11 @@ Pourfolio is launch-ready only when:
 - rating writes are reliable and data-integrity controls are deployed;
 - required CI, security, accessibility and production build checks pass on the exact candidate SHA;
 - environment configuration and provider permissions are verified;
+- the exact production deployment SHA is verified;
+- required provider/runtime smoke evidence passes;
 - all P0/P1 launch gates are closed with evidence;
 - required repository governance controls are active;
 - current documentation matches the implemented state;
 - no deferred prototype module is accidentally routed, bundled or represented as production-ready.
+
+See `STATUS.md` for the current gate and `ROADMAP.md` for the dependency-correct path to this outcome.
