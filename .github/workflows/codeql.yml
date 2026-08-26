@@ -5,6 +5,12 @@ on:
     branches:
       - main
       - master
+      - 'fix/**'
+      - 'codex/**'
+      - 'agent/**'
+      - 'chore/**'
+      - 'docs/**'
+      - 'feature/**'
   pull_request:
     branches:
       - main
