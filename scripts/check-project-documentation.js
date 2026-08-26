@@ -12,6 +12,13 @@ const requiredFiles = [
   'SYSTEM_MAP.md'
 ]
 
+const canonicalGuidanceFiles = [
+  'AGENTS.md',
+  'README.md',
+  'docs/CONTRIBUTING.md',
+  '.github/pull_request_template.md'
+]
+
 const requiredDecisionDirectory = 'docs/DECISIONS'
 const requiredStatusSections = [
   '## AI execution gate',
@@ -20,14 +27,33 @@ const requiredStatusSections = [
 
 const findings = []
 
+const readText = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8')
+
 for (const file of requiredFiles) {
   const filePath = path.join(root, file)
   if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
     findings.push({ code: 'PROJECT_DOCUMENT_MISSING', path: file })
     continue
   }
-  if (!fs.readFileSync(filePath, 'utf8').trim()) {
-    findings.push({ code: 'PROJECT_DOCUMENT_EMPTY', path: file })
+  if (!readText(file).trim()) findings.push({ code: 'PROJECT_DOCUMENT_EMPTY', path: file })
+}
+
+for (const file of canonicalGuidanceFiles) {
+  const filePath = path.join(root, file)
+  if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+    findings.push({ code: 'PROJECT_GUIDANCE_MISSING', path: file })
+    continue
+  }
+  const content = readText(file)
+  if (!content.includes('npm run platform:validate')) {
+    findings.push({ code: 'CANONICAL_VALIDATION_GUIDANCE_MISSING', path: file })
+  }
+}
+
+for (const file of ['AGENTS.md', 'README.md']) {
+  const filePath = path.join(root, file)
+  if (fs.existsSync(filePath) && /\bVite 7\b/.test(readText(file))) {
+    findings.push({ code: 'STALE_VITE_MAJOR_GUIDANCE', path: file })
   }
 }
 
@@ -37,14 +63,12 @@ if (!fs.existsSync(decisionsPath) || !fs.statSync(decisionsPath).isDirectory()) 
 } else {
   const decisionFiles = fs.readdirSync(decisionsPath)
     .filter((name) => name.toLowerCase().endsWith('.md') && name.toLowerCase() !== 'readme.md')
-  if (decisionFiles.length === 0) {
-    findings.push({ code: 'DECISION_RECORD_MISSING', path: requiredDecisionDirectory })
-  }
+  if (decisionFiles.length === 0) findings.push({ code: 'DECISION_RECORD_MISSING', path: requiredDecisionDirectory })
 }
 
 const statusPath = path.join(root, 'STATUS.md')
 if (fs.existsSync(statusPath)) {
-  const status = fs.readFileSync(statusPath, 'utf8')
+  const status = readText('STATUS.md')
   for (const section of requiredStatusSections) {
     if (!status.includes(section)) findings.push({ code: 'STATUS_SECTION_MISSING', section })
   }
