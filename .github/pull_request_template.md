@@ -4,6 +4,12 @@ Closes #
 
 ## Outcome
 
+## Current execution gate
+
+- Gate: PROJECT ENTRY | CHANGE | INTEGRATION | RELEASE | COMPLETION
+- State: PASS | IN PROGRESS | BLOCKED
+- Missing evidence (if material):
+
 ## Summary of changes
 
 ## Implementation decisions
@@ -17,13 +23,21 @@ Closes #
 
 ## Validation performed
 
-- [ ] `npm run lint`
-- [ ] `npm test`
-- [ ] `npm run build`
-- [ ] `npm run validate`
+- [ ] `npm run platform:validate`
+- [ ] Hosted Browser and accessibility (when applicable)
+- [ ] Dependency Review
+- [ ] CodeQL
+- [ ] Connected provider/deployment/runtime verification (when applicable; describe below)
 - [ ] Manual validation (describe below)
 
-> There is no separate typecheck, integration-test, end-to-end-test, or executable migration command in this repository. Record applicable alternatives or why they are not applicable.
+> A passing `platform:validate` proves only its declared repository checks. Do not use it as evidence for provider configuration, migrations, deployed commit, runtime readiness or connected end-to-end behaviour.
+
+## Provider / deployment evidence
+
+- Exact candidate SHA:
+- Target environment:
+- Deployed SHA (if applicable):
+- Provider/runtime result (if applicable):
 
 ## Database or schema impact
 
@@ -33,7 +47,7 @@ Closes #
 
 ## Screenshots or recordings
 
-## Known limitations
+## Known limitations / blockers
 
 ## Follow-up work
 
@@ -42,7 +56,9 @@ Closes #
 ## Delivery checklist
 
 - [ ] No unrelated changes are included.
-- [ ] No secrets, tokens, or sensitive user data are committed.
-- [ ] Documentation is updated where behaviour, schema, or operations changed.
-- [ ] Tests cover new or changed behaviour, or the gap is explained above.
+- [ ] No secrets, tokens or sensitive user data are committed or pasted into evidence.
+- [ ] Documentation is updated where behaviour, schema, architecture, provider state or operations changed.
+- [ ] Tests cover new or changed behaviour, or the gap is explicitly classified.
+- [ ] Provider/deployment claims are backed by current external evidence rather than source code alone.
+- [ ] Completion state does not hide known dependent work.
 - [ ] This branch is ready for review.
