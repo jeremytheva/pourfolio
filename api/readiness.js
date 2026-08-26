@@ -3,7 +3,7 @@ import { dataProvider } from './_lib/dataProvider.js'
 import { releaseProvenance } from './_lib/releaseProvenance.js'
 
 const providerState = (error) => {
-  if (['DATA_CONFIGURATION_MISSING', 'DATA_CONFIGURATION_INVALID', 'DATA_CREDENTIAL_MISSING'].includes(error?.code)) return 'misconfigured'
+  if (['DATA_CONFIGURATION_MISSING', 'DATA_CONFIGURATION_INVALID', 'DATA_CREDENTIAL_MISSING', 'DATA_INSTANCE_MISMATCH'].includes(error?.code)) return 'misconfigured'
   if (error?.code === 'DATA_PROVIDER_UNAUTHENTICATED') return 'unauthenticated'
   if (error?.code === 'DATA_PROVIDER_FORBIDDEN') return 'forbidden'
   if (error?.status === 404) return 'contract-mismatch'
