@@ -77,9 +77,20 @@ const resolveDataBaseUrl = (configuredBaseUrl) => {
   }
 }
 
+const resolveDataInstance = (configuredInstance) => {
+  const instance = configuredInstance?.trim() || DEFAULT_INSTANCE
+  if (instance !== DEFAULT_INSTANCE) {
+    const error = new Error('The production data service instance is invalid.')
+    error.status = 503
+    error.code = 'DATA_INSTANCE_MISMATCH'
+    throw error
+  }
+  return instance
+}
+
 const getConfiguration = () => {
   const configuredBaseUrl = process.env.NOCODEBACKEND_DATA_BASE_URL?.trim()
-  const instance = process.env.NOCODEBACKEND_INSTANCE || DEFAULT_INSTANCE
+  const instance = resolveDataInstance(process.env.NOCODEBACKEND_INSTANCE)
   let credential
 
   try {
@@ -120,7 +131,7 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
       signal
     }))
   } catch (cause) {
-    if (cause?.code === 'DATA_CONFIGURATION_INVALID' || cause?.code === 'DATA_CREDENTIAL_MISSING') throw cause
+    if (cause?.code === 'DATA_CONFIGURATION_INVALID' || cause?.code === 'DATA_CREDENTIAL_MISSING' || cause?.code === 'DATA_INSTANCE_MISMATCH') throw cause
     const error = new Error(safeErrorMessage(502))
     error.status = 502
     error.code = 'PROVIDER_ERROR'
@@ -182,6 +193,7 @@ export const dataProvider = {
 
 export const __testables = {
   resolveDataBaseUrl,
+  resolveDataInstance,
   normalisePage,
   buildProviderHeaders,
   getProviderErrorCode,
