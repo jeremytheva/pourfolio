@@ -16,7 +16,7 @@ Prototype social, event, venue, analytics, producer/admin, photo and non-beer mo
 
 - Node.js 20
 - React 19.2
-- Vite 7
+- Vite 8
 - npm
 - NoCodeBackend through the serverless gateways in `api/`
 
@@ -39,10 +39,19 @@ receives no provider secret and always calls same-origin
 ## Validation
 
 ```bash
-npm run validate
+npm run platform:validate
 ```
 
-This runs lint, unit/policy tests, production dependency audit, build and bundle budgets.
+This is the canonical full repository source-validation entry point. It composes the project-document and configuration guards, lint, unit/policy tests, production dependency audit, production build, bundle controls and browser release-security checks.
+
+A passing source-validation run is not production certification. Provider authorization, migrations, exact deployed SHA, environment configuration, connected smoke flows and other release evidence are tracked separately in `STATUS.md` and the launch-readiness records.
+
+## Project continuity
+
+- [Project definition](PROJECT.md)
+- [Current status and execution gate](STATUS.md)
+- [Roadmap](ROADMAP.md)
+- [System map](SYSTEM_MAP.md)
 
 ## Architecture and release evidence
 
@@ -53,4 +62,4 @@ This runs lint, unit/policy tests, production dependency audit, build and bundle
 - [Launch readiness](docs/LAUNCH_READINESS.md)
 - [Account lifecycle readiness and acceptance contract](docs/account-lifecycle-readiness.md)
 
-Production remains blocked until the external gates in the launch-readiness checklist are completed against the connected backend and deployed environment.
+Production remains blocked until the external gates in `STATUS.md` and the launch-readiness checklist are completed against the connected backend and exact deployed environment.
