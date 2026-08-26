@@ -26,6 +26,8 @@ NOCODEBACKEND_INSTANCE=54026_rating
 
 No environment variable beginning with the retired short-form NoCodeBackend prefix is permitted anywhere in the repository. Isolated contract-test controls use `NOCODEBACKEND_CONTRACT_*` names.
 
+`54026_rating` is the canonical Pourfolio data instance. The server data adapter fails closed with `DATA_INSTANCE_MISMATCH` before network access if `NOCODEBACKEND_INSTANCE` resolves to any different value. This prevents a wrong instance from being misdiagnosed as provider authorization failure.
+
 ## Authentication API
 
 The hardcoded fallback authentication URL is:
@@ -140,6 +142,7 @@ Core product and cellar records must remain usable when optional relationship en
 
 Provider failures never expose raw provider bodies or credentials to browser responses.
 
+- `DATA_INSTANCE_MISMATCH` -> local `503` configuration failure before any provider request.
 - `401` -> `DATA_PROVIDER_UNAUTHENTICATED`.
 - `403` -> `DATA_PROVIDER_FORBIDDEN`.
 - `404` -> safe not-found handling.
@@ -149,13 +152,15 @@ Provider failures never expose raw provider bodies or credentials to browser res
 
 ## Health and readiness
 
-`/api/health` reports configuration state without exposing values.
+`/api/health` reports configuration state without exposing values. It includes both `instanceConfigured` and `instanceCanonical`; `dataConfigured` cannot be true unless the configured instance is canonical. The configured instance value itself is never returned.
 
-`/api/readiness` performs a bounded, non-destructive products read using the same Swagger-proven Bearer + `Instance` contract and reports a safe dependency state without returning provider records, credentials, configured URLs, or raw upstream errors.
+`/api/readiness` performs a bounded, non-destructive products read using the same Swagger-proven Bearer + `Instance` contract and reports a safe dependency state without returning provider records, credentials, configured URLs, or raw upstream errors. A local instance mismatch is reported as `misconfigured`; a provider `403` is reported separately as `forbidden`.
 
 ## Connected verification
 
 Connected smoke verification must use the same four `NOCODEBACKEND_*` application variables as production and verify non-destructive reads for launch collections. Destructive isolated-staging tests use `NOCODEBACKEND_CONTRACT_*` test-control variables; these are test metadata rather than application configuration.
+
+For incident diagnosis, verify `instanceCanonical: true` before attributing a connected `forbidden` readiness result to the credential or provider policy. If `instanceCanonical` is false, correct the environment instance first; if it is true and readiness remains `forbidden`, investigate the server credential/provider authorization path.
 
 ## Change control
 
@@ -167,4 +172,4 @@ Before changing endpoint shape, operation paths, instance selection, authenticat
 4. run the full release gate and connected smoke matrix;
 5. verify health/readiness and authenticated production reads after deployment.
 
-The repository validation guard must fail if a retired NoCodeBackend environment-variable prefix or the retired data URL is reintroduced.
+The repository validation guard must fail if a retired NoCodeBackend environment-variable prefix, the retired data URL, or a non-canonical `.env.example` instance contract is reintroduced.
