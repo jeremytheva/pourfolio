@@ -77,10 +77,20 @@ test('readiness reports provider authorisation failures without leaking upstream
   assert.equal(JSON.stringify(result.body).includes('private upstream detail'), false)
 })
 
+test('readiness reports a mismatched instance as misconfigured without calling the provider', async () => {
+  process.env.NOCODEBACKEND_INSTANCE = 'wrong_instance'
+  global.fetch = async () => assert.fail('provider must not be called for a mismatched instance')
+  const result = await invoke()
+  assert.equal(result.statusCode, 503)
+  assert.deepEqual(result.body.checks, { dataProvider: 'misconfigured' })
+  assert.equal(JSON.stringify(result.body).includes('wrong_instance'), false)
+})
+
 test('provider readiness states remain stable and machine-readable', () => {
   assert.equal(__testables.providerState({ code: 'DATA_CONFIGURATION_MISSING' }), 'misconfigured')
   assert.equal(__testables.providerState({ code: 'DATA_CONFIGURATION_INVALID' }), 'misconfigured')
   assert.equal(__testables.providerState({ code: 'DATA_CREDENTIAL_MISSING' }), 'misconfigured')
+  assert.equal(__testables.providerState({ code: 'DATA_INSTANCE_MISMATCH' }), 'misconfigured')
   assert.equal(__testables.providerState({ code: 'DATA_PROVIDER_UNAUTHENTICATED' }), 'unauthenticated')
   assert.equal(__testables.providerState({ code: 'DATA_PROVIDER_FORBIDDEN' }), 'forbidden')
   assert.equal(__testables.providerState({ status: 404 }), 'contract-mismatch')
