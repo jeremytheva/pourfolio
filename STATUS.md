@@ -3,10 +3,18 @@
 ## Status snapshot
 
 **Project:** Pourfolio  
-**Snapshot date:** 25 August 2026  
+**Snapshot date:** 26 August 2026  
 **Overall state:** Active implementation; **not production-ready**.
 
-The codebase has a strong server-mediated launch architecture and substantial deterministic source-level validation. Production release remains blocked by external governance, connected-provider certification, canonical catalogue decisions/reconciliation, the real rating-schema migration, and independent approval evidence.
+The codebase has a strong server-mediated launch architecture and substantial deterministic source-level validation. Production release remains blocked by external governance, connected-provider certification, canonical catalogue decisions/reconciliation, the real rating-schema migration, current-main deployment evidence, and independent approval evidence.
+
+## AI execution gate
+
+**Current gate:** RELEASE  
+**Gate state:** BLOCKED  
+**Missing material evidence:** current provider-authorised NoCodeBackend data access, current-main production deployment provenance/readiness, connected catalogue/browser evidence, real rating migration evidence, and remaining governance/approval evidence.
+
+Project Entry, Change and repository-side Integration controls are sufficiently established for safe independent repository work. This status does **not** imply that every launch capability has passed connected integration or release verification.
 
 ## Current phase position
 
@@ -19,25 +27,24 @@ The codebase has a strong server-mediated launch architecture and substantial de
 
 ## Current repository baseline
 
-Recent merged reliability slices on `main`:
-
-- **PR #212** — machine-checkable rating migration evidence gate. It verifies a redacted exact-SHA evidence manifest covering provider authority, backup/restore/rollback, final schema audit, export fingerprints, connected-provider verification and independent approval. This gate does **not** perform the NoCodeBackend migration or enable `/ratings/reconcile`.
-- **PR #214** — Vite native config-loader compatibility fix. `vite.config.js` now uses the ESM-native directory reference and the previous `__dirname` compatibility warning is removed.
-- **PR #216** — deterministic `package.json` / `package-lock.json` root dependency contract gate. `npm run validate` now fails early if dependency names or specifiers drift between the manifest and lockfile.
-- **PR #162** — refreshed development minor/patch dependency maintenance, rebased onto the post-#216 `main` and merged only after the new package-lock contract and all hosted gates passed. The update includes `@axe-core/playwright` 4.13.0, ESLint 10.9.0, `eslint-plugin-react-refresh` 0.5.4, `globals` 17.11.0 and Vite 8.2.2.
+Recent merged reliability work on `main` includes deterministic rating-migration evidence controls, Vite config-loader compatibility, package manifest/lock consistency enforcement, dependency maintenance, release provenance support and server-side NoCodeBackend authorization diagnostics.
 
 Issue **#159** is closed: the deterministic read-only catalogue source reconciliation slice has been implemented. It must not be presented as an active next task.
 
-Issue **#165** is open. Its repository-side migration tooling is implemented, but the retained evidence explicitly confirms that the real NoCodeBackend rating idempotency migration has not yet occurred. Closing #165 requires the deployed-schema and connected verification acceptance criteria, not merely source tooling.
+Issue **#165** remains open. Repository-side migration tooling is implemented, but the real NoCodeBackend rating idempotency migration has not yet been proven deployed and verified.
+
+Issues **#224** and **#225** track current release-boundary evidence: production must be proven against the current `main` commit, and the NoCodeBackend production data credential must be authorised for the generated data API before readiness/catalogue certification can pass.
 
 ## Immediate delivery focus
 
-The remaining core launch outcomes now cross a repository/external boundary:
+The remaining core launch outcomes cross repository/external boundaries:
 
-1. **#154 — dependable beer discovery:** complete and independently review the canonical catalogue remediation decisions, generate/re-audit the accepted candidate, reconcile it with the provider, then capture connected browse/search/direct-route and WCAG evidence.
-2. **#165 — rating idempotency:** execute the authorised NoCodeBackend schema/backfill migration, run the final structural and connected verification, satisfy the migration-evidence gate, and only then consider re-enabling `/ratings/reconcile`.
-3. **#144 — canonical backend certification:** capture immutable same-state provider/import/recovery evidence and the required approvals against an exact release candidate.
-4. **#143 — governed delivery:** complete the administrator-controlled GitHub ruleset/security/environment evidence and independent governance requirements.
+1. **#225 — NoCodeBackend data authorization:** restore/verify the production server credential against the generated data API while preserving the server-only trust boundary.
+2. **#224 — deployment provenance:** deploy the then-current `main` candidate and prove the exact SHA through health/readiness before using production evidence.
+3. **#154 — dependable beer discovery:** complete canonical catalogue remediation decisions/reconciliation and capture connected browse/search/direct-route and WCAG evidence.
+4. **#165 — rating idempotency:** execute the authorised schema/backfill migration, verify it structurally and against the connected provider, and only then consider re-enabling `/ratings/reconcile`.
+5. **#144 — canonical backend certification:** capture immutable same-state provider/import/recovery evidence and required approvals against an exact release candidate.
+6. **#143 — governed delivery:** complete administrator-controlled GitHub ruleset/security/environment evidence and independent governance requirements.
 
 Repository-only maintenance may continue where it reduces risk, but it must not be used to imply these connected/admin outcomes are complete.
 
@@ -54,17 +61,9 @@ Until the provider migration is executed and verified:
 - provider conditional/version semantics must not be assumed;
 - existing-rating readability after migration remains an acceptance requirement.
 
-The repository now contains both structural schema auditing and a machine-checkable migration evidence gate. Those controls prove whether evidence is complete; they do not substitute for the migration itself.
-
 ### Catalogue reconciliation — issue #154
 
-The source-side catalogue audit/remediation system is implemented, including deterministic fingerprints, relationship checks, governed remediation decisions and candidate re-auditing. Launch certification still needs:
-
-- complete accepted product / producer / category remediation decisions;
-- independent review of those decisions;
-- accepted canonical candidate reconciliation with the provider;
-- same-state connected evidence;
-- connected browser and accessibility evidence.
+The source-side catalogue audit/remediation system is implemented, including deterministic fingerprints, relationship checks, governed remediation decisions and candidate re-auditing. Launch certification still needs accepted canonical decisions, independent review, provider reconciliation, same-state connected evidence, and connected browser/accessibility evidence.
 
 The tooling must continue to fail closed rather than invent missing mappings or silently approve residual blockers.
 
@@ -79,7 +78,7 @@ Current architecture expects:
 - no browser-supplied role or owner authority;
 - provider secrets to remain server-only.
 
-Current NoCodeBackend environment names:
+Current canonical NoCodeBackend environment names:
 
 - `NOCODEBACKEND_AUTH_BASE_URL`
 - `NOCODEBACKEND_DATA_BASE_URL`
@@ -88,12 +87,7 @@ Current NoCodeBackend environment names:
 
 ## Rate limiting
 
-The repository has explicit diagnostics for:
-
-- missing rate-limit configuration;
-- provider / Redis service unavailability.
-
-The intended production posture is fail-closed, shared storage, no browser secrets and no in-memory production fallback.
+The repository has explicit diagnostics for missing rate-limit configuration and provider/Redis service unavailability. The intended production posture is fail-closed, shared storage, no browser secrets and no in-memory production fallback.
 
 ## Launch scope state
 
@@ -125,17 +119,15 @@ Brew Done It remains contained in the launch app. The only accepted future model
 
 ## Validation posture
 
-The repository uses a consolidated validation command:
+The repository exposes one canonical full source-validation entry point:
 
 ```bash
-npm run validate
+npm run platform:validate
 ```
 
-The validation sequence now starts with the deterministic package manifest/lock contract and then covers the NoCodeBackend environment contract, linting, unit/policy tests, production dependency audit, production build, bundle limits, Brew Done It containment and browser release-security checks. Pull requests additionally run browser/accessibility, dependency-review and CodeQL gates.
+`platform:validate` composes the existing `validate` sequence rather than duplicating validation logic. The current sequence covers the deterministic package manifest/lock contract, NoCodeBackend environment contract, linting, unit/policy tests, production dependency audit, production build, bundle limits, Brew Done It containment and browser release-security checks. Pull requests additionally run browser/accessibility, dependency-review and CodeQL gates.
 
-The exact refreshed PR #162 candidate passed the package-lock contract and 354 tests: 345 passed, 9 connected-provider tests skipped by design, 0 failed. Its production dependency audit reported zero vulnerabilities, and Release gate, Browser/accessibility, Dependency Review and CodeQL all passed. `npm ci` still reports one high-severity advisory in the full development dependency tree; that advisory is not treated as a production vulnerability and is not claimed resolved by #162.
-
-Connected-provider, migration, governance and production/browser evidence remain separately required where source-only tests cannot prove deployed behaviour.
+A passing `platform:validate` proves only its declared repository checks. Connected-provider, migration, governance, deployment and production/browser evidence remain separately required by the Release gate.
 
 ## Key external / human-controlled gates
 
@@ -143,25 +135,26 @@ The following cannot be certified by source code alone:
 
 - branch/ruleset protection state and required independent approval;
 - exact required GitHub status contexts and administrator security settings;
-- Vercel production environment configuration;
+- Vercel production environment configuration and exact deployed commit;
 - provider schema changes and collection permissions;
-- connected NoCodeBackend behaviour;
+- connected NoCodeBackend behaviour and credential authorization;
 - production-equivalent import/catalogue reconciliation;
 - backup, restore and rollback evidence;
 - independent release approval;
 - selected privacy / retention decisions;
 - production accessibility evidence.
 
-## Recommended sequence
+## Next dependency-correct work
 
-1. Finish the governed catalogue decision/reconciliation and connected certification work required by #154.
-2. Execute and certify the real rating idempotency migration required by #165; do not enable reconciliation beforehand.
-3. Complete Phase 1 same-state provider/import/recovery certification and approvals in #144.
-4. Complete Phase 0 administrator governance/security evidence in #143.
-5. Reassess Phase 2 executable account lifecycle only after recent-authentication, provider consistency, durable-job and retention decisions are available.
-6. Continue dependency maintenance only from current-main candidates that pass the package-lock contract and hosted gates.
-7. Run a final launch-readiness audit against the exact release candidate SHA.
+1. Restore and verify provider-authorised NoCodeBackend production data access under #225.
+2. Obtain a production deployment from the then-current `main` candidate and verify exact-SHA health/readiness under #224.
+3. Complete connected catalogue certification under #154.
+4. Execute and certify the real rating idempotency migration under #165.
+5. Complete Phase 1 provider/import/recovery certification under #144.
+6. Complete Phase 0 governance/security evidence under #143.
+7. Reassess Phase 2 executable account lifecycle after recent-authentication, provider consistency, durable-job and retention requirements are available.
+8. Run the final launch-readiness audit against the exact release candidate SHA.
 
 ## Status rule
 
-Do not mark a phase or externally dependent issue complete because source code, a runbook or an evidence auditor exists. Completion requires the issue acceptance criteria, connected/deployed evidence, required independent review and release controls to be satisfied.
+Do not mark a phase or externally dependent issue complete because source code, a runbook, a passing source-validation command or an evidence auditor exists. Completion requires the relevant gate evidence, issue acceptance criteria, connected/deployed verification, required independent review and release controls to be satisfied.
