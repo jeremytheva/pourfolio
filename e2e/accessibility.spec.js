@@ -42,6 +42,19 @@ for (const route of publicDocumentRoutes) {
   })
 }
 
+test('/home exposes labelled search status and a named product-results region', async ({ page }) => {
+  await installMockApi(page)
+  await page.goto('/home')
+
+  const search = page.getByRole('searchbox', { name: 'Search products, producers or styles' })
+  await expect(search).toHaveAttribute('aria-describedby', 'product-search-status')
+  await expect(page.locator('#product-search-status')).toHaveAttribute('role', 'status')
+  await expect(page.locator('#product-search-status')).toHaveAttribute('aria-atomic', 'true')
+  await expect(page.getByRole('heading', { name: 'Product results' })).toBeAttached()
+  await expect(page.locator('section[aria-labelledby="product-results-heading"]')).toHaveAttribute('aria-busy', 'false')
+  await expect(page.getByText('1 product found')).toBeVisible()
+})
+
 for (const route of routes) {
   test(`${route} has no serious or critical automated accessibility violations`, async ({ page }) => {
     await installMockApi(page)
