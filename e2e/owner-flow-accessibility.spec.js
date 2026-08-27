@@ -26,10 +26,11 @@ test('cellar search and edit mutations expose accessible relationships, busy sta
   await search.fill('Ace')
   await expect(page.locator('#cellar-search-status')).toContainText('1 item shown for this search.')
 
-  const edit = page.getByRole('button', { name: 'Edit Ace' })
+  const edit = page.locator('button[aria-controls="cellar-edit-55"]')
+  await expect(edit).toHaveAccessibleName('Edit Ace')
   await expect(edit).toHaveAttribute('aria-expanded', 'false')
-  await expect(edit).toHaveAttribute('aria-controls', 'cellar-edit-55')
   await edit.click()
+  await expect(edit).toHaveAccessibleName('Close editor for Ace')
   await expect(edit).toHaveAttribute('aria-expanded', 'true')
 
   const form = page.locator('#cellar-edit-55')
@@ -37,7 +38,7 @@ test('cellar search and edit mutations expose accessible relationships, busy sta
   await page.getByRole('button', { name: 'Save changes' }).click()
   await expect(form).toHaveAttribute('aria-busy', 'true')
   await expect(page.getByRole('button', { name: 'Saving changes…' })).toBeDisabled()
-  await expect(page.getByRole('button', { name: 'Close editor for Ace' })).toBeDisabled()
+  await expect(edit).toBeDisabled()
 
   releaseSave()
 
