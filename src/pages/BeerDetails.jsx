@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { FiArrowLeft, FiPackage, FiRefreshCw, FiStar, FiX } from 'react-icons/fi'
 import { Link, useParams } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
@@ -8,7 +8,7 @@ import { formatDate } from '../utils/dateFormatting.js'
 
 const FALLBACK_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540"%3E%3Crect width="960" height="540" fill="%23fef3c7"/%3E%3Ctext x="480" y="285" text-anchor="middle" font-family="sans-serif" font-size="64" fill="%2392400e"%3EPourfolio%3C/text%3E%3C/svg%3E'
 
-const initialCellarForm = {
+const createInitialCellarForm = () => ({
   quantity: 1,
   mls: '',
   container: '',
@@ -16,7 +16,7 @@ const initialCellarForm = {
   retail_price: '',
   date_received: new Date().toISOString().slice(0, 10),
   notes: ''
-}
+})
 
 function BeerDetails() {
   const { productId } = useParams()
@@ -26,9 +26,10 @@ function BeerDetails() {
   const [errorCode, setErrorCode] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
   const [showCellarForm, setShowCellarForm] = useState(false)
-  const [cellarForm, setCellarForm] = useState(initialCellarForm)
+  const [cellarForm, setCellarForm] = useState(createInitialCellarForm)
   const [cellarStatus, setCellarStatus] = useState('')
   const [cellarError, setCellarError] = useState('')
+  const cellarErrorRef = useRef(null)
 
   useEffect(() => {
     let active = true
@@ -52,8 +53,20 @@ function BeerDetails() {
     }
   }, [productId, reloadKey])
 
+  useEffect(() => {
+    if (cellarError) cellarErrorRef.current?.focus()
+  }, [cellarError])
+
   const updateCellarField = (field) => (event) => {
     setCellarForm((current) => ({ ...current, [field]: event.target.value }))
+    if (cellarStatus === 'saved') setCellarStatus('')
+  }
+
+  const toggleCellarForm = () => {
+    if (cellarStatus === 'saving') return
+    setShowCellarForm((value) => !value)
+    setCellarStatus('')
+    setCellarError('')
   }
 
   const addToCellar = async (event) => {
@@ -66,7 +79,7 @@ function BeerDetails() {
         ...cellarForm
       })
       setCellarStatus('saved')
-      setCellarForm(initialCellarForm)
+      setCellarForm(createInitialCellarForm())
     } catch (requestError) {
       setCellarStatus('')
       setCellarError(requestError.message || 'The cellar item could not be saved.')
@@ -84,12 +97,12 @@ function BeerDetails() {
           <h1 className="text-lg font-semibold">Product unavailable</h1>
           <p className="mt-1">{error}</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link to="/home" className="inline-flex items-center rounded-lg border border-red-300 bg-white px-4 py-2 font-medium text-red-900">
+            <Link to="/home" className="inline-flex items-center rounded-lg border border-red-300 bg-white px-4 py-2 font-medium text-red-900 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2">
               <SafeIcon icon={FiArrowLeft} className="mr-2 h-4 w-4" />
               Back to products
             </Link>
             {errorCode !== 'invalid_product_identifier' && (
-              <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-white">
+              <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2">
                 <SafeIcon icon={FiRefreshCw} className="mr-2 h-4 w-4" />
                 Try again
               </button>
@@ -103,17 +116,22 @@ function BeerDetails() {
   const category = product.declared_category || product.category?.category_name || 'Beer'
   const producer = product.producer?.producer_name || 'Producer not recorded'
   const ratings = Array.isArray(product.ratings) ? product.ratings : []
+  const cellarSaving = cellarStatus === 'saving'
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-      <Link to="/home" className="mb-6 inline-flex items-center text-sm font-medium text-gray-600 hover:text-amber-800">
+      <Link to="/home" className="mb-6 inline-flex items-center text-sm font-medium text-gray-600 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
         <SafeIcon icon={FiArrowLeft} className="mr-2 h-4 w-4" />
         Back to products
       </Link>
 
       <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
         <div className="grid lg:grid-cols-2">
-          <img src={product.product_image || FALLBACK_IMAGE} alt="" className="h-full min-h-80 w-full bg-amber-50 object-cover" />
+          <img
+            src={product.product_image || FALLBACK_IMAGE}
+            alt={product.product_image ? `${product.product_name} packaging` : ''}
+            className="h-full min-h-80 w-full bg-amber-50 object-cover"
+          />
           <div className="p-6 sm:p-8">
             <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">{category}</p>
             <h1 className="mt-2 text-4xl font-bold text-gray-900">{product.product_name}</h1>
@@ -147,11 +165,18 @@ function BeerDetails() {
             </dl>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to={`/products/${product.id}/rate`} className="inline-flex items-center rounded-lg bg-amber-700 px-5 py-3 font-medium text-white hover:bg-amber-800">
+              <Link to={`/products/${product.id}/rate`} className="inline-flex items-center rounded-lg bg-amber-700 px-5 py-3 font-medium text-white hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
                 <SafeIcon icon={FiStar} className="mr-2 h-5 w-5" />
                 Rate this beer
               </Link>
-              <button type="button" onClick={() => { setShowCellarForm((value) => !value); setCellarStatus(''); setCellarError('') }} className="inline-flex items-center rounded-lg border border-gray-300 px-5 py-3 font-medium text-gray-700 hover:bg-gray-50" aria-expanded={showCellarForm}>
+              <button
+                type="button"
+                onClick={toggleCellarForm}
+                disabled={cellarSaving}
+                className="inline-flex items-center rounded-lg border border-gray-300 px-5 py-3 font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-wait disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2"
+                aria-expanded={showCellarForm}
+                aria-controls="cellar-add-section"
+              >
                 <SafeIcon icon={showCellarForm ? FiX : FiPackage} className="mr-2 h-5 w-5" />
                 {showCellarForm ? 'Close cellar form' : 'Add to cellar'}
               </button>
@@ -161,35 +186,48 @@ function BeerDetails() {
       </article>
 
       {showCellarForm && (
-        <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="cellar-form-heading">
+        <section id="cellar-add-section" className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="cellar-form-heading">
           <h2 id="cellar-form-heading" className="text-2xl font-semibold text-gray-900">Add {product.product_name} to your cellar</h2>
           <p className="mt-1 text-sm text-gray-600">Sharing series and edition links are optional and remain empty unless explicitly selected in a future supported workflow.</p>
-          {cellarStatus === 'saved' && <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3 text-green-800" role="status">Cellar item saved.</div>}
-          {cellarError && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-red-800" role="alert">{cellarError}</div>}
-          <form onSubmit={addToCellar} className="mt-6 grid gap-5 sm:grid-cols-2">
+          {cellarStatus === 'saved' && (
+            <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3 text-green-800" role="status" aria-live="polite" aria-atomic="true">
+              Cellar item saved.
+            </div>
+          )}
+          {cellarError && (
+            <div ref={cellarErrorRef} tabIndex={-1} className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-red-800 outline-none focus:ring-2 focus:ring-red-300" role="alert">
+              {cellarError}
+            </div>
+          )}
+          <form onSubmit={addToCellar} aria-busy={cellarSaving ? 'true' : 'false'} className="mt-6 grid gap-5 sm:grid-cols-2">
             <label className="text-sm font-medium text-gray-700">Quantity
-              <input type="number" min="0" max="10000" required value={cellarForm.quantity} onChange={updateCellarField('quantity')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+              <input type="number" min="0" max="10000" required value={cellarForm.quantity} onChange={updateCellarField('quantity')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
             </label>
             <label className="text-sm font-medium text-gray-700">Container volume (mL)
-              <input type="number" min="0" max="100000" value={cellarForm.mls} onChange={updateCellarField('mls')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+              <input type="number" min="0" max="100000" value={cellarForm.mls} onChange={updateCellarField('mls')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
             </label>
             <label className="text-sm font-medium text-gray-700">Container
-              <input value={cellarForm.container} onChange={updateCellarField('container')} placeholder="Can, bottle, growler…" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+              <input value={cellarForm.container} onChange={updateCellarField('container')} placeholder="Can, bottle, growler…" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
             </label>
             <label className="text-sm font-medium text-gray-700">Date received
-              <input type="date" value={cellarForm.date_received} onChange={updateCellarField('date_received')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+              <input type="date" value={cellarForm.date_received} onChange={updateCellarField('date_received')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
             </label>
             <label className="text-sm font-medium text-gray-700">Purchase price
-              <input type="number" min="0" step="0.01" value={cellarForm.purchase_price} onChange={updateCellarField('purchase_price')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+              <input type="number" min="0" step="0.01" value={cellarForm.purchase_price} onChange={updateCellarField('purchase_price')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
             </label>
             <label className="text-sm font-medium text-gray-700">Retail price
-              <input type="number" min="0" step="0.01" value={cellarForm.retail_price} onChange={updateCellarField('retail_price')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+              <input type="number" min="0" step="0.01" value={cellarForm.retail_price} onChange={updateCellarField('retail_price')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
             </label>
             <label className="text-sm font-medium text-gray-700 sm:col-span-2">Notes
-              <textarea value={cellarForm.notes} onChange={updateCellarField('notes')} maxLength={255} rows={3} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+              <textarea value={cellarForm.notes} onChange={updateCellarField('notes')} maxLength={255} rows={3} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
             </label>
-            <button type="submit" disabled={cellarStatus === 'saving'} className="rounded-lg bg-amber-700 px-5 py-3 font-medium text-white hover:bg-amber-800 disabled:bg-gray-500 sm:col-span-2">
-              {cellarStatus === 'saving' ? 'Saving…' : 'Save cellar item'}
+            <button
+              type="submit"
+              disabled={cellarSaving}
+              aria-busy={cellarSaving ? 'true' : undefined}
+              className="rounded-lg bg-amber-700 px-5 py-3 font-medium text-white hover:bg-amber-800 disabled:cursor-wait disabled:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 sm:col-span-2"
+            >
+              {cellarSaving ? 'Saving…' : 'Save cellar item'}
             </button>
           </form>
         </section>
