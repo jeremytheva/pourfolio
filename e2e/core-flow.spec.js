@@ -36,6 +36,45 @@ test('catalogue to product to rating uses stable IDs and accepts score 1', async
   expect(Number.isSafeInteger(submitted.submissionId)).toBe(true)
 })
 
+test('rating form exposes accessible guidance, busy state and focused submission errors', async ({ page }) => {
+  let releaseSubmission
+  const submissionGate = new Promise((resolve) => { releaseSubmission = resolve })
+
+  await page.route('**/api/nocodebackend/ratings/submit', async (route) => {
+    await submissionGate
+    await route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Rating service unavailable.' })
+    })
+  })
+
+  await page.goto('/products/4/rate')
+
+  const scoreGroup = page.getByRole('group', { name: 'Applicable attributes' })
+  await expect(scoreGroup).toHaveAttribute('aria-describedby', 'rating-required-help')
+  await expect(page.getByRole('combobox', { name: /Appearance/ })).toHaveAttribute('aria-describedby', 'score-2-weight rating-required-help')
+  await expect(page.locator('section[role="status"]')).toHaveAttribute('aria-atomic', 'true')
+
+  await page.getByRole('combobox', { name: /Appearance/ }).selectOption('1')
+  await page.getByRole('combobox', { name: /Aroma/ }).selectOption('7')
+  await expect(page.getByText('4 / 7').first()).toBeVisible()
+
+  await page.getByRole('button', { name: 'Submit rating' }).click()
+  const form = page.locator('form')
+  const submittingButton = page.getByRole('button', { name: 'Submitting securely…' })
+  await expect(form).toHaveAttribute('aria-busy', 'true')
+  await expect(submittingButton).toHaveAttribute('aria-busy', 'true')
+  await expect(submittingButton).toBeDisabled()
+
+  releaseSubmission()
+
+  const alert = page.getByRole('alert')
+  await expect(alert).toContainText('Rating service unavailable.')
+  await expect(alert).toBeFocused()
+  await expect(form).toHaveAttribute('aria-busy', 'false')
+})
+
 test('product details render an aggregate-only rating response', async ({ page }) => {
   await page.route('**/api/nocodebackend/catalog/products/4', (route) => route.fulfill({
     status: 200,
