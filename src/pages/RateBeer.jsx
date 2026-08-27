@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { FiArrowLeft, FiCheck, FiRefreshCw } from 'react-icons/fi'
 import { Link, useNavigate, useParams } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
@@ -17,6 +17,7 @@ function RateBeer() {
   const [error, setError] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
   const [submissionId] = useState(() => createSubmissionId())
+  const errorRef = useRef(null)
 
   useEffect(() => {
     let active = true
@@ -39,6 +40,10 @@ function RateBeer() {
       active = false
     }
   }, [productId, reloadKey])
+
+  useEffect(() => {
+    if (error) errorRef.current?.focus()
+  }, [error])
 
   const preview = useMemo(() => {
     if (!formDefinition || Object.keys(scores).length !== formDefinition.attributes.length) return null
@@ -98,10 +103,10 @@ function RateBeer() {
   if (status === 'error' && !formDefinition) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-900" role="alert">
+        <div ref={errorRef} tabIndex={-1} className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2" role="alert">
           <h1 className="font-semibold">Rating form unavailable</h1>
           <p className="mt-1">{error}</p>
-          <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-4 inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-white">
+          <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-4 inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">
             <SafeIcon icon={FiRefreshCw} className="mr-2 h-4 w-4" />
             Try again
           </button>
@@ -111,10 +116,11 @@ function RateBeer() {
   }
 
   const product = formDefinition.product
+  const submitting = status === 'submitting'
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      <Link to={`/products/${productId}`} className="mb-6 inline-flex items-center text-sm font-medium text-gray-600 hover:text-amber-800">
+      <Link to={`/products/${productId}`} className="mb-6 inline-flex items-center rounded text-sm font-medium text-gray-600 hover:text-amber-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2">
         <SafeIcon icon={FiArrowLeft} className="mr-2 h-4 w-4" />
         Back to product
       </Link>
@@ -125,22 +131,27 @@ function RateBeer() {
         <p className="mt-1 text-gray-600">{product.producer?.producer_name || 'Producer not recorded'}</p>
       </header>
 
-      {error && <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800" role="alert">{error}</div>}
+      {error && (
+        <div ref={errorRef} tabIndex={-1} className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2" role="alert">
+          {error}
+        </div>
+      )}
 
-      <form onSubmit={submit} className="space-y-8">
-        <fieldset className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <form onSubmit={submit} className="space-y-8" aria-busy={submitting}>
+        <fieldset className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-describedby="rating-required-help">
           <legend className="px-2 text-xl font-semibold text-gray-900">Applicable attributes</legend>
-          <p className="mb-6 text-sm text-gray-600">Every attribute is required. A score of 1 is valid and is not treated as missing.</p>
+          <p id="rating-required-help" className="mb-6 text-sm text-gray-600">Every attribute is required. A score of 1 is valid and is not treated as missing.</p>
           <div className="space-y-5">
             {formDefinition.attributes.map((attribute) => (
               <div key={attribute.id} className="grid items-center gap-2 sm:grid-cols-[1fr_10rem]">
                 <label htmlFor={`score-${attribute.id}`} className="font-medium text-gray-800">
                   {attribute.attribute_name}
-                  <span className="ml-2 text-xs font-normal text-gray-500">Weight {attribute.weighting}</span>
+                  <span id={`score-${attribute.id}-weight`} className="ml-2 text-xs font-normal text-gray-500">Weight {attribute.weighting}</span>
                 </label>
                 <select
                   id={`score-${attribute.id}`}
                   required
+                  aria-describedby={`score-${attribute.id}-weight rating-required-help`}
                   value={scores[attribute.id] ?? ''}
                   onChange={(event) => setScores((current) => ({
                     ...current,
@@ -161,7 +172,7 @@ function RateBeer() {
             <legend className="px-2 text-xl font-semibold text-gray-900">Optional bonus attributes</legend>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               {formDefinition.bonusAttributes.map((bonus) => (
-                <label key={bonus.id} className="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50">
+                <label key={bonus.id} className="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50 focus-within:ring-2 focus-within:ring-amber-700 focus-within:ring-offset-2">
                   <input type="checkbox" checked={bonusIds.includes(String(bonus.id))} onChange={() => toggleBonus(String(bonus.id))} className="mt-1 h-4 w-4 accent-amber-600" />
                   <span>
                     <span className="block text-sm font-medium text-gray-800">{bonus.description}</span>
@@ -173,7 +184,7 @@ function RateBeer() {
           </fieldset>
         )}
 
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6" aria-live="polite">
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6" role="status" aria-live="polite" aria-atomic="true">
           <h2 className="font-semibold text-amber-950">Rating preview</h2>
           {preview ? (
             <div className="mt-2 flex flex-wrap gap-6">
@@ -183,9 +194,9 @@ function RateBeer() {
           ) : <p className="mt-1 text-sm text-amber-900">Complete every attribute to calculate the preview.</p>}
         </section>
 
-        <button type="submit" disabled={status === 'submitting'} className="inline-flex w-full items-center justify-center rounded-lg bg-amber-700 px-5 py-3 font-semibold text-white hover:bg-amber-800 disabled:cursor-wait disabled:bg-gray-500">
+        <button type="submit" disabled={submitting} aria-busy={submitting} className="inline-flex w-full items-center justify-center rounded-lg bg-amber-700 px-5 py-3 font-semibold text-white hover:bg-amber-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2 disabled:cursor-wait disabled:bg-gray-500">
           <SafeIcon icon={FiCheck} className="mr-2 h-5 w-5" />
-          {status === 'submitting' ? 'Submitting securely…' : 'Submit rating'}
+          {submitting ? 'Submitting securely…' : 'Submit rating'}
         </button>
       </form>
     </div>
