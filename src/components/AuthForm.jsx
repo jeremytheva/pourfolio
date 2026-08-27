@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { FiChrome, FiLoader } from 'react-icons/fi'
 import SafeIcon from '../common/SafeIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
@@ -58,6 +58,7 @@ function AuthForm({ mode, onToggleMode }) {
   const [otpSent, setOtpSent] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const errorRef = useRef(null)
   const { signUp, signIn, requestEmailOtp, verifyEmailOtp, signInWithGoogle } = useAuth()
 
   useEffect(() => {
@@ -93,9 +94,21 @@ function AuthForm({ mode, onToggleMode }) {
     }
   }, [activeMethod, mode])
 
+  useEffect(() => {
+    if (error) errorRef.current?.focus()
+  }, [error])
+
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   const canUsePassword = providerStatus === 'ready' && providers.emailPassword && activeMethod === 'emailPassword'
   const canUseOtp = providerStatus === 'ready' && mode === 'signin' && providers.emailOtp && activeMethod === 'emailOtp'
+
+  const selectMethod = (method) => {
+    if (isSubmitting) return
+    setError('')
+    setNotice('')
+    setOtpSent(false)
+    setActiveMethod(method)
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -145,27 +158,43 @@ function AuthForm({ mode, onToggleMode }) {
         </p>
       </header>
 
-      {error && <div className="mb-5 rounded-lg border border-red-200 bg-red-50 p-3 text-red-800" role="alert">{error}</div>}
-      {notice && <div className="mb-5 rounded-lg border border-green-200 bg-green-50 p-3 text-green-800" role="status">{notice}</div>}
+      {error && (
+        <div ref={errorRef} tabIndex={-1} className="mb-5 rounded-lg border border-red-200 bg-red-50 p-3 text-red-800 outline-none focus:ring-2 focus:ring-red-300" role="alert">
+          {error}
+        </div>
+      )}
+      {notice && <div className="mb-5 rounded-lg border border-green-200 bg-green-50 p-3 text-green-800" role="status" aria-live="polite" aria-atomic="true">{notice}</div>}
       {providerStatus === 'loading' && (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-center text-gray-700" role="status">
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-center text-gray-700" role="status" aria-live="polite" aria-atomic="true">
           Loading sign-in options…
         </div>
       )}
 
       {providerStatus === 'ready' && mode === 'signin' && providers.emailPassword && providers.emailOtp && (
-        <div className="mb-6 grid grid-cols-2 gap-2 rounded-lg bg-gray-100 p-1" aria-label="Sign-in method">
-          <button type="button" onClick={() => setActiveMethod('emailPassword')} className={`rounded-md px-3 py-2 text-sm font-medium ${activeMethod === 'emailPassword' ? 'bg-white text-amber-700 shadow-sm' : 'text-gray-600'}`}>
+        <div className="mb-6 grid grid-cols-2 gap-2 rounded-lg bg-gray-100 p-1" role="group" aria-label="Sign-in method">
+          <button
+            type="button"
+            onClick={() => selectMethod('emailPassword')}
+            disabled={isSubmitting}
+            aria-pressed={activeMethod === 'emailPassword'}
+            className={`rounded-md px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 ${activeMethod === 'emailPassword' ? 'bg-white text-amber-700 shadow-sm' : 'text-gray-600'}`}
+          >
             Password
           </button>
-          <button type="button" onClick={() => setActiveMethod('emailOtp')} className={`rounded-md px-3 py-2 text-sm font-medium ${activeMethod === 'emailOtp' ? 'bg-white text-amber-700 shadow-sm' : 'text-gray-600'}`}>
+          <button
+            type="button"
+            onClick={() => selectMethod('emailOtp')}
+            disabled={isSubmitting}
+            aria-pressed={activeMethod === 'emailOtp'}
+            className={`rounded-md px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 ${activeMethod === 'emailOtp' ? 'bg-white text-amber-700 shadow-sm' : 'text-gray-600'}`}
+          >
             Email code
           </button>
         </div>
       )}
 
       {(canUsePassword || canUseOtp) && (
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} aria-busy={isSubmitting ? 'true' : 'false'} className="space-y-5">
           {mode === 'signup' && (
             <div>
               <label htmlFor="auth-name" className="mb-1 block text-sm font-medium text-gray-700">Name</label>
@@ -199,14 +228,14 @@ function AuthForm({ mode, onToggleMode }) {
             </div>
           )}
 
-          <button type="submit" disabled={isSubmitting} className="flex w-full items-center justify-center rounded-lg bg-amber-700 px-4 py-3 font-medium text-white hover:bg-amber-800 disabled:cursor-wait disabled:bg-gray-500">
+          <button type="submit" disabled={isSubmitting} aria-busy={isSubmitting ? 'true' : undefined} className="flex w-full items-center justify-center rounded-lg bg-amber-700 px-4 py-3 font-medium text-white hover:bg-amber-800 disabled:cursor-wait disabled:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
             {isSubmitting ? <><SafeIcon icon={FiLoader} className="mr-2 h-5 w-5 animate-spin" />Working…</> : canUseOtp && !otpSent ? 'Send one-time passcode' : mode === 'signup' ? 'Create account' : 'Sign in'}
           </button>
         </form>
       )}
 
       {providerStatus === 'ready' && mode === 'signin' && providers.google && (
-        <button type="button" onClick={signInWithGoogle} className="mt-5 flex w-full items-center justify-center rounded-lg border border-gray-300 px-4 py-3 font-medium text-gray-700 hover:bg-gray-50">
+        <button type="button" onClick={signInWithGoogle} disabled={isSubmitting} className="mt-5 flex w-full items-center justify-center rounded-lg border border-gray-300 px-4 py-3 font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-wait disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
           <SafeIcon icon={FiChrome} className="mr-2 h-5 w-5" />
           Continue with Google
         </button>
@@ -215,7 +244,7 @@ function AuthForm({ mode, onToggleMode }) {
       {providerStatus === 'ready' && providers.emailPassword && (
         <div className="mt-6 text-center text-sm text-gray-600">
           {mode === 'signup' ? 'Already have an account?' : 'New to Pourfolio?'}
-          <button type="button" onClick={onToggleMode} className="ml-2 font-medium text-amber-700 hover:underline">
+          <button type="button" onClick={onToggleMode} disabled={isSubmitting} className="ml-2 font-medium text-amber-700 hover:underline disabled:cursor-wait disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
             {mode === 'signup' ? 'Sign in' : 'Create account'}
           </button>
         </div>
