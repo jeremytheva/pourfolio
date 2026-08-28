@@ -7,7 +7,7 @@ Beer-first discovery, structured rating and private cellar platform.
 
 **Repository:** `jeremytheva/pourfolio`  
 **Primary branch:** `main`  
-**Project control baseline:** 26 August 2026
+**Project control baseline:** 28 August 2026
 
 ## Purpose
 
@@ -40,17 +40,18 @@ Ratings and cellar records do **not** require a sharing series or edition. Those
 
 Pourfolio inherits the current master software-development rules supplied for the portfolio, including:
 
-- **AI-First Platform Development Framework v3.0** — overarching architecture, whole-system, autonomy and continuity framework;
-- **AI Platform Development Standard v1.1** — implementation protocol, execution gates, Continue/Next behaviour and work-state rules;
-- **Testing, Validation & Release Standard v1.1** — evidence, canonical validation, deployment and completion rules;
-- **Project Documentation Standard v1.1** — project-document ownership, continuity and source-of-truth rules;
+- **AI-First Platform Development Framework v3.1** — overarching architecture, whole-system, autonomy and continuity framework;
+- **AI Platform Development Standard v1.2** — implementation protocol, execution gates, Continue/Next behaviour and work-state rules;
+- **PR Lifecycle Standard v1.0** — project-managed Draft → Implementing → Validating → Ready → Mergeable → Merged lifecycle with GitHub as the independent enforcement layer;
+- **Testing, Validation & Release Standard v1.2** — evidence, canonical validation, deployment and completion rules;
+- **Project Documentation Standard v1.2** — project-document ownership, continuity and source-of-truth rules;
 - the applicable Platform Engineering, Design, Data/Migration, Security, Observability and provider reference standards where their rules apply to this project.
 
 Project-specific facts and exceptions belong in this repository. Master rules should be referenced rather than copied into project documents.
 
 ### Project-specific deviations
 
-No intentional project deviation currently overrides the master security, data-integrity or validation rules. Provider limitations and unresolved runtime evidence are recorded as blockers rather than treated as exceptions.
+No intentional project deviation currently overrides the master security, data-integrity, validation or PR-lifecycle rules. Provider limitations and unresolved runtime evidence are recorded as blockers rather than treated as exceptions.
 
 ## Product principles
 
@@ -69,7 +70,7 @@ No intentional project deviation currently overrides the master security, data-i
 | Area | Current implementation |
 |---|---|
 | Frontend | React 19.2 |
-| Build tooling | Vite |
+| Build tooling | Vite 8 |
 | Runtime | Node.js 20 |
 | Package manager | npm |
 | Hosting | Vercel |
