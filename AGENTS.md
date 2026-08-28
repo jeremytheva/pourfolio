@@ -30,7 +30,7 @@ Pourfolio's launch scope is a beer-first MVP. Reachable production journeys are 
 - `release-check/` — controlled connected staging release checks.
 - `scripts/` — deterministic validation/audit utilities.
 - `docs/` — detailed product, architecture, delivery, security, testing and NoCodeBackend evidence/contracts.
-- Root project controls: `PROJECT.md`, `STATUS.md`, `ARCHITECTURE.md`, `DATA_MODEL.md`, `ROADMAP.md`, `SYSTEM_MAP.md`.
+- Root project controls: `PROJECT.md`, `STATUS.md`, `PR_LIFECYCLE_STANDARD.md`, `ARCHITECTURE.md`, `DATA_MODEL.md`, `ROADMAP.md`, `SYSTEM_MAP.md`.
 
 ## Architecture and security rules
 - Keep route composition in `pages/`/`App.jsx`, reusable presentation in `components/`, business/data orchestration in `services/`, browser transport in `lib/`, and trusted server policy/provider access in `api/`.
@@ -52,6 +52,20 @@ Before a meaningful change:
 7. update `STATUS.md` and other project documents only where their meaning changed.
 
 `Continue` or `Next` means proceed with the next dependency-correct work autonomously. Stop only for a genuine blocker, destructive/irreversible approval or material product-owner decision.
+
+## Pull-request lifecycle
+Use `PR_LIFECYCLE_STANDARD.md` as the repository's canonical PR operating contract.
+
+- Create or reuse a draft PR as the durable implementation container for meaningful work.
+- Keep required failing work open and remediate it in the same coherent PR unless the work is deliberately superseded, duplicated, cancelled or rejected.
+- Treat a changed PR head as invalidating stale validation evidence; required checks must apply to the latest intended commit.
+- Move Draft → Ready only when the implementation gate is genuinely satisfied.
+- Do not treat Ready as Mergeable. GitHub rules/protection, current checks, conflicts and required review evidence remain authoritative.
+- Do not mark `pr:mergeable`, enable auto-merge or merge while #143 repository enforcement is incomplete unless independent GitHub evidence proves the required merge gate has been established.
+- After a successful merge, delete the source branch where safe and continue downstream deployment/provider/runtime verification; `MERGED` is not `COMPLETE`.
+- Record only continuity-critical lifecycle state in `STATUS.md`; do not duplicate CI logs or full PR discussions.
+
+`.github/workflows/pr-lifecycle.yml` may synchronise safe lifecycle labels from GitHub-native state and validation evidence. It must not bypass branch protection or fabricate merge evidence.
 
 ## Coding standards
 - Use JavaScript/JSX, ES modules, descriptive camelCase names, PascalCase React component files, and focused modules.
@@ -78,9 +92,9 @@ npx playwright install --with-deps chromium
 npm run test:e2e
 ```
 
-`platform:validate` composes the repository's package-lock/documentation/environment guards, lint, unit/policy tests, production dependency audit, production build, bundle containment/budget and release-security checks. It does **not** prove provider authorization, deployed configuration, exact deployed SHA, migrations or connected production behaviour.
+`platform:validate` composes the repository's package-lock/documentation/environment guards, lint, unit/policy tests, production dependency audit, production build, bundle containment/budget and release-security checks. It does **not** prove provider authorisation, deployed configuration, exact deployed SHA, migrations or connected production behaviour.
 
-There is no TypeScript configuration or separate typecheck command; do not claim one has run.
+There is no TypeScript configuration or separate typecheck command; do not claim one has run. Under the master merge formula, `typecheck` is therefore genuinely not applicable unless a type-checking step is introduced later.
 
 ## Completion and review
 Work is COMPLETE only when its acceptance outcome and relevant real-system evidence exist, known dependent work is not hidden by the completion claim, project state is current and the required release/completion gates pass. Otherwise use the explicit state supported by evidence (for example INTEGRATED, VALIDATING, BLOCKED, DEPLOYED or VERIFIED).
