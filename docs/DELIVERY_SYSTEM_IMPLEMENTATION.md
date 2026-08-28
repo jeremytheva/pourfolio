@@ -1,18 +1,78 @@
-# GitHub–Codex delivery-system implementation assessment
+# GitHub–AI delivery-system implementation status
 
-## Assessed repository state
-The project is a JavaScript React 18.3/Vite 5 application using npm. It has ESLint, a production build command, one unit test that imported undeclared Vitest packages, a NoCodeBackend schema mapping, and a serverless NoCodeBackend auth proxy. It had no repository `AGENTS.md`, GitHub templates/workflows, contribution/security/testing/product/architecture documentation, runtime pin, lockfile, or test script. No GitHub configuration, hosting manifest, executable migration system, CODEOWNERS evidence, or licence intent is committed.
+**Current-state review:** 28 August 2026
 
-## Changes and retained files
-- **Retained unchanged:** application source, backend proxy, Vite/ESLint/Tailwind configuration, data generation scripts, NoCodeBackend schema mapping, and historical Supabase reference SQL; they are outside delivery-system scope.
-- **Updated:** `README.md`, `.env.example`, `.gitignore`, and `package.json` to accurately describe active NoCodeBackend configuration and expose verified local validation.
-- **Created:** repository instructions, delivery documentation, issue/PR forms, a least-privilege PR workflow, Node runtime pin, npm lockfile, and a native Node.js test command by converting the existing test away from undeclared packages.
+This document describes the current delivery-system implementation. It supersedes the repository bootstrap assessment that previously described the project as React 18.3/Vite 5 with no `AGENTS.md`, workflows, lockfile or end-to-end testing. Those statements are historical and must not be used as current implementation facts.
 
-## Confirmed validation
-`npm run lint`, `npm test`, `npm run build`, and `npm run validate` are the repository validation commands. There is no TypeScript/typecheck, formatter check, integration suite, end-to-end suite, or executable migration/schema validation. CI does not contact NoCodeBackend.
+## Current repository state
 
-## Risks, assumptions, and manual actions
-The workflow targets both `main` and `master` because no default branch or remote is configured locally; administrators should retain only the actual default branch if desired. Node 20 LTS is newly pinned because the repository had no runtime declaration; Vite 5 supports it. The existing test imported undeclared test packages, so it is converted to Node.js built-in test tooling rather than adding a dependency. Data-endpoint hosting, NoCodeBackend configuration/permissions, and the serverless handler host are external assumptions. Branch protections, labels, projects, security features, reviewer rules, Codex access, and required checks require manual GitHub administration; see [GitHub configuration](GITHUB_CONFIGURATION.md).
+Pourfolio is a JavaScript/JSX React 19.2 application built by Vite 8, pinned to Node.js 20 through `.nvmrc` and managed with npm/package-lock. The repository includes project control documents, repository instructions, GitHub Actions validation, Node policy/unit tests, Playwright browser tests, axe accessibility checks, NoCodeBackend contract/audit tooling, release checks and Vercel deployment configuration.
 
-## Deliberate omissions
-No `CODEOWNERS` file is created because no owners can be reliably inferred. No licence is added or changed because the intended licence is not stated. No database migration command is invented because persistent data is administered by NoCodeBackend and the committed SQL files are archived historical references.
+The canonical source-validation command is:
+
+```bash
+npm run platform:validate
+```
+
+`platform:validate` covers repository/documentation/environment guards, lint, Node tests, production dependency audit, production build, bundle containment/budget and release-security checks. Pull requests also run hosted browser/accessibility, Dependency Review and CodeQL validation.
+
+There is no TypeScript configuration or separate typecheck command.
+
+## Governing delivery lifecycle
+
+The repository inherits the current master PR lifecycle through `PROJECT.md` and `AGENTS.md`:
+
+**Draft → Implementing → Validating → Ready → Mergeable → Merged**
+
+The project may manage routine lifecycle progress, implementation, commits and validation. GitHub must remain the independent enforcement layer for the Mergeable boundary. Passing tests or exposing a merge button does not itself establish Mergeable state.
+
+## Current enforcement gap
+
+Observed remotely on 28 August 2026:
+
+- GitHub `main` SHA: `3575ec54c4383226f1c31dfc45bb0e46a1285890`;
+- `main` reports `protected: false`;
+- branch-protection enforcement is disabled and there are no required status checks on the branch;
+- repository rulesets are empty;
+- CI workflows exist and run useful validation, but are not yet independently merge-blocking through a branch rule/ruleset.
+
+This is tracked by Phase 0 issue #143 and is an active release blocker. Until enforcement is verified, non-trivial implementation PRs must remain Draft rather than using the absence of protection as permission to merge.
+
+## Current deployment gap
+
+The Vercel project is linked to `jeremytheva/pourfolio`, but the latest observed production deployment is based on GitHub SHA `2fca3584875221e216464d187cf5c9c26962ff8f`, which is behind current `main`.
+
+The Vercel project is also configured for Node.js `22.x`, while the repository's governed runtime is Node.js 20. Production certification therefore requires both runtime alignment and a fresh exact-SHA deployment.
+
+Recent implementation activity also exhausted the Hobby-plan deployment allowance. Draft/Implementing/Validating work should rely primarily on GitHub source validation; connected deployment evidence belongs at the appropriate Ready/Release boundary rather than on every incremental implementation commit.
+
+Issue #224 remains authoritative for current-main production deployment evidence.
+
+## Provider boundary
+
+NoCodeBackend remains the active backend provider. Browser code uses the Pourfolio same-origin server boundary rather than privileged direct provider access. The canonical server-only environment contract is:
+
+- `NOCODEBACKEND_AUTH_BASE_URL`
+- `NOCODEBACKEND_DATA_BASE_URL`
+- `NOCODEBACKEND_SECRET_KEY`
+- `NOCODEBACKEND_INSTANCE`
+
+Provider authorisation, schema migration and same-state connected certification are not proven by repository validation. The currently owner-deferred provider/data work remains tracked under #225, #165 and #144, with backend-dependent catalogue certification under #154.
+
+## Remaining delivery-system work
+
+1. Complete repository-side standards/lifecycle/documentation alignment.
+2. Configure and verify the `main` protection/ruleset/security controls under #143 using exact remotely observed check contexts.
+3. Align Vercel project runtime to Node.js 20.
+4. Govern preview/deployment frequency so incremental AI commits do not consume release deployment capacity unnecessarily.
+5. Produce a fresh production deployment from current `main` and verify its SHA through `/api/health` and `/api/readiness` under #224.
+6. Resume connected provider/data certification only when the product owner has supplied the required information.
+7. Perform launch verification only on one exact candidate SHA whose source checks, governance and connected evidence all agree.
+
+## Deliberate boundaries
+
+- No `CODEOWNERS` ownership is invented without reliable ownership evidence.
+- No production/provider success is inferred from source tests.
+- No branch/ruleset setting is marked complete until observed remotely.
+- No administrator bypass is used to compensate for missing required evidence.
+- No major unrelated dependency migration is introduced into the launch path merely because Dependabot opened it.
