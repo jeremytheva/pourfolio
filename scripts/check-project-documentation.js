@@ -36,6 +36,7 @@ const requiredProjectInheritanceMarkers = [
 const requiredAgentLifecycleMarkers = [
   'Draft → Implementing → Validating → Ready → Mergeable → Merged',
   'GitHub must remain the independent enforcement layer',
+  'preview/<pr-number>',
   'npm run platform:validate'
 ]
 
@@ -94,6 +95,27 @@ if (fs.existsSync(agentsPath)) {
     if (!agents.includes(marker)) {
       findings.push({ code: 'PR_LIFECYCLE_GUIDANCE_DRIFT', path: 'AGENTS.md', marker })
     }
+  }
+}
+
+const nvmPath = path.join(root, '.nvmrc')
+const packagePath = path.join(root, 'package.json')
+if (!fs.existsSync(nvmPath)) {
+  findings.push({ code: 'NODE_RUNTIME_PIN_MISSING', path: '.nvmrc' })
+} else if (readText('.nvmrc').trim() !== '20') {
+  findings.push({ code: 'NODE_RUNTIME_PIN_DRIFT', path: '.nvmrc', expected: '20' })
+}
+
+if (!fs.existsSync(packagePath)) {
+  findings.push({ code: 'PACKAGE_MANIFEST_MISSING', path: 'package.json' })
+} else {
+  try {
+    const manifest = JSON.parse(readText('package.json'))
+    if (manifest.engines?.node !== '20.x') {
+      findings.push({ code: 'NODE_ENGINE_CONTRACT_DRIFT', path: 'package.json', expected: '20.x' })
+    }
+  } catch {
+    findings.push({ code: 'PACKAGE_MANIFEST_INVALID', path: 'package.json' })
   }
 }
 
