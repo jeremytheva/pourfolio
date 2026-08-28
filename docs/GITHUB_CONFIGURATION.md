@@ -1,106 +1,122 @@
 # Manual GitHub configuration
 
-Repository files cannot configure the following settings. A repository administrator should complete and verify this checklist; it is not evidence that any setting is already enabled.
+**Current remote review:** 28 August 2026
 
-## Recommended labels
-`type: feature`, `type: bug`, `type: architecture`, `type: security`, `type: technical-debt`, `type: documentation`; `priority: P0`–`priority: P3`; `status: blocked`, `status: needs-refinement`, `status: codex-ready`, `status: review`; and `size: XS`, `size: S`, `size: M`, `size: L`, `size: XL`.
+Repository files can define workflows and delivery expectations, but they cannot be treated as evidence that GitHub repository settings are active. Administrator-controlled settings must be observed remotely and tied to an exact candidate SHA before the corresponding Phase 0 criterion is complete.
 
-## Recommended project fields
-Use **Status**, **Project or product**, **Type**, **Priority**, **Complexity**, **Milestone**, **Codex ready**, and **Dependencies**. Recommended Status values: Backlog, Refinement, Ready, In progress, Review, Blocked, and Done.
+## Current observed remote state
 
-The authoritative Phase 0–6 milestone names, issue field contract, staged issue
-contracts and backlog mapping are in [Phase 0–6 release tracking](RELEASE_TRACKING.md).
-Those contracts must be created in GitHub Issues only after an administrator
-enables the tracker; repository documentation is not a substitute for issues.
+Observed for `jeremytheva/pourfolio` on 28 August 2026:
+
+- GitHub Issues are enabled and Phase 0 issue #143 exists.
+- Default branch is `main`.
+- Current observed `main` SHA is `3575ec54c4383226f1c31dfc45bb0e46a1285890`.
+- GitHub reports `main` as `protected: false`.
+- Branch protection is disabled and no required status checks are configured on `main`.
+- Repository rulesets are empty.
+- Pull-request validation, browser/accessibility, Dependency Review and CodeQL workflows exist, but their presence is not equivalent to merge enforcement.
+- Auto-merge capability being available in the repository is not sufficient evidence of a safe Mergeable boundary while required rules are absent.
+
+These observations are current-state evidence only. Recheck them after configuration changes; do not copy them forward as permanent facts.
+
+## Required relationship to the PR lifecycle
+
+Pourfolio follows:
+
+**Draft → Implementing → Validating → Ready → Mergeable → Merged**
+
+The project may manage implementation and validation states. GitHub must independently enforce the Mergeable boundary. Until the controls below are verified, a merge button or successful CI run must not be interpreted as permission to merge a non-trivial PR.
 
 ## Administrator checklist
 
-- [ ] Enable GitHub Issues or nominate and document another issue tracker.
-- [ ] Protect `main` and require a pull request before every merge; direct pushes must not be an allowed path to production.
-- [ ] Dismiss stale pull-request approvals when new commits are pushed.
-- [ ] Disable force-pushes to `main` and disable deletion of `main`. Automatic deletion of **merged head branches** may be enabled separately; it is not evidence that deletion of `main` is disabled.
-- [ ] Require status checks to pass and require the pull-request branch to be up to date with `main` before merging (strict status checks).
-- [ ] On a pull request for the candidate commit, copy the exact check context reported by GitHub for each of the `Release gate`, `Browser and accessibility`, `Dependency review`, and CodeQL `Analyse JavaScript` jobs into the evidence record below. Workflow and job display names in YAML are hints only and must not be entered as observed contexts without checking GitHub.
-- [ ] Configure those four **observed contexts** as required checks for `main`, then verify the branch rule or ruleset contains exact character-for-character matches. Do not select similarly named, stale, or push-only contexts.
-- [ ] Require every repository deployment-status check that GitHub reports for the candidate commit. Record each actual observed context (for example, contexts emitted by the repository's deployment provider) and verify every one against the same candidate SHA; do not assume or invent a provider/check name.
-- [ ] Restrict branch-protection or ruleset bypass permission to a recorded list of specifically authorised actors. If the repository's GitHub plan or rule type cannot restrict bypasses, retain a GitHub audit-log record for **every** bypass, identifying the actor, reason, time, affected rule and commit SHA, and have the independent reviewer approve it.
-- [ ] Enable issue forms and verify `Closes #` issue auto-linking/closing behaviour.
-- [ ] Configure required reviewers only when reliable ownership is known; no `CODEOWNERS` file is supplied because ownership is not evidenced in this repository.
-- [ ] Enable Dependabot alerts, secret scanning, and push protection where available.
-- [ ] Enable Dependency Graph so the dependency review action can operate successfully.
-- [ ] Retain the workflow URL, commit SHA and successful `Dependency review` result from a pull-request run before marking Dependency Graph and Dependency Review configuration complete.
-- [ ] Make the exact observed `Dependency review` context a required branch-protection check if it must block merging independently of the workflow's failure behaviour.
-- [ ] Review Dependabot alerts weekly.
-- [ ] Add deployment environment protection and restrict production secret access.
-- [ ] Close or archive obsolete Supabase and prototype pull requests that cannot merge into the canonical architecture.
-- [ ] Configure authorised Codex repository access and Codex pull-request review where available.
-- [ ] Configure GitHub Project fields, labels, and automation.
-- [ ] Confirm Actions permissions remain least privilege.
+### Tracker and accountability
 
-### Release-critical administrator evidence
+- [x] GitHub Issues are enabled and the real Phase 0 issue #143 exists.
+- [ ] Create the `Phase 0 — Governed delivery ready` milestone and assign #143.
+- [ ] Record the milestone objective, owner, exit criteria and dependency on Phase 0 completion.
+- [ ] Record an independent reviewer for the final governance decision.
 
-The checklist is a set of required actions, not a statement of the current
-configuration. **Do not mark any item complete until an administrator has
-observed the remote setting and, where applicable, the exact GitHub check
-context.** Repository files, workflow YAML, a local test result, or a proposed
-context name are not substitutes for remote evidence.
+### `main` protection / ruleset
 
-For each Phase 0 verification, retain a dated GitHub settings export or a
-redacted screenshot that shows the setting and enough surrounding GitHub UI to
-identify what was inspected. Store the evidence privately according to the
-organisation's security and retention policy, and record all of the following
-in the delivery or change record:
+- [ ] Protect `main` using branch protection or a repository ruleset.
+- [ ] Require a pull request before changes reach `main`; direct push must not be a normal production path.
+- [ ] Require at least one independent approval where the repository ownership model permits it.
+- [ ] Dismiss stale approvals when new commits are pushed.
+- [ ] Require strict status checks on the exact current candidate SHA and require the branch to be current with `main`.
+- [ ] Require resolution of required review conversations where available.
+- [ ] Disable force pushes to `main`.
+- [ ] Disable deletion of `main`.
+- [ ] Restrict bypass actors to an explicit approved list. If the plan/rule type cannot prevent a bypass, retain an audit record for every bypass and require independent review.
 
-- repository identity as the full `owner/repository` name (and GitHub host for
-  GitHub Enterprise Server), not just the repository's local directory name;
-- the exact 40-character candidate commit SHA;
-- the administrator's name or GitHub login and the UTC date and time of the
-  observation;
-- an independent reviewer's name or GitHub login, review date and approval;
-- a reference to the dated settings export or redacted screenshot; and
-- the branch rule or ruleset name or identifier that applies to `main`.
+### Required checks
 
-The export or screenshots must prove, for `main`, that pull requests are
-required, stale approvals are dismissed after new commits, force-pushes and
-branch deletion are disabled, required checks use strict/up-to-date mode, and
-bypass is limited to the recorded authorised actors. Where bypass restriction
-is unavailable, attach the audit-log evidence described in the checklist for
-every bypass instead. Also prove production environment access and secrets are
-restricted to authorised deployers, and that secret scanning, push protection
-and Dependency Graph are enabled rather than merely available under the
-organisation plan.
+Use a real candidate PR to copy the exact context strings GitHub reports. Workflow/job display names in YAML are hints only; they are not evidence of the check context GitHub exposes for branch protection.
 
-Use a candidate pull request to populate the following evidence table from the
-checks GitHub reports on the candidate SHA. Copy context strings exactly,
-including workflow prefixes, punctuation and capitalisation. Do not prefill the
-**Observed GitHub context** column from `.github/workflows` display names. Each
-row needs a link or evidence reference that resolves to the exact candidate SHA
-and a successful result before its related checklist item can be completed.
+At minimum verify the exact contexts corresponding to:
 
-| Required result | Observed GitHub context (exact string) | Candidate SHA | Successful run or status evidence |
+- `Release gate` / `npm run platform:validate`;
+- `Browser and accessibility`;
+- `Dependency review`;
+- CodeQL JavaScript analysis;
+- every stable deployment-status check that must be release-blocking.
+
+Do not configure similarly named stale or push-only contexts. A successful result on an earlier SHA does not satisfy the candidate gate.
+
+### Security and dependency controls
+
+- [ ] Enable Dependency Graph.
+- [ ] Verify a successful Dependency Review run on a candidate PR and make the observed context merge-blocking where required.
+- [ ] Enable CodeQL/code scanning and make its observed required result merge-blocking.
+- [ ] Enable secret scanning and push protection where available.
+- [ ] Review Dependabot alerts regularly.
+- [ ] Confirm GitHub Actions default permissions and workflow permissions remain least privilege.
+- [ ] Ensure untrusted workflows cannot access production secrets.
+- [ ] Record the ChatGPT/Codex GitHub App relationship and verify least-privilege repository access.
+
+### Deployment environment
+
+- [ ] Configure appropriate production environment protection.
+- [ ] Restrict production secrets to the intended environment and authorised deployers.
+- [ ] Record named deployment reviewers if the plan and delivery model support them.
+- [ ] Require a stable production deployment status where GitHub exposes one suitable for exact-SHA enforcement.
+
+## Candidate evidence table
+
+Populate this table from one candidate PR. Copy context strings exactly, including capitalisation and punctuation.
+
+| Required result | Observed GitHub context (exact string) | Candidate SHA | Successful run/status evidence |
 | --- | --- | --- | --- |
-| `Release gate` job | _Pending remote observation_ | _Pending_ | _Pending_ |
-| `Browser and accessibility` job | _Pending remote observation_ | _Pending_ | _Pending_ |
-| `Dependency review` job | _Pending remote observation_ | _Pending_ | _Pending_ |
-| CodeQL `Analyse JavaScript` job | _Pending remote observation_ | _Pending_ | _Pending_ |
-| Repository deployment status check (add one row per context) | _Pending remote observation_ | _Pending_ | _Pending_ |
+| Release/source validation | _Pending remote observation_ | _Pending_ | _Pending_ |
+| Browser and accessibility | _Pending remote observation_ | _Pending_ | _Pending_ |
+| Dependency Review | _Pending remote observation_ | _Pending_ | _Pending_ |
+| CodeQL JavaScript analysis | _Pending remote observation_ | _Pending_ | _Pending_ |
+| Repository deployment status check (one row per context) | _Pending remote observation_ | _Pending_ | _Pending_ |
 
-After recording the contexts, compare the required-check configuration with
-the table character for character and capture that comparison in the settings
-evidence. Confirm that all rows, including every deployment status emitted by
-the repository, apply successfully to the **same** candidate SHA. A deployment
-for an earlier commit, a workflow run on a merge commit that is not the
-candidate, or a successful check with a different context does not satisfy this
-gate.
+After recording contexts, compare the configured required-check list character-for-character with this table and capture the comparison in private evidence.
 
-The `Dependency review` job has no `continue-on-error` setting and is configured
-to fail on vulnerabilities of high severity or above. Dependency Graph must be
-enabled for the action to operate successfully. An administrator must observe a
-successful `Dependency review` run on a pull request and retain its workflow
-URL, commit SHA and result before marking the Dependency Graph and Dependency
-Review configuration complete. A job failure fails the workflow; it does not,
-by itself, make `Dependency review` a required branch-protection check. Requiring
-the exact remotely observed check context is a separate administrator setting.
-As of 3 August 2026 this delivery environment has no Git remote, GitHub CLI or
-repository-administrator evidence, so all remote settings, context names and
-deployment checks remain unverified and are not claimed as complete.
+## Release-critical administrator evidence
+
+For each Phase 0 verification, retain a dated GitHub settings export or redacted screenshot showing enough surrounding UI to identify what was inspected. Store sensitive evidence privately and record:
+
+- full repository identity (`owner/repository` and GitHub host where relevant);
+- exact 40-character candidate SHA;
+- administrator GitHub login and UTC observation time;
+- independent reviewer login, review date and decision;
+- private evidence reference;
+- branch-protection/ruleset name or identifier applying to `main`;
+- exact required check contexts;
+- force-push/deletion/bypass settings;
+- production environment protection state;
+- Dependency Graph, CodeQL, secret-scanning and push-protection state.
+
+A repository file, local test result, workflow YAML or proposed setting is not a substitute for this remote evidence.
+
+## Recommended issue/project metadata
+
+Recommended labels include `type: feature`, `type: bug`, `type: architecture`, `type: security`, `type: technical-debt`, `type: documentation`; `priority: P0`–`priority: P3`; lifecycle/status labels as appropriate; and size labels where they provide useful planning signal.
+
+Recommended project fields include **Status**, **Project or product**, **Type**, **Priority**, **Complexity**, **Milestone**, **Codex ready**, and **Dependencies**. The authoritative phase contracts remain in `docs/RELEASE_TRACKING.md` and live GitHub issues.
+
+## Completion rule
+
+Do not mark #143 or the Phase 0 governance gate complete until the remote settings, exact required contexts, security/dependency controls, deployment protection and independent approval are all evidenced against one immutable candidate SHA. Do not weaken or bypass a control to make the checklist appear complete.
