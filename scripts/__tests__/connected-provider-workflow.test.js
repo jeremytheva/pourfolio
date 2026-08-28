@@ -6,6 +6,7 @@ import { checkProviderContractTranscript } from '../check-provider-contract-tran
 test('connected provider workflows keep runtime instance configuration outside the repository', () => {
   const providerWorkflow = fs.readFileSync('.github/workflows/connected-provider-contract.yml', 'utf8')
   const releaseWorkflow = fs.readFileSync('.github/workflows/connected-release-check.yml', 'utf8')
+  const repositoryValuePattern = /NOCODEBACKEND_INSTANCE:\s+(?!\$\{\{)/
   assert.match(providerWorkflow, /workflow_dispatch:/)
   assert.match(providerWorkflow, /environment: staging-release/)
   assert.match(providerWorkflow, /ref: \$\{\{ inputs\.release_sha \}\}/)
@@ -16,8 +17,8 @@ test('connected provider workflows keep runtime instance configuration outside t
   assert.match(providerWorkflow, /NOCODEBACKEND_DATA_BASE_URL: https:\/\/api\.nocodebackend\.com\//)
   assert.match(providerWorkflow, /NOCODEBACKEND_INSTANCE: \$\{\{ vars\.NOCODEBACKEND_INSTANCE \}\}/)
   assert.match(releaseWorkflow, /NOCODEBACKEND_INSTANCE: \$\{\{ vars\.NOCODEBACKEND_INSTANCE \}\}/)
-  assert.doesNotMatch(providerWorkflow, /NOCODEBACKEND_INSTANCE:\s+54026_rating/)
-  assert.doesNotMatch(releaseWorkflow, /NOCODEBACKEND_INSTANCE:\s+54026_rating/)
+  assert.doesNotMatch(providerWorkflow, repositoryValuePattern)
+  assert.doesNotMatch(releaseWorkflow, repositoryValuePattern)
   assert.match(providerWorkflow, /redacted-transcript\.json/)
   assert.match(providerWorkflow, /check:provider-contract-transcript/)
   assert.match(providerWorkflow, /if-no-files-found: error/)
