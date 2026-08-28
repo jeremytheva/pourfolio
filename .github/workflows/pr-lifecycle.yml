@@ -1,0 +1,132 @@
+name: PR lifecycle
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+      - converted_to_draft
+  workflow_run:
+    workflows:
+      - Pull request validation
+      - CodeQL
+    types:
+      - completed
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: pr-lifecycle-${{ github.event.pull_request.number || github.event.workflow_run.head_sha }}
+  cancel-in-progress: true
+
+jobs:
+  sync-pull-request-state:
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Synchronise lifecycle label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pr = context.payload.pull_request;
+            const lifecycleLabels = [
+              ['pr:draft', 'Pull request is the active draft work container', '6f42c1'],
+              ['pr:implementing', 'Implementation is actively changing', '1d76db'],
+              ['pr:validating', 'Current pull request head is awaiting required validation', 'fbca04'],
+              ['pr:ready', 'Implementation gate and current source validation are satisfied', '0e8a16'],
+              ['pr:mergeable', 'All independently enforced merge requirements are satisfied', '0e8a16'],
+              ['pr:blocked', 'A material dependency or decision blocks progression', 'b60205'],
+            ];
+
+            for (const [name, description, color] of lifecycleLabels) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                await github.rest.issues.createLabel({ owner, repo, name, description, color });
+              }
+            }
+
+            const managed = lifecycleLabels.map(([name]) => name).filter((name) => name !== 'pr:blocked');
+            const target = pr.draft ? 'pr:draft' : 'pr:validating';
+            const current = pr.labels.map((label) => label.name);
+
+            for (const label of managed) {
+              if (label !== target && current.includes(label)) {
+                await github.rest.issues.removeLabel({ owner, repo, issue_number: pr.number, name: label });
+              }
+            }
+
+            if (!current.includes(target)) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: [target] });
+            }
+
+  sync-validation-state:
+    if: github.event_name == 'workflow_run'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Promote validated pull request state
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const run = context.payload.workflow_run;
+            const prs = run.pull_requests || [];
+            if (prs.length === 0) return;
+
+            for (const prRef of prs) {
+              const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prRef.number });
+              if (pr.state !== 'open') continue;
+
+              if (pr.draft) {
+                await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: ['pr:draft'] });
+                continue;
+              }
+
+              const { data: runs } = await github.rest.actions.listWorkflowRunsForRepo({
+                owner,
+                repo,
+                head_sha: pr.head.sha,
+                event: 'pull_request',
+                per_page: 100,
+              });
+
+              const latestByName = new Map();
+              for (const candidate of runs.workflow_runs) {
+                if (!latestByName.has(candidate.name)) latestByName.set(candidate.name, candidate);
+              }
+
+              const required = ['Pull request validation', 'CodeQL'];
+              const allPassed = required.every((name) => {
+                const candidate = latestByName.get(name);
+                return candidate && candidate.status === 'completed' && candidate.conclusion === 'success';
+              });
+
+              const target = allPassed ? 'pr:ready' : 'pr:validating';
+              const managed = ['pr:draft', 'pr:implementing', 'pr:validating', 'pr:ready', 'pr:mergeable'];
+              const current = pr.labels.map((label) => label.name);
+
+              for (const label of managed) {
+                if (label !== target && current.includes(label)) {
+                  try {
+                    await github.rest.issues.removeLabel({ owner, repo, issue_number: pr.number, name: label });
+                  } catch (error) {
+                    if (error.status !== 404) throw error;
+                  }
+                }
+              }
+
+              if (!current.includes(target)) {
+                await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: [target] });
+              }
+            }
