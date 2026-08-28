@@ -53,6 +53,24 @@ Before a meaningful change:
 
 `Continue` or `Next` means proceed with the next dependency-correct work autonomously. Stop only for a genuine blocker, destructive/irreversible approval or material product-owner decision.
 
+## Pull-request lifecycle
+
+Project-managed implementation follows the inherited lifecycle:
+
+**Draft → Implementing → Validating → Ready → Mergeable → Merged**
+
+- Create implementation PRs as Draft unless a governing workflow explicitly starts them later in the lifecycle with equivalent evidence.
+- Keep committing the focused change to the same PR while it is Implementing; do not create replacement PRs merely because validation fails.
+- Enter Validating only after the intended implementation scope is complete enough for the canonical checks to be meaningful.
+- `npm run platform:validate`, applicable browser/accessibility checks, Dependency Review, CodeQL and any other required source checks must pass on the current candidate SHA before Ready.
+- Ready means implementation is complete and reviewable; it does not mean merge is permitted.
+- Mergeable requires GitHub's independent enforcement layer to confirm the configured required checks, required reviews, resolved required conversations, current base integration and any required deployment evidence on the exact current SHA.
+- A new commit, changed base, stale approval, unresolved required conversation, conflict or failed required check moves the PR back to the evidence-supported earlier state and requires revalidation.
+- Enable or perform merge only when the PR is Mergeable on the latest SHA. Never use administrator/bypass capability to compensate for missing evidence.
+- After merge, verify required post-merge deployment/release evidence separately. A merge does not by itself prove Release or Completion gates.
+
+Until `main` protection/ruleset enforcement is verified under Phase 0 issue #143, keep governance-alignment and other non-trivial implementation PRs Draft and do not treat GitHub's ability to merge as evidence that the PR is Mergeable.
+
 ## Coding standards
 - Use JavaScript/JSX, ES modules, descriptive camelCase names, PascalCase React component files, and focused modules.
 - Preserve the existing ESLint configuration. Do not weaken linting or suppress errors merely to pass checks.
