@@ -25,6 +25,20 @@ const requiredStatusSections = [
   '## Next dependency-correct work'
 ]
 
+const requiredProjectInheritanceMarkers = [
+  'AI-First Platform Development Framework v3.1',
+  'AI Platform Development Standard v1.2',
+  'PR Lifecycle Standard v1.0',
+  'Testing, Validation & Release Standard v1.2',
+  'Project Documentation Standard v1.2'
+]
+
+const requiredAgentLifecycleMarkers = [
+  'Draft → Implementing → Validating → Ready → Mergeable → Merged',
+  'GitHub must remain the independent enforcement layer',
+  'npm run platform:validate'
+]
+
 const findings = []
 
 const readText = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8')
@@ -50,10 +64,36 @@ for (const file of canonicalGuidanceFiles) {
   }
 }
 
-for (const file of ['AGENTS.md', 'README.md']) {
+for (const file of ['AGENTS.md', 'README.md', 'PROJECT.md']) {
   const filePath = path.join(root, file)
   if (fs.existsSync(filePath) && /\bVite 7\b/.test(readText(file))) {
     findings.push({ code: 'STALE_VITE_MAJOR_GUIDANCE', path: file })
+  }
+}
+
+const projectPath = path.join(root, 'PROJECT.md')
+if (fs.existsSync(projectPath)) {
+  const project = readText('PROJECT.md')
+  for (const marker of requiredProjectInheritanceMarkers) {
+    if (!project.includes(marker)) {
+      findings.push({ code: 'MASTER_STANDARD_INHERITANCE_DRIFT', path: 'PROJECT.md', marker })
+    }
+  }
+  if (!project.includes('| Build tooling | Vite 8 |')) {
+    findings.push({ code: 'PROJECT_STACK_GUIDANCE_DRIFT', path: 'PROJECT.md', expected: 'Vite 8' })
+  }
+  if (!project.includes('| Runtime | Node.js 20 |')) {
+    findings.push({ code: 'PROJECT_STACK_GUIDANCE_DRIFT', path: 'PROJECT.md', expected: 'Node.js 20' })
+  }
+}
+
+const agentsPath = path.join(root, 'AGENTS.md')
+if (fs.existsSync(agentsPath)) {
+  const agents = readText('AGENTS.md')
+  for (const marker of requiredAgentLifecycleMarkers) {
+    if (!agents.includes(marker)) {
+      findings.push({ code: 'PR_LIFECYCLE_GUIDANCE_DRIFT', path: 'AGENTS.md', marker })
+    }
   }
 }
 
