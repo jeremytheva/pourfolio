@@ -87,6 +87,32 @@ test('Vercel routes public catch-all paths to flat proxy entrypoints before the 
   }
 })
 
+test('Vercel Git deployments stay disabled for normal implementation branches', async () => {
+  const configuration = await loadVercelConfiguration()
+
+  assert.deepEqual(configuration.git?.deploymentEnabled, {
+    'codex/**': false,
+    'chore/**': false,
+    'docs/**': false,
+    'fix/**': false,
+    'feature/**': false,
+    'phase-*/**': false,
+    'observability/**': false,
+    'dependabot/**': false
+  })
+
+  assert.equal(
+    Object.hasOwn(configuration.git.deploymentEnabled, 'main'),
+    false,
+    'main must remain eligible for the governed production deployment path'
+  )
+  assert.equal(
+    Object.keys(configuration.git.deploymentEnabled).some((pattern) => pattern.startsWith('preview/')),
+    false,
+    'preview/* branches must remain eligible for deliberate exact-SHA connected evidence'
+  )
+})
+
 test('Vercel wildcard captures preserve every path segment and unrelated query values', async () => {
   const { rewrites } = await loadVercelConfiguration()
   const cases = [
