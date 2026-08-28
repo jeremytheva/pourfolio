@@ -14,8 +14,8 @@ Before further broad feature or UI work becomes the default implementation path:
 
 1. align repository project controls with the current master standards and PR lifecycle;
 2. make GitHub the independent enforcement layer for `main` under #143;
-3. align Vercel's configured runtime with the governed Node.js 20 contract;
-4. reduce implementation-stage deployment churn so Draft/Implementing/Validating work relies primarily on GitHub source validation;
+3. enforce the governed Node.js 20 deployment runtime from source and verify it in a fresh deployment;
+4. keep normal implementation branches CI-first and reserve deliberate exact-SHA preview branches for connected evidence;
 5. restore exact-SHA production deployment evidence under #224;
 6. keep major unrelated dependency migrations, including Tailwind 4, outside the launch-hardening path unless separately approved.
 
@@ -27,9 +27,12 @@ Repository-side correction may proceed while backend/provider work remains owner
 
 Current observed blocker: `main` is unprotected, repository rulesets are empty, and existing successful CI is therefore evidence without independent merge enforcement.
 
+Repository-side alignment is being implemented in Draft PR #246. Exact successful check names observed on prior PR #245 are available for context discovery, but final ruleset evidence must be tied to the governed candidate SHA.
+
 Remaining:
 
 - complete administrator-controlled GitHub ruleset/security/environment evidence under #143;
+- create/assign the Phase 0 milestone if still absent;
 - require pull requests, strict exact-SHA status checks, stale-approval dismissal, controlled bypass, force-push/deletion protection and required review as applicable;
 - obtain required independent governance/release approval evidence;
 - prove the exact required status contexts and release controls on the launch candidate.
@@ -83,7 +86,7 @@ Remaining:
 - generate and re-audit the accepted catalogue candidate;
 - reconcile the accepted candidate with NoCodeBackend;
 - obtain a current-main production deployment under #224;
-- verify the production deployment uses the governed Node.js 20 runtime;
+- verify the production deployment actually uses the source-governed Node.js 20 runtime;
 - capture connected browse/search/direct-route and accessibility evidence.
 
 **Exit condition:** #154 acceptance criteria are satisfied against a deployment whose exact SHA is recorded.
@@ -96,7 +99,7 @@ After Phases 0, 1 and 3 have their required evidence:
 2. run `npm run platform:validate` and required hosted checks;
 3. verify GitHub's configured required checks/reviews/ruleset apply to that exact SHA;
 4. verify production environment configuration without exposing secrets;
-5. verify exact deployed SHA through health/readiness;
+5. verify exact deployed SHA and Node.js 20 runtime through deployment/health/readiness evidence;
 6. run critical authentication, catalogue and safe owner-scoped smoke paths;
 7. inspect runtime/provider diagnostics;
 8. record remaining accepted limitations, if any;
@@ -121,13 +124,13 @@ Brew Done It retains only the future same-device/session-memory model accepted i
 ## Dependency order
 
 ```text
-Repository standards/lifecycle alignment
+Repository standards/lifecycle/runtime alignment (PR #246)
         ↓
 #143 enforceable GitHub delivery path ────────────────────────────────┐
         ↓                                                            │
-Vercel Node 20 + deployment-churn correction                         │
+Merge governed correction without bypass                            │
         ↓                                                            │
-#224 current-main exact-SHA deployment evidence                      │
+#224 current-main Node 20 + exact-SHA deployment evidence            │
         ↓                                                            │
 #154 connected catalogue certification                              │
                                                                      │
