@@ -15,7 +15,7 @@ Pourfolio's launch scope is a beer-first MVP. Reachable production journeys are 
 - **Data and authentication:** Browser requests use same-origin endpoints in `src/lib/nocodeBackend.js`. `api/auth-proxy.js` is the authentication proxy; the server data gateways enforce application policy before NoCodeBackend access.
 - **Storage:** Canonical NoCodeBackend collections are `products`, `producers`, `categories`, `ratings`, `rating_scores`, `rating_attributes`, `bonus_attributes`, `bonus_attribute_rating_mapping`, and `cellar`. Provider schema changes require the governed migration/evidence path; do not infer deployment from source files.
 - **Testing:** Node.js built-in `node:test`/`node:assert`, plus Playwright and axe for browser/accessibility tests.
-- **Deployment:** Vercel configuration, SPA rewrites and security headers are committed in `vercel.json`; actual deployed SHA/configuration/readiness must be verified in Vercel/runtime evidence.
+- **Deployment:** Vercel configuration, SPA rewrites, Git deployment policy and security headers are committed in `vercel.json`; actual deployed SHA/configuration/readiness must be verified in Vercel/runtime evidence.
 
 ## Repository structure
 - `src/` — application source.
@@ -70,6 +70,14 @@ Project-managed implementation follows the inherited lifecycle:
 - After merge, verify required post-merge deployment/release evidence separately. A merge does not by itself prove Release or Completion gates.
 
 Until `main` protection/ruleset enforcement is verified under Phase 0 issue #143, keep governance-alignment and other non-trivial implementation PRs Draft and do not treat GitHub's ability to merge as evidence that the PR is Mergeable.
+
+## Vercel deployment lifecycle
+
+`vercel.json` intentionally disables automatic Git deployments for normal implementation branch families such as `codex/**`, `chore/**`, `docs/**`, `fix/**`, `feature/**`, `phase-*/**`, `observability/**` and `dependabot/**`. This prevents every incremental AI commit from consuming preview-deployment capacity while GitHub CI is the primary Draft/Implementing/Validating evidence layer.
+
+When a connected preview is genuinely required at Ready, create a short-lived `preview/<pr-number>` branch pointing to the **same already-validated candidate SHA**. `preview/**` is intentionally not disabled in the Vercel policy, so Vercel can create connected evidence without adding a new code commit or changing the candidate SHA. Delete the preview branch after its evidence is no longer required.
+
+`main` is also intentionally not disabled and remains eligible for the governed production deployment path after merge. A preview or production deployment still requires exact-SHA verification; the presence of a Vercel deployment never substitutes for GitHub source/review gates.
 
 ## Coding standards
 - Use JavaScript/JSX, ES modules, descriptive camelCase names, PascalCase React component files, and focused modules.
