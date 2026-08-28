@@ -6,7 +6,9 @@ This document describes the current delivery-system implementation. It supersede
 
 ## Current repository state
 
-Pourfolio is a JavaScript/JSX React 19.2 application built by Vite 8, pinned to Node.js 20 through `.nvmrc` and managed with npm/package-lock. The repository includes project control documents, repository instructions, GitHub Actions validation, Node policy/unit tests, Playwright browser tests, axe accessibility checks, NoCodeBackend contract/audit tooling, release checks and Vercel deployment configuration.
+Pourfolio is a JavaScript/JSX React 19.2 application built by Vite 8, governed on Node.js 20 through `.nvmrc` and `package.json` `engines.node: 20.x`, and managed with npm/package-lock. The package engine pin is also the source-level Vercel runtime override; its effect must still be verified on a fresh deployment.
+
+The repository includes project control documents, repository instructions, GitHub Actions validation, Node policy/unit tests, Playwright browser tests, axe accessibility checks, NoCodeBackend contract/audit tooling, release checks and Vercel deployment configuration.
 
 The canonical source-validation command is:
 
@@ -36,15 +38,32 @@ Observed remotely on 28 August 2026:
 - repository rulesets are empty;
 - CI workflows exist and run useful validation, but are not yet independently merge-blocking through a branch rule/ruleset.
 
+Exact successful check names observed on prior PR #245 candidate SHA `45654e62ad1a0d7f814eff0f0a86d33ae374b87c` are `Release gate`, `Browser and accessibility`, `Dependency review`, and CodeQL job `Analyse JavaScript`. These are context-discovery evidence only; the final Phase 0 rule and evidence must be verified against the governed candidate SHA.
+
 This is tracked by Phase 0 issue #143 and is an active release blocker. Until enforcement is verified, non-trivial implementation PRs must remain Draft rather than using the absence of protection as permission to merge.
 
-## Current deployment gap
+## Deployment lifecycle and capacity control
+
+`vercel.json` now keeps normal implementation branch families CI-first by disabling automatic Vercel Git deployments for:
+
+- `codex/**`;
+- `chore/**`;
+- `docs/**`;
+- `fix/**`;
+- `feature/**`;
+- `phase-*/**`;
+- `observability/**`;
+- `dependabot/**`.
+
+When connected preview evidence is genuinely required, create a short-lived `preview/<pr-number>` branch pointing to the **same already-validated candidate SHA**. `preview/**` is deliberately not disabled, so connected evidence can be created without a new implementation commit. `main` is also not disabled and remains eligible for the governed production path after merge.
+
+This policy addresses the deployment-churn problem that exhausted the Hobby-plan build allowance during rapid AI implementation. GitHub CI remains the primary Draft/Implementing/Validating evidence layer; Vercel preview evidence is collected deliberately at the Ready/Release boundary.
+
+## Current production gap
 
 The Vercel project is linked to `jeremytheva/pourfolio`, but the latest observed production deployment is based on GitHub SHA `2fca3584875221e216464d187cf5c9c26962ff8f`, which is behind current `main`.
 
-The Vercel project is also configured for Node.js `22.x`, while the repository's governed runtime is Node.js 20. Production certification therefore requires both runtime alignment and a fresh exact-SHA deployment.
-
-Recent implementation activity also exhausted the Hobby-plan deployment allowance. Draft/Implementing/Validating work should rely primarily on GitHub source validation; connected deployment evidence belongs at the appropriate Ready/Release boundary rather than on every incremental implementation commit.
+The Vercel project setting reports Node.js `22.x`, while the repository contract is Node.js 20. The active governance PR adds `package.json` `engines.node: 20.x`, which Vercel uses as the source-level version override. The runtime blocker remains open until a new production-equivalent deployment proves Node.js 20 and the exact release SHA.
 
 Issue #224 remains authoritative for current-main production deployment evidence.
 
@@ -61,13 +80,14 @@ Provider authorisation, schema migration and same-state connected certification 
 
 ## Remaining delivery-system work
 
-1. Complete repository-side standards/lifecycle/documentation alignment.
-2. Configure and verify the `main` protection/ruleset/security controls under #143 using exact remotely observed check contexts.
-3. Align Vercel project runtime to Node.js 20.
-4. Govern preview/deployment frequency so incremental AI commits do not consume release deployment capacity unnecessarily.
-5. Produce a fresh production deployment from current `main` and verify its SHA through `/api/health` and `/api/readiness` under #224.
-6. Resume connected provider/data certification only when the product owner has supplied the required information.
-7. Perform launch verification only on one exact candidate SHA whose source checks, governance and connected evidence all agree.
+1. Validate Draft PR #246 on its exact latest SHA.
+2. Create/assign the Phase 0 milestone if still absent.
+3. Configure and verify the `main` protection/ruleset/security controls under #143 using exact remotely observed current check contexts.
+4. Move PR #246 through Ready → Mergeable only after the independent enforcement boundary exists and the latest SHA satisfies it.
+5. Merge without bypass and produce a fresh production deployment from current `main`.
+6. Verify the deployed SHA through `/api/health` and `/api/readiness` and verify Node.js 20 is actually used.
+7. Resume connected provider/data certification only when the product owner has supplied the required information.
+8. Perform launch verification only on one exact candidate SHA whose source checks, governance and connected evidence all agree.
 
 ## Deliberate boundaries
 
