@@ -1,5 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": {
+      "codex/**": false,
+      "chore/**": false,
+      "docs/**": false,
+      "fix/**": false,
+      "feature/**": false,
+      "phase-*/**": false,
+      "observability/**": false,
+      "dependabot/**": false
+    }
+  },
   "rewrites": [
     {
       "source": "/api/nocodebackend/auth/:path*",
