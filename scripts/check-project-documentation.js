@@ -35,7 +35,7 @@ const requiredProjectInheritanceMarkers = [
 
 const requiredAgentLifecycleMarkers = [
   'Draft → Implementing → Validating → Ready → Mergeable → Merged',
-  'GitHub must remain the independent enforcement layer',
+  "GitHub's independent enforcement layer",
   'preview/<pr-number>',
   'npm run platform:validate'
 ]
