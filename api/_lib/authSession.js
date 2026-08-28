@@ -2,7 +2,19 @@ import { withTimeout } from './httpSecurity.js'
 import { resolveAuthCredential } from './ncbCredentials.js'
 
 const DEFAULT_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
-const DATABASE_INSTANCE = '54026_rating'
+
+const configuredInstance = () => process.env.NOCODEBACKEND_INSTANCE?.trim() || null
+
+const requireConfiguredInstance = () => {
+  const instance = configuredInstance()
+  if (!instance) {
+    const error = new Error('Server authentication instance is not configured.')
+    error.status = 503
+    error.code = 'AUTH_INSTANCE_MISSING'
+    throw error
+  }
+  return instance
+}
 
 export const extractSessionUser = (payload) => {
   if (!payload || typeof payload !== 'object') return null
@@ -34,14 +46,14 @@ export const extractSessionUser = (payload) => {
 export const buildSessionUrl = () => {
   const authBaseUrl = (process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL).replace(/\/+$/, '')
   const url = new URL(`${authBaseUrl}/get-session`)
-  url.searchParams.set('instance', process.env.NOCODEBACKEND_INSTANCE || DATABASE_INSTANCE)
+  url.searchParams.set('instance', requireConfiguredInstance())
   return url
 }
 
 export const buildSessionHeaders = (request, secret) => ({
   accept: 'application/json',
   authorization: `Bearer ${secret}`,
-  'x-database-instance': process.env.NOCODEBACKEND_INSTANCE || DATABASE_INSTANCE,
+  'x-database-instance': requireConfiguredInstance(),
   cookie: request.headers?.cookie || ''
 })
 
@@ -49,10 +61,11 @@ export const requireSessionUser = async (request) => {
   let secret
   try {
     secret = resolveAuthCredential().value
-  } catch {
+    requireConfiguredInstance()
+  } catch (cause) {
     const error = new Error('Server authentication is not configured.')
     error.status = 503
-    error.code = 'AUTH_CREDENTIAL_MISSING'
+    error.code = cause?.code === 'AUTH_INSTANCE_MISSING' ? 'AUTH_INSTANCE_MISSING' : 'AUTH_CREDENTIAL_MISSING'
     throw error
   }
 
@@ -80,7 +93,8 @@ export const requireSessionUser = async (request) => {
 }
 
 export const __testables = {
-  DATABASE_INSTANCE,
   buildSessionHeaders,
-  buildSessionUrl
+  buildSessionUrl,
+  configuredInstance,
+  requireConfiguredInstance
 }

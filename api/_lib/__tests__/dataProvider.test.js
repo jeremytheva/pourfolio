@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { dataProvider, __testables } from '../dataProvider.js'
 
+const TEST_INSTANCE = 'test-instance'
 const originalFetch = global.fetch
 const originalEnvironment = {
   NOCODEBACKEND_DATA_BASE_URL: process.env.NOCODEBACKEND_DATA_BASE_URL,
@@ -12,7 +13,7 @@ const originalEnvironment = {
 const configure = () => {
   process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://api.nocodebackend.com/'
   process.env.NOCODEBACKEND_SECRET_KEY = 'test-secret'
-  process.env.NOCODEBACKEND_INSTANCE = '54026_rating'
+  process.env.NOCODEBACKEND_INSTANCE = TEST_INSTANCE
 }
 
 test.beforeEach(configure)
@@ -38,7 +39,7 @@ test('list matches Swagger read route, instance query and bearer headers', async
   }
 
   assert.deepEqual(await dataProvider.list('ratings', { user_id: 'owner' }), [{ id: 7 }])
-  assert.equal(request.url, 'https://api.nocodebackend.com/read/ratings?Instance=54026_rating&user_id=owner')
+  assert.equal(request.url, `https://api.nocodebackend.com/read/ratings?Instance=${TEST_INSTANCE}&user_id=owner`)
   assert.deepEqual(request.options.headers, {
     accept: 'application/json',
     authorization: 'Bearer test-secret'
@@ -50,20 +51,18 @@ test('hardcoded data fallback is api.nocodebackend.com', () => {
   assert.equal(__testables.resolveDataBaseUrl(undefined), 'https://api.nocodebackend.com')
 })
 
-test('canonical instance is enforced before provider requests', async () => {
-  assert.equal(__testables.DEFAULT_INSTANCE, '54026_rating')
-  assert.equal(__testables.resolveDataInstance(undefined), '54026_rating')
-  assert.equal(__testables.resolveDataInstance(' 54026_rating '), '54026_rating')
-  assert.throws(() => __testables.resolveDataInstance('wrong_instance'), {
+test('instance must be supplied by runtime configuration', async () => {
+  assert.equal(__testables.resolveDataInstance(` ${TEST_INSTANCE} `), TEST_INSTANCE)
+  assert.throws(() => __testables.resolveDataInstance(undefined), {
     status: 503,
-    code: 'DATA_INSTANCE_MISMATCH'
+    code: 'DATA_INSTANCE_MISSING'
   })
 
-  process.env.NOCODEBACKEND_INSTANCE = 'wrong_instance'
-  global.fetch = async () => assert.fail('fetch must not be called for a mismatched instance')
+  delete process.env.NOCODEBACKEND_INSTANCE
+  global.fetch = async () => assert.fail('fetch must not be called without a configured instance')
   await assert.rejects(dataProvider.list('products'), {
     status: 503,
-    code: 'DATA_INSTANCE_MISMATCH'
+    code: 'DATA_INSTANCE_MISSING'
   })
 })
 
@@ -84,7 +83,7 @@ test('paginated product list uses documented search and ordering parameters', as
     search: 'porter', page: 2, limit: 25, orderBy: 'product_name', order: 'asc'
   }), { items, page: 2, pageSize: 25, total: 51, totalPages: 3 })
   assert.equal(requestedUrl,
-    'https://api.nocodebackend.com/read/products?Instance=54026_rating&product_name%5Blike%5D=porter&page=2&limit=25&sort=product_name&order=asc')
+    `https://api.nocodebackend.com/read/products?Instance=${TEST_INSTANCE}&product_name%5Blike%5D=porter&page=2&limit=25&sort=product_name&order=asc`)
 })
 
 test('get uses read-by-id and filtered fallback after 404', async () => {
@@ -97,8 +96,8 @@ test('get uses read-by-id and filtered fallback after 404', async () => {
 
   assert.deepEqual(await dataProvider.get('ratings', 'id/with slash'), { id: 'id/with slash' })
   assert.deepEqual(urls, [
-    'https://api.nocodebackend.com/read/ratings/id%2Fwith%20slash?Instance=54026_rating',
-    'https://api.nocodebackend.com/read/ratings?Instance=54026_rating&id=id%2Fwith+slash'
+    `https://api.nocodebackend.com/read/ratings/id%2Fwith%20slash?Instance=${TEST_INSTANCE}`,
+    `https://api.nocodebackend.com/read/ratings?Instance=${TEST_INSTANCE}&id=id%2Fwith+slash`
   ])
 })
 
@@ -115,10 +114,10 @@ test('create, update, compare-and-set and delete use operation routes and JSON c
   await dataProvider.remove('cellar', 3)
 
   assert.deepEqual(requests.map(({ url, options }) => [url, options.method]), [
-    ['https://api.nocodebackend.com/create/cellar?Instance=54026_rating', 'POST'],
-    ['https://api.nocodebackend.com/update/cellar/3?Instance=54026_rating', 'PUT'],
-    ['https://api.nocodebackend.com/update/cellar/3?Instance=54026_rating&expected_version=4', 'PUT'],
-    ['https://api.nocodebackend.com/delete/cellar/3?Instance=54026_rating', 'DELETE']
+    [`https://api.nocodebackend.com/create/cellar?Instance=${TEST_INSTANCE}`, 'POST'],
+    [`https://api.nocodebackend.com/update/cellar/3?Instance=${TEST_INSTANCE}`, 'PUT'],
+    [`https://api.nocodebackend.com/update/cellar/3?Instance=${TEST_INSTANCE}&expected_version=4`, 'PUT'],
+    [`https://api.nocodebackend.com/delete/cellar/3?Instance=${TEST_INSTANCE}`, 'DELETE']
   ])
   assert.equal(requests[0].options.headers['content-type'], 'application/json')
   assert.equal(requests[3].options.headers['content-type'], undefined)

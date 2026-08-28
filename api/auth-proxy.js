@@ -11,7 +11,6 @@ import { resolveAuthCredential } from './_lib/ncbCredentials.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 
 const DEFAULT_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
-const DATABASE_INSTANCE = '54026_rating'
 const AUTH_ACTIONS = Object.freeze({
   providers: ['GET'],
   'get-session': ['GET'],
@@ -24,8 +23,19 @@ const AUTH_ACTIONS = Object.freeze({
 })
 
 const PROVIDER_CREDENTIAL_ACTIONS = new Set(['providers'])
-const configuredInstance = () => process.env.NOCODEBACKEND_INSTANCE || DATABASE_INSTANCE
+const configuredInstance = () => process.env.NOCODEBACKEND_INSTANCE?.trim() || null
 const configuredAuthBaseUrl = () => process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL
+
+const requireConfiguredInstance = () => {
+  const instance = configuredInstance()
+  if (!instance) {
+    const error = new Error('Authentication instance is not configured.')
+    error.status = 503
+    error.code = 'AUTH_INSTANCE_MISSING'
+    throw error
+  }
+  return instance
+}
 
 const getRequestPath = (request) => {
   const path = request.query?.path
@@ -56,7 +66,7 @@ const safeRedirectTarget = (request, value) => {
 const buildUpstreamUrl = (request, path) => {
   const baseUrl = configuredAuthBaseUrl().replace(/\/+$/, '')
   const url = new URL(`${baseUrl}/${path.split('/').map(encodeURIComponent).join('/')}`)
-  url.searchParams.set('instance', configuredInstance())
+  url.searchParams.set('instance', requireConfiguredInstance())
 
   if (path === 'sign-in/google') {
     const redirectTo = safeRedirectTarget(request, request.query?.redirectTo)
@@ -71,7 +81,7 @@ const upstreamAuthOrigin = () => new URL(configuredAuthBaseUrl()).origin
 const buildUpstreamHeaders = (request, secret) => ({
   accept: 'application/json',
   'content-type': 'application/json',
-  'x-database-instance': configuredInstance(),
+  'x-database-instance': requireConfiguredInstance(),
   authorization: `Bearer ${secret}`,
   cookie: request.headers?.cookie || '',
   origin: upstreamAuthOrigin()
@@ -167,6 +177,7 @@ export default async function handler(request, response) {
   let secret
   try {
     secret = resolveAuthCredential().value
+    requireConfiguredInstance()
   } catch {
     response.status(503).json({ error: 'Authentication is not configured.', code: 'auth_configuration_missing', requestId: correlationId })
     return
@@ -233,7 +244,6 @@ export default async function handler(request, response) {
 
 export const __testables = {
   AUTH_ACTIONS,
-  DATABASE_INSTANCE,
   PROVIDER_CREDENTIAL_ACTIONS,
   buildUpstreamHeaders,
   buildUpstreamUrl,
@@ -241,6 +251,7 @@ export const __testables = {
   configuredInstance,
   getRequestPath,
   providerCredentialFailure,
+  requireConfiguredInstance,
   safeRedirectTarget,
   safeUpstreamAuthError,
   sanitizeProviderBody,

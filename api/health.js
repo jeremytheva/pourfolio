@@ -2,7 +2,6 @@ import { credentialConfigurationState } from './_lib/ncbCredentials.js'
 import { releaseProvenance } from './_lib/releaseProvenance.js'
 
 const CANONICAL_DATA_BASE_URL = 'https://api.nocodebackend.com/'
-const CANONICAL_INSTANCE = '54026_rating'
 
 const dataTransportState = () => {
   const configured = process.env.NOCODEBACKEND_DATA_BASE_URL?.trim() || CANONICAL_DATA_BASE_URL
@@ -24,13 +23,9 @@ const dataTransportState = () => {
   }
 }
 
-const dataInstanceState = () => {
-  const configured = process.env.NOCODEBACKEND_INSTANCE?.trim()
-  return {
-    configured: Boolean(configured),
-    canonical: configured === CANONICAL_INSTANCE
-  }
-}
+const dataInstanceState = () => ({
+  configured: Boolean(process.env.NOCODEBACKEND_INSTANCE?.trim())
+})
 
 export default function handler(_request, response) {
   const dataState = dataTransportState()
@@ -42,15 +37,14 @@ export default function handler(_request, response) {
     service: 'pourfolio',
     release: releaseProvenance(),
     checks: {
-      authenticationConfigured: credentials.authConfigured,
-      dataConfigured: credentials.dataConfigured && dataState.endpointValid && instanceState.canonical,
+      authenticationConfigured: credentials.authConfigured && instanceState.configured,
+      dataConfigured: credentials.dataConfigured && dataState.endpointValid && instanceState.configured,
       dataTransport: dataState.transport,
       dataEndpointConfigured: dataState.endpointConfigured,
       dataEndpointCanonical: dataState.endpointCanonical,
       authCredentialSource: credentials.authCredential,
       dataCredentialSource: credentials.dataCredential,
       instanceConfigured: instanceState.configured,
-      instanceCanonical: instanceState.canonical,
       rateLimiterConfigured: Boolean(
         (process.env.pourfolio_KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL) &&
         (process.env.pourfolio_KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN)
@@ -59,4 +53,4 @@ export default function handler(_request, response) {
   })
 }
 
-export const __testables = { dataTransportState, dataInstanceState, CANONICAL_DATA_BASE_URL, CANONICAL_INSTANCE }
+export const __testables = { dataTransportState, dataInstanceState, CANONICAL_DATA_BASE_URL }
