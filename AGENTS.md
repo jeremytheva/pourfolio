@@ -31,12 +31,14 @@ Pourfolio's launch scope is a beer-first MVP. Reachable production journeys are 
 ## Verified technology stack
 
 - **Client:** React 19.2 with a small same-origin History API router, built by Vite 8; JavaScript/JSX (ES modules).
-- **Runtime/package manager:** Node.js 20 LTS (defined in `.nvmrc`) and npm with `package-lock.json`.
+- **Runtime/package manager:** Node.js 24 (defined in `.nvmrc` and `package.json`) and npm with `package-lock.json`.
 - **Styling:** Tailwind CSS 3, PostCSS, Framer Motion, and React Icons.
 - **Data and authentication:** Browser requests use same-origin endpoints in `src/lib/nocodeBackend.js`. `api/auth-proxy.js` is the authentication proxy; the server data gateways enforce application policy before NoCodeBackend access.
 - **Storage:** Canonical NoCodeBackend collections are `products`, `producers`, `categories`, `ratings`, `rating_scores`, `rating_attributes`, `bonus_attributes`, `bonus_attribute_rating_mapping`, and `cellar`. Provider schema changes require the governed migration/evidence path; do not infer deployment from source files.
 - **Testing:** Node.js built-in `node:test`/`node:assert`, plus Playwright and axe for browser/accessibility tests.
 - **Deployment:** Vercel configuration, SPA rewrites and security headers are committed in `vercel.json`; actual deployed SHA/configuration/readiness must be verified in Vercel/runtime evidence.
+
+Node.js 24 is the governed runtime target. Vercel reported Node 20 as deprecated with a 1 October 2026 build cutoff, so agents must not reintroduce a Node 20 runtime pin. A runtime-major change requires the canonical validation suite plus hosted browser/CodeQL and Vercel runtime evidence.
 
 ## Repository structure
 
@@ -156,7 +158,7 @@ Keep focused changes reviewable and avoid unrelated refactors. Preserve supporte
 
 ## Required validation
 
-From the repository root with Node.js 20, the canonical source-validation entry point is:
+From the repository root with Node.js 24, the canonical source-validation entry point is:
 
 ```bash
 npm run platform:validate
