@@ -6,7 +6,9 @@ This document describes the current delivery-system implementation. It supersede
 
 ## Current repository state
 
-Pourfolio is a JavaScript/JSX React 19.2 application built by Vite 8, governed on Node.js 20 through `.nvmrc` and `package.json`, and managed with npm/package-lock.
+Pourfolio is a JavaScript/JSX React 19.2 application built by Vite 8, governed on Node.js 24 through `.nvmrc` and `package.json`, and managed with npm/package-lock.
+
+Node.js 24 replaces Node 20 before Vercel's 1 October 2026 Node 20 build cutoff. The runtime-major migration is tracked by #249 and must remain aligned across repository configuration, CI and Vercel deployment evidence.
 
 The repository includes:
 
@@ -70,7 +72,7 @@ Observed remotely on 30 August 2026:
 
 This is tracked by #143 and remains an active release/governance blocker. Until independent enforcement is proved, a non-trivial PR may become **Ready** after current-head validation but must not be treated as **Mergeable** merely because GitHub reports a clean merge or exposes a merge button.
 
-Successful check/job names observed on PR #247 before the autonomous-continuation edits were `Release gate`, `Browser and accessibility`, `Dependency review` and CodeQL `Analyse JavaScript`. They are context-discovery evidence only; required checks must be configured and reverified against the governed candidate SHA.
+Successful check/job names observed on validated PR #247 include `Release gate`, `Browser and accessibility`, `Dependency review` and CodeQL `Analyse JavaScript`. They are context-discovery evidence only; required checks must be configured and reverified against the governed candidate SHA.
 
 See `docs/GITHUB_CONFIGURATION.md` for the current administrator evidence checklist.
 
@@ -78,7 +80,7 @@ See `docs/GITHUB_CONFIGURATION.md` for the current administrator evidence checkl
 
 Before opening implementation work, agents must search open/draft PRs, issues, visible branches, `STATUS.md`, TODO/state documentation and partial implementation.
 
-Current example: governance work is consolidated in PR #247. Overlapping PR #246 is superseded after its durable documentation evidence is preserved; its separate Vercel auto-deployment policy experiment is not silently folded into governance scope and remains a deployment concern under #224. Existing NoCodeBackend source-configuration work continues in PR #248 rather than being reimplemented on another branch.
+Governance work is consolidated in PR #247. Overlapping PR #246 was closed as superseded after its durable governance documentation was preserved; its separate Vercel auto-deployment policy experiment remains deployment scope under #224. Existing NoCodeBackend source-configuration work continues in PR #248 rather than being reimplemented. Runtime migration #249 is kept as a separate stacked workstream rather than widening #247.
 
 ## Provider boundary
 
@@ -97,16 +99,17 @@ Provider authorisation, schema migration and same-state connected certification 
 
 Vercel remains the deployment provider. Exact production SHA, environment configuration, runtime version and connected health/readiness must be verified as runtime evidence rather than inferred from source files. Issue #224 remains authoritative for current-main production deployment evidence.
 
+Live evidence on 30 August 2026 shows exact current `main` is deployed READY in production, but protected `/api/health` and `/api/readiness` payload verification remains outstanding. PR #247 preview build evidence confirms repository `engines.node` overrides the Vercel project setting. #249 therefore changes the repository runtime contract to Node 24 and requires fresh Vercel evidence before the migration is release-complete.
+
 Normal deployment-policy changes, including automatic branch-deployment suppression, belong with deployment/release governance and should not be coupled to unrelated repository-governance work without evidence that the scopes are inseparable.
 
 ## Remaining delivery-system work
 
-1. Validate PR #247 on its exact latest head and move it to **Ready** when Change/Integration evidence passes.
-2. Close overlapping PR #246 as superseded after confirming its remaining unique files are deployment-specific rather than lost governance requirements.
-3. Complete #143 GitHub ruleset/protection/security/reviewer evidence; only then can PRs cross the independently enforced **Mergeable** boundary.
-4. Continue existing PR #248 and repair its current-head validation before creating any competing NoCodeBackend configuration work.
-5. Restore exact-SHA current-main production evidence under #224.
-6. Continue connected backend/catalogue certification only against verified provider/runtime state.
+1. Finish and validate the focused Node 24 runtime migration tracked by #249.
+2. Complete #143 GitHub ruleset/protection/security/reviewer evidence; only then can validated PRs cross the independently enforced **Mergeable** boundary.
+3. Re-evaluate #247, #248 and the #249 workstream against current-head independent merge evidence rather than merging through an administrator bypass.
+4. Verify exact-SHA production runtime and `/api/health`/`/api/readiness` evidence under #224 after governed integration.
+5. Continue connected backend/catalogue certification only against verified provider/runtime state.
 
 ## Deliberate boundaries
 
@@ -115,4 +118,4 @@ Normal deployment-policy changes, including automatic branch-deployment suppress
 - No branch/ruleset setting is marked complete until observed remotely.
 - No administrator bypass is used to compensate for missing required evidence.
 - No duplicate project document, ADR tree, CI workflow or implementation PR is created merely to conform to a template.
-- No major unrelated dependency migration is introduced into the launch path merely because an automated dependency PR exists.
+- No unrelated dependency migration is bundled into #249 merely because a runtime-major change is required.
