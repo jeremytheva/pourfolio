@@ -19,6 +19,7 @@
     "check:provider-contract-transcript": "node scripts/check-provider-contract-transcript.js",
     "check:package-lock": "node scripts/check-package-lock-contract.js",
     "check:project-docs": "node scripts/check-project-documentation.js",
+    "check:runtime": "node scripts/check-runtime-contract.js",
     "check:nocodebackend-env": "node scripts/check-nocodebackend-environment-contract.js",
     "test:release": "playwright test --config=playwright.release.config.js",
     "audit:production": "npm audit --omit=dev --audit-level=high",
@@ -36,7 +37,7 @@
     "check:brew-containment": "node scripts/check-brew-done-it-containment.js",
     "check:release-security": "node scripts/check-browser-release-security.js",
     "platform:validate": "npm run validate",
-    "validate": "npm run check:package-lock && npm run check:project-docs && npm run check:nocodebackend-env && npm run lint && npm test && npm run audit:production && npm run build && npm run check:bundle && npm run check:brew-containment && npm run check:release-security"
+    "validate": "npm run check:package-lock && npm run check:project-docs && npm run check:runtime && npm run check:nocodebackend-env && npm run lint && npm test && npm run audit:production && npm run build && npm run check:bundle && npm run check:brew-containment && npm run check:release-security"
   },
   "dependencies": {
     "@upstash/redis": "^1.38.2",
