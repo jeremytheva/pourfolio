@@ -43,7 +43,8 @@ const activeGuidance = [
   'README.md',
   'PROJECT.md',
   'AGENTS.md',
-  'docs/DELIVERY_SYSTEM_IMPLEMENTATION.md'
+  'docs/DELIVERY_SYSTEM_IMPLEMENTATION.md',
+  'docs/TESTING.md'
 ]
 
 for (const relativePath of activeGuidance) {
