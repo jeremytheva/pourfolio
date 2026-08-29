@@ -7,7 +7,7 @@ Beer-first discovery, structured rating and private cellar platform.
 
 **Repository:** `jeremytheva/pourfolio`  
 **Primary branch:** `main`  
-**Project control baseline:** 29 August 2026
+**Project control baseline:** 30 August 2026
 
 ## Purpose
 
@@ -74,7 +74,7 @@ Repository lifecycle automation may maintain PR state labels and validation stat
 |---|---|
 | Frontend | React 19.2 |
 | Build tooling | Vite |
-| Runtime | Node.js 20 |
+| Runtime | Node.js 24 |
 | Package manager | npm |
 | Hosting | Vercel |
 | Backend provider | NoCodeBackend |
@@ -83,6 +83,8 @@ Repository lifecycle automation may maintain PR state labels and validation stat
 | CI / validation | GitHub Actions plus `npm run platform:validate` |
 | PR lifecycle | GitHub PR state plus `.github/workflows/pr-lifecycle.yml`; merge enforcement tracked by #143 |
 | Browser routing | Small same-origin History API router |
+
+Node.js 24 is the governed runtime target. It replaces Node 20 before Vercel's 1 October 2026 Node 20 build cutoff. Runtime configuration, CI and deployment evidence must remain aligned and must be reverified after this migration reaches production.
 
 ## Provider configuration contract
 
