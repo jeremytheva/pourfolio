@@ -149,7 +149,7 @@ if (fs.existsSync(statusPath)) {
         if (!pattern.test(frontMatter)) findings.push({ code: 'STATUS_FRONT_MATTER_FIELD_INVALID', field })
       }
 
-      if (!/^\s{2}-\s*.+$/m.test(frontMatter.match(/^next_actions:\s*$([\s\S]*?)(?=^\S|\Z)/m)?.[1] ?? '')) {
+      if (!/^next_actions:\s*\n(?: {2}- .+(?:\n|$))+/m.test(frontMatter)) {
         findings.push({ code: 'STATUS_NEXT_ACTIONS_EMPTY' })
       }
     }
