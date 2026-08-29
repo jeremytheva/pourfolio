@@ -14,11 +14,13 @@ Prototype social, event, venue, analytics, producer/admin, photo and non-beer mo
 
 ## Runtime
 
-- Node.js 20
+- Node.js 24
 - React 19.2
 - Vite 8
 - npm
 - NoCodeBackend through the serverless gateways in `api/`
+
+Node.js 24 is the governed repository/deployment target. It replaces Node 20 before Vercel's 1 October 2026 Node 20 build cutoff; `.nvmrc`, `package.json` and CI must remain aligned with this runtime contract.
 
 ## Local setup
 
