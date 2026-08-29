@@ -32,7 +32,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "c91d36a0eba044029f787c1cf12d5d7fa5706daf"
-last_updated: "2026-08-30T03:18:00+10:00"
+last_updated: "2026-08-30T03:21:00+10:00"
 ---
 
 # STATUS.md
@@ -56,6 +56,10 @@ The repository is authoritative for active work and stop conditions. Passing sou
 **Highest-priority blocker:** #143 independent GitHub merge enforcement.  
 **Governance PR:** #247 — implementation/CI Ready evidence, technically Draft because the connected ready-for-review mutation fails at the connector GraphQL schema layer.  
 **Runtime/config PRs:** #248 and stacked #250 — implementation evidence supports Ready, but neither is Mergeable while #143 remains unresolved.
+
+## Autonomous continuation support
+
+Autonomous continuation is implemented and remains the operating model for the repository. `AGENTS.md` defines the authority and stop conditions; this file provides machine-readable execution state and durable handoff; `ROADMAP.md` preserves dependency order; canonical validation remains `npm run platform:validate`; existing PRs/issues are resumed rather than duplicated; and external administrator/provider boundaries are recorded as blockers rather than guessed around.
 
 ## Current implementation evidence
 
