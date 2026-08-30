@@ -13,6 +13,8 @@ function HomePage({ searchMode = false }) {
   const [error, setError] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
   const searchInput = useRef(null)
+  const resultsHeading = useRef(null)
+  const focusResultsAfterPagination = useRef(false)
   const searchStatusId = 'product-search-status'
   const resultsHeadingId = 'product-results-heading'
 
@@ -50,6 +52,17 @@ function HomePage({ searchMode = false }) {
     }
   }, [debouncedQuery, page, reloadKey])
 
+  useEffect(() => {
+    if (status !== 'ready' || !focusResultsAfterPagination.current) return
+    focusResultsAfterPagination.current = false
+    resultsHeading.current?.focus()
+  }, [status, page])
+
+  const changePage = (nextPage) => {
+    focusResultsAfterPagination.current = true
+    setPage(nextPage)
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <header className="mb-8">
@@ -85,7 +98,7 @@ function HomePage({ searchMode = false }) {
       </section>
 
       <section aria-labelledby={resultsHeadingId} aria-busy={status === 'loading'}>
-        <h2 id={resultsHeadingId} className="sr-only">Product results</h2>
+        <h2 ref={resultsHeading} id={resultsHeadingId} tabIndex={-1} className="sr-only focus:outline-none">Product results</h2>
 
         {status === 'loading' && (
           <p className="rounded-xl border border-gray-200 bg-white p-6 text-gray-600" role="status">Loading product results…</p>
@@ -118,12 +131,12 @@ function HomePage({ searchMode = false }) {
 
             {result.totalPages > 1 && (
               <nav className="mt-8 flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3" aria-label="Product pages">
-                <button type="button" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))} aria-label={`Previous product page, page ${Math.max(1, page - 1)}`} className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                <button type="button" disabled={page <= 1} onClick={() => changePage(Math.max(1, page - 1))} aria-label={`Previous product page, page ${Math.max(1, page - 1)}`} className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                   <SafeIcon icon={FiChevronLeft} className="mr-1 h-4 w-4" />
                   Previous
                 </button>
                 <span className="text-sm text-gray-600" aria-current="page">Page {page} of {result.totalPages}</span>
-                <button type="button" disabled={page >= result.totalPages} onClick={() => setPage((value) => Math.min(result.totalPages, value + 1))} aria-label={`Next product page, page ${Math.min(result.totalPages, page + 1)}`} className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                <button type="button" disabled={page >= result.totalPages} onClick={() => changePage(Math.min(result.totalPages, page + 1))} aria-label={`Next product page, page ${Math.min(result.totalPages, page + 1)}`} className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                   Next
                   <SafeIcon icon={FiChevronRight} className="ml-1 h-4 w-4" />
                 </button>
