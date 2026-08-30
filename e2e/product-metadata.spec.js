@@ -11,7 +11,9 @@ test('product details preserve a valid zero IBU value', async ({ page }) => {
     contentType: 'application/json',
     body: JSON.stringify({
       ...product,
-      ibu: 0
+      ibu: 0,
+      ratingSummary: { count: 1, average: 4 },
+      ratings: []
     })
   }))
 
