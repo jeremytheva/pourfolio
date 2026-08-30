@@ -21,7 +21,7 @@ Repository-side launch architecture and validation are strong. Frontend source h
 **Current gate:** INTEGRATION / frontend source quality  
 **Gate state:** MERGEABLE BY PROJECT POLICY; GITHUB DRAFT TRANSITION BLOCKED  
 **Active frontend PR:** #257 / `frontend/product-zero-ibu`  
-**Validated implementation head:** `36c9c00244786932dd3831e14870620a7dbf9b0a`.  
+**Current exact-head validation evidence:** `52e7c04630e0543b9c8b00833f249f95f45106db` passed Pull request validation run `33310835508` and CodeQL run `33310835518`.  
 **Outcome:** preserve valid `IBU = 0` on product details with focused Playwright regression coverage.
 
 The live governance policy was revised on 30 August 2026: #143 is governance hardening rather than a blanket merge blocker, and CI status is diagnostic evidence rather than an automatic merge gate. Real defects exposed by validation remain blockers.
@@ -44,13 +44,13 @@ PR #247 contains the current PR-lifecycle/autonomous-continuation governance upd
 
 - PR #257 corrects product-detail `IBU = 0` rendering from a truthy fallback to a nullish fallback.
 - Focused browser coverage proves the zero value remains visible.
-- Pull request validation run `33308191224` passed on implementation head `36c9c00244786932dd3831e14870620a7dbf9b0a`.
-- CodeQL run `33308191223` passed on the same implementation head.
-- Vercel preview is READY for the PR branch.
-- Draft → Ready was retried after validation and failed solely because the GitHub connector queries unsupported `Repository.fullDatabaseId`.
-- A direct merge attempt was not permitted by GitHub while the PR remains Draft; no lifecycle or governance bypass was used.
+- Pull request validation run `33310835508` passed on exact head `52e7c04630e0543b9c8b00833f249f95f45106db`.
+- CodeQL run `33310835518` passed on the same exact head.
+- Vercel preview evidence for the implementation branch was previously READY.
+- Draft → Ready was retried after exact-head validation and again failed solely because the GitHub connector queries unsupported `Repository.fullDatabaseId`.
+- No merge, lifecycle fabrication or governance bypass was attempted.
 
-This STATUS-only commit requires normal exact-head validation before #257 is treated as current-head validated.
+This STATUS-only evidence commit requires normal exact-head validation before #257 is treated as current-head validated again.
 
 ## Blocked / deferred
 
@@ -82,10 +82,10 @@ Provider and deployment evidence must be reverified when used for a release clai
 
 ## Next dependency-correct work
 
-1. Validate the current PR #257 STATUS-only head through the normal hosted checks.
+1. Validate this PR #257 STATUS-only head through the normal hosted checks.
 2. Preserve #257 as project-mergeable but GitHub-Draft-blocked if those checks expose no underlying defect.
-3. Do not create overlapping frontend implementation work merely to work around the lifecycle connector defect.
-4. When Draft → Ready becomes operable, advance and integrate governance PR #247 first, then reconcile stacked/dependent open PRs against the new `main` before merge.
+3. Continue only independent, non-overlapping launch-scope frontend hardening from current `main`; do not stack on #257 merely to work around the lifecycle connector defect.
+4. When Draft → Ready becomes operable, advance and integrate governance PR #247 first, then reconcile dependent open PRs against the new `main` before merge.
 5. Resume provider/runtime certification only when the required connected evidence is available.
 
 ## Completion rule
