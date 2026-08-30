@@ -154,7 +154,7 @@ function BeerDetails() {
               </div>
               <div>
                 <dt className="text-sm text-gray-500">IBU</dt>
-                <dd className="mt-1 font-medium text-gray-900">{product.ibu || 'Not recorded'}</dd>
+                <dd className="mt-1 font-medium text-gray-900">{product.ibu ?? 'Not recorded'}</dd>
               </div>
               {product.edition && (
                 <div className="col-span-2">
