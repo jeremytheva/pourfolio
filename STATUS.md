@@ -1,6 +1,6 @@
 # STATUS.md
 
-Last materially reviewed: 28 August 2026
+Last materially reviewed: 30 August 2026
 
 ## Current phase
 
@@ -44,6 +44,7 @@ Pull requests additionally run browser/accessibility, Dependency Review and Code
 
 ## In progress
 
+- PR #251 makes profile rating-history load failures recoverable with a focused error surface, retry action, stale-request protection and browser regression coverage; exact-head hosted validation is required before this slice can advance.
 - Continue reviewing remaining launch-scope interface surfaces for source-level interaction, keyboard, responsive and accessibility defects.
 - Preserve existing backend/service contracts while backend work is deferred.
 - Keep frontend regression tests aligned with the actual accessibility contract rather than implementation-detail locators.
@@ -85,10 +86,10 @@ Backend/provider state is **deferred for implementation**, not resolved. Histori
 
 While backend work remains paused:
 
-1. inspect remaining launch-scope frontend surfaces for interaction/accessibility/responsive defects;
-2. implement the smallest complete frontend corrections with browser regression coverage;
-3. keep `platform:validate`, Browser/accessibility and CodeQL green;
-4. update this status when frontend source hardening reaches a natural review boundary;
+1. validate PR #251 on its exact current head and repair any source/test regression without weakening gates;
+2. inspect remaining launch-scope frontend surfaces for interaction/accessibility/responsive defects;
+3. implement the smallest complete frontend corrections with browser regression coverage;
+4. keep `platform:validate`, Browser/accessibility and CodeQL green;
 5. when the product owner resumes backend work, reverify provider/deployment state before acting on historical incident evidence.
 
 ## Completion rule
