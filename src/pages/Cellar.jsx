@@ -15,6 +15,7 @@ function Cellar() {
   const [draft, setDraft] = useState({})
   const [mutationError, setMutationError] = useState('')
   const [mutation, setMutation] = useState(null)
+  const loadErrorRef = useRef(null)
   const mutationErrorRef = useRef(null)
 
   useEffect(() => {
@@ -36,6 +37,10 @@ function Cellar() {
       active = false
     }
   }, [reloadKey])
+
+  useEffect(() => {
+    if (status === 'error') loadErrorRef.current?.focus()
+  }, [status])
 
   useEffect(() => {
     if (mutationError) mutationErrorRef.current?.focus()
@@ -134,7 +139,7 @@ function Cellar() {
 
       {status === 'loading' && <div className="py-16 text-center text-gray-600" role="status">Loading your cellar…</div>}
       {status === 'error' && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-900" role="alert">
+        <div ref={loadErrorRef} tabIndex={-1} className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-900 outline-none focus:ring-2 focus:ring-red-300" role="alert">
           <p className="font-semibold">Cellar unavailable</p>
           <p className="mt-1">{error}</p>
           <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-4 inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2">
