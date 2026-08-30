@@ -188,16 +188,14 @@ export function AuthProvider({ children }) {
   }, [])
 
   const signOut = useCallback(async () => {
-    let error = null
     try {
       await authRequest('/sign-out', { method: 'POST' })
-    } catch (signOutError) {
-      error = toAuthError(signOutError)
-    } finally {
       setAuthUser(null)
       setProfile(null)
+      return { error: null }
+    } catch (signOutError) {
+      return { error: toAuthError(signOutError) }
     }
-    return { error }
   }, [])
 
   const updateProfile = useCallback(async (updates) => {
