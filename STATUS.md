@@ -1,6 +1,6 @@
 # STATUS.md
 
-Last materially reviewed: 28 August 2026
+Last materially reviewed: 30 August 2026
 
 ## Current phase
 
@@ -14,7 +14,7 @@ Continue launch-scope frontend quality, interaction and accessibility hardening 
 
 **Active implementation; not production-ready.**
 
-Repository-side launch architecture and validation are strong. Frontend source hardening can continue independently. Provider/data migration, connected certification, production deployment evidence and administrator governance remain unresolved and are intentionally paused rather than treated as complete.
+Repository-side launch architecture and validation are strong. Frontend source hardening can continue independently. Provider/data migration, connected certification and administrator governance remain unresolved and are intentionally paused or blocked rather than treated as complete.
 
 ## AI execution gate
 
@@ -22,7 +22,7 @@ Repository-side launch architecture and validation are strong. Frontend source h
 **Gate state:** IN PROGRESS  
 **Release gate:** BLOCKED by deferred/external evidence.
 
-Passing repository validation does not certify the paused backend/provider or production environment.
+Passing repository validation does not certify the paused backend/provider or final production environment.
 
 ## Completed recently
 
@@ -44,9 +44,12 @@ Pull requests additionally run browser/accessibility, Dependency Review and Code
 
 ## In progress
 
-- Continue reviewing remaining launch-scope interface surfaces for source-level interaction, keyboard, responsive and accessibility defects.
+- PR #251 makes profile rating-history load failures recoverable and is exact-head validated; merge remains governed by #143.
+- PR #252 makes cellar initial-load failures keyboard-visible/recoverable and is exact-head validated; merge remains governed by #143.
+- PR #253 makes product-detail load failures keyboard-visible/recoverable and is exact-head validated after repairing its browser route fixture; merge remains governed by #143.
+- PR #254 preserves authenticated state after failed server sign out, exposes focused retryable failure, and is exact-head validated on `e9be95b48f98f9544a529a96ef0b2b856b669876`; Release gate, Browser/accessibility, Dependency Review and CodeQL all passed.
+- PR #255 is the active validation target: catalogue terminal-load failures now focus the retry surface and Playwright covers failure → focus → retry → recovered catalogue.
 - Preserve existing backend/service contracts while backend work is deferred.
-- Keep frontend regression tests aligned with the actual accessibility contract rather than implementation-detail locators.
 
 ## Blocked / deferred
 
@@ -61,15 +64,16 @@ The product owner has explicitly paused backend/provider implementation until mo
 
 ### External release evidence
 
-- #224 — current-main Vercel production deployment evidence remains blocked by deployment-rate limits until rechecked;
-- #143 — GitHub administrator ruleset/protection/security evidence remains incomplete;
-- independent release approval and production-equivalent runtime evidence remain outstanding.
+- #224 — production deployment `dpl_fzEMoHeMV3tob8uxEsn6UNHSjXoj` is READY from exact current `main` SHA `af7a4b721103d98c61ccb6d37dcd750741f41764`. `/api/health` returned HTTP 200 with that exact SHA, `environment: production`, and all exposed configuration checks true. `/api/readiness` payload verification remains blocked through the connected Vercel fetch by a 302 Vercel SSO redirect, and the subsequent-main-deployment/promotion-path criterion is still outstanding; #224 therefore remains open.
+- #143 — GitHub administrator ruleset/protection/security evidence remains incomplete; live `main` branch metadata still reports `protected: false` with required-status-check enforcement off.
+- independent release approval and production-equivalent connected provider evidence remain outstanding.
 
 ## Known defects / constraints
 
-- Production/backend readiness must not be inferred from source tests.
+- Production/backend readiness must not be inferred from source tests or `/api/health` configuration indicators alone.
 - Current backend/provider incident evidence is intentionally retained but is not the active implementation focus.
-- Vercel deployment attempts should not be used as proof of current-main runtime behavior until exact-SHA deployment evidence exists.
+- Exact-SHA production deployment provenance now exists for current `main`, but readiness/provider certification remains incomplete.
+- Open frontend PRs must not be merged or treated as release evidence while #143 independent enforcement remains unresolved.
 
 ## Partial / planned preserved work
 
@@ -79,18 +83,20 @@ The product owner has explicitly paused backend/provider implementation until mo
 
 ## Provider / deployment status
 
-Backend/provider state is **deferred for implementation**, not resolved. Historical blockers remain governed by their GitHub issues and must be reverified when backend work resumes.
+Backend/provider implementation remains **deferred**, not resolved. Historical provider blockers remain governed by their GitHub issues and must be reverified when backend work resumes.
+
+Deployment provenance improved on 30 August 2026: current `main` has an exact-SHA READY production deployment and verified health provenance, while readiness/provider evidence remains incomplete as recorded under #224.
 
 ## Next dependency-correct work
 
 While backend work remains paused:
 
-1. inspect remaining launch-scope frontend surfaces for interaction/accessibility/responsive defects;
-2. implement the smallest complete frontend corrections with browser regression coverage;
-3. keep `platform:validate`, Browser/accessibility and CodeQL green;
-4. update this status when frontend source hardening reaches a natural review boundary;
-5. when the product owner resumes backend work, reverify provider/deployment state before acting on historical incident evidence.
+1. finish exact-head validation for PR #255 and repair any failure without weakening the contract;
+2. continue inspecting remaining launch-scope frontend surfaces for interaction/accessibility/responsive defects only after the active slice is green;
+3. keep `platform:validate`, Browser/accessibility, Dependency Review and CodeQL green on each exact candidate head;
+4. preserve #143 as the independent Mergeable boundary and do not bypass repository governance;
+5. when the product owner resumes backend work, reverify provider state before acting on historical incident evidence.
 
 ## Completion rule
 
-Do not mark Phase 3 or the project complete because frontend source hardening passes. Completion still requires the relevant catalogue decisions, connected provider/runtime evidence, deployment provenance, migration evidence, governance controls and release verification after the deferred backend work resumes.
+Do not mark Phase 3 or the project complete because frontend source hardening passes. Completion still requires the relevant catalogue decisions, connected provider/runtime evidence, readiness/deployment provenance, migration evidence, governance controls and release verification after the deferred backend work resumes.
