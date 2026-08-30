@@ -1,6 +1,6 @@
 # STATUS.md
 
-Last materially reviewed: 28 August 2026
+Last materially reviewed: 30 August 2026
 
 ## Current phase
 
@@ -34,6 +34,11 @@ Frontend launch-flow hardening now merged on `main` includes:
 - product details → Add to cellar disclosure, save state and error recovery — PR #238;
 - authentication UI selected-method, busy-state and focused-error semantics — PR #240.
 
+Current unmerged frontend hardening evidence:
+
+- PR #253 product-load recovery head `8125a6e2571fd8d21416a05138d22b92bb6c3355` passed Pull request validation run `33292009242` and CodeQL run `33292009238` after correcting its Playwright route to the actual catalogue endpoint;
+- PR #254 sign-out failure recovery is the active validation target. It preserves authenticated state when server sign out fails and provides a focused retryable error instead of presenting a false local logout.
+
 The canonical source-validation entry point remains:
 
 ```bash
@@ -44,6 +49,7 @@ Pull requests additionally run browser/accessibility, Dependency Review and Code
 
 ## In progress
 
+- Validate PR #254 on its exact current head and repair any failure without weakening the sign-out contract.
 - Continue reviewing remaining launch-scope interface surfaces for source-level interaction, keyboard, responsive and accessibility defects.
 - Preserve existing backend/service contracts while backend work is deferred.
 - Keep frontend regression tests aligned with the actual accessibility contract rather than implementation-detail locators.
@@ -69,7 +75,8 @@ The product owner has explicitly paused backend/provider implementation until mo
 
 - Production/backend readiness must not be inferred from source tests.
 - Current backend/provider incident evidence is intentionally retained but is not the active implementation focus.
-- Vercel deployment attempts should not be used as proof of current-main runtime behavior until exact-SHA deployment evidence exists.
+- Vercel deployment attempts should not be used as proof of current-main runtime behaviour until exact-SHA deployment evidence exists.
+- Draft → Ready transitions through the connected GitHub mutation currently fail on unsupported `Repository.fullDatabaseId`; lifecycle evidence must remain explicit rather than fabricating Ready state.
 
 ## Partial / planned preserved work
 
@@ -85,10 +92,10 @@ Backend/provider state is **deferred for implementation**, not resolved. Histori
 
 While backend work remains paused:
 
-1. inspect remaining launch-scope frontend surfaces for interaction/accessibility/responsive defects;
-2. implement the smallest complete frontend corrections with browser regression coverage;
-3. keep `platform:validate`, Browser/accessibility and CodeQL green;
-4. update this status when frontend source hardening reaches a natural review boundary;
+1. complete exact-head validation for PR #254 and repair any failure;
+2. inspect remaining launch-scope frontend surfaces for interaction/accessibility/responsive defects;
+3. implement only the smallest complete frontend corrections with browser regression coverage;
+4. keep `platform:validate`, Browser/accessibility and CodeQL green;
 5. when the product owner resumes backend work, reverify provider/deployment state before acting on historical incident evidence.
 
 ## Completion rule
