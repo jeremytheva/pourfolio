@@ -1,6 +1,6 @@
 # STATUS.md
 
-Last materially reviewed: 28 August 2026
+Last materially reviewed: 30 August 2026
 
 ## Current phase
 
@@ -44,6 +44,9 @@ Pull requests additionally run browser/accessibility, Dependency Review and Code
 
 ## In progress
 
+- PR #251 (`frontend/rating-history-retry`) has exact-head Pull request validation and CodeQL success for profile rating-history failure → retry recovery; it remains open and technically Draft because the connected Ready-for-Review mutation is failing independently of source validation.
+- PR #252 (`frontend/cellar-load-recovery`) has exact-head Pull request validation and CodeQL success for focused cellar load failure → retry → recovered list behaviour; its Vercel preview is Ready and it remains open/Draft behind governance.
+- PR #253 (`frontend/product-load-recovery`) is the current independent frontend slice: focus the product-detail load failure and prove failure → retry → recovered product detail with Playwright coverage.
 - Continue reviewing remaining launch-scope interface surfaces for source-level interaction, keyboard, responsive and accessibility defects.
 - Preserve existing backend/service contracts while backend work is deferred.
 - Keep frontend regression tests aligned with the actual accessibility contract rather than implementation-detail locators.
@@ -70,6 +73,7 @@ The product owner has explicitly paused backend/provider implementation until mo
 - Production/backend readiness must not be inferred from source tests.
 - Current backend/provider incident evidence is intentionally retained but is not the active implementation focus.
 - Vercel deployment attempts should not be used as proof of current-main runtime behavior until exact-SHA deployment evidence exists.
+- Validated frontend PRs must not be treated as Mergeable while #143 independent repository enforcement remains unresolved.
 
 ## Partial / planned preserved work
 
@@ -85,11 +89,12 @@ Backend/provider state is **deferred for implementation**, not resolved. Histori
 
 While backend work remains paused:
 
-1. inspect remaining launch-scope frontend surfaces for interaction/accessibility/responsive defects;
-2. implement the smallest complete frontend corrections with browser regression coverage;
-3. keep `platform:validate`, Browser/accessibility and CodeQL green;
-4. update this status when frontend source hardening reaches a natural review boundary;
-5. when the product owner resumes backend work, reverify provider/deployment state before acting on historical incident evidence.
+1. consume PR #253 exact-head Pull request validation, Browser/accessibility, Dependency Review and CodeQL evidence and repair any failure without weakening the contract;
+2. continue inspecting remaining launch-scope frontend surfaces for interaction/accessibility/responsive defects after the active slice reaches its validation boundary;
+3. implement the smallest complete frontend corrections with browser regression coverage;
+4. keep `platform:validate`, Browser/accessibility and CodeQL green;
+5. update this status when frontend source hardening reaches a natural review boundary;
+6. when the product owner resumes backend work, reverify provider/deployment state before acting on historical incident evidence.
 
 ## Completion rule
 
