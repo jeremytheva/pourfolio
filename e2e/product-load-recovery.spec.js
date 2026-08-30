@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
 test('product load failure is focused and retry recovers the product', async ({ page }) => {
   let attempts = 0
 
-  await page.route('**/api/nocodebackend/products/4', async (route) => {
+  await page.route('**/api/nocodebackend/catalog/products/4', async (route) => {
     if (route.request().method() !== 'GET') return route.fallback()
     attempts += 1
     if (attempts === 1) {
