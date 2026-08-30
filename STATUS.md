@@ -46,7 +46,7 @@ Pull requests additionally run browser/accessibility, Dependency Review and Code
 
 - PR #251 (`frontend/rating-history-retry`) has exact-head Pull request validation and CodeQL success for profile rating-history failure → retry recovery; it remains open and technically Draft because the connected Ready-for-Review mutation is failing independently of source validation.
 - PR #252 (`frontend/cellar-load-recovery`) has exact-head Pull request validation and CodeQL success for focused cellar load failure → retry → recovered list behaviour; its Vercel preview is Ready and it remains open/Draft behind governance.
-- PR #253 (`frontend/product-load-recovery`) is the current independent frontend slice: focus the product-detail load failure and prove failure → retry → recovered product detail with Playwright coverage.
+- PR #253 (`frontend/product-load-recovery`) is the current independent frontend slice: focus the product-detail load failure and prove failure → retry → recovered product detail with Playwright coverage. Initial exact-head validation on `8ac17565fd03c17add0cee9ca2796b1674f49cc7` passed Release gate, Dependency Review and CodeQL but failed Browser/accessibility because the new Playwright interceptor targeted `/api/nocodebackend/products/4` instead of the application contract `/api/nocodebackend/catalog/products/4`. Commit `c5cd4d1d8a2fbd7b8ecac587178ed7967e2cc596` corrects that test route without weakening the product error-recovery contract; exact-head revalidation is required.
 - Continue reviewing remaining launch-scope interface surfaces for source-level interaction, keyboard, responsive and accessibility defects.
 - Preserve existing backend/service contracts while backend work is deferred.
 - Keep frontend regression tests aligned with the actual accessibility contract rather than implementation-detail locators.
@@ -89,7 +89,7 @@ Backend/provider state is **deferred for implementation**, not resolved. Histori
 
 While backend work remains paused:
 
-1. consume PR #253 exact-head Pull request validation, Browser/accessibility, Dependency Review and CodeQL evidence and repair any failure without weakening the contract;
+1. consume PR #253 exact-head revalidation after `c5cd4d1d8a2fbd7b8ecac587178ed7967e2cc596`; repair any remaining failure without weakening the contract;
 2. continue inspecting remaining launch-scope frontend surfaces for interaction/accessibility/responsive defects after the active slice reaches its validation boundary;
 3. implement the smallest complete frontend corrections with browser regression coverage;
 4. keep `platform:validate`, Browser/accessibility and CodeQL green;
