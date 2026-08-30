@@ -51,7 +51,9 @@ Open frontend-hardening slices are deliberately kept independent from current `m
 - #253 — recoverable product-detail loading;
 - #254 — recoverable sign-out failure handling;
 - #255 — recoverable catalogue loading;
-- #256 — preserve valid zero-valued IBU metadata in catalogue cards; current validation target.
+- #256 — preserve valid zero-valued IBU metadata in catalogue cards.
+
+PR #256 implementation head `758926f19379c1e6f8dca6948599088aa8f5d9b4` passed Pull request validation run `33301023584` and CodeQL run `33301023575`, including Release gate (`npm run platform:validate`), Browser and accessibility, and Dependency Review. This STATUS evidence commit requires its own exact-head hosted revalidation before the PR can be treated as current-head validated.
 
 Continue reviewing remaining launch-scope interface surfaces for source-level interaction, keyboard, responsive, accessibility and truthful-data-presentation defects while preserving existing backend/service contracts.
 
@@ -102,7 +104,7 @@ Do not advance #224 beyond the evidence above.
 
 While backend work remains paused:
 
-1. complete exact-head validation for #256 and repair any failure without weakening the contract;
+1. complete exact-head revalidation for #256 after this evidence-only STATUS update and repair any failure without weakening the contract;
 2. continue only non-overlapping launch-scope frontend corrections with focused browser regression coverage;
 3. keep `platform:validate`, Browser/accessibility, Dependency Review and CodeQL green on each exact candidate head;
 4. preserve #143 and #224 evidence boundaries rather than merging or claiming release completion;
