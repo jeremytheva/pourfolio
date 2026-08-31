@@ -11,6 +11,7 @@ on:
       - 'chore/**'
       - 'docs/**'
       - 'feature/**'
+      - 'governance/**'
   pull_request:
     branches:
       - main

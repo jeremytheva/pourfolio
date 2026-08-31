@@ -1,6 +1,41 @@
+---
+project: Pourfolio
+portfolio_state: ACTIVE
+phase: "Phase 3 — Beer discovery dependable"
+stage: "Governance reconciled with current main; PR lifecycle transition blocked by connector defect"
+gate: Integration
+execution_state: BLOCKED
+current_work:
+  objective: "Integrate the validated PR lifecycle governance change without losing current main's explicit backend/provider deferral, then reconcile validated launch-scope source work."
+  issue: 143
+  pr: 247
+  branch: governance/pr-lifecycle-alignment
+next_actions:
+  - "Retry Draft → Ready for PR #247 when the GitHub connector no longer queries unsupported Repository.fullDatabaseId; merge only after the project-owned merge formula is satisfied."
+  - "After #247 integration, reconcile open validated implementation PRs against current main and continue the smallest dependency-correct launch-scope slices."
+  - "Keep backend/provider implementation explicitly deferred until the product owner supplies the additional information required to resume it."
+blockers:
+  - "GitHub connector Draft → Ready mutation fails on unsupported Repository.fullDatabaseId, preventing the required lifecycle transition for PR #247 through the available write surface."
+requires_owner_decision: false
+owner_decision:
+  question: null
+  options: []
+  recommendation: null
+validation:
+  governance: PASS
+  lint: PASS
+  typecheck: NOT_APPLICABLE
+  tests: PASS
+  build: PASS
+  ci: PASS
+  runtime: NOT_APPLICABLE
+last_verified_commit: "000dd8b968e8d64a95acddd6d584e5e4ca0248f8"
+last_updated: "2026-08-31T04:19:00+10:00"
+---
+
 # STATUS.md
 
-Last materially reviewed: 28 August 2026
+Last materially reviewed: 31 August 2026
 
 ## Current phase
 
@@ -8,89 +43,77 @@ Last materially reviewed: 28 August 2026
 
 ## Current objective
 
-Continue launch-scope frontend quality, interaction and accessibility hardening while backend/provider work is explicitly deferred pending additional product-owner information.
+Integrate the validated PR lifecycle/governance change, then continue launch-scope frontend source hardening from current repository evidence. Backend/provider implementation remains explicitly deferred pending additional product-owner information and must not be advanced merely because governance or source validation passes.
 
 ## Overall status
 
 **Active implementation; not production-ready.**
 
-Repository-side launch architecture and validation are strong. Frontend source hardening can continue independently. Provider/data migration, connected certification, production deployment evidence and administrator governance remain unresolved and are intentionally paused rather than treated as complete.
+The governance policy is being reconciled without weakening meaningful project-owned validation. Issue #143 is repository-hardening work rather than a blanket merge blocker, and GitHub Actions/CI status is diagnostic evidence rather than automatic merge authority. Any real defect exposed by validation remains a blocker until corrected.
 
 ## AI execution gate
 
-**Current gate:** INTEGRATION / frontend source quality  
-**Gate state:** IN PROGRESS  
-**Release gate:** BLOCKED by deferred/external evidence.
+**Current gate:** Integration  
+**Gate state:** BLOCKED by the available GitHub connector lifecycle mutation, not by #143 or a source/check failure.  
+**Active governance PR:** #247 / `governance/pr-lifecycle-alignment`  
+**Validated reconciliation head:** `000dd8b968e8d64a95acddd6d584e5e4ca0248f8`  
+**GitHub ancestry:** current `main` (`9ada75359d54d1785fb447f665f64caa57be7772`) is an ancestor of the reconciled PR head.  
+**Exact-head validation:** Pull request validation PASS; CodeQL PASS; no open review threads.  
+**Deployment evidence:** Vercel preview for the exact reconciled head is READY.  
+**Lifecycle transition:** Draft → Ready was retried after reconciliation and still fails because the connected mutation queries unsupported `Repository.fullDatabaseId`.
 
-Passing repository validation does not certify the paused backend/provider or production environment.
+The governing merge decision is:
 
-## Completed recently
-
-Frontend launch-flow hardening now merged on `main` includes:
-
-- catalogue search/results accessibility and loading/error semantics — PR #232;
-- structured rating guidance, busy state and focused failure recovery — PR #234;
-- cellar/profile owner-scoped mutation feedback and keyboard semantics — PR #236;
-- product details → Add to cellar disclosure, save state and error recovery — PR #238;
-- authentication UI selected-method, busy-state and focused-error semantics — PR #240.
-
-The canonical source-validation entry point remains:
-
-```bash
-npm run platform:validate
+```text
+MERGE_ALLOWED =
+  implementation_complete
+  AND project_owned_validation_sufficient
+  AND no_merge_conflicts
+  AND material_review_findings_resolved
+  AND no_material_blocker
 ```
 
-Pull requests additionally run browser/accessibility, Dependency Review and CodeQL validation.
+Do not fabricate lifecycle state when the GitHub transition itself cannot be recorded.
 
-## In progress
+## Autonomous continuation support
 
-- Continue reviewing remaining launch-scope interface surfaces for source-level interaction, keyboard, responsive and accessibility defects.
-- Preserve existing backend/service contracts while backend work is deferred.
-- Keep frontend regression tests aligned with the actual accessibility contract rather than implementation-detail locators.
+PR #247 contains the repository's autonomous-continuation and PR-lifecycle control plane, including mandatory project entry, duplicate-work prevention, whole-system analysis, durable state maintenance, project-owned validation semantics and the `Draft → Implementing → Validating → Ready → Mergeable → Merged` state model.
 
-## Blocked / deferred
+The current issue #143 policy treats its remaining repository-protection/security work as governance hardening rather than a blanket blocker for otherwise mergeable implementation work.
 
-### Owner-deferred backend/provider work
+Open validated source work must be reconciled against `main` after governance integration rather than treated as merged or release evidence merely because checks passed on independent branches.
 
-The product owner has explicitly paused backend/provider implementation until more information is available. Preserve these items without advancing or closing them:
+## Backend/provider state
+
+Backend/provider implementation remains **owner-deferred**. Preserve the existing provider-dependent work without advancing or closing it until the product owner supplies the additional information needed to resume it, including:
 
 - #225 — NoCodeBackend production data authorization;
 - #165 — real rating idempotency/schema migration and connected verification;
 - #144 — canonical backend/import/recovery certification;
 - backend-dependent parts of #154 — catalogue remediation/provider reconciliation and connected certification.
 
-### External release evidence
+Passing repository validation, governance integration or Vercel deployment metadata does not certify this deferred work or authorize provider changes.
 
-- #224 — current-main Vercel production deployment evidence remains blocked by deployment-rate limits until rechecked;
-- #143 — GitHub administrator ruleset/protection/security evidence remains incomplete;
-- independent release approval and production-equivalent runtime evidence remain outstanding.
+## Deployment state
 
-## Known defects / constraints
+The production deployment for current `main` commit `9ada75359d54d1785fb447f665f64caa57be7772` is READY in Vercel. This establishes deployment provenance for that source commit only; it does not establish backend/provider readiness or production-equivalent runtime certification.
 
-- Production/backend readiness must not be inferred from source tests.
-- Current backend/provider incident evidence is intentionally retained but is not the active implementation focus.
-- Vercel deployment attempts should not be used as proof of current-main runtime behavior until exact-SHA deployment evidence exists.
+## Known constraints
 
-## Partial / planned preserved work
-
-- Phase 2 executable account lifecycle remains partial; source foundations exist but provider orchestration, recent-authentication, durable jobs, identity deletion and retention approval are not complete.
-- Brew Done It remains contained and deferred; ADR 0001 remains authoritative for its accepted future model.
-- Non-launch social/producer/admin/analytics capabilities remain deferred as documented in ROADMAP.md.
-
-## Provider / deployment status
-
-Backend/provider state is **deferred for implementation**, not resolved. Historical blockers remain governed by their GitHub issues and must be reverified when backend work resumes.
+- The GitHub connector's ready-for-review mutation currently fails at its GraphQL schema layer on `Repository.fullDatabaseId`.
+- The current tool surface does not provide an alternate supported Draft → Ready transition.
+- #143 remains open governance hardening but is not a blanket merge blocker under the proposed lifecycle policy.
+- CI is diagnostic evidence; underlying defects discovered by CI remain real blockers.
+- Backend/provider work is explicitly deferred and must not be advanced without the product-owner information required to resume it.
+- Production/backend readiness must not be inferred from source tests or Vercel `READY` metadata alone.
 
 ## Next dependency-correct work
 
-While backend work remains paused:
-
-1. inspect remaining launch-scope frontend surfaces for interaction/accessibility/responsive defects;
-2. implement the smallest complete frontend corrections with browser regression coverage;
-3. keep `platform:validate`, Browser/accessibility and CodeQL green;
-4. update this status when frontend source hardening reaches a natural review boundary;
-5. when the product owner resumes backend work, reverify provider/deployment state before acting on historical incident evidence.
+1. Retry PR #247 Draft → Ready when the connector mutation is usable; assess Mergeable using the project-owned formula and current evidence.
+2. After #247 integrates, reconcile the validated open PR chain against the new `main`, resolving overlap/conflicts before merge or further source work.
+3. Continue independent launch-scope frontend corrections only when they do not duplicate an existing branch and can be validated against the current repository contract.
+4. Preserve provider-dependent issues without advancing or closing them until the product owner resumes backend/provider implementation.
 
 ## Completion rule
 
-Do not mark Phase 3 or the project complete because frontend source hardening passes. Completion still requires the relevant catalogue decisions, connected provider/runtime evidence, deployment provenance, migration evidence, governance controls and release verification after the deferred backend work resumes.
+Do not mark Phase 3 or the project complete from source validation, open PRs, CI success or deployment metadata alone. Completion still requires the applicable catalogue, backend/provider/runtime, migration, security/governance and release evidence at the relevant completion gate after deferred backend work resumes.

@@ -7,7 +7,7 @@ Beer-first discovery, structured rating and private cellar platform.
 
 **Repository:** `jeremytheva/pourfolio`  
 **Primary branch:** `main`  
-**Project control baseline:** 26 August 2026
+**Project control baseline:** 29 August 2026
 
 ## Purpose
 
@@ -40,17 +40,20 @@ Ratings and cellar records do **not** require a sharing series or edition. Those
 
 Pourfolio inherits the current master software-development rules supplied for the portfolio, including:
 
-- **AI-First Platform Development Framework v3.0** — overarching architecture, whole-system, autonomy and continuity framework;
-- **AI Platform Development Standard v1.1** — implementation protocol, execution gates, Continue/Next behaviour and work-state rules;
-- **Testing, Validation & Release Standard v1.1** — evidence, canonical validation, deployment and completion rules;
-- **Project Documentation Standard v1.1** — project-document ownership, continuity and source-of-truth rules;
+- **AI-First Platform Development Framework v3.1** — overarching architecture, whole-system, autonomy, continuity and project-managed PR governance framework;
+- **AI Platform Development Standard v1.2** — implementation protocol, execution gates, Continue/Next behaviour, repository/PR management and work-state rules;
+- **Pull Request Lifecycle Standard v1.0** — Draft → Implementing → Validating → Ready for Review → Mergeable → Merged progression, with GitHub as the independent enforcement layer;
+- **Testing, Validation & Release Standard v1.2** — evidence, latest-head merge validation, canonical validation, deployment and completion rules;
+- **Project Documentation Standard v1.2** — project-document ownership, continuity, PR/gate status integration and source-of-truth rules;
 - the applicable Platform Engineering, Design, Data/Migration, Security, Observability and provider reference standards where their rules apply to this project.
 
-Project-specific facts and exceptions belong in this repository. Master rules should be referenced rather than copied into project documents.
+Project-specific facts and exceptions belong in this repository. Master rules should be referenced rather than copied into project documents. `PR_LIFECYCLE_STANDARD.md` is retained in this repository as the adopted lifecycle contract used by repository automation and project continuity.
 
 ### Project-specific deviations
 
 No intentional project deviation currently overrides the master security, data-integrity or validation rules. Provider limitations and unresolved runtime evidence are recorded as blockers rather than treated as exceptions.
+
+Repository lifecycle automation may maintain PR state labels and validation state, but it must not self-certify `MERGEABLE` or bypass missing GitHub branch/ruleset enforcement. Until #143 closes with evidence, merge enforcement remains incomplete.
 
 ## Product principles
 
@@ -63,6 +66,7 @@ No intentional project deviation currently overrides the master security, data-i
 - Treat provider integration as a controlled adapter boundary rather than direct browser-to-provider access.
 - Prefer root-cause corrections over local workarounds.
 - Keep each implementation issue focused enough to produce one reviewable pull request.
+- Keep required failing work open for remediation; close without merge only when work is intentionally excluded, superseded, duplicated or cancelled.
 
 ## Technology
 
@@ -77,6 +81,7 @@ No intentional project deviation currently overrides the master security, data-i
 | Server boundary | Vercel Functions under `api/` |
 | Rate limiting | Vercel KV / Upstash-compatible Redis integration |
 | CI / validation | GitHub Actions plus `npm run platform:validate` |
+| PR lifecycle | GitHub PR state plus `.github/workflows/pr-lifecycle.yml`; merge enforcement tracked by #143 |
 | Browser routing | Small same-origin History API router |
 
 ## Provider configuration contract
@@ -105,16 +110,17 @@ Use the following project source hierarchy, while applying the inherited master 
 3. current project documentation and accepted decisions;
 4. active provider/deployment state where the fact is provider/runtime-owned;
 5. tests and runtime evidence;
-6. GitHub issues, PRs and validation evidence;
+6. GitHub issues, PRs, review state and validation evidence;
 7. prior chat/context;
 8. inference.
 
-Conflicts must be investigated rather than silently reconciled.
+For PR lifecycle facts, GitHub is authoritative for draft/ready state, latest head, checks, review conversations, conflicts and merge state. Conflicts must be investigated rather than silently reconciled.
 
 ## Canonical repository documents
 
 - `PROJECT.md` — durable project purpose, scope, inheritance and operating context.
-- `STATUS.md` — current implementation, execution gate and blocker state.
+- `STATUS.md` — current implementation, execution gate, active PR/lifecycle state and blocker state.
+- `PR_LIFECYCLE_STANDARD.md` — adopted repository PR progression and merge-governance contract.
 - `ARCHITECTURE.md` — concise current architecture summary.
 - `DATA_MODEL.md` — concise current domain/data summary.
 - `ROADMAP.md` — intended phase/milestone direction and dependencies.

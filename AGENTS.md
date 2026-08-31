@@ -1,14 +1,35 @@
 # Pourfolio repository instructions
 
-## Project entry
-For meaningful work, start from the current repository state rather than chat history. Read `PROJECT.md` and `STATUS.md`, then use `ROADMAP.md`, `SYSTEM_MAP.md`, the relevant architecture/data documents and accepted decisions for the area being changed. Check current issues, pull requests, deployment/provider state when they affect the task.
+## Authority
+
+This repository operates under the Project Master AI-first platform development framework and the engineering, security, testing, documentation, data, observability, provider and pull-request lifecycle standards recorded in `PROJECT.md` where applicable.
+
+Repository-specific requirements override generic defaults only when they are explicitly documented in this repository. When repository evidence conflicts with stale chat history or older prose, inspect and reconcile the repository evidence rather than silently choosing the older statement.
+
+## Required project-entry sequence
+
+Whenever an AI agent begins or resumes meaningful work:
+
+1. Read `AGENTS.md`.
+2. Read `PROJECT.md`.
+3. Read `STATUS.md`.
+4. Review `ROADMAP.md`, `SYSTEM_MAP.md`, relevant architecture/data/security/testing documents and accepted records in `docs/DECISIONS/`.
+5. Inspect the current repository state, recent relevant commits and partially implemented code.
+6. Inspect open pull requests and their latest-head checks before creating implementation work.
+7. Inspect relevant issues/tasks, deployment/provider evidence and external blockers where they affect the task.
+8. Determine the highest-priority dependency-correct actionable work.
+9. Check for existing branches, pull requests, issues, TODO/state documentation or partial implementation before creating anything new.
+
+Chat history is supporting context only. The repository and live provider/GitHub evidence are the durable execution authority.
 
 The repository inherits the master AI-first platform standards recorded in `PROJECT.md`. Treat their Project Entry, Change, Integration, Release and Completion gates as mandatory evidence boundaries. Do not advance work state because code exists, tests pass, a PR merges or a deployment is created unless the relevant gate evidence supports that state.
 
 ## Project overview
+
 Pourfolio's launch scope is a beer-first MVP. Reachable production journeys are authentication, product catalogue/search/details, rating creation/history, cellar management, and profile editing. Social, event, venue, analytics, producer-claim, administrator, photo and non-beer prototype modules are deferred and must not be made reachable without a separate reviewed delivery.
 
 ## Verified technology stack
+
 - **Client:** React 19.2 with a small same-origin History API router, built by Vite 8; JavaScript/JSX (ES modules).
 - **Runtime/package manager:** Node.js 20 LTS (defined in `.nvmrc`) and npm with `package-lock.json`.
 - **Styling:** Tailwind CSS 3, PostCSS, Framer Motion, and React Icons.
@@ -18,6 +39,7 @@ Pourfolio's launch scope is a beer-first MVP. Reachable production journeys are 
 - **Deployment:** Vercel configuration, SPA rewrites and security headers are committed in `vercel.json`; actual deployed SHA/configuration/readiness must be verified in Vercel/runtime evidence.
 
 ## Repository structure
+
 - `src/` — application source.
   - `pages/` — route-level screens; routes are declared in `App.jsx`.
   - `components/` and `common/` — reusable UI and UI safety primitives.
@@ -30,9 +52,11 @@ Pourfolio's launch scope is a beer-first MVP. Reachable production journeys are 
 - `release-check/` — controlled connected staging release checks.
 - `scripts/` — deterministic validation/audit utilities.
 - `docs/` — detailed product, architecture, delivery, security, testing and NoCodeBackend evidence/contracts.
-- Root project controls: `PROJECT.md`, `STATUS.md`, `ARCHITECTURE.md`, `DATA_MODEL.md`, `ROADMAP.md`, `SYSTEM_MAP.md`.
+- `docs/DECISIONS/` — the pre-existing canonical ADR directory. Do not create a second root `DECISIONS/` authority unless a deliberate repository migration is approved.
+- Root project controls: `PROJECT.md`, `STATUS.md`, `PR_LIFECYCLE_STANDARD.md`, `ARCHITECTURE.md`, `DATA_MODEL.md`, `ROADMAP.md`, `SYSTEM_MAP.md`.
 
 ## Architecture and security rules
+
 - Keep route composition in `pages/`/`App.jsx`, reusable presentation in `components/`, business/data orchestration in `services/`, browser transport in `lib/`, and trusted server policy/provider access in `api/`.
 - Do not call NoCodeBackend collection or privileged auth endpoints from browser code. `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_DATA_BASE_URL` are server-only and must never use a `VITE_` prefix.
 - Treat every collection write and role-sensitive action as requiring server-side/provider permission enforcement; client route guards are not authorisation.
@@ -41,19 +65,84 @@ Pourfolio's launch scope is a beer-first MVP. Reachable production journeys are 
 - Update `docs/nocodebackend/schema-mapping.md` for collection, field, relationship or permission changes. Use the governed provider migration/evidence tooling for persistent schema work; do not add or run Supabase migrations for the active backend without an approved architecture decision.
 - Prefer existing dependencies and patterns. Add a dependency only when necessary, justified in the PR and locked with npm.
 
+## Whole-system rule
+
+Before applying a local fix:
+
+- inspect the surrounding architecture, callers, data/policy boundaries, tests and configuration that can produce the symptom;
+- determine whether the symptom represents a broader integration or source-of-truth defect;
+- search for the existing abstraction or convention before adding another one;
+- avoid duplicate adapters, competing validation paths, contradictory state documents and temporary workarounds where the existing system should be repaired;
+- prefer the smallest effective correction that preserves sound existing work.
+
+## Autonomous continuation semantics
+
+`Continue`, `Next`, a scheduled supervisory run, or equivalent instruction means:
+
+> Continue the highest-priority dependency-correct work that can safely be completed autonomously.
+
+Do not stop merely because one task, commit or pull-request subtask has finished. After completing a task:
+
+1. validate it using the applicable repository gate;
+2. update durable project state and implementation evidence;
+3. determine the next dependency-correct task from current repository/GitHub evidence;
+4. continue when it can be performed safely.
+
+The same continuation loop applies after review fixes, CI repairs, documentation corrections and routine PR lifecycle transitions.
+
+## Valid stop and escalation conditions
+
+Stop and require product-owner involvement only when one of these conditions is real and blocks further dependency-correct work:
+
+- a genuine product or business decision is required;
+- required credentials, provider capability or external access are unavailable;
+- an irreversible or destructive operation requires approval;
+- conflicting requirements cannot be resolved from repository evidence;
+- a security, privacy or legal decision requires owner authority;
+- an external dependency prevents further dependency-correct work;
+- no actionable work remains.
+
+Minor implementation choices, refactoring decisions, regression repairs, documentation maintenance, test fixes and routine PR-state transitions should not normally be escalated.
+
 ## Change protocol
+
 Before a meaningful change:
+
 1. identify the user/system outcome;
 2. inspect the existing implementation and callers;
 3. check affected auth, policy, data/provider, configuration, UI, tests, deployment and documentation layers as applicable;
 4. check for overlapping/partial/planned/deprecated work;
 5. select the smallest complete architecturally consistent correction;
 6. implement, integrate and validate it;
-7. update `STATUS.md` and other project documents only where their meaning changed.
+7. update `STATUS.md` and other project documents where their meaning changed.
 
-`Continue` or `Next` means proceed with the next dependency-correct work autonomously. Stop only for a genuine blocker, destructive/irreversible approval or material product-owner decision.
+## Pull-request lifecycle
+
+Use `PR_LIFECYCLE_STANDARD.md` as the repository's canonical PR operating contract:
+
+**Draft → Implementing → Validating → Ready → Mergeable → Merged**
+
+Before creating a pull request or branch:
+
+- search open and draft PRs, relevant issues, visible branches, `STATUS.md`, TODO/state documentation and partially implemented code;
+- reuse or repair an appropriate existing PR where practical;
+- avoid competing implementation branches for the same outcome.
+
+Lifecycle rules:
+
+- Create or reuse a draft PR as the durable implementation container for meaningful work.
+- Keep required failing work open and remediate it in the same coherent PR unless the work is deliberately superseded, duplicated, cancelled or rejected.
+- Treat a changed PR head as invalidating stale validation evidence; required checks must apply to the latest intended commit.
+- Move Draft → Ready only when the Change/Integration evidence is genuinely satisfied.
+- Do not treat Ready as Mergeable. GitHub rules/protection, current checks, conflicts and required review evidence remain authoritative.
+- Do not mark `pr:mergeable`, enable auto-merge or merge while #143 repository enforcement is incomplete unless independent GitHub evidence proves the required merge gate has been established.
+- After a successful merge, delete the source branch where safe and continue downstream deployment/provider/runtime verification; `MERGED` is not `COMPLETE`.
+- Record only continuity-critical lifecycle state in `STATUS.md`; do not duplicate CI logs or full PR discussions.
+
+`.github/workflows/pr-lifecycle.yml` may synchronise safe lifecycle labels from GitHub-native state and validation evidence. It must not bypass branch protection or fabricate merge evidence.
 
 ## Coding standards
+
 - Use JavaScript/JSX, ES modules, descriptive camelCase names, PascalCase React component files, and focused modules.
 - Preserve the existing ESLint configuration. Do not weaken linting or suppress errors merely to pass checks.
 - Keep components accessible: semantic controls, labels, keyboard operation, visible focus, meaningful alternative text, and errors announced or associated with inputs.
@@ -62,9 +151,11 @@ Before a meaningful change:
 - Use Australian English in new documentation.
 
 ## Change constraints
+
 Keep focused changes reviewable and avoid unrelated refactors. Preserve supported behaviour unless intentionally changing it. Never commit secrets, weaken tests, disable linting, bypass permission checks or fabricate provider/deployment evidence. Do not remove PARTIAL/PLANNED/LEGACY code until its role and exit condition are understood.
 
 ## Required validation
+
 From the repository root with Node.js 20, the canonical source-validation entry point is:
 
 ```bash
@@ -78,11 +169,49 @@ npx playwright install --with-deps chromium
 npm run test:e2e
 ```
 
-`platform:validate` composes the repository's package-lock/documentation/environment guards, lint, unit/policy tests, production dependency audit, production build, bundle containment/budget and release-security checks. It does **not** prove provider authorization, deployed configuration, exact deployed SHA, migrations or connected production behaviour.
+`platform:validate` composes the repository's package-lock/documentation/environment governance guards, lint, unit/policy tests, production dependency audit, production build, bundle containment/budget and release-security checks. It does **not** prove provider authorisation, deployed configuration, exact deployed SHA, migrations or connected production behaviour.
 
-There is no TypeScript configuration or separate typecheck command; do not claim one has run.
+There is no TypeScript configuration or separate typecheck command; `typecheck` is therefore genuinely `NOT_APPLICABLE` unless a type-checking step is introduced later.
+
+Never claim validation passed unless it was actually run or externally verified. Distinguish clearly between:
+
+- implemented;
+- locally validated;
+- CI validated;
+- deployed;
+- runtime verified;
+- production verified.
+
+## State maintenance
+
+`STATUS.md` is the durable execution handoff and must remain useful without access to prior chat history. After material changes update it to reflect, as applicable:
+
+- current phase, stage, gate and execution state;
+- current concrete objective and active issue/PR/branch;
+- completed work and known partial work;
+- highest-priority next actions;
+- actual validation state and last verified commit where known;
+- blockers and whether owner intervention is genuinely required;
+- owner decisions that remain open;
+- technical debt discovered;
+- deployment/provider state when it affects the next action.
+
+Do not populate PASS/VERIFIED states without evidence. Use `NOT_RUN`, `PENDING`, `UNVERIFIED` or `NOT_APPLICABLE` truthfully.
+
+## Reporting
+
+Keep handoff and chat summaries concise. Report:
+
+- what changed;
+- validation evidence;
+- current phase/stage/gate/execution state;
+- genuine blockers requiring intervention;
+- the next dependency-correct work.
+
+Do not require the product owner to reconstruct technical state manually from commit history, CI logs or prior chats.
 
 ## Completion and review
-Work is COMPLETE only when its acceptance outcome and relevant real-system evidence exist, known dependent work is not hidden by the completion claim, project state is current and the required release/completion gates pass. Otherwise use the explicit state supported by evidence (for example INTEGRATED, VALIDATING, BLOCKED, DEPLOYED or VERIFIED).
+
+Work is COMPLETE only when its acceptance outcome and relevant real-system evidence exist, known dependent work is not hidden by the completion claim, project state is current and the required release/completion gates pass. Otherwise use the explicit state supported by evidence (for example IMPLEMENTING, VALIDATING, READY, BLOCKED, DEPLOYED or VERIFIED).
 
 Reviewers must check regressions and edge cases, authorisation bypasses, unsafe data operations, missing schema/migration evidence, missing tests, accessibility/security regressions, unnecessary complexity, scope creep, stale project documentation and inaccurate provider/deployment claims.
