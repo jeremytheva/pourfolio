@@ -1,0 +1,82 @@
+name: NoCodeBackend API certification
+
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Issue that receives the sanitized certification result
+        required: false
+        default: "278"
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: nocodebackend-certification
+  cancel-in-progress: false
+
+jobs:
+  certify:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.number == 278 &&
+       github.event.comment.body == '/ncb-certify' &&
+       github.event.comment.user.login == github.repository_owner &&
+       !github.event.issue.pull_request)
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+      NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+      NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+      NOCODEBACKEND_CERTIFICATION_ENVIRONMENT: isolated-staging
+      NOCODEBACKEND_CERTIFICATION_ALLOW_DESTRUCTIVE: "1"
+      NOCODEBACKEND_CERTIFICATION_TABLE: chatgpt_api_test
+      NOCODEBACKEND_CERTIFICATION_REPORT_PATH: artifacts/nocodebackend-certification/report.json
+      NOCODEBACKEND_CERTIFICATION_SUMMARY_PATH: artifacts/nocodebackend-certification/summary.md
+      TARGET_ISSUE: ${{ github.event.issue.number || inputs.issue_number || '278' }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run isolated NoCodeBackend API certification
+        id: certification
+        shell: bash
+        run: |
+          set +e
+          npm run test:provider-connection
+          status=$?
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Post sanitized result to the certification issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment "$TARGET_ISSUE" --body-file artifacts/nocodebackend-certification/summary.md
+
+      - name: Retain redacted certification evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: nocodebackend-certification-${{ github.run_id }}
+          path: artifacts/nocodebackend-certification/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Preserve certification failure state
+        if: steps.certification.outputs.exit_code != '0'
+        run: exit "${{ steps.certification.outputs.exit_code }}"
