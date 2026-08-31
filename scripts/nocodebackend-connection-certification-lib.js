@@ -1,8 +1,7 @@
 const asArray = (value) => Array.isArray(value) ? value : value ? [value] : []
-
 const first = (value) => asArray(value)[0] || null
-
 const recordId = (record) => record?.id === undefined || record?.id === null ? null : String(record.id)
+const ids = (records) => asArray(records).map(recordId).filter(Boolean).sort()
 
 const errorEvidence = (error) => ({
   status: Number.isInteger(error?.status) ? error.status : null,
@@ -16,8 +15,6 @@ const assertCondition = (condition, code) => {
     throw error
   }
 }
-
-const ids = (records) => asArray(records).map(recordId).filter(Boolean).sort()
 
 const matchesBoolean = (value, expected) => {
   if (typeof value === 'boolean') return value === expected
@@ -106,6 +103,11 @@ export const runNoCodeBackendConnectionCertification = async ({
   }
 
   const cleanup = async () => {
+    if (report.setup_required?.code === 'TEST_TABLE_MISSING' && created.size === 0) {
+      report.cleanup.status = 'NOT_APPLICABLE'
+      return
+    }
+
     report.cleanup.attempted = created.size
 
     for (const [id] of [...created.entries()].reverse()) {
