@@ -3,21 +3,26 @@ import fs from 'node:fs'
 import test from 'node:test'
 import { checkProviderContractTranscript } from '../check-provider-contract-transcript.js'
 
-test('connected provider workflow is manual, SHA-pinned, protected and destructively guarded', () => {
-  const workflow = fs.readFileSync('.github/workflows/connected-provider-contract.yml', 'utf8')
-  assert.match(workflow, /workflow_dispatch:/)
-  assert.match(workflow, /environment: staging-release/)
-  assert.match(workflow, /ref: \$\{\{ inputs\.release_sha \}\}/)
-  assert.match(workflow, /\^\[0-9a-f\]\{40\}\$/)
-  assert.match(workflow, /isolated-staging-destructive-provider-contract/)
-  assert.match(workflow, /NOCODEBACKEND_CONTRACT_ENVIRONMENT: isolated-staging/)
-  assert.match(workflow, /NOCODEBACKEND_CONTRACT_ALLOW_DESTRUCTIVE: "1"/)
-  assert.match(workflow, /NOCODEBACKEND_DATA_BASE_URL: https:\/\/api\.nocodebackend\.com\//)
-  assert.match(workflow, /NOCODEBACKEND_INSTANCE: 54026_rating/)
-  assert.match(workflow, /redacted-transcript\.json/)
-  assert.match(workflow, /check:provider-contract-transcript/)
-  assert.match(workflow, /if-no-files-found: error/)
-  assert.doesNotMatch(workflow, /pull_request:|push:/)
+test('connected provider workflows keep runtime instance configuration outside the repository', () => {
+  const providerWorkflow = fs.readFileSync('.github/workflows/connected-provider-contract.yml', 'utf8')
+  const releaseWorkflow = fs.readFileSync('.github/workflows/connected-release-check.yml', 'utf8')
+  const repositoryValuePattern = /NOCODEBACKEND_INSTANCE:\s+(?!\$\{\{)/
+  assert.match(providerWorkflow, /workflow_dispatch:/)
+  assert.match(providerWorkflow, /environment: staging-release/)
+  assert.match(providerWorkflow, /ref: \$\{\{ inputs\.release_sha \}\}/)
+  assert.match(providerWorkflow, /\^\[0-9a-f\]\{40\}\$/)
+  assert.match(providerWorkflow, /isolated-staging-destructive-provider-contract/)
+  assert.match(providerWorkflow, /NOCODEBACKEND_CONTRACT_ENVIRONMENT: isolated-staging/)
+  assert.match(providerWorkflow, /NOCODEBACKEND_CONTRACT_ALLOW_DESTRUCTIVE: "1"/)
+  assert.match(providerWorkflow, /NOCODEBACKEND_DATA_BASE_URL: https:\/\/api\.nocodebackend\.com\//)
+  assert.match(providerWorkflow, /NOCODEBACKEND_INSTANCE: \$\{\{ vars\.NOCODEBACKEND_INSTANCE \}\}/)
+  assert.match(releaseWorkflow, /NOCODEBACKEND_INSTANCE: \$\{\{ vars\.NOCODEBACKEND_INSTANCE \}\}/)
+  assert.doesNotMatch(providerWorkflow, repositoryValuePattern)
+  assert.doesNotMatch(releaseWorkflow, repositoryValuePattern)
+  assert.match(providerWorkflow, /redacted-transcript\.json/)
+  assert.match(providerWorkflow, /check:provider-contract-transcript/)
+  assert.match(providerWorkflow, /if-no-files-found: error/)
+  assert.doesNotMatch(providerWorkflow, /pull_request:|push:/)
 })
 
 test('provider transcript checker requires cleanup and rejects sensitive values', () => {

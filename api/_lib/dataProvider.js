@@ -2,7 +2,6 @@ import { safeErrorMessage, withTimeout } from './httpSecurity.js'
 import { resolveDataCredential } from './ncbCredentials.js'
 
 const DEFAULT_DATA_BASE_URL = 'https://api.nocodebackend.com/'
-const DEFAULT_INSTANCE = '54026_rating'
 
 const normalisePayload = (payload) => {
   if (payload === undefined || payload === null) return null
@@ -78,11 +77,11 @@ const resolveDataBaseUrl = (configuredBaseUrl) => {
 }
 
 const resolveDataInstance = (configuredInstance) => {
-  const instance = configuredInstance?.trim() || DEFAULT_INSTANCE
-  if (instance !== DEFAULT_INSTANCE) {
-    const error = new Error('The production data service instance is invalid.')
+  const instance = configuredInstance?.trim()
+  if (!instance) {
+    const error = new Error('The production data service instance is not configured.')
     error.status = 503
-    error.code = 'DATA_INSTANCE_MISMATCH'
+    error.code = 'DATA_INSTANCE_MISSING'
     throw error
   }
   return instance
@@ -105,9 +104,9 @@ const getConfiguration = () => {
   return { baseUrl: resolveDataBaseUrl(configuredBaseUrl), secret: credential.value, instance }
 }
 
-const buildUrl = (baseUrl, path, filters = {}, instance = DEFAULT_INSTANCE) => {
+const buildUrl = (baseUrl, path, filters = {}, instance) => {
   const url = new URL(`${baseUrl}/${String(path).replace(/^\/+/, '')}`)
-  url.searchParams.set('Instance', instance)
+  url.searchParams.set('Instance', resolveDataInstance(instance))
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value))
   })
@@ -131,7 +130,7 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
       signal
     }))
   } catch (cause) {
-    if (cause?.code === 'DATA_CONFIGURATION_INVALID' || cause?.code === 'DATA_CREDENTIAL_MISSING' || cause?.code === 'DATA_INSTANCE_MISMATCH') throw cause
+    if (['DATA_CONFIGURATION_INVALID', 'DATA_CREDENTIAL_MISSING', 'DATA_INSTANCE_MISSING'].includes(cause?.code)) throw cause
     const error = new Error(safeErrorMessage(502))
     error.status = 502
     error.code = 'PROVIDER_ERROR'
@@ -198,6 +197,5 @@ export const __testables = {
   buildProviderHeaders,
   getProviderErrorCode,
   getConfiguration,
-  DEFAULT_DATA_BASE_URL,
-  DEFAULT_INSTANCE
+  DEFAULT_DATA_BASE_URL
 }

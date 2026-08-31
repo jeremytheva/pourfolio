@@ -11,7 +11,7 @@ Browser
   -> NoCodeBackend APIs
 ```
 
-The browser never receives the NoCodeBackend server secret. Browser authentication and ownership checks are enforced by Pourfolio before data-provider operations are executed.
+The browser never receives the NoCodeBackend server secret or configured instance. Browser authentication and ownership checks are enforced by Pourfolio before data-provider operations are executed.
 
 ## Production environment contract
 
@@ -20,13 +20,13 @@ Use only these four application variables in Vercel, local development, staging,
 ```env
 NOCODEBACKEND_AUTH_BASE_URL=https://app.nocodebackend.com/api/user-auth
 NOCODEBACKEND_DATA_BASE_URL=https://api.nocodebackend.com/
-NOCODEBACKEND_SECRET_KEY=<server-only key>
-NOCODEBACKEND_INSTANCE=54026_rating
+NOCODEBACKEND_SECRET_KEY=<stored outside repository>
+NOCODEBACKEND_INSTANCE=<stored outside repository>
 ```
 
 No environment variable beginning with the retired short-form NoCodeBackend prefix is permitted anywhere in the repository. Isolated contract-test controls use `NOCODEBACKEND_CONTRACT_*` names.
 
-`54026_rating` is the canonical Pourfolio data instance. The server data adapter fails closed with `DATA_INSTANCE_MISMATCH` before network access if `NOCODEBACKEND_INSTANCE` resolves to any different value. This prevents a wrong instance from being misdiagnosed as provider authorization failure.
+`NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE` are runtime-only configuration. Neither has a repository fallback. Server auth and data adapters fail closed before provider access when the required value is missing. Connected GitHub workflows obtain the instance from the protected `staging-release` environment rather than embedding it in workflow YAML.
 
 ## Authentication API
 
@@ -36,7 +36,7 @@ The hardcoded fallback authentication URL is:
 https://app.nocodebackend.com/api/user-auth
 ```
 
-Authentication requests use `NOCODEBACKEND_AUTH_BASE_URL`, `NOCODEBACKEND_SECRET_KEY`, and `NOCODEBACKEND_INSTANCE`.
+Authentication requests use `NOCODEBACKEND_AUTH_BASE_URL`, `NOCODEBACKEND_SECRET_KEY`, and the runtime `NOCODEBACKEND_INSTANCE`.
 
 ## Data API
 
@@ -46,22 +46,22 @@ The hardcoded fallback data URL is:
 https://api.nocodebackend.com/
 ```
 
-Data requests use `NOCODEBACKEND_DATA_BASE_URL`, `NOCODEBACKEND_SECRET_KEY`, and `NOCODEBACKEND_INSTANCE`.
+Data requests use `NOCODEBACKEND_DATA_BASE_URL`, `NOCODEBACKEND_SECRET_KEY`, and the runtime `NOCODEBACKEND_INSTANCE`.
 
-The Swagger contract for instance `54026_rating` proves that generated table requests require:
+The generated table API requires:
 
 ```http
 Accept: application/json
 Authorization: Bearer <server-only secret>
 ```
 
-with the instance supplied as a query parameter:
+with the runtime instance supplied as a query parameter:
 
 ```text
-Instance=54026_rating
+Instance=<runtime-configured instance>
 ```
 
-Pourfolio does not forward browser cookies, `Origin`, `Referer`, or `X-Database-Instance` to the generated table API. Those headers are not part of the supplied Swagger request contract. Browser session context remains inside Pourfolio's own session/policy layer.
+Pourfolio does not forward browser cookies, `Origin`, `Referer`, or `X-Database-Instance` to the generated table API. Those headers are not part of the supplied generated-table request contract. Browser session context remains inside Pourfolio's own session/policy layer.
 
 ## Generated operation routes
 
@@ -100,7 +100,7 @@ page=1
 limit=24
 ```
 
-The adapter accepts provider envelopes including `data`, `records`, `items`, `results`, or a bare array. The Swagger sample confirms the normal success envelope is:
+The adapter accepts provider envelopes including `data`, `records`, `items`, `results`, or a bare array. The normal success envelope is:
 
 ```json
 {
@@ -111,9 +111,9 @@ The adapter accepts provider envelopes including `data`, `records`, `items`, `re
 
 Explicit pagination metadata is validated. A valid list response without metadata remains usable with an estimated total when necessary.
 
-## Product schema confirmed by Swagger
+## Product schema confirmed by provider contract evidence
 
-The supplied `/read/products` Swagger contract identifies these fields:
+The supplied products contract identifies these fields:
 
 - `id`;
 - `user_id`;
@@ -140,36 +140,37 @@ Core product and cellar records must remain usable when optional relationship en
 
 ## Error contract
 
-Provider failures never expose raw provider bodies or credentials to browser responses.
+Provider failures never expose raw provider bodies, credentials, or the configured instance to browser responses.
 
-- `DATA_INSTANCE_MISMATCH` -> local `503` configuration failure before any provider request.
-- `401` -> `DATA_PROVIDER_UNAUTHENTICATED`.
-- `403` -> `DATA_PROVIDER_FORBIDDEN`.
-- `404` -> safe not-found handling.
-- `409` ordinary write -> `UNIQUE_CONFLICT`.
-- `409` compare-and-set -> `VERSION_CONFLICT`.
+- missing runtime instance -> local `503 DATA_INSTANCE_MISSING` before any provider request;
+- missing server credential -> local `503 DATA_CREDENTIAL_MISSING` before any provider request;
+- `401` -> `DATA_PROVIDER_UNAUTHENTICATED`;
+- `403` -> `DATA_PROVIDER_FORBIDDEN`;
+- `404` -> safe not-found handling;
+- `409` ordinary write -> `UNIQUE_CONFLICT`;
+- `409` compare-and-set -> `VERSION_CONFLICT`;
 - malformed/non-JSON, timeout, transport failure, or error envelope -> `502 PROVIDER_ERROR`.
 
 ## Health and readiness
 
-`/api/health` reports configuration state without exposing values. It includes both `instanceConfigured` and `instanceCanonical`; `dataConfigured` cannot be true unless the configured instance is canonical. The configured instance value itself is never returned.
+`/api/health` reports configuration state without exposing values. It reports `instanceConfigured`; authentication and data configuration cannot be ready unless the runtime instance is present. The configured instance value itself is never returned.
 
-`/api/readiness` performs a bounded, non-destructive products read using the same Swagger-proven Bearer + `Instance` contract and reports a safe dependency state without returning provider records, credentials, configured URLs, or raw upstream errors. A local instance mismatch is reported as `misconfigured`; a provider `403` is reported separately as `forbidden`.
+`/api/readiness` performs a bounded, non-destructive products read using the same Bearer + `Instance` contract and reports a safe dependency state without returning provider records, credentials, configured URLs, or raw upstream errors. A missing runtime instance is reported as `misconfigured`; a provider `403` is reported separately as `forbidden`.
 
 ## Connected verification
 
 Connected smoke verification must use the same four `NOCODEBACKEND_*` application variables as production and verify non-destructive reads for launch collections. Destructive isolated-staging tests use `NOCODEBACKEND_CONTRACT_*` test-control variables; these are test metadata rather than application configuration.
 
-For incident diagnosis, verify `instanceCanonical: true` before attributing a connected `forbidden` readiness result to the credential or provider policy. If `instanceCanonical` is false, correct the environment instance first; if it is true and readiness remains `forbidden`, investigate the server credential/provider authorization path.
+The connected release and provider-contract workflows obtain `NOCODEBACKEND_INSTANCE` from the protected `staging-release` GitHub environment (`vars.NOCODEBACKEND_INSTANCE`) and obtain `NOCODEBACKEND_SECRET_KEY` from GitHub environment secrets. Neither runtime value is committed to workflow source.
 
 ## Change control
 
 Before changing endpoint shape, operation paths, instance selection, authentication headers, or response semantics:
 
-1. compare against the generated Swagger contract for `54026_rating`;
+1. compare against the generated provider contract for the runtime-configured instance;
 2. update this contract and the adapter together;
 3. update unit and connected contract tests;
 4. run the full release gate and connected smoke matrix;
 5. verify health/readiness and authenticated production reads after deployment.
 
-The repository validation guard must fail if a retired NoCodeBackend environment-variable prefix, the retired data URL, or a non-canonical `.env.example` instance contract is reintroduced.
+The repository validation guard must fail if a retired NoCodeBackend environment-variable prefix, the retired data URL, or a repository value for `NOCODEBACKEND_SECRET_KEY` or `NOCODEBACKEND_INSTANCE` is reintroduced into `.env.example`.

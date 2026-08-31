@@ -3,6 +3,7 @@ import test from 'node:test'
 
 import handler from '../health.js'
 
+const TEST_INSTANCE = 'test-instance'
 const environmentVariables = [
   'NOCODEBACKEND_AUTH_BASE_URL',
   'NOCODEBACKEND_DATA_BASE_URL',
@@ -37,12 +38,12 @@ function configureEnvironment(environment = {}) {
 
 test.afterEach(() => configureEnvironment())
 
-test('reports NoCodeBackend configured from the four Vercel variables', () => {
+test('reports NoCodeBackend configured from the four runtime variables', () => {
   configureEnvironment({
     NOCODEBACKEND_AUTH_BASE_URL: 'https://app.nocodebackend.com/api/user-auth',
     NOCODEBACKEND_DATA_BASE_URL: 'https://api.nocodebackend.com/',
     NOCODEBACKEND_SECRET_KEY: 'server-secret',
-    NOCODEBACKEND_INSTANCE: '54026_rating'
+    NOCODEBACKEND_INSTANCE: TEST_INSTANCE
   })
   const checks = invokeHealthHandler().body.checks
   assert.equal(checks.authenticationConfigured, true)
@@ -51,56 +52,45 @@ test('reports NoCodeBackend configured from the four Vercel variables', () => {
   assert.equal(checks.dataEndpointConfigured, true)
   assert.equal(checks.dataEndpointCanonical, true)
   assert.equal(checks.instanceConfigured, true)
-  assert.equal(checks.instanceCanonical, true)
   assert.equal(checks.authCredentialSource, 'nocodebackend-secret-key')
   assert.equal(checks.dataCredentialSource, 'nocodebackend-secret-key')
+  assert.equal(JSON.stringify(checks).includes(TEST_INSTANCE), false)
 })
 
-test('hardcoded data endpoint and instance are canonical', async () => {
+test('hardcoded data endpoint remains canonical while instance is runtime-only', async () => {
   const { __testables } = await import('../health.js')
   assert.equal(__testables.CANONICAL_DATA_BASE_URL, 'https://api.nocodebackend.com/')
-  assert.equal(__testables.CANONICAL_INSTANCE, '54026_rating')
+  assert.equal(Object.hasOwn(__testables, 'CANONICAL_INSTANCE'), false)
 })
 
 test('invalid data endpoint reports data as unconfigured', () => {
   configureEnvironment({
     NOCODEBACKEND_DATA_BASE_URL: 'not-a-url',
     NOCODEBACKEND_SECRET_KEY: 'server-secret',
-    NOCODEBACKEND_INSTANCE: '54026_rating'
+    NOCODEBACKEND_INSTANCE: TEST_INSTANCE
   })
   const checks = invokeHealthHandler().body.checks
   assert.equal(checks.dataConfigured, false)
   assert.equal(checks.dataTransport, 'invalid')
   assert.equal(checks.dataEndpointCanonical, false)
-  assert.equal(checks.instanceCanonical, true)
+  assert.equal(checks.instanceConfigured, true)
 })
 
-test('wrong or missing instance cannot report the data configuration as ready', () => {
-  configureEnvironment({
-    NOCODEBACKEND_DATA_BASE_URL: 'https://api.nocodebackend.com/',
-    NOCODEBACKEND_SECRET_KEY: 'server-secret',
-    NOCODEBACKEND_INSTANCE: 'wrong_instance'
-  })
-  let checks = invokeHealthHandler().body.checks
-  assert.equal(checks.instanceConfigured, true)
-  assert.equal(checks.instanceCanonical, false)
-  assert.equal(checks.dataConfigured, false)
-  assert.equal(JSON.stringify(checks).includes('wrong_instance'), false)
-
+test('missing instance cannot report authentication or data configuration as ready', () => {
   configureEnvironment({
     NOCODEBACKEND_DATA_BASE_URL: 'https://api.nocodebackend.com/',
     NOCODEBACKEND_SECRET_KEY: 'server-secret'
   })
-  checks = invokeHealthHandler().body.checks
+  const checks = invokeHealthHandler().body.checks
   assert.equal(checks.instanceConfigured, false)
-  assert.equal(checks.instanceCanonical, false)
+  assert.equal(checks.authenticationConfigured, false)
   assert.equal(checks.dataConfigured, false)
 })
 
 test('reports the rate limiter as configured with Vercel KV values', () => {
   configureEnvironment({
     NOCODEBACKEND_SECRET_KEY: 'server-secret',
-    NOCODEBACKEND_INSTANCE: '54026_rating',
+    NOCODEBACKEND_INSTANCE: TEST_INSTANCE,
     pourfolio_KV_REST_API_URL: 'https://redis.example.test',
     pourfolio_KV_REST_API_TOKEN: 'redis-token-value'
   })
@@ -128,12 +118,12 @@ test('health fails closed on malformed release provenance without echoing it', (
   assert.equal(JSON.stringify(release).includes('private'), false)
 })
 
-test('health response never exposes configured credential values', () => {
+test('health response never exposes configured credential or instance values', () => {
   const configuredEnvironment = {
     NOCODEBACKEND_AUTH_BASE_URL: 'https://app.nocodebackend.com/api/user-auth',
     NOCODEBACKEND_DATA_BASE_URL: 'https://api.nocodebackend.com/',
     NOCODEBACKEND_SECRET_KEY: 'private-server-secret',
-    NOCODEBACKEND_INSTANCE: '54026_rating',
+    NOCODEBACKEND_INSTANCE: TEST_INSTANCE,
     pourfolio_KV_REST_API_URL: 'https://private-redis.example.test',
     pourfolio_KV_REST_API_TOKEN: 'private-redis-token-value',
     RATE_LIMIT_KEY_SECRET: 'private-rate-limit-secret-value'
@@ -142,9 +132,10 @@ test('health response never exposes configured credential values', () => {
   const result = invokeHealthHandler()
   const serialisedResponse = JSON.stringify(result.body)
   assert.equal(result.statusCode, 200)
-  for (const credentialValue of [
+  for (const sensitiveValue of [
     configuredEnvironment.NOCODEBACKEND_SECRET_KEY,
+    configuredEnvironment.NOCODEBACKEND_INSTANCE,
     configuredEnvironment.pourfolio_KV_REST_API_TOKEN,
     configuredEnvironment.RATE_LIMIT_KEY_SECRET
-  ]) assert.equal(serialisedResponse.includes(credentialValue), false)
+  ]) assert.equal(serialisedResponse.includes(sensitiveValue), false)
 })

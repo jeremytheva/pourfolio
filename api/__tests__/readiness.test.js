@@ -3,6 +3,7 @@ import test from 'node:test'
 
 import handler, { __testables } from '../readiness.js'
 
+const TEST_INSTANCE = 'test-instance'
 const originalFetch = global.fetch
 const originalEnvironment = {
   NOCODEBACKEND_SECRET_KEY: process.env.NOCODEBACKEND_SECRET_KEY,
@@ -26,7 +27,7 @@ const invoke = async () => {
 test.beforeEach(() => {
   process.env.NOCODEBACKEND_SECRET_KEY = 'server-secret'
   process.env.NOCODEBACKEND_DATA_BASE_URL = 'https://api.nocodebackend.com/'
-  process.env.NOCODEBACKEND_INSTANCE = '54026_rating'
+  process.env.NOCODEBACKEND_INSTANCE = TEST_INSTANCE
   process.env.VERCEL_GIT_COMMIT_SHA = 'abcdef0123456789abcdef0123456789abcdef01'
   process.env.VERCEL_ENV = 'production'
 })
@@ -77,20 +78,19 @@ test('readiness reports provider authorisation failures without leaking upstream
   assert.equal(JSON.stringify(result.body).includes('private upstream detail'), false)
 })
 
-test('readiness reports a mismatched instance as misconfigured without calling the provider', async () => {
-  process.env.NOCODEBACKEND_INSTANCE = 'wrong_instance'
-  global.fetch = async () => assert.fail('provider must not be called for a mismatched instance')
+test('readiness reports a missing runtime instance as misconfigured without calling the provider', async () => {
+  delete process.env.NOCODEBACKEND_INSTANCE
+  global.fetch = async () => assert.fail('provider must not be called without a configured instance')
   const result = await invoke()
   assert.equal(result.statusCode, 503)
   assert.deepEqual(result.body.checks, { dataProvider: 'misconfigured' })
-  assert.equal(JSON.stringify(result.body).includes('wrong_instance'), false)
 })
 
 test('provider readiness states remain stable and machine-readable', () => {
   assert.equal(__testables.providerState({ code: 'DATA_CONFIGURATION_MISSING' }), 'misconfigured')
   assert.equal(__testables.providerState({ code: 'DATA_CONFIGURATION_INVALID' }), 'misconfigured')
   assert.equal(__testables.providerState({ code: 'DATA_CREDENTIAL_MISSING' }), 'misconfigured')
-  assert.equal(__testables.providerState({ code: 'DATA_INSTANCE_MISMATCH' }), 'misconfigured')
+  assert.equal(__testables.providerState({ code: 'DATA_INSTANCE_MISSING' }), 'misconfigured')
   assert.equal(__testables.providerState({ code: 'DATA_PROVIDER_UNAUTHENTICATED' }), 'unauthenticated')
   assert.equal(__testables.providerState({ code: 'DATA_PROVIDER_FORBIDDEN' }), 'forbidden')
   assert.equal(__testables.providerState({ status: 404 }), 'contract-mismatch')

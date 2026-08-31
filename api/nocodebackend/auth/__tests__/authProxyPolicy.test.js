@@ -2,6 +2,15 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { __testables } from '../../../auth-proxy.js'
 
+const TEST_INSTANCE = 'test-instance'
+const originalInstance = process.env.NOCODEBACKEND_INSTANCE
+
+test.beforeEach(() => { process.env.NOCODEBACKEND_INSTANCE = TEST_INSTANCE })
+test.after(() => {
+  if (originalInstance === undefined) delete process.env.NOCODEBACKEND_INSTANCE
+  else process.env.NOCODEBACKEND_INSTANCE = originalInstance
+})
+
 test('authentication proxy exposes only explicit actions', () => {
   assert.deepEqual(__testables.AUTH_ACTIONS['sign-in/email'], ['POST'])
   assert.equal(__testables.AUTH_ACTIONS['arbitrary/admin'], undefined)
@@ -11,21 +20,28 @@ test('catch-all path parsing preserves only requested action segments', () => {
   assert.equal(__testables.getRequestPath({ query: { path: ['sign-in', 'email'] } }), 'sign-in/email')
 })
 
-test('authentication upstream URLs use the lowercase auth instance selector', () => {
+test('authentication upstream URLs use the lowercase runtime auth instance selector', () => {
   const request = { query: {}, headers: { host: 'pourfolio.example' } }
   for (const action of ['providers', 'get-session', 'sign-in/email']) {
     const url = __testables.buildUpstreamUrl(request, action)
-    assert.equal(url.searchParams.get('instance'), '54026_rating')
+    assert.equal(url.searchParams.get('instance'), TEST_INSTANCE)
     assert.equal(url.searchParams.has('Instance'), false)
     assert.equal(url.pathname.endsWith(`/api/user-auth/${action}`), true)
   }
 })
 
-test('authentication upstream requests also carry the database instance server-side header', () => {
+test('authentication upstream requests also carry the runtime database instance header', () => {
   const headers = __testables.buildUpstreamHeaders({ headers: { cookie: 'session=abc' } }, 'server-secret')
-  assert.equal(headers['x-database-instance'], '54026_rating')
+  assert.equal(headers['x-database-instance'], TEST_INSTANCE)
   assert.equal(headers.authorization, 'Bearer server-secret')
   assert.equal(headers.cookie, 'session=abc')
+})
+
+test('authentication proxy helpers fail closed without a runtime instance', () => {
+  delete process.env.NOCODEBACKEND_INSTANCE
+  const request = { query: {}, headers: { host: 'pourfolio.example' } }
+  assert.throws(() => __testables.buildUpstreamUrl(request, 'providers'), { status: 503, code: 'AUTH_INSTANCE_MISSING' })
+  assert.throws(() => __testables.buildUpstreamHeaders(request, 'server-secret'), { status: 503, code: 'AUTH_INSTANCE_MISSING' })
 })
 
 test('provider discovery exposes only enabled-provider state to the browser', () => {
@@ -57,7 +73,7 @@ test('Google auth keeps the safe same-origin redirect and lowercase auth instanc
   }
   const url = __testables.buildUpstreamUrl(request, 'sign-in/google')
   assert.equal(url.searchParams.get('redirectTo'), 'https://pourfolio.example')
-  assert.equal(url.searchParams.get('instance'), '54026_rating')
+  assert.equal(url.searchParams.get('instance'), TEST_INSTANCE)
   assert.equal(url.searchParams.has('Instance'), false)
 })
 
