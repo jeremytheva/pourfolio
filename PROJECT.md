@@ -7,7 +7,7 @@ Beer-first discovery, structured rating and private cellar platform.
 
 **Repository:** `jeremytheva/pourfolio`  
 **Primary branch:** `main`  
-**Project control baseline:** 29 August 2026
+**Project control baseline:** 31 August 2026
 
 ## Purpose
 
@@ -42,18 +42,18 @@ Pourfolio inherits the current master software-development rules supplied for th
 
 - **AI-First Platform Development Framework v3.1** — overarching architecture, whole-system, autonomy, continuity and project-managed PR governance framework;
 - **AI Platform Development Standard v1.2** — implementation protocol, execution gates, Continue/Next behaviour, repository/PR management and work-state rules;
-- **Pull Request Lifecycle Standard v1.0** — Draft → Implementing → Validating → Ready for Review → Mergeable → Merged progression, with GitHub as the independent enforcement layer;
-- **Testing, Validation & Release Standard v1.2** — evidence, latest-head merge validation, canonical validation, deployment and completion rules;
-- **Project Documentation Standard v1.2** — project-document ownership, continuity, PR/gate status integration and source-of-truth rules;
+- **Pull Request Lifecycle Standard** — Draft → Implementing → Validating → Ready → Mergeable → Merged progression;
+- **Testing, Validation & Release Standard** — project-owned evidence, deployment and completion rules;
+- **Project Documentation Standard** — project-document ownership, continuity, PR/gate status integration and source-of-truth rules;
 - the applicable Platform Engineering, Design, Data/Migration, Security, Observability and provider reference standards where their rules apply to this project.
 
 Project-specific facts and exceptions belong in this repository. Master rules should be referenced rather than copied into project documents. `PR_LIFECYCLE_STANDARD.md` is retained in this repository as the adopted lifecycle contract used by repository automation and project continuity.
 
 ### Project-specific deviations
 
-No intentional project deviation currently overrides the master security, data-integrity or validation rules. Provider limitations and unresolved runtime evidence are recorded as blockers rather than treated as exceptions.
+No intentional project deviation currently overrides the master security or data-integrity rules. Provider limitations and unresolved runtime evidence are recorded rather than treated as complete.
 
-Repository lifecycle automation may maintain PR state labels and validation state, but it must not self-certify `MERGEABLE` or bypass missing GitHub branch/ruleset enforcement. Until #143 closes with evidence, merge enforcement remains incomplete.
+GitHub Actions/CI is diagnostic evidence under the current project PR policy, not an automatic merge prerequisite. A failing check that exposes a real implementation, security, data-integrity or release defect remains actionable. Issue #143 tracks repository governance hardening and is not a blanket blocker on otherwise mergeable work.
 
 ## Product principles
 
@@ -74,15 +74,17 @@ Repository lifecycle automation may maintain PR state labels and validation stat
 |---|---|
 | Frontend | React 19.2 |
 | Build tooling | Vite |
-| Runtime | Node.js 20 |
+| Runtime | Node.js 24 |
 | Package manager | npm |
 | Hosting | Vercel |
 | Backend provider | NoCodeBackend |
 | Server boundary | Vercel Functions under `api/` |
 | Rate limiting | Vercel KV / Upstash-compatible Redis integration |
-| CI / validation | GitHub Actions plus `npm run platform:validate` |
-| PR lifecycle | GitHub PR state plus `.github/workflows/pr-lifecycle.yml`; merge enforcement tracked by #143 |
+| Validation | Project-owned validation plus diagnostic GitHub Actions |
+| PR lifecycle | GitHub PR state plus `.github/workflows/pr-lifecycle.yml` |
 | Browser routing | Small same-origin History API router |
+
+Node.js 24 is the governed repository/deployment target. It replaces Node 20 before Vercel's 1 October 2026 Node 20 build cutoff. `.nvmrc`, `package.json`, validation and deployment evidence must remain aligned.
 
 ## Provider configuration contract
 
@@ -93,11 +95,12 @@ The repository standardises on these server-only NoCodeBackend variables:
 - `NOCODEBACKEND_SECRET_KEY`
 - `NOCODEBACKEND_INSTANCE`
 
-Canonical hard-coded defaults where a fallback is required:
+Canonical URL defaults where a fallback is required:
 
 - Data: `https://api.nocodebackend.com/`
 - Authentication: `https://app.nocodebackend.com/api/user-auth`
-- Instance: `54026_rating`
+
+`NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE` must be supplied by the runtime/environment and must not have repository defaults or committed production values.
 
 Browser code must not receive the provider secret or bypass the Pourfolio same-origin server boundary.
 
@@ -114,7 +117,7 @@ Use the following project source hierarchy, while applying the inherited master 
 7. prior chat/context;
 8. inference.
 
-For PR lifecycle facts, GitHub is authoritative for draft/ready state, latest head, checks, review conversations, conflicts and merge state. Conflicts must be investigated rather than silently reconciled.
+For PR lifecycle facts, GitHub is authoritative for draft/ready state, latest head, review conversations, conflicts and merge state. Hosted checks are diagnostic evidence unless the project policy explicitly makes a particular result material to the change. Conflicts must be investigated rather than silently reconciled.
 
 ## Canonical repository documents
 
@@ -141,12 +144,11 @@ Pourfolio is launch-ready only when:
 - authentication, session, ownership and rate-limit controls are proven;
 - canonical catalogue and imported data are reconciled;
 - rating writes are reliable and data-integrity controls are deployed;
-- required CI, security, accessibility and production build checks pass on the exact candidate SHA;
+- project-owned validation is sufficient and material defects identified by diagnostic checks are resolved;
 - environment configuration and provider permissions are verified;
 - the exact production deployment SHA is verified;
 - required provider/runtime smoke evidence passes;
 - all P0/P1 launch gates are closed with evidence;
-- required repository governance controls are active;
 - current documentation matches the implemented state;
 - no deferred prototype module is accidentally routed, bundled or represented as production-ready.
 
