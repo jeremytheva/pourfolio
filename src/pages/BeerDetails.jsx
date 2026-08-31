@@ -29,6 +29,7 @@ function BeerDetails() {
   const [cellarForm, setCellarForm] = useState(createInitialCellarForm)
   const [cellarStatus, setCellarStatus] = useState('')
   const [cellarError, setCellarError] = useState('')
+  const loadErrorRef = useRef(null)
   const cellarErrorRef = useRef(null)
 
   useEffect(() => {
@@ -52,6 +53,10 @@ function BeerDetails() {
       active = false
     }
   }, [productId, reloadKey])
+
+  useEffect(() => {
+    if (status === 'error') loadErrorRef.current?.focus()
+  }, [status])
 
   useEffect(() => {
     if (cellarError) cellarErrorRef.current?.focus()
@@ -93,7 +98,7 @@ function BeerDetails() {
   if (status === 'error') {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-900" role="alert">
+        <div ref={loadErrorRef} tabIndex={-1} className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-900 outline-none focus:ring-2 focus:ring-red-300" role="alert">
           <h1 className="text-lg font-semibold">Product unavailable</h1>
           <p className="mt-1">{error}</p>
           <div className="mt-4 flex flex-wrap gap-3">
