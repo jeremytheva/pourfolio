@@ -28,7 +28,7 @@ const OptimizedBeerCard = memo(function OptimizedBeerCard({ product }) {
               <dd className="font-medium text-gray-800">{product.abv}%</dd>
             </div>
           )}
-          {product.ibu && (
+          {product.ibu !== null && product.ibu !== undefined && (
             <div>
               <dt className="text-gray-500">IBU</dt>
               <dd className="font-medium text-gray-800">{product.ibu}</dd>
