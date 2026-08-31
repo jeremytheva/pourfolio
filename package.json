@@ -16,6 +16,7 @@
     "test:e2e": "playwright test",
     "test:provider-smoke": "RUN_NOCODEBACKEND_PROVIDER_SMOKE=1 node --test api/_lib/__tests__/providerSmoke.connected.test.js",
     "test:provider-contract": "RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1 node --test api/_lib/__tests__/providerContract.connected.test.js",
+    "test:provider-connection": "node scripts/run-nocodebackend-connection-certification.js",
     "check:provider-contract-transcript": "node scripts/check-provider-contract-transcript.js",
     "check:package-lock": "node scripts/check-package-lock-contract.js",
     "check:project-docs": "node scripts/check-project-documentation.js",
