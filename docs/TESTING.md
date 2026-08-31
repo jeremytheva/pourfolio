@@ -2,25 +2,30 @@
 
 ## Local release gate
 
-Use Node.js 20 and run:
+Use Node.js 24 and run:
 
 ```bash
 npm ci
-npm run validate
+npm run platform:validate
 npx playwright install --with-deps chromium
 npm run test:e2e
 ```
 
-`validate` runs:
+`platform:validate` is the canonical source-validation entry point and delegates
+to `validate`. The validation pipeline runs:
 
-1. ESLint;
-2. Node unit/policy tests;
-3. a high-severity production dependency audit;
-4. the production Vite build;
-5. gzip JavaScript bundle budgets.
-6. Brew Done It route, navigation, production-bundle and normal-environment
-   containment;
-7. browser release-security checks.
+1. package-lock contract validation;
+2. project-document/autonomous-handoff governance validation;
+3. Node runtime-contract validation (`.nvmrc`, `package.json`, active guidance and CI alignment);
+4. NoCodeBackend environment-contract validation;
+5. ESLint;
+6. Node unit/policy tests;
+7. a high-severity production dependency audit;
+8. the production Vite build;
+9. gzip JavaScript bundle budgets;
+10. Brew Done It route, navigation, production-bundle and normal-environment
+    containment; and
+11. browser release-security checks.
 
 Production source maps are disabled.
 
@@ -167,20 +172,21 @@ or other persistent write occurs.
 
 ## CI
 
-Pull requests, pushes to `main`/`master`, and manual runs execute the release gate
-and Playwright browser/accessibility suite on Node 20. Pull requests also attempt
-the `Dependency review` job. The job has no `continue-on-error` setting and is
-configured to fail when it finds a vulnerability of high severity or above.
-Dependency Graph must be enabled in the repository settings for the dependency
-review action to operate successfully. A failed job fails the workflow, but the
-job only blocks merging independently when an administrator also configures
-`Dependency review` as a required branch-protection check. Before treating the
-Dependency Graph and Dependency Review configuration as complete, retain the
-workflow URL, commit SHA and successful `Dependency review` result from a pull
-request run. Repository files and local validation do not prove that either
-remote setting is enabled. The production dependency audit remains blocking.
-CodeQL runs on pull requests, protected branches, weekly schedule and manual
-dispatch.
+Pull requests, pushes to the configured implementation branch families, and
+manual runs execute the release gate and Playwright browser/accessibility suite
+using Node 24 from `.nvmrc`. Pull requests to the governed integration branches
+also attempt the `Dependency review` job. The job has no `continue-on-error`
+setting and is configured to fail when it finds a vulnerability of high severity
+or above. Dependency Graph must be enabled in the repository settings for the
+dependency review action to operate successfully. A failed job fails the
+workflow, but the job only blocks merging independently when an administrator
+also configures `Dependency review` as a required branch-protection check.
+Before treating the Dependency Graph and Dependency Review configuration as
+complete, retain the workflow URL, commit SHA and successful `Dependency review`
+result from a pull request run. Repository files and local validation do not
+prove that either remote setting is enabled. The production dependency audit
+remains blocking. CodeQL runs on configured pull requests, implementation branch
+families, weekly schedule and manual dispatch.
 
 ### Release validation evidence (4 August 2026)
 
