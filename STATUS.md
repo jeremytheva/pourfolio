@@ -2,20 +2,21 @@
 project: Pourfolio
 portfolio_state: ACTIVE
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Current-main production provenance verified; provider-dependent release evidence remains deferred"
+stage: "Current-main production provenance verified; independent governance hardening in validation"
 gate: Release
-execution_state: BLOCKED
+execution_state: VALIDATING
 current_work:
-  objective: "Preserve verified deployment provenance and continue only independent launch/governance work while backend/provider implementation remains explicitly deferred."
+  objective: "Reduce independently actionable GitHub workflow authority under #143 while preserving the explicit backend/provider deferral."
   issue: 143
-  pr: null
-  branch: docs/reconcile-release-provenance
+  pr: 276
+  branch: governance/pr-lifecycle-least-privilege
 next_actions:
-  - "Merge this durable status reconciliation after canonical validation."
-  - "Continue independently safe governance hardening under #143 where current GitHub evidence supports it."
+  - "Validate and merge PR #276 if the canonical project-owned gate remains clean."
+  - "Record that main is currently unprotected and repository rulesets are empty; platform-level branch/ruleset administration requires an external GitHub capability not available to this execution path."
   - "Keep #225, #165, #144 and backend-dependent #154 deferred until the product owner explicitly resumes backend/provider implementation with the required information."
 blockers:
-  - "Backend/provider implementation remains explicitly owner-deferred; production readiness is therefore still blocked even though deployment provenance is now verified."
+  - "Backend/provider implementation remains explicitly owner-deferred; production readiness is still blocked even though deployment provenance is verified."
+  - "GitHub platform branch/ruleset administration is not available through the connected repository capability; source-side governance hardening can proceed, but repository protection cannot be enabled autonomously here."
 requires_owner_decision: false
 owner_decision:
   question: null
@@ -27,10 +28,10 @@ validation:
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: PASS
+  ci: PENDING
   runtime: VERIFIED
-last_verified_commit: "425f7805d9fd6cb6932811c71c6be56903be4d93"
-last_updated: "2026-08-31T14:21:00+10:00"
+last_verified_commit: "e1550732e84cadbcbae79dc894b5b4cab32ff71b"
+last_updated: "2026-08-31T14:24:00+10:00"
 ---
 
 # STATUS.md
@@ -43,23 +44,22 @@ Last materially reviewed: 31 August 2026
 
 ## Current objective
 
-Preserve the verified current-main production provenance and continue only independent launch/governance work without reopening explicitly deferred backend/provider implementation.
+Preserve verified current-main production provenance and continue only independent launch/governance work without reopening explicitly deferred backend/provider implementation.
 
 ## Overall status
 
 **Source integration and deployment provenance are verified; Pourfolio is not production-ready because provider-dependent release evidence remains deferred.**
 
-The accumulated governance, launch-flow recovery/accessibility, NoCodeBackend configuration and Node 24 runtime work is merged. Issues #249 and #224 are complete. The remaining release-critical provider/data sequence is still explicitly owner-deferred.
+The accumulated launch-flow recovery/accessibility, NoCodeBackend configuration and Node 24 runtime work is merged. Issues #249 and #224 are complete. The remaining release-critical provider/data sequence is still explicitly owner-deferred. Independent repository-governance hardening continues under #143 where current GitHub capabilities permit safe action.
 
 ## AI execution gate
 
 **Current gate:** Release  
-**Gate state:** BLOCKED by deferred provider/backend evidence, not by source integration or deployment provenance.  
-**Verified current-main release SHA:** `425f7805d9fd6cb6932811c71c6be56903be4d93`.  
+**Gate state:** BLOCKED overall by deferred provider/backend evidence; PR #276 is independently VALIDATING under #143.  
+**Verified release SHA before current governance PR:** `425f7805d9fd6cb6932811c71c6be56903be4d93`.  
 **Verified production deployment:** `dpl_8ns9Pr3oN6v3QuVaC1dG5tMnmrpm`.  
-**Project-owned validation:** PR #274's corrected latest head passed `npm run platform:validate` before merge.  
 **Production runtime:** VERIFIED as Node 24.x.  
-**Production health provenance:** VERIFIED with exact current-main SHA and `environment: production`.  
+**Production health provenance:** VERIFIED with exact release SHA and `environment: production`.  
 **Production readiness:** truthfully DEGRADED with `dataProvider: forbidden`, tracked by deferred #225.
 
 GitHub Actions/CI remains diagnostic evidence under project policy. Real defects it exposes remain actionable, but hosted status is not itself the merge authority.
@@ -68,7 +68,7 @@ GitHub Actions/CI remains diagnostic evidence under project policy. Real defects
 
 The autonomous-continuation control plane is merged on `main`. Repository entry, duplicate-work prevention, whole-system analysis, durable state maintenance and the `Draft → Implementing → Validating → Ready → Mergeable → Merged` lifecycle remain the execution contract.
 
-PR #274 exposed a real STATUS contract defect during validation; the defect was fixed in the same PR, the canonical Release gate then passed, and the PR merged as `425f7805d9fd6cb6932811c71c6be56903be4d93`.
+PR #274 exposed and corrected a real STATUS contract defect before merge. PR #275 then reconciled durable state after #224 completion. PR #276 is the active lifecycle container for the next independently safe governance correction.
 
 ## Integrated recommendations
 
@@ -85,7 +85,7 @@ The previously accumulated implementation queue is reconciled and merged:
 - catalogue pagination focus recovery: #269;
 - NoCodeBackend runtime-instance externalisation: #270;
 - Node.js 24 runtime migration: #271;
-- release/runtime evidence reconciliation: #274.
+- release/runtime evidence reconciliation: #274 and #275.
 
 ## Current-main production evidence
 
@@ -127,13 +127,25 @@ The verified deployment/runtime state does not authorize provider mutations or c
 
 ## Governance state
 
-Issue #143 remains open as non-blocking repository-governance hardening. It is not a blanket blocker on otherwise mergeable work. With #224 complete, independently safe read/inspect/configuration work under #143 is now the highest-priority non-provider stream where the current GitHub capability permits it.
+Issue #143 remains open as non-blocking repository-governance hardening.
+
+Current remote evidence on 31 August 2026:
+
+- GitHub reports `main` with `protected: false` and protection enforcement off;
+- the repository ruleset collection is empty;
+- detailed branch-protection administration is not accessible through the connected GitHub integration;
+- `pull-request-validation.yml` defaults to `contents: read`;
+- `codeql.yml` uses `contents: read` plus the required `security-events: write`;
+- connected release/provider workflows use `contents: read` and protected `staging-release` environment references;
+- before PR #276, `pr-lifecycle.yml` granted workflow-wide `contents: write`, `issues: write` and `pull-requests: read` under `pull_request_target` even though only merged-branch deletion requires repository-content mutation.
+
+PR #276 narrows that lifecycle workflow to zero default authority, `issues: write` only for label synchronization, and `contents: write` only for merged-branch deletion. This advances the least-privilege criterion without claiming unavailable platform protections are enabled.
 
 ## Deployment state
 
-Current-main deployment provenance is VERIFIED at SHA `425f7805d9fd6cb6932811c71c6be56903be4d93` on production deployment `dpl_8ns9Pr3oN6v3QuVaC1dG5tMnmrpm`.
+Current-main deployment provenance was VERIFIED at SHA `425f7805d9fd6cb6932811c71c6be56903be4d93` on production deployment `dpl_8ns9Pr3oN6v3QuVaC1dG5tMnmrpm` before the current documentation/governance-only follow-up commits.
 
-Do not interpret the deployment as overall production readiness: `/api/readiness` correctly reports the separate provider-authorisation blocker tracked in deferred #225.
+Do not interpret deployment provenance as overall production readiness: `/api/readiness` correctly reports the separate provider-authorisation blocker tracked in deferred #225.
 
 ## Known constraints
 
@@ -141,13 +153,14 @@ Do not interpret the deployment as overall production readiness: `/api/readiness
 - #143 is governance hardening, not a blanket merge blocker.
 - Source validation, deployment provenance and Node runtime certification do not certify provider data or permissions.
 - Connected catalogue and rating completion evidence remains unavailable while #225/#165/#144 are deferred.
+- Repository branch/ruleset administration requires a GitHub capability outside the current connected execution path.
 
 ## Next dependency-correct work
 
-1. Merge this post-#224 STATUS reconciliation after the canonical validation gate passes.
-2. Inspect current GitHub ruleset/branch protection and Actions permission evidence for independently safe #143 governance-hardening work; implement only corrections supported by current repository/platform evidence.
+1. Complete PR #276 validation and merge it if the project-owned gate is clean.
+2. Record #143's verified current platform state and the remaining external-administration dependency without fabricating protection evidence.
 3. Preserve the explicit backend/provider deferral until the product owner resumes #225 → #165 → #144 and dependent #154 work.
-4. Do not create speculative source changes solely to manufacture work while the release-critical provider stream is deferred.
+4. Do not create speculative application changes solely to manufacture work while the release-critical provider stream is deferred.
 
 ## Completion rule
 
