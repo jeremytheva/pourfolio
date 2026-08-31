@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { FiHome, FiLogOut, FiSearch, FiUser } from 'react-icons/fi'
 import { Link, NavLink, useLocation } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
@@ -23,13 +23,25 @@ const routeLabel = (pathname) => {
 function MainLayout({ children, user, onLogout }) {
   const { pathname } = useLocation()
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [signOutError, setSignOutError] = useState('')
+  const signOutErrorRef = useRef(null)
   const currentRouteLabel = useMemo(() => routeLabel(pathname), [pathname])
+
+  useEffect(() => {
+    if (signOutError) signOutErrorRef.current?.focus()
+  }, [signOutError])
 
   const handleLogout = async () => {
     if (isSigningOut) return
+    setSignOutError('')
     setIsSigningOut(true)
     try {
-      await onLogout?.()
+      const result = await onLogout?.()
+      if (result?.error) {
+        setSignOutError(result.error.message || 'Sign out failed. Please try again.')
+      }
+    } catch {
+      setSignOutError('Sign out failed. Please try again.')
     } finally {
       setIsSigningOut(false)
     }
@@ -76,6 +88,16 @@ function MainLayout({ children, user, onLogout }) {
             </button>
           </div>
         </div>
+        {signOutError && (
+          <div
+            ref={signOutErrorRef}
+            tabIndex={-1}
+            role="alert"
+            className="mx-auto max-w-7xl px-4 pb-3 text-sm font-medium text-red-700 outline-none sm:px-6 lg:px-8"
+          >
+            {signOutError}
+          </div>
+        )}
       </header>
       <main id="main-content">{children}</main>
       <footer className="border-t border-gray-200 bg-white">
