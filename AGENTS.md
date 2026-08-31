@@ -15,14 +15,14 @@ Whenever an AI agent begins or resumes meaningful work:
 3. Read `STATUS.md`.
 4. Review `ROADMAP.md`, `SYSTEM_MAP.md`, relevant architecture/data/security/testing documents and accepted records in `docs/DECISIONS/`.
 5. Inspect the current repository state, recent relevant commits and partially implemented code.
-6. Inspect open pull requests and their latest-head checks before creating implementation work.
+6. Inspect open pull requests and their latest-head evidence before creating implementation work.
 7. Inspect relevant issues/tasks, deployment/provider evidence and external blockers where they affect the task.
 8. Determine the highest-priority dependency-correct actionable work.
 9. Check for existing branches, pull requests, issues, TODO/state documentation or partial implementation before creating anything new.
 
 Chat history is supporting context only. The repository and live provider/GitHub evidence are the durable execution authority.
 
-The repository inherits the master AI-first platform standards recorded in `PROJECT.md`. Treat their Project Entry, Change, Integration, Release and Completion gates as mandatory evidence boundaries. Do not advance work state because code exists, tests pass, a PR merges or a deployment is created unless the relevant gate evidence supports that state.
+The repository inherits the master AI-first platform standards recorded in `PROJECT.md`. Treat their Project Entry, Change, Integration, Release and Completion gates as evidence boundaries. Do not advance work state because code exists, a PR merges or a deployment is created unless the relevant project-owned evidence supports that state.
 
 ## Project overview
 
@@ -31,12 +31,14 @@ Pourfolio's launch scope is a beer-first MVP. Reachable production journeys are 
 ## Verified technology stack
 
 - **Client:** React 19.2 with a small same-origin History API router, built by Vite 8; JavaScript/JSX (ES modules).
-- **Runtime/package manager:** Node.js 20 LTS (defined in `.nvmrc`) and npm with `package-lock.json`.
+- **Runtime/package manager:** Node.js 24 (defined in `.nvmrc` and `package.json`) and npm with `package-lock.json`.
 - **Styling:** Tailwind CSS 3, PostCSS, Framer Motion, and React Icons.
 - **Data and authentication:** Browser requests use same-origin endpoints in `src/lib/nocodeBackend.js`. `api/auth-proxy.js` is the authentication proxy; the server data gateways enforce application policy before NoCodeBackend access.
 - **Storage:** Canonical NoCodeBackend collections are `products`, `producers`, `categories`, `ratings`, `rating_scores`, `rating_attributes`, `bonus_attributes`, `bonus_attribute_rating_mapping`, and `cellar`. Provider schema changes require the governed migration/evidence path; do not infer deployment from source files.
 - **Testing:** Node.js built-in `node:test`/`node:assert`, plus Playwright and axe for browser/accessibility tests.
 - **Deployment:** Vercel configuration, SPA rewrites and security headers are committed in `vercel.json`; actual deployed SHA/configuration/readiness must be verified in Vercel/runtime evidence.
+
+Node.js 24 is the governed runtime target. Vercel reported Node 20 as deprecated with a 1 October 2026 build cutoff, so agents must not reintroduce a Node 20 runtime pin. A runtime-major change requires project-owned validation and Vercel runtime evidence appropriate to the release claim.
 
 ## Repository structure
 
@@ -58,7 +60,7 @@ Pourfolio's launch scope is a beer-first MVP. Reachable production journeys are 
 ## Architecture and security rules
 
 - Keep route composition in `pages/`/`App.jsx`, reusable presentation in `components/`, business/data orchestration in `services/`, browser transport in `lib/`, and trusted server policy/provider access in `api/`.
-- Do not call NoCodeBackend collection or privileged auth endpoints from browser code. `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_DATA_BASE_URL` are server-only and must never use a `VITE_` prefix.
+- Do not call NoCodeBackend collection or privileged auth endpoints from browser code. `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_INSTANCE` and privileged provider configuration are server-only and must never use a `VITE_` prefix or committed production values.
 - Treat every collection write and role-sensitive action as requiring server-side/provider permission enforcement; client route guards are not authorisation.
 - Keep validation close to the relevant domain boundary, validate untrusted API data before use, and return/display safe errors without secrets, tokens, passwords, raw request bodies or private user data.
 - Browser state belongs in React hooks. Do not persist authentication secrets, roles, privacy settings, ratings, cellar records or sensitive records in `localStorage`.
@@ -88,7 +90,7 @@ Do not stop merely because one task, commit or pull-request subtask has finished
 3. determine the next dependency-correct task from current repository/GitHub evidence;
 4. continue when it can be performed safely.
 
-The same continuation loop applies after review fixes, CI repairs, documentation corrections and routine PR lifecycle transitions.
+The same continuation loop applies after review fixes, diagnostic-CI repairs, documentation corrections and routine PR lifecycle transitions.
 
 ## Valid stop and escalation conditions
 
@@ -130,16 +132,17 @@ Before creating a pull request or branch:
 
 Lifecycle rules:
 
-- Create or reuse a draft PR as the durable implementation container for meaningful work.
+- Create or reuse a draft PR as the durable implementation container for meaningful work where the available GitHub tooling supports the transition cleanly.
 - Keep required failing work open and remediate it in the same coherent PR unless the work is deliberately superseded, duplicated, cancelled or rejected.
-- Treat a changed PR head as invalidating stale validation evidence; required checks must apply to the latest intended commit.
-- Move Draft → Ready only when the Change/Integration evidence is genuinely satisfied.
-- Do not treat Ready as Mergeable. GitHub rules/protection, current checks, conflicts and required review evidence remain authoritative.
-- Do not mark `pr:mergeable`, enable auto-merge or merge while #143 repository enforcement is incomplete unless independent GitHub evidence proves the required merge gate has been established.
+- Treat changed implementation as requiring sufficient current project-owned validation; hosted CI results remain useful diagnostic evidence but are not automatically mandatory merge gates.
+- A failed, pending, unavailable or runner-blocked GitHub check does not by itself prevent merge. Any real defect exposed by that check still requires remediation.
+- Move to Ready when implementation is complete and the Change/Integration evidence is sufficient.
+- Mergeable requires implementation complete, project-owned validation sufficient, no merge conflicts, material review findings resolved, and no material blocker.
+- Issue #143 tracks repository governance hardening and is not a blanket blocker on ordinary mergeable work.
 - After a successful merge, delete the source branch where safe and continue downstream deployment/provider/runtime verification; `MERGED` is not `COMPLETE`.
 - Record only continuity-critical lifecycle state in `STATUS.md`; do not duplicate CI logs or full PR discussions.
 
-`.github/workflows/pr-lifecycle.yml` may synchronise safe lifecycle labels from GitHub-native state and validation evidence. It must not bypass branch protection or fabricate merge evidence.
+`.github/workflows/pr-lifecycle.yml` may synchronise safe lifecycle labels from GitHub-native state. It must not fabricate project-owned validation or conceal a material defect.
 
 ## Coding standards
 
@@ -156,28 +159,30 @@ Keep focused changes reviewable and avoid unrelated refactors. Preserve supporte
 
 ## Required validation
 
-From the repository root with Node.js 20, the canonical source-validation entry point is:
+From the repository root with Node.js 24, the canonical source-validation entry point is:
 
 ```bash
 npm run platform:validate
 ```
 
-For browser-facing changes, the hosted `Browser and accessibility` gate remains required; local execution is:
+For browser-facing changes, use the repository Playwright/browser-accessibility coverage when material to the changed behaviour:
 
 ```bash
 npx playwright install --with-deps chromium
 npm run test:e2e
 ```
 
-`platform:validate` composes the repository's package-lock/documentation/environment governance guards, lint, unit/policy tests, production dependency audit, production build, bundle containment/budget and release-security checks. It does **not** prove provider authorisation, deployed configuration, exact deployed SHA, migrations or connected production behaviour.
+`platform:validate` composes the repository's package-lock/documentation/runtime/environment governance guards, lint, unit/policy tests, production dependency audit, production build, bundle containment/budget and release-security checks. It does **not** prove provider authorisation, deployed configuration, exact deployed SHA, migrations or connected production behaviour.
+
+GitHub Actions runs remain useful diagnostic evidence. Do not weaken, delete or ignore a real defect merely because hosted CI is not itself a mandatory merge gate.
 
 There is no TypeScript configuration or separate typecheck command; `typecheck` is therefore genuinely `NOT_APPLICABLE` unless a type-checking step is introduced later.
 
 Never claim validation passed unless it was actually run or externally verified. Distinguish clearly between:
 
 - implemented;
-- locally validated;
-- CI validated;
+- project-owned validation complete;
+- diagnostic CI evidence available;
 - deployed;
 - runtime verified;
 - production verified.
@@ -212,6 +217,6 @@ Do not require the product owner to reconstruct technical state manually from co
 
 ## Completion and review
 
-Work is COMPLETE only when its acceptance outcome and relevant real-system evidence exist, known dependent work is not hidden by the completion claim, project state is current and the required release/completion gates pass. Otherwise use the explicit state supported by evidence (for example IMPLEMENTING, VALIDATING, READY, BLOCKED, DEPLOYED or VERIFIED).
+Work is COMPLETE only when its acceptance outcome and relevant real-system evidence exist, known dependent work is not hidden by the completion claim, project state is current and the required release/completion evidence is sufficient. Otherwise use the explicit state supported by evidence (for example IMPLEMENTING, VALIDATING, READY, BLOCKED, DEPLOYED or VERIFIED).
 
 Reviewers must check regressions and edge cases, authorisation bypasses, unsafe data operations, missing schema/migration evidence, missing tests, accessibility/security regressions, unnecessary complexity, scope creep, stale project documentation and inaccurate provider/deployment claims.
