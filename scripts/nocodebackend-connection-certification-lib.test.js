@@ -59,7 +59,7 @@ test('certifies isolated create/read/update/delete behaviour and leaves no rows'
   for (const result of Object.values(report.data_plane.capabilities)) assert.equal(result.status, 'PASS')
 })
 
-test('reports missing dedicated test table as setup required', async () => {
+test('reports missing dedicated test table as setup required without false cleanup failure', async () => {
   const provider = {
     async list() {
       const error = new Error('missing')
@@ -81,6 +81,7 @@ test('reports missing dedicated test table as setup required', async () => {
 
   assert.equal(report.overall, 'SETUP_REQUIRED')
   assert.equal(report.data_plane.status, 'SETUP_REQUIRED')
+  assert.equal(report.cleanup.status, 'NOT_APPLICABLE')
   assert.equal(report.setup_required.code, 'TEST_TABLE_MISSING')
   assert.deepEqual(report.setup_required.required_columns, ['run_key', 'label', 'quantity', 'score', 'active', 'notes'])
 })
