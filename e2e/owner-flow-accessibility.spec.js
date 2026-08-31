@@ -80,6 +80,35 @@ test('profile save exposes busy state and focuses failed mutation feedback', asy
   await expect(profileForm).toHaveAttribute('aria-busy', 'false')
 })
 
+test('profile rating history load failure has a focused retry path that recovers', async ({ page }) => {
+  let attempt = 0
+
+  await page.route('**/api/nocodebackend/ratings/mine', async (route) => {
+    attempt += 1
+    if (attempt === 1) {
+      return route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Rating history unavailable.' })
+      })
+    }
+    return route.fallback()
+  })
+
+  await page.goto('/profile')
+
+  const ratingSection = page.locator('section[aria-labelledby="rating-history"]')
+  const alert = ratingSection.getByRole('alert')
+  await expect(alert).toContainText('Rating history unavailable.')
+  await expect(alert).toBeFocused()
+
+  const retry = ratingSection.getByRole('button', { name: 'Retry rating history' })
+  await retry.click()
+  await expect(ratingSection).toHaveAttribute('aria-busy', 'true')
+  await expect(ratingSection.getByRole('link', { name: 'Ace' })).toBeVisible()
+  await expect(alert).toHaveCount(0)
+})
+
 test('profile rating delete disables the active control while the request is pending', async ({ page }) => {
   let releaseDelete
   const deleteGate = new Promise((resolve) => { releaseDelete = resolve })

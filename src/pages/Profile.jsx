@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FiSave, FiStar, FiTrash2, FiUser } from 'react-icons/fi'
 import { Link } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
@@ -15,32 +15,46 @@ function Profile() {
   })
   const [ratings, setRatings] = useState([])
   const [ratingsStatus, setRatingsStatus] = useState('loading')
+  const [ratingsError, setRatingsError] = useState('')
   const [saveStatus, setSaveStatus] = useState('')
   const [deletingRatingId, setDeletingRatingId] = useState(null)
   const [error, setError] = useState('')
   const errorRef = useRef(null)
+  const ratingsErrorRef = useRef(null)
+  const ratingsRequestIdRef = useRef(0)
 
-  useEffect(() => {
-    let active = true
-    ratingService.getUserRatings()
-      .then((payload) => {
-        if (!active) return
-        setRatings(payload.items || [])
-        setRatingsStatus('ready')
-      })
-      .catch((requestError) => {
-        if (!active) return
-        setError(requestError.message || 'Rating history could not be loaded.')
-        setRatingsStatus('error')
-      })
-    return () => {
-      active = false
+  const loadRatings = useCallback(async () => {
+    const requestId = ratingsRequestIdRef.current + 1
+    ratingsRequestIdRef.current = requestId
+    setRatingsError('')
+    setRatingsStatus('loading')
+
+    try {
+      const payload = await ratingService.getUserRatings()
+      if (ratingsRequestIdRef.current !== requestId) return
+      setRatings(payload.items || [])
+      setRatingsStatus('ready')
+    } catch (requestError) {
+      if (ratingsRequestIdRef.current !== requestId) return
+      setRatingsError(requestError.message || 'Rating history could not be loaded.')
+      setRatingsStatus('error')
     }
   }, [])
 
   useEffect(() => {
+    loadRatings()
+    return () => {
+      ratingsRequestIdRef.current += 1
+    }
+  }, [loadRatings])
+
+  useEffect(() => {
     if (error) errorRef.current?.focus()
   }, [error])
+
+  useEffect(() => {
+    if (ratingsError) ratingsErrorRef.current?.focus()
+  }, [ratingsError])
 
   const average = useMemo(() => {
     const values = ratings.map((rating) => Number(rating.total_weighted)).filter(Number.isFinite)
@@ -131,7 +145,14 @@ function Profile() {
           </div>
 
           {ratingsStatus === 'loading' && <p className="py-10 text-center text-gray-600" role="status">Loading rating history…</p>}
-          {ratingsStatus === 'error' && <p className="py-10 text-center text-sm text-red-700">Rating history is unavailable.</p>}
+          {ratingsStatus === 'error' && (
+            <div ref={ratingsErrorRef} tabIndex={-1} className="my-8 rounded-lg border border-red-200 bg-red-50 p-4 text-center text-sm text-red-800 outline-none focus:ring-2 focus:ring-red-300" role="alert">
+              <p>{ratingsError || 'Rating history is unavailable.'}</p>
+              <button type="button" onClick={loadRatings} className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2">
+                Retry rating history
+              </button>
+            </div>
+          )}
           {ratingsStatus === 'ready' && ratings.length === 0 && (
             <div className="py-10 text-center">
               <SafeIcon icon={FiStar} className="mx-auto mb-3 h-9 w-9 text-gray-300" />
@@ -139,7 +160,7 @@ function Profile() {
               <Link to="/home" className="mt-2 inline-block text-sm font-medium text-amber-700 hover:underline focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">Browse products</Link>
             </div>
           )}
-          {ratings.length > 0 && (
+          {ratingsStatus === 'ready' && ratings.length > 0 && (
             <ul className="mt-5 divide-y divide-gray-200" aria-label="Rating history">
               {ratings.map((rating) => {
                 const isDeleting = deletingRatingId === rating.id
