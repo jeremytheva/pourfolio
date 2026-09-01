@@ -26,7 +26,8 @@ test('catalogue preserves a valid zero IBU value', async ({ page }) => {
 })
 
 test('catalogue card exposes real image meaning and keeps the primary action keyboard focusable', async ({ page }) => {
-  const realImage = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="10" height="10"/%3E'
+  const realImage = 'https://images.example.test/ace.jpg'
+  await page.route(realImage, (route) => route.fulfill({ status: 204, body: '' }))
   await page.route('**/api/nocodebackend/catalog/products?**', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
