@@ -1,107 +1,103 @@
-import React from 'react';
-import * as FiIcons from 'react-icons/fi';
-import SafeIcon from '../common/SafeIcon';
+import React from 'react'
+import * as FiIcons from 'react-icons/fi'
+import SafeIcon from '../common/SafeIcon'
 
-const { FiAlertTriangle, FiRefreshCw, FiHome } = FiIcons;
+const { FiAlertTriangle, FiRefreshCw, FiHome } = FiIcons
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
-    super(props);
-    this.state = { 
-      hasError: false, 
-      error: null, 
+    super(props)
+    this.state = {
+      hasError: false,
+      error: null,
       errorInfo: null,
       retryCount: 0
-    };
-    this.handleRetry = this.handleRetry.bind(this);
-    this.handleGoHome = this.handleGoHome.bind(this);
+    }
+    this.errorRegionRef = React.createRef()
+    this.handleRetry = this.handleRetry.bind(this)
+    this.handleGoHome = this.handleGoHome.bind(this)
   }
 
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
+  static getDerivedStateFromError() {
+    return { hasError: true }
   }
 
   componentDidCatch(error, errorInfo) {
-    this.setState({
-      error,
-      errorInfo
-    });
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.error('ErrorBoundary caught an error:', error, errorInfo);
+    this.setState({ error, errorInfo }, () => {
+      this.errorRegionRef.current?.focus()
+    })
+
+    if (import.meta.env.DEV) {
+      console.error('ErrorBoundary caught an error:', error, errorInfo)
     }
   }
 
   handleRetry() {
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       hasError: false,
       error: null,
       errorInfo: null,
       retryCount: prevState.retryCount + 1
-    }));
+    }))
   }
 
   handleGoHome() {
-    window.location.href = '#/home';
+    window.location.assign('/home')
   }
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <SafeIcon icon={FiAlertTriangle} className="w-8 h-8 text-red-600" />
+        <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+          <div
+            ref={this.errorRegionRef}
+            role="alert"
+            aria-labelledby="unexpected-error-heading"
+            tabIndex={-1}
+            className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100" aria-hidden="true">
+              <SafeIcon icon={FiAlertTriangle} className="h-8 w-8 text-red-600" />
             </div>
-            
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              Oops! Something went wrong
-            </h2>
-            
-            <p className="text-gray-600 mb-6">
-              {this.props.fallbackMessage || 
-               "We encountered an unexpected error. Don't worry, your data is safe."}
+
+            <h1 id="unexpected-error-heading" className="mb-4 text-2xl font-bold text-gray-800">
+              Something went wrong
+            </h1>
+
+            <p className="mb-6 text-gray-600">
+              {this.props.fallbackMessage || 'Pourfolio encountered an unexpected error. Try again, or return home.'}
             </p>
 
-            {process.env.NODE_ENV === 'development' && this.state.error && (
-              <div className="bg-gray-100 rounded-lg p-4 mb-6 text-left">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">Error Details:</h3>
-                <pre className="text-xs text-gray-600 overflow-auto">
+            {import.meta.env.DEV && this.state.error && (
+              <div className="mb-6 rounded-lg bg-gray-100 p-4 text-left">
+                <h2 className="mb-2 text-sm font-semibold text-gray-700">Error details</h2>
+                <pre className="overflow-auto text-xs text-gray-600">
                   {this.state.error.toString()}
                 </pre>
               </div>
             )}
-            
-            <div className="flex space-x-3">
-              <button
-                onClick={this.handleRetry}
-                className="flex-1 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
-              >
-                <SafeIcon icon={FiRefreshCw} className="w-4 h-4" />
-                <span>Try Again</span>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button type="button" onClick={this.handleRetry} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-amber-700 px-4 py-2 text-white transition-colors hover:bg-amber-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700">
+                <SafeIcon icon={FiRefreshCw} className="h-4 w-4" />
+                <span>Try again</span>
               </button>
-              
-              <button
-                onClick={this.handleGoHome}
-                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
-              >
-                <SafeIcon icon={FiHome} className="w-4 h-4" />
-                <span>Go Home</span>
+              <button type="button" onClick={this.handleGoHome} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gray-700 px-4 py-2 text-white transition-colors hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-700">
+                <SafeIcon icon={FiHome} className="h-4 w-4" />
+                <span>Go home</span>
               </button>
             </div>
 
             {this.state.retryCount > 2 && (
-              <p className="text-sm text-gray-500 mt-4">
-                If the problem persists, please contact support.
-              </p>
+              <p className="mt-4 text-sm text-gray-500">If the problem persists, use the support information available from Pourfolio's public pages.</p>
             )}
           </div>
-        </div>
-      );
+        </main>
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
 }
 
-export default ErrorBoundary;
+export default ErrorBoundary
