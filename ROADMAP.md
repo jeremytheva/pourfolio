@@ -1,126 +1,154 @@
 # ROADMAP.md
 
-**Last materially reviewed:** 31 August 2026
+**Last materially reviewed:** 1 September 2026
 
 ## Current milestone
 
 **Launch readiness — beer-first Pourfolio**
 
-The current milestone is to move the implemented launch scope through the remaining governance, deployment, connected-provider and data evidence gates without expanding feature breadth.
+The launch milestone remains to move the implemented beer-first scope through the remaining connected-provider, data-integrity, backend-certification and final release evidence without expanding feature breadth.
 
-Repository/source corrections may proceed while connected backend/provider evidence is unavailable, but they must not be used to claim provider, release or completion gates are satisfied.
+The project is **not globally blocked**. Independent source/frontend work may continue whenever it does not depend on provider authorization, schema mutation or connected certification.
 
-## Current delivery state
+## Integrated foundation
 
-The earlier source/configuration queue is integrated:
+The following work is already integrated and must not be recreated or treated as pending:
 
-- autonomous continuation and PR lifecycle governance: merged through #261;
-- launch-flow recovery/accessibility corrections: merged through #262–#269;
-- NoCodeBackend runtime-instance externalisation: merged through #270;
-- Node.js 24 runtime migration: merged through #271 and production-runtime certified under #249.
+- autonomous continuation and project-managed PR lifecycle;
+- launch-flow recovery/accessibility hardening;
+- NoCodeBackend runtime-instance externalisation;
+- Node.js 24 migration and production-runtime verification;
+- release/deployment provenance reconciliation;
+- least-privilege lifecycle workflow hardening;
+- ChatGPT-triggerable NoCodeBackend certification harness.
 
-The immediate release work is therefore no longer to recreate or re-integrate those branches. The dependency-correct path is current-main release provenance under #224, while preserving the explicit provider/backend deferral.
+Completed work such as #224, #249 and #281 must not remain in the active blocker chain.
 
 ## Phase 0 — Governed delivery
 
 **Outcome:** repository and release governance are sufficient for evidence-based autonomous delivery.
 
-Repository-side autonomous continuation and PR lifecycle controls are merged. Issue #143 remains open for practical repository hardening and evidence, but current project policy treats it as non-blocking governance work rather than a blanket merge gate.
+Issue #143 remains open for practical repository/ruleset hardening, but under current project policy it is **non-blocking governance work** rather than a blanket merge or implementation gate.
 
-Remaining:
+Remaining, to be completed before final release where practical:
 
-- complete or intentionally disposition practical branch/ruleset protections under #143;
-- document actual bypass/force-push/deletion behaviour where available;
+- configure or intentionally disposition branch/ruleset protections;
+- document bypass/force-push/deletion behaviour;
 - verify least-privilege Actions, deployment-environment and connected-app access where supported;
-- keep repository documentation aligned with the actual GitHub enforcement state.
+- keep repository documentation aligned with actual remote enforcement.
 
-**Exit condition:** #143 acceptance criteria are satisfied or intentionally dispositioned with current remote repository evidence.
+**Sequencing:** proceed independently of ordinary implementation. Re-activate as a release-governance task near final launch.
 
 ## Phase 1 — Canonical backend contract
 
-**Outcome:** NoCodeBackend integration, imported data and migration/recovery behaviour are certified against immutable evidence.
+**Outcome:** NoCodeBackend integration, rating integrity, imported data and recovery behaviour are certified against connected evidence.
 
-**Current state:** explicitly owner-deferred pending provider information/access. Preserve without speculative changes.
+### Active dependency
 
-Deferred sequence:
+1. **#225 — NoCodeBackend generated-data authorization**
+   - current external/provider gate;
+   - blocks connected provider reads and downstream provider certification;
+   - does not block unrelated source/frontend work.
 
-1. #225 — restore and verify generated data API authorisation;
-2. #165 — execute and verify the real rating idempotency migration;
-3. #144 — capture same-state provider/import/recovery evidence and approvals.
+### Subsequent dependency-gated work
 
-The source configuration contract is already merged; do not duplicate it.
+2. **#165 — rating idempotency/schema**
+   - keep as a real data-integrity dependency;
+   - activate after provider capability is available;
+   - required before durable rating reconciliation is enabled.
 
-**Exit condition:** connected provider, schema, import and recovery evidence is complete against an exact candidate state.
+3. **#144 — canonical backend certification**
+   - postpone until provider/schema prerequisites are available;
+   - remaining work is primarily connected same-state provider/import/recovery evidence and approvals.
+
+**Exit condition:** connected provider, schema, import, retry/reconciliation and recovery evidence are sufficient against an exact candidate state.
 
 ## Phase 2 — Identity lifecycle
 
-**Outcome:** account export and deletion operate safely as complete server-owned workflows.
+**Outcome:** account export and deletion operate as safe server-owned workflows.
 
-Current state: **PARTIAL / deferred behind launch-critical provider work**.
+Current state: **PARTIAL / future-phase work**.
 
-Preserved source foundations include export projection/artifact preparation, deletion discovery planning, reconciliation and exact confirmation validation.
+Preserve the existing source foundations. Do not make this a current Phase 3 blocker unless a task directly depends on account-lifecycle completion.
 
-Future requirements include recent-authentication proof, consistent provider snapshot semantics, durable orchestration/write fencing, provider-backed data deletion, authentication identity deletion, final absence proof, retention/legal policy decisions and connected accessible UI verification.
-
-**Exit condition:** the complete account lifecycle is integrated, deployed and verified; source-only foundations are not sufficient.
+Future work includes recent-authentication proof, consistent provider snapshot semantics, durable orchestration/write fencing, provider-backed deletion, authentication identity deletion, final absence proof, retention/legal policy decisions and connected accessible UI verification.
 
 ## Phase 3 — Dependable beer discovery
 
 **Outcome:** users can reliably browse, search and open the canonical beer catalogue against reconciled production-equivalent data.
 
-Source-side launch-flow, failure recovery, response-boundary and accessibility hardening is substantially integrated.
+Source/frontend failure recovery, response-boundary, data-presentation and accessibility hardening is substantially integrated.
 
-Remaining:
+### Work that may continue now
 
-- #224 — obtain and certify a production deployment of the then-current `main` through exact `/api/health` and truthful `/api/readiness` provenance;
-- after the owner resumes provider work, complete the backend-dependent #154 catalogue remediation/reconciliation and connected certification;
-- capture connected browse/search/direct-route, failure-recovery and accessibility evidence only against a recorded release SHA.
+- independent frontend/source corrections;
+- truthful-data-presentation fixes;
+- accessibility/interaction improvements;
+- regression coverage that does not require provider mutation or connected certification.
 
-Node 24 is no longer a pending migration item: #249 is complete after production deployment evidence proved Node 24.x is used.
+### Completion-only dependencies
 
-**Exit condition:** #154 acceptance criteria are satisfied against a deployment whose exact SHA is recorded, with prerequisite provider evidence available.
+- provider authorization under #225;
+- connected catalogue reconciliation/provider evidence;
+- backend-dependent portions of #154;
+- production-equivalent browser and accessibility evidence against a recorded release state.
+
+**#154 remains the current Phase 3 outcome, not a blanket blocker on every Phase 3 task.**
 
 ## Immediate dependency-correct path
 
 ```text
-Current main
-   ↓
-#224 exact-SHA production deployment + health/readiness evidence
-   ↓
-Independent release evidence that does not require provider mutation
+INDEPENDENT SOURCE / FRONTEND WORK
+        ↓
+Continue whenever safe and launch-scoped
 
-OWNER RESUMES BACKEND/PROVIDER WORK
-   ↓
-#225 data authorisation
-   ↓
-#165 rating migration
-   ↓
-#144 canonical backend certification
-   ↓
+CONNECTED PROVIDER PATH
+#225 generated-data authorization
+        ↓
+#165 rating idempotency/schema capability
+        ↓
+#144 canonical backend/provider certification
+        ↓
 backend-dependent #154 catalogue certification
-   ↓
-Launch verification
+        ↓
+launch verification
 
-#143 governance hardening proceeds independently and does not blanket-block ordinary mergeable work.
+INDEPENDENT GOVERNANCE PATH
+#143 practical GitHub/ruleset hardening
+        ↓
+complete before final release where practical
 ```
+
+## Explicitly removed from the active blocker chain
+
+- #224 — deployment provenance: complete;
+- #249 — Node 24 migration: complete;
+- #281 — staging certification setup: closed;
+- GitHub Actions/CI status as a platform status;
+- empty/non-substantive Platform Validation;
+- ChatGPT/GitHub Draft → Ready connector failure.
+
+A real implementation, security, data-integrity or runtime defect remains a blocker regardless of how it was discovered.
 
 ## Launch release gate
 
-After the required connected phases resume and their evidence is available:
+When the connected provider path is sufficiently complete:
 
 1. identify the exact release candidate SHA;
-2. run `npm run platform:validate` and applicable hosted diagnostics;
-3. verify actual GitHub governance state against the release policy;
+2. run appropriate project-owned validation and inspect relevant diagnostics;
+3. verify actual repository governance state against the then-current release policy;
 4. verify production environment configuration without exposing secrets;
-5. verify exact deployed SHA and runtime through deployment/health/readiness evidence;
-6. run critical authentication, catalogue and safe owner-scoped smoke paths;
-7. inspect runtime/provider diagnostics;
-8. record remaining accepted limitations, if any;
-9. mark launch complete only when the relevant completion evidence is sufficient.
+5. verify exact deployed SHA and runtime;
+6. verify provider readiness and critical authentication/catalogue/owner-scoped flows;
+7. capture connected accessibility and failure-recovery evidence;
+8. record accepted limitations, if any;
+9. mark launch complete only when the relevant evidence is sufficient.
+
+GitHub CI status alone and empty Platform Validation are not release authorization mechanisms.
 
 ## Deferred launch-excluded capabilities
 
-The following remain outside the current launch milestone unless separately approved:
+Unless separately approved, keep these outside the current launch milestone:
 
 - non-beer rating modes;
 - chat and Drinking Buddies;
@@ -130,10 +158,8 @@ The following remain outside the current launch milestone unless separately appr
 - social cellar sharing;
 - photo upload;
 - Brew Done It interactive gameplay;
-- major framework/styling migrations that are not required to remediate a launch blocker.
-
-Brew Done It retains only the future same-device/session-memory model accepted in ADR 0001.
+- major framework/styling migrations unrelated to a launch blocker.
 
 ## Continuation rule
 
-Do not recreate merged source work or reopen the provider/backend stream while it remains explicitly deferred. Continue only work that is independently safe, launch-scoped and supported by current repository/provider/deployment evidence.
+Use dependency-scoped blocking. Keep blockers only where they protect work that actually depends on them. Postpone future-phase/release-only evidence until it becomes relevant, remove completed/stale blockers, and continue independent launch-scoped implementation without waiting for unrelated external administration.
