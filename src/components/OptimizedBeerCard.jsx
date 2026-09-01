@@ -8,12 +8,13 @@ const FALLBACK_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/
 const OptimizedBeerCard = memo(function OptimizedBeerCard({ product }) {
   const category = product.declared_category || product.category?.category_name || 'Beer'
   const producer = product.producer?.producer_name || 'Producer not recorded'
+  const hasProductImage = Boolean(product.product_image)
 
   return (
     <article className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
       <img
         src={product.product_image || FALLBACK_IMAGE}
-        alt=""
+        alt={hasProductImage ? `${product.product_name} by ${producer}` : ''}
         loading="lazy"
         className="aspect-[4/3] w-full bg-amber-50 object-cover"
       />
@@ -35,7 +36,10 @@ const OptimizedBeerCard = memo(function OptimizedBeerCard({ product }) {
             </div>
           )}
         </dl>
-        <Link to={`/products/${product.id}`} className="mt-5 inline-flex items-center font-medium text-amber-700 hover:text-amber-900">
+        <Link
+          to={`/products/${product.id}`}
+          className="mt-5 inline-flex items-center rounded font-medium text-amber-700 hover:text-amber-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"
+        >
           View product
           <SafeIcon icon={FiArrowRight} className="ml-2 h-4 w-4" />
         </Link>
