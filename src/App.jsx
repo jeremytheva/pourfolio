@@ -14,9 +14,9 @@ const Profile = lazy(() => import('./pages/Profile.jsx'))
 const PublicDocumentPage = lazy(() => import('./pages/PublicDocumentPage.jsx'))
 
 const LoadingState = () => (
-  <div className="flex min-h-screen items-center justify-center bg-gray-50" role="status" aria-live="polite">
+  <div className="flex min-h-screen items-center justify-center bg-gray-50" role="status" aria-live="polite" aria-atomic="true">
     <div className="text-center">
-      <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-b-amber-600" />
+      <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-b-amber-600" aria-hidden="true" />
       <p className="text-gray-600">Loading Pourfolio…</p>
     </div>
   </div>
@@ -41,7 +41,7 @@ function App() {
   )
 
   return (
-    <ErrorBoundary fallbackMessage="Pourfolio encountered an unexpected error. Refresh the page to try again.">
+    <ErrorBoundary fallbackMessage="Pourfolio encountered an unexpected error. Try again, or return home.">
       <BrowserRouter>
         <Suspense fallback={<LoadingState />}>
           <Routes>
