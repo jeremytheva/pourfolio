@@ -2,24 +2,42 @@
 project: Pourfolio
 portfolio_state: ACTIVE
 phase: "Phase 3 — Beer discovery dependable"
-stage: "NoCodeBackend certification harness merged; live certification blocked by staging inputs and provider authorization"
-gate: Release
-execution_state: BLOCKED
+stage: "Provider authorization is the active external gate; downstream provider/schema certification is dependency-scoped"
+gate: Integration
+execution_state: ACTIVE_WITH_SCOPED_BLOCKERS
 current_work:
-  objective: "Provision #281 staging certification inputs, rerun the ChatGPT-triggered NoCodeBackend certification, then use the result to resume the provider dependency chain."
-  issue: 281
+  objective: "Resolve NoCodeBackend generated-data authorization under #225 while continuing independent source/frontend work that does not require provider mutation or certification."
+  issue: 225
   pr: null
   branch: main
 next_actions:
-  - "Provision NOCODEBACKEND_SECRET_KEY and NOCODEBACKEND_INSTANCE in the protected GitHub staging-release environment under #281."
-  - "Create the isolated staging chatgpt_api_test fixture with the documented fields, then comment /ncb-certify on #278."
-  - "If the certification reaches NoCodeBackend but returns 401/403, resolve #225 at the provider/credential layer before #165, #144 and backend-dependent #154."
-  - "When GitHub administration becomes available, complete the remaining non-blocking main-branch/ruleset hardening under #143."
+  - "Resolve or re-authorize the NoCodeBackend generated-data credential under #225 and verify /api/readiness returns dataProvider: ok."
+  - "After provider access is proven, progress #165 rating idempotency/schema work, then #144 backend certification, then backend-dependent #154 evidence."
+  - "Continue independent Phase 3 source/frontend work when it does not depend on provider authorization, schema mutation or connected certification."
+  - "Complete #143 repository hardening when GitHub administration capability is available; it is not a blanket implementation/merge blocker."
 blockers:
-  - "The GitHub staging-release environment does not currently supply NOCODEBACKEND_SECRET_KEY or NOCODEBACKEND_INSTANCE to the certification workflow."
-  - "The isolated chatgpt_api_test NoCodeBackend fixture is not yet provisioned; no supported schema-management mutation contract is configured for automated creation."
-  - "Production Vercel has NoCodeBackend configuration present but /api/readiness still reports dataProvider: forbidden, tracked by #225."
-  - "GitHub reports main unprotected with no repository rulesets, but branch/ruleset administration is unavailable through the connected execution capability; this remains non-blocking for provider certification."
+  - scope: provider_connected_work
+    issue: 225
+    detail: "Production generated-data access is forbidden until the NoCodeBackend credential/authorization is corrected."
+  - scope: rating_reconciliation
+    issue: 165
+    detail: "Durable idempotency/schema support is required before rating reconciliation can be enabled."
+  - scope: backend_certification
+    issue: 144
+    detail: "Connected provider/schema/import evidence is required before canonical backend certification can close."
+  - scope: phase3_completion
+    issue: 154
+    detail: "Connected catalogue/data/accessibility evidence is required for Phase 3 completion, but source/frontend work may continue independently."
+non_blocking_deferred:
+  - issue: 143
+    detail: "Repository/ruleset hardening remains useful release governance work but does not block ordinary implementation or merges under current policy."
+removed_blockers:
+  - "#224 deployment provenance is complete."
+  - "#249 Node 24 migration is complete and production runtime is verified."
+  - "#281 staging certification setup is closed and must not remain the current blocker."
+  - "GitHub Actions/CI status is diagnostic evidence, not a mandatory merge gate."
+  - "platform:validate is not a mandatory merge gate while it contains no substantive validation steps."
+  - "ChatGPT/GitHub Draft→Ready connector failure is a tooling limitation, not an engineering blocker."
 requires_owner_decision: false
 owner_decision:
   question: null
@@ -31,170 +49,123 @@ validation:
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: PASS
-  runtime: VERIFIED
-last_verified_commit: "4bc951247b7414e3cb33c7aabefbdabfda5c0d56"
-last_updated: "2026-08-31T15:05:00+10:00"
+  runtime: VERIFIED_NODE_24
+last_updated: "2026-09-01T15:03:00+10:00"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 31 August 2026
+Last materially reviewed: 1 September 2026
 
 ## Current phase
 
 **Phase 3 — Beer discovery dependable**
 
-## Current objective
-
-Complete the external staging setup required by issue #281, rerun the merged ChatGPT-triggerable NoCodeBackend certification, and use the resulting real provider evidence to progress the provider dependency chain without weakening the server-only trust boundary.
-
 ## Overall status
 
-**The NoCodeBackend connection-certification harness is implemented and merged, but the first live run correctly stopped before provider access because the protected GitHub staging environment does not yet supply the provider secret or instance. Pourfolio remains not production-ready.**
+**Active implementation with scoped external/provider blockers. Pourfolio is not production-ready, but the project is not globally blocked.**
 
-PR #280 merged the generic certification harness and owner-only `/ncb-certify` trigger to `main` as merge commit `bc02ca78aace06b42a465e55f0bfed459fbf92c0`. The exact implementation head `4bc951247b7414e3cb33c7aabefbdabfda5c0d56` passed `npm run platform:validate` in the PR release-gate job before merge.
+The repository has already integrated the autonomous-continuation framework, frontend recovery/accessibility slices, NoCodeBackend runtime-instance externalisation, Node 24 migration, deployment/runtime evidence reconciliation, PR lifecycle hardening and the ChatGPT-triggerable NoCodeBackend certification harness.
 
-The first live certification run, GitHub Actions run `33358937200`, returned `SETUP_REQUIRED / RUNTIME_CONFIGURATION_MISSING` because `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE` are absent from the protected `staging-release` environment. The workflow posted the sanitized result back to #278 and retained redacted evidence; no provider mutation was attempted.
+The previous global-blocker model is superseded. A blocker now applies only to work that actually depends on it.
 
-Production Vercel remains a separate provider state: `/api/health` reports the NoCodeBackend secret and instance as configured, while `/api/readiness` returns HTTP 503 with `dataProvider: "forbidden"`. That authorization failure remains tracked by #225.
+## Active blocker classification
 
-## AI execution gate
+### #225 — NoCodeBackend generated-data authorization
 
-**Current gate:** Release  
-**Gate state:** BLOCKED by external provider/staging configuration, with separate non-blocking GitHub governance hardening remaining.  
-**Certification source state:** MERGED through PR #280.  
-**Latest certification implementation validation:** PASS at head `4bc951247b7414e3cb33c7aabefbdabfda5c0d56`.  
-**First live certification result:** SETUP_REQUIRED before provider access.  
-**Production readiness:** DEGRADED with `dataProvider: forbidden`, tracked by #225.  
-**Verified production runtime:** Node 24.x.  
+**Classification: ACTIVE / scoped provider blocker.**
 
-GitHub Actions/CI remains diagnostic evidence under project policy. Real defects it exposes remain actionable, but hosted status is not itself the merge authority.
+Production configuration is present, but generated-data access remains forbidden. This blocks connected provider reads, provider-backed catalogue certification and downstream schema/provider work. It does **not** block unrelated source/frontend implementation.
 
-## ChatGPT-triggerable provider certification
+Required outcome:
 
-Issue #278 and PR #280 established a reusable provider certification path that ChatGPT can invoke without receiving NoCodeBackend credentials.
+- provider-authorized `NOCODEBACKEND_SECRET_KEY` remains server-only;
+- `NOCODEBACKEND_INSTANCE` resolves to the intended instance;
+- `/api/readiness` returns HTTP 200 with `dataProvider: "ok"`;
+- authenticated catalogue reads succeed through the same-origin server gateway.
 
-The canonical command is an exact issue comment on #278:
+### #165 — rating idempotency/schema
+
+**Classification: KEEP for future rating/provider work.**
+
+This is a real data-integrity dependency. Do not enable durable rating reconciliation until the provider schema supports the required submission identity, uniqueness and retry/reconciliation contract.
+
+It does not block unrelated Phase 3 source/frontend work.
+
+### #144 — canonical backend certification
+
+**Classification: POSTPONED until prerequisite provider/schema evidence exists.**
+
+Most repository-side certification machinery already exists. Remaining work depends on connected same-state provider/schema/import/recovery evidence. Resume after #225 and relevant #165 capability are established.
+
+### #154 — dependable beer discovery completion
+
+**Classification: CURRENT PHASE OUTCOME with scoped completion blockers.**
+
+Source/frontend hardening may continue. Final closure still requires connected catalogue reconciliation, production-equivalent browser behaviour and accessibility evidence against a recorded release state.
+
+## Non-blocking deferred governance
+
+### #143 — GitHub governance hardening
+
+**Classification: POSTPONED / non-blocking.**
+
+Repository protection/ruleset hardening remains worthwhile before final release, but it is not a blanket blocker for implementation or ordinary merges under the current project lifecycle policy.
+
+Complete it when GitHub administration capability is available. Do not allow its open state to stop unrelated work.
+
+## Removed blockers
+
+The following must no longer appear as active project blockers:
+
+- **#224 deployment provenance:** complete; exact-SHA production/runtime evidence has been established.
+- **#249 Node 24 migration:** complete; Node 24 is the governed production runtime.
+- **#281 staging certification setup:** closed; it must not remain the current execution gate.
+- **GitHub CI status:** diagnostic evidence only. A real defect revealed by CI remains actionable, but CI state itself does not authorize or prohibit merge.
+- **Platform Validation:** not a mandatory merge gate while it contains no substantive validation steps.
+- **Draft → Ready connector failure:** ChatGPT/GitHub connector limitation only; not an engineering or product blocker.
+
+## Current dependency order
 
 ```text
-/ncb-certify
+Independent source/frontend work
+        └────────────── may continue now
+
+Connected provider path
+#225 provider authorization
+  ↓
+#165 rating idempotency/schema capability
+  ↓
+#144 canonical backend/provider certification
+  ↓
+backend-dependent #154 catalogue certification
+  ↓
+launch verification
+
+#143 governance hardening proceeds independently and becomes relevant again near final release.
 ```
 
-The merged workflow only permits the secret-bearing job for the repository owner's exact command on the designated issue, or an explicit manual workflow dispatch. It uses the protected `staging-release` environment, generates redacted JSON/Markdown evidence, posts a safe summary to #278, and preserves a failing workflow result when certification is not PASS.
+## Runtime and deployment state
 
-The data-plane sequence uses the staging-only `chatgpt_api_test` fixture and verifies:
+Node 24.x is the governed runtime and production runtime evidence has been established. Deployment provenance is therefore not the current blocker.
 
-1. table/reachability read;
-2. create of uniquely tagged disposable rows;
-3. filtered-list isolation using a separate sentinel scope;
-4. read by provider-managed id;
-5. update and persisted-value verification across text, integer, decimal and boolean values;
-6. delete;
-7. post-delete absence;
-8. final run-scope emptiness;
-9. unconditional cleanup and residual-row verification.
-
-Schema/control-plane capability is deliberately reported as `UNAVAILABLE_NOT_CONFIGURED`. Current verified Pourfolio generated-table contracts cover record CRUD, while NoCodeBackend's documented V2 setup flow creates tables and columns through its schema/Quick Create/AI tooling. Do not guess or reverse-engineer a schema mutation endpoint merely to make the test self-provisioning.
-
-## Active external setup — #281
-
-Issue #281 is the active dependency-correct work boundary.
-
-Required external setup:
-
-- GitHub environment `staging-release` secret: `NOCODEBACKEND_SECRET_KEY` using a provider-authorized generated-data API credential;
-- GitHub environment `staging-release` variable: `NOCODEBACKEND_INSTANCE`, expected to resolve to `54026_rating` unless an explicitly approved isolated clone is used;
-- staging-only NoCodeBackend table `chatgpt_api_test` with provider-managed `id` and fields `run_key`, `label`, `quantity`, `score`, `active`, and `notes`.
-
-Once those inputs exist, ChatGPT can rerun `/ncb-certify` and inspect the posted sanitized capability matrix. If the next run returns a provider 401/403, fix the provider credential/authorization under #225 rather than bypassing authorization or exposing the secret.
-
-## Autonomous continuation support
-
-The autonomous-continuation control plane remains merged on `main`. Repository entry, duplicate-work prevention, whole-system analysis, durable state maintenance and the `Draft → Implementing → Validating → Ready → Mergeable → Merged` lifecycle remain the execution contract.
-
-This request explicitly resumed provider verification. The prior blanket statement that backend/provider work was owner-deferred is therefore superseded for the connection-certification path. Broader migration and reconciliation work remains dependency-gated until provider authorization and connected evidence exist.
-
-## Integrated recommendations
-
-The current source queue includes these completed or integrated items:
-
-- governance/autonomous continuation: #261;
-- profile rating-history recovery: #262;
-- cellar load recovery: #263;
-- product load recovery: #264;
-- sign-out failure recovery: #265;
-- catalogue load-error focus recovery: #266;
-- zero-valued catalogue IBU preservation: #267;
-- zero-valued product-detail IBU preservation: #268;
-- catalogue pagination focus recovery: #269;
-- NoCodeBackend runtime-instance externalisation: #270;
-- Node.js 24 runtime migration: #271;
-- release/runtime evidence reconciliation: #274 and #275;
-- PR lifecycle least-privilege hardening: #276;
-- ChatGPT-triggerable NoCodeBackend API certification harness: #278 / PR #280.
-
-Active external/provider work is now #281 followed by #225 and the dependency-gated #165/#144/#154 sequence.
-
-## Current-main production evidence
-
-Issue #224 is complete.
-
-Merging PR #274 produced a verified Vercel production deployment from `main` and established that subsequent `main` changes create new production deployments. Build evidence confirmed the governed Node 24 runtime target from repository configuration.
-
-The production health endpoint continues to return HTTP 200 with canonical data transport and required configuration-presence checks. The production readiness endpoint continues to return HTTP 503 with `dataProvider: "forbidden"`; this is provider-authorization evidence for #225, not deployment-provenance failure.
-
-Do not interpret deployment provenance, source validation, or configuration presence as proof that generated NoCodeBackend data operations are authorized.
-
-## Runtime and provider configuration
-
-The NoCodeBackend application environment contract remains:
+The NoCodeBackend environment contract remains:
 
 - `NOCODEBACKEND_AUTH_BASE_URL=https://app.nocodebackend.com/api/user-auth`
 - `NOCODEBACKEND_DATA_BASE_URL=https://api.nocodebackend.com/`
-- `NOCODEBACKEND_SECRET_KEY` supplied outside the repository;
-- `NOCODEBACKEND_INSTANCE` supplied outside the repository.
+- `NOCODEBACKEND_SECRET_KEY` supplied outside repository source;
+- `NOCODEBACKEND_INSTANCE` supplied outside repository source.
 
-Missing required instance/secret configuration fails closed before privileged provider access. The new certification workflow follows the same rule and reports missing protected inputs without exposing values.
-
-## Backend/provider state
-
-Provider verification is **resumed for the connection-certification path**.
-
-Current dependency order:
-
-- #281 — provision protected staging certification inputs and the isolated test fixture, then rerun `/ncb-certify`;
-- #225 — resolve NoCodeBackend generated-data API authorization if the credential is rejected; production currently reports `dataProvider: forbidden`;
-- #165 — deploy/verify rating idempotency schema and connected reconciliation only after provider capability is established;
-- #144 — canonical backend/import/recovery certification after prerequisite provider/schema evidence;
-- backend-dependent parts of #154 — catalogue remediation/provider reconciliation and connected certification.
-
-The merged certification harness does not itself authorize provider mutations or certify production data.
-
-## Governance state
-
-Issue #143 remains open as non-blocking repository-governance hardening.
-
-Verified remote evidence remains that `main` is not protected by a repository ruleset through the currently visible GitHub configuration, and the connected GitHub integration does not expose the required branch/ruleset administration capability. Existing workflow permissions have been reduced where repository source can control them.
-
-The remaining #143 branch/ruleset protection criteria require external GitHub administration. Do not claim those controls are enabled until remote evidence changes. This does not block #281 provider certification setup.
-
-## Known constraints
-
-- The protected GitHub `staging-release` environment currently lacks the NoCodeBackend secret and instance required for the new certification job.
-- The `chatgpt_api_test` fixture must be provisioned once in an isolated staging provider context unless a supported NoCodeBackend schema-management API contract becomes available and is deliberately adopted.
-- Production NoCodeBackend generated-data access currently returns forbidden despite configuration being present.
-- Source validation and runtime/deployment evidence do not certify provider authorization, schema state or production data.
-- #143 remains useful hardening but is not a blanket merge/provider-certification blocker.
+Missing or unauthorized provider credentials must fail closed and must not be worked around in browser code.
 
 ## Next dependency-correct work
 
-1. Complete the protected GitHub staging inputs and isolated NoCodeBackend fixture under #281.
-2. Rerun `/ncb-certify` on #278 and inspect the sanitized capability result.
-3. If provider authorization fails, resolve #225 without weakening the server-only secret boundary.
-4. After connected data-plane capability is proved, continue #165 → #144 and backend-dependent #154 in dependency order.
-5. Complete #143 branch/ruleset administration when the required GitHub capability is available.
+1. Resolve #225 provider authorization and obtain successful readiness/catalogue evidence.
+2. In parallel, continue independent launch-scoped frontend/source work that does not depend on provider mutation or certification.
+3. After provider capability is proved, progress #165 → #144 → backend-dependent #154.
+4. Complete #143 practical repository hardening before final release when administration capability is available.
+5. Do not revive completed #224/#249/#281 or CI/Platform Validation status as global blockers.
 
 ## Completion rule
 
-Do not mark Phase 3 or Pourfolio complete from the merged certification harness, source validation, Node 24 certification or deployment provenance alone. Completion still requires connected provider authorization, schema/migration evidence, catalogue/rating acceptance evidence, and the remaining release criteria appropriate to launch.
+Do not mark Pourfolio complete until connected provider authorization, required schema/data-integrity work, backend/catalogue certification and launch evidence are sufficient. Conversely, do not stop independent implementation merely because future-phase release/provider evidence is still outstanding.
