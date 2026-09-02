@@ -28,14 +28,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Synchronise lifecycle label
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const pr = context.payload.pull_request;
             const lifecycleLabels = [
-              ['pr:draft', 'Pull request is the active draft work container', '6f42c1'],
+              ['pr:draft', 'Pull request is intentionally incomplete or non-reviewable', '6f42c1'],
               ['pr:implementing', 'Implementation is actively changing', '1d76db'],
               ['pr:validating', 'Project-owned validation is being assessed', 'fbca04'],
               ['pr:ready', 'Implementation gate and project-owned validation are sufficient', '0e8a16'],
@@ -53,26 +53,34 @@ jobs:
             }
 
             const managed = lifecycleLabels.map(([name]) => name).filter((name) => name !== 'pr:blocked');
-
-            // GitHub Actions conclusions are deliberately not used as lifecycle gates.
-            // A draft PR remains work in progress. A contributor/agent explicitly marks
-            // implementation coherent by transitioning the PR out of draft, at which
-            // point this automation records it as Ready for project-owned merge review.
-            const target = pr.draft ? 'pr:draft' : 'pr:ready';
-
             const current = pr.labels.map((label) => label.name);
-            for (const label of managed) {
-              if (label !== target && current.includes(label)) {
-                try {
-                  await github.rest.issues.removeLabel({ owner, repo, issue_number: pr.number, name: label });
-                } catch (error) {
-                  if (error.status !== 404) throw error;
-                }
-              }
+            const currentManaged = current.filter((label) => managed.includes(label));
+
+            // GitHub Draft is exceptional. It can force the presentation label to
+            // pr:draft, but normal non-draft PRs retain their explicit project-owned
+            // lifecycle label. A new normal PR starts at pr:implementing; automation
+            // must not infer Ready/Mergeable from GitHub-native state or CI conclusions.
+            let target = null;
+            if (pr.draft) {
+              target = 'pr:draft';
+            } else if (currentManaged.includes('pr:draft') || currentManaged.length === 0) {
+              target = 'pr:implementing';
             }
 
-            if (!current.includes(target)) {
-              await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: [target] });
+            if (target) {
+              for (const label of managed) {
+                if (label !== target && current.includes(label)) {
+                  try {
+                    await github.rest.issues.removeLabel({ owner, repo, issue_number: pr.number, name: label });
+                  } catch (error) {
+                    if (error.status !== 404) throw error;
+                  }
+                }
+              }
+
+              if (!current.includes(target)) {
+                await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: [target] });
+              }
             }
 
   delete-merged-branch:
@@ -86,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Delete merged source branch
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const owner = context.repo.owner;
