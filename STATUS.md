@@ -32,14 +32,14 @@ owner_decision:
   recommendation: null
 validation:
   governance: PASS
-  lint: PENDING
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PENDING
-  build: PENDING
-  ci: PENDING
+  tests: NOT_RUN
+  build: NOT_RUN
+  ci: FAIL
   runtime: VERIFIED
 last_verified_commit: "158416fa16871738c1d3aa0ee323f08ce2bda7cb"
-last_updated: "2026-09-02T19:08:00+10:00"
+last_updated: "2026-09-02T19:57:00+10:00"
 ---
 
 # STATUS.md
@@ -109,11 +109,11 @@ These items are not closed and no readiness claim is made for them. They also do
 
 The repository exposes `npm run platform:validate` as the canonical aggregated source-validation entry point, with browser/accessibility and CodeQL evidence also available through repository automation. When automation identifies a substantive implementation or repository-contract defect, fix the underlying defect. Automation availability/status by itself is not a product acceptance decision.
 
-PR #294 validation is currently pending at its latest head. Do not merge until the exact current head has sufficient project-owned validation evidence and any substantive failures are resolved.
+The first exact-head aggregate validation attempt for PR #294 failed before lint/unit/build execution because `STATUS.md` used unsupported `PENDING` values for the lint/tests/build front-matter fields. That executable documentation defect is corrected in the PR; browser/accessibility and CodeQL evidence were already green on the preceding head. Canonical validation must rerun on the corrected exact head before merge.
 
 ## Next dependency-correct work
 
-1. Complete exact-head validation for #293/#294.
+1. Complete exact-head validation for #293/#294 after the STATUS.md contract repair.
 2. If sufficient, advance #294 through Ready/Mergeable/Merged and verify the resulting production deployment.
 3. Continue remaining launch-scope frontend responsive, keyboard, empty/error/loading and accessibility review.
 4. Perform a holistic frontend Phase 3 source review when those surfaces reach a natural completion boundary.
