@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { installMockApi } from './mockApi.js'
+import { installMockApi, product } from './mockApi.js'
 
 test.beforeEach(async ({ page }) => {
   await installMockApi(page)
@@ -111,7 +111,7 @@ test('profile rating history load failure has a focused retry path that recovers
   await expect(alert).toHaveCount(0)
 })
 
-test('profile rating delete disables the active control while the request is pending', async ({ page }) => {
+test('profile rating delete disables the active control and restores focus to the heading when the list becomes empty', async ({ page }) => {
   let releaseDelete
   const deleteGate = new Promise((resolve) => { releaseDelete = resolve })
 
@@ -130,4 +130,44 @@ test('profile rating delete disables the active control while the request is pen
 
   releaseDelete()
   await expect(page.getByRole('button', { name: /rating for Ace/ })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'My ratings' })).toBeFocused()
+})
+
+test('profile rating delete restores focus to an adjacent remaining rating', async ({ page }) => {
+  const secondProduct = { ...product, id: 5, product_name: 'Bravo' }
+  await page.route('**/api/nocodebackend/ratings/mine', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      items: [
+        {
+          id: 99,
+          rating_id: 1700000000000001,
+          product_id: 4,
+          cellar_id: null,
+          date_rated: '2026-07-27T00:00:00.000Z',
+          total_unweighted: 4,
+          total_weighted: 4,
+          product
+        },
+        {
+          id: 100,
+          rating_id: 1700000000000002,
+          product_id: 5,
+          cellar_id: null,
+          date_rated: '2026-07-28T00:00:00.000Z',
+          total_unweighted: 5,
+          total_weighted: 5,
+          product: secondProduct
+        }
+      ]
+    })
+  }))
+  await page.route('**/api/nocodebackend/ratings/99', (route) => route.fulfill({ status: 204, body: '' }))
+
+  await page.goto('/profile')
+  page.once('dialog', (dialog) => dialog.accept())
+  await page.getByRole('button', { name: 'Delete rating for Ace' }).click()
+
+  await expect(page.getByRole('link', { name: 'Bravo' })).toBeFocused()
 })
