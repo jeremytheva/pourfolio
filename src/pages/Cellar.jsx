@@ -210,7 +210,7 @@ function Cellar() {
                 {editingId === item.id && (
                   <form id={editFormId} onSubmit={save} aria-busy={mutation?.kind === 'save' && isMutating ? 'true' : 'false'} className="mt-5 grid gap-4 border-t border-gray-200 pt-5 sm:grid-cols-3">
                     <label className="text-sm font-medium text-gray-700">Quantity
-                      <input type="number" min="0" max="10000" required value={draft.quantity} onChange={(event) => setDraft((current) => ({ ...current, quantity: event.target.value }))} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
+                      <input autoFocus type="number" min="0" max="10000" required value={draft.quantity} onChange={(event) => setDraft((current) => ({ ...current, quantity: event.target.value }))} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
                     </label>
                     <label className="text-sm font-medium text-gray-700">Volume (mL)
                       <input type="number" min="0" max="100000" value={draft.mls} onChange={(event) => setDraft((current) => ({ ...current, mls: event.target.value }))} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
