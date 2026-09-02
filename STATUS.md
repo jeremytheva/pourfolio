@@ -4,17 +4,17 @@ portfolio_state: ACTIVE
 phase: "Phase 3 — Beer discovery dependable"
 stage: "Frontend source hardening continues while backend/provider work is deferred"
 gate: Change
-execution_state: IMPLEMENTING
+execution_state: VALIDATING
 current_work:
-  objective: "Adopt the product-owner-approved non-draft autonomous PR policy, then continue launch-scope frontend reliability work without advancing deferred backend/provider work."
-  issue: 297
-  pr: null
-  branch: docs/non-draft-autonomous-pr-policy
+  objective: "Restore predictable keyboard focus after successful cellar item deletion without advancing deferred backend/provider work."
+  issue: 299
+  pr: 300
+  branch: fix/cellar-delete-focus
 next_actions:
-  - "Validate and merge #297 lifecycle-governance documentation using a normal non-draft PR."
-  - "Verify resulting exact-main production provenance where applicable."
-  - "Continue the smallest dependency-correct frontend quality slice after the governance change merges."
-  - "Reassess deferred provider/schema work only when the product owner explicitly resumes backend implementation."
+  - "Re-run exact-head canonical source validation after repairing the STATUS.md autonomous-handoff contract."
+  - "Inspect applicable Playwright/browser, CodeQL and review evidence for the new exact head."
+  - "If evidence is sufficient, advance #300 to Mergeable/Merged and verify exact-main production deployment."
+  - "Continue the smallest dependency-correct launch-scope frontend quality slice after #300 merges."
 blockers:
   - scope: provider_connected_work
     issue: 225
@@ -34,12 +34,12 @@ validation:
   governance: PASS
   lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: NOT_RUN
-  build: NOT_RUN
-  ci: NOT_RUN
+  tests: PASS
+  build: PASS
+  ci: PENDING
   runtime: VERIFIED
-last_verified_commit: "90e6da7c0d00d6396ed7a602c8fe1a9983a7e380"
-last_updated: "2026-09-03T06:08:00+10:00"
+last_verified_commit: "49c809cb786b5362dfd34250ef3cd626ae0e13a4"
+last_updated: "2026-09-03T09:30:00+10:00"
 ---
 
 # STATUS.md
@@ -52,76 +52,61 @@ Last materially reviewed: 3 September 2026
 
 ## Overall status
 
-**Active implementation; not production-ready.**
-
-Independent launch-scope frontend work can continue. Backend/provider implementation remains explicitly deferred pending further product-owner information and must not be treated as the active execution path or as resolved.
+**Active implementation; not production-ready.** Independent launch-scope frontend work can continue. Backend/provider implementation remains explicitly deferred and is not treated as resolved.
 
 ## AI execution gate
 
-**Current gate:** Change / lifecycle governance  
-**Execution state:** Implementing  
+**Current gate:** Change / frontend accessibility  
+**Execution state:** Validating  
 **Release state:** Not certified.
-
-The immediate dependency-correct work is to make the repository authority match the approved autonomous PR policy: normal non-draft PRs by default, lifecycle state in repository/PR metadata, Draft only for genuinely incomplete/non-reviewable work, project-owned validation as the acceptance authority, and GitHub Actions as supporting diagnostic evidence.
 
 ## Autonomous continuation support
 
-The repository remains the authoritative handoff for autonomous continuation. An AI agent should:
-
-1. inspect this file, ROADMAP.md and open PRs before changing code;
-2. continue the highest-priority work independent of deferred backend/provider capability;
-3. create normal non-draft PRs by default and record lifecycle state in repository/PR metadata;
-4. use GitHub Draft only when the change genuinely should not be reviewable/mergeable yet or substantial intended implementation is deliberately incomplete;
-5. investigate real defects exposed by automated checks rather than weakening checks;
-6. stop only for a genuine decision, destructive action or dependency that prevents all safe independent work.
-
-Chat history is supporting context only. Backend/provider tasks remain preserved in their issues and should be reverified when explicitly resumed.
+The repository remains the authoritative handoff for autonomous continuation. Continue the highest-priority dependency-correct launch-scope work that is independent of deferred provider/schema capability. Use normal non-draft PRs by default, remediate substantive validation or review findings in the same coherent PR, and do not stop merely because one implementation subtask or diagnostic workflow has completed. Preserve #225, #165 and #144 until the product owner explicitly resumes provider/backend work.
 
 ## Current implementation focus
 
-Issue **#297** updates the repository's authoritative PR lifecycle documentation to remove ordinary autonomous dependence on GitHub Draft → Ready transitions. `PR_LIFECYCLE_STANDARD.md`, `AGENTS.md`, `PROJECT.md` and this status handoff are being aligned in one focused governance change.
+Issue **#299** / normal non-draft PR **#300** restores keyboard focus after a cellar item is successfully deleted. The implementation chooses an adjacent remaining visible cellar product link when available and otherwise moves focus to the persistent **My cellar** heading. Existing confirmation, row busy/disabled semantics and focused mutation-error handling remain unchanged. Focused Playwright coverage is included for both recovery paths.
 
-The immediately preceding frontend hardening is integrated: **#296** restores focus after rating deletion, **#294** moves focus into an expanded cellar editor, **#292** corrected catalogue-card image meaning and keyboard focus, and **#290** corrected global loading/error recovery.
+The first exact-head diagnostic PR run exposed a real repository-owned documentation defect: the branch's `STATUS.md` update had omitted the required **Autonomous continuation support** section enforced by `scripts/check-project-documentation.js`. Browser/accessibility, dependency review and CodeQL evidence for that implementation head passed; the documentation contract has now been repaired in the same PR and exact-head validation must be re-evaluated.
+
+The preceding governance change **#297/#298** is integrated. The repository now uses normal non-draft PRs by default for autonomous work, with lifecycle state recorded in repository/PR metadata rather than GitHub Draft.
+
+The immediately preceding frontend hardening is also integrated: **#296** restores focus after rating deletion, **#294** moves focus into an expanded cellar editor, **#292** corrected catalogue-card image/focus semantics, and **#290** corrected global loading/error recovery.
 
 ## Production deployment evidence
 
-Vercel reports the production deployment for exact current `main` commit **90e6da7c0d00d6396ed7a602c8fe1a9983a7e380** as **READY**. Deployment metadata identifies `main`, the exact verified GitHub commit SHA, the expected Pourfolio Vite project, and Node.js lambda runtime evidence. This deployment corresponds to merged PR #296.
+Vercel reports production **READY** on exact current `main` commit **49c809cb786b5362dfd34250ef3cd626ae0e13a4**, corresponding to merged PR #298. Deployment metadata identifies `main`, the exact verified GitHub commit SHA, the Pourfolio project, and Node.js lambda runtime evidence.
 
-Deployment provenance and Node 24 migration are therefore not current blockers. This fact does not certify provider readiness: issue #225 remains the scoped NoCodeBackend authorisation blocker for connected provider work.
+Deployment provenance and Node 24 migration are not current blockers. This does not certify provider readiness; issue #225 remains the scoped NoCodeBackend authorisation blocker for connected provider work.
 
 ## Deferred backend/provider work
 
-The following work remains valid but intentionally paused:
+Preserved and intentionally paused:
 
 - **#225** — NoCodeBackend generated-data authorisation;
 - **#165** — rating idempotency/schema migration and connected verification;
 - **#144** — canonical backend/import/recovery certification;
 - backend-dependent portions of **#154** — connected catalogue/provider certification.
 
-These items are not closed and no readiness claim is made for them. They also do not block independent frontend or governance implementation.
-
-## Other external/release work
-
-- **#143** governance/ruleset hardening remains a future release-governance concern rather than a blanket implementation blocker.
-- Connected production/runtime evidence must be reverified against the intended release candidate before launch certification.
-- A green repository test result must not be represented as provider or production certification.
+These items do not block independent frontend implementation.
 
 ## Validation posture
 
-The repository exposes `npm run platform:validate` as the canonical aggregated source-validation entry point, with browser/accessibility and CodeQL evidence also available through repository automation. When automation identifies a substantive implementation or repository-contract defect, fix the underlying defect. GitHub Actions availability/status by itself is not a product acceptance decision.
+`npm run platform:validate` is the canonical aggregated source-validation entry point. Browser-facing changes also require applicable Playwright/accessibility evidence. GitHub Actions and CodeQL are supporting diagnostic evidence: any real defect they expose must be fixed, but their platform conclusion is not a duplicate acceptance gate.
 
-PR #296 passed exact-head validation and CodeQL, had no unresolved review threads, had a READY exact-head preview, merged as `90e6da7c...`, and the exact-main production deployment is READY. Its integration/deployment provenance is complete for the frontend slice.
-
-Issue #297 is documentation/governance-only and requires canonical source validation sufficient to prove the repository contracts remain internally valid before merge.
+For PR #300 implementation head `02f4a006ea0f6544867f486458cb49f32de5c104`, the hosted Browser and accessibility job passed, Dependency review passed and CodeQL passed. The Release gate failed during `npm run platform:validate`; inspection traced the actionable repository-owned cause to the missing required STATUS section described above. This PR now contains that repair and no validation pass is claimed for the new head until exact-head evidence is available.
 
 ## Next dependency-correct work
 
-1. Complete and validate #297 using a normal non-draft PR.
-2. Merge #297 if project-owned validation is sufficient and no material review/blocker exists.
-3. Continue remaining launch-scope frontend responsive, keyboard, empty/error/loading and accessibility review.
-4. Perform a holistic frontend Phase 3 source review when those surfaces reach a natural completion boundary.
-5. Resume provider/schema work only after the product owner supplies the required backend information and explicitly resumes that path.
+1. Inspect exact-head source validation after the STATUS contract repair.
+2. Repair any remaining real regression or repository-contract defect in #300.
+3. Confirm review/conflict and applicable deployment evidence.
+4. Merge #300 when implementation and project-owned evidence are sufficient.
+5. Verify the resulting exact-main production deployment.
+6. Continue remaining launch-scope responsive, keyboard, empty/error/loading and accessibility review.
+7. Resume provider/schema work only after the product owner explicitly resumes that path.
 
 ## Completion rule
 
-Do not mark Phase 3 or Pourfolio complete from frontend/source validation alone. Final completion still requires the relevant connected catalogue/provider evidence, required data-integrity work, deployment/runtime provenance, governance controls and release verification after deferred backend work resumes.
+Do not mark Phase 3 or Pourfolio complete from frontend/source validation alone. Final completion still requires the relevant connected catalogue/provider evidence, data-integrity work, deployment/runtime provenance, governance controls and release verification after deferred backend work resumes.

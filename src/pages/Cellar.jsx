@@ -17,6 +17,9 @@ function Cellar() {
   const [mutation, setMutation] = useState(null)
   const loadErrorRef = useRef(null)
   const mutationErrorRef = useRef(null)
+  const cellarHeadingRef = useRef(null)
+  const itemLinkRefs = useRef(new Map())
+  const pendingDeleteFocusRef = useRef(null)
 
   useEffect(() => {
     let active = true
@@ -45,6 +48,19 @@ function Cellar() {
   useEffect(() => {
     if (mutationError) mutationErrorRef.current?.focus()
   }, [mutationError])
+
+  useEffect(() => {
+    const target = pendingDeleteFocusRef.current
+    if (target === null) return
+
+    pendingDeleteFocusRef.current = null
+    if (target === 'heading') {
+      cellarHeadingRef.current?.focus()
+      return
+    }
+
+    itemLinkRefs.current.get(target)?.focus()
+  }, [items])
 
   const filteredItems = useMemo(() => {
     const term = query.trim().toLocaleLowerCase()
@@ -93,6 +109,10 @@ function Cellar() {
     setMutation({ kind: 'delete', id: item.id })
     try {
       await cellarService.deleteCellarItem(item.id)
+      const deletedIndex = filteredItems.findIndex((entry) => entry.id === item.id)
+      const remainingVisibleItems = filteredItems.filter((entry) => entry.id !== item.id)
+      const adjacentItem = remainingVisibleItems[Math.min(deletedIndex, remainingVisibleItems.length - 1)]
+      pendingDeleteFocusRef.current = adjacentItem?.id ?? 'heading'
       setItems((current) => current.filter((entry) => entry.id !== item.id))
       if (editingId === item.id) setEditingId(null)
     } catch (requestError) {
@@ -110,7 +130,7 @@ function Cellar() {
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <header className="mb-8">
         <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Private inventory</p>
-        <h1 className="mt-2 text-3xl font-bold text-gray-900">My cellar</h1>
+        <h1 ref={cellarHeadingRef} tabIndex={-1} className="mt-2 text-3xl font-bold text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2">My cellar</h1>
         <p className="mt-2 text-gray-600">Items are loaded from your owner-scoped server records, not this browser.</p>
       </header>
 
@@ -166,7 +186,14 @@ function Cellar() {
               <li key={item.id} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm" aria-busy={isMutating ? 'true' : undefined}>
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <Link to={`/products/${item.product_id}`} className="text-xl font-semibold text-gray-900 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
+                    <Link
+                      ref={(node) => {
+                        if (node) itemLinkRefs.current.set(item.id, node)
+                        else itemLinkRefs.current.delete(item.id)
+                      }}
+                      to={`/products/${item.product_id}`}
+                      className="text-xl font-semibold text-gray-900 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2"
+                    >
                       {item.product?.product_name || `Product ${item.product_id}`}
                     </Link>
                     <p className="mt-1 text-sm text-gray-600">{item.product?.producer?.producer_name || 'Producer not recorded'}</p>
