@@ -21,6 +21,9 @@ function Profile() {
   const [error, setError] = useState('')
   const errorRef = useRef(null)
   const ratingsErrorRef = useRef(null)
+  const ratingHistoryHeadingRef = useRef(null)
+  const ratingLinkRefs = useRef(new Map())
+  const pendingRatingFocusRef = useRef(null)
   const ratingsRequestIdRef = useRef(0)
 
   const loadRatings = useCallback(async () => {
@@ -56,6 +59,19 @@ function Profile() {
     if (ratingsError) ratingsErrorRef.current?.focus()
   }, [ratingsError])
 
+  useEffect(() => {
+    const target = pendingRatingFocusRef.current
+    if (target === null) return
+
+    pendingRatingFocusRef.current = null
+    if (target === 'heading') {
+      ratingHistoryHeadingRef.current?.focus()
+      return
+    }
+
+    ratingLinkRefs.current.get(target)?.focus()
+  }, [ratings])
+
   const average = useMemo(() => {
     const values = ratings.map((rating) => Number(rating.total_weighted)).filter(Number.isFinite)
     return values.length ? (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2) : null
@@ -80,7 +96,11 @@ function Profile() {
     setDeletingRatingId(rating.id)
     try {
       await ratingService.deleteRating(rating.id)
-      setRatings((current) => current.filter((item) => item.id !== rating.id))
+      const deletedIndex = ratings.findIndex((item) => item.id === rating.id)
+      const remainingRatings = ratings.filter((item) => item.id !== rating.id)
+      const adjacentRating = remainingRatings[Math.min(deletedIndex, remainingRatings.length - 1)]
+      pendingRatingFocusRef.current = adjacentRating?.id ?? 'heading'
+      setRatings(remainingRatings)
     } catch (requestError) {
       setError(requestError.message || 'The rating could not be deleted.')
     } finally {
@@ -135,7 +155,7 @@ function Profile() {
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="rating-history" aria-busy={ratingsStatus === 'loading' ? 'true' : 'false'}>
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 id="rating-history" className="text-2xl font-semibold text-gray-900">My ratings</h2>
+              <h2 ref={ratingHistoryHeadingRef} id="rating-history" tabIndex={-1} className="text-2xl font-semibold text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2">My ratings</h2>
               <p className="mt-1 text-sm text-gray-600">Only ratings owned by your authenticated account are returned.</p>
             </div>
             <div className="text-right">
@@ -167,7 +187,10 @@ function Profile() {
                 return (
                   <li key={rating.id} className="flex items-start justify-between gap-4 py-4" aria-busy={isDeleting ? 'true' : undefined}>
                     <div>
-                      <Link to={`/products/${rating.product_id}`} className="font-semibold text-gray-900 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
+                      <Link ref={(node) => {
+                        if (node) ratingLinkRefs.current.set(rating.id, node)
+                        else ratingLinkRefs.current.delete(rating.id)
+                      }} to={`/products/${rating.product_id}`} className="font-semibold text-gray-900 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
                         {rating.product?.product_name || `Product ${rating.product_id}`}
                       </Link>
                       <p className="mt-1 text-sm text-gray-600">{rating.product?.producer?.producer_name || 'Producer not recorded'}</p>
