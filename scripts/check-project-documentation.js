@@ -94,7 +94,8 @@ if (fs.existsSync(agentsPath)) {
   const requiredAgentSemantics = [
     'Continue the highest-priority dependency-correct work that can safely be completed autonomously.',
     'Do not stop merely because one task, commit or pull-request subtask has finished.',
-    'Draft → Implementing → Validating → Ready → Mergeable → Merged',
+    'Implementing → Validating → Ready → Mergeable → Merged',
+    'GitHub Draft reserved for exceptional incomplete/non-reviewable work',
     'Chat history is supporting context only.'
   ]
   for (const marker of requiredAgentSemantics) {
