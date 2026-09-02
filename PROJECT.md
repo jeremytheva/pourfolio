@@ -7,7 +7,7 @@ Beer-first discovery, structured rating and private cellar platform.
 
 **Repository:** `jeremytheva/pourfolio`  
 **Primary branch:** `main`  
-**Project control baseline:** 31 August 2026
+**Project control baseline:** 3 September 2026
 
 ## Purpose
 
@@ -42,7 +42,7 @@ Pourfolio inherits the current master software-development rules supplied for th
 
 - **AI-First Platform Development Framework v3.1** — overarching architecture, whole-system, autonomy, continuity and project-managed PR governance framework;
 - **AI Platform Development Standard v1.2** — implementation protocol, execution gates, Continue/Next behaviour, repository/PR management and work-state rules;
-- **Pull Request Lifecycle Standard** — Draft → Implementing → Validating → Ready → Mergeable → Merged progression;
+- **Pull Request Lifecycle Standard** — Implementing → Validating → Ready → Mergeable → Merged progression, with GitHub Draft reserved for exceptional incomplete/non-reviewable work;
 - **Testing, Validation & Release Standard** — project-owned evidence, deployment and completion rules;
 - **Project Documentation Standard** — project-document ownership, continuity, PR/gate status integration and source-of-truth rules;
 - the applicable Platform Engineering, Design, Data/Migration, Security, Observability and provider reference standards where their rules apply to this project.
@@ -52,6 +52,8 @@ Project-specific facts and exceptions belong in this repository. Master rules sh
 ### Project-specific deviations
 
 No intentional project deviation currently overrides the master security or data-integrity rules. Provider limitations and unresolved runtime evidence are recorded rather than treated as complete.
+
+Autonomous project work uses normal, non-draft pull requests by default. Lifecycle state is recorded in repository/PR metadata rather than GitHub's draft flag. GitHub Draft is used only when a change genuinely should not be reviewable/mergeable yet or substantial intended implementation is deliberately incomplete. This project-specific policy prevents ordinary autonomous continuation from depending on a Draft → Ready transition.
 
 GitHub Actions/CI is diagnostic evidence under the current project PR policy, not an automatic merge prerequisite. A failing check that exposes a real implementation, security, data-integrity or release defect remains actionable. Issue #143 tracks repository governance hardening and is not a blanket blocker on otherwise mergeable work.
 
@@ -81,7 +83,7 @@ GitHub Actions/CI is diagnostic evidence under the current project PR policy, no
 | Server boundary | Vercel Functions under `api/` |
 | Rate limiting | Vercel KV / Upstash-compatible Redis integration |
 | Validation | Project-owned validation plus diagnostic GitHub Actions |
-| PR lifecycle | GitHub PR state plus `.github/workflows/pr-lifecycle.yml` |
+| PR lifecycle | Normal PRs plus repository/PR lifecycle metadata and `.github/workflows/pr-lifecycle.yml` |
 | Browser routing | Small same-origin History API router |
 
 Node.js 24 is the governed repository/deployment target. It replaces Node 20 before Vercel's 1 October 2026 Node 20 build cutoff. `.nvmrc`, `package.json`, validation and deployment evidence must remain aligned.
@@ -117,7 +119,7 @@ Use the following project source hierarchy, while applying the inherited master 
 7. prior chat/context;
 8. inference.
 
-For PR lifecycle facts, GitHub is authoritative for draft/ready state, latest head, review conversations, conflicts and merge state. Hosted checks are diagnostic evidence unless the project policy explicitly makes a particular result material to the change. Conflicts must be investigated rather than silently reconciled.
+For PR lifecycle facts, GitHub is authoritative for open/closed/merged state, latest head, review conversations and conflicts. Repository/PR metadata is authoritative for the project's Implementing/Validating/Ready/Mergeable lifecycle state. GitHub Draft is exceptional and must not be used as the routine lifecycle mechanism. Hosted checks are diagnostic evidence unless the project policy explicitly makes a particular underlying result material to the change. Conflicts must be investigated rather than silently reconciled.
 
 ## Canonical repository documents
 
