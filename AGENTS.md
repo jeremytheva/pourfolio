@@ -122,27 +122,30 @@ Before a meaningful change:
 
 Use `PR_LIFECYCLE_STANDARD.md` as the repository's canonical PR operating contract:
 
-**Draft → Implementing → Validating → Ready → Mergeable → Merged**
+**Implementing → Validating → Ready → Mergeable → Merged**, with `BLOCKED` as an overlay and GitHub Draft reserved for exceptional incomplete/non-reviewable work.
 
 Before creating a pull request or branch:
 
-- search open and draft PRs, relevant issues, visible branches, `STATUS.md`, TODO/state documentation and partially implemented code;
+- search open PRs (including intentional drafts), relevant issues, visible branches, `STATUS.md`, TODO/state documentation and partially implemented code;
 - reuse or repair an appropriate existing PR where practical;
 - avoid competing implementation branches for the same outcome.
 
 Lifecycle rules:
 
-- Create or reuse a draft PR as the durable implementation container for meaningful work where the available GitHub tooling supports the transition cleanly.
+- Create normal, non-draft PRs by default for autonomous project work once the branch has an initial coherent change to publish.
+- Record lifecycle state in repository/PR metadata, labels and `STATUS.md` rather than using GitHub's draft flag as the lifecycle mechanism.
+- Use a GitHub Draft PR only when the change genuinely should not be reviewed or merged yet, or substantial intended implementation is deliberately incomplete.
+- Pending validation alone is not a reason to create or keep an autonomous PR in Draft.
 - Keep required failing work open and remediate it in the same coherent PR unless the work is deliberately superseded, duplicated, cancelled or rejected.
 - Treat changed implementation as requiring sufficient current project-owned validation; hosted CI results remain useful diagnostic evidence but are not automatically mandatory merge gates.
 - A failed, pending, unavailable or runner-blocked GitHub check does not by itself prevent merge. Any real defect exposed by that check still requires remediation.
-- Move to Ready when implementation is complete and the Change/Integration evidence is sufficient.
-- Mergeable requires implementation complete, project-owned validation sufficient, no merge conflicts, material review findings resolved, and no material blocker.
+- Move lifecycle metadata to Ready when implementation is complete and the Change/Integration evidence is sufficient; normal PRs do not require a Draft → Ready GitHub transition.
+- Mergeable requires implementation complete, canonical project-owned validation sufficient, applicable browser/runtime and deployment evidence sufficient for the change, no merge conflicts, material review findings resolved, and no material blocker.
 - Issue #143 tracks repository governance hardening and is not a blanket blocker on ordinary mergeable work.
 - After a successful merge, delete the source branch where safe and continue downstream deployment/provider/runtime verification; `MERGED` is not `COMPLETE`.
 - Record only continuity-critical lifecycle state in `STATUS.md`; do not duplicate CI logs or full PR discussions.
 
-`.github/workflows/pr-lifecycle.yml` may synchronise safe lifecycle labels from GitHub-native state. It must not fabricate project-owned validation or conceal a material defect.
+`.github/workflows/pr-lifecycle.yml` may synchronise safe lifecycle labels from GitHub-native state. It must not fabricate project-owned validation, conceal a material defect, or require Draft → Ready transitions for ordinary autonomous work.
 
 ## Coding standards
 
