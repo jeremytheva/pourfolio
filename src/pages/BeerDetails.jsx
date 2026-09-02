@@ -206,7 +206,7 @@ function BeerDetails() {
           )}
           <form onSubmit={addToCellar} aria-busy={cellarSaving ? 'true' : 'false'} className="mt-6 grid gap-5 sm:grid-cols-2">
             <label className="text-sm font-medium text-gray-700">Quantity
-              <input type="number" min="0" max="10000" required value={cellarForm.quantity} onChange={updateCellarField('quantity')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
+              <input autoFocus type="number" min="0" max="10000" required value={cellarForm.quantity} onChange={updateCellarField('quantity')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
             </label>
             <label className="text-sm font-medium text-gray-700">Container volume (mL)
               <input type="number" min="0" max="100000" value={cellarForm.mls} onChange={updateCellarField('mls')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />

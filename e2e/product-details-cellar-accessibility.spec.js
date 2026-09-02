@@ -5,6 +5,19 @@ test.beforeEach(async ({ page }) => {
   await installMockApi(page)
 })
 
+test('product cellar disclosure moves focus into the revealed form', async ({ page }) => {
+  await page.goto('/products/4')
+
+  const toggle = page.getByRole('button', { name: 'Add to cellar' })
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+  await toggle.focus()
+  await toggle.click()
+
+  const quantity = page.getByRole('spinbutton', { name: 'Quantity' })
+  await expect(page.getByRole('button', { name: 'Close cellar form' })).toHaveAttribute('aria-expanded', 'true')
+  await expect(quantity).toBeFocused()
+})
+
 test('product cellar disclosure exposes relationships, busy state and focused save errors', async ({ page }) => {
   let releaseSave
   const saveGate = new Promise((resolve) => { releaseSave = resolve })
