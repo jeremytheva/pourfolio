@@ -5,7 +5,7 @@ test.beforeEach(async ({ page }) => {
   await installMockApi(page)
 })
 
-test('cellar search and edit mutations expose accessible relationships, busy state and focused errors', async ({ page }) => {
+test('cellar search and edit mutations expose accessible relationships, focus, busy state and focused errors', async ({ page }) => {
   let releaseSave
   const saveGate = new Promise((resolve) => { releaseSave = resolve })
 
@@ -34,7 +34,9 @@ test('cellar search and edit mutations expose accessible relationships, busy sta
   await expect(edit).toHaveAttribute('aria-expanded', 'true')
 
   const form = page.locator('#cellar-edit-55')
-  await page.getByLabel('Quantity').fill('3')
+  const quantity = page.getByLabel('Quantity')
+  await expect(quantity).toBeFocused()
+  await quantity.fill('3')
   await page.getByRole('button', { name: 'Save changes' }).click()
   await expect(form).toHaveAttribute('aria-busy', 'true')
   await expect(page.getByRole('button', { name: 'Saving changes…' })).toBeDisabled()

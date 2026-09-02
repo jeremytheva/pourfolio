@@ -4,15 +4,16 @@ portfolio_state: ACTIVE
 phase: "Phase 3 — Beer discovery dependable"
 stage: "Frontend source hardening continues while backend/provider work is deferred"
 gate: Integration
-execution_state: IMPLEMENTING
+execution_state: VALIDATING
 current_work:
   objective: "Complete launch-scope frontend reliability, accessibility and recovery hardening without advancing deferred backend/provider work."
-  issue: 285
-  pr: 286
-  branch: fix/global-error-loading-recovery
+  issue: 293
+  pr: 294
+  branch: fix/cellar-editor-focus
 next_actions:
-  - "Complete and validate #285/#286 global loading and unexpected-error recovery."
-  - "Continue the smallest dependency-correct frontend quality slice after #286 merges."
+  - "Validate #293/#294 cellar editor keyboard-focus handoff at the exact PR head."
+  - "If validation is sufficient, advance #294 through Ready/Mergeable/Merged and verify the resulting production deployment."
+  - "Continue the smallest dependency-correct frontend quality slice after #294 merges."
   - "Reassess deferred provider/schema work only when the product owner explicitly resumes backend implementation."
 blockers:
   - scope: provider_connected_work
@@ -31,19 +32,19 @@ owner_decision:
   recommendation: null
 validation:
   governance: PASS
-  lint: PASS
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PASS
-  build: PASS
-  ci: NOT_RUN
+  tests: NOT_RUN
+  build: NOT_RUN
+  ci: FAIL
   runtime: VERIFIED
-last_verified_commit: "baa0e78509aa683a1fec4c60cff9b1c025e4e240"
-last_updated: "2026-09-01T15:44:00+10:00"
+last_verified_commit: "158416fa16871738c1d3aa0ee323f08ce2bda7cb"
+last_updated: "2026-09-02T19:57:00+10:00"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 1 September 2026
+Last materially reviewed: 2 September 2026
 
 ## Current phase
 
@@ -58,7 +59,7 @@ Independent launch-scope frontend work can continue. Backend/provider implementa
 ## AI execution gate
 
 **Current gate:** Integration / frontend source quality  
-**Execution state:** Implementing  
+**Execution state:** Validating  
 **Release state:** Not certified.
 
 The current dependency-correct work is frontend reliability, accessibility, responsive behaviour, loading/error recovery and regression coverage. Source validation may provide useful implementation evidence, but it does not certify deferred provider, schema, governance or production-release outcomes.
@@ -77,9 +78,15 @@ Chat history is supporting context only. Backend/provider tasks remain preserved
 
 ## Current implementation focus
 
-Issue **#285** / PR **#286** corrects the global loading and unexpected-error boundary. The identified root defect is that the global **Go home** action uses hash routing (`#/home`) even though Pourfolio uses pathname routing (`/home`). The same slice removes unsupported generic data-safety wording and improves error/loading accessibility semantics.
+Issue **#293** / PR **#294** improves keyboard flow for the reachable cellar editor. Expanding an inline editor now moves focus directly to the first editable Quantity field, while retaining the existing edit-toggle relationship, mutation busy-state semantics and focused mutation errors. Focused Playwright coverage is included in the same PR.
 
-Recent frontend hardening already merged includes catalogue/search, structured rating, cellar/profile, product-details cellar actions, authentication feedback, persistent navigation, and public-document navigation.
+The immediately preceding frontend hardening is already integrated: **#290** corrected global loading/error recovery and **#292** improved catalogue-card image meaning and keyboard focus. Exact PR-head validation for #292 passed before merge.
+
+## Production deployment evidence
+
+Vercel reports the production deployment for exact current `main` commit **91df94588b37e07e8163b82adcb12b5de05395c8** as **READY**. The deployment metadata identifies `main`, the exact GitHub commit SHA and the expected Vite project. Deployment provenance and Node 24 migration are therefore not current blockers.
+
+This deployment fact does not certify provider readiness: issue #225 remains the scoped NoCodeBackend authorization blocker for connected provider work.
 
 ## Deferred backend/provider work
 
@@ -102,10 +109,12 @@ These items are not closed and no readiness claim is made for them. They also do
 
 The repository exposes `npm run platform:validate` as the canonical aggregated source-validation entry point, with browser/accessibility and CodeQL evidence also available through repository automation. When automation identifies a substantive implementation or repository-contract defect, fix the underlying defect. Automation availability/status by itself is not a product acceptance decision.
 
+The first exact-head aggregate validation attempt for PR #294 failed before lint/unit/build execution because `STATUS.md` used unsupported `PENDING` values for the lint/tests/build front-matter fields. That executable documentation defect is corrected in the PR; browser/accessibility and CodeQL evidence were already green on the preceding head. Canonical validation must rerun on the corrected exact head before merge.
+
 ## Next dependency-correct work
 
-1. Repair the STATUS.md executable documentation contract so canonical validation can proceed.
-2. Complete and validate #285/#286 global loading and unexpected-error recovery.
+1. Complete exact-head validation for #293/#294 after the STATUS.md contract repair.
+2. If sufficient, advance #294 through Ready/Mergeable/Merged and verify the resulting production deployment.
 3. Continue remaining launch-scope frontend responsive, keyboard, empty/error/loading and accessibility review.
 4. Perform a holistic frontend Phase 3 source review when those surfaces reach a natural completion boundary.
 5. Resume provider/schema work only after the product owner supplies the required backend information and explicitly resumes that path.
