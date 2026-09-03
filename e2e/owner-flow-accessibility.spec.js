@@ -187,3 +187,35 @@ test('profile rating delete restores focus to an adjacent remaining rating', asy
 
   await expect(page.getByRole('link', { name: 'Bravo' })).toBeFocused()
 })
+
+test('catalogue retry restores focus to product results after recovery', async ({ page }) => {
+  let attempt = 0
+
+  await page.route('**/api/nocodebackend/catalog/products?**', async (route) => {
+    attempt += 1
+    if (attempt === 1) {
+      return route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Catalogue unavailable.' })
+      })
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ items: [product], page: 1, pageSize: 24, total: 1, totalPages: 1 })
+    })
+  })
+
+  await page.goto('/')
+
+  const alert = page.getByRole('alert')
+  await expect(alert).toContainText('Catalogue unavailable.')
+  await expect(alert).toBeFocused()
+
+  await page.getByRole('button', { name: 'Try again' }).click()
+
+  await expect(page.getByRole('link', { name: 'Ace' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Product results' })).toBeFocused()
+  await expect(alert).toHaveCount(0)
+})
