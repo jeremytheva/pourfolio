@@ -24,6 +24,7 @@ function Profile() {
   const ratingHistoryHeadingRef = useRef(null)
   const ratingLinkRefs = useRef(new Map())
   const pendingRatingFocusRef = useRef(null)
+  const focusRatingHistoryAfterRetryRef = useRef(false)
   const ratingsRequestIdRef = useRef(0)
 
   const loadRatings = useCallback(async () => {
@@ -39,6 +40,7 @@ function Profile() {
       setRatingsStatus('ready')
     } catch (requestError) {
       if (ratingsRequestIdRef.current !== requestId) return
+      focusRatingHistoryAfterRetryRef.current = false
       setRatingsError(requestError.message || 'Rating history could not be loaded.')
       setRatingsStatus('error')
     }
@@ -58,6 +60,12 @@ function Profile() {
   useEffect(() => {
     if (ratingsError) ratingsErrorRef.current?.focus()
   }, [ratingsError])
+
+  useEffect(() => {
+    if (ratingsStatus !== 'ready' || !focusRatingHistoryAfterRetryRef.current) return
+    focusRatingHistoryAfterRetryRef.current = false
+    ratingHistoryHeadingRef.current?.focus()
+  }, [ratingsStatus])
 
   useEffect(() => {
     const target = pendingRatingFocusRef.current
@@ -88,6 +96,11 @@ function Profile() {
       return
     }
     setSaveStatus('saved')
+  }
+
+  const retryRatingHistory = () => {
+    focusRatingHistoryAfterRetryRef.current = true
+    loadRatings()
   }
 
   const deleteRating = async (rating) => {
@@ -168,7 +181,7 @@ function Profile() {
           {ratingsStatus === 'error' && (
             <div ref={ratingsErrorRef} tabIndex={-1} className="my-8 rounded-lg border border-red-200 bg-red-50 p-4 text-center text-sm text-red-800 outline-none focus:ring-2 focus:ring-red-300" role="alert">
               <p>{ratingsError || 'Rating history is unavailable.'}</p>
-              <button type="button" onClick={loadRatings} className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2">
+              <button type="button" onClick={retryRatingHistory} className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2">
                 Retry rating history
               </button>
             </div>
