@@ -18,6 +18,8 @@ function RateBeer() {
   const [reloadKey, setReloadKey] = useState(0)
   const [submissionId] = useState(() => createSubmissionId())
   const errorRef = useRef(null)
+  const ratingHeadingRef = useRef(null)
+  const focusRatingAfterRetryRef = useRef(false)
 
   useEffect(() => {
     let active = true
@@ -33,6 +35,7 @@ function RateBeer() {
       })
       .catch((requestError) => {
         if (!active) return
+        focusRatingAfterRetryRef.current = false
         setError(requestError.message || 'The rating form could not be loaded.')
         setStatus('error')
       })
@@ -44,6 +47,12 @@ function RateBeer() {
   useEffect(() => {
     if (error) errorRef.current?.focus()
   }, [error])
+
+  useEffect(() => {
+    if (status !== 'ready' || !focusRatingAfterRetryRef.current) return
+    focusRatingAfterRetryRef.current = false
+    ratingHeadingRef.current?.focus()
+  }, [status])
 
   const preview = useMemo(() => {
     if (!formDefinition || Object.keys(scores).length !== formDefinition.attributes.length) return null
@@ -64,6 +73,11 @@ function RateBeer() {
     setBonusIds((current) => current.includes(bonusId)
       ? current.filter((id) => id !== bonusId)
       : [...current, bonusId])
+  }
+
+  const retryLoad = () => {
+    focusRatingAfterRetryRef.current = true
+    setReloadKey((value) => value + 1)
   }
 
   const submit = async (event) => {
@@ -106,7 +120,7 @@ function RateBeer() {
         <div ref={errorRef} tabIndex={-1} className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2" role="alert">
           <h1 className="font-semibold">Rating form unavailable</h1>
           <p className="mt-1">{error}</p>
-          <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-4 inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">
+          <button type="button" onClick={retryLoad} className="mt-4 inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2">
             <SafeIcon icon={FiRefreshCw} className="mr-2 h-4 w-4" />
             Try again
           </button>
@@ -127,7 +141,7 @@ function RateBeer() {
 
       <header className="mb-8">
         <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Structured beer rating</p>
-        <h1 className="mt-2 text-3xl font-bold text-gray-900">{product.product_name}</h1>
+        <h1 ref={ratingHeadingRef} tabIndex={-1} className="mt-2 text-3xl font-bold text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2">{product.product_name}</h1>
         <p className="mt-1 text-gray-600">{product.producer?.producer_name || 'Producer not recorded'}</p>
       </header>
 
