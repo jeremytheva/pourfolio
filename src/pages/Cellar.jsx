@@ -22,6 +22,7 @@ function Cellar() {
   const editButtonRefs = useRef(new Map())
   const pendingDeleteFocusRef = useRef(null)
   const pendingEditFocusRef = useRef(null)
+  const focusCellarAfterRetryRef = useRef(false)
 
   useEffect(() => {
     let active = true
@@ -35,6 +36,7 @@ function Cellar() {
       })
       .catch((requestError) => {
         if (!active) return
+        focusCellarAfterRetryRef.current = false
         setError(requestError.message || 'Your cellar could not be loaded.')
         setStatus('error')
       })
@@ -45,6 +47,12 @@ function Cellar() {
 
   useEffect(() => {
     if (status === 'error') loadErrorRef.current?.focus()
+  }, [status])
+
+  useEffect(() => {
+    if (status !== 'ready' || !focusCellarAfterRetryRef.current) return
+    focusCellarAfterRetryRef.current = false
+    cellarHeadingRef.current?.focus()
   }, [status])
 
   useEffect(() => {
@@ -134,6 +142,11 @@ function Cellar() {
     }
   }
 
+  const retryLoad = () => {
+    focusCellarAfterRetryRef.current = true
+    setReloadKey((value) => value + 1)
+  }
+
   const cellarStatus = status === 'ready'
     ? `${filteredItems.length} ${filteredItems.length === 1 ? 'item' : 'items'} shown${query.trim() ? ' for this search' : ''}.`
     : ''
@@ -174,7 +187,7 @@ function Cellar() {
         <div ref={loadErrorRef} tabIndex={-1} className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-900 outline-none focus:ring-2 focus:ring-red-300" role="alert">
           <p className="font-semibold">Cellar unavailable</p>
           <p className="mt-1">{error}</p>
-          <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-4 inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2">
+          <button type="button" onClick={retryLoad} className="mt-4 inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2">
             <SafeIcon icon={FiRefreshCw} className="mr-2 h-4 w-4" />
             Try again
           </button>
