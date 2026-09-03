@@ -19,7 +19,9 @@ function Cellar() {
   const mutationErrorRef = useRef(null)
   const cellarHeadingRef = useRef(null)
   const itemLinkRefs = useRef(new Map())
+  const editButtonRefs = useRef(new Map())
   const pendingDeleteFocusRef = useRef(null)
+  const pendingEditFocusRef = useRef(null)
 
   useEffect(() => {
     let active = true
@@ -62,6 +64,14 @@ function Cellar() {
     itemLinkRefs.current.get(target)?.focus()
   }, [items])
 
+  useEffect(() => {
+    const target = pendingEditFocusRef.current
+    if (target === null || editingId !== null || mutation?.id === target) return
+
+    pendingEditFocusRef.current = null
+    editButtonRefs.current.get(target)?.focus()
+  }, [editingId, mutation])
+
   const filteredItems = useMemo(() => {
     const term = query.trim().toLocaleLowerCase()
     if (!term) return items
@@ -93,8 +103,10 @@ function Cellar() {
     setMutationError('')
     setMutation({ kind: 'save', id: editingId })
     try {
-      const payload = await cellarService.updateCellarItem(editingId, draft)
-      setItems((current) => current.map((item) => item.id === editingId ? payload.item : item))
+      const savedItemId = editingId
+      const payload = await cellarService.updateCellarItem(savedItemId, draft)
+      setItems((current) => current.map((item) => item.id === savedItemId ? payload.item : item))
+      pendingEditFocusRef.current = savedItemId
       setEditingId(null)
     } catch (requestError) {
       setMutationError(requestError.message || 'The cellar item could not be updated.')
@@ -212,6 +224,10 @@ function Cellar() {
                   </div>
                   <div className="flex gap-2">
                     <button
+                      ref={(node) => {
+                        if (node) editButtonRefs.current.set(item.id, node)
+                        else editButtonRefs.current.delete(item.id)
+                      }}
                       type="button"
                       onClick={() => editingId === item.id ? setEditingId(null) : startEditing(item)}
                       disabled={isMutating}

@@ -50,6 +50,22 @@ test('cellar search and edit mutations expose accessible relationships, focus, b
   await expect(form).toHaveAttribute('aria-busy', 'false')
 })
 
+test('successful cellar edit restores focus to the persistent edit control', async ({ page }) => {
+  await page.goto('/cellar')
+
+  const edit = page.locator('button[aria-controls="cellar-edit-55"]')
+  await edit.click()
+  await expect(page.getByLabel('Quantity')).toBeFocused()
+
+  await page.getByLabel('Quantity').fill('3')
+  await page.getByRole('button', { name: 'Save changes' }).click()
+
+  await expect(page.locator('#cellar-edit-55')).toHaveCount(0)
+  await expect(edit).toHaveAccessibleName('Edit Ace')
+  await expect(edit).toHaveAttribute('aria-expanded', 'false')
+  await expect(edit).toBeFocused()
+})
+
 test('profile save exposes busy state and focuses failed mutation feedback', async ({ page }) => {
   let releaseSave
   const saveGate = new Promise((resolve) => { releaseSave = resolve })
