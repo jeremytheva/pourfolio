@@ -59,6 +59,7 @@ function AuthForm({ mode, onToggleMode }) {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const errorRef = useRef(null)
+  const otpInputRef = useRef(null)
   const { signUp, signIn, requestEmailOtp, verifyEmailOtp, signInWithGoogle } = useAuth()
 
   useEffect(() => {
@@ -97,6 +98,10 @@ function AuthForm({ mode, onToggleMode }) {
   useEffect(() => {
     if (error) errorRef.current?.focus()
   }, [error])
+
+  useEffect(() => {
+    if (otpSent) otpInputRef.current?.focus()
+  }, [otpSent])
 
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   const canUsePassword = providerStatus === 'ready' && providers.emailPassword && activeMethod === 'emailPassword'
@@ -224,7 +229,7 @@ function AuthForm({ mode, onToggleMode }) {
           {canUseOtp && otpSent && (
             <div>
               <label htmlFor="auth-otp" className="mb-1 block text-sm font-medium text-gray-700">One-time passcode</label>
-              <input id="auth-otp" inputMode="numeric" required autoComplete="one-time-code" value={form.otp} onChange={update('otp')} className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
+              <input ref={otpInputRef} id="auth-otp" inputMode="numeric" required autoComplete="one-time-code" value={form.otp} onChange={update('otp')} className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
             </div>
           )}
 
