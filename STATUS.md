@@ -4,17 +4,20 @@ portfolio_state: ACTIVE
 phase: "Phase 3 — Beer discovery dependable"
 stage: "Frontend source hardening continues while backend/provider work is deferred"
 gate: Change
-execution_state: VALIDATING
+execution_state: BLOCKED
 current_work:
-  objective: "Restore keyboard focus to the recovered product heading after a failed product-detail load succeeds through Try again."
-  issue: 310
-  pr: 311
-  branch: fix/product-retry-focus
+  objective: "Restore keyboard focus to My cellar after a failed owner-scoped cellar load succeeds through Try again; retain the completed source evidence while exact-head Vercel deployment capacity is unavailable."
+  issue: 312
+  pr: 313
+  branch: fix/cellar-retry-focus
 next_actions:
-  - "Run exact-head canonical source validation and applicable browser/accessibility evidence for #311."
-  - "Inspect review threads, mergeability and exact-head deployment evidence; repair substantive findings in the same PR."
-  - "Merge #311 when the project-owned merge condition is satisfied, then verify exact-main production/runtime evidence."
+  - "Recheck Vercel for an exact-head READY deployment for #313; remove pr:blocked and advance to pr:mergeable when deployment evidence is sufficient."
+  - "Merge #313 when the project-owned merge condition is satisfied, then verify exact-main production/runtime evidence."
+  - "In parallel, validate and merge governance PR #314 if its canonical documentation/source validation passes and no substantive finding remains."
 blockers:
+  - scope: active_frontend_delivery
+    issue: 312
+    detail: "PR #313 source/browser validation is complete, but Vercel rejected the exact-head preview because the Hobby account exceeded its deployment allowance; this is a transient external delivery blocker."
   - scope: provider_connected_work
     issue: 225
     detail: "Deferred by product-owner instruction; does not block independent frontend/governance work."
@@ -31,14 +34,14 @@ owner_decision:
   recommendation: null
 validation:
   governance: PASS
-  lint: NOT_RUN
+  lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: NOT_RUN
-  build: NOT_RUN
-  ci: PENDING
+  tests: PASS
+  build: PASS
+  ci: PASS
   runtime: VERIFIED
 last_verified_commit: "b23d4812ea5115019f4593e05b424dc95960f29a"
-last_updated: "2026-09-03T12:12:00+10:00"
+last_updated: "2026-09-03T16:08:00+10:00"
 ---
 
 # STATUS.md
@@ -56,24 +59,28 @@ Last materially reviewed: 3 September 2026
 ## AI execution gate
 
 **Current gate:** Change / frontend accessibility  
-**Execution state:** Validating  
+**Execution state:** Ready with external deployment blocker  
 **Release state:** Not certified.
 
 ## Autonomous continuation support
 
-The repository is the authoritative handoff. Continue the highest-priority dependency-correct work independent of deferred provider/schema capability. Use normal non-draft PRs, explicit lifecycle metadata, canonical project-owned validation and applicable browser/deployment evidence. Treat GitHub Actions as diagnostic evidence while repairing real defects they expose.
+The repository is the authoritative handoff. Continue the highest-priority dependency-correct work independent of deferred provider/schema capability. Use normal non-draft PRs, explicit lifecycle metadata, canonical project-owned validation and applicable browser/deployment evidence. Treat GitHub Actions as diagnostic/supporting evidence while repairing real defects they expose.
 
 ## Current implementation focus
 
-PR **#309** is merged as exact current `main` commit **b23d4812ea5115019f4593e05b424dc95960f29a**. The catalogue retry accessibility correction restores focus to the persistent **Product results** heading after successful recovery and preserves error-alert focus on another failed retry.
+PR **#311** is squash-merged as current `main` commit **0fe4505e77b8dfaac9174632e14632b9d3f7bcba**. Its product-detail retry correction restores focus to the recovered product heading after successful **Try again** recovery and preserves error-alert focus after another failed retry.
 
-Vercel now has a **READY production deployment** for exact current `main` **b23d4812ea5115019f4593e05b424dc95960f29a**, with GitHub provenance and Node.js lambda runtime metadata (`lambdaRuntimeStats` reports Node.js functions). The earlier Hobby preview-capacity blocker has therefore cleared. Issues **#224** and **#249** remain complete and do not re-enter the blocker chain.
+Issue **#312** / normal non-draft PR **#313** / branch **`fix/cellar-retry-focus`** is the active independent Phase 3 frontend slice. The exact head **18888f69dd66f4638bca87198ac128eaa854ae9c** is conflict-free and passed the repository Pull Request Validation workflow, including the canonical project validation path and browser/accessibility coverage, plus CodeQL. No unresolved review thread is recorded. Lifecycle metadata is **`pr:ready` + `pr:blocked`** because exact-head Vercel deployment evidence is still unavailable.
 
-Issue **#310** / normal non-draft PR **#311** / branch **`fix/product-retry-focus`** is the active independent Phase 3 frontend slice. `BeerDetails.jsx` already focused the product error alert, but activating **Try again** removed that focused control during reload and successful recovery provided no persistent focus destination. The implementation now records retry-triggered recovery, focuses the recovered product level-one heading on success, and clears retry focus intent on another failure so the existing error-alert focus behaviour remains authoritative. Focused Playwright coverage exercises both successful and failed retry paths.
+The #313 implementation restores focus to the persistent **My cellar** heading after a successful retry, preserves error-alert focus after another failed retry, and keeps existing search, mutation-error, edit-save and deletion focus behaviour.
+
+Independent governance issue **#143** remains non-blocking for ordinary mergeable work. PR **#314** / branch **`fix/github-governance-policy-alignment`** repairs stale `docs/GITHUB_CONFIGURATION.md` guidance that still described the superseded Draft-first lifecycle and hosted GitHub checks as the acceptance authority. The corrected document now matches the adopted Implementing → Validating → Ready → Mergeable → Merged lifecycle and project-owned validation policy. This governance PR requires exact-head canonical validation before merge.
 
 ## Deployment/runtime state
 
-Issues **#224** and **#249** remain complete. Exact current `main` **b23d4812ea5115019f4593e05b424dc95960f29a** has a READY Vercel production deployment with verified GitHub provenance and Node runtime evidence. No current deployment-capacity blocker is recorded.
+Issues **#224** and **#249** remain complete and do not re-enter the blocker chain. Exact `main` **b23d4812ea5115019f4593e05b424dc95960f29a** has the last fully verified READY production deployment with GitHub provenance and Node runtime metadata (`lambdaRuntimeStats` reports Node.js functions). Newer `main` **0fe4505e77b8dfaac9174632e14632b9d3f7bcba** has not yet produced an exact-main production deployment in the observed Vercel inventory.
+
+The last #313 deployment attempt was rejected by Vercel's Hobby deployment allowance (`api-deployments-free-per-day`). No exact-head #313 deployment is currently present in Vercel. This is treated as a transient external delivery blocker, not a source defect and not an owner-decision requirement.
 
 ## Deferred backend/provider work
 
@@ -88,18 +95,16 @@ These do not block independent frontend/governance work.
 
 ## Validation posture
 
-`npm run platform:validate` remains the canonical source-validation entry point. Browser-facing changes require applicable Playwright/accessibility evidence. GitHub Actions, CodeQL and Dependency Review are supporting diagnostic evidence rather than independent merge gates.
+`npm run platform:validate` remains the canonical source-validation entry point. Browser-facing changes require applicable Playwright/accessibility evidence. GitHub Actions, CodeQL and Dependency Review are supporting diagnostic evidence rather than independent merge gates; the underlying canonical validation result remains material.
 
-PR #311 requires exact-head canonical validation, applicable browser/accessibility evidence, review/conflict inspection and deployment evidence sufficient for the changed application before it can advance to Mergeable.
+PR #313 exact-head validation is complete and satisfactory for source/browser evidence. Its remaining merge condition is sufficient exact-head deployment evidence. PR #314 is governance/documentation-only and must pass canonical exact-head project validation; browser deployment evidence is not material to that documentation-only change.
 
 ## Next dependency-correct work
 
-1. Validate the current #311 exact head with canonical `npm run platform:validate` and applicable browser/accessibility testing.
-2. Inspect diagnostic checks, review threads and mergeability; repair any real defect in the same PR.
-3. Verify exact-head Vercel preview evidence for #311.
-4. Merge #311 when the project-owned merge condition is satisfied, then verify exact-main production/runtime evidence.
-5. Continue the next independent Phase 3 responsive, keyboard, empty/error/loading or accessibility slice when its delivery evidence can be satisfied.
-6. Resume provider/schema work only after explicit product-owner resumption.
+1. Recheck Vercel for a READY exact-head #313 deployment. If present, remove `pr:blocked`, advance #313 to `pr:mergeable`, merge it and verify exact-main production/runtime evidence.
+2. Validate PR #314 on its exact head. Repair any substantive project-owned validation or review finding in the same PR, then merge when its documentation-only merge condition is satisfied.
+3. Continue the next independent Phase 3 responsive, keyboard, empty/error/loading or accessibility slice only when its delivery evidence can be satisfied.
+4. Resume provider/schema work only after explicit product-owner resumption.
 
 ## Completion rule
 
