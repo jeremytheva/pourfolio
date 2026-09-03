@@ -4,20 +4,19 @@ portfolio_state: ACTIVE
 phase: "Phase 3 — Beer discovery dependable"
 stage: "Frontend source hardening continues while backend/provider work is deferred"
 gate: Change
-execution_state: VALIDATING
+execution_state: IMPLEMENTING
 current_work:
-  objective: "Restore keyboard focus to the persistent cellar edit control after a successful inline edit save."
-  issue: 305
-  pr: 306
-  branch: fix/cellar-save-focus
+  objective: "Restore keyboard focus to Product results after a failed catalogue load recovers through Try again."
+  issue: 308
+  pr: null
+  branch: fix/catalogue-retry-focus
 next_actions:
-  - "Verify the post-#307 synchronize event assigns pr:implementing to normal PR #306 without manual intervention."
-  - "Run exact-head canonical source validation and applicable browser/accessibility evidence for #306."
-  - "Inspect review threads and mergeability; repair any substantive finding in the same PR."
-  - "Require applicable deployment evidence before merging the browser-facing #306; Vercel preview creation is currently quota-blocked."
+  - "Open a normal non-draft PR for #308 after the coherent implementation/test/status change is published."
+  - "Run exact-head canonical source validation and applicable browser/accessibility evidence."
+  - "Inspect review threads, mergeability and Vercel deployment evidence; repair substantive findings in the same PR."
 blockers:
   - scope: preview_deployment_capacity
-    detail: "Vercel Hobby daily deployment quota is exhausted; exact-main production remains verified on 4bc17ff until a newer deployment can be created."
+    detail: "Vercel Hobby daily deployment quota was exhausted earlier on 3 September; recheck on the #308 PR rather than assuming capacity remains unavailable."
   - scope: provider_connected_work
     issue: 225
     detail: "Deferred by product-owner instruction; does not block independent frontend/governance work."
@@ -38,10 +37,10 @@ validation:
   typecheck: NOT_APPLICABLE
   tests: NOT_RUN
   build: NOT_RUN
-  ci: PENDING
+  ci: NOT_RUN
   runtime: VERIFIED
 last_verified_commit: "4bc17ffbcb4d1e3143f89b35ea0a7a8814118593"
-last_updated: "2026-09-03T10:09:00+10:00"
+last_updated: "2026-09-03T11:06:00+10:00"
 ---
 
 # STATUS.md
@@ -59,7 +58,7 @@ Last materially reviewed: 3 September 2026
 ## AI execution gate
 
 **Current gate:** Change / frontend accessibility  
-**Execution state:** Validating  
+**Execution state:** Implementing  
 **Release state:** Not certified.
 
 ## Autonomous continuation support
@@ -68,13 +67,15 @@ The repository is the authoritative handoff. Continue the highest-priority depen
 
 ## Current implementation focus
 
-PR **#307** is squash-merged as exact current `main` commit **d55f882981ebba0dc958c51e11bbad4764e0ae2a**. It completes the second lifecycle repair by granting the sync job explicit `pull-requests: write` in addition to `issues: write`, based on live `403 Resource not accessible by integration` evidence from PR #306. Its exact head passed canonical `npm run platform:validate`, was conflict-free and had no review threads. Browser execution was not material to the workflow-only change.
+PR **#306** is squash-merged as exact `main` commit **7c5c3dfea716865a4ac580461172c9f91e04b7cc**. Its exact head `e6ef48f9568b39f3251d04e75add803de0684b68` passed canonical `npm run platform:validate`, browser/accessibility testing and CodeQL, was conflict-free and had no unresolved review threads. The focused cellar-save accessibility correction now restores focus to the persistent **Edit <product>** control after a successful inline save.
 
-The Vercel Hobby account has exhausted its daily deployment allowance. New preview and production deployments after **4bc17ffbcb4d1e3143f89b35ea0a7a8814118593** cannot currently be created. The last exact-main production state with verified GitHub provenance and Node.js lambda runtime evidence therefore remains **4bc17ffbcb4d1e3143f89b35ea0a7a8814118593**; this is an external deployment-capacity constraint, not a repository defect. Issues #224 and #249 remain complete.
+The earlier READY Vercel preview for feature commit `ee5bad46d211bec962999d19480e20abefbaaee7` contained the exact same deployed `src/pages/Cellar.jsx` blob (`f795b6b5228deaa52679b743eb3fd2199822d9f7`) as the merged #306 head. The later rebase delta was limited to workflow governance, STATUS documentation and test evidence. Under the project lifecycle rule requiring deployment evidence only to the extent applicable to the change, that READY preview was sufficient application deployment evidence for #306 without claiming an exact-head Vercel deployment.
 
-Issue **#305** / normal non-draft PR **#306** is the active independent Phase 3 frontend slice. A successful inline cellar edit previously removed the focused **Save changes** control when the editor collapsed without restoring focus. The implementation keeps references to persistent edit controls and, after the successful mutation is no longer busy, restores focus to the corresponding **Edit <product>** button. Existing editor autofocus, failed-save alert focus and mutation busy behaviour are preserved. Focused Playwright regression coverage exercises the successful-save handoff.
+Issue **#308** / branch **`fix/catalogue-retry-focus`** is the next independent Phase 3 frontend slice. The catalogue error state correctly focuses its alert, but activating **Try again** removes the focused retry control during reload and successful recovery previously provided no persistent focus destination. The implementation records retry-triggered recovery and focuses the existing **Product results** heading once recovered results render, while preserving current error-alert and pagination focus behaviour. Focused Playwright regression coverage exercises failure → retry → successful focus recovery.
 
-This STATUS update deliberately follows #307 integration and creates a new #306 `synchronize` event. Because `pull_request_target` executes the default-branch workflow, this event is the live proof target for automatic `pr:implementing` synchronisation with the repaired permissions.
+## Deployment/runtime state
+
+Issues **#224** and **#249** remain complete. The last exact-main production deployment with verified GitHub provenance and Node.js lambda runtime evidence is **4bc17ffbcb4d1e3143f89b35ea0a7a8814118593**. Later GitHub work has been affected by the Vercel Hobby daily deployment quota; current capacity must be rechecked for #308 rather than inferred from the earlier quota error.
 
 ## Deferred backend/provider work
 
@@ -91,16 +92,16 @@ These do not block independent frontend/governance work.
 
 `npm run platform:validate` remains the canonical source-validation entry point. Browser-facing changes require applicable Playwright/accessibility evidence. GitHub Actions, CodeQL and Dependency Review are supporting diagnostic evidence rather than independent merge gates.
 
-No exact-head validation pass is claimed yet for the updated #306 head. Applicable Vercel preview evidence is also unavailable while the daily deployment quota is exhausted, so #306 must not be merged solely from source validation if the preview remains unavailable.
+No validation pass is claimed yet for #308. The implementation must be published as a normal non-draft PR, then evaluated against exact-head project-owned validation, browser evidence, review/conflict state and applicable deployment evidence.
 
 ## Next dependency-correct work
 
-1. Verify the new #306 synchronize event applies `pr:implementing` automatically and close #303 only after that live proof succeeds.
-2. Validate #306's exact head with canonical and applicable browser/accessibility evidence.
-3. Repair any substantive implementation or review finding in the same PR.
-4. Recheck Vercel preview capacity; merge #306 only when applicable deployment evidence is available and project-owned merge conditions are satisfied.
-5. Verify the resulting exact-main production deployment and runtime provenance.
-6. Continue the next independent Phase 3 responsive, keyboard, empty/error/loading or accessibility slice when the delivery path can provide required deployment evidence.
+1. Open the normal non-draft #308 implementation PR and verify lifecycle metadata starts at `pr:implementing`.
+2. Run exact-head canonical `npm run platform:validate` and applicable browser/accessibility testing.
+3. Inspect CodeQL/diagnostic checks, review threads and mergeability; repair any real defect in the same PR.
+4. Recheck Vercel preview capacity and obtain sufficient deployment evidence for the changed application blob before merge.
+5. Merge #308 when the project-owned merge condition is satisfied, then verify post-merge production/runtime evidence when capacity permits.
+6. Continue the next independent Phase 3 responsive, keyboard, empty/error/loading or accessibility slice.
 7. Resume provider/schema work only after explicit product-owner resumption.
 
 ## Completion rule
