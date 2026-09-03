@@ -49,6 +49,7 @@ function HomePage({ searchMode = false }) {
       })
       .catch((requestError) => {
         if (!active) return
+        focusResultsAfterRetry.current = false
         setError(requestError.message || 'Products could not be loaded.')
         setStatus('error')
       })
