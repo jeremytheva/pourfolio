@@ -6,7 +6,7 @@ import { beverageService } from '../services/beverageService.js'
 import { cellarService } from '../services/cellarService.js'
 import { formatDate } from '../utils/dateFormatting.js'
 
-const FALLBACK_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540"%3E%3Crect width="960" height="540" fill="%23fef3c7"/%3E%3Ctext x="480" y="285" text-anchor="middle" font-family="sans-serif" font-size="64" fill="%2392400e"%3EPourfolio%3C/text%3E%3C/svg%3E'
+const FALLBACK_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540%3E%3Crect width="960" height="540" fill="%23fef3c7"/%3E%3Ctext x="480" y="285" text-anchor="middle" font-family="sans-serif" font-size="64" fill="%2392400e"%3EPourfolio%3C/text%3E%3C/svg%3E'
 
 const createInitialCellarForm = () => ({
   quantity: 1,
@@ -30,6 +30,8 @@ function BeerDetails() {
   const [cellarStatus, setCellarStatus] = useState('')
   const [cellarError, setCellarError] = useState('')
   const loadErrorRef = useRef(null)
+  const productHeadingRef = useRef(null)
+  const focusProductAfterRetry = useRef(false)
   const cellarErrorRef = useRef(null)
 
   useEffect(() => {
@@ -45,6 +47,7 @@ function BeerDetails() {
       })
       .catch((requestError) => {
         if (!active) return
+        focusProductAfterRetry.current = false
         setError(requestError.message || 'Product details could not be loaded.')
         setErrorCode(requestError.code || '')
         setStatus('error')
@@ -56,6 +59,12 @@ function BeerDetails() {
 
   useEffect(() => {
     if (status === 'error') loadErrorRef.current?.focus()
+  }, [status])
+
+  useEffect(() => {
+    if (status !== 'ready' || !focusProductAfterRetry.current) return
+    focusProductAfterRetry.current = false
+    productHeadingRef.current?.focus()
   }, [status])
 
   useEffect(() => {
@@ -72,6 +81,11 @@ function BeerDetails() {
     setShowCellarForm((value) => !value)
     setCellarStatus('')
     setCellarError('')
+  }
+
+  const retryLoad = () => {
+    focusProductAfterRetry.current = true
+    setReloadKey((value) => value + 1)
   }
 
   const addToCellar = async (event) => {
@@ -107,7 +121,7 @@ function BeerDetails() {
               Back to products
             </Link>
             {errorCode !== 'invalid_product_identifier' && (
-              <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2">
+              <button type="button" onClick={retryLoad} className="inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2">
                 <SafeIcon icon={FiRefreshCw} className="mr-2 h-4 w-4" />
                 Try again
               </button>
@@ -139,7 +153,7 @@ function BeerDetails() {
           />
           <div className="p-6 sm:p-8">
             <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">{category}</p>
-            <h1 className="mt-2 text-4xl font-bold text-gray-900">{product.product_name}</h1>
+            <h1 ref={productHeadingRef} tabIndex={-1} className="mt-2 rounded-sm text-4xl font-bold text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2">{product.product_name}</h1>
             <p className="mt-2 text-lg text-gray-600">{producer}</p>
 
             <dl className="mt-8 grid grid-cols-2 gap-4 rounded-xl bg-gray-50 p-5">
