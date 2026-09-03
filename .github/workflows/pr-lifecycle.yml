@@ -34,32 +34,21 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const pr = context.payload.pull_request;
-            const lifecycleLabels = [
-              ['pr:draft', 'Pull request is intentionally incomplete or non-reviewable', '6f42c1'],
-              ['pr:implementing', 'Implementation is actively changing', '1d76db'],
-              ['pr:validating', 'Project-owned validation is being assessed', 'fbca04'],
-              ['pr:ready', 'Implementation gate and project-owned validation are sufficient', '0e8a16'],
-              ['pr:mergeable', 'Project-owned merge conditions are satisfied', '0e8a16'],
-              ['pr:blocked', 'A material dependency or decision blocks progression', 'b60205'],
+            const managed = [
+              'pr:draft',
+              'pr:implementing',
+              'pr:validating',
+              'pr:ready',
+              'pr:mergeable',
             ];
-
-            for (const [name, description, color] of lifecycleLabels) {
-              try {
-                await github.rest.issues.getLabel({ owner, repo, name });
-              } catch (error) {
-                if (error.status !== 404) throw error;
-                await github.rest.issues.createLabel({ owner, repo, name, description, color });
-              }
-            }
-
-            const managed = lifecycleLabels.map(([name]) => name).filter((name) => name !== 'pr:blocked');
             const current = pr.labels.map((label) => label.name);
             const currentManaged = current.filter((label) => managed.includes(label));
 
-            // GitHub Draft is exceptional. It can force the presentation label to
-            // pr:draft, but normal non-draft PRs retain their explicit project-owned
-            // lifecycle label. A new normal PR starts at pr:implementing; automation
-            // must not infer Ready/Mergeable from GitHub-native state or CI conclusions.
+            // Lifecycle labels are governed repository metadata and are provisioned
+            // outside the per-PR synchronisation path. Keep this workflow focused on
+            // state synchronisation rather than mutating label definitions every run.
+            // GitHub Draft remains exceptional; normal PRs start at Implementing and
+            // retain explicit project-owned progression thereafter.
             let target = null;
             if (pr.draft) {
               target = 'pr:draft';
@@ -67,20 +56,20 @@ jobs:
               target = 'pr:implementing';
             }
 
-            if (target) {
-              for (const label of managed) {
-                if (label !== target && current.includes(label)) {
-                  try {
-                    await github.rest.issues.removeLabel({ owner, repo, issue_number: pr.number, name: label });
-                  } catch (error) {
-                    if (error.status !== 404) throw error;
-                  }
+            if (!target) return;
+
+            for (const label of managed) {
+              if (label !== target && current.includes(label)) {
+                try {
+                  await github.rest.issues.removeLabel({ owner, repo, issue_number: pr.number, name: label });
+                } catch (error) {
+                  if (error.status !== 404) throw error;
                 }
               }
+            }
 
-              if (!current.includes(target)) {
-                await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: [target] });
-              }
+            if (!current.includes(target)) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: [target] });
             }
 
   delete-merged-branch:
