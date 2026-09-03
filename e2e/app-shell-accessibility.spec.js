@@ -5,18 +5,27 @@ test.beforeEach(async ({ page }) => {
   await installMockApi(page)
 })
 
-test('app shell announces SPA navigation and preserves current-page semantics', async ({ page }) => {
+test('app shell announces SPA navigation, preserves current-page semantics and restores focus context', async ({ page }) => {
   await page.goto('/home')
 
+  const mainContent = page.locator('#main-content')
   const routeStatus = page.getByRole('status').filter({ hasText: 'Discover' })
   await expect(routeStatus).toHaveText('Discover')
   await expect(page.getByRole('link', { name: 'Discover' })).toHaveAttribute('aria-current', 'page')
+  await expect(mainContent).not.toBeFocused()
 
   await page.getByRole('link', { name: 'Search' }).click()
   await expect(page).toHaveURL(/\/search$/)
   await expect(page.getByRole('status').filter({ hasText: 'Search' })).toHaveText('Search')
   await expect(page.getByRole('link', { name: 'Search' })).toHaveAttribute('aria-current', 'page')
   await expect(page.getByRole('link', { name: 'Discover' })).not.toHaveAttribute('aria-current', 'page')
+  await expect(page.locator('#product-search')).toBeFocused()
+
+  await page.getByRole('link', { name: 'Discover' }).click()
+  await expect(page).toHaveURL(/\/home$/)
+  await expect(page.getByRole('status').filter({ hasText: 'Discover' })).toHaveText('Discover')
+  await expect(page.getByRole('link', { name: 'Discover' })).toHaveAttribute('aria-current', 'page')
+  await expect(mainContent).toBeFocused()
 })
 
 test('sign out exposes pending state and prevents duplicate activation', async ({ page }) => {
