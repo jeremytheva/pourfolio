@@ -6,12 +6,12 @@ stage: "Frontend source hardening continues while backend/provider work is defer
 gate: Change
 execution_state: IMPLEMENTING
 current_work:
-  objective: "Move keyboard focus to the newly required one-time passcode input after an OTP request succeeds."
-  issue: 319
+  objective: "Restore keyboard focus to the first relevant authentication field after switching between sign-in and create-account modes."
+  issue: 321
   pr: null
-  branch: fix/otp-focus-handoff
+  branch: fix/auth-mode-focus-handoff
 next_actions:
-  - "Publish the OTP focus slice as a normal non-draft PR linked to #319."
+  - "Publish the authentication mode-focus slice as a normal non-draft PR linked to #321."
   - "Run exact-head canonical source validation and applicable browser/accessibility evidence."
   - "Verify applicable Vercel preview/runtime evidence and repair any substantive finding in the same PR."
   - "Advance lifecycle state and merge when the project-owned merge condition is satisfied."
@@ -38,8 +38,8 @@ validation:
   build: NOT_RUN
   ci: NOT_RUN
   runtime: VERIFIED
-last_verified_commit: "a71a0a9bee1fa09744d67a36f2ae7c0ef892e085"
-last_updated: "2026-09-03T21:04:00+10:00"
+last_verified_commit: "508a0b00bd8da1188d9de67e1a6c599ec4add2e1"
+last_updated: "2026-09-03T22:06:00+10:00"
 ---
 
 # STATUS.md
@@ -66,15 +66,15 @@ The repository is the authoritative handoff. Continue the highest-priority depen
 
 ## Current implementation focus
 
-PR **#318** is squash-merged as exact current `main` **508a0b00bd8da1188d9de67e1a6c599ec4add2e1**. The rating-history retry correction restores focus to **My ratings** after successful **Retry rating history** recovery while preserving load-error, profile-mutation and rating-deletion focus behaviour.
+PR **#320** is squash-merged as exact current `main` **910b1e72c0198e470d647710c20569b13bfe3d66**. Its OTP correction moves focus directly to **One-time passcode** after a successful OTP request while preserving focused authentication-error behaviour.
 
-Vercel has started production deployment **dpl_4NX5geVPEeWFmzzNaaYNMPqN4VFQ** for exact `main` `508a0b0...`; it was still BUILDING at the latest inspection. The last fully verified READY exact-main production/runtime evidence remains **a71a0a9bee1fa09744d67a36f2ae7c0ef892e085** via deployment **dpl_52vfZe3qeQEFweNQMN5DG3FM8gtc**, with Node runtime metadata. Issues **#224** and **#249** remain complete and outside the active blocker chain.
+Vercel has not yet emitted an exact-main production deployment for `910b1e72...`. The last fully verified READY exact-main production/runtime evidence is **508a0b00bd8da1188d9de67e1a6c599ec4add2e1** via deployment **dpl_4NX5geVPEeWFmzzNaaYNMPqN4VFQ**, with matching GitHub provenance and Node runtime metadata. Issues **#224** and **#249** remain complete and outside the active blocker chain.
 
-Issue **#319** / branch **`fix/otp-focus-handoff`** is the active independent accessibility slice. `AuthForm.jsx` currently inserts the required **One-time passcode** field after a successful OTP request while focus remains on the initiating submit button. The implementation adds an input ref and moves focus to the passcode field when `otpSent` becomes true. Focused Playwright coverage proves the successful OTP focus handoff; existing focused alert behaviour remains unchanged for authentication failures.
+Issue **#321** / branch **`fix/auth-mode-focus-handoff`** is the active independent accessibility slice. `AuthForm.jsx` previously left focus on the mode-toggle control after switching forms even though the newly relevant first field appears above that control. The implementation records a user-initiated mode switch and, after the new mode renders, focuses **Name** for create-account mode or **Email** for sign-in mode without adding mount-time autofocus. Focused Playwright coverage exercises both directions. Existing OTP and authentication-error focus handling is unchanged.
 
 ## Deployment/runtime state
 
-Exact current `main` **508a0b00bd8da1188d9de67e1a6c599ec4add2e1** has a production deployment in progress. Do not claim it READY until Vercel reports completion with matching GitHub provenance and Node runtime metadata. The previous exact-main READY/runtime evidence for `a71a0a9...` remains valid until that newer deployment is verified.
+Exact current `main` **910b1e72c0198e470d647710c20569b13bfe3d66** does not yet have verified exact-main production evidence in the current Vercel deployment inventory. Do not substitute the READY #320 preview (`18feca4556384e7245cf421829721719ce1f933a`) for exact-main production evidence. The previous exact-main READY/runtime evidence for `508a0b00...` remains the verified baseline until a newer exact-main deployment is observed.
 
 ## Deferred backend/provider work
 
@@ -91,14 +91,14 @@ These do not block independent frontend/governance work.
 
 `npm run platform:validate` remains the canonical source-validation entry point. Browser-facing changes require applicable Playwright/accessibility evidence. GitHub Actions, CodeQL and Dependency Review are supporting diagnostic evidence rather than independent merge gates; real defects they expose remain actionable.
 
-The #319 implementation requires fresh exact-head source/browser validation after publication. No provider, schema, migration or backend change is part of this slice.
+The #321 implementation requires fresh exact-head source/browser validation after publication. No provider, schema, migration or backend change is part of this slice.
 
 ## Next dependency-correct work
 
-1. Publish the #319 OTP-focus implementation as a normal non-draft PR and inspect exact-head canonical/browser evidence.
+1. Publish the #321 authentication mode-focus implementation as a normal non-draft PR and inspect exact-head canonical/browser evidence.
 2. Repair any substantive finding in the same PR and verify applicable Vercel preview/runtime evidence.
 3. Advance the PR through Ready/Mergeable and squash-merge when evidence is sufficient.
-4. Recheck exact-main `508a0b0...` production readiness and Node runtime evidence; keep #224/#249 complete if evidence remains aligned.
+4. Recheck exact-main `910b1e72...` production readiness and Node runtime evidence; keep #224/#249 complete unless contradictory evidence appears.
 5. Continue independent launch-scope frontend/accessibility work only where a concrete defect is evidenced.
 6. Resume provider/schema work only after explicit product-owner resumption.
 
