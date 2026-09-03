@@ -6,14 +6,14 @@ stage: "Frontend source hardening continues while backend/provider work is defer
 gate: Change
 execution_state: IMPLEMENTING
 current_work:
-  objective: "Restore keyboard focus to the recovered rating page after rating-form Try again succeeds, while preserving existing load and submission error focus behaviour."
-  issue: 315
-  pr: 316
-  branch: fix/rating-form-retry-focus
+  objective: "Restore keyboard focus to the recovered rating history after Retry rating history succeeds, while preserving load-error, profile-mutation and rating-deletion focus behaviour."
+  issue: 317
+  pr: 318
+  branch: fix/rating-history-retry-focus
 next_actions:
-  - "Run exact-head canonical source validation and applicable browser/accessibility evidence for #316."
-  - "Verify an exact-head READY Vercel preview for #316 with matching GitHub SHA and Node runtime metadata."
-  - "Repair any substantive finding in #316, then advance lifecycle state and merge when the project-owned merge condition is satisfied."
+  - "Run exact-head canonical source validation and applicable browser/accessibility evidence for #318."
+  - "Verify an exact-head READY Vercel preview for #318 with matching GitHub SHA and Node runtime metadata."
+  - "Repair any substantive finding in #318, then advance lifecycle state and merge when the project-owned merge condition is satisfied."
   - "Verify exact-main production provenance and Node runtime evidence after merge."
 blockers:
   - scope: provider_connected_work
@@ -38,8 +38,8 @@ validation:
   build: NOT_RUN
   ci: PENDING
   runtime: VERIFIED
-last_verified_commit: "d4f7f12c3b96f69769131f9ca6c4ab079db891b0"
-last_updated: "2026-09-03T18:04:00+10:00"
+last_verified_commit: "a71a0a9bee1fa09744d67a36f2ae7c0ef892e085"
+last_updated: "2026-09-03T19:05:00+10:00"
 ---
 
 # STATUS.md
@@ -66,15 +66,15 @@ The repository is the authoritative handoff. Continue the highest-priority depen
 
 ## Current implementation focus
 
-PR **#313** is squash-merged as exact current `main` **d4f7f12c3b96f69769131f9ca6c4ab079db891b0**. Its cellar retry correction restores focus to **My cellar** after successful **Try again** recovery and preserves load-error focus after another failure.
+PR **#316** is squash-merged as exact current `main` **a71a0a9bee1fa09744d67a36f2ae7c0ef892e085**. Its rating-form retry correction restores focus to the recovered product heading after successful **Try again** recovery and preserves load-error focus after another failure.
 
-Vercel production deployment **dpl_9RQsBVSeifpAn3Qa2bnPsCGX7vDa** is READY for exact `main` `d4f7f12...`, with verified GitHub commit provenance and Node runtime metadata (`lambdaRuntimeStats` reports Node.js functions). Issues **#224** and **#249** therefore remain complete and outside the active blocker chain.
+Vercel production deployment **dpl_52vfZe3qeQEFweNQMN5DG3FM8gtc** is READY for exact `main` `a71a0a9...`, with verified GitHub commit provenance and Node runtime metadata (`lambdaRuntimeStats` reports Node.js functions). Issues **#224** and **#249** remain complete and outside the active blocker chain.
 
-Issue **#315** / normal non-draft PR **#316** / branch **`fix/rating-form-retry-focus`** is the active independent Phase 3 accessibility slice. `RateBeer.jsx` already focuses the rating-form load error alert, but successful **Try again** recovery removed that focused control without restoring keyboard focus. The implementation records retry-triggered recovery, focuses the recovered product heading on success, clears stale retry intent on another failure, and preserves existing rating submission-error focus and form behaviour. Focused Playwright coverage exercises both successful and failed retry recovery.
+Issue **#317** / normal non-draft PR **#318** / branch **`fix/rating-history-retry-focus`** is the active independent Phase 3 accessibility slice. `Profile.jsx` already focuses its rating-history load error alert, but successful **Retry rating history** recovery removed that focused control without restoring keyboard focus. The implementation records retry-triggered recovery, focuses the persistent **My ratings** heading on success, clears stale retry intent on another failure, and preserves existing profile mutation-error and rating-deletion focus behaviour. Focused Playwright coverage exercises both successful and failed retry recovery.
 
 ## Deployment/runtime state
 
-Exact current `main` **d4f7f12c3b96f69769131f9ca6c4ab079db891b0** has a READY production deployment with matching GitHub provenance and Node runtime metadata. The earlier Vercel daily deployment-capacity condition is no longer active.
+Exact current `main` **a71a0a9bee1fa09744d67a36f2ae7c0ef892e085** has a READY production deployment with matching GitHub provenance and Node runtime metadata. The earlier Vercel daily deployment-capacity condition is not active.
 
 ## Deferred backend/provider work
 
@@ -91,13 +91,13 @@ These do not block independent frontend/governance work.
 
 `npm run platform:validate` remains the canonical source-validation entry point. Browser-facing changes require applicable Playwright/accessibility evidence. GitHub Actions, CodeQL and Dependency Review are supporting diagnostic evidence rather than independent merge gates; real defects they expose remain actionable.
 
-PR #316 requires fresh exact-head source/browser validation and exact-head deployment evidence before merge. No provider, schema, migration or backend change is part of this slice.
+PR #318 requires fresh exact-head source/browser validation and exact-head deployment evidence after this durable-status update. No provider, schema, migration or backend change is part of this slice.
 
 ## Next dependency-correct work
 
-1. Inspect exact-head `platform:validate`, browser/accessibility, Dependency Review and CodeQL evidence for #316; repair any substantive finding in the same PR.
-2. Verify an exact-head READY Vercel preview for #316 with matching GitHub SHA and Node runtime metadata.
-3. Advance #316 through Ready/Mergeable, squash-merge when evidence is sufficient, then verify exact-main production/runtime provenance.
+1. Inspect exact-head `platform:validate`, browser/accessibility, Dependency Review and CodeQL evidence for #318; repair any substantive finding in the same PR.
+2. Verify an exact-head READY Vercel preview for #318 with matching GitHub SHA and Node runtime metadata.
+3. Advance #318 through Ready/Mergeable, squash-merge when evidence is sufficient, then verify exact-main production/runtime provenance.
 4. Continue the next independent Phase 3 responsive, keyboard, empty/error/loading or accessibility slice when its delivery evidence can be satisfied.
 5. Resume provider/schema work only after explicit product-owner resumption.
 
