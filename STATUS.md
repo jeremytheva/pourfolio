@@ -6,15 +6,15 @@ stage: "Frontend source hardening continues while backend/provider work is defer
 gate: Change
 execution_state: VALIDATING
 current_work:
-  objective: "Repair PR lifecycle label synchronisation exposed by the first live normal PR after the github-script v9 upgrade."
+  objective: "Complete PR lifecycle label synchronisation by granting the sync job the explicit PR write authority required by live GitHub evidence."
   issue: 303
-  pr: 304
-  branch: fix/pr-lifecycle-label-sync
+  pr: 307
+  branch: fix/pr-lifecycle-pr-write
 next_actions:
-  - "Run exact-head canonical validation for #304 and inspect review/conflict/preview evidence."
-  - "Merge #304 when project-owned conditions are satisfied; its repaired pull_request_target path can only receive live evidence from subsequent PR events on main."
-  - "Use the next normal PR event to verify lifecycle synchronisation applies pr:implementing without manual intervention."
-  - "Continue the next dependency-correct Phase 3 frontend slice after governance verification."
+  - "Run exact-head canonical validation for #307 and inspect review/conflict evidence."
+  - "Merge #307 when project-owned conditions are satisfied; Vercel preview capacity is externally exhausted and is not material to this workflow-only change."
+  - "Trigger a subsequent normal PR event on #306 and verify pr:implementing is applied automatically."
+  - "Resume exact-head validation and merge progression for frontend PR #306."
 blockers:
   - scope: provider_connected_work
     issue: 225
@@ -38,8 +38,8 @@ validation:
   build: NOT_RUN
   ci: PENDING
   runtime: VERIFIED
-last_verified_commit: "96a515294ead6ac5c005f56bb19facef7bf4c98e"
-last_updated: "2026-09-03T10:16:00+10:00"
+last_verified_commit: "4bc17ffbcb4d1e3143f89b35ea0a7a8814118593"
+last_updated: "2026-09-03T10:07:00+10:00"
 ---
 
 # STATUS.md
@@ -66,13 +66,13 @@ The repository is the authoritative handoff. Continue the highest-priority depen
 
 ## Current implementation focus
 
-PR **#302** is squash-merged as exact `main` commit **96a515294ead6ac5c005f56bb19facef7bf4c98e**. It moves keyboard focus into the product-detail **Add to cellar** form and adds focused browser regression coverage. Its exact head passed `npm run platform:validate`, the browser/accessibility suite, Dependency Review and CodeQL; it had no review threads and a READY exact-head Vercel preview.
+PR **#304** is squash-merged as exact `main` commit **4bc17ffbcb4d1e3143f89b35ea0a7a8814118593**. Its workflow simplification passed exact-head canonical validation and diagnostic checks, and exact-main production is **READY** with verified GitHub provenance and Node.js lambda runtime evidence. Issues #224 and #249 remain complete.
 
-Vercel production for exact current `main` **96a515294ead6ac5c005f56bb19facef7bf4c98e** is **READY** with verified GitHub provenance and Node.js lambda runtime evidence. Issues #224 and #249 remain complete.
+The required post-#304 live proof on normal PR **#306** exposed the remaining lifecycle defect rather than validating the repair. `PR lifecycle` run **33697942493** reached the existing-label mutation and failed with `403 Resource not accessible by integration`; the job token reported only `Issues: write`. Issue **#303** was therefore reopened. Normal non-draft PR **#307** adds explicit `pull-requests: write` to the sync job while retaining `issues: write`, with no other workflow behaviour change. Live proof still requires a subsequent PR event after #307 is integrated because `pull_request_target` executes the default-branch workflow.
 
-The first live lifecycle runs after #283 exposed a real governance defect: runs **33693894276** and **33693914154** failed specifically at **Synchronise lifecycle label**, leaving #302 without its expected initial lifecycle metadata. Directly applying `pr:implementing` succeeded, showing label mutation authority is available. Issue **#303** / normal non-draft PR **#304** therefore removes unnecessary per-event label-definition provisioning and limits the workflow to synchronising existing governed lifecycle labels. Draft remains exceptional; normal unlabeled PRs start at Implementing; explicit project-owned lifecycle state is preserved.
+Frontend issue **#305** / PR **#306** remains open with its cellar-save focus correction and regression coverage intact. It is not duplicated or abandoned; validation/merge progression resumes after the lifecycle repair is proven on a new #306 synchronize event.
 
-Because `pull_request_target` executes the workflow from the default branch, #304's own lifecycle event still exercises the pre-repair workflow. Live proof of the repaired path must come from the next normal PR event after #304 is integrated.
+Vercel's Hobby account has currently exhausted its 100-deployments-per-day allowance, so new preview deployment creation is externally unavailable. This does not invalidate the already READY exact-main production state and is not material to the workflow-only #307 change. Automated Codex PR review quota is also exhausted; neither capacity condition substitutes for project-owned validation or creates a product defect.
 
 ## Deferred backend/provider work
 
@@ -89,15 +89,15 @@ These do not block independent frontend/governance work.
 
 `npm run platform:validate` remains the canonical source-validation entry point. Browser-facing changes require applicable Playwright/accessibility evidence. GitHub Actions, CodeQL and Dependency Review are supporting diagnostic evidence rather than independent merge gates.
 
-No exact-head validation pass is claimed yet for #304.
+No exact-head validation pass is claimed yet for #307. Current production/runtime verification applies to exact `main` **4bc17ffbcb4d1e3143f89b35ea0a7a8814118593**.
 
 ## Next dependency-correct work
 
-1. Validate #304's exact head and inspect review/conflict/preview evidence.
-2. Repair any substantive finding in the same PR.
-3. Merge #304 when project-owned conditions are satisfied.
-4. Verify exact-main production deployment.
-5. Verify the repaired lifecycle workflow on the next normal PR event.
+1. Validate #307's exact head and inspect review/conflict evidence.
+2. Merge #307 when project-owned conditions are satisfied.
+3. Update #306 after #307 integration to produce a new normal PR event and verify automatic `pr:implementing` synchronisation.
+4. Validate #306's exact head with canonical and applicable browser/accessibility evidence.
+5. Merge #306 when project-owned merge conditions are satisfied; verify exact-main deployment when Vercel capacity permits without treating the quota itself as a code defect.
 6. Continue the next independent Phase 3 responsive, keyboard, empty/error/loading or accessibility slice.
 7. Resume provider/schema work only after explicit product-owner resumption.
 
