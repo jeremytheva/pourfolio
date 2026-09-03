@@ -16,6 +16,7 @@ function HomePage({ searchMode = false }) {
   const loadError = useRef(null)
   const resultsHeading = useRef(null)
   const focusResultsAfterPagination = useRef(false)
+  const focusResultsAfterRetry = useRef(false)
   const searchStatusId = 'product-search-status'
   const resultsHeadingId = 'product-results-heading'
 
@@ -58,14 +59,20 @@ function HomePage({ searchMode = false }) {
   }, [debouncedQuery, page, reloadKey])
 
   useEffect(() => {
-    if (status !== 'ready' || !focusResultsAfterPagination.current) return
+    if (status !== 'ready' || (!focusResultsAfterPagination.current && !focusResultsAfterRetry.current)) return
     focusResultsAfterPagination.current = false
+    focusResultsAfterRetry.current = false
     resultsHeading.current?.focus()
   }, [status, page])
 
   const changePage = (nextPage) => {
     focusResultsAfterPagination.current = true
     setPage(nextPage)
+  }
+
+  const retryLoad = () => {
+    focusResultsAfterRetry.current = true
+    setReloadKey((value) => value + 1)
   }
 
   return (
@@ -118,7 +125,7 @@ function HomePage({ searchMode = false }) {
           >
             <p className="font-semibold">Products are unavailable</p>
             <p className="mt-1 text-sm">{error}</p>
-            <button type="button" onClick={() => setReloadKey((value) => value + 1)} className="mt-4 inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2">
+            <button type="button" onClick={retryLoad} className="mt-4 inline-flex items-center rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2">
               <SafeIcon icon={FiRefreshCw} className="mr-2 h-4 w-4" />
               Try again
             </button>
