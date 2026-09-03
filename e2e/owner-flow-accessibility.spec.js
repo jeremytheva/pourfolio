@@ -215,7 +215,7 @@ test('catalogue retry restores focus to product results after recovery', async (
 
   await page.getByRole('button', { name: 'Try again' }).click()
 
-  await expect(page.getByRole('link', { name: 'Ace' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Ace' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Product results' })).toBeFocused()
   await expect(alert).toHaveCount(0)
 })
