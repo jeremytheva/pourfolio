@@ -59,7 +59,10 @@ function AuthForm({ mode, onToggleMode }) {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const errorRef = useRef(null)
+  const nameInputRef = useRef(null)
+  const emailInputRef = useRef(null)
   const otpInputRef = useRef(null)
+  const modeFocusPendingRef = useRef(false)
   const { signUp, signIn, requestEmailOtp, verifyEmailOtp, signInWithGoogle } = useAuth()
 
   useEffect(() => {
@@ -103,6 +106,13 @@ function AuthForm({ mode, onToggleMode }) {
     if (otpSent) otpInputRef.current?.focus()
   }, [otpSent])
 
+  useEffect(() => {
+    if (!modeFocusPendingRef.current) return
+    modeFocusPendingRef.current = false
+    const target = mode === 'signup' ? nameInputRef.current : emailInputRef.current
+    target?.focus()
+  }, [mode])
+
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   const canUsePassword = providerStatus === 'ready' && providers.emailPassword && activeMethod === 'emailPassword'
   const canUseOtp = providerStatus === 'ready' && mode === 'signin' && providers.emailOtp && activeMethod === 'emailOtp'
@@ -113,6 +123,12 @@ function AuthForm({ mode, onToggleMode }) {
     setNotice('')
     setOtpSent(false)
     setActiveMethod(method)
+  }
+
+  const handleToggleMode = () => {
+    if (isSubmitting) return
+    modeFocusPendingRef.current = true
+    onToggleMode?.()
   }
 
   const handleSubmit = async (event) => {
@@ -203,13 +219,13 @@ function AuthForm({ mode, onToggleMode }) {
           {mode === 'signup' && (
             <div>
               <label htmlFor="auth-name" className="mb-1 block text-sm font-medium text-gray-700">Name</label>
-              <input id="auth-name" required autoComplete="name" value={form.name} onChange={update('name')} className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
+              <input ref={nameInputRef} id="auth-name" required autoComplete="name" value={form.name} onChange={update('name')} className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
             </div>
           )}
 
           <div>
             <label htmlFor="auth-email" className="mb-1 block text-sm font-medium text-gray-700">Email</label>
-            <input id="auth-email" type="email" required autoComplete="email" value={form.email} onChange={update('email')} className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
+            <input ref={emailInputRef} id="auth-email" type="email" required autoComplete="email" value={form.email} onChange={update('email')} className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
           </div>
 
           {canUsePassword && (
@@ -249,7 +265,7 @@ function AuthForm({ mode, onToggleMode }) {
       {providerStatus === 'ready' && providers.emailPassword && (
         <div className="mt-6 text-center text-sm text-gray-600">
           {mode === 'signup' ? 'Already have an account?' : 'New to Pourfolio?'}
-          <button type="button" onClick={onToggleMode} disabled={isSubmitting} className="ml-2 font-medium text-amber-700 hover:underline disabled:cursor-wait disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
+          <button type="button" onClick={handleToggleMode} disabled={isSubmitting} className="ml-2 font-medium text-amber-700 hover:underline disabled:cursor-wait disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
             {mode === 'signup' ? 'Sign in' : 'Create account'}
           </button>
         </div>
