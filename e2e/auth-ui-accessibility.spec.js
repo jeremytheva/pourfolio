@@ -38,6 +38,24 @@ test('sign-in method controls expose selected state and switch accessibly', asyn
   await expect(page.getByRole('button', { name: 'Send one-time passcode' })).toBeVisible()
 })
 
+test('successful OTP request moves focus to the newly required passcode field', async ({ page }) => {
+  await mockSignedOutSession(page)
+  await mockPasswordAndOtpProviders(page)
+  await page.route('**/api/nocodebackend/auth/sign-in/otp', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ success: true })
+  }))
+
+  await page.goto('/login')
+  await page.getByRole('button', { name: 'Email code' }).click()
+  await page.getByLabel('Email').fill('jeremy@example.com')
+  await page.getByRole('button', { name: 'Send one-time passcode' }).click()
+
+  await expect(page.getByRole('status')).toContainText('Check your email for a one-time passcode.')
+  await expect(page.getByLabel('One-time passcode')).toBeFocused()
+})
+
 test('pending password sign-in exposes busy state, locks conflicting controls and focuses failure', async ({ page }) => {
   await mockSignedOutSession(page)
   await mockPasswordAndOtpProviders(page)
