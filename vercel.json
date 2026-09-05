@@ -3,11 +3,11 @@
   "rewrites": [
     {
       "source": "/api/nocodebackend/auth/:path*",
-      "destination": "/api/auth-proxy"
+      "destination": "/api/auth-proxy?path=:path*"
     },
     {
       "source": "/api/nocodebackend/:path*",
-      "destination": "/api/data-router"
+      "destination": "/api/data-router?path=:path*"
     },
     {
       "source": "/((?!api(?:/|$)).*)",

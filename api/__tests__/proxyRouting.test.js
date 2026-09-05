@@ -14,9 +14,16 @@ const matchRewrite = (rewrite, pathname, query = {}) => {
     const prefix = rewrite.source.slice(0, -wildcardMarker.length)
     if (pathname === prefix || pathname.startsWith(`${prefix}/`)) {
       const capture = pathname.slice(prefix.length).replace(/^\//, '')
+      const destination = new URL(rewrite.destination, 'https://pourfolio.test')
+      const rewrittenQuery = { ...query }
+
+      for (const [key, value] of destination.searchParams.entries()) {
+        rewrittenQuery[key] = value === ':path*' ? capture : value
+      }
+
       return {
-        destination: rewrite.destination,
-        query: { ...query, path: capture ? capture.split('/') : [] }
+        destination: destination.pathname,
+        query: rewrittenQuery
       }
     }
   }
@@ -66,11 +73,11 @@ test('Vercel routes public catch-all paths to flat proxy entrypoints before the 
   assert.deepEqual(configuration.rewrites.slice(0, 3), [
     {
       source: '/api/nocodebackend/auth/:path*',
-      destination: '/api/auth-proxy'
+      destination: '/api/auth-proxy?path=:path*'
     },
     {
       source: '/api/nocodebackend/:path*',
-      destination: '/api/data-router'
+      destination: '/api/data-router?path=:path*'
     },
     {
       source: '/((?!api(?:/|$)).*)',
@@ -87,14 +94,14 @@ test('Vercel routes public catch-all paths to flat proxy entrypoints before the 
   }
 })
 
-test('Vercel wildcard captures preserve every path segment and unrelated query values', async () => {
+test('Vercel wildcard captures are explicitly forwarded while unrelated query values are preserved', async () => {
   const { rewrites } = await loadVercelConfiguration()
   const cases = [
-    ['/api/nocodebackend/auth/sign-up/email', '/api/auth-proxy', ['sign-up', 'email']],
-    ['/api/nocodebackend/auth/sign-in/email', '/api/auth-proxy', ['sign-in', 'email']],
-    ['/api/nocodebackend/auth/get-session', '/api/auth-proxy', ['get-session']],
-    ['/api/nocodebackend/catalog/products', '/api/data-router', ['catalog', 'products']],
-    ['/api/nocodebackend/catalog/products/featured/seasonal', '/api/data-router', ['catalog', 'products', 'featured', 'seasonal']]
+    ['/api/nocodebackend/auth/sign-up/email', '/api/auth-proxy', 'sign-up/email'],
+    ['/api/nocodebackend/auth/sign-in/email', '/api/auth-proxy', 'sign-in/email'],
+    ['/api/nocodebackend/auth/get-session', '/api/auth-proxy', 'get-session'],
+    ['/api/nocodebackend/catalog/products', '/api/data-router', 'catalog/products'],
+    ['/api/nocodebackend/catalog/products/featured/seasonal', '/api/data-router', 'catalog/products/featured/seasonal']
   ]
   const originalQuery = {
     redirectTo: 'https://pourfolio.example/profile',
@@ -106,15 +113,15 @@ test('Vercel wildcard captures preserve every path segment and unrelated query v
   for (const [pathname, destination, expectedPath] of cases) {
     const resolved = resolveRewrite(rewrites, pathname, originalQuery)
     assert.equal(resolved.destination, destination)
-    assert.deepEqual(resolved.query.path, expectedPath)
+    assert.equal(resolved.query.path, expectedPath)
     assert.deepEqual(Object.fromEntries(
       Object.entries(resolved.query).filter(([key]) => key !== 'path')
     ), originalQuery)
 
     if (destination === '/api/auth-proxy') {
-      assert.equal(authProxy.getRequestPath({ query: resolved.query }), expectedPath.join('/'))
+      assert.equal(authProxy.getRequestPath({ query: resolved.query }), expectedPath)
     } else {
-      assert.deepEqual(dataRouterPathSegments({ query: resolved.query }), expectedPath)
+      assert.deepEqual(dataRouterPathSegments({ query: resolved.query }), expectedPath.split('/'))
     }
   }
 })
