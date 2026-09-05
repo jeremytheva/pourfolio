@@ -25,11 +25,22 @@ function MainLayout({ children, user, onLogout }) {
   const [isSigningOut, setIsSigningOut] = useState(false)
   const [signOutError, setSignOutError] = useState('')
   const signOutErrorRef = useRef(null)
+  const mainContentRef = useRef(null)
+  const previousPathnameRef = useRef(pathname)
   const currentRouteLabel = useMemo(() => routeLabel(pathname), [pathname])
 
   useEffect(() => {
     if (signOutError) signOutErrorRef.current?.focus()
   }, [signOutError])
+
+  useEffect(() => {
+    if (previousPathnameRef.current === pathname) return
+    previousPathnameRef.current = pathname
+
+    const mainContent = mainContentRef.current
+    if (!mainContent || mainContent.contains(document.activeElement)) return
+    mainContent.focus()
+  }, [pathname])
 
   const handleLogout = async () => {
     if (isSigningOut) return
@@ -99,7 +110,14 @@ function MainLayout({ children, user, onLogout }) {
           </div>
         )}
       </header>
-      <main id="main-content">{children}</main>
+      <main
+        ref={mainContentRef}
+        id="main-content"
+        tabIndex={-1}
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-400"
+      >
+        {children}
+      </main>
       <footer className="border-t border-gray-200 bg-white">
         <PublicDocumentLinks className="mx-auto flex max-w-7xl flex-wrap gap-x-5 gap-y-2 px-4 py-6 text-sm text-gray-700 sm:px-6 lg:px-8" />
       </footer>
