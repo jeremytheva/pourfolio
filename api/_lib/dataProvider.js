@@ -148,20 +148,20 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
 export const dataProvider = {
   isUniqueConflict(error) { return error?.code === 'UNIQUE_CONFLICT' },
   async list(collection, filters = {}) {
-    const payload = await providerRequest(`read/${collection}`, { filters })
+    const payload = await providerRequest(collection, { filters })
     if (Array.isArray(payload)) return payload
     return payload ? [payload] : []
   },
   async listPage(collection, { search, page, limit, orderBy, order = 'asc', filters = {} }) {
     const searchFilter = search && collection === 'products' ? { 'product_name[like]': search } : {}
-    const payload = await providerRequest(`read/${collection}`, {
+    const payload = await providerRequest(collection, {
       filters: { ...filters, ...searchFilter, page, limit, sort: orderBy, order }, preserveEnvelope: true
     })
     return normalisePage(payload, page, limit)
   },
   async get(collection, id) {
     try {
-      const payload = await providerRequest(`read/${collection}/${encodeURIComponent(id)}`)
+      const payload = await providerRequest(`${collection}/${encodeURIComponent(id)}`)
       return requireExpectedRecord(Array.isArray(payload) ? payload[0] || null : payload, id)
     } catch (error) {
       if (error.status !== 404) throw error
@@ -169,12 +169,12 @@ export const dataProvider = {
       return records.find((record) => record && String(record.id) === String(id)) || null
     }
   },
-  create(collection, body) { return providerRequest(`create/${collection}`, { method: 'POST', body }) },
-  update(collection, id, body) { return providerRequest(`update/${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body }) },
+  create(collection, body) { return providerRequest(collection, { method: 'POST', body }) },
+  update(collection, id, body) { return providerRequest(`${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body }) },
   compareAndSet(collection, id, expectedVersion, body) {
-    return providerRequest(`update/${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body, filters: { expected_version: expectedVersion } })
+    return providerRequest(`${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body, filters: { expected_version: expectedVersion } })
   },
-  remove(collection, id) { return providerRequest(`delete/${collection}/${encodeURIComponent(id)}`, { method: 'DELETE' }) }
+  remove(collection, id) { return providerRequest(`${collection}/${encodeURIComponent(id)}`, { method: 'DELETE' }) }
 }
 
 export const __testables = {
