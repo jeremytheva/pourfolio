@@ -57,16 +57,16 @@ test('non-credential upstream failures retain generic safe errors without the co
   assert.ok(result.error.length > 0)
 })
 
-test('auth proxy presents the upstream auth service origin after local origin validation', () => {
+test('auth proxy presents the canonical upstream auth service origin after local origin validation', () => {
   const previousBaseUrl = process.env.NOCODEBACKEND_AUTH_BASE_URL
   const previousInstance = process.env.NOCODEBACKEND_INSTANCE
-  process.env.NOCODEBACKEND_AUTH_BASE_URL = 'https://auth.example.test/api/user-auth/'
+  process.env.NOCODEBACKEND_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth/'
   process.env.NOCODEBACKEND_INSTANCE = 'test_runtime_instance'
 
   try {
-    assert.equal(upstreamAuthOrigin(), 'https://auth.example.test')
+    assert.equal(upstreamAuthOrigin(), 'https://app.nocodebackend.com')
     const headers = buildUpstreamHeaders({ headers: { cookie: 'session=abc' } }, 'secret')
-    assert.equal(headers.origin, 'https://auth.example.test')
+    assert.equal(headers.origin, 'https://app.nocodebackend.com')
     assert.equal(headers.cookie, 'session=abc')
     assert.equal(headers.authorization, 'Bearer secret')
     assert.equal(headers['x-database-instance'], 'test_runtime_instance')
