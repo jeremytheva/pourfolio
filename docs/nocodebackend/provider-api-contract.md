@@ -65,15 +65,17 @@ Pourfolio does not forward browser cookies, `Origin`, `Referer`, or `X-Database-
 
 ## Generated operation routes
 
+NoCodeBackend V2 uses RESTful collection paths. Legacy operation prefixes (`/read`, `/create`, `/update`, `/delete`) are not used by the runtime adapter.
+
 | Adapter operation | Provider method/path | Query/body |
 | --- | --- | --- |
-| `list(collection, filters)` | `GET /read/{collection}` | `Instance` plus column filters |
-| `listPage(collection, options)` | `GET /read/{collection}` | `Instance`, filters, `page`, `limit`, `sort`, `order`; product search uses `product_name[like]` |
-| `get(collection, id)` | `GET /read/{collection}/{id}` | `Instance` |
-| `create(collection, body)` | `POST /create/{collection}` | `Instance`; JSON record body |
-| `update(collection, id, body)` | `PUT /update/{collection}/{id}` | `Instance`; JSON partial record body |
-| `compareAndSet(collection, id, expectedVersion, body)` | `PUT /update/{collection}/{id}` | `Instance`, `expected_version`; JSON body |
-| `remove(collection, id)` | `DELETE /delete/{collection}/{id}` | `Instance` |
+| `list(collection, filters)` | `GET /{collection}` | `Instance` plus column filters |
+| `listPage(collection, options)` | `GET /{collection}` | `Instance`, filters, `page`, `limit`, `sort`, `order`; product search uses `product_name[like]` |
+| `get(collection, id)` | `GET /{collection}/{id}` | `Instance` |
+| `create(collection, body)` | `POST /{collection}` | `Instance`; JSON record body |
+| `update(collection, id, body)` | `PUT /{collection}/{id}` | `Instance`; JSON partial record body |
+| `compareAndSet(collection, id, expectedVersion, body)` | `PUT /{collection}/{id}` | `Instance`, `expected_version`; JSON body |
+| `remove(collection, id)` | `DELETE /{collection}/{id}` | `Instance` |
 
 For requests with a JSON body, Pourfolio additionally sends `Content-Type: application/json`.
 
