@@ -31,7 +31,7 @@ const response = (payload, { status = 200, raw } = {}) => ({
   text: async () => raw ?? (payload === null ? '' : JSON.stringify(payload))
 })
 
-test('list matches Swagger read route, instance query and bearer headers', async () => {
+test('list matches NoCodeBackend V2 REST table route, instance query and bearer headers', async () => {
   let request
   global.fetch = async (url, options) => {
     request = { url: String(url), options }
@@ -39,7 +39,7 @@ test('list matches Swagger read route, instance query and bearer headers', async
   }
 
   assert.deepEqual(await dataProvider.list('ratings', { user_id: 'owner' }), [{ id: 7 }])
-  assert.equal(request.url, `https://api.nocodebackend.com/read/ratings?Instance=${TEST_INSTANCE}&user_id=owner`)
+  assert.equal(request.url, `https://api.nocodebackend.com/ratings?Instance=${TEST_INSTANCE}&user_id=owner`)
   assert.deepEqual(request.options.headers, {
     accept: 'application/json',
     authorization: 'Bearer test-secret'
@@ -83,10 +83,10 @@ test('paginated product list uses documented search and ordering parameters', as
     search: 'porter', page: 2, limit: 25, orderBy: 'product_name', order: 'asc'
   }), { items, page: 2, pageSize: 25, total: 51, totalPages: 3 })
   assert.equal(requestedUrl,
-    `https://api.nocodebackend.com/read/products?Instance=${TEST_INSTANCE}&product_name%5Blike%5D=porter&page=2&limit=25&sort=product_name&order=asc`)
+    `https://api.nocodebackend.com/products?Instance=${TEST_INSTANCE}&product_name%5Blike%5D=porter&page=2&limit=25&sort=product_name&order=asc`)
 })
 
-test('get uses read-by-id and filtered fallback after 404', async () => {
+test('get uses REST by-id route and filtered fallback after 404', async () => {
   const urls = []
   global.fetch = async (url) => {
     urls.push(String(url))
@@ -96,12 +96,12 @@ test('get uses read-by-id and filtered fallback after 404', async () => {
 
   assert.deepEqual(await dataProvider.get('ratings', 'id/with slash'), { id: 'id/with slash' })
   assert.deepEqual(urls, [
-    `https://api.nocodebackend.com/read/ratings/id%2Fwith%20slash?Instance=${TEST_INSTANCE}`,
-    `https://api.nocodebackend.com/read/ratings?Instance=${TEST_INSTANCE}&id=id%2Fwith+slash`
+    `https://api.nocodebackend.com/ratings/id%2Fwith%20slash?Instance=${TEST_INSTANCE}`,
+    `https://api.nocodebackend.com/ratings?Instance=${TEST_INSTANCE}&id=id%2Fwith+slash`
   ])
 })
 
-test('create, update, compare-and-set and delete use operation routes and JSON content type', async () => {
+test('create, update, compare-and-set and delete use REST methods and JSON content type', async () => {
   const requests = []
   global.fetch = async (url, options) => {
     requests.push({ url: String(url), options })
@@ -114,10 +114,10 @@ test('create, update, compare-and-set and delete use operation routes and JSON c
   await dataProvider.remove('cellar', 3)
 
   assert.deepEqual(requests.map(({ url, options }) => [url, options.method]), [
-    [`https://api.nocodebackend.com/create/cellar?Instance=${TEST_INSTANCE}`, 'POST'],
-    [`https://api.nocodebackend.com/update/cellar/3?Instance=${TEST_INSTANCE}`, 'PUT'],
-    [`https://api.nocodebackend.com/update/cellar/3?Instance=${TEST_INSTANCE}&expected_version=4`, 'PUT'],
-    [`https://api.nocodebackend.com/delete/cellar/3?Instance=${TEST_INSTANCE}`, 'DELETE']
+    [`https://api.nocodebackend.com/cellar?Instance=${TEST_INSTANCE}`, 'POST'],
+    [`https://api.nocodebackend.com/cellar/3?Instance=${TEST_INSTANCE}`, 'PUT'],
+    [`https://api.nocodebackend.com/cellar/3?Instance=${TEST_INSTANCE}&expected_version=4`, 'PUT'],
+    [`https://api.nocodebackend.com/cellar/3?Instance=${TEST_INSTANCE}`, 'DELETE']
   ])
   assert.equal(requests[0].options.headers['content-type'], 'application/json')
   assert.equal(requests[3].options.headers['content-type'], undefined)
