@@ -101,11 +101,16 @@ These are Pourfolio same-origin routes. The auth proxy maps their action suffixe
 
 CRUD/data operations are a separate concern from authentication. The repository data adapter uses `NOCODEBACKEND_DATA_BASE_URL`, `NOCODEBACKEND_SECRET_KEY`, and `NOCODEBACKEND_INSTANCE`; authentication uses `NOCODEBACKEND_AUTH_BASE_URL` with the same server-only secret and runtime-configured instance.
 
-The generated data contract is:
+The NoCodeBackend V2 generated data contract uses RESTful collection paths:
 
 ```text
-GET https://api.nocodebackend.com/read/{collection}?Instance=<runtime instance>
+GET https://api.nocodebackend.com/{collection}?Instance=<runtime instance>
+POST https://api.nocodebackend.com/{collection}?Instance=<runtime instance>
+PUT https://api.nocodebackend.com/{collection}/{id}?Instance=<runtime instance>
+DELETE https://api.nocodebackend.com/{collection}/{id}?Instance=<runtime instance>
 Authorization: Bearer <NOCODEBACKEND_SECRET_KEY>
 ```
+
+Legacy generated-data operation prefixes such as `/read`, `/create`, `/update`, and `/delete` are not used by the runtime adapter.
 
 Authentication cookies and generated-data transport requirements must not be assumed to be interchangeable.
