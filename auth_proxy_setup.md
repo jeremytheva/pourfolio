@@ -9,6 +9,7 @@ The auth proxy handles user authentication by proxying requests to the NoCodeBac
 - NoCodeBackend accepts Better Auth session cookies with or without the secure prefix.
 - The NoCodeBackend server secret remains server-only.
 - The NoCodeBackend instance is runtime configuration and is not stored in the repository.
+- Authentication and generated data are separate NoCodeBackend provider surfaces with different upstream base URLs.
 
 ## Environment Variables
 
@@ -28,10 +29,24 @@ Rules:
 - Do not introduce alternate NoCodeBackend environment-variable aliases.
 - Retired short-form NoCodeBackend environment-variable names are prohibited.
 - `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE` must be supplied by the deployment/runtime environment and must not have repository defaults.
+- Do not use the auth base URL for generated table reads/writes.
+- Do not use the data base URL for authentication or session operations.
+
+## Provider Surface Contract
+
+Pourfolio uses two distinct upstream NoCodeBackend surfaces:
+
+| Purpose | Environment variable | Canonical upstream base URL | Application-owned browser route |
+| --- | --- | --- | --- |
+| Authentication/session | `NOCODEBACKEND_AUTH_BASE_URL` | `https://app.nocodebackend.com/api/user-auth` | `/api/nocodebackend/auth/*` |
+| Generated data CRUD | `NOCODEBACKEND_DATA_BASE_URL` | `https://api.nocodebackend.com/` | `/api/nocodebackend/*` |
+
+Both server-side adapters use the same runtime `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE`, but their upstream route, cookie, header, and transport requirements remain separate.
 
 ## Auth Proxy Contract
 
-- Proxy authentication through `NOCODEBACKEND_AUTH_BASE_URL`.
+- Browser authentication requests use the same-origin `/api/nocodebackend/auth/*` interface.
+- The application auth proxy forwards those requests through `NOCODEBACKEND_AUTH_BASE_URL`.
 - Include the runtime `NOCODEBACKEND_INSTANCE` via query/header where required by the upstream API.
 - Use `NOCODEBACKEND_SECRET_KEY` only on the server.
 - Fail closed with a safe configuration error when either the secret or instance is missing.
@@ -56,14 +71,16 @@ Expected shape:
 
 `email`, `google`, and `emailOTP` are separate providers and must not be conflated.
 
-## Endpoints
+## Application Auth Endpoints
 
-- Session: `GET /api/auth/get-session`
-- Email sign-in: `POST /api/auth/sign-in/email`
-- Email sign-up: `POST /api/auth/sign-up/email`
-- OTP send: `POST /api/auth/email-otp/send-verification-otp`
-- OTP verify: `POST /api/auth/sign-in/email-otp`
-- Sign-out: `POST /api/auth/sign-out`
+- Session: `GET /api/nocodebackend/auth/get-session`
+- Email sign-in: `POST /api/nocodebackend/auth/sign-in/email`
+- Email sign-up: `POST /api/nocodebackend/auth/sign-up/email`
+- OTP send: `POST /api/nocodebackend/auth/email-otp/send-verification-otp`
+- OTP verify: `POST /api/nocodebackend/auth/sign-in/email-otp`
+- Sign-out: `POST /api/nocodebackend/auth/sign-out`
+
+These are Pourfolio same-origin routes. The auth proxy maps their action suffixes onto `NOCODEBACKEND_AUTH_BASE_URL`; they are not the NoCodeBackend upstream base URL themselves.
 
 ## Completion Checklist
 
@@ -75,9 +92,20 @@ Expected shape:
 - [ ] Session endpoint returns user info.
 - [ ] Refresh preserves the session.
 - [ ] Sign-out clears cookies and UI state.
+- [ ] Auth operations use `NOCODEBACKEND_AUTH_BASE_URL=https://app.nocodebackend.com/api/user-auth`.
 - [ ] Data operations use `NOCODEBACKEND_DATA_BASE_URL=https://api.nocodebackend.com/`.
+- [ ] Browser auth routes use `/api/nocodebackend/auth/*` and browser data routes use `/api/nocodebackend/*`.
 - [ ] `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE` are configured outside the repository.
 
 ## Data Operations
 
 CRUD/data operations are a separate concern from authentication. The repository data adapter uses `NOCODEBACKEND_DATA_BASE_URL`, `NOCODEBACKEND_SECRET_KEY`, and `NOCODEBACKEND_INSTANCE`; authentication uses `NOCODEBACKEND_AUTH_BASE_URL` with the same server-only secret and runtime-configured instance.
+
+The generated data contract is:
+
+```text
+GET https://api.nocodebackend.com/read/{collection}?Instance=<runtime instance>
+Authorization: Bearer <NOCODEBACKEND_SECRET_KEY>
+```
+
+Authentication cookies and generated-data transport requirements must not be assumed to be interchangeable.
