@@ -1,7 +1,6 @@
 import { safeErrorMessage, withTimeout } from './httpSecurity.js'
 import { resolveDataCredential } from './ncbCredentials.js'
-
-const DEFAULT_DATA_BASE_URL = 'https://api.nocodebackend.com/'
+import { CANONICAL_DATA_BASE_URL, resolveDataBaseUrl } from './nocodeBackendConfig.js'
 
 const normalisePayload = (payload) => {
   if (payload === undefined || payload === null) return null
@@ -62,18 +61,6 @@ const getProviderErrorCode = (status, filters = {}) => {
   if (status === 401) return 'DATA_PROVIDER_UNAUTHENTICATED'
   if (status === 403) return 'DATA_PROVIDER_FORBIDDEN'
   return 'PROVIDER_ERROR'
-}
-
-const resolveDataBaseUrl = (configuredBaseUrl) => {
-  const value = configuredBaseUrl?.trim() || DEFAULT_DATA_BASE_URL
-  try {
-    return new URL(value).toString().replace(/\/+$/, '')
-  } catch {
-    const error = new Error('The production data service endpoint is invalid.')
-    error.status = 503
-    error.code = 'DATA_CONFIGURATION_INVALID'
-    throw error
-  }
 }
 
 const resolveDataInstance = (configuredInstance) => {
@@ -197,5 +184,5 @@ export const __testables = {
   buildProviderHeaders,
   getProviderErrorCode,
   getConfiguration,
-  DEFAULT_DATA_BASE_URL
+  DEFAULT_DATA_BASE_URL: CANONICAL_DATA_BASE_URL
 }

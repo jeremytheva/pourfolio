@@ -1,33 +1,50 @@
 import { credentialConfigurationState } from './_lib/ncbCredentials.js'
+import {
+  CANONICAL_AUTH_BASE_URL,
+  CANONICAL_DATA_BASE_URL,
+  resolveAuthBaseUrl,
+  resolveDataBaseUrl
+} from './_lib/nocodeBackendConfig.js'
 import { releaseProvenance } from './_lib/releaseProvenance.js'
 
-const CANONICAL_DATA_BASE_URL = 'https://api.nocodebackend.com/'
-
-const dataTransportState = () => {
-  const configured = process.env.NOCODEBACKEND_DATA_BASE_URL?.trim() || CANONICAL_DATA_BASE_URL
+const endpointState = (configuredValue, resolver, transport) => {
+  const endpointConfigured = Boolean(configuredValue?.trim())
   try {
-    const url = new URL(configured)
+    resolver(configuredValue)
     return {
-      transport: 'nocodebackend-api',
-      endpointConfigured: Boolean(process.env.NOCODEBACKEND_DATA_BASE_URL?.trim()),
+      transport,
+      endpointConfigured,
       endpointValid: true,
-      endpointCanonical: url.toString() === CANONICAL_DATA_BASE_URL
+      endpointCanonical: true
     }
   } catch {
     return {
       transport: 'invalid',
-      endpointConfigured: Boolean(process.env.NOCODEBACKEND_DATA_BASE_URL?.trim()),
+      endpointConfigured,
       endpointValid: false,
       endpointCanonical: false
     }
   }
 }
 
+const authTransportState = () => endpointState(
+  process.env.NOCODEBACKEND_AUTH_BASE_URL,
+  resolveAuthBaseUrl,
+  'nocodebackend-auth'
+)
+
+const dataTransportState = () => endpointState(
+  process.env.NOCODEBACKEND_DATA_BASE_URL,
+  resolveDataBaseUrl,
+  'nocodebackend-api'
+)
+
 const dataInstanceState = () => ({
   configured: Boolean(process.env.NOCODEBACKEND_INSTANCE?.trim())
 })
 
 export default function handler(_request, response) {
+  const authState = authTransportState()
   const dataState = dataTransportState()
   const instanceState = dataInstanceState()
   const credentials = credentialConfigurationState()
@@ -37,8 +54,11 @@ export default function handler(_request, response) {
     service: 'pourfolio',
     release: releaseProvenance(),
     checks: {
-      authenticationConfigured: credentials.authConfigured && instanceState.configured,
+      authenticationConfigured: credentials.authConfigured && authState.endpointValid && instanceState.configured,
       dataConfigured: credentials.dataConfigured && dataState.endpointValid && instanceState.configured,
+      authTransport: authState.transport,
+      authEndpointConfigured: authState.endpointConfigured,
+      authEndpointCanonical: authState.endpointCanonical,
       dataTransport: dataState.transport,
       dataEndpointConfigured: dataState.endpointConfigured,
       dataEndpointCanonical: dataState.endpointCanonical,
@@ -53,4 +73,10 @@ export default function handler(_request, response) {
   })
 }
 
-export const __testables = { dataTransportState, dataInstanceState, CANONICAL_DATA_BASE_URL }
+export const __testables = {
+  authTransportState,
+  dataTransportState,
+  dataInstanceState,
+  CANONICAL_AUTH_BASE_URL,
+  CANONICAL_DATA_BASE_URL
+}

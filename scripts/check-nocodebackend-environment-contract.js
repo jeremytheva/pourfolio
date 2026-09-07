@@ -5,9 +5,11 @@ const root = process.cwd()
 const ignoredDirectories = new Set(['.git', 'node_modules', 'dist', 'coverage', 'playwright-report', 'test-results'])
 const ignoredFiles = new Set(['package-lock.json'])
 const environmentPrefix = 'NC' + 'B_'
-const forbiddenDataUrl = ['https://app.nocodebackend.com', '/api/data'].join('')
+const retiredDataUrl = ['https://app.nocodebackend.com', '/api/data'].join('')
 const requiredDataUrl = 'https://api.nocodebackend.com/'
 const requiredAuthUrl = 'https://app.nocodebackend.com/api/user-auth'
+const crossedDataAssignment = `NOCODEBACKEND_DATA_BASE_URL=${requiredAuthUrl}`
+const crossedAuthAssignment = `NOCODEBACKEND_AUTH_BASE_URL=${requiredDataUrl}`
 const textExtensions = new Set(['.js', '.jsx', '.ts', '.tsx', '.json', '.md', '.yml', '.yaml', '.env', '.example'])
 
 const violations = []
@@ -20,7 +22,9 @@ const inspect = (filePath) => {
 
   const content = fs.readFileSync(filePath, 'utf8')
   if (content.includes(environmentPrefix)) violations.push(`${relative}: contains retired ${environmentPrefix} variable prefix`)
-  if (content.includes(forbiddenDataUrl)) violations.push(`${relative}: contains retired data URL ${forbiddenDataUrl}`)
+  if (content.includes(retiredDataUrl)) violations.push(`${relative}: contains retired data URL ${retiredDataUrl}`)
+  if (content.includes(crossedDataAssignment)) violations.push(`${relative}: assigns the authentication URL to NOCODEBACKEND_DATA_BASE_URL`)
+  if (content.includes(crossedAuthAssignment)) violations.push(`${relative}: assigns the data URL to NOCODEBACKEND_AUTH_BASE_URL`)
 
   if (relative === '.env.example') {
     for (const variable of [
