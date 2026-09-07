@@ -1,7 +1,6 @@
 import { withTimeout } from './httpSecurity.js'
 import { resolveAuthCredential } from './ncbCredentials.js'
-
-const DEFAULT_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
+import { resolveAuthBaseUrl } from './nocodeBackendConfig.js'
 
 const configuredInstance = () => process.env.NOCODEBACKEND_INSTANCE?.trim() || null
 
@@ -44,8 +43,7 @@ export const extractSessionUser = (payload) => {
 }
 
 export const buildSessionUrl = () => {
-  const authBaseUrl = (process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL).replace(/\/+$/, '')
-  const url = new URL(`${authBaseUrl}/get-session`)
+  const url = new URL(`${resolveAuthBaseUrl()}/get-session`)
   url.searchParams.set('instance', requireConfiguredInstance())
   return url
 }
@@ -61,11 +59,14 @@ export const requireSessionUser = async (request) => {
   let secret
   try {
     secret = resolveAuthCredential().value
+    resolveAuthBaseUrl()
     requireConfiguredInstance()
   } catch (cause) {
     const error = new Error('Server authentication is not configured.')
     error.status = 503
-    error.code = cause?.code === 'AUTH_INSTANCE_MISSING' ? 'AUTH_INSTANCE_MISSING' : 'AUTH_CREDENTIAL_MISSING'
+    error.code = ['AUTH_INSTANCE_MISSING', 'AUTH_CONFIGURATION_INVALID'].includes(cause?.code)
+      ? cause.code
+      : 'AUTH_CREDENTIAL_MISSING'
     throw error
   }
 

@@ -8,9 +8,9 @@ import {
 } from './_lib/httpSecurity.js'
 import { enforceSharedRateLimit, rateLimitPolicyFor } from './_lib/rateLimit.js'
 import { resolveAuthCredential } from './_lib/ncbCredentials.js'
+import { resolveAuthBaseUrl } from './_lib/nocodeBackendConfig.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 
-const DEFAULT_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
 const AUTH_ACTIONS = Object.freeze({
   providers: ['GET'],
   'get-session': ['GET'],
@@ -24,7 +24,7 @@ const AUTH_ACTIONS = Object.freeze({
 
 const PROVIDER_CREDENTIAL_ACTIONS = new Set(['providers'])
 const configuredInstance = () => process.env.NOCODEBACKEND_INSTANCE?.trim() || null
-const configuredAuthBaseUrl = () => process.env.NOCODEBACKEND_AUTH_BASE_URL || DEFAULT_AUTH_BASE_URL
+const configuredAuthBaseUrl = () => resolveAuthBaseUrl(process.env.NOCODEBACKEND_AUTH_BASE_URL)
 
 const requireConfiguredInstance = () => {
   const instance = configuredInstance()
@@ -64,8 +64,7 @@ const safeRedirectTarget = (request, value) => {
 }
 
 const buildUpstreamUrl = (request, path) => {
-  const baseUrl = configuredAuthBaseUrl().replace(/\/+$/, '')
-  const url = new URL(`${baseUrl}/${path.split('/').map(encodeURIComponent).join('/')}`)
+  const url = new URL(`${configuredAuthBaseUrl()}/${path.split('/').map(encodeURIComponent).join('/')}`)
   url.searchParams.set('instance', requireConfiguredInstance())
 
   if (path === 'sign-in/google') {
@@ -177,9 +176,14 @@ export default async function handler(request, response) {
   let secret
   try {
     secret = resolveAuthCredential().value
+    configuredAuthBaseUrl()
     requireConfiguredInstance()
-  } catch {
-    response.status(503).json({ error: 'Authentication is not configured.', code: 'auth_configuration_missing', requestId: correlationId })
+  } catch (cause) {
+    response.status(503).json({
+      error: 'Authentication is not configured.',
+      code: cause?.code === 'AUTH_CONFIGURATION_INVALID' ? 'auth_configuration_invalid' : 'auth_configuration_missing',
+      requestId: correlationId
+    })
     return
   }
   if (!enforceRequestSize(request, response) || !enforceOrigin(request, response)) return
