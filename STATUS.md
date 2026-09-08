@@ -6,15 +6,15 @@ stage: "Frontend source hardening continues while backend/provider work is defer
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Restore keyboard focus to the first relevant authentication field after switching between sign-in and create-account modes."
-  issue: 321
-  pr: 322
-  branch: fix/auth-mode-focus-handoff
+  objective: "Restore meaningful keyboard focus context after client-side route navigation without overriding destination-specific focus."
+  issue: 323
+  pr: 324
+  branch: fix/spa-route-focus-context
 next_actions:
-  - "Validate the refreshed exact #322 head with the canonical project-owned source/browser process."
-  - "Verify a READY Vercel preview for the refreshed exact #322 head now that deployment capacity is accepting new previews again."
-  - "Advance #322 to Mergeable and squash-merge when exact-head evidence is sufficient."
-  - "Verify the resulting exact-main production deployment and Node runtime evidence, then continue the next concrete independent launch-scope defect."
+  - "Run exact-head canonical source validation and browser/accessibility evidence for #324."
+  - "Verify a READY Vercel preview with exact #324 SHA provenance and Node runtime metadata."
+  - "Repair any substantive finding in the same PR, then advance lifecycle state when evidence is sufficient."
+  - "Squash-merge #324 when Mergeable, then verify the resulting exact-main production deployment/runtime evidence."
 blockers:
   - scope: provider_connected_work
     issue: 225
@@ -38,13 +38,13 @@ validation:
   build: NOT_RUN
   ci: PENDING
   runtime: VERIFIED
-last_verified_commit: "508a0b00bd8da1188d9de67e1a6c599ec4add2e1"
-last_updated: "2026-09-03T23:14:00+10:00"
+last_verified_commit: "e453e523f1ad77312a00b975e63f85d908298279"
+last_updated: "2026-09-04T00:04:00+10:00"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 3 September 2026
+Last materially reviewed: 4 September 2026
 
 ## Current phase
 
@@ -66,17 +66,17 @@ The repository is the authoritative handoff. Continue the highest-priority depen
 
 ## Current implementation focus
 
-PR **#320** is squash-merged as exact current `main` **910b1e72c0198e470d647710c20569b13bfe3d66**. Its OTP correction moves focus directly to **One-time passcode** after a successful OTP request while preserving focused authentication-error behaviour.
+PR **#322** is squash-merged as exact current `main` **e453e523f1ad77312a00b975e63f85d908298279**. Its authentication mode-switch correction restores focus to **Name** after choosing create-account mode and **Email** after returning to sign-in, without adding mount-time autofocus or disturbing OTP/error focus handling.
 
-Issue **#321** / PR **#322** / branch **`fix/auth-mode-focus-handoff`** is the active independent accessibility slice. `AuthForm.jsx` previously left focus on the mode-toggle control after switching forms even though the newly relevant first field appears above that control. The implementation records a user-initiated mode switch and, after the new mode renders, focuses **Name** for create-account mode or **Email** for sign-in mode without adding mount-time autofocus. Focused Playwright coverage exercises both directions. Existing OTP and authentication-error focus handling is unchanged.
+Vercel production deployment **dpl_Gu6aaDv7BoPWX9W5USCs1ZDNaKpc** is READY for exact current `main` `e453e523...`, with matching GitHub `main` provenance, verified commit metadata and Node lambda runtime metadata. Issues **#224** and **#249** remain complete and outside the active blocker chain.
 
-The preceding exact #322 implementation head passed canonical `npm run platform:validate`, Browser and accessibility, Dependency Review and CodeQL evidence, was conflict-free at GitHub and had no unresolved review threads. The initial final-head Vercel attempt was rejected only because the Hobby project had exceeded the daily deployment allowance. That external condition has cleared. The refreshed #322 head has a READY Vercel preview with matching PR/SHA provenance and Node runtime metadata; only refreshed canonical/source-browser validation remains before Mergeable.
+Issue **#323** / PR **#324** / branch **`fix/spa-route-focus-context`** is the active independent accessibility slice. The application shell already announces SPA route labels and exposes a skip link, but client-side navigation could leave keyboard/screen-reader focus on a navigation control that becomes stale or disappears after the destination renders. The implementation makes the main landmark programmatically focusable and focuses it only after a pathname change when the destination has not already placed focus inside main content. Initial/direct loads do not receive forced focus, and Search retains its intentional search-field focus. Focused Playwright coverage exercises both behaviours while preserving route announcements and `aria-current` semantics.
 
 ## Deployment/runtime state
 
-Exact current `main` **910b1e72c0198e470d647710c20569b13bfe3d66** still does not have verified exact-main production evidence in the current Vercel deployment inventory. Do not substitute the READY #320 preview (`18feca4556384e7245cf421829721719ce1f933a`) for exact-main production evidence. The last fully verified READY exact-main production/runtime evidence remains **508a0b00bd8da1188d9de67e1a6c599ec4add2e1** via deployment **dpl_4NX5geVPEeWFmzzNaaYNMPqN4VFQ**, with matching GitHub provenance and Node runtime metadata. Issues **#224** and **#249** remain complete and outside the active blocker chain.
+Exact current `main` **e453e523f1ad77312a00b975e63f85d908298279** is production READY via **dpl_Gu6aaDv7BoPWX9W5USCs1ZDNaKpc** with matching GitHub provenance and Node runtime metadata. This supersedes the previous exact-main deployment evidence. #224/#249 remain completed; no contradictory runtime or provenance evidence is known.
 
-For #322, the deployment-blocked overlay has been removed because exact-head preview evidence is now available. The project remains in Validating until the current head completes canonical/source-browser validation.
+PR #324 requires fresh exact-head preview/runtime evidence before merge because it changes browser interaction behaviour.
 
 ## Deferred backend/provider work
 
@@ -93,14 +93,14 @@ These do not block independent frontend/governance work.
 
 `npm run platform:validate` remains the canonical source-validation entry point. Browser-facing changes require applicable Playwright/accessibility evidence. GitHub Actions, CodeQL and Dependency Review are supporting diagnostic evidence rather than independent merge gates; real defects they expose remain actionable.
 
-The first refreshed status head exposed an invalid STATUS front-matter value (`PENDING` for lint/tests/build), which is not permitted by the repository documentation validator. That real defect was repaired in the same PR by returning those not-yet-run fields to `NOT_RUN`; `validation.ci` remains `PENDING`, which the canonical contract explicitly permits. Fresh exact-head evidence is required after this repair. No provider, schema, migration or backend change is part of this slice.
+The #323/#324 implementation is coherent and published, but its final exact head requires fresh canonical source/browser validation and exact-head Vercel preview evidence after this durable status update. No provider, schema, migration, backend authority, dependency or launch-route scope changes are part of this slice.
 
 ## Next dependency-correct work
 
-1. Inspect canonical source/browser and diagnostic CI results for the repaired exact #322 head; repair any substantive finding in the same PR.
-2. Confirm the existing READY Vercel preview evidence corresponds to the repaired exact head; if the repair creates a newer preview, verify that exact SHA instead.
-3. Advance #322 to `pr:mergeable` and squash-merge when evidence is sufficient.
-4. Verify the resulting exact-main production deployment and Node runtime evidence; keep #224/#249 complete unless contradictory evidence appears.
+1. Inspect exact-head canonical source/browser and diagnostic results for #324; repair any substantive finding in the same PR.
+2. Verify a READY exact-head Vercel preview with matching PR/SHA provenance and Node runtime metadata.
+3. Advance #324 through Ready/Mergeable and squash-merge when the project-owned merge condition is satisfied.
+4. Verify the resulting exact-main production deployment/runtime evidence; keep #224/#249 complete unless contradictory evidence appears.
 5. Continue independent launch-scope frontend/accessibility work only where a concrete defect is evidenced.
 6. Resume provider/schema work only after explicit product-owner resumption.
 
