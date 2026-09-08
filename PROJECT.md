@@ -94,6 +94,7 @@ The repository standardises on these server-only NoCodeBackend variables:
 
 - `NOCODEBACKEND_AUTH_BASE_URL`
 - `NOCODEBACKEND_DATA_BASE_URL`
+- `NOCODEBACKEND_AUTH_SECRET_KEY`
 - `NOCODEBACKEND_SECRET_KEY`
 - `NOCODEBACKEND_INSTANCE`
 
@@ -102,9 +103,9 @@ Canonical URL defaults where a fallback is required:
 - Data: `https://api.nocodebackend.com/`
 - Authentication: `https://app.nocodebackend.com/api/user-auth`
 
-`NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE` must be supplied by the runtime/environment and must not have repository defaults or committed production values.
+`NOCODEBACKEND_AUTH_SECRET_KEY` is reserved for server-side authentication/session requests. `NOCODEBACKEND_SECRET_KEY` is reserved for generated-data requests. Neither credential falls back to the other. Both credentials and `NOCODEBACKEND_INSTANCE` must be supplied by the runtime/environment and must not have repository defaults or committed production values.
 
-Browser code must not receive the provider secret or bypass the Pourfolio same-origin server boundary.
+Browser code must not receive either provider secret or bypass the Pourfolio same-origin server boundary.
 
 ## Repository authority
 
