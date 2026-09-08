@@ -11,22 +11,23 @@ Browser
   -> NoCodeBackend APIs
 ```
 
-The browser never receives the NoCodeBackend server secret or configured instance. Browser authentication and ownership checks are enforced by Pourfolio before data-provider operations are executed.
+The browser never receives NoCodeBackend provider secrets or the configured instance. Browser authentication and ownership checks are enforced by Pourfolio before data-provider operations are executed.
 
 ## Production environment contract
 
-Use only these four application variables in Vercel, local development, staging, and connected release jobs:
+Use only these five application variables in Vercel, local development, staging, and connected release jobs:
 
 ```env
 NOCODEBACKEND_AUTH_BASE_URL=https://app.nocodebackend.com/api/user-auth
 NOCODEBACKEND_DATA_BASE_URL=https://api.nocodebackend.com/
+NOCODEBACKEND_AUTH_SECRET_KEY=<stored outside repository>
 NOCODEBACKEND_SECRET_KEY=<stored outside repository>
 NOCODEBACKEND_INSTANCE=<stored outside repository>
 ```
 
 No environment variable beginning with the retired short-form NoCodeBackend prefix is permitted anywhere in the repository. Isolated contract-test controls use `NOCODEBACKEND_CONTRACT_*` names.
 
-`NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE` are runtime-only configuration. Neither has a repository fallback. Server auth and data adapters fail closed before provider access when the required value is missing. Connected GitHub workflows obtain the instance from the protected `staging-release` environment rather than embedding it in workflow YAML.
+`NOCODEBACKEND_AUTH_SECRET_KEY`, `NOCODEBACKEND_SECRET_KEY`, and `NOCODEBACKEND_INSTANCE` are runtime-only configuration. None has a repository fallback. Authentication fails closed when the auth secret is missing; data access fails closed when the data secret is missing. The two credentials must not fall back to or substitute for each other.
 
 ## Authentication API
 
@@ -36,7 +37,9 @@ The hardcoded fallback authentication URL is:
 https://app.nocodebackend.com/api/user-auth
 ```
 
-Authentication requests use `NOCODEBACKEND_AUTH_BASE_URL`, `NOCODEBACKEND_SECRET_KEY`, and the runtime `NOCODEBACKEND_INSTANCE`.
+Authentication requests use `NOCODEBACKEND_AUTH_BASE_URL`, `NOCODEBACKEND_AUTH_SECRET_KEY`, and the runtime `NOCODEBACKEND_INSTANCE`.
+
+`NOCODEBACKEND_AUTH_SECRET_KEY` is server-only. It is used by Pourfolio's auth proxy/session adapter and is never returned to or executed in the browser.
 
 ## Data API
 
@@ -52,7 +55,7 @@ The generated table API requires:
 
 ```http
 Accept: application/json
-Authorization: Bearer <server-only secret>
+Authorization: Bearer <NOCODEBACKEND_SECRET_KEY>
 ```
 
 with the runtime instance supplied as a query parameter:
@@ -142,8 +145,13 @@ Core product and cellar records must remain usable when optional relationship en
 
 Provider failures never expose raw provider bodies, credentials, or the configured instance to browser responses.
 
+Authentication configuration:
+- missing auth secret -> local `503 AUTH_CREDENTIAL_MISSING` before auth-provider access;
+- missing runtime instance -> local `503 AUTH_INSTANCE_MISSING` before auth-provider access.
+
+Data configuration and provider responses:
 - missing runtime instance -> local `503 DATA_INSTANCE_MISSING` before any provider request;
-- missing server credential -> local `503 DATA_CREDENTIAL_MISSING` before any provider request;
+- missing data secret -> local `503 DATA_CREDENTIAL_MISSING` before any provider request;
 - `401` -> `DATA_PROVIDER_UNAUTHENTICATED`;
 - `403` -> `DATA_PROVIDER_FORBIDDEN`;
 - `404` -> safe not-found handling;
@@ -153,19 +161,19 @@ Provider failures never expose raw provider bodies, credentials, or the configur
 
 ## Health and readiness
 
-`/api/health` reports configuration state without exposing values. It reports `instanceConfigured`; authentication and data configuration cannot be ready unless the runtime instance is present. The configured instance value itself is never returned.
+`/api/health` reports authentication and data credential configuration separately without exposing values. It also reports `instanceConfigured`; the configured instance value itself is never returned.
 
-`/api/readiness` performs a bounded, non-destructive products read using the same Bearer + `Instance` contract and reports a safe dependency state without returning provider records, credentials, configured URLs, or raw upstream errors. A missing runtime instance is reported as `misconfigured`; a provider `403` is reported separately as `forbidden`.
+`/api/readiness` performs a bounded, non-destructive products read using the data Bearer + `Instance` contract and reports a safe dependency state without returning provider records, credentials, configured URLs, or raw upstream errors. A missing runtime instance is reported as `misconfigured`; a provider `403` is reported separately as `forbidden`.
 
 ## Connected verification
 
-Connected smoke verification must use the same four `NOCODEBACKEND_*` application variables as production and verify non-destructive reads for launch collections. Destructive isolated-staging tests use `NOCODEBACKEND_CONTRACT_*` test-control variables; these are test metadata rather than application configuration.
+Connected data smoke verification uses `NOCODEBACKEND_DATA_BASE_URL`, `NOCODEBACKEND_SECRET_KEY`, and `NOCODEBACKEND_INSTANCE`. Authentication verification uses `NOCODEBACKEND_AUTH_BASE_URL`, `NOCODEBACKEND_AUTH_SECRET_KEY`, and `NOCODEBACKEND_INSTANCE`. Destructive isolated-staging tests use `NOCODEBACKEND_CONTRACT_*` test-control variables; these are test metadata rather than application configuration.
 
-The connected release and provider-contract workflows obtain `NOCODEBACKEND_INSTANCE` from the protected `staging-release` GitHub environment (`vars.NOCODEBACKEND_INSTANCE`) and obtain `NOCODEBACKEND_SECRET_KEY` from GitHub environment secrets. Neither runtime value is committed to workflow source.
+Neither provider secret may be committed to workflow source, repository files, logs, issue comments, browser bundles, or public artifacts.
 
 ## Change control
 
-Before changing endpoint shape, operation paths, instance selection, authentication headers, or response semantics:
+Before changing endpoint shape, operation paths, instance selection, authentication headers, credential variables, or response semantics:
 
 1. compare against the generated provider contract for the runtime-configured instance;
 2. update this contract and the adapter together;
@@ -173,4 +181,4 @@ Before changing endpoint shape, operation paths, instance selection, authenticat
 4. run the full release gate and connected smoke matrix;
 5. verify health/readiness and authenticated production reads after deployment.
 
-The repository validation guard must fail if a retired NoCodeBackend environment-variable prefix, the retired data URL, or a repository value for `NOCODEBACKEND_SECRET_KEY` or `NOCODEBACKEND_INSTANCE` is reintroduced into `.env.example`.
+The repository validation guard must fail if a retired NoCodeBackend environment-variable prefix, the retired data URL, or a repository value for `NOCODEBACKEND_AUTH_SECRET_KEY`, `NOCODEBACKEND_SECRET_KEY`, or `NOCODEBACKEND_INSTANCE` is reintroduced into `.env.example`.
