@@ -120,7 +120,7 @@ Optional bonus ratings use:
 
 - `bonus_attributes`;
 - `bonus_attribute_rating_mapping`;
-- `bonus_attribute_rating_mapping.bonus_attribute_id`.
+- `bonus_attribute_rating_mapping.bonus_attributes_id`.
 
 Bonus relationships are optional.
 
@@ -135,7 +135,7 @@ Current deployed lifecycle fields include:
 - `date_consumed`;
 - `acquisition_type`;
 - `historical_import`;
-- optional `series_edition_id`.
+- optional `series_version_id`.
 
 Sharing-series / edition relationships are optional and must be null when not applicable.
 
