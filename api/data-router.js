@@ -5,6 +5,7 @@ import profileHandler from './profile-data-proxy.js'
 import legacyHandler from './data-proxy.js'
 
 const CURRENT_SCHEMA_RESOURCES = new Set(['catalog', 'rating-form', 'ratings', 'cellar'])
+const LEGACY_RESOURCES = new Set(['brew-done-it'])
 
 export const pathSegments = (request) => {
   const raw = request.query?.path
@@ -23,11 +24,13 @@ const routeRequest = async (request, response) => {
   if (CURRENT_SCHEMA_RESOURCES.has(resource)) {
     return currentSchemaHandler(request, response)
   }
-  return legacyHandler(request, response)
+  if (LEGACY_RESOURCES.has(resource)) return legacyHandler(request, response)
+
+  response.status(404).json({ error: 'Application data route not found.' })
 }
 
 export default async function handler(request, response) {
   return routeRequest(request, response)
 }
 
-export const __testables = { CURRENT_SCHEMA_RESOURCES }
+export const __testables = { CURRENT_SCHEMA_RESOURCES, LEGACY_RESOURCES, routeRequest }
