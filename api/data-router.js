@@ -1,6 +1,7 @@
 import catalogueHandler from './catalog-data-proxy.js'
 import cellarHandler from './cellar-data-proxy.js'
 import currentSchemaHandler from './current-data-proxy.js'
+import profileHandler from './profile-data-proxy.js'
 import legacyHandler from './data-proxy.js'
 
 const CURRENT_SCHEMA_RESOURCES = new Set(['catalog', 'rating-form', 'ratings', 'cellar'])
@@ -18,6 +19,7 @@ const routeRequest = async (request, response) => {
     return catalogueHandler(request, response)
   }
   if (resource === 'cellar') return cellarHandler(request, response)
+  if (resource === 'profile') return profileHandler(request, response)
   if (CURRENT_SCHEMA_RESOURCES.has(resource)) {
     return currentSchemaHandler(request, response)
   }
