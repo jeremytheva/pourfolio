@@ -157,7 +157,7 @@ const getProduct = async (id, response) => {
     return
   }
   const [hydrated] = await hydrateProducts([product])
-  const ratings = normaliseList(await dataProvider.list(COLLECTIONS.ratings, { product_id: product.id, fields: 'total_weighted' }))
+  const ratings = await safeRelationshipList(COLLECTIONS.ratings, { product_id: product.id })
   const totals = ratings.map((rating) => Number(rating.total_weighted)).filter(Number.isFinite)
   response.status(200).json({
     ...hydrated,
