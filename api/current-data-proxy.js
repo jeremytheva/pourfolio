@@ -229,7 +229,7 @@ const submitRating = async (request, response, user, correlationId) => {
       const created = firstRecord(await dataProvider.create(COLLECTIONS.bonusRatingMappings, {
         user_id: user.id,
         rating_id: rating.id,
-        bonus_attribute_id: bonusId
+        bonus_attributes_id: bonusId
       }))
       if (!created?.id) throw new Error('The rating service did not return a bonus mapping identifier.')
       createdRecords.push({ collection: COLLECTIONS.bonusRatingMappings, id: created.id })

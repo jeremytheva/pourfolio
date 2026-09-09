@@ -2,29 +2,26 @@
 project: Pourfolio
 portfolio_state: ACTIVE
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Frontend source hardening continues while backend/provider work is deferred"
+stage: "Frontend-backend launch contract alignment and production certification"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Restore meaningful keyboard focus context after client-side route navigation without overriding destination-specific focus."
-  issue: 323
-  pr: 324
-  branch: fix/spa-route-focus-context
+  objective: "Align the active rating bonus write contract with supplied NoCodeBackend schema evidence and pin it with a boundary test."
+  issue: 340
+  pr: 341
+  branch: fix/rating-bonus-mapping-contract
 next_actions:
-  - "Run exact-head canonical source validation and browser/accessibility evidence for #324."
-  - "Verify a READY Vercel preview with exact #324 SHA provenance and Node runtime metadata."
-  - "Repair any substantive finding in the same PR, then advance lifecycle state when evidence is sufficient."
-  - "Squash-merge #324 when Mergeable, then verify the resulting exact-main production deployment/runtime evidence."
+  - "Run exact-head canonical project validation for #341 and repair substantive findings in the same PR."
+  - "Verify exact-head Vercel preview/runtime provenance for #341."
+  - "Merge #341 when lifecycle evidence is sufficient, then verify exact-main production deployment."
+  - "Continue live launch-schema inventory and distinguish deployed, optional and deferred target fields without enabling #165 target fields prematurely."
 blockers:
-  - scope: provider_connected_work
-    issue: 225
-    detail: "Deferred by product-owner instruction; does not block independent frontend/governance work."
-  - scope: rating_reconciliation
+  - scope: connected_schema_inventory
     issue: 165
-    detail: "Deferred with backend/provider work; deployed schema evidence remains required before reconciliation can be enabled."
-  - scope: backend_certification
+    detail: "Direct production-equivalent schema/constraint interrogation and destructive contract probes require explicitly authorised isolated-provider evidence; repository-supplied export evidence remains usable for non-destructive alignment."
+  - scope: profile_persistence
     issue: 144
-    detail: "Deferred until backend/provider work resumes and connected evidence is available."
+    detail: "No deployed profiles persistence collection is evidenced; profile GET remains session-backed and PUT fails explicitly until persistence is deployed and certified."
 requires_owner_decision: false
 owner_decision:
   question: null
@@ -38,72 +35,71 @@ validation:
   build: NOT_RUN
   ci: PENDING
   runtime: VERIFIED
-last_verified_commit: "e453e523f1ad77312a00b975e63f85d908298279"
-last_updated: "2026-09-04T00:04:00+10:00"
+last_verified_commit: "61f24aae9715b20be3fc8fdbbfc1ffabf23e4c85"
+last_updated: "2026-09-10T00:19:00+10:00"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 4 September 2026
+Last materially reviewed: 10 September 2026
 
 ## Current phase
 
 **Phase 3 — Beer discovery dependable**
 
-## Overall status
-
-**Active validation; not production-ready.** Independent launch-scope frontend and governance work can continue. Backend/provider implementation remains explicitly deferred.
-
 ## AI execution gate
 
-**Current gate:** Integration / frontend accessibility  
+**Current gate:** Integration / frontend-backend contract alignment  
 **Execution state:** Validating  
-**Release state:** Not certified.
+**Release state:** Not fully certified.
 
 ## Autonomous continuation support
 
-The repository is the authoritative handoff. Continue the highest-priority dependency-correct work independent of deferred provider/schema capability. Use normal non-draft PRs, explicit lifecycle metadata, canonical project-owned validation and applicable browser/deployment evidence. Treat GitHub Actions as diagnostic evidence while repairing real defects they expose.
+The repository is the authoritative handoff. Continue dependency-correct launch-schema alignment and production certification without requiring undeployed target fields. Reuse active work, use normal non-draft PRs, maintain lifecycle metadata, run `npm run platform:validate`, treat CI as diagnostic evidence, and keep destructive connected probes restricted to explicitly authorised isolated staging with cleanup verification.
 
-## Current implementation focus
+## Overall status
 
-PR **#322** is squash-merged as exact current `main` **e453e523f1ad77312a00b975e63f85d908298279**. Its authentication mode-switch correction restores focus to **Name** after choosing create-account mode and **Email** after returning to sign-in, without adding mount-time autofocus or disturbing OTP/error focus handling.
+**Active frontend-backend alignment; not yet fully production-certified.** The project is now working from the supplied NoCodeBackend export evidence plus connected production behaviour, while keeping unverified future migration fields disabled.
 
-Vercel production deployment **dpl_Gu6aaDv7BoPWX9W5USCs1ZDNaKpc** is READY for exact current `main` `e453e523...`, with matching GitHub `main` provenance, verified commit metadata and Node lambda runtime metadata. Issues **#224** and **#249** remain complete and outside the active blocker chain.
+## Current production boundary
 
-Issue **#323** / PR **#324** / branch **`fix/spa-route-focus-context`** is the active independent accessibility slice. The application shell already announces SPA route labels and exposes a skip link, but client-side navigation could leave keyboard/screen-reader focus on a navigation control that becomes stale or disappears after the destination renders. The implementation makes the main landmark programmatically focusable and focuses it only after a pathname change when the destination has not already placed focus inside main content. Initial/direct loads do not receive forced focus, and Search retains its intentional search-field focus. Focused Playwright coverage exercises both behaviours while preserving route announcements and `aria-current` semantics.
+PR **#339** is squash-merged as exact `main` **61f24aae9715b20be3fc8fdbbfc1ffabf23e4c85**. Vercel production deployment **dpl_7VZPFNx9tL18wgkFgpGEmvwVWuZJ** is READY for that exact SHA with matching `main` GitHub provenance, verified commit metadata and Node runtime metadata. The product-detail gateway now treats rating-summary enrichment as non-critical and no longer sends the unsupported `fields=total_weighted` projection to the generated provider read endpoint.
 
-## Deployment/runtime state
+## Active schema-alignment slice
 
-Exact current `main` **e453e523f1ad77312a00b975e63f85d908298279** is production READY via **dpl_Gu6aaDv7BoPWX9W5USCs1ZDNaKpc** with matching GitHub provenance and Node runtime metadata. This supersedes the previous exact-main deployment evidence. #224/#249 remain completed; no contradictory runtime or provenance evidence is known.
+Issue **#340** / PR **#341** / branch **`fix/rating-bonus-mapping-contract`** corrects a concrete launch write mismatch. The active current-schema rating submission path wrote `bonus_attribute_rating_mapping.bonus_attribute_id`, while the supplied structural SQL audit, schema target, migration tooling and account/export contracts identify the provider field as **`bonus_attributes_id`**. The PR changes the launch payload to the evidenced provider field, adds a boundary regression test and corrects stale data-model references.
 
-PR #324 requires fresh exact-head preview/runtime evidence before merge because it changes browser interaction behaviour.
+The same evidence confirms the cellar edition/version field used by the active dedicated cellar gateway is **`series_version_id`**. `series_edition_id` is not a launch write alias. Both sharing-series relationships remain optional and nullable.
 
-## Deferred backend/provider work
+## Deployed versus deferred contract
 
-Preserved and intentionally paused:
+The launch application must require only fields evidenced as deployed. Current rating headers use `product_id`, optional `cellar_id`, `date_rated`, `total_unweighted` and `total_weighted`; rating scores and optional bonus mappings remain separate normalised collections. Server identity and calculated totals are authoritative.
 
-- **#225** — NoCodeBackend generated-data authorisation;
-- **#165** — rating idempotency/schema migration and connected verification;
-- **#144** — canonical backend/import/recovery certification;
-- backend-dependent portions of **#154** — connected catalogue/provider certification.
+The durable idempotency target tracked by **#165** adds submission identity/fingerprint/state/version, expected child counts and child uniqueness keys. Those fields remain a migration target, not a production launch prerequisite, until connected provider migration and concurrency/cleanup verification are recorded.
 
-These do not block independent frontend/governance work.
+Profile reads are currently session-backed. No deployed `profiles` persistence table is evidenced by the supplied structural audit, so profile PUT continues to fail explicitly with `profile_persistence_unavailable` rather than inventing storage capability.
+
+## Connected-evidence posture
+
+Direct destructive production writes are not used for certification. The existing connected provider contract suite remains gated behind an explicitly isolated staging environment and destructive-test opt-in, with cleanup verification. Where live provider schema introspection is unavailable, repository-supplied export evidence may establish field names and structural facts but must not be presented as fresh live inventory.
+
+Fresh production evidence now shows `/api/readiness` returning HTTP 200 with `dataProvider: "ok"` on exact main `61f24aae...`, superseding the old forbidden-provider state recorded in #225. The remaining #225 acceptance evidence should be reconciled before closing that issue rather than treating its historical blocker text as current.
 
 ## Validation posture
 
-`npm run platform:validate` remains the canonical source-validation entry point. Browser-facing changes require applicable Playwright/accessibility evidence. GitHub Actions, CodeQL and Dependency Review are supporting diagnostic evidence rather than independent merge gates; real defects they expose remain actionable.
+`npm run platform:validate` remains the canonical project-owned source-validation entry point. Browser/runtime checks apply where the changed boundary is browser-facing. GitHub Actions, CodeQL and Dependency Review are supporting diagnostics; real defects they expose remain actionable.
 
-The #323/#324 implementation is coherent and published, but its final exact head requires fresh canonical source/browser validation and exact-head Vercel preview evidence after this durable status update. No provider, schema, migration, backend authority, dependency or launch-route scope changes are part of this slice.
+The first #341 Release gate exposed that this durable status rewrite had omitted the required `## AI execution gate` and `## Autonomous continuation support` sections. That documentation defect is repaired in this same PR; final exact-head validation must run against this repaired head. No later status-only commit should invalidate final evidence.
 
 ## Next dependency-correct work
 
-1. Inspect exact-head canonical source/browser and diagnostic results for #324; repair any substantive finding in the same PR.
-2. Verify a READY exact-head Vercel preview with matching PR/SHA provenance and Node runtime metadata.
-3. Advance #324 through Ready/Mergeable and squash-merge when the project-owned merge condition is satisfied.
-4. Verify the resulting exact-main production deployment/runtime evidence; keep #224/#249 complete unless contradictory evidence appears.
-5. Continue independent launch-scope frontend/accessibility work only where a concrete defect is evidenced.
-6. Resume provider/schema work only after explicit product-owner resumption.
+1. Complete exact-head canonical validation and deployment evidence for #341; repair any substantive finding and merge when safe.
+2. Reconcile the canonical schema mapping so each launch collection/field is explicitly classified as deployed-required, deployed-optional, or deferred migration target.
+3. Continue non-destructive connected smoke verification for sign-in, catalogue, product detail and rating-form reads.
+4. Certify owner-scoped rating create/history/delete, cellar CRUD and profile read only where safe authenticated evidence exists; do not create destructive production test data without explicit safe authorisation and cleanup.
+5. Reconcile #225 against fresh readiness/provider evidence; close it only when all acceptance evidence is satisfied.
+6. Advance #165 provider migration only with production-equivalent schema/constraint and concurrency evidence; do not make undeployed target fields mandatory beforehand.
 
 ## Completion rule
 
-Do not mark Phase 3 or Pourfolio complete from frontend/source/governance validation alone. Final completion still requires relevant connected catalogue/provider evidence, data-integrity work, deployment/runtime provenance, governance controls and release verification after deferred backend work resumes.
+Do not mark Phase 3 or Pourfolio complete until the launch journeys have matching repository contracts, provider evidence, owner/security enforcement, canonical validation and exact-main production/runtime certification.
