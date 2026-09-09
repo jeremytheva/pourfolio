@@ -7,6 +7,7 @@ const TEST_INSTANCE = 'test-instance'
 const environmentVariables = [
   'NOCODEBACKEND_AUTH_BASE_URL',
   'NOCODEBACKEND_DATA_BASE_URL',
+  'NOCODEBACKEND_AUTH_SECRET_KEY',
   'NOCODEBACKEND_SECRET_KEY',
   'NOCODEBACKEND_INSTANCE',
   'pourfolio_KV_REST_API_URL',
@@ -38,11 +39,12 @@ function configureEnvironment(environment = {}) {
 
 test.afterEach(() => configureEnvironment())
 
-test('reports NoCodeBackend configured from the four runtime variables', () => {
+test('reports NoCodeBackend configured from the five runtime variables', () => {
   configureEnvironment({
     NOCODEBACKEND_AUTH_BASE_URL: 'https://app.nocodebackend.com/api/user-auth',
     NOCODEBACKEND_DATA_BASE_URL: 'https://api.nocodebackend.com/',
-    NOCODEBACKEND_SECRET_KEY: 'server-secret',
+    NOCODEBACKEND_AUTH_SECRET_KEY: 'auth-secret',
+    NOCODEBACKEND_SECRET_KEY: 'data-secret',
     NOCODEBACKEND_INSTANCE: TEST_INSTANCE
   })
   const checks = invokeHealthHandler().body.checks
@@ -52,9 +54,31 @@ test('reports NoCodeBackend configured from the four runtime variables', () => {
   assert.equal(checks.dataEndpointConfigured, true)
   assert.equal(checks.dataEndpointCanonical, true)
   assert.equal(checks.instanceConfigured, true)
-  assert.equal(checks.authCredentialSource, 'nocodebackend-secret-key')
+  assert.equal(checks.authCredentialSource, 'nocodebackend-auth-secret-key')
   assert.equal(checks.dataCredentialSource, 'nocodebackend-secret-key')
   assert.equal(JSON.stringify(checks).includes(TEST_INSTANCE), false)
+})
+
+test('auth and data readiness are independent when only one credential is configured', () => {
+  configureEnvironment({
+    NOCODEBACKEND_AUTH_BASE_URL: 'https://app.nocodebackend.com/api/user-auth',
+    NOCODEBACKEND_DATA_BASE_URL: 'https://api.nocodebackend.com/',
+    NOCODEBACKEND_AUTH_SECRET_KEY: 'auth-secret',
+    NOCODEBACKEND_INSTANCE: TEST_INSTANCE
+  })
+  let checks = invokeHealthHandler().body.checks
+  assert.equal(checks.authenticationConfigured, true)
+  assert.equal(checks.dataConfigured, false)
+
+  configureEnvironment({
+    NOCODEBACKEND_AUTH_BASE_URL: 'https://app.nocodebackend.com/api/user-auth',
+    NOCODEBACKEND_DATA_BASE_URL: 'https://api.nocodebackend.com/',
+    NOCODEBACKEND_SECRET_KEY: 'data-secret',
+    NOCODEBACKEND_INSTANCE: TEST_INSTANCE
+  })
+  checks = invokeHealthHandler().body.checks
+  assert.equal(checks.authenticationConfigured, false)
+  assert.equal(checks.dataConfigured, true)
 })
 
 test('hardcoded data endpoint remains canonical while instance is runtime-only', async () => {
@@ -66,7 +90,7 @@ test('hardcoded data endpoint remains canonical while instance is runtime-only',
 test('invalid data endpoint reports data as unconfigured', () => {
   configureEnvironment({
     NOCODEBACKEND_DATA_BASE_URL: 'not-a-url',
-    NOCODEBACKEND_SECRET_KEY: 'server-secret',
+    NOCODEBACKEND_SECRET_KEY: 'data-secret',
     NOCODEBACKEND_INSTANCE: TEST_INSTANCE
   })
   const checks = invokeHealthHandler().body.checks
@@ -78,8 +102,10 @@ test('invalid data endpoint reports data as unconfigured', () => {
 
 test('missing instance cannot report authentication or data configuration as ready', () => {
   configureEnvironment({
+    NOCODEBACKEND_AUTH_BASE_URL: 'https://app.nocodebackend.com/api/user-auth',
     NOCODEBACKEND_DATA_BASE_URL: 'https://api.nocodebackend.com/',
-    NOCODEBACKEND_SECRET_KEY: 'server-secret'
+    NOCODEBACKEND_AUTH_SECRET_KEY: 'auth-secret',
+    NOCODEBACKEND_SECRET_KEY: 'data-secret'
   })
   const checks = invokeHealthHandler().body.checks
   assert.equal(checks.instanceConfigured, false)
@@ -87,9 +113,9 @@ test('missing instance cannot report authentication or data configuration as rea
   assert.equal(checks.dataConfigured, false)
 })
 
-test('reports the rate limiter as configured with Vercel KV values', () => {
+test('reports the rate limiter as configured with Vercel KV values and an auth credential', () => {
   configureEnvironment({
-    NOCODEBACKEND_SECRET_KEY: 'server-secret',
+    NOCODEBACKEND_AUTH_SECRET_KEY: 'auth-secret',
     NOCODEBACKEND_INSTANCE: TEST_INSTANCE,
     pourfolio_KV_REST_API_URL: 'https://redis.example.test',
     pourfolio_KV_REST_API_TOKEN: 'redis-token-value'
@@ -122,7 +148,8 @@ test('health response never exposes configured credential or instance values', (
   const configuredEnvironment = {
     NOCODEBACKEND_AUTH_BASE_URL: 'https://app.nocodebackend.com/api/user-auth',
     NOCODEBACKEND_DATA_BASE_URL: 'https://api.nocodebackend.com/',
-    NOCODEBACKEND_SECRET_KEY: 'private-server-secret',
+    NOCODEBACKEND_AUTH_SECRET_KEY: 'private-auth-secret',
+    NOCODEBACKEND_SECRET_KEY: 'private-data-secret',
     NOCODEBACKEND_INSTANCE: TEST_INSTANCE,
     pourfolio_KV_REST_API_URL: 'https://private-redis.example.test',
     pourfolio_KV_REST_API_TOKEN: 'private-redis-token-value',
@@ -133,6 +160,7 @@ test('health response never exposes configured credential or instance values', (
   const serialisedResponse = JSON.stringify(result.body)
   assert.equal(result.statusCode, 200)
   for (const sensitiveValue of [
+    configuredEnvironment.NOCODEBACKEND_AUTH_SECRET_KEY,
     configuredEnvironment.NOCODEBACKEND_SECRET_KEY,
     configuredEnvironment.NOCODEBACKEND_INSTANCE,
     configuredEnvironment.pourfolio_KV_REST_API_TOKEN,
