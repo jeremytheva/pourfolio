@@ -2,13 +2,24 @@
 
 ## Purpose
 
-This is the project-level data model summary. The detailed repository contract in `docs/DATA_MODEL.md` and `docs/nocodebackend/schema-mapping.md` remains authoritative for field-level implementation.
+This is the project-level data model summary. The detailed repository contract in `docs/DATA_MODEL.md` and `docs/nocodebackend/schema-mapping.md` remains authoritative for field-level implementation. `docs/nocodebackend/launch-schema-contract.md` is the concise launch classification that distinguishes deployed-required, deployed-optional, deferred-target and unavailable fields/capabilities.
 
 ## Provider instance
 
 **NoCodeBackend instance:** `54026_rating`
 
 The launch code must use deployed schema facts rather than proposed target fields that are not yet present.
+
+## Launch contract classification
+
+Use `docs/nocodebackend/launch-schema-contract.md` when deciding whether an application service may require a provider field. Repository-supplied provider exports may establish the current structural contract without being described as fresh live introspection.
+
+- **DEPLOYED_REQUIRED** fields/collections may be required by the active launch boundary.
+- **DEPLOYED_OPTIONAL** fields must remain nullable/enrichment-only where the contract allows absence.
+- **DEFERRED_TARGET** fields must remain disabled until governed provider migration and connected verification complete.
+- **UNAVAILABLE** capabilities must fail explicitly or use an already-approved non-persistent behaviour rather than fabricated persistence.
+
+The durable rating idempotency/concurrency fields tracked by #165 remain DEFERRED_TARGET. Persistent `profiles` storage remains UNAVAILABLE on current evidence.
 
 ## Core launch entities
 
@@ -62,7 +73,7 @@ Authenticated owner identity comes from the server-side session.
 Important relationships:
 
 - `producer_id` → `producers`
-- `category_id` → `categories`
+- `product_category_id` → `categories`
 
 Launch behaviour depends on stable product identity. Product routes, provider responses and browser projections must agree on the requested product identifier.
 

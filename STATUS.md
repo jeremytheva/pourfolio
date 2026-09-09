@@ -4,17 +4,17 @@ portfolio_state: ACTIVE
 phase: "Phase 3 — Beer discovery dependable"
 stage: "Frontend-backend launch contract alignment and production certification"
 gate: Integration
-execution_state: VALIDATING
+execution_state: IMPLEMENTING
 current_work:
-  objective: "Align the active rating bonus write contract with supplied NoCodeBackend schema evidence and pin it with a boundary test."
-  issue: 340
-  pr: 341
-  branch: fix/rating-bonus-mapping-contract
+  objective: "Classify the active launch NoCodeBackend contract into deployed-required, deployed-optional, deferred-target and unavailable capabilities without enabling undeployed fields."
+  issue: 342
+  pr: null
+  branch: docs/launch-schema-classification
 next_actions:
-  - "Run exact-head canonical project validation for #341 and repair substantive findings in the same PR."
-  - "Verify exact-head Vercel preview/runtime provenance for #341."
-  - "Merge #341 when lifecycle evidence is sufficient, then verify exact-main production deployment."
-  - "Continue live launch-schema inventory and distinguish deployed, optional and deferred target fields without enabling #165 target fields prematurely."
+  - "Validate the #342 exact branch head with the canonical project-owned validation path and repair substantive findings."
+  - "Open a normal non-draft PR for #342, maintain lifecycle metadata and verify exact-head deployment evidence."
+  - "Merge when evidence is sufficient, then verify exact-main production deployment/readiness."
+  - "Continue non-destructive connected smoke certification and reconcile #225 against current provider readiness evidence."
 blockers:
   - scope: connected_schema_inventory
     issue: 165
@@ -35,8 +35,8 @@ validation:
   build: NOT_RUN
   ci: PENDING
   runtime: VERIFIED
-last_verified_commit: "61f24aae9715b20be3fc8fdbbfc1ffabf23e4c85"
-last_updated: "2026-09-10T00:19:00+10:00"
+last_verified_commit: "c81e12a29cdd80af5c4c6e492a9bc6e4a92e014c"
+last_updated: "2026-09-10T00:38:00+10:00"
 ---
 
 # STATUS.md
@@ -50,7 +50,7 @@ Last materially reviewed: 10 September 2026
 ## AI execution gate
 
 **Current gate:** Integration / frontend-backend contract alignment  
-**Execution state:** Validating  
+**Execution state:** Implementing  
 **Release state:** Not fully certified.
 
 ## Autonomous continuation support
@@ -59,46 +59,60 @@ The repository is the authoritative handoff. Continue dependency-correct launch-
 
 ## Overall status
 
-**Active frontend-backend alignment; not yet fully production-certified.** The project is now working from the supplied NoCodeBackend export evidence plus connected production behaviour, while keeping unverified future migration fields disabled.
+**Active frontend-backend alignment; not yet fully production-certified.** The project is working from repository-supplied NoCodeBackend export evidence plus connected production behaviour while keeping unverified future migration fields disabled.
 
 ## Current production boundary
 
-PR **#339** is squash-merged as exact `main` **61f24aae9715b20be3fc8fdbbfc1ffabf23e4c85**. Vercel production deployment **dpl_7VZPFNx9tL18wgkFgpGEmvwVWuZJ** is READY for that exact SHA with matching `main` GitHub provenance, verified commit metadata and Node runtime metadata. The product-detail gateway now treats rating-summary enrichment as non-critical and no longer sends the unsupported `fields=total_weighted` projection to the generated provider read endpoint.
+PR **#341** is merged as exact `main` **c81e12a29cdd80af5c4c6e492a9bc6e4a92e014c**. Vercel production deployment **dpl_EZVL64DyMF2T7qNW3WEyaDyC4efw** is READY for that exact SHA with matching `main` GitHub provenance and verified commit metadata.
 
-## Active schema-alignment slice
+Its build logs explicitly state that repository `package.json` `engines.node: 24.x` overrides the Vercel project setting `22.x` and **Node 24.x is used**. The project-level `22.x` setting therefore remains a Vercel default that is superseded by the governed repository runtime rather than evidence of a Node 22 deployment. #249 remains complete on current evidence.
 
-Issue **#340** / PR **#341** / branch **`fix/rating-bonus-mapping-contract`** corrects a concrete launch write mismatch. The active current-schema rating submission path wrote `bonus_attribute_rating_mapping.bonus_attribute_id`, while the supplied structural SQL audit, schema target, migration tooling and account/export contracts identify the provider field as **`bonus_attributes_id`**. The PR changes the launch payload to the evidenced provider field, adds a boundary regression test and corrects stale data-model references.
+The exact-main `/api/readiness` payload could not be re-collected in this run because Vercel deployment protection redirected the connected fetch to SSO. Do not replace the last successful readiness evidence with an inference; exact-main readiness remains to be refreshed after the current documentation slice.
 
-The same evidence confirms the cellar edition/version field used by the active dedicated cellar gateway is **`series_version_id`**. `series_edition_id` is not a launch write alias. Both sharing-series relationships remain optional and nullable.
+## Completed schema-alignment slice
+
+Issue **#340** / PR **#341** corrected the active rating bonus write mismatch. The current launch path now writes `bonus_attribute_rating_mapping.bonus_attributes_id`, with a boundary regression test and corrected data-model references. The same evidence confirms `cellar.series_version_id` as the launch relationship field; `series_edition_id` is not a launch write alias.
+
+## Active schema-classification slice
+
+Issue **#342** / branch **`docs/launch-schema-classification`** introduces `docs/nocodebackend/launch-schema-contract.md` as the concise application classification layer for launch provider data:
+
+- `DEPLOYED_REQUIRED` — evidenced and allowed to be required by active launch services;
+- `DEPLOYED_OPTIONAL` — evidenced but nullable/enrichment-only where absence is valid;
+- `DEFERRED_TARGET` — designed future provider state that must not become a launch prerequisite before migration/certification;
+- `UNAVAILABLE` — capability not evidenced as deployed and therefore required to fail explicitly or use an already-approved non-persistent behaviour.
+
+The project-level `DATA_MODEL.md` now links that classification and corrects the catalogue provider relationship name to `product_category_id`.
 
 ## Deployed versus deferred contract
 
-The launch application must require only fields evidenced as deployed. Current rating headers use `product_id`, optional `cellar_id`, `date_rated`, `total_unweighted` and `total_weighted`; rating scores and optional bonus mappings remain separate normalised collections. Server identity and calculated totals are authoritative.
+Current launch rating headers rely on `product_id`, optional `cellar_id`, `date_rated`, `total_unweighted` and `total_weighted`; rating scores and optional bonus mappings remain separate normalised collections. Server identity and calculated totals are authoritative.
 
-The durable idempotency target tracked by **#165** adds submission identity/fingerprint/state/version, expected child counts and child uniqueness keys. Those fields remain a migration target, not a production launch prerequisite, until connected provider migration and concurrency/cleanup verification are recorded.
+The durable idempotency target tracked by **#165** adds submission identity/fingerprint/state/version, expected child counts, deterministic child uniqueness keys and connected conditional-update/concurrency requirements. Those remain `DEFERRED_TARGET`, not production launch prerequisites, until provider migration and certification are recorded.
 
-Profile reads are currently session-backed. No deployed `profiles` persistence table is evidenced by the supplied structural audit, so profile PUT continues to fail explicitly with `profile_persistence_unavailable` rather than inventing storage capability.
+Profile reads remain session-backed. No deployed `profiles` persistence collection is evidenced by the supplied structural audit, so profile PUT continues to fail explicitly with `profile_persistence_unavailable` rather than inventing storage capability.
 
 ## Connected-evidence posture
 
-Direct destructive production writes are not used for certification. The existing connected provider contract suite remains gated behind an explicitly isolated staging environment and destructive-test opt-in, with cleanup verification. Where live provider schema introspection is unavailable, repository-supplied export evidence may establish field names and structural facts but must not be presented as fresh live inventory.
+Direct destructive production writes are not used for certification. The connected provider contract suite remains gated behind an explicitly isolated staging environment and destructive-test opt-in with cleanup verification. Repository-supplied export evidence may establish structural field names but must not be described as fresh live schema introspection.
 
-Fresh production evidence now shows `/api/readiness` returning HTTP 200 with `dataProvider: "ok"` on exact main `61f24aae...`, superseding the old forbidden-provider state recorded in #225. The remaining #225 acceptance evidence should be reconciled before closing that issue rather than treating its historical blocker text as current.
+Historical #225 forbidden-provider text is superseded by more recent successful provider readiness evidence, but #225 should only be closed after its full acceptance evidence is reconciled. The current exact-main readiness payload still needs a fresh protected-deployment fetch or equivalent authorised evidence.
 
 ## Validation posture
 
 `npm run platform:validate` remains the canonical project-owned source-validation entry point. Browser/runtime checks apply where the changed boundary is browser-facing. GitHub Actions, CodeQL and Dependency Review are supporting diagnostics; real defects they expose remain actionable.
 
-The first #341 Release gate exposed that this durable status rewrite had omitted the required `## AI execution gate` and `## Autonomous continuation support` sections. That documentation defect is repaired in this same PR; final exact-head validation must run against this repaired head. No later status-only commit should invalidate final evidence.
+The current #342 branch has material documentation changes but has not yet completed exact-head canonical validation. Do not add a later status-only commit after final validation unless a material state change requires it.
 
 ## Next dependency-correct work
 
-1. Complete exact-head canonical validation and deployment evidence for #341; repair any substantive finding and merge when safe.
-2. Reconcile the canonical schema mapping so each launch collection/field is explicitly classified as deployed-required, deployed-optional, or deferred migration target.
-3. Continue non-destructive connected smoke verification for sign-in, catalogue, product detail and rating-form reads.
-4. Certify owner-scoped rating create/history/delete, cellar CRUD and profile read only where safe authenticated evidence exists; do not create destructive production test data without explicit safe authorisation and cleanup.
-5. Reconcile #225 against fresh readiness/provider evidence; close it only when all acceptance evidence is satisfied.
-6. Advance #165 provider migration only with production-equivalent schema/constraint and concurrency evidence; do not make undeployed target fields mandatory beforehand.
+1. Complete exact-head canonical validation for #342 and repair substantive findings in the same branch.
+2. Open a normal non-draft PR, maintain lifecycle labels/metadata, verify exact-head Vercel evidence and merge when safe.
+3. Re-verify exact-main production deployment and `/api/readiness` after merge.
+4. Continue non-destructive connected smoke verification for sign-in, catalogue, product detail and rating-form reads.
+5. Certify owner-scoped rating create/history/delete, cellar CRUD and profile read only where safe authenticated evidence exists; do not create destructive production test data without explicit safe authorisation and cleanup.
+6. Reconcile #225 against current readiness/provider evidence; close it only when all acceptance evidence is satisfied.
+7. Advance #165 provider migration only with production-equivalent schema/constraint and concurrency evidence; do not make undeployed target fields mandatory beforehand.
 
 ## Completion rule
 
