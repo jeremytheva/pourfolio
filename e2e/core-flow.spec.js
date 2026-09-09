@@ -18,7 +18,7 @@ test('catalogue to product to rating uses stable IDs and accepts score 1', async
 
   await page.goto('/home')
   await expect(page.getByRole('heading', { name: 'Discover beer worth remembering' })).toBeVisible()
-  await page.getByRole('link', { name: 'View product' }).click()
+  await page.locator('a[href="/products/4"]').click()
   await expect(page).toHaveURL(/\/products\/4$/)
   await page.getByRole('link', { name: 'Rate this beer' }).click()
 
