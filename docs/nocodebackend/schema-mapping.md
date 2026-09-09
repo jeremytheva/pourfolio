@@ -191,7 +191,7 @@ evidence here before replacing this workflow.
 applicable scored attribute must occur exactly once per rating, enforced by a
 unique `(rating_id, attribute_id)` constraint. Each row also has a non-null,
 globally unique deterministic `uniqueness_key` of
-`<user_id>:<client-rating_id>:score:<attribute_id>`. `attribute_score` is an integer
+`<user_id>:<client-rating-id>:score:<attribute_id>`. `attribute_score` is an integer
 from 1 through 7 inclusive. Score `1` is valid and must not be treated as
 missing. `user_id` is set by the server.
 
@@ -201,7 +201,7 @@ Bonus selections are optional. Each submitted `bonus_attributes_id` must exist.
 When selected, `user_id`, `rating_id` and `bonus_attributes_id` are non-null and
 the pair `(rating_id, bonus_attributes_id)` is unique. Each row also has a
 non-null, globally unique deterministic `uniqueness_key` of
-`<user_id>:<client-rating-id>:bonus:<bonus_attributes_id>`. `user_id` and `rating_id`
+`<user_id>:<client-rating_id>:bonus:<bonus_attributes_id>`. `user_id` and `rating_id`
 are set by the server.
 
 ### `cellar`
