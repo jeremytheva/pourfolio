@@ -19,12 +19,14 @@ Legacy `beverages_pf2025`, `ratings_pf2025`, `cellar_items_pf2025` and `beverage
 
 The current database uses:
 
-- `cellar.series_edition_id` for the optional sharing-series edition relationship;
-- `bonus_attribute_rating_mapping.bonus_attribute_id` for optional rating bonuses;
+- `cellar.series_version_id` for the optional sharing-series edition/version relationship;
+- `bonus_attribute_rating_mapping.bonus_attributes_id` for optional rating bonuses;
 - the cellar lifecycle fields `status`, `quantity_acquired`, `date_consumed`, `acquisition_type` and `historical_import`;
 - a compact `ratings` header containing `product_id`, optional `cellar_id`, `date_rated`, `total_unweighted` and `total_weighted`.
 
-Sharing series and edition references on cellar records are nullable and optional. They must be `NULL` when not applicable and are never fabricated to satisfy a rating or cellar write.
+These field names are pinned to the supplied schema/export evidence. `series_edition_id` and `bonus_attribute_id` are not launch write aliases.
+
+Sharing series and edition/version references on cellar records are nullable and optional. They must be `NULL` when not applicable and are never fabricated to satisfy a rating or cellar write.
 
 The browser cannot write `user_id`, `secret_key`, roles, rating totals or provider metadata. Identity and totals are server authoritative.
 
