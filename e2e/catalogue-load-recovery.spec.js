@@ -32,6 +32,6 @@ test('catalogue load failure focuses recovery and retries successfully', async (
   await page.getByRole('button', { name: 'Try again' }).click()
 
   await expect(alert).toHaveCount(0)
-  await expect(page.getByRole('link', { name: 'View product' })).toBeVisible()
+  await expect(page.locator('a[href="/products/4"]')).toBeVisible()
   expect(attempts).toBe(2)
 })
