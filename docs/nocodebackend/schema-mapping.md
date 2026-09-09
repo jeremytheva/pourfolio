@@ -2,13 +2,17 @@
 
 ## Status and evidence
 
-This is the launch contract for the beer-first MVP. It is derived from:
+This document maps both the evidenced launch schema and explicitly labelled future provider targets for the beer-first MVP. Current launch capability is classified in [`launch-schema-contract.md`](launch-schema-contract.md); where this detailed mapping describes a future target that is not deployed, the launch classification takes precedence.
+
+The mapping is derived from:
 
 - the supplied `54026_rating_export(2).sql` schema export;
 - the supplied products, producers, categories, rating-attribute, bonus-attribute and cellar CSV exports;
 - `Pourfolio_Beer_Ratings_Swagger_Payloads_With_Cellar(1)(1).xlsx`.
 
 The obsolete `*_pf2025` collection names and `beverage_id` field are not part of this contract. `api/auth-proxy.js` is the authentication proxy, and `api/data-proxy.js` is the owner-enforcing application-data gateway through which the browser accesses these collections.
+
+Persistent `profiles` storage is **UNAVAILABLE on current provider evidence**. The current profile GET is session-backed through the authenticated application boundary and profile PUT fails explicitly with `profile_persistence_unavailable`. Any persistent-profile fields or constraints documented below are a deferred provider-migration target, not a deployed launch dependency.
 
 ### Atomic-workflow verification (29 July 2026)
 
@@ -45,11 +49,12 @@ record unchanged under concurrency. Compare-and-set support remains unverified
 until a connected staging concurrency probe records the winning write, the
 rejected stale write and the final persisted version.
 
-## Collection summary
+## Active deployed collection summary
+
+The table below lists provider collections used by the current launch contract. It does not include deferred or unavailable targets such as persistent `profiles` storage or the proposed Brew Done It collections documented later in this file.
 
 | Collection | Purpose | Ownership |
 | --- | --- | --- |
-| `profiles` | App-facing display profile for an authenticated account. | Owner read/write for editable display fields. |
 | `products` | Product catalogue. | Authenticated read for MVP. |
 | `producers` | Product producer catalogue. | Authenticated read for MVP. |
 | `categories` | Product/style taxonomy. | Authenticated read for MVP. |
@@ -59,19 +64,14 @@ rejected stale write and the final persisted version.
 | `rating_scores` | Normalised attribute scores for a rating. | Same owner as parent rating. |
 | `bonus_attribute_rating_mapping` | Normalised optional bonus selections. | Same owner as parent rating. |
 | `cellar` | Private user cellar inventory. | Owner CRUD only. |
-| `brew_done_it_games` | Invitation and immutable two-participant game relationship. | Participants read; gateway-only create/update. |
-| `brew_done_it_rounds` | Authoritative beer selection, roles, turn and completion state. | Participants read through a role-aware projection; gateway-only write. |
-| `brew_done_it_guesses` | Immutable, ordered product guesses and server-awarded points. | Participants read through the game relationship; gateway-only create. |
-| `brew_done_it_history_questions` | Minimal recognised-predicate boolean disclosures and per-round limit evidence. | No direct participant collection read; gateway-only create/read. |
-| `blocked_relationships` | Directional account blocks consulted as a deny override. | Owner relationship management only; game gateway may test existence but never project rows. |
 
 ## Account export, deletion and retention status
 
-The existing schema has no deletion-job, deletion-receipt, export-job,
-verification-status or retention-control fields. None is implied by an editable
-profile row, and no browser-supplied lifecycle status may be trusted. Whole-account
-export and executable deletion are therefore not implemented against this
-contract. The source-only
+The evidenced launch schema has no deletion-job, deletion-receipt, export-job,
+verification-status or retention-control fields. None is implied by the
+session-backed profile surface, and no browser-supplied lifecycle status may be
+trusted. Whole-account export and executable deletion are therefore not
+implemented against this contract. The source-only
 [deletion discovery planner](../account-deletion-plan-contract.md) creates no
 provider object and does not change that status. The source-only
 [deletion reconciler](../account-deletion-reconciliation-contract.md) likewise
@@ -83,10 +83,12 @@ provider object either; its format/version/boolean result is not a job, receipt
 or permission field.
 
 The proposed owner-data boundary and dependency order are documented in the
-[account lifecycle readiness review](../account-lifecycle-readiness.md). It
-includes `profiles`, `ratings`, `rating_scores`,
-`bonus_attribute_rating_mapping` and `cellar`; shared catalogue and attribute
-definitions are not owner data and must not be deleted with an account.
+[account lifecycle readiness review](../account-lifecycle-readiness.md). Current
+persisted owner data includes `ratings`, `rating_scores`,
+`bonus_attribute_rating_mapping` and `cellar`; a future persistent `profiles`
+collection would join that boundary only after provider migration and
+certification. Shared catalogue and attribute definitions are not owner data and
+must not be deleted with an account.
 
 Before any executable or persisted whole-account workflow, a reviewed provider
 change must define a server-only, idempotent deletion job/receipt store, write
@@ -99,10 +101,10 @@ changed. Until then, the proposed retention periods are not production promises.
 
 ## Authoritative relationships
 
+Current owner relationships are keyed from the immutable authenticated subject derived by the server; they do not depend on a deployed profile row.
+
 ```mermaid
 erDiagram
-  PROFILES ||--o{ RATINGS : owns
-  PROFILES ||--o{ CELLAR : owns
   PRODUCERS ||--o{ PRODUCTS : produces
   CATEGORIES ||--o{ PRODUCTS : classifies
   PRODUCTS ||--o{ RATINGS : receives
@@ -114,14 +116,20 @@ erDiagram
   CELLAR o|--o{ RATINGS : may_link
 ```
 
-## Required fields
+## Required fields and target fields
 
-### `profiles`
+### Profile capability — current launch behaviour
 
-`user_id` must be non-null, unique and match the immutable authenticated user
-ID. The provider primary key may use the same identity. Editable browser fields
-are limited to `name`, `description`, and `avatar_url`. Email, role, identity and
-provider metadata are never accepted from a profile update.
+Persistent `profiles` storage is not evidenced in the deployed launch schema.
+The application therefore uses these fail-closed behaviours:
+
+- `GET /api/nocodebackend/profile` returns the authenticated session user's safe display projection and does not call a provider `profiles` collection.
+- Profile identity is always derived from the verified server session. Browser-supplied user IDs, roles, email addresses or provider metadata are never authoritative.
+- `PUT /api/nocodebackend/profile` fails explicitly with `profile_persistence_unavailable`; the application must not simulate persistence or write to another collection as a fallback.
+
+### Future persistent `profiles` target — DEFERRED / UNAVAILABLE
+
+If persistent profile editing is later approved, provider migration evidence must first establish a `profiles` collection and its permission/uniqueness rules. The target `user_id` must be non-null, unique and match the immutable authenticated user ID; the provider primary key may use the same identity. Editable browser fields remain limited to `name`, `description`, and `avatar_url`. Email, role, identity and provider metadata must never be accepted from a profile update. These are target requirements, not current deployed fields.
 
 ### `products`
 
@@ -385,9 +393,11 @@ product because a foreign key alone cannot express those rules.
 ## Schema preflight
 
 Run the [rating schema preflight](schema-preflight.md) against a complete,
-production-equivalent SQL export. The current supplied export is blocked because
-the profile collection and required integrity controls are absent and
-`date_rated` changes automatically on update.
+production-equivalent SQL export. Persistent profile storage is not a launch
+preflight requirement while its capability remains `UNAVAILABLE`. The current
+supplied export still lacks the deferred rating workflow integrity controls and
+has `date_rated` update behaviour that must be reconciled before the #165 target
+workflow can be enabled.
 
 ## Required remote permission proof
 
@@ -396,8 +406,8 @@ Before public launch, test these cases in the production-equivalent NoCodeBacken
 | Actor | Expected |
 | --- | --- |
 | Unauthenticated | No access to application data endpoints. |
-| Owner | CRUD own profile/cellar; create/read/delete own ratings. |
-| Other user | Cannot read private cellar/profile fields or mutate another user’s records. |
+| Owner | CRUD own cellar; create/read/delete own ratings; read own session-backed profile projection. Persistent profile update remains unavailable until separately migrated and certified. |
+| Other user | Cannot read or mutate another user's private cellar/rating records; the profile endpoint is scoped only to the authenticated session identity. |
 | Authenticated catalogue user | Can read only projected product/producer/category/attribute data. |
 | Administrator/provider secret | Can perform only the server workflows required by the gateway. |
 
