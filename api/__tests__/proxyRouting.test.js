@@ -126,11 +126,20 @@ test('Vercel wildcard captures are explicitly forwarded while unrelated query va
   }
 })
 
-test('schema-aware data router owns only database-aligned launch resources', () => {
+test('schema-aware data router owns launch resources and only delegates the game surface to legacy code', () => {
   assert.deepEqual(
     [...dataRouter.CURRENT_SCHEMA_RESOURCES].sort(),
     ['catalog', 'cellar', 'rating-form', 'ratings']
   )
+  assert.deepEqual([...dataRouter.LEGACY_RESOURCES], ['brew-done-it'])
+})
+
+test('data router rejects unknown resources without entering the legacy data handler', async () => {
+  const response = createResponse()
+  await dataRouter.routeRequest({ method: 'GET', query: { path: 'profiles' } }, response)
+
+  assert.equal(response.statusCode, 404)
+  assert.deepEqual(response.body, { error: 'Application data route not found.' })
 })
 
 test('authentication proxy rejects unknown actions without contacting an upstream service', async () => {
