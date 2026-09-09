@@ -1,4 +1,5 @@
 import { apiRequest } from '../lib/nocodeBackend.js'
+import { projectCellarWrite } from './cellarWriteContract.js'
 
 export const cellarService = {
   getCellarItems() {
@@ -8,14 +9,14 @@ export const cellarService = {
   addCellarItem(item) {
     return apiRequest('/cellar', {
       method: 'POST',
-      body: item
+      body: projectCellarWrite(item, { requireProduct: true })
     })
   },
 
   updateCellarItem(id, updates) {
     return apiRequest(`/cellar/${encodeURIComponent(id)}`, {
       method: 'PUT',
-      body: updates
+      body: projectCellarWrite(updates, { requireAtLeastOne: true })
     })
   },
 

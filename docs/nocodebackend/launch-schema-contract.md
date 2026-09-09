@@ -130,23 +130,44 @@ DEFERRED_TARGET integrity capability:
 
 ## Cellar contract
 
-The `cellar` collection is DEPLOYED_REQUIRED for the private cellar journey. Server identity remains authoritative and browser writes are constrained by the gateway allowlist.
+The `cellar` collection is DEPLOYED_REQUIRED for the private cellar journey. Server identity remains authoritative and browser writes are constrained by the same canonical allowlist at both the browser service boundary and the server gateway.
 
-Current evidenced lifecycle/write fields include:
+DEPLOYED_REQUIRED create field:
 
+- `product_id`
+
+The server derives `user_id` from the authenticated session. `user_id` is never a browser-authoritative writable field.
+
+DEPLOYED_OPTIONAL writable fields evidenced by the supplied cellar schema/export contract are:
+
+- `location_id`
+- `quantity`
+- `mls`
+- `container`
+- `purchase_price`
+- `retail_price`
+- `date_received`
+- `sharing_series_id`
+- `series_version_id`
+- `purchase_location_id`
+- `purchased_by_id`
+- `gift`
+- `gift_from`
+- `bet_id`
+- `notes`
 - `status`
 - `quantity_acquired`
 - `date_consumed`
 - `acquisition_type`
 - `historical_import`
 
-DEPLOYED_OPTIONAL relationship field:
+`date_received` may be omitted on create because the server supplies the current date when absent. All other optional fields must remain optional even where a particular UI chooses to require or default a value.
 
-- `series_version_id`
+`sharing_series_id` and `series_version_id` are nullable relationships. `series_edition_id` is not a launch write alias. Zero/fabricated relationship identifiers are invalid substitutes for `null`.
 
-Sharing-series/version relationships remain nullable. `series_edition_id` is not a launch write alias. Zero/fabricated relationship identifiers are invalid substitutes for `null`.
+The browser service projects create/update bodies through this allowlist before sending them. The server gateway independently repeats allowlisting, type/range/date normalisation, relationship validation and owner enforcement; browser projection is a contract-drift control, not a security boundary.
 
-The exact writable-field allowlist in the cellar gateway is authoritative for browser mutation; this classification must remain aligned with it.
+Any field not listed above—including `user_id`, `series_edition_id` and arbitrary caller keys—must not cross the browser cellar write boundary. Adding a new cellar write field requires provider evidence plus coordinated updates to this classification, `CELLAR_EDITABLE_FIELDS`, browser projection, gateway sanitisation and boundary tests.
 
 ## Profile capability
 
@@ -158,6 +179,8 @@ Permitted current behaviour:
 - profile PUT must fail explicitly with the existing persistence-unavailable contract.
 
 A future `profiles` collection, editable field allowlist and owner/uniqueness policy require provider migration evidence before profile persistence may be enabled.
+
+Until `schema-mapping.md` is reconciled, any persistent-profile rows or required-field statements there are target-state documentation only and must not override this launch classification.
 
 ## Provider/certification boundary
 
