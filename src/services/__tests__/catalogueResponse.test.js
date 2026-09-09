@@ -25,6 +25,7 @@ const product = {
   collaboration: 0,
   product_image: 'https://images.example.test/ace.webp',
   producer: { id: '20', producer_name: 'Rocky Ridge Brewing', address: '', suburb_id: 9567 },
+  producers: [{ id: '20', producer_name: 'Rocky Ridge Brewing', address: '', suburb_id: 9567 }],
   category: { id: 10, category_name: 'Pale Ale', parent_id: null }
 }
 
@@ -77,10 +78,28 @@ test('validates and deeply freezes a catalogue page without mutating its input',
   assert.equal(Object.isFrozen(result), true)
   assert.equal(Object.isFrozen(result.items), true)
   assert.equal(Object.isFrozen(result.items[0].producer), true)
+  assert.equal(Object.isFrozen(result.items[0].producers), true)
+  assert.equal(Object.isFrozen(result.items[0].producers[0]), true)
   assert.equal(Object.isFrozen(input), false)
 
   input.items[0].product_name = 'Changed after validation'
   assert.equal(result.items[0].product_name, 'Ace')
+})
+
+test('accepts collaboration producer arrays while preserving the primary producer', () => {
+  const collaboration = {
+    ...product,
+    producer_id: 20,
+    producer: { id: 20, producer_name: 'Rocky Ridge Brewing', address: '', suburb_id: 9567 },
+    producers: [
+      { id: 20, producer_name: 'Rocky Ridge Brewing', address: '', suburb_id: 9567 },
+      { id: 21, producer_name: 'Second Brewery', address: null, suburb_id: null }
+    ],
+    collaboration: 1
+  }
+  const result = validateCataloguePage({ items: [collaboration], page: 1, pageSize: 24, total: 1, totalPages: 1 })
+  assert.equal(result.items[0].producers.length, 2)
+  assert.equal(result.items[0].producer.id, 20)
 })
 
 test('accepts the canonical empty first page', () => {
@@ -101,6 +120,7 @@ test('canonicalises empty optional numeric and relationship wire values to null'
       ibu: '',
       product_image: '',
       producer: null,
+      producers: [],
       category: null
     }],
     page: 1,
@@ -150,6 +170,8 @@ test('rejects unrenderable product values and inconsistent public relationships'
     { ...product, product_image: 'http://images.example.test/ace.webp' },
     { ...product, provider_secret: 'never expose this' },
     { ...product, producer: { id: 21, producer_name: 'Wrong producer' } },
+    { ...product, producers: [{ id: 20, producer_name: 'Rocky Ridge Brewing' }, { id: 20, producer_name: 'Duplicate' }] },
+    { ...product, producers: [{ id: 21, producer_name: 'Second Brewery' }] },
     { ...product, category: { id: 10, category_name: '' } }
   ]
 
