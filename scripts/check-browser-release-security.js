@@ -12,7 +12,7 @@ const upstashBrowserImport = /(?:from\s*|import\s*\(|require\s*\()\s*["']@upstas
 const directUpstashRestRequest = /(?:fetch|axios(?:\.(?:get|post|put|patch|delete))?)\s*\([^)]*https?:\/\/[^\s"'`)]*\.upstash\.io(?:[/:?"'`)])/gis
 const serverOnlyVariableNames = [
   ['NOCODEBACKEND_AUTH_SECRET_KEY', 'NoCodeBackend auth secret'],
-  ['NOCODEBACKEND_SECRET_KEY', 'NoCodeBackend data secret'],
+  ['NOCODEBACKEND_SECRET_KEY', 'NoCodeBackend secret'],
   ['NOCODEBACKEND_DATA_BASE_URL', 'NoCodeBackend data upstream'],
   ['NOCODEBACKEND_AUTH_BASE_URL', 'NoCodeBackend auth upstream'],
   ['ALLOWED_ORIGINS', 'allowed origins configuration'],
@@ -76,7 +76,7 @@ export const inspectBrowserRelease = ({
         findings.push(`${relativePath}: exposes the configured NoCodeBackend auth secret`)
       }
       if (nocodeBackendSecret && !placeholderValue.test(nocodeBackendSecret) && content.includes(nocodeBackendSecret)) {
-        findings.push(`${relativePath}: exposes the configured NoCodeBackend data secret`)
+        findings.push(`${relativePath}: exposes the configured NoCodeBackend secret`)
       }
       if (dataUpstream && !placeholderValue.test(dataUpstream) && content.includes(dataUpstream)) {
         findings.push(`${relativePath}: exposes the configured data upstream`)
