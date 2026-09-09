@@ -28,22 +28,26 @@ test('the read-only KV token is never selected for rate-limit writes', () => {
   })
 })
 
-test('rate-limit key material can be derived from the configured NoCodeBackend secret', () => {
-  const environment = { NOCODEBACKEND_SECRET_KEY: 'nocode-test-secret' }
+test('rate-limit key material can be derived from the configured NoCodeBackend auth secret', () => {
+  const environment = { NOCODEBACKEND_AUTH_SECRET_KEY: 'nocode-auth-test-secret' }
   const first = resolveRateLimitKeySecret(environment)
   const second = resolveRateLimitKeySecret(environment)
 
   assert.equal(typeof first, 'string')
   assert.ok(first.length > 20)
   assert.equal(first, second)
-  assert.notEqual(first, environment.NOCODEBACKEND_SECRET_KEY)
-  assert.equal(first.includes(environment.NOCODEBACKEND_SECRET_KEY), false)
+  assert.notEqual(first, environment.NOCODEBACKEND_AUTH_SECRET_KEY)
+  assert.equal(first.includes(environment.NOCODEBACKEND_AUTH_SECRET_KEY), false)
+})
+
+test('data credentials are never used to derive authentication rate-limit keys', () => {
+  assert.equal(resolveRateLimitKeySecret({ NOCODEBACKEND_SECRET_KEY: 'data-only-secret' }), '')
 })
 
 test('an explicit rate-limit key override remains supported', () => {
   assert.equal(resolveRateLimitKeySecret({
     RATE_LIMIT_KEY_SECRET: 'dedicated-secret',
-    NOCODEBACKEND_SECRET_KEY: 'nocode-test-secret'
+    NOCODEBACKEND_AUTH_SECRET_KEY: 'nocode-auth-test-secret'
   }), 'dedicated-secret')
 })
 

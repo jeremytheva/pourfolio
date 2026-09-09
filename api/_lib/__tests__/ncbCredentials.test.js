@@ -7,33 +7,57 @@ import {
   resolveDataCredential
 } from '../ncbCredentials.js'
 
-const configure = (value) => {
-  if (value === undefined) delete process.env.NOCODEBACKEND_SECRET_KEY
-  else process.env.NOCODEBACKEND_SECRET_KEY = value
+const originalEnvironment = {
+  NOCODEBACKEND_AUTH_SECRET_KEY: process.env.NOCODEBACKEND_AUTH_SECRET_KEY,
+  NOCODEBACKEND_SECRET_KEY: process.env.NOCODEBACKEND_SECRET_KEY
 }
 
-test.afterEach(() => configure())
+const configure = ({ authSecret, dataSecret } = {}) => {
+  if (authSecret === undefined) delete process.env.NOCODEBACKEND_AUTH_SECRET_KEY
+  else process.env.NOCODEBACKEND_AUTH_SECRET_KEY = authSecret
+  if (dataSecret === undefined) delete process.env.NOCODEBACKEND_SECRET_KEY
+  else process.env.NOCODEBACKEND_SECRET_KEY = dataSecret
+}
 
-test('NOCODEBACKEND_SECRET_KEY is shared by auth and data access', () => {
-  configure('shared-secret')
-  assert.equal(resolveAuthCredential().value, 'shared-secret')
-  assert.equal(resolveDataCredential().value, 'shared-secret')
+test.afterEach(() => {
+  for (const [key, value] of Object.entries(originalEnvironment)) {
+    if (value === undefined) delete process.env[key]
+    else process.env[key] = value
+  }
+})
+
+test('auth and data access use independent server-only credentials', () => {
+  configure({ authSecret: 'auth-secret', dataSecret: 'data-secret' })
+  assert.equal(resolveAuthCredential().value, 'auth-secret')
+  assert.equal(resolveDataCredential().value, 'data-secret')
   assert.deepEqual(credentialConfigurationState(), {
-    authCredential: 'nocodebackend-secret-key',
+    authCredential: 'nocodebackend-auth-secret-key',
     dataCredential: 'nocodebackend-secret-key',
     authConfigured: true,
     dataConfigured: true
   })
 })
 
-test('missing NOCODEBACKEND_SECRET_KEY fails auth and data closed', () => {
-  configure()
+test('missing auth credential fails auth closed without affecting data access', () => {
+  configure({ dataSecret: 'data-secret' })
   assert.throws(() => resolveAuthCredential(), (error) => error.code === 'AUTH_CREDENTIAL_MISSING')
-  assert.throws(() => resolveDataCredential(), (error) => error.code === 'DATA_CREDENTIAL_MISSING')
+  assert.equal(resolveDataCredential().value, 'data-secret')
   assert.deepEqual(credentialConfigurationState(), {
     authCredential: 'missing',
-    dataCredential: 'missing',
+    dataCredential: 'nocodebackend-secret-key',
     authConfigured: false,
+    dataConfigured: true
+  })
+})
+
+test('missing data credential fails data closed without affecting auth access', () => {
+  configure({ authSecret: 'auth-secret' })
+  assert.equal(resolveAuthCredential().value, 'auth-secret')
+  assert.throws(() => resolveDataCredential(), (error) => error.code === 'DATA_CREDENTIAL_MISSING')
+  assert.deepEqual(credentialConfigurationState(), {
+    authCredential: 'nocodebackend-auth-secret-key',
+    dataCredential: 'missing',
+    authConfigured: true,
     dataConfigured: false
   })
 })

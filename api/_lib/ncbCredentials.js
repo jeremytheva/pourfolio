@@ -1,7 +1,8 @@
 const normalise = (value) => typeof value === 'string' && value.trim() ? value.trim() : null
 
 const entries = (environment = process.env) => ({
-  secret: normalise(environment.NOCODEBACKEND_SECRET_KEY)
+  authSecret: normalise(environment.NOCODEBACKEND_AUTH_SECRET_KEY),
+  dataSecret: normalise(environment.NOCODEBACKEND_SECRET_KEY)
 })
 
 const missingCredential = (kind) => {
@@ -12,9 +13,13 @@ const missingCredential = (kind) => {
 }
 
 const resolveCredential = (kind, environment = process.env) => {
-  const value = entries(environment).secret
+  const configured = entries(environment)
+  const value = kind === 'auth' ? configured.authSecret : configured.dataSecret
   if (!value) throw missingCredential(kind)
-  return { value, source: 'nocodebackend-secret-key' }
+  return {
+    value,
+    source: kind === 'auth' ? 'nocodebackend-auth-secret-key' : 'nocodebackend-secret-key'
+  }
 }
 
 export const resolveAuthCredential = (environment = process.env) => resolveCredential('auth', environment)
@@ -23,12 +28,14 @@ export const resolveDataCredential = (environment = process.env) => resolveCrede
 export const credentialSourceLabel = (source) => source || 'missing'
 
 export const credentialConfigurationState = (environment = process.env) => {
-  const configured = Boolean(entries(environment).secret)
+  const configured = entries(environment)
+  const authConfigured = Boolean(configured.authSecret)
+  const dataConfigured = Boolean(configured.dataSecret)
   return {
-    authCredential: configured ? 'nocodebackend-secret-key' : 'missing',
-    dataCredential: configured ? 'nocodebackend-secret-key' : 'missing',
-    authConfigured: configured,
-    dataConfigured: configured
+    authCredential: authConfigured ? 'nocodebackend-auth-secret-key' : 'missing',
+    dataCredential: dataConfigured ? 'nocodebackend-secret-key' : 'missing',
+    authConfigured,
+    dataConfigured
   }
 }
 

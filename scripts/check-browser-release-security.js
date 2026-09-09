@@ -6,11 +6,12 @@ const upstreamAuthDomain = /https?:\/\/[^\s"'`]*nocodebackend\.com\/api\/user-au
 const upstreamDataDomain = /https?:\/\/[^\s"'`]*nocodebackend\.com\/(?:api\/)?(?:database|data|collections)(?:[/:?#"'`)]|$)/gi
 const sourceMapReference = /(?:sourceMappingURL=|"sourcesContent"\s*:|"mappings"\s*:)/g
 const secretBearingHeader = /(?:authorization|x-api-key|api-key|x-nocodebackend-secret|upstash-redis-rest-token)\s*[:=]\s*[`"']?(?:Bearer\s+)?[^`"'\s,}]+/gi
-const credentialAssignment = /(?:NOCODEBACKEND_SECRET_KEY|NOCODEBACKEND_DATA_BASE_URL|NOCODEBACKEND_AUTH_BASE_URL|ALLOWED_ORIGINS|UPSTASH_REDIS_REST_TOKEN|RATE_LIMIT_KEY_SECRET|UPSTASH_REDIS_REST_URL|pourfolio_KV_REST_API_TOKEN|pourfolio_KV_REST_API_URL|pourfolio_KV_REST_API_READ_ONLY_TOKEN|pourfolio_KV_URL|pourfolio_REDIS_URL)\s*[=:]\s*["']?([^\s"',}]+)/g
+const credentialAssignment = /(?:NOCODEBACKEND_AUTH_SECRET_KEY|NOCODEBACKEND_SECRET_KEY|NOCODEBACKEND_DATA_BASE_URL|NOCODEBACKEND_AUTH_BASE_URL|ALLOWED_ORIGINS|UPSTASH_REDIS_REST_TOKEN|RATE_LIMIT_KEY_SECRET|UPSTASH_REDIS_REST_URL|pourfolio_KV_REST_API_TOKEN|pourfolio_KV_REST_API_URL|pourfolio_KV_REST_API_READ_ONLY_TOKEN|pourfolio_KV_URL|pourfolio_REDIS_URL)\s*[=:]\s*["']?([^\s"',}]+)/g
 const placeholderValue = /^(?:example|placeholder|replace[-_]?me|your[-_]|<|\$\{|https?:\/\/example\.)/i
 const upstashBrowserImport = /(?:from\s*|import\s*\(|require\s*\()\s*["']@upstash\/redis(?:[/'"])/
 const directUpstashRestRequest = /(?:fetch|axios(?:\.(?:get|post|put|patch|delete))?)\s*\([^)]*https?:\/\/[^\s"'`)]*\.upstash\.io(?:[/:?"'`)])/gis
 const serverOnlyVariableNames = [
+  ['NOCODEBACKEND_AUTH_SECRET_KEY', 'NoCodeBackend auth secret'],
   ['NOCODEBACKEND_SECRET_KEY', 'NoCodeBackend secret'],
   ['NOCODEBACKEND_DATA_BASE_URL', 'NoCodeBackend data upstream'],
   ['NOCODEBACKEND_AUTH_BASE_URL', 'NoCodeBackend auth upstream'],
@@ -47,6 +48,7 @@ const walkFiles = (directory) => {
 export const inspectBrowserRelease = ({
   rootDirectory,
   browserDirectories = ['src', 'dist'],
+  nocodeBackendAuthSecret = process.env.NOCODEBACKEND_AUTH_SECRET_KEY,
   nocodeBackendSecret = process.env.NOCODEBACKEND_SECRET_KEY,
   dataUpstream = process.env.NOCODEBACKEND_DATA_BASE_URL,
   upstashToken = process.env.pourfolio_KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN,
@@ -69,6 +71,9 @@ export const inspectBrowserRelease = ({
         if (content.includes(variableName)) {
           findings.push(`${relativePath}: exposes the server-only ${description} variable name`)
         }
+      }
+      if (nocodeBackendAuthSecret && !placeholderValue.test(nocodeBackendAuthSecret) && content.includes(nocodeBackendAuthSecret)) {
+        findings.push(`${relativePath}: exposes the configured NoCodeBackend auth secret`)
       }
       if (nocodeBackendSecret && !placeholderValue.test(nocodeBackendSecret) && content.includes(nocodeBackendSecret)) {
         findings.push(`${relativePath}: exposes the configured NoCodeBackend secret`)
