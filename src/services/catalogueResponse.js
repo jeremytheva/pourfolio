@@ -16,6 +16,7 @@ const PRODUCT_KEYS = new Set([
   'collaboration',
   'product_image',
   'producer',
+  'producers',
   'category'
 ])
 const DETAIL_KEYS = new Set([...PRODUCT_KEYS, 'ratingSummary', 'ratings'])
@@ -161,6 +162,13 @@ const validateProduct = (value, { detail = false } = {}) => {
   if (Object.hasOwn(product, 'product_image')) result.product_image = validateImageUrl(product.product_image)
 
   result.producer = validateProducer(product.producer)
+  if (Object.hasOwn(product, 'producers')) {
+    if (!Array.isArray(product.producers)) invalid()
+    result.producers = product.producers.map(validateProducer)
+    const producerIds = new Set(result.producers.map((producer) => String(producer.id)))
+    if (producerIds.size !== result.producers.length) invalid()
+    if (result.producer && !producerIds.has(String(result.producer.id))) invalid()
+  }
   result.category = validateCategory(product.category)
   if (result.producer && (!Object.hasOwn(result, 'producer_id') || result.producer_id === null ||
       !sameId(result.producer.id, result.producer_id))) invalid()
