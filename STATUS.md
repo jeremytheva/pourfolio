@@ -36,7 +36,7 @@ validation:
   ci: PENDING
   runtime: VERIFIED
 last_verified_commit: "61f24aae9715b20be3fc8fdbbfc1ffabf23e4c85"
-last_updated: "2026-09-10T00:16:00+10:00"
+last_updated: "2026-09-10T00:19:00+10:00"
 ---
 
 # STATUS.md
@@ -46,6 +46,16 @@ Last materially reviewed: 10 September 2026
 ## Current phase
 
 **Phase 3 — Beer discovery dependable**
+
+## AI execution gate
+
+**Current gate:** Integration / frontend-backend contract alignment  
+**Execution state:** Validating  
+**Release state:** Not fully certified.
+
+## Autonomous continuation support
+
+The repository is the authoritative handoff. Continue dependency-correct launch-schema alignment and production certification without requiring undeployed target fields. Reuse active work, use normal non-draft PRs, maintain lifecycle metadata, run `npm run platform:validate`, treat CI as diagnostic evidence, and keep destructive connected probes restricted to explicitly authorised isolated staging with cleanup verification.
 
 ## Overall status
 
@@ -73,11 +83,13 @@ Profile reads are currently session-backed. No deployed `profiles` persistence t
 
 Direct destructive production writes are not used for certification. The existing connected provider contract suite remains gated behind an explicitly isolated staging environment and destructive-test opt-in, with cleanup verification. Where live provider schema introspection is unavailable, repository-supplied export evidence may establish field names and structural facts but must not be presented as fresh live inventory.
 
+Fresh production evidence now shows `/api/readiness` returning HTTP 200 with `dataProvider: "ok"` on exact main `61f24aae...`, superseding the old forbidden-provider state recorded in #225. The remaining #225 acceptance evidence should be reconciled before closing that issue rather than treating its historical blocker text as current.
+
 ## Validation posture
 
 `npm run platform:validate` remains the canonical project-owned source-validation entry point. Browser/runtime checks apply where the changed boundary is browser-facing. GitHub Actions, CodeQL and Dependency Review are supporting diagnostics; real defects they expose remain actionable.
 
-PR #341 has received its durable status update before final exact-head validation so no later status-only commit should invalidate exact-head evidence.
+The first #341 Release gate exposed that this durable status rewrite had omitted the required `## AI execution gate` and `## Autonomous continuation support` sections. That documentation defect is repaired in this same PR; final exact-head validation must run against this repaired head. No later status-only commit should invalidate final evidence.
 
 ## Next dependency-correct work
 
@@ -85,7 +97,8 @@ PR #341 has received its durable status update before final exact-head validatio
 2. Reconcile the canonical schema mapping so each launch collection/field is explicitly classified as deployed-required, deployed-optional, or deferred migration target.
 3. Continue non-destructive connected smoke verification for sign-in, catalogue, product detail and rating-form reads.
 4. Certify owner-scoped rating create/history/delete, cellar CRUD and profile read only where safe authenticated evidence exists; do not create destructive production test data without explicit safe authorisation and cleanup.
-5. Advance #165 provider migration only with production-equivalent schema/constraint and concurrency evidence; do not make undeployed target fields mandatory beforehand.
+5. Reconcile #225 against fresh readiness/provider evidence; close it only when all acceptance evidence is satisfied.
+6. Advance #165 provider migration only with production-equivalent schema/constraint and concurrency evidence; do not make undeployed target fields mandatory beforehand.
 
 ## Completion rule
 
