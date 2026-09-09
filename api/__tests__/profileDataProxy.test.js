@@ -5,6 +5,7 @@ import profileHandler from '../profile-data-proxy.js'
 
 const originalFetch = global.fetch
 const originalEnvironment = {
+  NOCODEBACKEND_AUTH_SECRET_KEY: process.env.NOCODEBACKEND_AUTH_SECRET_KEY,
   NOCODEBACKEND_SECRET_KEY: process.env.NOCODEBACKEND_SECRET_KEY,
   NOCODEBACKEND_INSTANCE: process.env.NOCODEBACKEND_INSTANCE,
   NOCODEBACKEND_AUTH_BASE_URL: process.env.NOCODEBACKEND_AUTH_BASE_URL
@@ -20,7 +21,8 @@ const createResponse = () => ({
 })
 
 test.beforeEach(() => {
-  process.env.NOCODEBACKEND_SECRET_KEY = 'test-secret'
+  process.env.NOCODEBACKEND_AUTH_SECRET_KEY = 'test-auth-secret'
+  process.env.NOCODEBACKEND_SECRET_KEY = 'test-data-secret'
   process.env.NOCODEBACKEND_INSTANCE = 'test-instance'
   process.env.NOCODEBACKEND_AUTH_BASE_URL = 'https://app.nocodebackend.com/api/user-auth'
 })
