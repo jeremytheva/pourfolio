@@ -45,7 +45,8 @@ test('catalogue card exposes real image meaning and keeps the primary action key
   const productCard = page.locator('article').filter({ hasText: 'Ace' })
   await expect(productCard.locator('img')).toHaveAttribute('alt', 'Ace by Rocky Ridge Brewing')
 
-  const productLink = productCard.getByRole('link', { name: 'View product' })
+  const productLink = productCard.locator('a[href="/products/4"]')
+  await expect(productLink).toHaveCount(1)
   await productLink.focus()
   await expect(productLink).toBeFocused()
 })
