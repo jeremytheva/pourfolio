@@ -6,19 +6,19 @@ stage: "Frontend-backend launch contract alignment and production certification"
 gate: Integration
 execution_state: IMPLEMENTING
 current_work:
-  objective: "Normalize the active cellar write contract across canonical schema classification, browser services and the owner-enforcing gateway while #225 authenticated certification awaits a safe authorised session."
-  issue: 346
-  pr: null
-  branch: fix/cellar-write-contract
+  objective: "Reconcile the detailed profile schema mapping with the canonical current launch capability while #225 authenticated certification awaits a safe authorised session."
+  issue: 345
+  pr: 348
+  branch: docs/profile-persistence-contract
 next_actions:
-  - "Validate #346 with the canonical project-owned validation path and repair substantive findings."
-  - "Open a normal non-draft PR, verify exact-head deployment/browser evidence and merge when safe."
-  - "Reconcile #345 so detailed profile schema mapping cannot imply deployed persistence."
+  - "Validate PR #348 with the canonical project-owned validation path and repair substantive findings."
+  - "Verify exact-head deployment evidence and merge #348 when safe."
   - "Resume #225 authenticated catalogue/profile smoke when a safe authorised session path is available; do not fabricate credentials or destructive evidence."
+  - "Confirm historical provider credential rotation/invalidation without recording its value."
 blockers:
   - scope: connected_authenticated_smoke
     issue: 225
-    detail: "Authenticated catalogue/profile certification requires a safe authorised production-equivalent session. The repository has a protected staging-release workflow, but no workflow-dispatch execution has been recorded and this connected execution path cannot supply or expose its protected credentials."
+    detail: "Authenticated catalogue/profile certification requires a safe authorised production-equivalent session. The repository has a protected staging-release workflow, but this connected execution path cannot supply or expose its protected credentials."
   - scope: credential_hygiene
     issue: 225
     detail: "Historical provider credential rotation/invalidation still requires provider or secret-management evidence without exposing the credential value."
@@ -38,8 +38,8 @@ validation:
   build: NOT_RUN
   ci: PENDING
   runtime: VERIFIED
-last_verified_commit: "2b18796145db74867b31478f76b438b649463792"
-last_updated: "2026-09-10T01:22:00+10:00"
+last_verified_commit: "7d941bf626e76675d455d39e7e769103fbee7b88"
+last_updated: "2026-09-10T01:39:00+10:00"
 ---
 
 # STATUS.md
@@ -62,13 +62,13 @@ The repository is the authoritative handoff. Continue dependency-correct launch-
 
 ## Overall status
 
-**Canonical launch-schema classification and provider reachability are healthy; active work is closing remaining frontend/backend contract drift while authenticated certification remains access-gated.**
+**Canonical launch-schema classification, cellar write normalization and provider reachability are healthy; active work is removing the remaining profile-contract documentation contradiction while authenticated certification remains access-gated.**
 
 ## Current production boundary
 
-PR **#344** is squash-merged as exact `main` **2b18796145db74867b31478f76b438b649463792**. Vercel production deployment **dpl_3AZLi1ZxDGuDbYC9u6Mb2QDL2wDb** is READY for that exact SHA with matching `main` GitHub provenance, verified commit metadata and Node lambda runtime metadata.
+PR **#347** is squash-merged as exact `main` **7d941bf626e76675d455d39e7e769103fbee7b88**. Vercel production deployment **dpl_CvKAxmtyDvyLafsHkkJeN3CXQypR** is READY for that exact SHA with matching `main` GitHub provenance and Node lambda runtime metadata.
 
-Fresh exact-main `/api/readiness` returns HTTP 200 with release SHA `2b187961...`, environment `production` and `dataProvider: "ok"`. The immediately preceding exact-main auth-provider discovery also returned HTTP 200 with `email: true` and `google: false`; #225 therefore no longer represents a current provider-authorization failure.
+The preceding exact-main `/api/readiness` evidence returned HTTP 200 with `dataProvider: "ok"`, and auth-provider discovery returned HTTP 200 with `email: true` and `google: false`; #225 therefore does not represent a current provider-authorisation failure. These runtime results are not substituted for the remaining authenticated-user smoke evidence.
 
 ## Completed schema-alignment slices
 
@@ -78,15 +78,13 @@ Issue **#342** / PR **#343** added `docs/nocodebackend/launch-schema-contract.md
 
 PR **#344** durably reconciled exact-main provider certification evidence and narrowed #225 to authenticated smoke plus credential-hygiene evidence.
 
-## Active cellar contract slice
+Issue **#346** / PR **#347** normalized the complete cellar write surface. The browser service now projects create/update bodies through the same canonical `CELLAR_EDITABLE_FIELDS` classification used by the owner-enforcing gateway, strips caller-supplied `user_id`, `series_edition_id` and arbitrary fields, requires `product_id` on create and rejects unsupported-only updates. Server-side allowlisting, validation and ownership remain the security boundary.
 
-Issue **#346** aligns the complete cellar write surface. The active server gateway already enforces `CELLAR_EDITABLE_FIELDS`, type/range/date normalisation, nullable relationship rules and owner authority, but the browser cellar service previously forwarded arbitrary caller keys and the concise launch classification listed only a subset of the actual writable fields.
+## Active profile contract slice
 
-The current branch adds a pure browser write projector shared by create/update calls. It excludes noncanonical keys such as browser-supplied `user_id`, `series_edition_id` and arbitrary fields without weakening the server trust boundary. It also expands the canonical classification so `product_id` is the required create field and the remaining evidenced cellar allowlist is explicitly optional where omission is valid.
+Issue **#345** / PR **#348** reconciles `docs/nocodebackend/schema-mapping.md` with the canonical profile capability. Persistent `profiles` storage is removed from the active deployed collection summary; current profile GET is documented as session-backed and profile PUT remains explicitly `profile_persistence_unavailable`. Future profile fields, uniqueness and write permissions remain documented only as a deferred provider-migration target.
 
-## Profile contract drift
-
-Issue **#345** records a documentation contradiction: the concise launch contract correctly marks persistent `profiles` storage `UNAVAILABLE`, while the detailed historical schema mapping still presents a persistent profile target as though it were deployed. Until that document is reconciled, the launch classification takes precedence: profile GET is session-backed and profile PUT fails explicitly with `profile_persistence_unavailable`.
+This slice also removes the stale assertion that absence of a `profiles` collection is itself a current launch schema-preflight failure and aligns the remote permission matrix with session-backed profile reads. It does not mutate provider schema or claim live evidence that does not exist.
 
 ## Deployed versus deferred contract
 
@@ -94,27 +92,30 @@ Current launch rating headers rely on `product_id`, optional `cellar_id`, `date_
 
 The durable idempotency target tracked by **#165** adds submission identity/fingerprint/state/version, expected child counts, deterministic child uniqueness keys and connected conditional-update/concurrency requirements. Those remain `DEFERRED_TARGET`, not production launch prerequisites, until provider migration and certification are recorded.
 
+Persistent profile storage remains `UNAVAILABLE` on current provider evidence. It must not become a launch prerequisite or receive browser writes until a reviewed provider migration and connected permission/ownership certification exist.
+
 ## Connected-evidence posture
 
 Direct destructive production writes are not used for certification. The connected provider contract suite remains gated behind explicitly isolated staging and destructive-test opt-in where applicable. Repository-supplied export evidence may establish structural field names but must not be described as fresh live schema introspection.
 
-The repository contains a `workflow_dispatch` staging-release check that can use protected release accounts and exercises sign-in, catalogue, product detail, rating create/history/delete, cellar CRUD, profile reads/allowlists and cross-account ownership. No workflow-dispatch run is currently recorded, and this execution path does not have authority to invent or reveal the protected release credentials. #225 remains open for that authenticated evidence plus confirmation that the historical provider credential exposure has been rotated or invalidated.
+The repository contains a protected staging-release path that can exercise sign-in, catalogue, product detail, rating create/history/delete, cellar CRUD, profile reads/allowlists and cross-account ownership. This execution path does not have authority to invent or reveal protected release credentials. #225 remains open for authenticated evidence plus confirmation that the historical provider credential exposure has been rotated or invalidated.
 
 ## Validation posture
 
 `npm run platform:validate` remains the canonical project-owned source-validation entry point. Browser/runtime checks apply where the changed boundary is browser-facing. GitHub Actions, CodeQL and Dependency Review are supporting diagnostics; real defects they expose remain actionable.
 
-PR #344 exact-head Release gate, browser/accessibility and CodeQL diagnostics passed before merge, and its exact-main runtime/readiness state is independently verified through Vercel.
+PR #347 exact-head Release gate and browser/accessibility checks passed, CodeQL was clean, and its exact-head Vercel preview was READY using Node 24.x before merge. The exact-main deployment above is independently READY.
+
+PR #348 is now the active validation target; no PASS is claimed until its exact current head has completed the applicable project-owned validation.
 
 ## Next dependency-correct work
 
-1. Complete and validate #346 cellar writable-field normalization; merge only after exact-head evidence is sufficient.
-2. Reconcile #345 detailed profile schema mapping with the canonical `UNAVAILABLE` launch capability.
-3. Complete #225 authenticated catalogue and session-backed profile smoke through an authorised connected path when available.
-4. Confirm historical NoCodeBackend credential rotation/invalidation without recording the credential value; rerun readiness after any rotation.
-5. Close #225 only when all remaining acceptance evidence is complete.
-6. Then reassess #165 provider migration/idempotency work against production-equivalent schema and concurrency capabilities; do not enable deferred fields before migration/certification.
-7. Continue #144/#154 connected certification only after their dependency evidence is satisfied.
+1. Complete canonical validation and exact-head deployment evidence for #348; repair any substantive finding and merge when safe.
+2. Complete #225 authenticated catalogue and session-backed profile smoke through an authorised connected path when available.
+3. Confirm historical NoCodeBackend credential rotation/invalidation without recording the credential value; rerun readiness after any rotation.
+4. Close #225 only when all remaining acceptance evidence is complete.
+5. Then reassess #165 provider migration/idempotency work against production-equivalent schema and concurrency capabilities; do not enable deferred fields before migration/certification.
+6. Continue #144/#154 connected certification only after their dependency evidence is satisfied.
 
 ## Completion rule
 
