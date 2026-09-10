@@ -1,20 +1,23 @@
 # Manual GitHub configuration
 
-**Current remote review:** 3 September 2026
+**Current remote review:** 11 September 2026
 
 Repository files can define workflows and delivery expectations, but they are not evidence that GitHub repository settings are active. Administrator-controlled settings must be observed remotely and tied to an exact candidate SHA before the corresponding governance criterion is complete.
 
 ## Current observed remote state
 
-Observed for `jeremytheva/pourfolio` on 3 September 2026:
+Observed for `jeremytheva/pourfolio` on 11 September 2026:
 
 - GitHub Issues are enabled and governance issue #143 exists.
 - Default branch is `main`.
-- Current observed `main` SHA is `0fe4505e77b8dfaac9174632e14632b9d3f7bcba`.
-- The repository rulesets API currently returns an empty ruleset collection.
-- Direct branch-protection detail could not be read through the connected GitHub integration during this review (`403 Resource not accessible by integration`), so branch-protection state is **not re-certified** from that endpoint in this observation.
+- Current observed `main` SHA for this review is `02c9858135c5fdaefe9b437e7c88d6f2d107b8a2`.
+- `GET /repos/jeremytheva/pourfolio/branches/main` reports `protected: false`, `protection.enabled: false`, no required-status contexts, and enforcement level `off`.
+- The repository rulesets API returns an empty ruleset collection (`[]`). Therefore no repository ruleset currently protects `main`.
+- Direct branch-protection detail returns `403 Resource not accessible by integration`. This does not create uncertainty about the exposed branch summary above: the accessible branch resource itself reports protection disabled. It only prevents inspection of administrator-only detail that is not active in the exposed summary.
 - Pull-request validation and CodeQL workflows exist and have successful current runs. Their underlying results are useful project evidence and diagnostics, but GitHub Actions status is not itself an automatic merge gate under the adopted project policy.
 - Normal autonomous project pull requests are non-draft by default. Lifecycle state is represented by repository/PR metadata rather than GitHub Draft.
+- Current workflow files explicitly constrain token permissions: pull-request validation is `contents: read`; CodeQL is `contents: read` plus `security-events: write`; connected-provider and connected-release checks are `contents: read`; PR lifecycle defaults to `permissions: {}` and grants mutation permissions per job.
+- Dependency Review and CodeQL are actively executing successfully on current project PRs, establishing that those supporting security diagnostics are enabled and usable.
 
 These observations are current-state evidence only. Recheck them after repository-settings changes; do not copy them forward as permanent facts.
 
@@ -41,6 +44,8 @@ A failing, pending or unavailable hosted check is not automatically a merge veto
 
 ### `main` protection / ruleset
 
+Current evidence shows these controls are **not configured**. They remain administrator actions rather than repository-source tasks.
+
 - [ ] Protect `main` using branch protection or a repository ruleset where supported by the repository plan and operating model.
 - [ ] Require a pull request before changes reach `main`; direct push must not be the normal production path.
 - [ ] Require resolution of review conversations where practical.
@@ -66,21 +71,35 @@ These results should be inspected for real defects and exact-head relevance. The
 
 ### Security and dependency controls
 
-- [ ] Enable/verify Dependency Graph where available.
-- [ ] Keep Dependency Review available as supporting security evidence and repair substantive findings.
-- [ ] Keep CodeQL/code scanning enabled where useful and repair substantive findings.
-- [ ] Enable secret scanning and push protection where available.
+- [ ] Enable/verify Dependency Graph where available. This administrator-owned setting is not exposed by the current integration evidence.
+- [x] Keep Dependency Review available as supporting security evidence and repair substantive findings. Successful current PR runs verify availability.
+- [x] Keep CodeQL/code scanning enabled where useful and repair substantive findings. Successful current PR runs verify availability.
+- [ ] Enable/verify secret scanning and push protection where available. Current integration evidence does not expose these administrator settings.
 - [ ] Review Dependabot alerts regularly.
-- [ ] Confirm GitHub Actions default permissions and workflow permissions remain least privilege.
-- [ ] Ensure untrusted workflows cannot access production secrets.
-- [ ] Record the ChatGPT/Codex GitHub App relationship and verify least-privilege repository access.
+- [x] Confirm GitHub Actions workflow permissions remain least privilege at source level. Current workflows explicitly use read-only defaults or minimal job-specific write permissions.
+- [ ] Ensure untrusted workflows cannot access production secrets. Workflow source minimises token authority, but repository/environment secret-policy settings still require administrator evidence.
+- [ ] Record the ChatGPT/Codex GitHub App relationship and verify least-privilege repository access. The current connector can perform repository content/issue/PR operations but administrator-owned installation scoping is not exposed sufficiently for certification.
 
 ### Deployment environment
 
-- [ ] Configure appropriate production environment protection where supported and useful.
+- [ ] Configure/verify appropriate production environment protection where supported and useful.
 - [ ] Restrict production secrets to the intended environment and authorised deployers.
 - [ ] Record named deployment reviewers only where the plan and delivery model require them.
-- [ ] Preserve exact-SHA production deployment provenance and runtime evidence as part of the project release process.
+- [x] Preserve exact-SHA production deployment provenance and runtime evidence as part of the project release process. Existing release/certification workflows and recorded production evidence implement this repository-side practice.
+
+## Current remote enforcement finding
+
+As of this review, `main` is **not protected by GitHub branch protection or a repository ruleset**. This is a real remaining #143 governance item, not a launch-code defect and not a reason to misclassify otherwise validated implementation work as blocked under the adopted PR policy.
+
+Recommended administrator action is to add a lightweight `main` protection/ruleset that, where supported:
+
+1. requires changes to reach `main` through pull requests;
+2. prevents force pushes and deletion;
+3. requires review-conversation resolution where practical;
+4. limits bypass to explicitly approved actors;
+5. does **not** automatically duplicate the repository acceptance contract by requiring every hosted diagnostic status check.
+
+Repository-source automation cannot truthfully mark those settings complete until remote evidence confirms they are active.
 
 ## Observed check-context discovery evidence
 
