@@ -9,6 +9,8 @@ const ownerCredentials = requiredEnvironment([
 
 const DESTRUCTIVE_CONFIRMATION = 'RUN CLEANUP-GUARDED RELEASE WRITES'
 const destructiveEnabled = process.env.RELEASE_DESTRUCTIVE_CONFIRMATION === DESTRUCTIVE_CONFIRMATION
+const REDIRECT_STATUSES = [302, 303, 307, 308]
+const SAFE_REJECTION_STATUSES = [400, 403, 404]
 
 test.describe.configure({ mode: 'serial' })
 
@@ -35,9 +37,15 @@ test('host health, headers, SPA fallback and rejected redirects', async ({ page,
   await expect(page).toHaveURL(/\/login$/)
 
   const rejected = await request.get('/api/nocodebackend/auth/sign-in/google?redirectTo=https://attacker.invalid/callback', { maxRedirects: 0 })
-  expect([302, 303, 307, 308]).toContain(rejected.status())
+  const rejectedStatus = rejected.status()
   const location = rejected.headers().location
-  if (location) expect(new URL(location).hostname).not.toBe('attacker.invalid')
+  if (REDIRECT_STATUSES.includes(rejectedStatus)) {
+    expect(location).toBeTruthy()
+    expect(new URL(location).hostname).not.toBe('attacker.invalid')
+  } else {
+    expect(SAFE_REJECTION_STATUSES).toContain(rejectedStatus)
+    expect(location).toBeFalsy()
+  }
 })
 
 test('public policy and support documents are reachable without authentication', async ({ page }) => {
@@ -87,7 +95,7 @@ test('provider discovery, sign-up, password sign-in, OTP, Google and logout', as
 
   if (/google/.test(providers)) {
     const google = await request.get('/api/nocodebackend/auth/sign-in/google', { maxRedirects: 0 })
-    expect([302, 303, 307, 308]).toContain(google.status())
+    expect(REDIRECT_STATUSES).toContain(google.status())
     expect(google.headers().location).toMatch(/^https:\/\//)
   }
 })
