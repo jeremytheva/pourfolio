@@ -25,10 +25,19 @@ test('connected provider workflows keep production provider configuration owned 
 
   assert.match(releaseWorkflow, /RELEASE_BASE_URL: \$\{\{ inputs\.release_url \}\}/)
   assert.match(releaseWorkflow, /RELEASE_SHA: \$\{\{ inputs\.release_sha \}\}/)
+  assert.match(releaseWorkflow, /Verify release target origin and provenance/)
+  assert.match(releaseWorkflow, /node scripts\/verify-release-target\.js/)
   assert.doesNotMatch(releaseWorkflow, /NOCODEBACKEND_SECRET_KEY/)
   assert.doesNotMatch(releaseWorkflow, /NOCODEBACKEND_INSTANCE/)
   assert.doesNotMatch(releaseWorkflow, /test:provider-smoke/)
   assert.doesNotMatch(releaseWorkflow, repositoryValuePattern)
+
+  const preflight = releaseWorkflow.indexOf('Verify release target origin and provenance')
+  const credentialedChecks = releaseWorkflow.indexOf('Run connected release checks')
+  const ownerPassword = releaseWorkflow.indexOf('RELEASE_OWNER_PASSWORD:')
+  assert.ok(preflight >= 0)
+  assert.ok(credentialedChecks > preflight)
+  assert.ok(ownerPassword > preflight)
 })
 
 test('provider transcript checker requires cleanup and rejects sensitive values', () => {

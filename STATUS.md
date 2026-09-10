@@ -2,35 +2,35 @@
 project: Pourfolio
 portfolio_state: ACTIVE
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Production provider certification"
+stage: "Connected release credential hardening"
 gate: Integration
-execution_state: BLOCKED
+execution_state: IMPLEMENTING
 current_work:
-  objective: "Complete the remaining authenticated production certification and historical provider credential hygiene tracked by #225 after API containment merged in #362."
-  issue: 225
+  objective: "Bind protected connected-release account credentials to a verified Pourfolio Vercel deployment and exact release provenance before browser authentication can run."
+  issue: 365
   pr: null
-  branch: null
+  branch: "security/verify-connected-release-target"
 next_actions:
-  - "Run the authenticated catalogue smoke through the same-origin application API when a protected release-account session is executable."
-  - "Verify the authenticated session-backed profile read remains non-403 in the same protected session."
-  - "Confirm the historically exposed provider Bearer credential has been rotated or otherwise invalidated without recording its value; rotate it first if that cannot be confirmed."
-  - "Record the resulting connected evidence for #225 and then activate #165 provider/schema idempotency work."
-  - "Keep catalogue remediation decisions explicit and independently reviewed; do not fabricate producer/category mappings."
+  - "Validate the #365 release-target allowlist, readiness provenance preflight and workflow ordering on the exact branch head."
+  - "Open a normal PR for #365 and merge when canonical validation, browser/security checks and review are satisfactory."
+  - "Resume #225 authenticated catalogue/profile evidence when a protected release-account session is executable."
+  - "Confirm the historically exposed provider Bearer credential was rotated or invalidated without recording its value."
+  - "Keep #165 DEFERRED_TARGET until #225 certification/hygiene is sufficiently resolved."
 blockers:
   - scope: connected_authenticated_smoke
     issue: 225
-    detail: "Authenticated catalogue and session-backed profile certification require an executable protected release-account session; repository/source changes cannot substitute for that evidence."
+    detail: "Authenticated catalogue and session-backed profile certification require an executable protected release-account session; this does not block independent #365 hardening."
   - scope: credential_hygiene
     issue: 225
-    detail: "Historical provider credential rotation/invalidation requires provider or secret-management evidence without exposing the credential value."
+    detail: "Historical provider credential rotation/invalidation requires provider or secret-management evidence without exposing the credential value; this does not block independent #365 hardening."
   - scope: connected_schema_inventory
     issue: 165
     detail: "Durable rating idempotency fields and connected schema/constraint capability remain DEFERRED_TARGET until #225 certification/hygiene is sufficiently resolved."
 requires_owner_decision: false
 owner_decision:
-  question: "No product decision is currently required."
+  question: "No product decision is required for connected-release target hardening."
   options: []
-  recommendation: "Preserve the current working provider routing and capability boundaries; obtain the remaining protected connected evidence rather than changing frontend/backend routing again."
+  recommendation: "Fail closed before protected release-account credentials are supplied unless the target is a Pourfolio Vercel deployment whose readiness provenance exactly matches the requested release SHA."
 validation:
   governance: PASS
   lint: NOT_RUN
@@ -39,8 +39,8 @@ validation:
   build: NOT_RUN
   ci: NOT_RUN
   runtime: VERIFIED
-last_verified_commit: "d2176025aebb28494894f3782f88112f886e0052"
-last_updated: "2026-09-10T16:03:30+10:00"
+last_verified_commit: "0af555256ae2fffde3ae0a6a90d18dceb10ed4c4"
+last_updated: "2026-09-10T16:22:00+10:00"
 ---
 
 # STATUS.md
@@ -53,55 +53,47 @@ Last materially reviewed: 10 September 2026
 
 ## AI execution gate
 
-**Current gate:** Integration / production provider certification  
-**Execution state:** **BLOCKED** on the protected connected evidence remaining in **#225**  
-**Most recent completed integration:** issue **#361** / PR **#362** contained direct internal API implementation routes and merged at `d2176025aebb28494894f3782f88112f886e0052`.
+**Current gate:** Integration / connected release credential hardening  
+**Execution state:** Implementing issue **#365** on `security/verify-connected-release-target` while the protected evidence in **#225** remains externally blocked.  
+**Most recent completed integration:** issue **#363** / PR **#364** reconciled the repository source of truth after API containment and merged at `0af555256ae2fffde3ae0a6a90d18dceb10ed4c4`.
 
 ## Autonomous continuation support
 
 Continue the highest-priority dependency-correct launch work that can safely be completed autonomously. The repository is authoritative for current work and blockers; chat history remains supporting context only.
 
-Do not reopen provider routing or frontend/backend URL changes without new contradictory runtime evidence. The generated NoCodeBackend data credential is currently accepted for server-side reads, auth provider discovery is reachable, the profile capability is session-backed/read-only, and direct implementation-function URLs are contained.
+Do not reopen provider routing or frontend/backend URL changes without new contradictory runtime evidence. Exact-main production `/api/readiness` on `0af555256ae2fffde3ae0a6a90d18dceb10ed4c4` returned HTTP 200 with `dataProvider: "ok"`. The remaining #225 work is protected authenticated evidence and historical credential hygiene, not provider routing repair.
 
-When #225 cannot progress because a protected authenticated session or credential-hygiene evidence is unavailable, continue only independent launch-scoped work that does not weaken provider/schema gates or invent catalogue decisions.
+When #225 cannot progress because a protected authenticated session or credential-hygiene evidence is unavailable, continue independent launch-scoped reliability/security work that does not weaken provider/schema gates or invent catalogue decisions.
 
-## API capability containment completed — #361 / PR #362
+## Current work — #365 connected release credential boundary
 
-PR **#362** is merged. The final accepted implementation uses ordered Vercel `routes` so direct URLs for:
+The protected connected-release workflow accepts a caller-supplied `release_url` and later supplies protected release-account credentials to Playwright. Before #365, `playwright.release.config.js` validated only that `RELEASE_BASE_URL` used HTTPS. A mistakenly supplied external HTTPS origin could therefore receive protected test-account credentials during sign-in.
 
-- `catalog-data-proxy`;
-- `cellar-data-proxy`;
-- `current-data-proxy`;
-- `profile-data-proxy`; and
-- legacy `data-proxy`
+Issue **#365** hardens that boundary by:
 
-are routed to the inert `api/internal-not-found.js` handler before filesystem resolution. Canonical `/api/nocodebackend/auth/...` and `/api/nocodebackend/...` routes continue to dispatch through `auth-proxy` and `data-router` respectively.
+- accepting only the Pourfolio Vercel deployment hostname family;
+- rejecting HTTP, userinfo, non-default ports, query/fragment values and non-root base paths;
+- requiring an exact lowercase 40-character release SHA;
+- fetching `/api/readiness` without credentials and without following redirects before credentialed browser tests;
+- requiring HTTP 200, `status: ready`, the exact requested release SHA, a canonical Vercel release environment and `dataProvider: "ok"`;
+- keeping protected release-account secrets only on the subsequent connected browser-test step;
+- applying the same target-origin allowlist in Playwright as defence in depth;
+- adding deterministic unit and workflow-order regression coverage.
 
-The earlier ordinary-rewrite and status-only 404 attempts were rejected because live preview testing proved the underlying implementation handler could still execute. They are not the accepted design.
+No provider schema/data, production credential, frontend feature or application routing change is included.
 
-Merge evidence:
+## Current #225 provider certification state
 
-- merged PR: **#362**;
-- merge commit: `d2176025aebb28494894f3782f88112f886e0052`;
-- production deployment: `dpl_EeHDXDJTgxhPLxJb29PhDT2EruPg`;
-- deployment target: production;
-- deployment state: **READY**;
-- GitHub commit verification: verified;
-- post-merge production request to `/api/current-data-proxy?path=bad`: HTTP **404** with `{ "error": "Application data route not found." }` and no application request-id/rate-limit headers from the contained implementation handler.
+Issue **#225** remains the dependency-correct connected certification work, but its historical provider-authorization failure is no longer reproduced.
 
-The exact PR head passed canonical platform validation, browser/accessibility, Dependency Review and CodeQL with no unresolved review threads. The implementation-equivalent run recorded 388 Node tests: 379 passed, 9 intentionally skipped, 0 failed; production audit reported zero vulnerabilities.
+Existing and freshly refreshed evidence establishes:
 
-## Current work — #225 provider certification and credential hygiene
-
-Issue **#225** remains the current dependency-correct work. Its historical provider-authorization failure is no longer reproduced.
-
-Existing connected evidence already establishes:
-
-- the canonical data base URL is `https://api.nocodebackend.com/`;
-- the canonical auth base URL is `https://app.nocodebackend.com/api/user-auth`;
-- server data requests use the server-only provider Bearer credential and intended `54026_rating` instance;
-- production `/api/readiness` has completed a real generated-provider products read with `dataProvider: "ok"`;
-- application-owned auth provider discovery has returned email authentication enabled and Google disabled;
+- canonical data base URL `https://api.nocodebackend.com/`;
+- canonical auth base URL `https://app.nocodebackend.com/api/user-auth`;
+- server data requests use the server-only provider credential and intended `54026_rating` instance;
+- exact-main production `0af555256ae2fffde3ae0a6a90d18dceb10ed4c4` is deployed READY;
+- `/api/readiness` on that exact production release returned HTTP 200 with matching release SHA/environment and `dataProvider: "ok"`;
+- profile persistence remains unavailable by design; profile identity is session-backed/read-only;
 - provider credentials are not returned to browser/readiness output.
 
 The remaining #225 acceptance work is specifically:
@@ -111,7 +103,13 @@ The remaining #225 acceptance work is specifically:
 3. confirmation that the Bearer credential present in historical supplied evidence was rotated or otherwise invalidated, without ever recording the credential value;
 4. retention of that connected evidence for downstream #165, #144 and #154 work.
 
-These are evidence/credential-hygiene dependencies, not justification for another routing rewrite.
+These require protected account/provider evidence and cannot be replaced by source changes.
+
+## API capability containment completed — #361 / PR #362
+
+PR **#362** is merged at `d2176025aebb28494894f3782f88112f886e0052`. Ordered Vercel routes send direct implementation URLs for `catalog-data-proxy`, `cellar-data-proxy`, `current-data-proxy`, `profile-data-proxy` and legacy `data-proxy` to the inert `api/internal-not-found.js` handler before filesystem resolution. Canonical `/api/nocodebackend/auth/...` and `/api/nocodebackend/...` routes continue through `auth-proxy` and `data-router` respectively.
+
+Production deployment `dpl_EeHDXDJTgxhPLxJb29PhDT2EruPg` reached READY, and a post-merge production request to `/api/current-data-proxy?path=bad` returned the inert HTTP 404 response without application request-id/rate-limit headers from the contained handler.
 
 ## Profile capability correction completed — #359 / PR #360
 
@@ -137,17 +135,7 @@ The supplied products export contains **7 rows with `producer_id = 0` and 22 row
 
 ## Launch schema/application contract
 
-Provider-evidenced launch collections remain:
-
-- `products`;
-- `producers`;
-- `categories`;
-- `rating_attributes`;
-- `bonus_attributes`;
-- `ratings`;
-- `rating_scores`;
-- `bonus_attribute_rating_mapping`;
-- `cellar`.
+Provider-evidenced launch collections remain `products`, `producers`, `categories`, `rating_attributes`, `bonus_attributes`, `ratings`, `rating_scores`, `bonus_attribute_rating_mapping` and `cellar`.
 
 Key rules remain:
 
@@ -169,11 +157,12 @@ Do not run rating create/delete or cellar CRUD certification against a real conn
 
 ## Next dependency-correct work
 
-1. Complete #225 authenticated catalogue and profile smoke evidence when a protected session is executable.
-2. Complete #225 historical provider credential rotation/invalidation evidence.
-3. Activate #165 provider migration/idempotency work only after #225 is sufficiently resolved.
-4. Follow with #144 backend/provider certification and backend-dependent #154 completion evidence.
-5. Continue independent launch-quality work when connected evidence is unavailable, provided it does not bypass these dependencies or fabricate catalogue decisions.
+1. Complete and validate #365 connected-release target/provenance hardening, then merge when safe.
+2. Complete #225 authenticated catalogue and profile smoke evidence when a protected session is executable.
+3. Complete #225 historical provider credential rotation/invalidation evidence.
+4. Activate #165 provider migration/idempotency work only after #225 is sufficiently resolved.
+5. Follow with #144 backend/provider certification and backend-dependent #154 completion evidence.
+6. Keep catalogue remediation decisions explicit and independently reviewed; do not fabricate the 193 pending decisions.
 
 ## Completion rule
 

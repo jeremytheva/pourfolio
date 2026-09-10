@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_url:
-        description: HTTPS URL of the immutable staging deployment
+        description: HTTPS URL of the immutable Pourfolio Vercel deployment
         required: true
         type: string
       release_sha:
@@ -46,6 +46,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Verify release target origin and provenance
+        run: node scripts/verify-release-target.js
+        env:
+          RELEASE_BASE_URL: ${{ inputs.release_url }}
+          RELEASE_SHA: ${{ inputs.release_sha }}
       - name: Build the exact release candidate
         run: npm run build
       - name: Check built browser release for server-only data
