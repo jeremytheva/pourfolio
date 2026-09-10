@@ -121,17 +121,14 @@ export const sanitiseCellarInput = (input, { partial = false } = {}) => {
   }
 
   if (result.quantity !== undefined) result.quantity = asOptionalNumber(result.quantity, { integer: true, min: 0, max: 10000 })
-  if (result.quantity_acquired !== undefined) result.quantity_acquired = asOptionalNumber(result.quantity_acquired, { min: 0, max: 10000 })
   if (result.mls !== undefined) result.mls = asOptionalNumber(result.mls, { integer: true, min: 0, max: 100000 })
   if (result.purchase_price !== undefined) result.purchase_price = asOptionalNumber(result.purchase_price, { min: 0, max: 1000000 })
   if (result.retail_price !== undefined) result.retail_price = asOptionalNumber(result.retail_price, { min: 0, max: 1000000 })
   if (result.gift !== undefined) result.gift = result.gift ? 1 : 0
-  if (result.historical_import !== undefined) result.historical_import = result.historical_import ? 1 : 0
 
-  for (const field of ['container', 'gift_from', 'notes', 'purchased_by_id', 'status', 'acquisition_type']) {
+  for (const field of ['container', 'gift_from', 'notes', 'purchased_by_id']) {
     if (result[field] !== undefined && result[field] !== null) {
-      const maxLength = field === 'notes' ? 255 : field === 'status' ? 20 : field === 'acquisition_type' ? 30 : 120
-      result[field] = String(result[field]).trim().slice(0, maxLength)
+      result[field] = String(result[field]).trim().slice(0, 255)
     }
   }
 
@@ -139,11 +136,6 @@ export const sanitiseCellarInput = (input, { partial = false } = {}) => {
     const date = new Date(result.date_received)
     if (Number.isNaN(date.getTime())) throw new Error('Date received is invalid.')
     result.date_received = date.toISOString().slice(0, 10)
-  }
-  if (result.date_consumed !== undefined && result.date_consumed !== null && result.date_consumed !== '') {
-    const date = new Date(result.date_consumed)
-    if (Number.isNaN(date.getTime())) throw new Error('Date consumed is invalid.')
-    result.date_consumed = date.toISOString()
   }
 
   return result
