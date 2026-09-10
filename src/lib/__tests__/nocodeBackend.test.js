@@ -109,3 +109,65 @@ test('ApiError preserves safe upstream error codes', async () => {
     globalThis.fetch = previousFetch
   }
 })
+
+test('apiRequest converts an aborted request into the safe timeout error', async () => {
+  const { apiRequest } = await import('../nocodeBackend.js')
+  const previousWindow = globalThis.window
+  const previousFetch = globalThis.fetch
+
+  globalThis.window = {
+    setTimeout(callback) {
+      callback()
+      return 1
+    },
+    clearTimeout() {}
+  }
+  globalThis.fetch = async (_url, options = {}) => {
+    if (options.signal?.aborted) {
+      const error = new Error('aborted')
+      error.name = 'AbortError'
+      throw error
+    }
+    return new Response('{}', { status: 200 })
+  }
+
+  try {
+    await assert.rejects(
+      apiRequest('/catalog/products?page=1&limit=24'),
+      (error) => {
+        assert.equal(error.name, 'ApiError')
+        assert.equal(error.message, 'The request timed out. Please try again.')
+        assert.equal(error.status, 0)
+        return true
+      }
+    )
+  } finally {
+    globalThis.window = previousWindow
+    globalThis.fetch = previousFetch
+  }
+})
+
+test('apiRequest converts transport failure into the safe connection error', async () => {
+  const { apiRequest } = await import('../nocodeBackend.js')
+  const previousWindow = globalThis.window
+  const previousFetch = globalThis.fetch
+  globalThis.window = { setTimeout, clearTimeout }
+  globalThis.fetch = async () => {
+    throw new TypeError('private transport detail')
+  }
+
+  try {
+    await assert.rejects(
+      apiRequest('/catalog/products?page=1&limit=24'),
+      (error) => {
+        assert.equal(error.name, 'ApiError')
+        assert.equal(error.message, 'The service could not be reached. Please check your connection and try again.')
+        assert.equal(error.message.includes('private transport detail'), false)
+        return true
+      }
+    )
+  } finally {
+    globalThis.window = previousWindow
+    globalThis.fetch = previousFetch
+  }
+})
