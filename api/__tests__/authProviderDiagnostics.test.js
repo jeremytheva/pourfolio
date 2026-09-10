@@ -4,6 +4,7 @@ import { __testables } from '../auth-proxy.js'
 
 const {
   buildUpstreamHeaders,
+  getRequestBody,
   providerCredentialFailure,
   safeUpstreamAuthError,
   upstreamAuthOrigin
@@ -55,6 +56,13 @@ test('non-credential upstream failures retain generic safe errors without the co
   assert.equal(result.requestId, 'request-789')
   assert.equal(typeof result.error, 'string')
   assert.ok(result.error.length > 0)
+})
+
+test('sign-out sends the provider-required empty JSON body when the browser omits one', () => {
+  assert.equal(getRequestBody({ method: 'POST' }, 'sign-out'), '{}')
+  assert.equal(getRequestBody({ method: 'POST', body: {} }, 'sign-out'), '{}')
+  assert.equal(getRequestBody({ method: 'POST' }, 'sign-in/email'), undefined)
+  assert.equal(getRequestBody({ method: 'GET' }, 'sign-out'), undefined)
 })
 
 test('auth proxy presents the canonical upstream auth service origin after local origin validation', () => {

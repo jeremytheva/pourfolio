@@ -62,8 +62,10 @@ test('public policy and support documents are reachable without authentication',
 test('provider discovery, sign-up, password sign-in, OTP, Google and logout', async ({ page, request }) => {
   const providersResponse = await request.get('/api/nocodebackend/auth/providers')
   expect(providersResponse.ok()).toBeTruthy()
-  const providers = JSON.stringify(await providersResponse.json()).toLowerCase()
-  expect(providers).toMatch(/email.?password|password|credentials/)
+  const providerPayload = await responseJson(providersResponse)
+  const providers = providerPayload?.providers
+  expect(providers).toBeTruthy()
+  expect(providers.email).toBe(true)
 
   if (process.env.RELEASE_SIGNUP_EMAIL) {
     const signup = requiredEnvironment(['RELEASE_SIGNUP_EMAIL', 'RELEASE_SIGNUP_PASSWORD'])
@@ -81,7 +83,7 @@ test('provider discovery, sign-up, password sign-in, OTP, Google and logout', as
   await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
   await signOut(page)
 
-  if (/otp|magic.?link|email.?code/.test(providers)) {
+  if (providers.emailOTP === true) {
     const otp = requiredEnvironment(['RELEASE_OTP_EMAIL', 'RELEASE_OTP_CODE'])
     await page.getByRole('button', { name: 'Email code' }).click()
     await page.getByLabel('Email').fill(otp.RELEASE_OTP_EMAIL)
@@ -93,7 +95,7 @@ test('provider discovery, sign-up, password sign-in, OTP, Google and logout', as
     await signOut(page)
   }
 
-  if (/google/.test(providers)) {
+  if (providers.google === true) {
     const google = await request.get('/api/nocodebackend/auth/sign-in/google', { maxRedirects: 0 })
     expect(REDIRECT_STATUSES).toContain(google.status())
     expect(google.headers().location).toMatch(/^https:\/\//)
