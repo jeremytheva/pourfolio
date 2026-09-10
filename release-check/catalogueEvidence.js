@@ -42,16 +42,41 @@ const normalisePage = (page, label) => {
   return { page: current, totalPages, totalItems, itemIds: canonicalIds(page.itemIds) }
 }
 
+const validateBrowseMetadata = (browse) => {
+  if (browse.some((page, index) => page.page !== index + 1)) {
+    throw new Error('Catalogue browse pages must be contiguous from page 1.')
+  }
+
+  let observedItems = 0
+  for (let index = 0; index < browse.length; index += 1) {
+    const page = browse[index]
+    const previous = browse[index - 1]
+    observedItems += page.itemIds.length
+
+    if (
+      (previous && (page.totalPages < previous.totalPages || page.totalItems < previous.totalItems)) ||
+      page.totalItems < observedItems ||
+      (page.page < page.totalPages && page.totalItems <= observedItems)
+    ) {
+      throw new Error('Catalogue browse metadata is inconsistent.')
+    }
+  }
+
+  const terminal = browse.at(-1)
+  if (terminal.totalPages !== browse.length || terminal.totalItems !== observedItems) {
+    throw new Error('Catalogue browse metadata is inconsistent.')
+  }
+
+  return { totalPages: terminal.totalPages, totalItems: terminal.totalItems }
+}
+
 export const buildCatalogueCertificationEvidence = ({ releaseSha, observedAt, browsePages, search, detail }) => {
   if (!FULL_SHA.test(String(releaseSha || ''))) throw new Error('Catalogue evidence requires a full lowercase release SHA.')
   if (!ISO_UTC.test(String(observedAt || '')) || Number.isNaN(Date.parse(observedAt))) throw new Error('Catalogue evidence requires a canonical UTC timestamp.')
   if (!Array.isArray(browsePages) || browsePages.length === 0) throw new Error('Catalogue evidence requires at least one browse page.')
 
   const browse = browsePages.map((page, index) => normalisePage(page, `browsePages[${index}]`)).sort((a, b) => a.page - b.page)
-  const expectedPages = browse[0].totalPages
-  const expectedItems = browse[0].totalItems
-  if (browse.some((page) => page.totalPages !== expectedPages || page.totalItems !== expectedItems)) throw new Error('Catalogue browse metadata is inconsistent.')
-  if (browse.some((page, index) => page.page !== index + 1)) throw new Error('Catalogue browse pages must be contiguous from page 1.')
+  const { totalPages: expectedPages, totalItems: expectedItems } = validateBrowseMetadata(browse)
   const browseIds = browse.flatMap((page) => page.itemIds)
   if (new Set(browseIds).size !== browseIds.length) throw new Error('Catalogue browse product ids must be unique across pages.')
 
