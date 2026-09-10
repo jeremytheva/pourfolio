@@ -141,10 +141,24 @@ test('catalogue, pagination, direct details, rating form boundary and session-ba
   await page.goto(productPath)
   await expect(page.getByRole('link', { name: 'Rate this beer' })).toBeVisible()
   await page.goto(`${productPath}/rate`)
-  const scores = page.getByRole('combobox')
-  await scores.first().selectOption('1')
+
+  const firstScore = page.getByRole('combobox').first()
+  await expect(firstScore).toHaveValue('')
+  const ratingSubmitRequests = []
+  page.on('request', (request) => {
+    const requestUrl = new URL(request.url())
+    if (request.method() === 'POST' && requestUrl.pathname === '/api/nocodebackend/ratings/submit') {
+      ratingSubmitRequests.push(request.url())
+    }
+  })
   await page.getByRole('button', { name: 'Submit rating' }).click()
-  await expect(page.getByRole('alert')).toContainText('Score every applicable attribute')
+  await expect(page).toHaveURL(new RegExp(`${productPath}/rate$`))
+  await expect(firstScore).toBeFocused()
+  expect(await firstScore.evaluate((element) => ({
+    required: element.required,
+    valid: element.checkValidity()
+  }))).toEqual({ required: true, valid: false })
+  expect(ratingSubmitRequests).toEqual([])
 
   const profileResponse = await page.request.get('/api/nocodebackend/profile')
   expect(profileResponse.status()).toBe(200)
