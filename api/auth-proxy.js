@@ -43,9 +43,10 @@ const getRequestPath = (request) => {
   return segments.filter(Boolean).join('/')
 }
 
-const getRequestBody = (request) => {
-  if (['GET', 'HEAD'].includes(request.method) || request.body === undefined || request.body === null) {
-    return undefined
+const getRequestBody = (request, path) => {
+  if (['GET', 'HEAD'].includes(request.method)) return undefined
+  if (request.body === undefined || request.body === null) {
+    return path === 'sign-out' ? '{}' : undefined
   }
   if (typeof request.body === 'string' || Buffer.isBuffer(request.body)) return request.body
   return JSON.stringify(request.body)
@@ -195,7 +196,7 @@ export default async function handler(request, response) {
     const upstream = await withTimeout((signal) => fetch(buildUpstreamUrl(request, path), {
       method: request.method,
       headers: buildUpstreamHeaders(request, secret),
-      body: getRequestBody(request),
+      body: getRequestBody(request, path),
       redirect: 'manual',
       signal
     }))
@@ -253,6 +254,7 @@ export const __testables = {
   buildUpstreamUrl,
   configuredAuthBaseUrl,
   configuredInstance,
+  getRequestBody,
   getRequestPath,
   providerCredentialFailure,
   requireConfiguredInstance,
