@@ -19,14 +19,20 @@ Legacy `beverages_pf2025`, `ratings_pf2025`, `cellar_items_pf2025` and `beverage
 
 The current database uses:
 
+- `products.producer_id` as the deployed product-to-producer relationship; the supplied backend export contains no `product_producers` junction table;
+- `products.product_category_id` for product classification;
 - `cellar.series_version_id` for the optional sharing-series edition/version relationship;
 - `bonus_attribute_rating_mapping.bonus_attributes_id` for optional rating bonuses;
-- the cellar lifecycle fields `status`, `quantity_acquired`, `date_consumed`, `acquisition_type` and `historical_import`;
-- a compact `ratings` header containing `product_id`, optional `cellar_id`, `date_rated`, `total_unweighted` and `total_weighted`.
+- a compact `ratings` header containing `product_id`, optional `cellar_id`, `date_rated`, `total_unweighted` and `total_weighted`;
+- a `cellar` row containing `product_id`, `location_id`, `quantity`, `mls`, `container`, `purchase_price`, `retail_price`, `date_received`, `sharing_series_id`, `series_version_id`, `purchase_location_id`, `purchased_by_id`, `gift`, `gift_from`, `bet_id` and `notes`, plus provider/server-owned identifiers.
+
+The exported `cellar` table does **not** contain `status`, `quantity_acquired`, `date_consumed`, `acquisition_type` or `historical_import`; launch browser writes and API projections must not treat those fields as deployed.
 
 These field names are pinned to the supplied schema/export evidence. `series_edition_id` and `bonus_attribute_id` are not launch write aliases.
 
 Sharing series and edition/version references on cellar records are nullable and optional. They must be `NULL` when not applicable and are never fabricated to satisfy a rating or cellar write.
+
+Producer attribution is also not fabricated. A zero or missing `products.producer_id` remains unresolved until valid backend catalogue data or a governed multi-producer relationship is deployed.
 
 The browser cannot write `user_id`, `secret_key`, roles, rating totals or provider metadata. Identity and totals are server authoritative.
 
