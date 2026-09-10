@@ -33,14 +33,14 @@ owner_decision:
   recommendation: "Keep only the capability-aware canonical dispatcher reachable for launch data operations and route direct implementation-function URLs to an inert 404 sink before filesystem resolution."
 validation:
   governance: PASS
-  lint: PENDING
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PENDING
-  build: PENDING
+  tests: NOT_RUN
+  build: NOT_RUN
   ci: PENDING
-  runtime: PASS
+  runtime: VERIFIED
 last_verified_commit: "2526085a9ab51a198eb65a3f24f82abb5b8bdda7"
-last_updated: "2026-09-10T15:48:53+10:00"
+last_updated: "2026-09-10T15:51:45+10:00"
 ---
 
 # STATUS.md
