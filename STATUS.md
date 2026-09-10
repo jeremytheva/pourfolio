@@ -11,7 +11,7 @@ current_work:
   pr: 362
   branch: "fix/contain-internal-api-handlers"
 next_actions:
-  - "Merge PR #362 at exact validated head a5a8293f1fcdfb8dcbb01db8b9211e502e38b968."
+  - "Merge PR #362 at exact validated head c13c54b6d4ba68f9314291ef9a4de8489b3b887d."
   - "Verify the resulting production deployment reaches READY and record only runtime evidence that can actually be observed."
   - "Reconcile STATUS.md to the merged state and resume #225 authenticated production certification when its protected evidence path is executable."
   - "Keep #165 DEFERRED_TARGET fields unavailable until governed provider migration and connected verification."
@@ -38,8 +38,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "a5a8293f1fcdfb8dcbb01db8b9211e502e38b968"
-last_updated: "2026-09-10T15:54:30+10:00"
+last_verified_commit: "c13c54b6d4ba68f9314291ef9a4de8489b3b887d"
+last_updated: "2026-09-10T15:57:00+10:00"
 ---
 
 # STATUS.md
@@ -53,7 +53,7 @@ Last materially reviewed: 10 September 2026
 ## AI execution gate
 
 **Current gate:** Integration / API capability containment  
-**Execution state:** Ready to merge issue **#361** / PR **#362** at exact validated head `a5a8293f1fcdfb8dcbb01db8b9211e502e38b968`  
+**Execution state:** Ready to merge issue **#361** / PR **#362** at exact validated head `c13c54b6d4ba68f9314291ef9a4de8489b3b887d`  
 **Recently completed:** issue **#359** / PR **#360** removed the unavailable profile-persistence journey and merged at `e86e2abc898645ff89b00abb1e84616add50e38f`.
 
 ## Autonomous continuation support
@@ -88,19 +88,20 @@ PR **#362** now uses ordered Vercel `routes` instead:
 
 The implementation head `2526085a9ab51a198eb65a3f24f82abb5b8bdda7` produced READY preview deployment `dpl_Ch3uqS5gxpEEnkykbRgj3d6z5jJW`. A direct request to `/api/current-data-proxy?path=bad` returned HTTP 404 with exactly `{ "error": "Application data route not found." }` and no application `X-Request-Id` or rate-limit headers, demonstrating that the legacy/current handler was no longer entered. Static routing tests cover all five contained implementation names, including `.js` and trailing-slash variants.
 
-The final exact head `a5a8293f1fcdfb8dcbb01db8b9211e502e38b968` produced READY preview deployment `dpl_CznESbRx73TD27xteZiLbDbASHid`, and the same representative direct request again returned the inert HTTP 404 payload. This final head therefore retains the runtime containment evidence after the status reconciliation changes.
+The final exact head `c13c54b6d4ba68f9314291ef9a4de8489b3b887d` produced READY preview deployment `dpl_GJpT3j3q6eHmkZwhsjmDjZuZ7vBd`, and the same representative direct request again returned the inert HTTP 404 payload.
 
 ### Final validation evidence
 
-Exact head `a5a8293f1fcdfb8dcbb01db8b9211e502e38b968` passed:
+Exact head `c13c54b6d4ba68f9314291ef9a4de8489b3b887d` passed:
 
 - canonical `npm run platform:validate` / Release gate;
-- Browser and accessibility;
+- Browser and accessibility: 69/69 passed;
 - Dependency Review;
 - CodeQL;
-- no unresolved review threads.
+- no unresolved review threads;
+- READY Vercel preview with representative runtime containment verified.
 
-The implementation-equivalent validation run recorded 388 Node tests: 379 passed, 9 intentionally skipped, 0 failed; production audit reported zero vulnerabilities; production build, bundle, Brew Done It containment and browser release-security checks passed. The final status-only head passed the same canonical Release gate after correcting repository-front-matter enum values.
+The implementation-equivalent validation run recorded 388 Node tests: 379 passed, 9 intentionally skipped, 0 failed; production audit reported zero vulnerabilities; production build, bundle, Brew Done It containment and browser release-security checks passed.
 
 ## Profile capability correction completed
 
