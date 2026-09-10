@@ -1,39 +1,29 @@
-import { nocodeBackend } from '../lib/nocodeBackend'
-import { COLLECTIONS } from './relationshipHelpers'
+import { ApiError, apiRequest } from '../lib/nocodeBackend.js'
+import { validateCatalogueProducer } from './catalogueResponse.js'
 
-const PRODUCERS = COLLECTIONS.producers
-const BEVERAGES = COLLECTIONS.beverages
+const INVALID_PRODUCER_ID_MESSAGE = 'Producer identifier is invalid.'
+const INVALID_PRODUCER_ID_CODE = 'invalid_producer_identifier'
 
-const attachBeverages = async (producer) => {
-  const { data: beverages } = await nocodeBackend.list(BEVERAGES, { filters: { producer_id: producer.id } })
-  return { ...producer, beverages_pf2025: beverages || [] }
+export const normaliseCatalogueProducerId = (value) => {
+  const identifier = typeof value === 'number'
+    ? Number.isSafeInteger(value) && value > 0 ? String(value) : ''
+    : value
+  if (typeof identifier !== 'string' || identifier.length > 128 || !/^[1-9]\d*$/u.test(identifier)) {
+    throw new ApiError(INVALID_PRODUCER_ID_MESSAGE, { status: 400, code: INVALID_PRODUCER_ID_CODE })
+  }
+  return identifier
 }
 
 export const producerService = {
-  // NoCodeBackend cannot express producer-to-beverage joins in one collection call;
-  // beverages are loaded from the beverages collection after producer reads.
-  async getProducers(filters = {}) {
-    const { data, error } = await nocodeBackend.list(PRODUCERS, {
-      filters: { type: filters.type },
-      search: filters.search ? { term: filters.search, fields: ['name', 'location'] } : undefined,
-      orderBy: 'name',
-      ascending: true
+  async getProducer(producerId) {
+    const identifier = normaliseCatalogueProducerId(producerId)
+    return validateCatalogueProducer(await apiRequest(`/catalog/producers/${identifier}`), {
+      expectedProducerId: identifier
     })
-    if (error) return { data, error }
-    return { data: await Promise.all(data.map(attachBeverages)), error: null }
-  },
-
-  async getProducer(id) {
-    const { data, error } = await nocodeBackend.get(PRODUCERS, id)
-    if (error || !data) return { data, error }
-    return { data: await attachBeverages(data), error: null }
-  },
-
-  async addProducer(producerData) {
-    return nocodeBackend.create(PRODUCERS, producerData)
-  },
-
-  async updateProducer(id, updates) {
-    return nocodeBackend.update(PRODUCERS, id, updates)
   }
 }
+
+export const CATALOGUE_PRODUCER_ID_ERROR = Object.freeze({
+  message: INVALID_PRODUCER_ID_MESSAGE,
+  code: INVALID_PRODUCER_ID_CODE
+})
