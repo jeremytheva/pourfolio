@@ -32,6 +32,22 @@ test('builds deterministic privacy-minimised connected catalogue evidence', () =
   assert.equal(Object.isFrozen(first.browse), true)
 })
 
+test('accepts monotonic lower-bound pagination until the terminal exact total', () => {
+  const input = validInput()
+  input.browsePages = [
+    { page: 1, totalPages: 2, totalItems: 3, itemIds: ['1', '2'] },
+    { page: 2, totalPages: 3, totalItems: 5, itemIds: ['3', '4'] },
+    { page: 3, totalPages: 3, totalItems: 5, itemIds: ['5'] }
+  ]
+  input.detail.productId = '1'
+
+  const evidence = buildCatalogueCertificationEvidence(input)
+  assert.equal(evidence.browse.pagesObserved, 3)
+  assert.equal(evidence.browse.totalPages, 3)
+  assert.equal(evidence.browse.totalItems, 5)
+  assert.equal(evidence.browse.itemCountObserved, 5)
+})
+
 test('never retains search text or catalogue display values', () => {
   const evidence = buildCatalogueCertificationEvidence(validInput())
   const text = JSON.stringify(evidence)
@@ -60,11 +76,19 @@ test('requires canonical full SHA, UTC time and stable positive identifiers', ()
   assert.throws(() => buildCatalogueCertificationEvidence(leading), /invalid stable product id/)
 })
 
-test('requires contiguous internally consistent browse observations', () => {
+test('requires contiguous monotonic browse observations with a terminal exact count', () => {
   const missingPage = validInput(); missingPage.browsePages = [missingPage.browsePages[1]]
   assert.throws(() => buildCatalogueCertificationEvidence(missingPage), /contiguous from page 1/)
-  const drift = validInput(); drift.browsePages[1].totalItems = 4
-  assert.throws(() => buildCatalogueCertificationEvidence(drift), /metadata is inconsistent/)
+
+  const finalCountDrift = validInput(); finalCountDrift.browsePages[1].totalItems = 4
+  assert.throws(() => buildCatalogueCertificationEvidence(finalCountDrift), /metadata is inconsistent/)
+
+  const decreasing = validInput(); decreasing.browsePages[0].totalItems = 4
+  assert.throws(() => buildCatalogueCertificationEvidence(decreasing), /metadata is inconsistent/)
+
+  const unfinished = validInput(); unfinished.browsePages[1].totalPages = 3
+  assert.throws(() => buildCatalogueCertificationEvidence(unfinished), /metadata is inconsistent/)
+
   const duplicate = validInput(); duplicate.browsePages[1].itemIds = ['1']
   assert.throws(() => buildCatalogueCertificationEvidence(duplicate), /unique across pages/)
 })

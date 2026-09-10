@@ -14,7 +14,7 @@ const pageObservation = (payload) => {
   return {
     page: payload.page,
     totalPages: payload.totalPages,
-    totalItems: payload.totalItems,
+    totalItems: payload.total,
     itemIds: items.map(({ id }) => String(id))
   }
 }
