@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import authHandler, { __testables as authProxy } from '../auth-proxy.js'
 import { pathSegments as dataRouterPathSegments, __testables as dataRouter } from '../data-router.js'
+import internalNotFoundHandler from '../internal-not-found.js'
 
 const INTERNAL_DATA_HANDLER_PATHS = [
   '/api/catalog-data-proxy',
@@ -80,7 +81,7 @@ test('Vercel route order contains internal handlers before filesystem resolution
   assert.equal(assetHeaders.continue, true)
   assert.equal(assetHeaders.headers['Cache-Control'], 'public, max-age=31536000, immutable')
 
-  assert.equal(internalDeny.status, 404)
+  assert.equal(internalDeny.dest, '/api/internal-not-found')
   assert.equal(authRoute.src, '/api/nocodebackend/auth/(.*)')
   assert.equal(authRoute.dest, '/api/auth-proxy?path=$1')
   assert.equal(dataRoute.src, '/api/nocodebackend/(.*)')
@@ -131,17 +132,29 @@ test('canonical route captures are explicitly forwarded while unrelated query va
   }
 })
 
-test('direct internal data implementation URLs receive 404 before filesystem routing', async () => {
+test('direct internal data implementation URLs route to the inert sink before filesystem routing', async () => {
   const { routes } = await loadVercelConfiguration()
 
   for (const pathname of INTERNAL_DATA_HANDLER_PATHS) {
     assert.deepEqual(resolveRoute(routes, pathname, { arbitrary: 'value' }), {
-      status: 404,
+      destination: '/api/internal-not-found',
       query: { arbitrary: 'value' }
     })
-    assert.deepEqual(resolveRoute(routes, `${pathname}.js`, {}), { status: 404, query: {} })
-    assert.deepEqual(resolveRoute(routes, `${pathname}/`, {}), { status: 404, query: {} })
+    assert.deepEqual(resolveRoute(routes, `${pathname}.js`, {}), {
+      destination: '/api/internal-not-found',
+      query: {}
+    })
+    assert.deepEqual(resolveRoute(routes, `${pathname}/`, {}), {
+      destination: '/api/internal-not-found',
+      query: {}
+    })
   }
+
+  const response = createResponse()
+  internalNotFoundHandler({ method: 'PUT' }, response)
+  assert.equal(response.statusCode, 404)
+  assert.equal(response.headers['Cache-Control'], 'no-store')
+  assert.deepEqual(response.body, { error: 'Application data route not found.' })
 })
 
 test('canonical application paths remain distinct from contained implementation URLs', async () => {
