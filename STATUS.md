@@ -6,31 +6,31 @@ stage: "Frontend-backend launch contract alignment and production certification"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Make connected launch certification match the deployed profile capability and require explicit cleanup-guarded authorisation for rating/cellar mutation checks."
-  issue: 225
-  pr: 353
-  branch: "fix/connected-release-certification-boundary"
+  objective: "Align active launch catalogue and cellar contracts with the supplied 54026_rating backend tables, then validate PR #355 against the exact implementation head."
+  issue: 354
+  pr: 355
+  branch: "fix/backend-table-frontend-alignment"
 next_actions:
-  - "Complete exact-head validation and merge PR #353 when safe."
-  - "Run non-destructive authenticated exact-deployment certification for sign-in, catalogue, product detail, rating form and session-backed profile read when release-account credentials are executable."
-  - "Run rating create/history/delete and cellar CRUD only with the explicit cleanup-guarded confirmation and exact-record cleanup evidence."
-  - "Confirm the historical provider Bearer credential exposure has been rotated or otherwise invalidated without recording its value."
-  - "After #225 is complete, activate #165 provider migration/idempotency work; keep DEFERRED_TARGET fields unavailable until migration and connected certification."
+  - "Complete exact-head project validation and review for PR #355."
+  - "Confirm Vercel preview/runtime evidence is sufficient for the changed catalogue/cellar boundary."
+  - "Merge PR #355 when source validation, review and applicable deployment evidence are satisfactory."
+  - "Resume #225 authenticated launch certification after the source contract correction is merged."
+  - "Keep #165 DEFERRED_TARGET fields unavailable until governed provider migration and connected verification."
 blockers:
   - scope: connected_authenticated_smoke
     issue: 225
-    detail: "Authenticated launch-journey certification still needs an executable protected release-account path. Provider configuration itself is healthy in Vercel and is not a GitHub-secret blocker."
+    detail: "Authenticated launch-journey certification still needs an executable protected release-account path; this does not block the #354 source-contract correction."
   - scope: credential_hygiene
     issue: 225
-    detail: "Historical provider credential rotation/invalidation still requires provider or secret-management evidence without exposing the credential value."
+    detail: "Historical provider credential rotation/invalidation still requires provider or secret-management evidence without exposing the credential value; this does not block #354."
   - scope: connected_schema_inventory
     issue: 165
     detail: "Fresh production-equivalent schema/constraint inventory and destructive capability probes remain deferred until explicitly authorised connected evidence is available."
 requires_owner_decision: false
 owner_decision:
-  question: "No owner decision is required for the current certification-boundary correction."
+  question: "No owner decision is required for the exported-schema alignment."
   options: []
-  recommendation: "Continue non-destructive certification independently and require explicit cleanup-guarded authorisation for connected writes."
+  recommendation: "Treat the supplied backend exports as the structural contract for #354 and leave unresolved producer attribution/provider migrations as separate backend work."
 validation:
   governance: PASS
   lint: PASS
@@ -39,8 +39,8 @@ validation:
   build: PASS
   ci: PENDING
   runtime: VERIFIED
-last_verified_commit: "427671ed360af09f26d82584d0c0da084a0669b4"
-last_updated: "2026-09-10T12:08:00+10:00"
+last_verified_commit: "91ecfc816f11086e8a6bfa7a86c09f28aa76067b"
+last_updated: "2026-09-10T12:12:30+10:00"
 ---
 
 # STATUS.md
@@ -54,59 +54,73 @@ Last materially reviewed: 10 September 2026
 ## AI execution gate
 
 **Current gate:** Integration / frontend-backend launch contract alignment  
-**Execution state:** Validating PR **#353**  
-**Release state:** Source contracts are materially aligned; authenticated connected launch certification and historical credential hygiene remain incomplete.
+**Execution state:** Validating PR **#355**  
+**Release state:** The supplied backend export exposed two active source-contract mismatches that are corrected in #355; authenticated connected launch certification and historical credential hygiene remain incomplete.
 
 ## Autonomous continuation support
 
-Continue dependency-correct launch certification from repository and live deployment evidence. Non-destructive authenticated checks should proceed independently when release-account credentials are executable. Rating/cellar mutation checks require the exact cleanup-guarded confirmation and exact-record cleanup evidence. Keep #165 deferred target fields unavailable until real provider migration and connected verification.
+Continue dependency-correct launch alignment and certification from repository/provider evidence. For #354, the supplied `54026_rating` SQL/CSV/XLSX exports are the structural authority: active launch code must not require fields or relationships absent from those exports. Use normal non-draft PRs, canonical project validation, applicable deployment evidence and material review findings to determine merge readiness.
 
-## Current state
+## Current state — issue #354 / PR #355
 
-PR **#353** corrects the connected release-certification boundary so it matches the deployed profile capability and does not perform cleanup-dependent writes without explicit authorisation.
+The backend-table review found two material active launch mismatches:
 
-## Authoritative production boundary
+1. the exported `cellar` table does not contain `status`, `quantity_acquired`, `date_consumed`, `acquisition_type` or `historical_import`, but the application cellar contract previously accepted/projected those fields;
+2. the exported schema contains no `product_producers` junction, but catalogue hydration attempted that collection before falling back to `products.producer_id`.
 
-Exact `main` is **a9f4309411d375d7c03a1326796946e52d76266c** from merged PR **#352**. Vercel production deployment **dpl_7z3f9MCc2xHSdmyNpFQCumeMm3ri** is READY for that exact SHA with matching `main` GitHub provenance and Node runtime metadata.
+PR **#355** corrects these boundaries by:
 
-Vercel remains the authoritative runtime owner of `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE`. Missing duplicate copies in GitHub are not a launch blocker. The deployed `/api/readiness` boundary remains the canonical non-destructive proof that the configured application runtime can execute a bounded NoCodeBackend products read.
+- separating provider-evidenced launch collections from unavailable/deferred target collections in `src/data/contract.js`;
+- limiting browser/server cellar writes to the exported `cellar` columns, excluding provider/server-owned `id`, `secret_key` and `user_id`;
+- removing fabricated exported-absent lifecycle fields from the live cellar API projection;
+- using `products.producer_id -> producers.id` as the deployed catalogue producer relationship;
+- retaining the response-compatible `producers` array with at most the single producer evidenced by `producer_id`;
+- leaving zero/missing producer attribution unresolved rather than inventing collaboration data;
+- adding focused regression tests and reconciling the launch/data-model documentation.
+
+The supplied products export contains **7 records with `producer_id = 0` and 22 records with a blank producer ID**. Those records are a backend catalogue-data remediation concern and are intentionally not rewritten by #354.
 
 ## Launch schema/application contract
 
-The current launch classification remains authoritative:
+Current provider-evidenced launch collections are:
 
-- `products`, `producers`, `categories`, `rating_attributes`, `ratings`, `rating_scores` and `cellar` are deployed launch collections;
-- `bonus_attributes` and `bonus_attribute_rating_mapping` are deployed optional rating collections;
+- `products`;
+- `producers`;
+- `categories`;
+- `rating_attributes`;
+- `bonus_attributes`;
+- `ratings`;
+- `rating_scores`;
+- `bonus_attribute_rating_mapping`;
+- `cellar`.
+
+Current launch field rules include:
+
+- product classification uses `products.product_category_id`;
+- product producer enrichment uses `products.producer_id` only on the current backend;
 - rating bonus writes use `bonus_attribute_rating_mapping.bonus_attributes_id`;
-- cellar browser/server writes use the canonical allowlist and `series_version_id`; `series_edition_id` is not a launch alias;
-- persistent `profiles` storage is **UNAVAILABLE** on current evidence: profile GET is session-backed and profile PUT must fail explicitly with `profile_persistence_unavailable`;
-- durable rating idempotency/workflow fields tracked by **#165** remain `DEFERRED_TARGET` and must not be required before provider migration plus connected verification.
+- cellar sharing edition/version uses nullable `series_version_id`, not `series_edition_id`;
+- the browser/server cellar write surface is `product_id`, `location_id`, `quantity`, `mls`, `container`, `purchase_price`, `retail_price`, `date_received`, `sharing_series_id`, `series_version_id`, `purchase_location_id`, `purchased_by_id`, `gift`, `gift_from`, `bet_id`, `notes`;
+- `product_producers` and persistent `profiles` storage are **UNAVAILABLE** on the supplied launch evidence;
+- durable rating idempotency/workflow fields tracked by **#165** remain `DEFERRED_TARGET`.
 
-Fresh live schema/constraint inventory beyond the non-destructive application boundary is still evidence-required. Do not invent provider schema state from repository target files.
+Fresh live schema/constraint inventory beyond the non-destructive application boundary remains evidence-required. Do not infer provider migration from repository target files.
 
-## Certification correction in PR #353
+## Production / connected certification context
 
-The existing connected release suite contained two material contract defects:
+PR **#353** has merged and hardened the connected release-certification boundary: non-destructive authenticated checks can run independently, profile PUT is expected to reflect the current persistence-unavailable contract, and rating/cellar mutation checks require the exact cleanup-guarded authorisation and exact-record cleanup proof.
 
-1. it expected profile PUT to succeed despite the deployed session-backed/read-only profile capability;
-2. it could execute rating/cellar mutations without an explicit destructive confirmation, and rating cleanup could target an arbitrary first history row.
+Vercel remains the authoritative runtime owner of `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE`. Missing duplicate copies in GitHub are not a launch blocker. The deployed `/api/readiness` boundary remains the canonical non-destructive proof that the configured application runtime can execute a bounded NoCodeBackend products read.
 
-PR **#353** corrects those boundaries:
+## Validation posture
 
-- non-destructive sign-in, catalogue/search, product detail, rating-form validation and session-backed profile read can be certified independently;
-- profile PUT is expected to return the deployed `503 profile_persistence_unavailable` contract;
-- rating/cellar mutation checks run only when the exact confirmation `RUN CLEANUP-GUARDED RELEASE WRITES` is supplied;
-- rating cleanup identifies the exact newly created rating by before/after history identity and deletes that record in `finally`;
-- cellar cleanup retains the exact created row identity and deletes it in `finally`;
-- cross-account cellar negative-authorisation checks remain inside the guarded mutation test.
+`npm run platform:validate` remains the canonical project-owned source-validation entry point. PR #355 changes the browser/server data boundary, so focused tests and applicable Vercel/runtime evidence are required in addition to source review. GitHub Actions, CodeQL and Dependency Review remain supporting diagnostics; any material defect they expose is actionable.
 
-## Validation evidence
-
-Exact PR head **427671ed360af09f26d82584d0c0da084a0669b4** passed the canonical Pull Request Validation Release gate, including `npm run platform:validate`, before the STATUS-only follow-up. Exact-head validation is rerunning after this documentation correction. Browser/accessibility and CodeQL remain supporting diagnostics; any real defect they reveal is actionable.
+The implementation head `91ecfc816f11086e8a6bfa7a86c09f28aa76067b` passed the canonical Release gate, and the STATUS-only follow-up exposed only invalid front-matter status values before code validation could proceed. That metadata defect is corrected here; exact-head validation is rerunning. Browser/accessibility passed on the STATUS-only head, and Vercel preview `dpl_3dpuSLbvwBY8AAHTEhfGewT7FqzG` was READY for that head with matching PR/SHA provenance.
 
 ## Remaining #225 work
 
-#225 no longer represents a live provider-authorization failure. Remaining acceptance work is:
+After #355 is merged, #225 still requires:
 
 - authenticated catalogue read through the same-origin application boundary;
 - authenticated session-backed profile read remaining non-403;
@@ -115,13 +129,13 @@ Exact PR head **427671ed360af09f26d82584d0c0da084a0669b4** passed the canonical 
 
 ## Destructive connected-write rule
 
-Do not run rating create/delete or cellar CRUD certification against a real connected environment unless the run is explicitly authorised for cleanup-guarded test writes. Exact-record cleanup must be verified. A failure to prove cleanup is a material blocker and must not be converted into a pass.
+Do not run rating create/delete or cellar CRUD certification against a real connected environment unless the run is explicitly authorised for cleanup-guarded test writes. Exact-record cleanup must be verified. Failure to prove cleanup is a material blocker and must not be converted into a pass.
 
 ## Next dependency-correct work
 
-1. Finish validation/deployment evidence for PR #353 and merge when safe.
-2. Execute non-destructive authenticated release certification when the protected release-account path is available.
-3. Execute guarded rating/cellar connected writes only with explicit authorisation and cleanup proof.
+1. Complete exact-head validation/review/deployment evidence for PR #355 and merge when safe.
+2. Resume non-destructive authenticated release certification for #225 when the protected release-account path is executable.
+3. Run guarded rating/cellar connected writes only with explicit authorisation and cleanup proof.
 4. Complete credential-rotation/invalidation evidence and close #225 when its remaining acceptance criteria are satisfied.
 5. Then activate #165 provider migration/idempotency work, followed by #144 and backend-dependent #154 certification.
 

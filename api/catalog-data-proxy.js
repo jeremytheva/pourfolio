@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { COLLECTIONS } from '../src/data/contract.js'
+import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../src/data/contract.js'
 import { requireSessionUser } from './_lib/authSession.js'
 import { dataProvider } from './_lib/dataProvider.js'
 import {
@@ -64,33 +64,14 @@ const safeRelationshipList = async (collection, filters) => {
   }
 }
 
-const loadProductProducerRows = async (productIds) => {
-  if (!productIds.length) return []
-  return safeRelationshipList(COLLECTIONS.productProducers, {
-    'product_id[in]': productIds.join(',')
-  })
-}
-
 const hydrateProducts = async (products) => {
   if (!products.length) return []
-  const productIds = [...new Set(products.map((product) => String(product.id)))]
-  const junctionRows = await loadProductProducerRows(productIds)
-  const junctionByProduct = new Map()
-  for (const row of junctionRows) {
-    const productId = String(row.product_id)
-    const existing = junctionByProduct.get(productId) || []
-    existing.push(row)
-    junctionByProduct.set(productId, existing)
-  }
 
   const producerIds = new Set()
   const categoryIds = new Set()
   for (const product of products) {
     if (product.producer_id && String(product.producer_id) !== '0') producerIds.add(String(product.producer_id))
     if (product.product_category_id) categoryIds.add(String(product.product_category_id))
-    for (const row of junctionByProduct.get(String(product.id)) || []) {
-      if (row.producer_id) producerIds.add(String(row.producer_id))
-    }
   }
 
   const [producers, categories] = await Promise.all([
@@ -105,26 +86,15 @@ const hydrateProducts = async (products) => {
   const categoriesById = indexById(categories)
 
   return products.map((product) => {
-    const rows = junctionByProduct.get(String(product.id)) || []
-    const attributed = rows
-      .slice()
-      .sort((left, right) => Number(Boolean(right.is_primary)) - Number(Boolean(left.is_primary)) || Number(left.id || 0) - Number(right.id || 0))
-      .map((row) => producersById.get(String(row.producer_id)))
-      .filter(Boolean)
-
-    const legacyPrimary = product.producer_id && String(product.producer_id) !== '0'
+    const primary = product.producer_id && String(product.producer_id) !== '0'
       ? producersById.get(String(product.producer_id)) || null
       : null
-    if (!attributed.length && legacyPrimary) attributed.push(legacyPrimary)
-
-    const primary = attributed.find((producer) => rows.some((row) =>
-      String(row.producer_id) === String(producer.id) && Boolean(row.is_primary)
-    )) || legacyPrimary || attributed[0] || null
+    const projectedProducer = projectProducer(primary)
 
     return {
       ...pickFields(product, PRODUCT_FIELDS),
-      producer: projectProducer(primary),
-      producers: attributed.map(projectProducer),
+      producer: projectedProducer,
+      producers: projectedProducer ? [projectedProducer] : [],
       category: projectCategory(categoriesById.get(String(product.product_category_id)))
     }
   })
@@ -229,4 +199,4 @@ export default async function handler(request, response) {
   }
 }
 
-export const __testables = { hydrateProducts, loadProductProducerRows, safeRelationshipList }
+export const __testables = { hydrateProducts, safeRelationshipList }

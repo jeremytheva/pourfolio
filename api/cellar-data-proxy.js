@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { COLLECTIONS } from '../src/data/contract.js'
+import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../src/data/contract.js'
 import { requireSessionUser } from './_lib/authSession.js'
 import { dataProvider } from './_lib/dataProvider.js'
 import {
@@ -48,7 +48,9 @@ const safeProviderGet = async (collection, id) => {
 const hydrateProduct = async (product) => {
   if (!product) return null
   const [producer, category] = await Promise.all([
-    product.producer_id ? safeProviderGet(COLLECTIONS.producers, product.producer_id) : null,
+    product.producer_id && String(product.producer_id) !== '0'
+      ? safeProviderGet(COLLECTIONS.producers, product.producer_id)
+      : null,
     product.product_category_id ? safeProviderGet(COLLECTIONS.categories, product.product_category_id) : null
   ])
   return projectProduct(product, producer, category)
@@ -72,11 +74,6 @@ export const projectCellarRecord = (record, product = null) => ({
   gift_from: record.gift_from ?? null,
   bet_id: record.bet_id ?? null,
   notes: record.notes ?? '',
-  status: record.status ?? 'on_hand',
-  quantity_acquired: record.quantity_acquired ?? null,
-  date_consumed: record.date_consumed ?? null,
-  acquisition_type: record.acquisition_type ?? null,
-  historical_import: Boolean(record.historical_import),
   product
 })
 

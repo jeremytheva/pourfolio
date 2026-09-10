@@ -52,6 +52,8 @@ Launch paths use:
 
 Legacy names such as `beverages_pf2025`, `ratings_pf2025`, `cellar_items_pf2025` and `beverage_id` are not canonical launch identifiers.
 
+The supplied backend export does not contain a `product_producers` junction table. Active launch catalogue projection therefore uses `products.producer_id` only. Multi-producer collaboration support remains a schema/data remediation concern until a governed backend relationship is deployed and verified.
+
 ## Ownership
 
 Private user data is owner-scoped.
@@ -85,7 +87,7 @@ A product may require attribution to more than one producer for collaboration be
 
 A sentinel producer ID such as `0` must not be used to represent collaboration. Collaboration needs an explicit relationship capable of preserving all participating breweries.
 
-Where the currently deployed schema cannot represent multiple producers safely, the gap must be handled as a schema/data-model issue rather than silently collapsing collaboration to one brewery or inventing an invalid producer.
+The supplied backend export does not currently provide that relationship. Launch code must not query or fabricate a `product_producers` collection; records with missing or zero `producer_id` remain unresolved until backend catalogue data/schema remediation supplies valid attribution.
 
 ## Categories
 
@@ -139,14 +141,28 @@ Bonus relationships are optional.
 
 `cellar` is private owner data.
 
-Current deployed lifecycle fields include:
+The supplied backend table contains the following application fields:
 
-- `status`;
-- `quantity_acquired`;
-- `date_consumed`;
-- `acquisition_type`;
-- `historical_import`;
-- optional `series_version_id`.
+- `product_id`;
+- `location_id`;
+- `quantity`;
+- `mls`;
+- `container`;
+- `purchase_price`;
+- `retail_price`;
+- `date_received`;
+- `sharing_series_id`;
+- `series_version_id`;
+- `purchase_location_id`;
+- `purchased_by_id`;
+- `gift`;
+- `gift_from`;
+- `bet_id`;
+- `notes`.
+
+Provider/server-owned `id`, `secret_key` and `user_id` are not browser-authoritative writable fields.
+
+The exported `cellar` table does **not** contain `status`, `quantity_acquired`, `date_consumed`, `acquisition_type` or `historical_import`. Launch code must not write or fabricate those fields.
 
 Sharing-series / edition relationships are optional and must be null when not applicable.
 
