@@ -66,31 +66,23 @@ const safeRelationshipList = async (collection, filters) => {
 
 const hydrateProducts = async (products) => {
   if (!products.length) return []
-
   const producerIds = new Set()
   const categoryIds = new Set()
   for (const product of products) {
     if (product.producer_id && String(product.producer_id) !== '0') producerIds.add(String(product.producer_id))
     if (product.product_category_id) categoryIds.add(String(product.product_category_id))
   }
-
   const [producers, categories] = await Promise.all([
-    producerIds.size
-      ? safeRelationshipList(COLLECTIONS.producers, { 'id[in]': [...producerIds].join(',') })
-      : [],
-    categoryIds.size
-      ? safeRelationshipList(COLLECTIONS.categories, { 'id[in]': [...categoryIds].join(',') })
-      : []
+    producerIds.size ? safeRelationshipList(COLLECTIONS.producers, { 'id[in]': [...producerIds].join(',') }) : [],
+    categoryIds.size ? safeRelationshipList(COLLECTIONS.categories, { 'id[in]': [...categoryIds].join(',') }) : []
   ])
   const producersById = indexById(producers)
   const categoriesById = indexById(categories)
-
   return products.map((product) => {
     const primary = product.producer_id && String(product.producer_id) !== '0'
       ? producersById.get(String(product.producer_id)) || null
       : null
     const projectedProducer = projectProducer(primary)
-
     return {
       ...pickFields(product, PRODUCT_FIELDS),
       producer: projectedProducer,
@@ -100,16 +92,51 @@ const hydrateProducts = async (products) => {
   })
 }
 
+const buildRatingInsights = async (ratings) => {
+  const acceptedRatings = ratings
+    .map((rating) => ({ id: String(rating.id ?? ''), total: Number(rating.total_weighted) }))
+    .filter((rating) => /^[1-9]\d*$/.test(rating.id) && Number.isFinite(rating.total) && rating.total >= 1 && rating.total <= 7)
+  const distribution = Array.from({ length: 7 }, (_, index) => ({ score: index + 1, count: 0 }))
+  for (const rating of acceptedRatings) {
+    const bucket = Math.min(7, Math.max(1, Math.round(rating.total)))
+    distribution[bucket - 1].count += 1
+  }
+  if (!acceptedRatings.length) return { distribution, attributes: [] }
+
+  const ratingIds = new Set(acceptedRatings.map((rating) => rating.id))
+  const [scores, attributes] = await Promise.all([
+    safeRelationshipList(COLLECTIONS.ratingScores, { 'rating_id[in]': [...ratingIds].join(',') }),
+    safeRelationshipList(COLLECTIONS.ratingAttributes)
+  ])
+  const attributesById = new Map(attributes
+    .filter((attribute) => /^[1-9]\d*$/.test(String(attribute.id ?? '')) && String(attribute.attribute_name ?? '').trim())
+    .map((attribute) => [String(attribute.id), attribute]))
+  const aggregates = new Map()
+  for (const score of scores) {
+    const ratingId = String(score.rating_id ?? '')
+    const attributeId = String(score.attribute_id ?? '')
+    const value = Number(score.attribute_score)
+    if (!ratingIds.has(ratingId) || !attributesById.has(attributeId) || !Number.isInteger(value) || value < 1 || value > 7) continue
+    const current = aggregates.get(attributeId) || { sum: 0, count: 0 }
+    current.sum += value
+    current.count += 1
+    aggregates.set(attributeId, current)
+  }
+  const attributeInsights = [...aggregates.entries()].map(([attributeId, aggregate]) => ({
+    attributeId,
+    name: String(attributesById.get(attributeId).attribute_name).trim(),
+    average: Number((aggregate.sum / aggregate.count).toFixed(2)),
+    count: aggregate.count
+  })).sort((left, right) => left.name.localeCompare(right.name))
+  return { distribution, attributes: attributeInsights }
+}
+
 const listProducts = async (request, response) => {
   const search = parseCatalogueSearch(request.query?.q)
   const page = Math.max(1, Number.parseInt(request.query?.page, 10) || 1)
   const limit = Math.min(100, Math.max(1, Number.parseInt(request.query?.limit, 10) || 24))
   const providerPage = await dataProvider.listPage(COLLECTIONS.products, {
-    search: search || undefined,
-    page,
-    limit,
-    orderBy: 'product_name',
-    order: 'asc'
+    search: search || undefined, page, limit, orderBy: 'product_name', order: 'asc'
   })
   response.status(200).json({
     items: await hydrateProducts(normaliseList(providerPage.items)),
@@ -128,13 +155,19 @@ const getProduct = async (id, response) => {
   }
   const [hydrated] = await hydrateProducts([product])
   const ratings = await safeRelationshipList(COLLECTIONS.ratings, { product_id: product.id })
-  const totals = ratings.map((rating) => Number(rating.total_weighted)).filter(Number.isFinite)
+  const validRatings = ratings.filter((rating) => {
+    const total = Number(rating.total_weighted)
+    return Number.isFinite(total) && total >= 1 && total <= 7
+  })
+  const totals = validRatings.map((rating) => Number(rating.total_weighted))
+  const ratingInsights = await buildRatingInsights(validRatings)
   response.status(200).json({
     ...hydrated,
     ratingSummary: {
       count: totals.length,
       average: totals.length ? Number((totals.reduce((sum, value) => sum + value, 0) / totals.length).toFixed(2)) : null
     },
+    ratingInsights,
     ratings: []
   })
 }
@@ -184,19 +217,16 @@ export default async function handler(request, response) {
     const status = Number(error.status) >= 400 && Number(error.status) < 600 ? Number(error.status) : 500
     if (status >= 500) {
       writeTelemetryError(runtimeTelemetry({
-        route_template: '/api/nocodebackend/catalog/:resource',
-        method: request.method,
+        route_template: '/api/nocodebackend/catalog/:resource', method: request.method,
         status_class: `${Math.floor(status / 100)}xx`,
-        event_name: error.name === 'AbortError' ? 'provider_timeout' : 'gateway_failure',
-        correlation_id: correlationId
+        event_name: error.name === 'AbortError' ? 'provider_timeout' : 'gateway_failure', correlation_id: correlationId
       }))
     }
     response.status(status).json(error.payload || {
       error: status < 500 && error.message ? error.message : safeErrorMessage(status),
-      code: error.code,
-      requestId: correlationId
+      code: error.code, requestId: correlationId
     })
   }
 }
 
-export const __testables = { hydrateProducts, safeRelationshipList }
+export const __testables = { hydrateProducts, safeRelationshipList, buildRatingInsights }
