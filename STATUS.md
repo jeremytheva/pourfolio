@@ -4,11 +4,11 @@ portfolio_state: ACTIVE
 phase: "Phase 3 — Beer discovery dependable"
 stage: "Frontend-backend launch contract alignment and production certification"
 gate: Integration
-execution_state: ACTIVE
+execution_state: IMPLEMENTING
 current_work:
   objective: "Certify the authenticated launch journey against the exact deployed Vercel runtime and complete #225 without duplicating provider credentials into GitHub."
   issue: 225
-  pr: null
+  pr: 352
   branch: "fix/vercel-owned-provider-certification"
 next_actions:
   - "Validate and merge the Vercel-owned provider-certification workflow change."
@@ -27,6 +27,10 @@ blockers:
     issue: 165
     detail: "Production-equivalent schema/constraint migration and destructive contract probes remain deferred until #225 is certified and explicitly authorised isolated-provider evidence is available."
 requires_owner_decision: false
+owner_decision:
+  question: "No owner decision is required for the provider-configuration location; Vercel remains authoritative."
+  options: []
+  recommendation: "Continue exact-deployment certification without duplicating provider secrets into GitHub."
 validation:
   governance: PASS
   lint: NOT_RUN
@@ -36,7 +40,7 @@ validation:
   ci: PENDING
   runtime: VERIFIED
 last_verified_commit: "4958db9e135c7312b6e478202ab3a77e04d8af24"
-last_updated: "2026-09-10T10:45:00+10:00"
+last_updated: "2026-09-10T10:48:00+10:00"
 ---
 
 # STATUS.md
@@ -50,7 +54,7 @@ Last materially reviewed: 10 September 2026
 ## AI execution gate
 
 **Current gate:** Integration / frontend-backend contract alignment  
-**Execution state:** Active; duplicate GitHub NoCodeBackend provider configuration is no longer a launch blocker.  
+**Execution state:** Implementing blocker removal; duplicate GitHub NoCodeBackend provider configuration is no longer a launch blocker.  
 **Release state:** Source contract alignment is materially reconciled; authenticated connected launch certification remains incomplete.
 
 ## Autonomous continuation support
