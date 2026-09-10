@@ -55,6 +55,34 @@ test('/home exposes labelled search status and a named product-results region', 
   await expect(page.getByText('1 product found')).toBeVisible()
 })
 
+test('/search announces an empty result without moving keyboard focus from the query', async ({ page }) => {
+  await installMockApi(page)
+  await page.route('**/api/nocodebackend/catalog/products?**', async (route) => {
+    const url = new URL(route.request().url())
+    if (url.searchParams.get('q') !== 'no-match') return route.fallback()
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ items: [], page: 1, pageSize: 24, total: 0, totalPages: 0 })
+    })
+  })
+
+  await page.goto('/search')
+  const search = page.getByRole('searchbox', { name: 'Search products, producers or styles' })
+  await expect(search).toBeFocused()
+
+  await search.fill('no-match')
+
+  const searchStatus = page.locator('#product-search-status')
+  await expect(searchStatus).toHaveText('0 products found')
+  await expect(search).toBeFocused()
+  await expect(page.getByRole('heading', { name: 'No matching products' })).toBeVisible()
+  await expect(page.getByText('Try a shorter product, producer or style name.')).toBeVisible()
+  await expect(page.locator('section[aria-labelledby="product-results-heading"]')).toHaveAttribute('aria-busy', 'false')
+  await expect(page.getByRole('link', { name: /Ace/ })).toHaveCount(0)
+})
+
 for (const route of routes) {
   test(`${route} has no serious or critical automated accessibility violations`, async ({ page }) => {
     await installMockApi(page)
