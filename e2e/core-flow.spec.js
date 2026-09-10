@@ -111,8 +111,9 @@ test('product details render an aggregate-only rating response', async ({ page }
   await page.goto('/products/4')
 
   await expect(page.getByRole('heading', { name: 'Ace' })).toBeVisible()
+  const communityRating = page.getByRole('region', { name: 'Community rating' })
   await expect(page.getByRole('heading', { name: 'Community rating' })).toBeVisible()
-  await expect(page.getByText('1 rating', { exact: true })).toBeVisible()
+  await expect(communityRating.getByText('1 rating', { exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Something went wrong' })).toHaveCount(0)
 })
 
