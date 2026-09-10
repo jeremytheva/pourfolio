@@ -40,19 +40,30 @@ validation:
   ci: PENDING
   runtime: VERIFIED
 last_verified_commit: "427671ed360af09f26d82584d0c0da084a0669b4"
-last_updated: "2026-09-10T12:05:00+10:00"
+last_updated: "2026-09-10T12:08:00+10:00"
 ---
 
 # STATUS.md
 
 Last materially reviewed: 10 September 2026
 
+## Current phase
+
+**Phase 3 — Beer discovery dependable**
+
+## AI execution gate
+
+**Current gate:** Integration / frontend-backend launch contract alignment  
+**Execution state:** Validating PR **#353**  
+**Release state:** Source contracts are materially aligned; authenticated connected launch certification and historical credential hygiene remain incomplete.
+
+## Autonomous continuation support
+
+Continue dependency-correct launch certification from repository and live deployment evidence. Non-destructive authenticated checks should proceed independently when release-account credentials are executable. Rating/cellar mutation checks require the exact cleanup-guarded confirmation and exact-record cleanup evidence. Keep #165 deferred target fields unavailable until real provider migration and connected verification.
+
 ## Current state
 
-**Phase 3 — Beer discovery dependable**  
-**Gate:** Integration / frontend-backend launch contract alignment  
-**Execution:** Validating PR **#353**  
-**Release:** Source contracts are materially aligned; authenticated connected launch certification and historical credential hygiene remain incomplete.
+PR **#353** corrects the connected release-certification boundary so it matches the deployed profile capability and does not perform cleanup-dependent writes without explicit authorisation.
 
 ## Authoritative production boundary
 
@@ -91,7 +102,7 @@ PR **#353** corrects those boundaries:
 
 ## Validation evidence
 
-Exact PR head **427671ed360af09f26d82584d0c0da084a0669b4** has passed the canonical Pull Request Validation **Release gate**, including `npm run platform:validate`. Browser/accessibility and CodeQL diagnostics are still completing at this handoff; they are supporting evidence, but any real defect they reveal remains actionable.
+Exact PR head **427671ed360af09f26d82584d0c0da084a0669b4** passed the canonical Pull Request Validation Release gate, including `npm run platform:validate`, before the STATUS-only follow-up. Exact-head validation is rerunning after this documentation correction. Browser/accessibility and CodeQL remain supporting diagnostics; any real defect they reveal is actionable.
 
 ## Remaining #225 work
 
