@@ -132,7 +132,7 @@ test('canonical route captures are explicitly forwarded while unrelated query va
 })
 
 test('direct internal data implementation URLs receive 404 before filesystem routing', async () => {
-  const { routes } = await loadVercConfiguration()
+  const { routes } = await loadVercelConfiguration()
 
   for (const pathname of INTERNAL_DATA_HANDLER_PATHS) {
     assert.deepEqual(resolveRoute(routes, pathname, { arbitrary: 'value' }), {
