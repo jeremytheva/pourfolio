@@ -2,50 +2,45 @@
 project: Pourfolio
 portfolio_state: ACTIVE
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Production provider certification"
+stage: "Rating idempotency provider migration"
 gate: Integration
 execution_state: BLOCKED
 current_work:
-  objective: "Complete the remaining authenticated production certification and historical provider credential hygiene tracked by #225 after connected-release credential hardening completed in #366."
-  issue: 225
+  objective: "Complete #165 durable rating idempotency/schema capability up to the irreversible provider migration boundary, while continuing safe independent launch work when that boundary cannot progress."
+  issue: 165
   pr: null
   branch: null
 next_actions:
-  - "Run authenticated catalogue smoke through the same-origin application API when a protected release-account session is executable."
-  - "Verify the authenticated session-backed profile read remains non-403 in the same protected session."
-  - "Confirm the historically exposed provider Bearer credential has been rotated or otherwise invalidated without recording its value."
-  - "Continue independent launch-quality/security work when #225 evidence remains externally unavailable."
-  - "Keep #165 DEFERRED_TARGET until #225 certification/hygiene is sufficiently resolved."
+  - "Evidence the provider-supported schema/constraint, backup, restore and safe-backfill mechanism required by #165 before any provider mutation."
+  - "Do not enable /ratings/reconcile until the #165 provider migration is deployed and verified."
+  - "After #165, complete #144 backend/provider certification and then backend-dependent #154 catalogue completion evidence."
+  - "Continue independent launch-scoped work that does not require destructive provider changes or fabricated catalogue decisions while #165 remains blocked."
 blockers:
-  - scope: connected_authenticated_smoke
-    issue: 225
-    detail: "Authenticated catalogue and session-backed profile certification require an executable protected release-account session; repository/source changes cannot substitute for that evidence."
-  - scope: credential_hygiene
-    issue: 225
-    detail: "Historical provider credential rotation/invalidation requires provider or secret-management evidence without exposing the credential value."
-  - scope: connected_schema_inventory
+  - scope: rating_idempotency_provider_migration
     issue: 165
-    detail: "Durable rating idempotency fields and connected schema/constraint capability remain DEFERRED_TARGET until #225 certification/hygiene is sufficiently resolved."
-requires_owner_decision: false
+    detail: "The application-side contract is defined, but durable idempotency requires irreversible provider schema/constraint and existing-data migration work. Proceed only when the provider-supported migration/backfill plus backup/restore path is evidenced and explicit approval exists."
+requires_owner_decision: true
 owner_decision:
-  question: "No product decision is currently required."
-  options: []
-  recommendation: "Preserve the working provider/routing boundaries and obtain the remaining protected connected evidence rather than weakening gates or changing routing again."
+  question: "Approve the #165 provider migration only after a concrete provider-supported migration, backup/restore and cleanup-safe backfill plan is evidenced."
+  options:
+    - "Approve the evidenced migration plan when ready."
+    - "Keep #165 blocked and continue independent launch work."
+  recommendation: "Keep #165 blocked at the irreversible provider boundary until the evidence and explicit migration approval requirements are satisfied."
 validation:
   governance: PASS
-  lint: NOT_RUN
+  lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: NOT_RUN
-  build: NOT_RUN
-  ci: NOT_RUN
+  tests: PASS
+  build: PASS
+  ci: PASS
   runtime: VERIFIED
-last_verified_commit: "dfc866301881ec82e1dce59b39532190056799fe"
-last_updated: "2026-09-10T16:28:30+10:00"
+last_verified_commit: "52ec6af81a08902571bf574deb2884b19201fe8e"
+last_updated: "2026-09-11T06:53:00+10:00"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 10 September 2026
+Last materially reviewed: 11 September 2026
 
 ## Current phase
 
@@ -53,17 +48,62 @@ Last materially reviewed: 10 September 2026
 
 ## AI execution gate
 
-**Current gate:** Integration / production provider certification  
-**Execution state:** **BLOCKED** on the protected connected evidence remaining in **#225**.  
-**Most recent completed integration:** issue **#365** / PR **#366** hardened connected-release credential targeting and merged at `dfc866301881ec82e1dce59b39532190056799fe`.
+**Current gate:** Integration / rating idempotency provider migration  
+**Execution state:** **BLOCKED** at the irreversible provider migration boundary in **#165**.  
+**Current dependency-correct P1:** issue **#165 — Deploy rating idempotency schema before enabling reconciliation**.
+
+Issue **#225** is complete. The previous STATUS state naming #225 as the active blocker is obsolete and must not be used to defer #165.
 
 ## Autonomous continuation support
 
 Continue the highest-priority dependency-correct launch work that can safely be completed autonomously. The repository is authoritative for current work and blockers; chat history remains supporting context only.
 
-Do not reopen provider routing or frontend/backend URL changes without new contradictory runtime evidence. Exact-main production `/api/readiness` on `dfc866301881ec82e1dce59b39532190056799fe` returned HTTP 200 with matching production release provenance and `dataProvider: "ok"`. The remaining #225 work is protected authenticated evidence and historical credential hygiene, not provider routing repair.
+Do not reopen provider routing or frontend/backend URL changes without new contradictory runtime evidence. Provider authorization, authenticated catalogue/profile evidence and credential hygiene have been completed. Do not weaken schema or cleanup gates to make #165 appear complete.
 
-When #225 cannot progress because a protected authenticated session or credential-hygiene evidence is unavailable, continue independent launch-scoped reliability/security work that does not weaken provider/schema gates or invent catalogue decisions.
+When #165 cannot progress because the provider-supported migration/backfill/backup/restore mechanism or explicit migration approval is unavailable, continue independent launch-scoped reliability, accessibility and product work that does not mutate provider schema/data, fabricate catalogue relationships or bypass certification boundaries.
+
+## Production provider certification completed — #225, #381 and #382
+
+Issue **#225** is **COMPLETE**. Production can read the generated NoCodeBackend data API through the server-only application gateway and the provider credential remains outside repository/browser output.
+
+Authoritative provider evidence includes:
+
+- canonical data base URL `https://api.nocodebackend.com/`;
+- canonical auth base URL `https://app.nocodebackend.com/api/user-auth`;
+- server data requests use the server-only provider credential and intended `54026_rating` instance;
+- exact-main production readiness performs a bounded real `products` provider read and reports `dataProvider: "ok"`;
+- authenticated catalogue browse/search/direct-detail access passed through the same-origin application gateway;
+- session-backed `GET /api/nocodebackend/profile` passed with HTTP 200;
+- profile persistence remains deliberately unavailable with HTTP 503 `profile_persistence_unavailable`;
+- provider discovery, password sign-in/sign-out and expired-session route behaviour passed;
+- the historically exposed provider credential was confirmed rotated without its value being recorded.
+
+Issue **#381** identified auth-rate-budget exhaustion caused by repeated connected-release sign-ins. PR **#382** corrected the harness without weakening the production rate limiter by reusing established authenticated storage state, eliminating the redundant sign-in, disabling serial-suite retry amplification and isolating expired-session coverage.
+
+PR **#382** merged as exact main `52ec6af81a08902571bf574deb2884b19201fe8e`. A subsequent non-destructive production `/release-certify` run **34475738160** completed successfully on that exact production revision, including the final launch-page accessibility checks. This is the current exact-production certification baseline recorded by project authority.
+
+No provider schema/data mutation was required for this certification work.
+
+## Rating idempotency migration boundary — #165
+
+The repository's target rating retry workflow requires durable submission identity/fingerprint/state fields, expected child counts and child uniqueness guarantees that are not present in the provider-evidenced deployed schema.
+
+Until the migration is deployed and verified:
+
+- launch rating submission must continue using only currently deployed backend fields;
+- `/ratings/reconcile` must remain unavailable and return the governed unavailable capability rather than pretending durable reconciliation exists;
+- application-side proposed fields must remain distinguished from deployed fields in schema documentation;
+- no uniqueness/constraint or existing-row backfill may be performed without a provider-supported migration mechanism, backup/restore evidence, explicit approval and cleanup safeguards.
+
+The remaining #165 work is therefore active P1 work but **blocked at an irreversible provider boundary**, not deferred behind #225.
+
+## Recent launch product work — #384 and #385
+
+PR **#384** completed the accessible swipeable rating-card experience with the 1–7 sliding/tap scale, automatic progression, Back/Next navigation and review-before-submit flow.
+
+PR **#386**, closing **#385**, merged at `d227c59c048c6e80f87da5add8c16572b96b40a9`. It added privacy-preserving product rating insights: aggregate 1–7 distributions, aggregate attribute averages/counts, strict client response validation and an accessible community-rating presentation. Individual rating IDs, user IDs, dates, notes and per-rating score rows remain excluded from the public catalogue response.
+
+Exact-head acceptance for PR #386 passed canonical `npm run platform:validate`, all 69 Browser/accessibility tests, Dependency Review and CodeQL, with an exact-head Vercel preview reporting success and zero unresolved review threads.
 
 ## Connected release credential hardening completed — #365 / PR #366
 
@@ -77,46 +117,9 @@ The accepted implementation:
 - performs a no-secret `/api/readiness` preflight without following redirects before the credentialed browser-test step;
 - requires HTTP 200, `status: ready`, exact requested SHA, canonical Vercel environment and `dataProvider: "ok"`;
 - keeps protected release-account secrets only on the subsequent Playwright step;
-- applies the same target-origin allowlist inside Playwright as defence in depth;
-- includes deterministic regression coverage for approved origins, lookalikes, redirects, malformed responses, provenance drift and workflow ordering.
+- applies the same target-origin allowlist inside Playwright as defence in depth.
 
-Validation and release evidence:
-
-- PR head: `7315fb818f1014bcecf74f04e35f8b91422fd076`;
-- 393 Node tests: 384 passed, 9 intentionally skipped, 0 failed;
-- production audit: zero vulnerabilities;
-- canonical Release gate, Browser/accessibility, Dependency Review and CodeQL passed;
-- no unresolved review threads;
-- exact preview `dpl_2FdE1RMVMhpPGv871XCrVC7QjM4V` reached READY and `/api/readiness` returned the exact preview SHA with `dataProvider: "ok"`;
-- merge commit: `dfc866301881ec82e1dce59b39532190056799fe`;
-- production deployment: `dpl_8ZArjDYVbmAVGmaKprDX3gC5JRn7`, READY and GitHub-verified;
-- post-merge production `/api/readiness`: HTTP 200 with exact merge SHA, environment `production`, and `dataProvider: "ok"`.
-
-No provider schema/data, production credential, frontend feature or application routing change was made.
-
-## Current #225 provider certification state
-
-Issue **#225** remains the dependency-correct connected certification work, but its historical provider-authorization failure is no longer reproduced.
-
-Current evidence establishes:
-
-- canonical data base URL `https://api.nocodebackend.com/`;
-- canonical auth base URL `https://app.nocodebackend.com/api/user-auth`;
-- server data requests use the server-only provider credential and intended `54026_rating` instance;
-- exact-main production is deployed READY;
-- exact-main `/api/readiness` completes a real generated-provider products read with `dataProvider: "ok"`;
-- profile persistence remains unavailable by design; profile identity is session-backed/read-only;
-- provider credentials are not returned to browser/readiness output;
-- the connected-release harness now verifies target origin and exact readiness provenance before release-account credentials can be used.
-
-The remaining #225 acceptance work is specifically:
-
-1. authenticated catalogue read through the same-origin application API;
-2. authenticated session-backed profile read remaining non-403;
-3. confirmation that the Bearer credential present in historical supplied evidence was rotated or otherwise invalidated, without ever recording the credential value;
-4. retention of that connected evidence for downstream #165, #144 and #154 work.
-
-These require protected account/provider evidence and cannot be replaced by source changes.
+No provider schema/data, production credential, frontend feature or application routing change was made by that hardening work.
 
 ## API capability containment completed — #361 / PR #362
 
@@ -138,31 +141,36 @@ Provider-evidenced launch collections remain `products`, `producers`, `categorie
 
 Key rules remain:
 
+- launch scope is beer-only unless repository authority explicitly changes it;
 - products classify through `product_category_id`;
 - current producer relationship is `products.producer_id` only;
 - bonus mappings use `bonus_attributes_id`;
 - cellar sharing version uses `series_version_id`;
 - persistent `profiles` and `product_producers` are **UNAVAILABLE**;
 - active rating submission uses only current exported backend fields;
-- durable idempotency/workflow fields tracked by **#165** remain `DEFERRED_TARGET` and `/ratings/reconcile` remains unavailable until that provider migration is verified.
+- durable idempotency/workflow fields tracked by **#165** are proposed/not-yet-deployed and `/ratings/reconcile` remains unavailable until that provider migration is verified.
 
 ## Catalogue remediation boundary
 
-The deterministic catalogue workflow has already materialised **193 governed human decision tasks** covering the known source blockers. Do not auto-fill producer/category mappings, category-cycle decisions, duplicate ordering, removals or edits. Corrections require explicit decisions and independent review before any candidate catalogue or provider mutation can be treated as accepted.
+The deterministic catalogue workflow has materialised **193 governed human decision tasks** covering known source blockers. Do not auto-fill producer/category mappings, category-cycle decisions, duplicate ordering, removals or edits. Corrections require explicit decisions and independent review before any candidate catalogue or provider mutation can be treated as accepted.
+
+Real producer/brewery routes and links may use only producer relationships verified from current provider/source data. Missing or zero attribution must remain unresolved rather than inferred.
 
 ## Destructive connected-write rule
 
-Do not run rating create/delete or cellar CRUD certification against a real connected environment unless the run is explicitly authorised for cleanup-guarded test writes. Exact-record cleanup must be verified. Failure to prove cleanup remains a material blocker and must not be converted into a pass.
+Do not run rating create/delete, cellar CRUD certification, provider schema mutation, constraint creation or provider backfill against a real connected environment unless the action is explicitly authorised and appropriate cleanup/restore safeguards are evidenced. Exact-record cleanup must be verified for test writes. Failure to prove cleanup or restoration remains a material blocker and must not be converted into a pass.
 
 ## Next dependency-correct work
 
-1. Complete #225 authenticated catalogue and profile smoke evidence when a protected session is executable.
-2. Complete #225 historical provider credential rotation/invalidation evidence.
-3. Continue independent launch-quality/security work while those external evidence dependencies remain unavailable.
-4. Activate #165 provider migration/idempotency work only after #225 is sufficiently resolved.
-5. Follow with #144 backend/provider certification and backend-dependent #154 completion evidence.
-6. Keep catalogue remediation decisions explicit and independently reviewed; do not fabricate the 193 pending decisions.
+1. Progress #165 only up to the provider/irreversible migration boundary; evidence the required schema/constraint semantics, safe backfill and backup/restore mechanism without mutating provider data.
+2. When a complete migration plan is evidenced, obtain explicit approval before destructive/irreversible provider schema or data changes.
+3. Keep `/ratings/reconcile` unavailable until the migration is deployed and verified.
+4. After #165, complete #144 backend/provider certification.
+5. Continue safe independent launch work while #165 is blocked, prioritising verified producer/brewery routes and links and further advanced rating representation without fabricating relationships.
+6. Complete backend-dependent #154 catalogue certification when its upstream requirements are satisfied.
+7. Finish full launch hardening and exact-production certification.
+8. Keep catalogue remediation decisions explicit and independently reviewed; do not fabricate the 193 pending decisions.
 
 ## Completion rule
 
-Do not mark Phase 3 or Pourfolio complete until launch journeys match deployed capabilities, connected provider/runtime evidence is sufficient, owner/security boundaries are enforced, canonical validation passes, catalogue decisions are governed, and the exact production release is certified. GitHub Actions remain supporting diagnostics rather than duplicate acceptance authority.
+Do not mark Phase 3 or Pourfolio complete until launch journeys match deployed capabilities, connected provider/runtime evidence is sufficient, owner/security boundaries are enforced, canonical validation passes, catalogue decisions are governed, rating idempotency is truthfully represented, and the exact production release is certified. GitHub Actions remain supporting diagnostics rather than duplicate acceptance authority.
