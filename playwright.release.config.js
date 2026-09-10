@@ -1,10 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
+import { parseReleaseBaseUrl } from './release-check/releaseTarget.js'
 
-const baseURL = process.env.RELEASE_BASE_URL
-
-if (!baseURL || !/^https:\/\//i.test(baseURL)) {
-  throw new Error('RELEASE_BASE_URL must be the HTTPS URL of the staging release candidate.')
-}
+const baseURL = parseReleaseBaseUrl(process.env.RELEASE_BASE_URL)
 
 export default defineConfig({
   testDir: './release-check',
