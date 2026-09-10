@@ -3,12 +3,29 @@ import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import authHandler, { __testables as authProxy } from '../auth-proxy.js'
 import { pathSegments as dataRouterPathSegments, __testables as dataRouter } from '../data-router.js'
+import internalNotFoundHandler from '../internal-not-found.js'
+
+const INTERNAL_DATA_HANDLER_PATHS = [
+  '/api/catalog-data-proxy',
+  '/api/cellar-data-proxy',
+  '/api/current-data-proxy',
+  '/api/profile-data-proxy',
+  '/api/data-proxy'
+]
 
 const loadVercelConfiguration = async () => JSON.parse(
   await readFile(new URL('../../vercel.json', import.meta.url), 'utf8')
 )
 
 const matchRewrite = (rewrite, pathname, query = {}) => {
+  if (rewrite.source === pathname) {
+    const destination = new URL(rewrite.destination, 'https://pourfolio.test')
+    return {
+      destination: destination.pathname,
+      query: { ...query, ...Object.fromEntries(destination.searchParams.entries()) }
+    }
+  }
+
   const wildcardMarker = '/:path*'
   if (rewrite.source.endsWith(wildcardMarker)) {
     const prefix = rewrite.source.slice(0, -wildcardMarker.length)
@@ -70,7 +87,7 @@ test('Vercel routes public catch-all paths to flat proxy entrypoints before the 
     'production configuration must leave the Brew Done It policy flag unset'
   )
 
-  assert.deepEqual(configuration.rewrites.slice(0, 3), [
+  assert.deepEqual(configuration.rewrites.slice(0, 2), [
     {
       source: '/api/nocodebackend/auth/:path*',
       destination: '/api/auth-proxy?path=:path*'
@@ -78,14 +95,12 @@ test('Vercel routes public catch-all paths to flat proxy entrypoints before the 
     {
       source: '/api/nocodebackend/:path*',
       destination: '/api/data-router?path=:path*'
-    },
-    {
-      source: '/((?!api(?:/|$)).*)',
-      destination: '/index.html'
     }
   ])
 
-  const [authRewrite, dataRewrite, spaFallback] = configuration.rewrites
+  const authRewrite = configuration.rewrites[0]
+  const dataRewrite = configuration.rewrites[1]
+  const spaFallback = configuration.rewrites.at(-1)
   assert.ok(configuration.rewrites.indexOf(authRewrite) < configuration.rewrites.indexOf(dataRewrite))
   assert.ok(configuration.rewrites.indexOf(dataRewrite) < configuration.rewrites.indexOf(spaFallback))
 
@@ -124,6 +139,37 @@ test('Vercel wildcard captures are explicitly forwarded while unrelated query va
       assert.deepEqual(dataRouterPathSegments({ query: resolved.query }), expectedPath.split('/'))
     }
   }
+})
+
+test('direct internal data implementation URLs are contained before file-based function routing', async () => {
+  const { rewrites } = await loadVercelConfiguration()
+
+  for (const pathname of INTERNAL_DATA_HANDLER_PATHS) {
+    const resolved = resolveRewrite(rewrites, pathname, { path: 'profile', arbitrary: 'value' })
+    assert.deepEqual(resolved, {
+      destination: '/api/internal-not-found',
+      query: { path: 'profile', arbitrary: 'value' }
+    })
+  }
+
+  const response = createResponse()
+  internalNotFoundHandler({ method: 'PUT', query: { path: 'profile' } }, response)
+  assert.equal(response.statusCode, 404)
+  assert.equal(response.headers['Cache-Control'], 'no-store')
+  assert.deepEqual(response.body, { error: 'Application data route not found.' })
+})
+
+test('canonical application paths remain distinct from contained implementation URLs', async () => {
+  const { rewrites } = await loadVercelConfiguration()
+
+  const profile = resolveRewrite(rewrites, '/api/nocodebackend/profile', {})
+  assert.deepEqual(profile, { destination: '/api/data-router', query: { path: 'profile' } })
+
+  const ratings = resolveRewrite(rewrites, '/api/nocodebackend/ratings/mine', {})
+  assert.deepEqual(ratings, { destination: '/api/data-router', query: { path: 'ratings/mine' } })
+
+  const brewDoneIt = resolveRewrite(rewrites, '/api/nocodebackend/brew-done-it/stats', {})
+  assert.deepEqual(brewDoneIt, { destination: '/api/data-router', query: { path: 'brew-done-it/stats' } })
 })
 
 test('schema-aware data router owns launch resources and only delegates the game surface to legacy code', () => {
