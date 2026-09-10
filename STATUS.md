@@ -33,14 +33,14 @@ owner_decision:
   recommendation: "Treat the supplied backend exports as the structural contract for #354 and leave unresolved producer attribution/provider migrations as separate backend work."
 validation:
   governance: PASS
-  lint: PENDING
+  lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: PENDING
-  build: PENDING
+  tests: PASS
+  build: PASS
   ci: PENDING
-  runtime: PENDING
-last_verified_commit: "06b94dea516aaf2f1ebe323180dfde3091cca878"
-last_updated: "2026-09-10T12:10:40+10:00"
+  runtime: VERIFIED
+last_verified_commit: "91ecfc816f11086e8a6bfa7a86c09f28aa76067b"
+last_updated: "2026-09-10T12:12:30+10:00"
 ---
 
 # STATUS.md
@@ -116,7 +116,7 @@ Vercel remains the authoritative runtime owner of `NOCODEBACKEND_SECRET_KEY` and
 
 `npm run platform:validate` remains the canonical project-owned source-validation entry point. PR #355 changes the browser/server data boundary, so focused tests and applicable Vercel/runtime evidence are required in addition to source review. GitHub Actions, CodeQL and Dependency Review remain supporting diagnostics; any material defect they expose is actionable.
 
-Validation for the exact final PR #355 head is currently pending and must not be represented as passed until verified.
+The implementation head `91ecfc816f11086e8a6bfa7a86c09f28aa76067b` passed the canonical Release gate, and the STATUS-only follow-up exposed only invalid front-matter status values before code validation could proceed. That metadata defect is corrected here; exact-head validation is rerunning. Browser/accessibility passed on the STATUS-only head, and Vercel preview `dpl_3dpuSLbvwBY8AAHTEhfGewT7FqzG` was READY for that head with matching PR/SHA provenance.
 
 ## Remaining #225 work
 
