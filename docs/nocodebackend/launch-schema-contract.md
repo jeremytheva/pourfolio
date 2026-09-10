@@ -30,6 +30,7 @@ These labels do **not** claim fresh live schema introspection. Connected behavio
 | `rating_scores` | DEPLOYED_REQUIRED | Normalised component scores for a rating. |
 | `bonus_attribute_rating_mapping` | DEPLOYED_OPTIONAL | Normalised optional bonus selections. |
 | `cellar` | DEPLOYED_REQUIRED | Owner-private cellar CRUD. |
+| `product_producers` | UNAVAILABLE | No junction collection is present in the supplied backend export; launch uses `products.producer_id`. |
 | `profiles` | UNAVAILABLE | No deployed persistence collection is evidenced; profile read remains session-backed and update fails explicitly. |
 
 Prototype/game/account-lifecycle target collections are outside this launch classification unless separately activated by an approved delivery.
@@ -60,7 +61,9 @@ The application must tolerate legitimate absence of optional catalogue enrichmen
 
 The collections themselves are DEPLOYED_REQUIRED for the launch catalogue. Service validators may require stable identifiers on returned rows while treating non-key descriptive/enrichment fields according to the detailed schema mapping and observed response contracts.
 
-Collaboration attribution must never use a sentinel producer ID such as `0`. Where the current provider representation cannot safely encode all producers, preserve the gap as a data-model/schema issue rather than fabricating a relationship.
+The deployed producer relationship is `products.producer_id -> producers.id`. The supplied backend export contains no `product_producers` junction table, so launch code must not query one. Response compatibility may expose both a singular `producer` and a `producers` array, but the array can contain only the single producer evidenced by `producer_id`.
+
+Collaboration attribution must never use a sentinel producer ID such as `0`. A zero or missing `producer_id` remains unresolved rather than being converted into fabricated producer data. A future multi-producer relationship requires governed provider migration and verification before the launch path can depend on it.
 
 ## Rating read/write contract
 
@@ -155,11 +158,8 @@ DEPLOYED_OPTIONAL writable fields evidenced by the supplied cellar schema/export
 - `gift_from`
 - `bet_id`
 - `notes`
-- `status`
-- `quantity_acquired`
-- `date_consumed`
-- `acquisition_type`
-- `historical_import`
+
+The supplied backend table does **not** contain the previously documented fields `status`, `quantity_acquired`, `date_consumed`, `acquisition_type` or `historical_import`. They are UNAVAILABLE for the current launch contract and must not cross the browser write boundary or be fabricated in API projections.
 
 `date_received` may be omitted on create because the server supplies the current date when absent. All other optional fields must remain optional even where a particular UI chooses to require or default a value.
 
@@ -167,7 +167,7 @@ DEPLOYED_OPTIONAL writable fields evidenced by the supplied cellar schema/export
 
 The browser service projects create/update bodies through this allowlist before sending them. The server gateway independently repeats allowlisting, type/range/date normalisation, relationship validation and owner enforcement; browser projection is a contract-drift control, not a security boundary.
 
-Any field not listed above—including `user_id`, `series_edition_id` and arbitrary caller keys—must not cross the browser cellar write boundary. Adding a new cellar write field requires provider evidence plus coordinated updates to this classification, `CELLAR_EDITABLE_FIELDS`, browser projection, gateway sanitisation and boundary tests.
+Any field not listed above—including `user_id`, `secret_key`, `series_edition_id`, the unavailable lifecycle fields and arbitrary caller keys—must not cross the browser cellar write boundary. Adding a new cellar write field requires provider evidence plus coordinated updates to this classification, `CELLAR_EDITABLE_FIELDS`, browser projection, gateway sanitisation and boundary tests.
 
 ## Profile capability
 
