@@ -133,7 +133,6 @@ function BeerDetails() {
   }
 
   const category = product.declared_category || product.category?.category_name || 'Beer'
-  const producer = product.producer?.producer_name || 'Producer not recorded'
   const cellarSaving = cellarStatus === 'saving'
 
   return (
@@ -153,7 +152,15 @@ function BeerDetails() {
           <div className="p-6 sm:p-8">
             <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">{category}</p>
             <h1 ref={productHeadingRef} tabIndex={-1} className="mt-2 rounded-sm text-4xl font-bold text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2">{product.product_name}</h1>
-            <p className="mt-2 text-lg text-gray-600">{producer}</p>
+            {product.producer ? (
+              <p className="mt-2 text-lg text-gray-600">
+                <Link to={`/breweries/${product.producer.id}`} className="font-medium underline decoration-gray-300 underline-offset-4 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
+                  {product.producer.producer_name}
+                </Link>
+              </p>
+            ) : (
+              <p className="mt-2 text-lg text-gray-600">Producer not recorded</p>
+            )}
 
             <dl className="mt-8 grid grid-cols-2 gap-4 rounded-xl bg-gray-50 p-5">
               <div>
