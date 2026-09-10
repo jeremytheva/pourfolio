@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { installMockApi } from './mockApi.js'
+import { installMockApi, product } from './mockApi.js'
 
 const routes = ['/home', '/products/4', '/products/4/rate', '/breweries/20', '/cellar', '/profile']
 const publicDocumentRoutes = ['/privacy', '/terms', '/moderation', '/support', '/retention']
@@ -81,6 +81,47 @@ test('/search announces an empty result without moving keyboard focus from the q
   await expect(page.getByText('Try a shorter product, producer or style name.')).toBeVisible()
   await expect(page.locator('section[aria-labelledby="product-results-heading"]')).toHaveAttribute('aria-busy', 'false')
   await expect(page.getByRole('link', { name: /Ace/ })).toHaveCount(0)
+})
+
+test('/home pagination moves focus to the named results region and exposes current-page state', async ({ page }) => {
+  await installMockApi(page)
+  const firstPage = Array.from({ length: 24 }, (_, index) => ({
+    ...product,
+    id: index + 1,
+    product_name: `Beer ${index + 1}`
+  }))
+  const secondPage = [{ ...product, id: 25, product_name: 'Beer 25' }]
+
+  await page.route('**/api/nocodebackend/catalog/products?**', async (route) => {
+    const url = new URL(route.request().url())
+    const requestedPage = Number(url.searchParams.get('page'))
+    if (![1, 2].includes(requestedPage)) return route.fallback()
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items: requestedPage === 1 ? firstPage : secondPage,
+        page: requestedPage,
+        pageSize: 24,
+        total: 25,
+        totalPages: 2
+      })
+    })
+  })
+
+  await page.goto('/home')
+  await expect(page.getByText('25 products found')).toBeVisible()
+  await expect(page.getByText('Page 1 of 2')).toHaveAttribute('aria-current', 'page')
+
+  await page.getByRole('button', { name: 'Next product page, page 2' }).click()
+
+  const resultsHeading = page.getByRole('heading', { name: 'Product results' })
+  await expect(resultsHeading).toBeFocused()
+  await expect(page.getByText('Page 2 of 2')).toHaveAttribute('aria-current', 'page')
+  await expect(page.getByRole('link', { name: /Beer 25/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Next product page, page 2' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Previous product page, page 1' })).toBeEnabled()
 })
 
 for (const route of routes) {
