@@ -3,7 +3,6 @@ import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import authHandler, { __testables as authProxy } from '../auth-proxy.js'
 import { pathSegments as dataRouterPathSegments, __testables as dataRouter } from '../data-router.js'
-import internalNotFoundHandler from '../internal-not-found.js'
 
 const INTERNAL_DATA_HANDLER_PATHS = [
   '/api/catalog-data-proxy',
@@ -17,46 +16,29 @@ const loadVercelConfiguration = async () => JSON.parse(
   await readFile(new URL('../../vercel.json', import.meta.url), 'utf8')
 )
 
-const matchRewrite = (rewrite, pathname, query = {}) => {
-  if (rewrite.source === pathname) {
-    const destination = new URL(rewrite.destination, 'https://pourfolio.test')
-    return {
-      destination: destination.pathname,
-      query: { ...query, ...Object.fromEntries(destination.searchParams.entries()) }
-    }
+const matchRoute = (route, pathname, query = {}) => {
+  if (!route.src) return null
+  const match = pathname.match(new RegExp(`^${route.src}$`))
+  if (!match) return null
+
+  if (route.status) return { status: route.status, query: { ...query } }
+  if (!route.dest) return { continue: Boolean(route.continue), query: { ...query } }
+
+  const destination = route.dest.replace(/\$(\d+)/g, (_token, index) => match[Number(index)] || '')
+  const url = new URL(destination, 'https://pourfolio.test')
+  return {
+    destination: url.pathname,
+    query: { ...query, ...Object.fromEntries(url.searchParams.entries()) }
   }
-
-  const wildcardMarker = '/:path*'
-  if (rewrite.source.endsWith(wildcardMarker)) {
-    const prefix = rewrite.source.slice(0, -wildcardMarker.length)
-    if (pathname === prefix || pathname.startsWith(`${prefix}/`)) {
-      const capture = pathname.slice(prefix.length).replace(/^\//, '')
-      const destination = new URL(rewrite.destination, 'https://pourfolio.test')
-      const rewrittenQuery = { ...query }
-
-      for (const [key, value] of destination.searchParams.entries()) {
-        rewrittenQuery[key] = value === ':path*' ? capture : value
-      }
-
-      return {
-        destination: destination.pathname,
-        query: rewrittenQuery
-      }
-    }
-  }
-
-  const fallbackPattern = rewrite.source === '/((?!api(?:/|$)).*)'
-    ? /^\/(?!api(?:\/|$)).*$/
-    : null
-  return fallbackPattern?.test(pathname)
-    ? { destination: rewrite.destination, query: { ...query } }
-    : null
 }
 
-const resolveRewrite = (rewrites, pathname, query) => {
-  for (const rewrite of rewrites) {
-    const match = matchRewrite(rewrite, pathname, query)
-    if (match) return match
+const resolveRoute = (routes, pathname, query = {}) => {
+  for (const route of routes) {
+    if (route.handle === 'filesystem') return { handle: 'filesystem' }
+    const matched = matchRoute(route, pathname, query)
+    if (!matched) continue
+    if (route.continue) continue
+    return matched
   }
   return null
 }
@@ -78,7 +60,7 @@ const createResponse = () => ({
   }
 })
 
-test('Vercel routes public catch-all paths to flat proxy entrypoints before the SPA fallback', async () => {
+test('Vercel route order contains internal handlers before filesystem resolution and preserves canonical dispatch', async () => {
   const configuration = await loadVercelConfiguration()
 
   assert.equal(
@@ -86,31 +68,39 @@ test('Vercel routes public catch-all paths to flat proxy entrypoints before the 
     false,
     'production configuration must leave the Brew Done It policy flag unset'
   )
+  assert.equal(configuration.rewrites, undefined)
+  assert.equal(configuration.headers, undefined)
 
-  assert.deepEqual(configuration.rewrites.slice(0, 2), [
-    {
-      source: '/api/nocodebackend/auth/:path*',
-      destination: '/api/auth-proxy?path=:path*'
-    },
-    {
-      source: '/api/nocodebackend/:path*',
-      destination: '/api/data-router?path=:path*'
-    }
-  ])
+  const [securityHeaders, assetHeaders, internalDeny, authRoute, dataRoute, filesystem, spaFallback] = configuration.routes
 
-  const authRewrite = configuration.rewrites[0]
-  const dataRewrite = configuration.rewrites[1]
-  const spaFallback = configuration.rewrites.at(-1)
-  assert.ok(configuration.rewrites.indexOf(authRewrite) < configuration.rewrites.indexOf(dataRewrite))
-  assert.ok(configuration.rewrites.indexOf(dataRewrite) < configuration.rewrites.indexOf(spaFallback))
+  assert.equal(securityHeaders.src, '/(.*)')
+  assert.equal(securityHeaders.continue, true)
+  assert.equal(securityHeaders.headers['X-Content-Type-Options'], 'nosniff')
+  assert.equal(assetHeaders.src, '/assets/(.*)')
+  assert.equal(assetHeaders.continue, true)
+  assert.equal(assetHeaders.headers['Cache-Control'], 'public, max-age=31536000, immutable')
 
+  assert.equal(internalDeny.status, 404)
+  assert.equal(authRoute.src, '/api/nocodebackend/auth/(.*)')
+  assert.equal(authRoute.dest, '/api/auth-proxy?path=$1')
+  assert.equal(dataRoute.src, '/api/nocodebackend/(.*)')
+  assert.equal(dataRoute.dest, '/api/data-router?path=$1')
+  assert.deepEqual(filesystem, { handle: 'filesystem' })
+  assert.equal(spaFallback.dest, '/index.html')
+
+  assert.ok(configuration.routes.indexOf(internalDeny) < configuration.routes.indexOf(filesystem))
+  assert.ok(configuration.routes.indexOf(authRoute) < configuration.routes.indexOf(filesystem))
+  assert.ok(configuration.routes.indexOf(dataRoute) < configuration.routes.indexOf(filesystem))
+  assert.ok(configuration.routes.indexOf(filesystem) < configuration.routes.indexOf(spaFallback))
+
+  const spaPattern = new RegExp(`^${spaFallback.src}$`)
   for (const apiPath of ['/api', '/api/', '/api/health', '/api/anything/nested']) {
-    assert.equal(matchRewrite(spaFallback, apiPath), null, `${apiPath} must not reach the SPA`)
+    assert.equal(spaPattern.test(apiPath), false, `${apiPath} must not reach the SPA`)
   }
 })
 
-test('Vercel wildcard captures are explicitly forwarded while unrelated query values are preserved', async () => {
-  const { rewrites } = await loadVercelConfiguration()
+test('canonical route captures are explicitly forwarded while unrelated query values are preserved', async () => {
+  const { routes } = await loadVercelConfiguration()
   const cases = [
     ['/api/nocodebackend/auth/sign-up/email', '/api/auth-proxy', 'sign-up/email'],
     ['/api/nocodebackend/auth/sign-in/email', '/api/auth-proxy', 'sign-in/email'],
@@ -126,7 +116,7 @@ test('Vercel wildcard captures are explicitly forwarded while unrelated query va
   }
 
   for (const [pathname, destination, expectedPath] of cases) {
-    const resolved = resolveRewrite(rewrites, pathname, originalQuery)
+    const resolved = resolveRoute(routes, pathname, originalQuery)
     assert.equal(resolved.destination, destination)
     assert.equal(resolved.query.path, expectedPath)
     assert.deepEqual(Object.fromEntries(
@@ -141,34 +131,29 @@ test('Vercel wildcard captures are explicitly forwarded while unrelated query va
   }
 })
 
-test('direct internal data implementation URLs are contained before file-based function routing', async () => {
-  const { rewrites } = await loadVercelConfiguration()
+test('direct internal data implementation URLs receive 404 before filesystem routing', async () => {
+  const { routes } = await loadVercConfiguration()
 
   for (const pathname of INTERNAL_DATA_HANDLER_PATHS) {
-    const resolved = resolveRewrite(rewrites, pathname, { path: 'profile', arbitrary: 'value' })
-    assert.deepEqual(resolved, {
-      destination: '/api/internal-not-found',
-      query: { path: 'profile', arbitrary: 'value' }
+    assert.deepEqual(resolveRoute(routes, pathname, { arbitrary: 'value' }), {
+      status: 404,
+      query: { arbitrary: 'value' }
     })
+    assert.deepEqual(resolveRoute(routes, `${pathname}.js`, {}), { status: 404, query: {} })
+    assert.deepEqual(resolveRoute(routes, `${pathname}/`, {}), { status: 404, query: {} })
   }
-
-  const response = createResponse()
-  internalNotFoundHandler({ method: 'PUT', query: { path: 'profile' } }, response)
-  assert.equal(response.statusCode, 404)
-  assert.equal(response.headers['Cache-Control'], 'no-store')
-  assert.deepEqual(response.body, { error: 'Application data route not found.' })
 })
 
 test('canonical application paths remain distinct from contained implementation URLs', async () => {
-  const { rewrites } = await loadVercelConfiguration()
+  const { routes } = await loadVercelConfiguration()
 
-  const profile = resolveRewrite(rewrites, '/api/nocodebackend/profile', {})
+  const profile = resolveRoute(routes, '/api/nocodebackend/profile', {})
   assert.deepEqual(profile, { destination: '/api/data-router', query: { path: 'profile' } })
 
-  const ratings = resolveRewrite(rewrites, '/api/nocodebackend/ratings/mine', {})
+  const ratings = resolveRoute(routes, '/api/nocodebackend/ratings/mine', {})
   assert.deepEqual(ratings, { destination: '/api/data-router', query: { path: 'ratings/mine' } })
 
-  const brewDoneIt = resolveRewrite(rewrites, '/api/nocodebackend/brew-done-it/stats', {})
+  const brewDoneIt = resolveRoute(routes, '/api/nocodebackend/brew-done-it/stats', {})
   assert.deepEqual(brewDoneIt, { destination: '/api/data-router', query: { path: 'brew-done-it/stats' } })
 })
 
