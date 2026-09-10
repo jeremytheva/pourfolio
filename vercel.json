@@ -10,6 +10,26 @@
       "destination": "/api/data-router?path=:path*"
     },
     {
+      "source": "/api/catalog-data-proxy",
+      "destination": "/api/internal-not-found"
+    },
+    {
+      "source": "/api/cellar-data-proxy",
+      "destination": "/api/internal-not-found"
+    },
+    {
+      "source": "/api/current-data-proxy",
+      "destination": "/api/internal-not-found"
+    },
+    {
+      "source": "/api/profile-data-proxy",
+      "destination": "/api/internal-not-found"
+    },
+    {
+      "source": "/api/data-proxy",
+      "destination": "/api/internal-not-found"
+    },
+    {
       "source": "/((?!api(?:/|$)).*)",
       "destination": "/index.html"
     }
