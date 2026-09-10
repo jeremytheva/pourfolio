@@ -25,7 +25,6 @@ jobs:
     if: github.event.action != 'closed'
     permissions:
       issues: write
-      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - name: Synchronise lifecycle label
