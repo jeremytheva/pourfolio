@@ -2,12 +2,13 @@ import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import { requiredEnvironment, responseJson, signIn, signOut } from './support.js'
 
-const credentials = requiredEnvironment([
+const ownerCredentials = requiredEnvironment([
   'RELEASE_OWNER_EMAIL',
-  'RELEASE_OWNER_PASSWORD',
-  'RELEASE_OTHER_EMAIL',
-  'RELEASE_OTHER_PASSWORD'
+  'RELEASE_OWNER_PASSWORD'
 ])
+
+const DESTRUCTIVE_CONFIRMATION = 'RUN CLEANUP-GUARDED RELEASE WRITES'
+const destructiveEnabled = process.env.RELEASE_DESTRUCTIVE_CONFIRMATION === DESTRUCTIVE_CONFIRMATION
 
 test.describe.configure({ mode: 'serial' })
 
@@ -69,7 +70,7 @@ test('provider discovery, sign-up, password sign-in, OTP, Google and logout', as
     if (/\/home$/.test(page.url())) await signOut(page)
   }
 
-  await signIn(page, credentials.RELEASE_OWNER_EMAIL, credentials.RELEASE_OWNER_PASSWORD)
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
   await signOut(page)
 
   if (/otp|magic.?link|email.?code/.test(providers)) {
@@ -91,8 +92,8 @@ test('provider discovery, sign-up, password sign-in, OTP, Google and logout', as
   }
 })
 
-test('catalogue, pagination, direct details, rating boundaries and history deletion', async ({ page }) => {
-  await signIn(page, credentials.RELEASE_OWNER_EMAIL, credentials.RELEASE_OWNER_PASSWORD)
+test('catalogue, pagination, direct details, rating form boundary and session-backed profile read', async ({ page }) => {
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
   await page.goto('/search')
   await expect(page.getByLabel('Search products, producers or styles')).toBeFocused()
   await page.getByLabel('Search products, producers or styles').fill(process.env.RELEASE_SEARCH_TERM || 'beer')
@@ -112,61 +113,97 @@ test('catalogue, pagination, direct details, rating boundaries and history delet
   await scores.first().selectOption('1')
   await page.getByRole('button', { name: 'Submit rating' }).click()
   await expect(page.getByRole('alert')).toContainText('Score every applicable attribute')
-  for (let index = 0; index < await scores.count(); index += 1) {
-    await scores.nth(index).selectOption(index % 2 ? '7' : '1')
-  }
-  await page.getByRole('button', { name: 'Submit rating' }).click()
-  await expect(page).toHaveURL(new RegExp(`${productPath}$`))
-  await page.goto('/profile')
-  await expect(page.getByRole('heading', { name: 'My ratings' })).toBeVisible()
-  page.once('dialog', (dialog) => dialog.accept())
-  await page.getByRole('button', { name: /Delete rating/ }).first().click()
+
+  const profileResponse = await page.request.get('/api/nocodebackend/profile')
+  expect(profileResponse.status()).toBe(200)
+  const profile = await responseJson(profileResponse)
+  expect(profile.profile?.id).toBeTruthy()
+
+  const profileUpdate = await page.request.put('/api/nocodebackend/profile', { data: { name: 'Release check must not persist' } })
+  expect(profileUpdate.status()).toBe(503)
+  expect(await responseJson(profileUpdate)).toMatchObject({ code: 'profile_persistence_unavailable' })
 })
 
-test('cellar CRUD, profile allowlist and cross-account ownership boundaries', async ({ browser, page }) => {
-  await signIn(page, credentials.RELEASE_OWNER_EMAIL, credentials.RELEASE_OWNER_PASSWORD)
+test('rating create/history/delete uses exact cleanup identity', async ({ page }) => {
+  test.skip(!destructiveEnabled, `Requires RELEASE_DESTRUCTIVE_CONFIRMATION=${DESTRUCTIVE_CONFIRMATION}`)
+
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
+  const catalogue = await responseJson(await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1'))
+  const product = catalogue.items[0]
+  expect(product?.id).toBeTruthy()
+
+  const before = await responseJson(await page.request.get('/api/nocodebackend/ratings/mine'))
+  const beforeIds = new Set((before.items || []).map(({ id }) => String(id)))
+  let createdRatingId = null
+
+  try {
+    await page.goto(`/products/${product.id}/rate`)
+    const scores = page.getByRole('combobox')
+    for (let index = 0; index < await scores.count(); index += 1) {
+      await scores.nth(index).selectOption(index % 2 ? '7' : '1')
+    }
+    await page.getByRole('button', { name: 'Submit rating' }).click()
+    await expect(page).toHaveURL(new RegExp(`/products/${product.id}$`))
+
+    const after = await responseJson(await page.request.get('/api/nocodebackend/ratings/mine'))
+    const created = (after.items || []).filter(({ id }) => !beforeIds.has(String(id)))
+    expect(created).toHaveLength(1)
+    createdRatingId = created[0].id
+    expect(created[0].product_id).toBe(product.id)
+  } finally {
+    if (createdRatingId) {
+      const cleanup = await page.request.delete(`/api/nocodebackend/ratings/${encodeURIComponent(createdRatingId)}`)
+      expect(cleanup.ok(), 'release rating cleanup must succeed').toBeTruthy()
+    }
+  }
+})
+
+test('cellar CRUD and cross-account ownership boundaries use guaranteed cleanup', async ({ browser, page }) => {
+  test.skip(!destructiveEnabled, `Requires RELEASE_DESTRUCTIVE_CONFIRMATION=${DESTRUCTIVE_CONFIRMATION}`)
+  const otherCredentials = requiredEnvironment(['RELEASE_OTHER_EMAIL', 'RELEASE_OTHER_PASSWORD'])
+
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
   const catalogue = await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1')
   const product = (await responseJson(catalogue)).items[0]
   expect(product?.id).toBeTruthy()
 
-  const created = await page.request.post('/api/nocodebackend/cellar', { data: {
-    product_id: product.id, quantity: 1, container: 'release-check', notes: 'redacted automated evidence'
-  } })
-  expect(created.status()).toBe(201)
-  const cellarItem = (await responseJson(created)).item
-  const updated = await page.request.put(`/api/nocodebackend/cellar/${cellarItem.id}`, { data: { quantity: 2, notes: 'release-check updated' } })
-  expect(updated.ok()).toBeTruthy()
+  let cellarItemId = null
+  try {
+    const created = await page.request.post('/api/nocodebackend/cellar', { data: {
+      product_id: product.id, quantity: 1, container: 'release-check', notes: 'redacted automated evidence'
+    } })
+    expect(created.status()).toBe(201)
+    const cellarItem = (await responseJson(created)).item
+    cellarItemId = cellarItem.id
 
-  const profileBefore = await responseJson(await page.request.get('/api/nocodebackend/profile'))
-  const sessionBefore = await responseJson(await page.request.get('/api/nocodebackend/auth/get-session'))
-  const injected = await page.request.put('/api/nocodebackend/profile', { data: {
-    name: 'Release Owner', description: 'Connected release check', email: 'injected@example.invalid',
-    role: 'admin', user_id: 'other-user', id: '999999'
-  } })
-  expect(injected.ok()).toBeTruthy()
-  const profileAfter = await responseJson(await page.request.get('/api/nocodebackend/profile'))
-  const sessionAfter = await responseJson(await page.request.get('/api/nocodebackend/auth/get-session'))
-  expect(profileAfter.profile.id).toBe(profileBefore.profile.id)
-  expect(JSON.stringify(profileAfter)).not.toContain('injected@example.invalid')
-  expect(JSON.stringify(profileAfter)).not.toContain('other-user')
-  expect(JSON.stringify(profileAfter)).not.toContain('admin')
-  expect(sessionAfter).toEqual(sessionBefore)
+    const updated = await page.request.put(`/api/nocodebackend/cellar/${cellarItemId}`, { data: { quantity: 2, notes: 'release-check updated' } })
+    expect(updated.ok()).toBeTruthy()
 
-  const otherContext = await browser.newContext()
-  const otherPage = await otherContext.newPage()
-  await signIn(otherPage, credentials.RELEASE_OTHER_EMAIL, credentials.RELEASE_OTHER_PASSWORD)
-  expect([403, 404]).toContain((await otherPage.request.get(`/api/nocodebackend/cellar/${cellarItem.id}`)).status())
-  expect((await otherPage.request.put(`/api/nocodebackend/cellar/${cellarItem.id}`, { data: { quantity: 99 } })).status()).toBe(403)
-  expect((await otherPage.request.delete(`/api/nocodebackend/cellar/${cellarItem.id}`)).status()).toBe(403)
-  const otherCellar = await responseJson(await otherPage.request.get('/api/nocodebackend/cellar'))
-  expect(otherCellar.items.map(({ id }) => String(id))).not.toContain(String(cellarItem.id))
-  await otherContext.close()
+    const ownerCellar = await responseJson(await page.request.get('/api/nocodebackend/cellar'))
+    expect(ownerCellar.items.map(({ id }) => String(id))).toContain(String(cellarItemId))
 
-  expect((await page.request.delete(`/api/nocodebackend/cellar/${cellarItem.id}`)).ok()).toBeTruthy()
+    const otherContext = await browser.newContext()
+    try {
+      const otherPage = await otherContext.newPage()
+      await signIn(otherPage, otherCredentials.RELEASE_OTHER_EMAIL, otherCredentials.RELEASE_OTHER_PASSWORD)
+      expect([403, 404]).toContain((await otherPage.request.get(`/api/nocodebackend/cellar/${cellarItemId}`)).status())
+      expect((await otherPage.request.put(`/api/nocodebackend/cellar/${cellarItemId}`, { data: { quantity: 99 } })).status()).toBe(403)
+      expect((await otherPage.request.delete(`/api/nocodebackend/cellar/${cellarItemId}`)).status()).toBe(403)
+      const otherCellar = await responseJson(await otherPage.request.get('/api/nocodebackend/cellar'))
+      expect(otherCellar.items.map(({ id }) => String(id))).not.toContain(String(cellarItemId))
+    } finally {
+      await otherContext.close()
+    }
+  } finally {
+    if (cellarItemId) {
+      const cleanup = await page.request.delete(`/api/nocodebackend/cellar/${cellarItemId}`)
+      expect(cleanup.ok(), 'release cellar cleanup must succeed').toBeTruthy()
+    }
+  }
 })
 
 test('expired session returns every protected direct route to sign-in', async ({ page }) => {
-  await signIn(page, credentials.RELEASE_OWNER_EMAIL, credentials.RELEASE_OWNER_PASSWORD)
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
   await page.context().clearCookies()
   for (const path of ['/home', '/search', '/cellar', '/profile']) {
     await page.goto(path)
@@ -175,7 +212,7 @@ test('expired session returns every protected direct route to sign-in', async ({
 })
 
 test('axe has no serious or critical violations on every reachable launch page', async ({ page }) => {
-  await signIn(page, credentials.RELEASE_OWNER_EMAIL, credentials.RELEASE_OWNER_PASSWORD)
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
   const catalogue = await responseJson(await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1'))
   const productId = catalogue.items[0].id
   const paths = ['/home', '/search', `/products/${productId}`, `/products/${productId}/rate`, '/cellar', '/profile']
