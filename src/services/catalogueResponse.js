@@ -11,6 +11,7 @@ const PRODUCT_KEYS = new Set([
 ])
 const DETAIL_KEYS = new Set([...PRODUCT_KEYS, 'ratingSummary', 'ratingInsights', 'ratings'])
 const PRODUCER_KEYS = new Set(['id', 'producer_name', 'address', 'suburb_id'])
+const PRODUCER_DETAIL_KEYS = new Set(['producer', 'products'])
 const CATEGORY_KEYS = new Set(['id', 'category_name', 'parent_id'])
 const RATING_SUMMARY_KEYS = new Set(['count', 'average'])
 const RATING_INSIGHTS_KEYS = new Set(['distribution', 'attributes'])
@@ -176,5 +177,19 @@ export const validateCatalogueProduct = (payload, { expectedProductId } = {}) =>
   const product = validateProduct(payload, { detail: true })
   if (expectedProductId !== undefined && !sameId(product.id, validateStableId(expectedProductId))) invalid()
   return product
+})
+export const validateCatalogueProducer = (payload, { expectedProducerId } = {}) => validate(() => {
+  const detail = readDataProperties(payload, PRODUCER_DETAIL_KEYS, ['producer', 'products'])
+  const producer = validateProducer(detail.producer)
+  if (!producer || (expectedProducerId !== undefined && !sameId(producer.id, validateStableId(expectedProducerId)))) invalid()
+  if (!Array.isArray(detail.products)) invalid()
+  const products = detail.products.map((item) => validateProduct(item))
+  const identifiers = new Set(products.map((product) => String(product.id)))
+  if (identifiers.size !== products.length) invalid()
+  for (const product of products) {
+    if (product.producer_id === null || product.producer_id === undefined || !sameId(product.producer_id, producer.id)) invalid()
+    if (!product.producer || !sameId(product.producer.id, producer.id)) invalid()
+  }
+  return { producer, products }
 })
 export const CATALOGUE_RESPONSE_ERROR = Object.freeze({ message: INVALID_CATALOGUE_MESSAGE, code: INVALID_CATALOGUE_CODE })
