@@ -5,6 +5,15 @@ test.beforeEach(async ({ page }) => {
   await installMockApi(page)
 })
 
+const completeRatingDeck = async (page) => {
+  await page.getByRole('button', { name: 'Appearance: 1 out of 7' }).click()
+  await expect(page.getByRole('heading', { name: 'Aroma', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Aroma: 7 out of 7' }).click()
+  await expect(page.getByRole('heading', { name: 'Bonus attributes', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await expect(page.getByRole('heading', { name: 'Review your rating', level: 2 })).toBeFocused()
+}
+
 test('catalogue to product to rating uses stable IDs and accepts score 1', async ({ page }) => {
   let submitted = null
   await page.route('**/api/nocodebackend/ratings/submit', async (route) => {
@@ -22,8 +31,7 @@ test('catalogue to product to rating uses stable IDs and accepts score 1', async
   await expect(page).toHaveURL(/\/products\/4$/)
   await page.getByRole('link', { name: 'Rate this beer' }).click()
 
-  await page.getByRole('combobox', { name: /Appearance/ }).selectOption('1')
-  await page.getByRole('combobox', { name: /Aroma/ }).selectOption('7')
+  await completeRatingDeck(page)
   await expect(page.getByText('4 / 7').first()).toBeVisible()
   await page.getByRole('button', { name: 'Submit rating' }).click()
 
@@ -53,11 +61,11 @@ test('rating form exposes accessible guidance, busy state and focused submission
 
   const scoreGroup = page.getByRole('group', { name: 'Applicable attributes' })
   await expect(scoreGroup).toHaveAttribute('aria-describedby', 'rating-required-help')
-  await expect(page.getByRole('combobox', { name: /Appearance/ })).toHaveAttribute('aria-describedby', 'score-2-weight rating-required-help')
-  await expect(page.locator('section[role="status"]')).toHaveAttribute('aria-atomic', 'true')
+  await expect(page.getByRole('slider', { name: 'Appearance score' })).toHaveAttribute('aria-describedby', 'score-2-weight rating-required-help')
+  await expect(page.getByRole('button', { name: 'Next' })).toBeDisabled()
 
-  await page.getByRole('combobox', { name: /Appearance/ }).selectOption('1')
-  await page.getByRole('combobox', { name: /Aroma/ }).selectOption('7')
+  await completeRatingDeck(page)
+  await expect(page.locator('section[role="status"]')).toHaveAttribute('aria-atomic', 'true')
   await expect(page.getByText('4 / 7').first()).toBeVisible()
 
   await page.getByRole('button', { name: 'Submit rating' }).click()
