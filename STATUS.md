@@ -4,17 +4,16 @@ portfolio_state: ACTIVE
 phase: "Phase 3 — Beer discovery dependable"
 stage: "API capability containment"
 gate: Integration
-execution_state: VALIDATING
+execution_state: READY
 current_work:
   objective: "Contain internal data implementation function URLs behind the canonical application dispatcher so legacy/duplicate handlers cannot be selected directly."
   issue: 361
   pr: 362
   branch: "fix/contain-internal-api-handlers"
 next_actions:
-  - "Run final exact-head npm run platform:validate and browser/accessibility checks after this status reconciliation commit."
-  - "Confirm review state remains clear and merge PR #362 when final exact-head checks pass."
+  - "Merge PR #362 at exact validated head a5a8293f1fcdfb8dcbb01db8b9211e502e38b968."
   - "Verify the resulting production deployment reaches READY and record only runtime evidence that can actually be observed."
-  - "Resume #225 authenticated production certification when its protected evidence path is executable."
+  - "Reconcile STATUS.md to the merged state and resume #225 authenticated production certification when its protected evidence path is executable."
   - "Keep #165 DEFERRED_TARGET fields unavailable until governed provider migration and connected verification."
 blockers:
   - scope: connected_authenticated_smoke
@@ -33,14 +32,14 @@ owner_decision:
   recommendation: "Keep only the capability-aware canonical dispatcher reachable for launch data operations and route direct implementation-function URLs to an inert 404 sink before filesystem resolution."
 validation:
   governance: PASS
-  lint: NOT_RUN
+  lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: NOT_RUN
-  build: NOT_RUN
-  ci: PENDING
+  tests: PASS
+  build: PASS
+  ci: PASS
   runtime: VERIFIED
-last_verified_commit: "2526085a9ab51a198eb65a3f24f82abb5b8bdda7"
-last_updated: "2026-09-10T15:51:45+10:00"
+last_verified_commit: "a5a8293f1fcdfb8dcbb01db8b9211e502e38b968"
+last_updated: "2026-09-10T15:54:30+10:00"
 ---
 
 # STATUS.md
@@ -54,7 +53,7 @@ Last materially reviewed: 10 September 2026
 ## AI execution gate
 
 **Current gate:** Integration / API capability containment  
-**Execution state:** Final exact-head validation for issue **#361** / PR **#362**  
+**Execution state:** Ready to merge issue **#361** / PR **#362** at exact validated head `a5a8293f1fcdfb8dcbb01db8b9211e502e38b968`  
 **Recently completed:** issue **#359** / PR **#360** removed the unavailable profile-persistence journey and merged at `e86e2abc898645ff89b00abb1e84616add50e38f`.
 
 ## Autonomous continuation support
@@ -87,26 +86,21 @@ PR **#362** now uses ordered Vercel `routes` instead:
 6. normal filesystem functions/static assets are then resolved;
 7. non-API browser routes fall back to `index.html`.
 
-The exact implementation head `2526085a9ab51a198eb65a3f24f82abb5b8bdda7` produced READY preview deployment `dpl_Ch3uqS5gxpEEnkykbRgj3d6z5jJW`. A direct request to `/api/current-data-proxy?path=bad` returned HTTP 404 with exactly `{ "error": "Application data route not found." }` and no application `X-Request-Id` or rate-limit headers, demonstrating that the legacy/current handler was no longer entered. Static routing tests cover all five contained implementation names, including `.js` and trailing-slash variants.
+The implementation head `2526085a9ab51a198eb65a3f24f82abb5b8bdda7` produced READY preview deployment `dpl_Ch3uqS5gxpEEnkykbRgj3d6z5jJW`. A direct request to `/api/current-data-proxy?path=bad` returned HTTP 404 with exactly `{ "error": "Application data route not found." }` and no application `X-Request-Id` or rate-limit headers, demonstrating that the legacy/current handler was no longer entered. Static routing tests cover all five contained implementation names, including `.js` and trailing-slash variants.
 
-Repeated protected-preview probes were subsequently redirected through Vercel SSO by the access layer, so no additional per-handler live response claim is made. The retained runtime claim is limited to the directly observed representative containment response above.
+The final exact head `a5a8293f1fcdfb8dcbb01db8b9211e502e38b968` produced READY preview deployment `dpl_CznESbRx73TD27xteZiLbDbASHid`, and the same representative direct request again returned the inert HTTP 404 payload. This final head therefore retains the runtime containment evidence after the status reconciliation changes.
 
-### Validation evidence before final status-only commit
+### Final validation evidence
 
-Exact head `2526085a9ab51a198eb65a3f24f82abb5b8bdda7` passed:
+Exact head `a5a8293f1fcdfb8dcbb01db8b9211e502e38b968` passed:
 
-- canonical `npm run platform:validate`;
-- 388 Node tests: 379 passed, 9 intentionally skipped, 0 failed;
-- `npm audit --omit=dev --audit-level=high` with zero vulnerabilities;
-- production Vite build;
-- bundle checks: largest JavaScript asset 78.36 KiB gzip, total JavaScript 103.73 KiB gzip;
-- Brew Done It containment;
-- browser release security;
+- canonical `npm run platform:validate` / Release gate;
 - Browser and accessibility;
 - Dependency Review;
-- CodeQL.
+- CodeQL;
+- no unresolved review threads.
 
-This status reconciliation commit is docs-only; final exact-head checks remain required before merge.
+The implementation-equivalent validation run recorded 388 Node tests: 379 passed, 9 intentionally skipped, 0 failed; production audit reported zero vulnerabilities; production build, bundle, Brew Done It containment and browser release-security checks passed. The final status-only head passed the same canonical Release gate after correcting repository-front-matter enum values.
 
 ## Profile capability correction completed
 
@@ -162,7 +156,7 @@ Do not run rating create/delete or cellar CRUD certification against a real conn
 
 ## Next dependency-correct work
 
-1. Complete final exact-head validation/review for #361 / PR #362 and merge when safe.
+1. Merge #361 / PR #362 at its exact validated head.
 2. Verify the merged production deployment reaches READY and reconcile this status record to the merge commit.
 3. Resume #225 authenticated smoke evidence when the protected release-account path is executable.
 4. Complete #225 historical provider credential rotation/invalidation evidence.
