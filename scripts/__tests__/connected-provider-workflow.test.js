@@ -3,10 +3,11 @@ import fs from 'node:fs'
 import test from 'node:test'
 import { checkProviderContractTranscript } from '../check-provider-contract-transcript.js'
 
-test('connected provider workflows keep runtime instance configuration outside the repository', () => {
+test('connected provider workflows keep production provider configuration owned by the deployed runtime', () => {
   const providerWorkflow = fs.readFileSync('.github/workflows/connected-provider-contract.yml', 'utf8')
   const releaseWorkflow = fs.readFileSync('.github/workflows/connected-release-check.yml', 'utf8')
   const repositoryValuePattern = /NOCODEBACKEND_INSTANCE:\s+(?!\$\{\{)/
+
   assert.match(providerWorkflow, /workflow_dispatch:/)
   assert.match(providerWorkflow, /environment: staging-release/)
   assert.match(providerWorkflow, /ref: \$\{\{ inputs\.release_sha \}\}/)
@@ -16,13 +17,18 @@ test('connected provider workflows keep runtime instance configuration outside t
   assert.match(providerWorkflow, /NOCODEBACKEND_CONTRACT_ALLOW_DESTRUCTIVE: "1"/)
   assert.match(providerWorkflow, /NOCODEBACKEND_DATA_BASE_URL: https:\/\/api\.nocodebackend\.com\//)
   assert.match(providerWorkflow, /NOCODEBACKEND_INSTANCE: \$\{\{ vars\.NOCODEBACKEND_INSTANCE \}\}/)
-  assert.match(releaseWorkflow, /NOCODEBACKEND_INSTANCE: \$\{\{ vars\.NOCODEBACKEND_INSTANCE \}\}/)
   assert.doesNotMatch(providerWorkflow, repositoryValuePattern)
-  assert.doesNotMatch(releaseWorkflow, repositoryValuePattern)
   assert.match(providerWorkflow, /redacted-transcript\.json/)
   assert.match(providerWorkflow, /check:provider-contract-transcript/)
   assert.match(providerWorkflow, /if-no-files-found: error/)
   assert.doesNotMatch(providerWorkflow, /pull_request:|push:/)
+
+  assert.match(releaseWorkflow, /RELEASE_BASE_URL: \$\{\{ inputs\.release_url \}\}/)
+  assert.match(releaseWorkflow, /RELEASE_SHA: \$\{\{ inputs\.release_sha \}\}/)
+  assert.doesNotMatch(releaseWorkflow, /NOCODEBACKEND_SECRET_KEY/)
+  assert.doesNotMatch(releaseWorkflow, /NOCODEBACKEND_INSTANCE/)
+  assert.doesNotMatch(releaseWorkflow, /test:provider-smoke/)
+  assert.doesNotMatch(releaseWorkflow, repositoryValuePattern)
 })
 
 test('provider transcript checker requires cleanup and rejects sensitive values', () => {
