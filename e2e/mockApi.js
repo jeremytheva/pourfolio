@@ -86,6 +86,15 @@ export const installMockApi = async (page) => {
     })
   }))
 
+  await page.route('**/api/nocodebackend/catalog/producers/20', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      producer: { id: 20, producer_name: 'Rocky Ridge Brewing', address: '', suburb_id: 9567 },
+      products: [product]
+    })
+  }))
+
   await page.route('**/api/nocodebackend/rating-form?**', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',

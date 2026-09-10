@@ -172,6 +172,24 @@ const getProduct = async (id, response) => {
   })
 }
 
+const getProducer = async (id, response) => {
+  const producerId = parsePositiveId(id, 'Producer identifier')
+  const producer = await dataProvider.get(COLLECTIONS.producers, producerId)
+  if (!producer) {
+    response.status(404).json({ error: 'Producer not found.' })
+    return
+  }
+
+  const relatedProducts = await safeRelationshipList(COLLECTIONS.products, { producer_id: producerId })
+  const exactProducts = relatedProducts.filter((product) => String(product.producer_id ?? '') === producerId)
+  const products = await hydrateProducts(exactProducts)
+
+  response.status(200).json({
+    producer: projectProducer(producer),
+    products: products.filter((product) => product.producer && String(product.producer.id) === producerId)
+  })
+}
+
 const getRatingForm = async (request, response) => {
   const productId = parsePositiveId(request.query?.product_id, 'Product identifier')
   const product = await dataProvider.get(COLLECTIONS.products, productId)
@@ -195,6 +213,7 @@ export const routeCatalogueRequest = async (request, response) => {
   const [resource, id, action] = pathSegments(request)
   if (resource === 'catalog' && id === 'products' && !action) return listProducts(request, response)
   if (resource === 'catalog' && id === 'products' && action) return getProduct(action, response)
+  if (resource === 'catalog' && id === 'producers' && action) return getProducer(action, response)
   if (resource === 'rating-form' && !id) return getRatingForm(request, response)
   response.status(404).json({ error: 'Application data route not found.' })
 }
@@ -229,4 +248,4 @@ export default async function handler(request, response) {
   }
 }
 
-export const __testables = { hydrateProducts, safeRelationshipList, buildRatingInsights }
+export const __testables = { hydrateProducts, safeRelationshipList, buildRatingInsights, getProducer }
