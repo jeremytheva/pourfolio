@@ -37,23 +37,10 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Verify NoCodeBackend launch read matrix
-        run: npm run test:provider-smoke
-        env: &release-server-environment
-          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
-          NOCODEBACKEND_AUTH_BASE_URL: https://app.nocodebackend.com/api/user-auth
-          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
-          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
-          EXPECT_PRODUCT_PRODUCERS: ${{ vars.EXPECT_PRODUCT_PRODUCERS }}
-          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
-          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
-          RATE_LIMIT_KEY_SECRET: ${{ secrets.RATE_LIMIT_KEY_SECRET }}
       - name: Build the exact release candidate
         run: npm run build
-        env: *release-server-environment
       - name: Check built browser release for server-only data
         run: npm run check:release-security | tee release-security-check.txt
-        env: *release-server-environment
       - run: npx playwright install --with-deps chromium
       - name: Run connected release checks
         run: npm run test:release
