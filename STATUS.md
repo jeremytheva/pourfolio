@@ -6,7 +6,7 @@ stage: "Rating idempotency provider migration"
 gate: Integration
 execution_state: BLOCKED
 current_work:
-  objective: "Complete #165 durable rating idempotency/schema capability up to the irreversible provider migration boundary, while continuing safe independent launch work when that boundary cannot progress."
+  objective: "Complete #165 durable rating idempotency/schema capability up to the irreversible provider migration boundary, while continuing safe independent launch-hardening work when that boundary cannot progress."
   issue: 165
   pr: null
   branch: null
@@ -14,7 +14,7 @@ next_actions:
   - "Evidence the provider-supported schema/constraint, backup, restore and safe-backfill mechanism required by #165 before any provider mutation."
   - "Do not enable /ratings/reconcile until the #165 provider migration is deployed and verified."
   - "After #165, complete #144 backend/provider certification and then backend-dependent #154 catalogue completion evidence."
-  - "Continue independent launch-scoped work that does not require destructive provider changes or fabricated catalogue decisions while #165 remains blocked."
+  - "While #165 remains blocked, continue independent beer-only launch hardening that does not require destructive provider changes, fabricated catalogue decisions or weakened certification gates."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
@@ -34,8 +34,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "52ec6af81a08902571bf574deb2884b19201fe8e"
-last_updated: "2026-09-11T06:53:00+10:00"
+last_verified_commit: "a053797b493ef4747b167efef3bf847ddd81ce92"
+last_updated: "2026-09-11T07:52:00+10:00"
 ---
 
 # STATUS.md
@@ -60,7 +60,7 @@ Continue the highest-priority dependency-correct launch work that can safely be 
 
 Do not reopen provider routing or frontend/backend URL changes without new contradictory runtime evidence. Provider authorization, authenticated catalogue/profile evidence and credential hygiene have been completed. Do not weaken schema or cleanup gates to make #165 appear complete.
 
-When #165 cannot progress because the provider-supported migration/backfill/backup/restore mechanism or explicit migration approval is unavailable, continue independent launch-scoped reliability, accessibility and product work that does not mutate provider schema/data, fabricate catalogue relationships or bypass certification boundaries.
+When #165 cannot progress because the provider-supported migration/backfill/backup/restore mechanism or explicit migration approval is unavailable, continue independent launch-scoped reliability, accessibility, security and product-hardening work that does not mutate provider schema/data, fabricate catalogue relationships or bypass certification boundaries.
 
 ## Production provider certification completed — #225, #381 and #382
 
@@ -80,7 +80,7 @@ Authoritative provider evidence includes:
 
 Issue **#381** identified auth-rate-budget exhaustion caused by repeated connected-release sign-ins. PR **#382** corrected the harness without weakening the production rate limiter by reusing established authenticated storage state, eliminating the redundant sign-in, disabling serial-suite retry amplification and isolating expired-session coverage.
 
-PR **#382** merged as exact main `52ec6af81a08902571bf574deb2884b19201fe8e`. A subsequent non-destructive production `/release-certify` run **34475738160** completed successfully on that exact production revision, including the final launch-page accessibility checks. This is the current exact-production certification baseline recorded by project authority.
+PR **#382** merged as exact main `52ec6af81a08902571bf574deb2884b19201fe8e`. A subsequent non-destructive production `/release-certify` run **34475738160** completed successfully on that exact production revision, including the final launch-page accessibility checks. This remains the latest completed exact-production certification baseline unless a newer production certification is explicitly recorded.
 
 No provider schema/data mutation was required for this certification work.
 
@@ -97,13 +97,17 @@ Until the migration is deployed and verified:
 
 The remaining #165 work is therefore active P1 work but **blocked at an irreversible provider boundary**, not deferred behind #225.
 
-## Recent launch product work — #384 and #385
+## Recent launch product work — #384, #385, #388 and #390
 
 PR **#384** completed the accessible swipeable rating-card experience with the 1–7 sliding/tap scale, automatic progression, Back/Next navigation and review-before-submit flow.
 
 PR **#386**, closing **#385**, merged at `d227c59c048c6e80f87da5add8c16572b96b40a9`. It added privacy-preserving product rating insights: aggregate 1–7 distributions, aggregate attribute averages/counts, strict client response validation and an accessible community-rating presentation. Individual rating IDs, user IDs, dates, notes and per-rating score rows remain excluded from the public catalogue response.
 
-Exact-head acceptance for PR #386 passed canonical `npm run platform:validate`, all 69 Browser/accessibility tests, Dependency Review and CodeQL, with an exact-head Vercel preview reporting success and zero unresolved review threads.
+PR **#389**, closing **#388**, merged at `7c3f1476f854d0f9865b4d2358c049304d5e0ea4`. It replaced fabricated brewery/profile content with a verified beer-only producer route using only the deployed `products.producer_id -> producers.id` relationship. Product-to-brewery links appear only for validated relationships; missing/zero attribution remains unresolved rather than inferred. Exact-head canonical validation, all 74 Browser/accessibility tests, Dependency Review, CodeQL and Vercel preview evidence passed with zero unresolved review threads.
+
+PR **#391**, closing **#390**, merged at `a053797b493ef4747b167efef3bf847ddd81ce92`. It added privacy-safe signed-in-user versus community product rating comparison using the existing owner-scoped `/ratings/mine` capability. Multiple own ratings are represented as an explicit average/count, invalid or out-of-range totals are excluded, personal-history failure does not make community product detail unavailable, and community distributions/attribute aggregates remain non-identifying. Validation also corrected the UI to distinguish `personal rating(s)` from community `rating(s)`.
+
+Exact-head acceptance for PR #391 at `1501da54d559342b926b74882e8767b64f73103f` passed canonical repository validation, Browser/accessibility, Dependency Review, CodeQL and Vercel status with zero unresolved review threads.
 
 ## Connected release credential hardening completed — #365 / PR #366
 
@@ -154,7 +158,7 @@ Key rules remain:
 
 The deterministic catalogue workflow has materialised **193 governed human decision tasks** covering known source blockers. Do not auto-fill producer/category mappings, category-cycle decisions, duplicate ordering, removals or edits. Corrections require explicit decisions and independent review before any candidate catalogue or provider mutation can be treated as accepted.
 
-Real producer/brewery routes and links may use only producer relationships verified from current provider/source data. Missing or zero attribution must remain unresolved rather than inferred.
+Real producer/brewery routes and links use only producer relationships verified from current provider/source data. Missing or zero attribution must remain unresolved rather than inferred.
 
 ## Destructive connected-write rule
 
@@ -166,7 +170,7 @@ Do not run rating create/delete, cellar CRUD certification, provider schema muta
 2. When a complete migration plan is evidenced, obtain explicit approval before destructive/irreversible provider schema or data changes.
 3. Keep `/ratings/reconcile` unavailable until the migration is deployed and verified.
 4. After #165, complete #144 backend/provider certification.
-5. Continue safe independent launch work while #165 is blocked, prioritising verified producer/brewery routes and links and further advanced rating representation without fabricating relationships.
+5. While #165 remains blocked, continue independent beer-only launch hardening, reliability, accessibility and security work that does not fabricate catalogue decisions or require destructive connected writes.
 6. Complete backend-dependent #154 catalogue certification when its upstream requirements are satisfied.
 7. Finish full launch hardening and exact-production certification.
 8. Keep catalogue remediation decisions explicit and independently reviewed; do not fabricate the 193 pending decisions.
