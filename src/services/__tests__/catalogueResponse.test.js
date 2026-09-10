@@ -44,9 +44,26 @@ const page = {
   totalPages: 1
 }
 
+const ratingInsights = {
+  distribution: [
+    { score: 1, count: 0 },
+    { score: 2, count: 0 },
+    { score: 3, count: 0 },
+    { score: 4, count: 1 },
+    { score: 5, count: 1 },
+    { score: 6, count: 0 },
+    { score: 7, count: 0 }
+  ],
+  attributes: [
+    { attributeId: 2, name: 'Appearance', average: 4.5, count: 2 },
+    { attributeId: '3', name: 'Aroma', average: 5, count: 1 }
+  ]
+}
+
 const detail = {
   ...product,
   ratingSummary: { count: 2, average: 4.75 },
+  ratingInsights,
   ratings: []
 }
 
@@ -190,11 +207,28 @@ test('validates aggregate-only product details and canonicalises an omitted rati
   assert.deepEqual(result, detail)
   assert.equal(Object.isFrozen(result), true)
   assert.equal(Object.isFrozen(result.ratingSummary), true)
+  assert.equal(Object.isFrozen(result.ratingInsights), true)
+  assert.equal(Object.isFrozen(result.ratingInsights.distribution), true)
+  assert.equal(Object.isFrozen(result.ratingInsights.attributes), true)
   assert.equal(Object.isFrozen(result.ratings), true)
   assert.deepEqual(withoutRatings, {
     ...product,
-    ratingSummary: { count: 2, average: 4.75 }
+    ratingSummary: { count: 2, average: 4.75 },
+    ratingInsights
   })
+})
+
+test('accepts an honest zero-rating aggregate state', () => {
+  const zeroDetail = {
+    ...product,
+    ratingSummary: { count: 0, average: null },
+    ratingInsights: {
+      distribution: Array.from({ length: 7 }, (_, index) => ({ score: index + 1, count: 0 })),
+      attributes: []
+    },
+    ratings: []
+  }
+  assert.deepEqual(validateCatalogueProduct(zeroDetail), zeroDetail)
 })
 
 test('binds a successful product detail to the requested stable identifier', () => {
@@ -213,6 +247,15 @@ test('rejects malformed aggregates and individual rating records from public det
     { ...detail, ratingSummary: { count: 1, average: 0 } },
     { ...detail, ratingSummary: { count: 1, average: 8 } },
     { ...detail, ratingSummary: { count: 1, average: Number.NaN } },
+    { ...detail, ratingInsights: null },
+    { ...detail, ratingInsights: { distribution: [], attributes: [] } },
+    { ...detail, ratingInsights: { ...ratingInsights, distribution: ratingInsights.distribution.slice(0, 6) } },
+    { ...detail, ratingInsights: { ...ratingInsights, distribution: ratingInsights.distribution.map((bucket, index) => index === 0 ? { ...bucket, score: 7 } : bucket) } },
+    { ...detail, ratingInsights: { ...ratingInsights, distribution: ratingInsights.distribution.map((bucket, index) => index === 0 ? { ...bucket, count: 1 } : bucket) } },
+    { ...detail, ratingInsights: { ...ratingInsights, attributes: [{ attributeId: 2, name: 'Appearance', average: 0, count: 2 }] } },
+    { ...detail, ratingInsights: { ...ratingInsights, attributes: [{ attributeId: 2, name: 'Appearance', average: 4, count: 3 }] } },
+    { ...detail, ratingInsights: { ...ratingInsights, attributes: [{ attributeId: 2, name: 'Appearance', average: 4, count: 1 }, { attributeId: '2', name: 'Duplicate', average: 5, count: 1 }] } },
+    { ...detail, ratingInsights: { ...ratingInsights, privateRatings: [{ userId: 'private-owner-id' }] } },
     { ...detail, ratings: [{ id: 'private-rating-id', cellar_id: 'private-cellar-id' }] },
     { ...detail, user_id: 'private-owner-id' }
   ]
