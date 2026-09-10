@@ -11,6 +11,10 @@ on:
         description: Full commit SHA deployed to staging
         required: true
         type: string
+      destructive_confirmation:
+        description: Optional exact confirmation for cleanup-guarded rating/cellar write checks
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -32,6 +36,11 @@ jobs:
         run: test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
         env:
           RELEASE_SHA: ${{ inputs.release_sha }}
+      - name: Validate optional destructive confirmation
+        if: ${{ inputs.destructive_confirmation != '' }}
+        run: test "$RELEASE_DESTRUCTIVE_CONFIRMATION" = 'RUN CLEANUP-GUARDED RELEASE WRITES'
+        env:
+          RELEASE_DESTRUCTIVE_CONFIRMATION: ${{ inputs.destructive_confirmation }}
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -56,6 +65,7 @@ jobs:
           RELEASE_OTP_EMAIL: ${{ secrets.RELEASE_OTP_EMAIL }}
           RELEASE_OTP_CODE: ${{ secrets.RELEASE_OTP_CODE }}
           RELEASE_SEARCH_TERM: ${{ vars.RELEASE_SEARCH_TERM }}
+          RELEASE_DESTRUCTIVE_CONFIRMATION: ${{ inputs.destructive_confirmation }}
       - name: Retain redacted evidence
         if: always()
         uses: actions/upload-artifact@v7
