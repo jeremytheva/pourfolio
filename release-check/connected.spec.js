@@ -11,6 +11,7 @@ const DESTRUCTIVE_CONFIRMATION = 'RUN CLEANUP-GUARDED RELEASE WRITES'
 const destructiveEnabled = process.env.RELEASE_DESTRUCTIVE_CONFIRMATION === DESTRUCTIVE_CONFIRMATION
 const REDIRECT_STATUSES = [302, 303, 307, 308]
 const SAFE_REJECTION_STATUSES = [400, 403, 404]
+let authenticatedStorageState = null
 
 const isCatalogueResponse = (response, { page, query = null }) => {
   if (!response.ok()) return false
@@ -20,7 +21,7 @@ const isCatalogueResponse = (response, { page, query = null }) => {
   return query === null ? !url.searchParams.has('q') : url.searchParams.get('q') === query
 }
 
-test.describe.configure({ mode: 'serial' })
+test.describe.configure({ mode: 'serial', retries: 0 })
 
 test('host health, headers, SPA fallback and rejected redirects', async ({ page, request }) => {
   const health = await request.get('/api/health')
@@ -168,6 +169,8 @@ test('catalogue, pagination, direct details, rating form boundary and session-ba
   const profileUpdate = await page.request.put('/api/nocodebackend/profile', { data: { name: 'Release check must not persist' } })
   expect(profileUpdate.status()).toBe(503)
   expect(await responseJson(profileUpdate)).toMatchObject({ code: 'profile_persistence_unavailable' })
+
+  authenticatedStorageState = await page.context().storageState()
 })
 
 test('rating create/history/delete uses exact cleanup identity', async ({ page }) => {
@@ -257,18 +260,25 @@ test('expired session returns every protected direct route to sign-in', async ({
   }
 })
 
-test('axe has no serious or critical violations on every reachable launch page', async ({ page }) => {
-  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
-  const catalogue = await responseJson(await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1'))
-  const productId = catalogue.items[0].id
-  const paths = ['/home', '/search', `/products/${productId}`, `/products/${productId}/rate`, '/cellar', '/profile']
-  for (const path of paths) {
-    await page.goto(path)
-    await expect(page.locator('main, h1').first()).toBeVisible()
-    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).exclude('[data-release-check-exclude]').analyze()
-    expect(results.violations.filter(({ impact }) => ['serious', 'critical'].includes(impact)), `axe violations on ${path}`).toEqual([])
+test('axe has no serious or critical violations on every reachable launch page', async ({ browser }) => {
+  expect(authenticatedStorageState).toBeTruthy()
+  const context = await browser.newContext({ storageState: authenticatedStorageState })
+  const page = await context.newPage()
+
+  try {
+    const catalogue = await responseJson(await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1'))
+    const productId = catalogue.items[0].id
+    const paths = ['/home', '/search', `/products/${productId}`, `/products/${productId}/rate`, '/cellar', '/profile']
+    for (const path of paths) {
+      await page.goto(path)
+      await expect(page.locator('main, h1').first()).toBeVisible()
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).exclude('[data-release-check-exclude]').analyze()
+      expect(results.violations.filter(({ impact }) => ['serious', 'critical'].includes(impact)), `axe violations on ${path}`).toEqual([])
+    }
+    await signOut(page)
+    const loginResults = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()
+    expect(loginResults.violations.filter(({ impact }) => ['serious', 'critical'].includes(impact))).toEqual([])
+  } finally {
+    await context.close()
   }
-  await signOut(page)
-  const loginResults = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()
-  expect(loginResults.violations.filter(({ impact }) => ['serious', 'critical'].includes(impact))).toEqual([])
 })
