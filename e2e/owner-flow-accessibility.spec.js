@@ -66,36 +66,20 @@ test('successful cellar edit restores focus to the persistent edit control', asy
   await expect(edit).toBeFocused()
 })
 
-test('profile save exposes busy state and focuses failed mutation feedback', async ({ page }) => {
-  let releaseSave
-  const saveGate = new Promise((resolve) => { releaseSave = resolve })
-
-  await page.route('**/api/nocodebackend/profile', async (route) => {
-    if (route.request().method() !== 'PUT') return route.fallback()
-    await saveGate
-    await route.fulfill({
-      status: 503,
-      contentType: 'application/json',
-      body: JSON.stringify({ error: 'Profile save unavailable.' })
-    })
+test('profile read-only capability is announced without exposing mutation controls', async ({ page }) => {
+  let profilePutRequests = 0
+  page.on('request', (request) => {
+    if (request.url().includes('/api/nocodebackend/profile') && request.method() === 'PUT') profilePutRequests += 1
   })
 
   await page.goto('/profile')
-  await page.getByLabel('Display name').fill('Jeremy Updated')
-  await page.getByRole('button', { name: 'Save profile' }).click()
 
-  const profileForm = page.locator('section[aria-labelledby="profile-details"] form')
-  const savingButton = page.getByRole('button', { name: 'Saving…' })
-  await expect(profileForm).toHaveAttribute('aria-busy', 'true')
-  await expect(savingButton).toHaveAttribute('aria-busy', 'true')
-  await expect(savingButton).toBeDisabled()
-
-  releaseSave()
-
-  const alert = page.getByRole('alert')
-  await expect(alert).toContainText('Profile save unavailable.')
-  await expect(alert).toBeFocused()
-  await expect(profileForm).toHaveAttribute('aria-busy', 'false')
+  const profileSection = page.locator('section[aria-labelledby="profile-details"]')
+  await expect(profileSection.getByText('Profile editing is not available yet.')).toBeVisible()
+  await expect(profileSection.getByText(/authenticated session/)).toBeVisible()
+  await expect(profileSection.getByRole('textbox')).toHaveCount(0)
+  await expect(profileSection.getByRole('button', { name: /save/i })).toHaveCount(0)
+  expect(profilePutRequests).toBe(0)
 })
 
 test('profile rating history load failure has a focused retry path that recovers', async ({ page }) => {
