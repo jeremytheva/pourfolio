@@ -22,6 +22,22 @@ const rating = {
   total_weighted: 4
 }
 
+const ratingInsights = {
+  distribution: [
+    { score: 1, count: 0 },
+    { score: 2, count: 0 },
+    { score: 3, count: 0 },
+    { score: 4, count: 1 },
+    { score: 5, count: 0 },
+    { score: 6, count: 0 },
+    { score: 7, count: 0 }
+  ],
+  attributes: [
+    { attributeId: 2, name: 'Appearance', average: 4, count: 1 },
+    { attributeId: 3, name: 'Aroma', average: 4, count: 1 }
+  ]
+}
+
 export const installMockApi = async (page) => {
   let brewRound = null
   let brewGame = null
@@ -65,6 +81,7 @@ export const installMockApi = async (page) => {
     body: JSON.stringify({
       ...product,
       ratingSummary: { count: 1, average: 4 },
+      ratingInsights,
       ratings: []
     })
   }))

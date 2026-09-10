@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useState } from 'react'
 import { FiArrowLeft, FiPackage, FiRefreshCw, FiStar, FiX } from 'react-icons/fi'
 import { Link, useParams } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
+import ProductRatingInsights from '../components/ProductRatingInsights.jsx'
 import { beverageService } from '../services/beverageService.js'
 import { cellarService } from '../services/cellarService.js'
-import { formatDate } from '../utils/dateFormatting.js'
 
 const FALLBACK_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540%3E%3Crect width="960" height="540" fill="%23fef3c7"/%3E%3Ctext x="480" y="285" text-anchor="middle" font-family="sans-serif" font-size="64" fill="%2392400e"%3EPourfolio%3C/text%3E%3C/svg%3E'
 
@@ -134,7 +134,6 @@ function BeerDetails() {
 
   const category = product.declared_category || product.category?.category_name || 'Beer'
   const producer = product.producer?.producer_name || 'Producer not recorded'
-  const ratings = Array.isArray(product.ratings) ? product.ratings : []
   const cellarSaving = cellarStatus === 'saving'
 
   return (
@@ -252,21 +251,7 @@ function BeerDetails() {
         </section>
       )}
 
-      <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="recent-ratings">
-        <h2 id="recent-ratings" className="text-2xl font-semibold text-gray-900">Recent ratings</h2>
-        {ratings.length === 0 ? (
-          <p className="mt-3 text-gray-600">No ratings yet. Be the first to rate this product.</p>
-        ) : (
-          <ul className="mt-4 divide-y divide-gray-200">
-            {ratings.map((rating) => (
-              <li key={rating.id} className="flex flex-wrap items-center justify-between gap-2 py-4">
-                <span className="text-lg font-semibold text-amber-800">{rating.total_weighted} / 7</span>
-                <span className="text-sm text-gray-500">{formatDate(rating.date_rated)}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <ProductRatingInsights summary={product.ratingSummary} insights={product.ratingInsights} />
     </div>
   )
 }

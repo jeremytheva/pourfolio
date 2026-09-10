@@ -13,6 +13,18 @@ test('product details preserve a valid zero IBU value', async ({ page }) => {
       ...product,
       ibu: 0,
       ratingSummary: { count: 1, average: 4 },
+      ratingInsights: {
+        distribution: [
+          { score: 1, count: 0 },
+          { score: 2, count: 0 },
+          { score: 3, count: 0 },
+          { score: 4, count: 1 },
+          { score: 5, count: 0 },
+          { score: 6, count: 0 },
+          { score: 7, count: 0 }
+        ],
+        attributes: []
+      },
       ratings: []
     })
   }))

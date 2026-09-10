@@ -14,6 +14,19 @@ const completeRatingDeck = async (page) => {
   await expect(page.getByRole('heading', { name: 'Review your rating', level: 2 })).toBeFocused()
 }
 
+const oneRatingInsights = {
+  distribution: [
+    { score: 1, count: 0 },
+    { score: 2, count: 0 },
+    { score: 3, count: 0 },
+    { score: 4, count: 1 },
+    { score: 5, count: 0 },
+    { score: 6, count: 0 },
+    { score: 7, count: 0 }
+  ],
+  attributes: []
+}
+
 test('catalogue to product to rating uses stable IDs and accepts score 1', async ({ page }) => {
   let submitted = null
   await page.route('**/api/nocodebackend/ratings/submit', async (route) => {
@@ -89,14 +102,17 @@ test('product details render an aggregate-only rating response', async ({ page }
     contentType: 'application/json',
     body: JSON.stringify({
       ...product,
-      ratingSummary: { count: 1, average: 4 }
+      ratingSummary: { count: 1, average: 4 },
+      ratingInsights: oneRatingInsights,
+      ratings: []
     })
   }))
 
   await page.goto('/products/4')
 
   await expect(page.getByRole('heading', { name: 'Ace' })).toBeVisible()
-  await expect(page.getByText('No ratings yet. Be the first to rate this product.')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Community rating' })).toBeVisible()
+  await expect(page.getByText('1 rating', { exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Something went wrong' })).toHaveCount(0)
 })
 
