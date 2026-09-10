@@ -25,7 +25,7 @@ function ProductRatingInsights({ summary, insights, userSummary = null }) {
 
       {userSummary && (
         <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4" aria-labelledby="your-rating-comparison-heading">
-          <div className="flex flex-wrap items-end justify-between gap-3"><div><h3 id="your-rating-comparison-heading" className="font-semibold text-gray-900">Your rating comparison</h3><p className="mt-1 text-sm text-gray-600">Based only on ratings in your signed-in rating history.</p></div><p className="text-right"><strong className="block text-2xl text-amber-900">{userSummary.average} / 7</strong><span className="text-sm text-gray-600">{userSummary.count} {userSummary.count === 1 ? 'rating' : 'ratings'}</span></p></div>
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><h3 id="your-rating-comparison-heading" className="font-semibold text-gray-900">Your rating comparison</h3><p className="mt-1 text-sm text-gray-600">Based only on ratings in your signed-in rating history.</p></div><p className="text-right"><strong className="block text-2xl text-amber-900">{userSummary.average} / 7</strong><span className="text-sm text-gray-600">{userSummary.count} {userSummary.count === 1 ? 'of your ratings' : 'of your ratings'}</span></p></div>
           {comparisonLabel && <p className="mt-3 text-sm font-medium text-amber-950">{comparisonLabel}.</p>}
         </div>
       )}
