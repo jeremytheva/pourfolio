@@ -12,6 +12,14 @@ const destructiveEnabled = process.env.RELEASE_DESTRUCTIVE_CONFIRMATION === DEST
 const REDIRECT_STATUSES = [302, 303, 307, 308]
 const SAFE_REJECTION_STATUSES = [400, 403, 404]
 
+const isCatalogueResponse = (response, { page, query = null }) => {
+  if (!response.ok()) return false
+  const url = new URL(response.url())
+  if (url.pathname !== '/api/nocodebackend/catalog/products') return false
+  if (url.searchParams.get('page') !== String(page) || url.searchParams.get('limit') !== '24') return false
+  return query === null ? !url.searchParams.has('q') : url.searchParams.get('q') === query
+}
+
 test.describe.configure({ mode: 'serial' })
 
 test('host health, headers, SPA fallback and rejected redirects', async ({ page, request }) => {
@@ -105,15 +113,29 @@ test('provider discovery, sign-up, password sign-in, OTP, Google and logout', as
 test('catalogue, pagination, direct details, rating form boundary and session-backed profile read', async ({ page }) => {
   await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
   await page.goto('/search')
-  await expect(page.getByLabel('Search products, producers or styles')).toBeFocused()
-  await page.getByLabel('Search products, producers or styles').fill(process.env.RELEASE_SEARCH_TERM || 'beer')
-  await expect(page.getByText(/products? found/)).toBeVisible()
-  if (await page.getByRole('button', { name: 'Next' }).isVisible()) {
-    await page.getByRole('button', { name: 'Next' }).click()
-    await expect(page.getByText(/Page 2 of/)).toBeVisible()
-  }
 
-  const productLink = page.getByRole('link', { name: 'View product' }).first()
+  const searchInput = page.getByLabel('Search products, producers or styles')
+  const searchStatus = page.locator('#product-search-status')
+  await expect(searchInput).toBeFocused()
+  await expect(searchStatus).toHaveText(/^\d+ products? found$/)
+
+  const nextPage = page.getByRole('button', { name: 'Next product page, page 2' })
+  await expect(nextPage).toBeVisible()
+  const pageTwoResponse = page.waitForResponse((response) => isCatalogueResponse(response, { page: 2 }))
+  await nextPage.click()
+  await pageTwoResponse
+  await expect(page.getByText(/^Page 2 of \d+$/)).toBeVisible()
+
+  const searchTerm = process.env.RELEASE_SEARCH_TERM || 'beer'
+  const searchResponsePromise = page.waitForResponse((response) => isCatalogueResponse(response, { page: 1, query: searchTerm }))
+  await searchInput.fill(searchTerm)
+  const searchResponse = await searchResponsePromise
+  const searchPayload = await responseJson(searchResponse)
+  expect(searchPayload.items?.length).toBeGreaterThan(0)
+  await expect(searchStatus).toHaveText(new RegExp(`^${searchPayload.total} products? found$`))
+
+  const productLink = page.locator('[aria-label="Products"] a[href^="/products/"]').first()
+  await expect(productLink).toBeVisible()
   const productPath = await productLink.getAttribute('href')
   expect(productPath).toMatch(/^\/products\/\d+$/)
   await page.goto(productPath)
@@ -206,7 +228,7 @@ test('cellar CRUD and cross-account ownership boundaries use guaranteed cleanup'
     }
   } finally {
     if (cellarItemId) {
-      const cleanup = await page.request.delete(`/api/nocodebackend/cellar/${cellarItemId}`)
+      const cleanup = await page.request.delete(`/api/nocodebackend/cellar/${encodeURIComponent(cellarItemId)}`)
       expect(cleanup.ok(), 'release cellar cleanup must succeed').toBeTruthy()
     }
   }
