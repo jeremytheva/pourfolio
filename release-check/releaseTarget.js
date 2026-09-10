@@ -1,4 +1,7 @@
 const POURFOLIO_VERCEL_HOST = /^pourfolio(?:-[a-z0-9-]+)?-jeremythevas-projects\.vercel\.app$/
+const POURFOLIO_PUBLIC_RELEASE_HOSTS = new Set([
+  'brew-buds-mobile-app-design-3577.vercel.app'
+])
 const RELEASE_SHA = /^[0-9a-f]{40}$/
 const RELEASE_ENVIRONMENTS = new Set(['preview', 'production'])
 
@@ -7,6 +10,11 @@ const isPlainObject = (value) => (
   typeof value === 'object' &&
   !Array.isArray(value) &&
   Object.getPrototypeOf(value) === Object.prototype
+)
+
+const isApprovedReleaseHost = (hostname) => (
+  POURFOLIO_VERCEL_HOST.test(hostname) ||
+  POURFOLIO_PUBLIC_RELEASE_HOSTS.has(hostname)
 )
 
 export const parseReleaseSha = (value) => {
@@ -36,7 +44,7 @@ export const parseReleaseBaseUrl = (value) => {
     url.pathname !== '/' ||
     url.search ||
     url.hash ||
-    !POURFOLIO_VERCEL_HOST.test(url.hostname)
+    !isApprovedReleaseHost(url.hostname)
   ) {
     throw new Error('Release URL is not an approved Pourfolio deployment origin.')
   }

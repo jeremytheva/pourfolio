@@ -7,6 +7,22 @@ build, `npm run check:release-security` scans both browser source and built outp
 Its redacted passing result is retained with the connected release evidence for
 that commit.
 
+The workflow supports two entry paths. Manual `workflow_dispatch` retains the
+explicit release URL, full release SHA and optional cleanup-guarded destructive
+confirmation. The owner-only ChatGPT path is an exact `/release-certify` comment
+on issue #278. That path is non-destructive, pins the target to the exact public
+Pourfolio Vercel production origin `brew-buds-mobile-app-design-3577.vercel.app`,
+and uses the issue-comment event's exact default-branch SHA. Other users, issue
+numbers, commands and pull-request comments cannot start the credentialed job.
+
+Both entry paths share the same fail-closed release preflight before protected
+release-account credentials are referenced. The target must be an explicitly
+approved HTTPS root origin with no userinfo, non-default port, path, query or
+fragment. `/api/readiness` must return HTTP 200 with `status: ready`, the exact
+requested commit SHA, an accepted Vercel environment and `dataProvider: ok`.
+Redirects, malformed responses and provenance drift block the credentialed browser
+checks.
+
 This static check only detects accidental browser exposure. Before promoting a
 release, a reviewer must separately inspect the deployment platform and record:
 

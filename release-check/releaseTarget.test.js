@@ -9,6 +9,7 @@ import {
 
 const sha = '0123456789abcdef0123456789abcdef01234567'
 const deployment = 'https://pourfolio-qc830ecrq-jeremythevas-projects.vercel.app'
+const publicProduction = 'https://brew-buds-mobile-app-design-3577.vercel.app'
 
 const readiness = (overrides = {}) => ({
   status: 'ready',
@@ -17,8 +18,9 @@ const readiness = (overrides = {}) => ({
   ...overrides
 })
 
-test('release target accepts only the Pourfolio Vercel origin family', () => {
+test('release target accepts only explicitly approved Pourfolio Vercel origins', () => {
   assert.equal(parseReleaseBaseUrl(deployment), deployment)
+  assert.equal(parseReleaseBaseUrl(publicProduction), publicProduction)
   assert.equal(
     parseReleaseBaseUrl('https://pourfolio-git-main-jeremythevas-projects.vercel.app/'),
     'https://pourfolio-git-main-jeremythevas-projects.vercel.app'
@@ -31,6 +33,8 @@ test('release target accepts only the Pourfolio Vercel origin family', () => {
   for (const invalid of [
     'http://pourfolio-qc830ecrq-jeremythevas-projects.vercel.app',
     'https://attacker.invalid',
+    'https://brew-buds-mobile-app-design-3578.vercel.app',
+    'https://brew-buds-mobile-app-design-3577.vercel.app.attacker.invalid',
     'https://pourfolio-qc830ecrq-jeremythevas-projects.vercel.app.attacker.invalid',
     'https://user:password@pourfolio-qc830ecrq-jeremythevas-projects.vercel.app',
     'https://pourfolio-qc830ecrq-jeremythevas-projects.vercel.app:8443',

@@ -1,6 +1,8 @@
 name: Connected staging release check
 
 on:
+  issue_comment:
+    types: [created]
   workflow_dispatch:
     inputs:
       release_url:
@@ -20,27 +22,34 @@ permissions:
   contents: read
 
 concurrency:
-  group: connected-release-${{ inputs.release_sha }}
+  group: connected-release-${{ github.event_name == 'issue_comment' && github.sha || inputs.release_sha }}
   cancel-in-progress: false
 
 jobs:
   connected:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.number == 278 &&
+       github.event.comment.body == '/release-certify' &&
+       github.event.comment.user.login == github.repository_owner &&
+       !github.event.issue.pull_request)
     environment: staging-release
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      RELEASE_BASE_URL: ${{ github.event_name == 'issue_comment' && 'https://brew-buds-mobile-app-design-3577.vercel.app' || inputs.release_url }}
+      RELEASE_SHA: ${{ github.event_name == 'issue_comment' && github.sha || inputs.release_sha }}
+      RELEASE_DESTRUCTIVE_CONFIRMATION: ${{ github.event_name == 'workflow_dispatch' && inputs.destructive_confirmation || '' }}
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.release_sha }}
+          ref: ${{ github.event_name == 'issue_comment' && github.sha || inputs.release_sha }}
       - name: Confirm checked-out release candidate
         run: test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
-        env:
-          RELEASE_SHA: ${{ inputs.release_sha }}
       - name: Validate optional destructive confirmation
-        if: ${{ inputs.destructive_confirmation != '' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.destructive_confirmation != '' }}
         run: test "$RELEASE_DESTRUCTIVE_CONFIRMATION" = 'RUN CLEANUP-GUARDED RELEASE WRITES'
-        env:
-          RELEASE_DESTRUCTIVE_CONFIRMATION: ${{ inputs.destructive_confirmation }}
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -48,9 +57,6 @@ jobs:
       - run: npm ci
       - name: Verify release target origin and provenance
         run: node scripts/verify-release-target.js
-        env:
-          RELEASE_BASE_URL: ${{ inputs.release_url }}
-          RELEASE_SHA: ${{ inputs.release_sha }}
       - name: Build the exact release candidate
         run: npm run build
       - name: Check built browser release for server-only data
@@ -59,8 +65,6 @@ jobs:
       - name: Run connected release checks
         run: npm run test:release
         env:
-          RELEASE_BASE_URL: ${{ inputs.release_url }}
-          RELEASE_SHA: ${{ inputs.release_sha }}
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
           RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}
@@ -70,12 +74,11 @@ jobs:
           RELEASE_OTP_EMAIL: ${{ secrets.RELEASE_OTP_EMAIL }}
           RELEASE_OTP_CODE: ${{ secrets.RELEASE_OTP_CODE }}
           RELEASE_SEARCH_TERM: ${{ vars.RELEASE_SEARCH_TERM }}
-          RELEASE_DESTRUCTIVE_CONFIRMATION: ${{ inputs.destructive_confirmation }}
       - name: Retain redacted evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: connected-release-${{ inputs.release_sha }}
+          name: connected-release-${{ github.event_name == 'issue_comment' && github.sha || inputs.release_sha }}
           path: |
             release-security-check.txt
             playwright-report/release-check/
