@@ -2,44 +2,45 @@
 project: Pourfolio
 portfolio_state: ACTIVE
 phase: "Phase 3 — Beer discovery dependable"
-stage: "API capability containment"
+stage: "Production provider certification"
 gate: Integration
-execution_state: READY
+execution_state: BLOCKED
 current_work:
-  objective: "Contain internal data implementation function URLs behind the canonical application dispatcher so legacy/duplicate handlers cannot be selected directly."
-  issue: 361
-  pr: 362
-  branch: "fix/contain-internal-api-handlers"
+  objective: "Complete the remaining authenticated production certification and historical provider credential hygiene tracked by #225 after API containment merged in #362."
+  issue: 225
+  pr: null
+  branch: null
 next_actions:
-  - "Merge PR #362 at exact validated head 20864496b1e00b032a2519e7370690a4d421c10b."
-  - "Verify the resulting production deployment reaches READY and record only runtime evidence that can actually be observed."
-  - "Reconcile STATUS.md to the merged state and resume #225 authenticated production certification when its protected evidence path is executable."
-  - "Keep #165 DEFERRED_TARGET fields unavailable until governed provider migration and connected verification."
+  - "Run the authenticated catalogue smoke through the same-origin application API when a protected release-account session is executable."
+  - "Verify the authenticated session-backed profile read remains non-403 in the same protected session."
+  - "Confirm the historically exposed provider Bearer credential has been rotated or otherwise invalidated without recording its value; rotate it first if that cannot be confirmed."
+  - "Record the resulting connected evidence for #225 and then activate #165 provider/schema idempotency work."
+  - "Keep catalogue remediation decisions explicit and independently reviewed; do not fabricate producer/category mappings."
 blockers:
   - scope: connected_authenticated_smoke
     issue: 225
-    detail: "Authenticated launch-journey certification still needs an executable protected release-account path; this does not block #361."
+    detail: "Authenticated catalogue and session-backed profile certification require an executable protected release-account session; repository/source changes cannot substitute for that evidence."
   - scope: credential_hygiene
     issue: 225
-    detail: "Historical provider credential rotation/invalidation still requires provider or secret-management evidence without exposing the credential value; this does not block #361."
+    detail: "Historical provider credential rotation/invalidation requires provider or secret-management evidence without exposing the credential value."
   - scope: connected_schema_inventory
     issue: 165
-    detail: "Fresh production-equivalent schema/constraint inventory and destructive capability probes remain deferred until explicitly authorised connected evidence is available."
+    detail: "Durable rating idempotency fields and connected schema/constraint capability remain DEFERRED_TARGET until #225 certification/hygiene is sufficiently resolved."
 requires_owner_decision: false
 owner_decision:
-  question: "No product decision is required for internal route containment."
+  question: "No product decision is currently required."
   options: []
-  recommendation: "Keep only the capability-aware canonical dispatcher reachable for launch data operations and route direct implementation-function URLs to an inert 404 sink before filesystem resolution."
+  recommendation: "Preserve the current working provider routing and capability boundaries; obtain the remaining protected connected evidence rather than changing frontend/backend routing again."
 validation:
   governance: PASS
-  lint: PASS
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PASS
-  build: PASS
-  ci: PASS
+  tests: NOT_RUN
+  build: NOT_RUN
+  ci: NOT_RUN
   runtime: VERIFIED
-last_verified_commit: "20864496b1e00b032a2519e7370690a4d421c10b"
-last_updated: "2026-09-10T15:59:00+10:00"
+last_verified_commit: "d2176025aebb28494894f3782f88112f886e0052"
+last_updated: "2026-09-10T16:03:30+10:00"
 ---
 
 # STATUS.md
@@ -52,119 +53,128 @@ Last materially reviewed: 10 September 2026
 
 ## AI execution gate
 
-**Current gate:** Integration / API capability containment  
-**Execution state:** Ready to merge issue **#361** / PR **#362** at exact validated head `20864496b1e00b032a2519e7370690a4d421c10b`  
-**Recently completed:** issue **#359** / PR **#360** removed the unavailable profile-persistence journey and merged at `e86e2abc898645ff89b00abb1e84616add50e38f`.
+**Current gate:** Integration / production provider certification  
+**Execution state:** **BLOCKED** on the protected connected evidence remaining in **#225**  
+**Most recent completed integration:** issue **#361** / PR **#362** contained direct internal API implementation routes and merged at `d2176025aebb28494894f3782f88112f886e0052`.
 
 ## Autonomous continuation support
 
-Continue the highest-priority dependency-correct launch work that can be completed without weakening backend/provider gates. The supplied `54026_rating` SQL/CSV/XLSX exports remain the structural authority for active launch data capabilities.
+Continue the highest-priority dependency-correct launch work that can safely be completed autonomously. The repository is authoritative for current work and blockers; chat history remains supporting context only.
 
-When #225 cannot progress because protected release-account or credential-hygiene evidence is unavailable, continue independent launch-scoped reliability/security work. Do not enable deferred provider capabilities or invent catalogue remediation decisions.
+Do not reopen provider routing or frontend/backend URL changes without new contradictory runtime evidence. The generated NoCodeBackend data credential is currently accepted for server-side reads, auth provider discovery is reachable, the profile capability is session-backed/read-only, and direct implementation-function URLs are contained.
 
-## Current work — issue #361 / PR #362
+When #225 cannot progress because a protected authenticated session or credential-hygiene evidence is unavailable, continue only independent launch-scoped work that does not weaken provider/schema gates or invent catalogue decisions.
 
-A production-equivalent preview proved that implementation files under `api/` were addressable as Vercel functions independently of the intended `/api/nocodebackend/...` dispatcher: a direct request to `/api/current-data-proxy?path=bad` reached the application handler and returned its authenticated `401` response.
+## API capability containment completed — #361 / PR #362
 
-That alternate surface is material because:
+PR **#362** is merged. The final accepted implementation uses ordered Vercel `routes` so direct URLs for:
 
-- `api/data-router.js` deliberately routes launch catalogue/rating-form/cellar/profile operations to capability-aware handlers and only delegates `brew-done-it` to legacy code;
-- directly addressable legacy `api/data-proxy.js` still contains target/legacy routes such as profile PUT that launch routing intentionally does not expose;
-- `api/current-data-proxy.js` retains duplicate catalogue/cellar implementations that can drift from their specialised canonical handlers.
+- `catalog-data-proxy`;
+- `cellar-data-proxy`;
+- `current-data-proxy`;
+- `profile-data-proxy`; and
+- legacy `data-proxy`
 
-### Containment implementation
+are routed to the inert `api/internal-not-found.js` handler before filesystem resolution. Canonical `/api/nocodebackend/auth/...` and `/api/nocodebackend/...` routes continue to dispatch through `auth-proxy` and `data-router` respectively.
 
-The first attempted fix used ordinary `rewrites` to send direct implementation URLs to an inert 404 handler. Live preview evidence rejected that approach: `/api/current-data-proxy` still executed the underlying handler and returned its authentication body/rate-limit headers, even when the final HTTP status was overridden to 404.
+The earlier ordinary-rewrite and status-only 404 attempts were rejected because live preview testing proved the underlying implementation handler could still execute. They are not the accepted design.
 
-PR **#362** now uses ordered Vercel `routes` instead:
+Merge evidence:
 
-1. security headers are applied with `continue: true`;
-2. immutable asset caching is applied with `continue: true`;
-3. direct URLs for `catalog-data-proxy`, `cellar-data-proxy`, `current-data-proxy`, `profile-data-proxy` and legacy `data-proxy` are routed to `api/internal-not-found.js` **before** filesystem resolution;
-4. `/api/nocodebackend/auth/...` is dispatched to `auth-proxy`;
-5. `/api/nocodebackend/...` is dispatched to `data-router`;
-6. normal filesystem functions/static assets are then resolved;
-7. non-API browser routes fall back to `index.html`.
+- merged PR: **#362**;
+- merge commit: `d2176025aebb28494894f3782f88112f886e0052`;
+- production deployment: `dpl_EeHDXDJTgxhPLxJb29PhDT2EruPg`;
+- deployment target: production;
+- deployment state: **READY**;
+- GitHub commit verification: verified;
+- post-merge production request to `/api/current-data-proxy?path=bad`: HTTP **404** with `{ "error": "Application data route not found." }` and no application request-id/rate-limit headers from the contained implementation handler.
 
-The implementation head `2526085a9ab51a198eb65a3f24f82abb5b8bdda7` produced READY preview deployment `dpl_Ch3uqS5gxpEEnkykbRgj3d6z5jJW`. A direct request to `/api/current-data-proxy?path=bad` returned HTTP 404 with exactly `{ "error": "Application data route not found." }` and no application `X-Request-Id` or rate-limit headers, demonstrating that the legacy/current handler was no longer entered. Static routing tests cover all five contained implementation names, including `.js` and trailing-slash variants.
+The exact PR head passed canonical platform validation, browser/accessibility, Dependency Review and CodeQL with no unresolved review threads. The implementation-equivalent run recorded 388 Node tests: 379 passed, 9 intentionally skipped, 0 failed; production audit reported zero vulnerabilities.
 
-The final exact head `20864496b1e00b032a2519e7370690a4d421c10b` produced READY preview deployment `dpl_CsQPGLFTK2kk8rr7UmKA9ycsLYfn`, and the same representative direct request again returned the inert HTTP 404 payload.
+## Current work — #225 provider certification and credential hygiene
 
-### Final validation evidence
+Issue **#225** remains the current dependency-correct work. Its historical provider-authorization failure is no longer reproduced.
 
-Exact head `20864496b1e00b032a2519e7370690a4d421c10b` passed:
+Existing connected evidence already establishes:
 
-- canonical `npm run platform:validate` / Release gate;
-- Browser and accessibility;
-- Dependency Review;
-- CodeQL;
-- no unresolved review threads;
-- READY Vercel preview with representative runtime containment verified.
+- the canonical data base URL is `https://api.nocodebackend.com/`;
+- the canonical auth base URL is `https://app.nocodebackend.com/api/user-auth`;
+- server data requests use the server-only provider Bearer credential and intended `54026_rating` instance;
+- production `/api/readiness` has completed a real generated-provider products read with `dataProvider: "ok"`;
+- application-owned auth provider discovery has returned email authentication enabled and Google disabled;
+- provider credentials are not returned to browser/readiness output.
 
-The implementation-equivalent validation run recorded 388 Node tests: 379 passed, 9 intentionally skipped, 0 failed; production audit reported zero vulnerabilities; production build, bundle, Brew Done It containment and browser release-security checks passed. The preceding exact-head browser run recorded 69/69 passing Playwright tests; the current docs-only head completed the same Pull request validation workflow successfully.
+The remaining #225 acceptance work is specifically:
 
-## Profile capability correction completed
+1. authenticated catalogue read through the same-origin application API;
+2. authenticated session-backed profile read remaining non-403;
+3. confirmation that the Bearer credential present in historical supplied evidence was rotated or otherwise invalidated, without ever recording the credential value;
+4. retention of that connected evidence for downstream #165, #144 and #154 work.
 
-PR **#360** made the launch profile journey match the deployed backend capability:
+These are evidence/credential-hygiene dependencies, not justification for another routing rewrite.
+
+## Profile capability correction completed — #359 / PR #360
+
+PR **#360** removed the unavailable profile-persistence journey:
 
 - profile identity is session-backed and read-only;
-- successful sign-up no longer attempts a guaranteed-failing profile PUT;
-- the Profile page no longer presents editable persistence fields or a Save action;
-- browser tests/mocks now model profile GET as available and PUT as explicit `503 profile_persistence_unavailable`;
-- the exact PR head passed canonical validation, browser/accessibility, Dependency Review, CodeQL and a READY Vercel preview before merge.
+- sign-up no longer attempts an unavailable profile PUT;
+- the Profile page no longer presents persistence controls that must fail;
+- rating-history read/delete behaviour remains available;
+- profile PUT still fails explicitly until persistent profile storage is genuinely deployed and verified.
 
-Production deployment for merge commit `e86e2abc898645ff89b00abb1e84616add50e38f` reached READY. A direct post-merge readiness re-fetch was protected by Vercel SSO, so no fresh production readiness-body claim is made from that request.
+## Backend-table alignment completed — #354 / PR #355
 
-## Backend-table alignment completed
+PR **#355** aligned active launch contracts to the supplied `54026_rating` backend tables:
 
-PR **#355** aligned the active launch boundary to the supplied backend tables by:
+- cellar writes/projected records use exported columns only;
+- fabricated cellar lifecycle fields were removed;
+- catalogue producer enrichment uses `products.producer_id -> producers.id`;
+- the nonexistent `product_producers` junction is not queried;
+- zero/missing producer attribution remains unresolved rather than fabricated.
 
-- restricting browser/server cellar writes to actual exported `cellar` columns;
-- removing fabricated `status`, `quantity_acquired`, `date_consumed`, `acquisition_type` and `historical_import` cellar fields;
-- using `products.producer_id -> producers.id` rather than querying a nonexistent `product_producers` junction;
-- leaving zero/missing producer attribution unresolved rather than inventing collaboration data;
-- reconciling launch/data-model contracts and regression coverage.
-
-The supplied products export contains **7 records with `producer_id = 0` and 22 records with a blank producer ID**. Those remain governed backend catalogue remediation; the existing 193-task remediation ledger requires explicit decisions and must not be auto-filled.
+The supplied products export contains **7 rows with `producer_id = 0` and 22 rows with a blank producer ID**. Those are governed catalogue-data remediation tasks, not frontend relationship data.
 
 ## Launch schema/application contract
 
-Current provider-evidenced launch collections are `products`, `producers`, `categories`, `rating_attributes`, `bonus_attributes`, `ratings`, `rating_scores`, `bonus_attribute_rating_mapping` and `cellar`.
+Provider-evidenced launch collections remain:
 
-Key launch rules remain:
+- `products`;
+- `producers`;
+- `categories`;
+- `rating_attributes`;
+- `bonus_attributes`;
+- `ratings`;
+- `rating_scores`;
+- `bonus_attribute_rating_mapping`;
+- `cellar`.
 
-- product classification uses `products.product_category_id`;
-- product producer enrichment uses `products.producer_id` only on the current backend;
-- rating bonus writes use `bonus_attribute_rating_mapping.bonus_attributes_id`;
-- cellar sharing edition/version uses nullable `series_version_id`, not `series_edition_id`;
-- `product_producers` and persistent `profiles` storage are **UNAVAILABLE**;
-- active rating submission uses the current backend fields through `current-data-proxy.js`;
-- durable rating idempotency/workflow fields tracked by **#165** remain `DEFERRED_TARGET`, and `/ratings/reconcile` remains unavailable until provider migration is verified.
+Key rules remain:
 
-## Current #225 state
+- products classify through `product_category_id`;
+- current producer relationship is `products.producer_id` only;
+- bonus mappings use `bonus_attributes_id`;
+- cellar sharing version uses `series_version_id`;
+- persistent `profiles` and `product_producers` are **UNAVAILABLE**;
+- active rating submission uses only current exported backend fields;
+- durable idempotency/workflow fields tracked by **#165** remain `DEFERRED_TARGET` and `/ratings/reconcile` remains unavailable until that provider migration is verified.
 
-Earlier exact-main production evidence established that the generated NoCodeBackend products read succeeds through `/api/readiness` and auth provider discovery is reachable. #225 remains open for:
+## Catalogue remediation boundary
 
-- authenticated catalogue read through the same-origin application boundary;
-- authenticated session-backed profile read remaining non-403;
-- confirmation that the historically exposed provider Bearer credential was rotated or otherwise invalidated, without recording its value.
-
-Do not reintroduce direct-provider frontend routing or treat missing protected evidence as a source-code defect.
+The deterministic catalogue workflow has already materialised **193 governed human decision tasks** covering the known source blockers. Do not auto-fill producer/category mappings, category-cycle decisions, duplicate ordering, removals or edits. Corrections require explicit decisions and independent review before any candidate catalogue or provider mutation can be treated as accepted.
 
 ## Destructive connected-write rule
 
-Do not run rating create/delete or cellar CRUD certification against a real connected environment unless the run is explicitly authorised for cleanup-guarded test writes. Exact-record cleanup must be verified. Failure to prove cleanup is a material blocker and must not be converted into a pass.
+Do not run rating create/delete or cellar CRUD certification against a real connected environment unless the run is explicitly authorised for cleanup-guarded test writes. Exact-record cleanup must be verified. Failure to prove cleanup remains a material blocker and must not be converted into a pass.
 
 ## Next dependency-correct work
 
-1. Merge #361 / PR #362 at its exact validated head.
-2. Verify the merged production deployment reaches READY and reconcile this status record to the merge commit.
-3. Resume #225 authenticated smoke evidence when the protected release-account path is executable.
-4. Complete #225 historical provider credential rotation/invalidation evidence.
-5. Then activate #165 provider migration/idempotency work.
-6. Follow with #144 provider/backend certification and backend-dependent #154 completion evidence.
-7. Keep catalogue remediation decisions explicit and independently reviewed; do not fabricate the 193 pending decisions.
+1. Complete #225 authenticated catalogue and profile smoke evidence when a protected session is executable.
+2. Complete #225 historical provider credential rotation/invalidation evidence.
+3. Activate #165 provider migration/idempotency work only after #225 is sufficiently resolved.
+4. Follow with #144 backend/provider certification and backend-dependent #154 completion evidence.
+5. Continue independent launch-quality work when connected evidence is unavailable, provided it does not bypass these dependencies or fabricate catalogue decisions.
 
 ## Completion rule
 
-Do not mark Phase 3 or Pourfolio complete until launch journeys match deployed capabilities, alternate implementation routes are contained, connected provider/runtime evidence is sufficient, owner/security boundaries are enforced, canonical validation passes and the exact production release is certified. GitHub Actions remain supporting diagnostics rather than duplicate acceptance authority.
+Do not mark Phase 3 or Pourfolio complete until launch journeys match deployed capabilities, connected provider/runtime evidence is sufficient, owner/security boundaries are enforced, canonical validation passes, catalogue decisions are governed, and the exact production release is certified. GitHub Actions remain supporting diagnostics rather than duplicate acceptance authority.
