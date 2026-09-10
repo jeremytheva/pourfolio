@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This certification provides a repeatable way for ChatGPT, through the connected GitHub integration, to test whether Pourfolio can reach and use the configured NoCodeBackend generated data API without exposing provider credentials to chat.
+This certification provides a repeatable optional diagnostic for ChatGPT, through the connected GitHub integration, to test generated NoCodeBackend CRUD capability without exposing provider credentials to chat.
 
 It is deliberately separated into two capability planes:
 
@@ -10,6 +10,8 @@ It is deliberately separated into two capability planes:
 2. **Schema/control plane** — database/table/column creation and deletion.
 
 The routine connection certification exercises the data plane against a dedicated staging-only table. Schema mutation is reported independently and is not attempted unless NoCodeBackend publishes a supported schema-management API contract that can be configured safely for this project.
+
+This harness is **not a launch prerequisite when the exact deployed Vercel application already proves provider readiness through `/api/readiness` and the authenticated release journey is certified through the deployed application boundary**. It is a direct-provider diagnostic and must not force duplication of production provider credentials into GitHub.
 
 ## Why the routine test does not create and drop a table every run
 
@@ -26,7 +28,7 @@ A permanent isolated test table with ephemeral rows gives a more reliable data-p
 
 ## One-time NoCodeBackend staging fixture
 
-Create this table in the isolated staging NoCodeBackend instance:
+Create this table only in an explicitly isolated staging NoCodeBackend instance when direct CRUD certification is required:
 
 ```text
 chatgpt_api_test
@@ -49,15 +51,17 @@ Do not place application data in this table. It exists only for connected certif
 
 ## Runtime configuration
 
-The workflow uses the same application data-provider contract as Pourfolio:
+The deployed Pourfolio application owns its canonical NoCodeBackend application variables in Vercel. Those values remain server-only and are verified non-destructively through the deployed `/api/readiness` boundary.
+
+A direct-provider GitHub certification run is optional and requires its own protected isolated-staging configuration:
 
 ```text
 NOCODEBACKEND_DATA_BASE_URL=https://api.nocodebackend.com/
-NOCODEBACKEND_SECRET_KEY=<protected staging secret>
-NOCODEBACKEND_INSTANCE=<protected staging instance>
+NOCODEBACKEND_SECRET_KEY=<protected isolated-staging secret>
+NOCODEBACKEND_INSTANCE=<protected isolated-staging instance>
 ```
 
-The secret and instance are read from the protected `staging-release` GitHub environment. They must never be committed, pasted into an issue, or returned in the certification report.
+The secret and instance must never be committed, pasted into an issue, or returned in the certification report. Missing GitHub copies of the Vercel production values produce `SETUP_REQUIRED` for this optional diagnostic; they do not make an otherwise healthy deployed Vercel runtime unready.
 
 Test-only execution controls are:
 
@@ -106,13 +110,7 @@ The report currently returns:
 schema_plane.status = UNAVAILABLE_NOT_CONFIGURED
 ```
 
-for:
-
-- create table;
-- add columns;
-- drop table.
-
-This is intentional. The repository must not invent or reverse-engineer NoCodeBackend schema mutation endpoints.
+for create table, add columns and drop table. This is intentional. The repository must not invent or reverse-engineer NoCodeBackend schema mutation endpoints.
 
 Enable automated schema lifecycle certification only after all of the following are available:
 
@@ -123,27 +121,17 @@ Enable automated schema lifecycle certification only after all of the following 
 5. cleanup and failure-recovery semantics;
 6. repository tests and redaction controls for that management plane.
 
-At that point, schema certification should be a separate capability phase rather than changing the meaning of the routine data-plane connection test.
-
 ## ChatGPT invocation
 
-The canonical certification issue is GitHub issue `#278`.
+The canonical diagnostic issue is GitHub issue `#278`.
 
-ChatGPT can trigger the live staging test by adding this exact comment to that issue:
+ChatGPT can trigger the optional live isolated-staging test by adding:
 
 ```text
 /ncb-certify
 ```
 
-The workflow only runs the secret-bearing job when:
-
-- the event is a new issue comment;
-- the issue is `#278`;
-- the body is exactly `/ncb-certify`;
-- the commenter is the repository owner;
-- the target is an issue rather than a pull request.
-
-The workflow can also be run manually from GitHub Actions as a fallback.
+The workflow only runs the secret-bearing job when the issue, exact comment, owner identity and non-PR target guards pass. It can also be run manually from GitHub Actions.
 
 ## Result handling
 
@@ -154,11 +142,7 @@ artifacts/nocodebackend-certification/report.json
 artifacts/nocodebackend-certification/summary.md
 ```
 
-The workflow:
-
-1. posts `summary.md` back to issue `#278`;
-2. uploads both files as a 30-day GitHub Actions artifact;
-3. preserves a failed workflow state when the certification result is not `PASS`.
+The workflow posts the sanitized summary to issue `#278`, uploads the redacted artifacts and preserves a failed workflow state when the certification result is not `PASS`.
 
 The report never includes the NoCodeBackend secret or configured instance value.
 
@@ -166,25 +150,24 @@ The report never includes the NoCodeBackend secret or configured instance value.
 
 ### `PASS`
 
-The dedicated test table exists, the provider accepted the configured credential/instance, all data-plane CRUD/filter operations behaved as expected, and cleanup left no run-scoped rows.
+The dedicated isolated test table exists, the provider accepted the configured staging credential/instance, all data-plane CRUD/filter operations behaved as expected, and cleanup left no run-scoped rows.
 
 ### `SETUP_REQUIRED`
 
-The runner could not execute the capability sequence because required protected configuration is missing, the isolated-staging guard is not enabled, or the dedicated test table does not exist.
-
-If the table is missing, the result includes `TEST_TABLE_MISSING` and the required column list.
+The optional direct-provider diagnostic cannot run because required isolated-staging configuration is missing, the destructive guard is not enabled, or the dedicated test table does not exist. This status does not override healthy exact-deployment Vercel readiness.
 
 ### `FAIL`
 
-The test reached the provider but one or more capabilities failed, or cleanup could not prove the test scope was empty. Safe provider status/code evidence is included where available.
+The direct-provider test reached the provider but one or more capabilities failed, or cleanup could not prove the test scope was empty. Safe provider status/code evidence is included where available.
 
 A provider `401`/`403` remains an authorization failure. Do not add an application fallback or weaken the server-only secret boundary to make the test pass.
 
-## Relationship to existing connected tests
+## Relationship to release certification
 
-This certification complements rather than replaces:
+Launch certification uses the deployed application boundary as the primary evidence source:
 
-- `npm run test:provider-smoke` — non-destructive launch-collection smoke verification;
-- `npm run test:provider-contract` — destructive domain-specific rating/provider contract certification.
+- exact-deployment `/api/readiness` proves the Vercel runtime can perform its bounded generated-provider read with its server-only configuration;
+- authenticated release checks exercise catalogue, product detail, rating, cellar and profile behaviour through same-origin application APIs;
+- `npm run test:provider-smoke`, `npm run test:provider-connection`, and destructive provider-contract tests remain supplementary direct-provider diagnostics for explicitly configured isolated staging.
 
-The connection certification is intentionally generic and isolated so it can answer the simpler question: **can this configured Pourfolio environment reliably perform generated NoCodeBackend data API operations?**
+The optional certification harness therefore answers a narrower question: **can a deliberately configured isolated staging runner directly perform generated NoCodeBackend CRUD operations?**
