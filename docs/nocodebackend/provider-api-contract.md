@@ -15,7 +15,7 @@ The browser never receives the NoCodeBackend server secret or configured instanc
 
 ## Production environment contract
 
-Use only these four application variables in Vercel, local development, staging, and connected release jobs:
+Use only these four application variables in Vercel, local development, staging, and any deliberately direct provider-certification runtime:
 
 ```env
 NOCODEBACKEND_AUTH_BASE_URL=https://app.nocodebackend.com/api/user-auth
@@ -26,7 +26,7 @@ NOCODEBACKEND_INSTANCE=<stored outside repository>
 
 No environment variable beginning with the retired short-form NoCodeBackend prefix is permitted anywhere in the repository. Isolated contract-test controls use `NOCODEBACKEND_CONTRACT_*` names.
 
-`NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE` are runtime-only configuration. Neither has a repository fallback. Server auth and data adapters fail closed before provider access when the required value is missing. Connected GitHub workflows obtain the instance from the protected `staging-release` environment rather than embedding it in workflow YAML.
+`NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE` are runtime-only configuration. Neither has a repository fallback. Server auth and data adapters fail closed before provider access when the required value is missing. The canonical deployed application runtime owns these values in Vercel; connected release certification must not require duplicate copies in GitHub merely to prove the deployed application can reach its provider.
 
 ## Authentication API
 
@@ -159,9 +159,11 @@ Provider failures never expose raw provider bodies, credentials, or the configur
 
 ## Connected verification
 
-Connected smoke verification must use the same four `NOCODEBACKEND_*` application variables as production and verify non-destructive reads for launch collections. Destructive isolated-staging tests use `NOCODEBACKEND_CONTRACT_*` test-control variables; these are test metadata rather than application configuration.
+For the deployed application, exact-deployment `/api/readiness` is the canonical non-destructive proof that the Vercel runtime can use its configured NoCodeBackend credential and instance. Authenticated browser release checks then verify the owner-facing catalogue/profile and CRUD journeys through same-origin application APIs. This avoids copying provider credentials into GitHub solely for release certification.
 
-The connected release and provider-contract workflows obtain `NOCODEBACKEND_INSTANCE` from the protected `staging-release` GitHub environment (`vars.NOCODEBACKEND_INSTANCE`) and obtain `NOCODEBACKEND_SECRET_KEY` from GitHub environment secrets. Neither runtime value is committed to workflow source.
+`npm run test:provider-smoke`, `npm run test:provider-connection`, and destructive provider-contract suites remain available for deliberately direct provider testing in an explicitly configured isolated staging runtime. If GitHub is used for those direct-provider diagnostics, its protected environment may hold separate staging credentials; absence of duplicate GitHub provider credentials is not itself a launch blocker when exact-deployment Vercel readiness is healthy.
+
+Destructive isolated-staging tests continue to use `NOCODEBACKEND_CONTRACT_*` or certification-specific test-control variables and must retain their explicit isolation/cleanup guards. Production application tables must not be used for routine destructive certification.
 
 ## Change control
 
