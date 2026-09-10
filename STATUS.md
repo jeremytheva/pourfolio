@@ -43,7 +43,7 @@ validation:
   ci: PENDING
   runtime: VERIFIED
 last_verified_commit: "edc2d72065d0f6e62dd9ad761d546e43089b561a"
-last_updated: "2026-09-10T12:16:00+10:00"
+last_updated: "2026-09-10T12:18:00+10:00"
 ---
 
 # STATUS.md
@@ -59,6 +59,10 @@ Last materially reviewed: 10 September 2026
 **Current gate:** Release / connected launch certification  
 **Execution state:** Validating production evidence for issue **#225**  
 **Release state:** The active frontend/backend launch contract is aligned to the supplied backend exports and deployed to production. Authenticated connected journey evidence and historical credential hygiene remain incomplete.
+
+## Autonomous continuation support
+
+Continue from exact production and repository evidence rather than prior chat state. Non-destructive provider/readiness checks may proceed without copying Vercel provider credentials into GitHub. Authenticated journey checks require the protected release-account path. Do not execute cleanup-dependent rating/cellar writes unless the exact guarded confirmation is present and exact-record cleanup can be proven. Keep #165 target fields unavailable until governed migration and live provider verification.
 
 ## Completed alignment milestone — #354 / #355
 
@@ -134,6 +138,14 @@ After #225 is complete:
 3. continue backend-dependent **#154** certification.
 
 Unavailable/deferred target fields and collections must remain unavailable until their provider migration/capability evidence exists.
+
+## Next dependency-correct work
+
+1. Run non-destructive authenticated exact-production checks when the protected release-account credentials are executable without exposing them.
+2. Obtain provider/secret-management evidence that the historically exposed Bearer credential is invalidated or rotated.
+3. Only when explicitly authorised, run cleanup-guarded rating and cellar connected-write certification and prove exact cleanup.
+4. Close #225 when its remaining evidence is satisfied, then activate #165.
+5. Continue #144 and #154 only after their upstream provider/data dependencies are satisfied.
 
 ## Validation posture
 
