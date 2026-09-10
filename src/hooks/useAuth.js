@@ -1,6 +1,6 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { ApiError, authRequest, getGoogleSignInUrl, toAuthError } from '../lib/nocodeBackend.js'
-import { getCurrentUserProfile, updateCurrentUserProfile } from '../services/profileService.js'
+import { getCurrentUserProfile } from '../services/profileService.js'
 
 const AuthContext = createContext(null)
 
@@ -86,8 +86,8 @@ export function AuthProvider({ children }) {
     try {
       profilePayload = await getCurrentUserProfile()
     } catch {
-      // A newly created account may not have a profile row yet. The session
-      // remains authoritative and the first profile save will create it.
+      // Session identity remains authoritative if the read-only profile
+      // projection is temporarily unavailable.
     }
 
     const nextProfile = buildProfile(nextAuthUser, profilePayload)
@@ -130,15 +130,6 @@ export function AuthProvider({ children }) {
         body: buildSignUpPayload(email, password, userData)
       })
       const state = await resolveSession(payload)
-      if (state && userData.name) {
-        try {
-          const saved = await updateCurrentUserProfile({ name: userData.name })
-          setProfile(buildProfile(state.user, saved))
-        } catch {
-          // The account is still valid if profile creation is temporarily
-          // unavailable; the profile page exposes a retryable save.
-        }
-      }
       return { data: state, error: null }
     } catch (error) {
       return { data: null, error: toAuthError(error) }
@@ -198,19 +189,6 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  const updateProfile = useCallback(async (updates) => {
-    if (!authUser) return { data: null, error: new Error('No user is signed in.') }
-
-    try {
-      const payload = await updateCurrentUserProfile(updates)
-      const nextProfile = buildProfile(authUser, payload)
-      setProfile(nextProfile)
-      return { data: nextProfile, error: null }
-    } catch (error) {
-      return { data: null, error: toAuthError(error) }
-    }
-  }, [authUser])
-
   const user = authUser ? { ...authUser, ...profile } : null
   const value = useMemo(() => ({
     user,
@@ -221,8 +199,7 @@ export function AuthProvider({ children }) {
     requestEmailOtp,
     verifyEmailOtp,
     signInWithGoogle,
-    signOut,
-    updateProfile
+    signOut
   }), [
     loading,
     profile,
@@ -231,7 +208,6 @@ export function AuthProvider({ children }) {
     signInWithGoogle,
     signOut,
     signUp,
-    updateProfile,
     user,
     verifyEmailOtp
   ])

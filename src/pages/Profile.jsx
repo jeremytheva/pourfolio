@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { FiSave, FiStar, FiTrash2, FiUser } from 'react-icons/fi'
+import { FiStar, FiTrash2, FiUser } from 'react-icons/fi'
 import { Link } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
@@ -7,16 +7,10 @@ import { ratingService } from '../services/ratingService.js'
 import { formatDate } from '../utils/dateFormatting.js'
 
 function Profile() {
-  const { user, updateProfile } = useAuth()
-  const [form, setForm] = useState({
-    name: user?.name || '',
-    description: user?.description || '',
-    avatar_url: user?.avatar_url || ''
-  })
+  const { user } = useAuth()
   const [ratings, setRatings] = useState([])
   const [ratingsStatus, setRatingsStatus] = useState('loading')
   const [ratingsError, setRatingsError] = useState('')
-  const [saveStatus, setSaveStatus] = useState('')
   const [deletingRatingId, setDeletingRatingId] = useState(null)
   const [error, setError] = useState('')
   const errorRef = useRef(null)
@@ -85,19 +79,6 @@ function Profile() {
     return values.length ? (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2) : null
   }, [ratings])
 
-  const saveProfile = async (event) => {
-    event.preventDefault()
-    setError('')
-    setSaveStatus('saving')
-    const result = await updateProfile(form)
-    if (result.error) {
-      setError(result.error.message || 'Your profile could not be saved.')
-      setSaveStatus('')
-      return
-    }
-    setSaveStatus('saved')
-  }
-
   const retryRatingHistory = () => {
     focusRatingHistoryAfterRetryRef.current = true
     loadRatings()
@@ -140,29 +121,27 @@ function Profile() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-800">
               <SafeIcon icon={FiUser} className="h-6 w-6" />
             </div>
-            <div>
-              <h2 id="profile-details" className="font-semibold text-gray-900">{user?.name}</h2>
-              <p className="text-sm text-gray-500">{user?.email}</p>
+            <div className="min-w-0">
+              <h2 id="profile-details" className="truncate font-semibold text-gray-900">{user?.name || 'Pourfolio user'}</h2>
+              <p className="truncate text-sm text-gray-500">{user?.email || 'Email unavailable'}</p>
             </div>
           </div>
 
-          <form onSubmit={saveProfile} aria-busy={saveStatus === 'saving' ? 'true' : 'false'} className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">Display name
-              <input required maxLength={120} value={form.name} onChange={(event) => { setForm((current) => ({ ...current, name: event.target.value })); setSaveStatus('') }} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
-            </label>
-            <label className="block text-sm font-medium text-gray-700">Description
-              <textarea maxLength={1000} rows={4} value={form.description} onChange={(event) => { setForm((current) => ({ ...current, description: event.target.value })); setSaveStatus('') }} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
-            </label>
-            <label className="block text-sm font-medium text-gray-700">Avatar URL
-              <input type="url" maxLength={2048} value={form.avatar_url} onChange={(event) => { setForm((current) => ({ ...current, avatar_url: event.target.value })); setSaveStatus('') }} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
-            </label>
-            <p className="text-xs text-gray-500">Account identity and role are not editable from the browser.</p>
-            <button type="submit" disabled={saveStatus === 'saving'} aria-busy={saveStatus === 'saving' ? 'true' : undefined} className="inline-flex w-full items-center justify-center rounded-lg bg-amber-700 px-4 py-2.5 font-medium text-white hover:bg-amber-800 disabled:cursor-wait disabled:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
-              <SafeIcon icon={FiSave} className="mr-2 h-4 w-4" />
-              {saveStatus === 'saving' ? 'Saving…' : 'Save profile'}
-            </button>
-            {saveStatus === 'saved' && <p className="text-center text-sm text-green-700" role="status" aria-live="polite" aria-atomic="true">Profile saved.</p>}
-          </form>
+          <dl className="space-y-4 border-t border-gray-200 pt-5">
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">Display name</dt>
+              <dd className="mt-1 text-sm text-gray-900">{user?.name || 'Not recorded'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</dt>
+              <dd className="mt-1 break-all text-sm text-gray-900">{user?.email || 'Not recorded'}</dd>
+            </div>
+          </dl>
+
+          <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <p className="font-medium">Profile editing is not available yet.</p>
+            <p className="mt-1">Your account details currently come from your authenticated session. Editing will be enabled only after persistent profile storage is deployed and verified.</p>
+          </div>
         </section>
 
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="rating-history" aria-busy={ratingsStatus === 'loading' ? 'true' : 'false'}>

@@ -170,11 +170,22 @@ test('cellar records load, update and delete through server endpoints', async ({
   await expect(page.getByText('Your cellar is empty')).toBeVisible()
 })
 
-test('profile exposes editable display fields but no browser role control', async ({ page }) => {
+test('profile exposes session-backed identity without unavailable persistence controls', async ({ page }) => {
+  let profilePutRequests = 0
+  page.on('request', (request) => {
+    if (request.url().includes('/api/nocodebackend/profile') && request.method() === 'PUT') profilePutRequests += 1
+  })
+
   await page.goto('/profile')
+
+  const profile = page.locator('section[aria-labelledby="profile-details"]')
   await expect(page.getByRole('heading', { name: 'Profile and rating history' })).toBeVisible()
-  await expect(page.getByLabel('Display name')).toHaveValue('Jeremy')
-  await expect(page.getByText('Account identity and role are not editable from the browser.')).toBeVisible()
+  await expect(profile.getByText('Jeremy', { exact: true }).first()).toBeVisible()
+  await expect(profile.getByText('jeremy@example.com', { exact: true }).first()).toBeVisible()
+  await expect(profile.getByText('Profile editing is not available yet.')).toBeVisible()
+  await expect(profile.getByRole('button', { name: /save profile/i })).toHaveCount(0)
+  await expect(profile.getByRole('textbox')).toHaveCount(0)
   await expect(page.getByLabel(/role/i)).toHaveCount(0)
   await expect(page.getByText('4 / 7')).toBeVisible()
+  expect(profilePutRequests).toBe(0)
 })

@@ -36,10 +36,21 @@ export const installMockApi = async (page) => {
   }))
 
   await page.route('**/api/nocodebackend/profile', async (route) => {
-    const body = route.request().method() === 'PUT'
-      ? { profile: { id: 'user-1', ...route.request().postDataJSON() } }
-      : { profile: { id: 'user-1', name: 'Jeremy', description: '', avatar_url: null } }
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
+    if (route.request().method() === 'PUT') {
+      return route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          error: 'Profile editing is unavailable until profile persistence is deployed.',
+          code: 'profile_persistence_unavailable'
+        })
+      })
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ profile: { id: 'user-1', name: 'Jeremy', description: '', avatar_url: null } })
+    })
   })
 
   await page.route('**/api/nocodebackend/catalog/products?**', (route) => route.fulfill({
