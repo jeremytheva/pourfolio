@@ -8,49 +8,40 @@ const mutationBody = (expectedVersion, idempotencyKey, values = {}) => ({
   idempotencyKey
 })
 
-export const createBrewDoneItGame = (historyConsent, idempotencyKey) => apiRequest('/brew-done-it/games', {
-  method: 'POST', body: mutationBody(0, idempotencyKey, { historyConsent })
+export const createBrewDoneItGame = (productId, idempotencyKey) => apiRequest('/brew-done-it/games', {
+  method: 'POST', body: mutationBody(0, idempotencyKey, { productId })
 })
-export const joinBrewDoneItGame = (gameId, inviteCode, historyConsent, expectedVersion, idempotencyKey) =>
+
+export const joinBrewDoneItGame = (gameId, inviteCode, expectedVersion, idempotencyKey) =>
   apiRequest(`${gamePath(gameId)}/join`, {
-    method: 'POST', body: mutationBody(expectedVersion, idempotencyKey, { inviteCode, historyConsent })
+    method: 'POST', body: mutationBody(expectedVersion, idempotencyKey, { inviteCode })
   })
+
 export const getBrewDoneItGame = (gameId) => apiRequest(gamePath(gameId))
-export const selectBrewDoneItProduct = (roundId, productId, expectedVersion, idempotencyKey) =>
-  apiRequest(`${roundPath(roundId)}/selection`, {
+
+export const createBrewDoneItRound = (gameId, productId, expectedVersion, idempotencyKey) =>
+  apiRequest(`${gamePath(gameId)}/rounds`, {
     method: 'POST', body: mutationBody(expectedVersion, idempotencyKey, { productId })
   })
-export const submitBrewDoneItGuess = (roundId, guessType, guessId, expectedVersion, idempotencyKey) =>
+
+export const submitBrewDoneItGuess = (roundId, productId, expectedVersion, idempotencyKey) =>
   apiRequest(`${roundPath(roundId)}/guesses`, {
-    method: 'POST', body: mutationBody(expectedVersion, idempotencyKey, { guessType, guessId })
+    method: 'POST', body: mutationBody(expectedVersion, idempotencyKey, { productId })
   })
-export const askBrewDoneItHistoryQuestion = (roundId, predicate, expectedVersion, idempotencyKey) =>
-  apiRequest(`${roundPath(roundId)}/history-questions`, {
-    method: 'POST', body: mutationBody(expectedVersion, idempotencyKey, { predicate })
+
+export const askBrewDoneItQuestion = (roundId, question, expectedVersion, idempotencyKey) =>
+  apiRequest(`${roundPath(roundId)}/questions`, {
+    method: 'POST', body: mutationBody(expectedVersion, idempotencyKey, question)
   })
+
+export const forfeitBrewDoneItRound = (roundId, expectedVersion, idempotencyKey) =>
+  apiRequest(`${roundPath(roundId)}/forfeit`, {
+    method: 'POST', body: mutationBody(expectedVersion, idempotencyKey)
+  })
+
 export const transitionBrewDoneItGame = (gameId, action, expectedVersion, idempotencyKey) =>
   apiRequest(`${gamePath(gameId)}/${action}`, {
     method: 'POST', body: mutationBody(expectedVersion, idempotencyKey)
   })
-export const getBrewDoneItStats = () => apiRequest('/brew-done-it/stats')
 
-export const pollBrewDoneItGame = async (gameId, {
-  signal,
-  intervalMs = 2_000,
-  maxAttempts = 30,
-  onRefresh = () => {}
-} = {}) => {
-  const delay = Math.min(10_000, Math.max(1_000, intervalMs))
-  const attempts = Math.min(120, Math.max(1, maxAttempts))
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    if (signal?.aborted) return null
-    const snapshot = await getBrewDoneItGame(gameId)
-    onRefresh(snapshot)
-    if (!['waiting', 'active'].includes(snapshot?.game?.status)) return snapshot
-    if (attempt + 1 < attempts) await new Promise((resolve) => {
-      const timer = window.setTimeout(resolve, delay)
-      signal?.addEventListener('abort', () => { window.clearTimeout(timer); resolve() }, { once: true })
-    })
-  }
-  return null
-}
+export const getBrewDoneItStats = () => apiRequest('/brew-done-it/stats')
