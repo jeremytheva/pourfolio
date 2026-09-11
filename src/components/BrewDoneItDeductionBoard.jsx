@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import BrewDoneItBeerPicker from './BrewDoneItBeerPicker.jsx'
-import { filterBrewDoneItBeers, filterBrewDoneItBreweries } from '../utils/brewDoneItDeductionFilters.js'
+import { filterBrewDoneItBeers, filterBrewDoneItBreweries, filterBrewDoneItStyles } from '../utils/brewDoneItDeductionFilters.js'
 
 const selectClass = 'mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500'
 const buttonClass = 'rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-60'
@@ -92,8 +92,7 @@ export default function BrewDoneItDeductionBoard({
     breweryIds
   ), [beerDeductions, breweryIds, options.beers])
 
-  const filteredStyleIds = useMemo(() => new Set(filteredBeers.map((beer) => String(beer.categoryId)).filter(Boolean)), [filteredBeers])
-  const filteredStyles = useMemo(() => (options.styles || []).filter((style) => filteredStyleIds.has(String(style.id))), [filteredStyleIds, options.styles])
+  const filteredStyles = useMemo(() => filterBrewDoneItStyles(options.styles || [], filteredBeers), [filteredBeers, options.styles])
   const save = (dimension, answer, values = {}) => onSaveDeduction({ dimension, answer, ...values })
   const setUnknown = (deduction) => save(deduction.dimension, 'unknown', valuesForDeduction(deduction))
   const styleName = (styleId) => (options.styles || []).find((item) => String(item.id) === String(styleId))?.name || null
