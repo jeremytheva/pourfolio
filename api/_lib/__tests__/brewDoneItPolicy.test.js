@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  projectBrewDoneItGame,
+  projectBrewDoneItGuess,
+  projectBrewDoneItRound,
+  sanitiseBrewDoneItDeductionInput,
   sanitiseBrewDoneItGuessInput,
-  sanitiseBrewDoneItQuestionInput,
-  projectBrewDoneItRound
+  sanitiseBrewDoneItQuestionInput
 } from '../brewDoneItPolicy.js'
 
 test('guesser projection never receives the secret beer before a round ends', () => {
@@ -34,6 +37,50 @@ test('secret beer is revealed to both participants after completion', () => {
     status: 'completed'
   }
   assert.equal(projectBrewDoneItRound(round, 'guesser').selected_product_id, 123)
+})
+
+test('provider boolean-like values are normalised before browser projection', () => {
+  const game = projectBrewDoneItGame({
+    id: 1,
+    creator_history_clues_enabled: '0',
+    opponent_history_clues_enabled: '1'
+  })
+  assert.equal(game.creator_history_clues_enabled, false)
+  assert.equal(game.opponent_history_clues_enabled, true)
+
+  const round = projectBrewDoneItRound({
+    id: 2,
+    selector_participant_id: 'selector',
+    guesser_participant_id: 'guesser',
+    status: 'guessing',
+    brewery_correct: '0',
+    style_correct: '1',
+    beer_correct: 0
+  }, 'guesser')
+  assert.equal(round.brewery_correct, false)
+  assert.equal(round.style_correct, true)
+  assert.equal(round.beer_correct, false)
+
+  assert.equal(projectBrewDoneItGuess({ id: 3, is_correct: '0' }).is_correct, false)
+  assert.equal(projectBrewDoneItGuess({ id: 4, is_correct: '1' }).is_correct, true)
+})
+
+test('v3 deduction input keeps only fields appropriate to each dimension', () => {
+  assert.deepEqual(
+    sanitiseBrewDoneItDeductionInput({
+      dimension: 'collaboration',
+      answer: 'yes',
+      referenceId: 99,
+      numericValue: 5,
+      valueText: 'ignored'
+    }),
+    { dimension: 'collaboration', answer: 'yes', valueText: null, referenceId: null, numericValue: null }
+  )
+
+  assert.deepEqual(
+    sanitiseBrewDoneItDeductionInput({ dimension: 'beer_ruled_out', answer: 'yes', referenceId: 42 }),
+    { dimension: 'beer_ruled_out', answer: 'yes', valueText: null, referenceId: '42', numericValue: null }
+  )
 })
 
 test('base game guesses accept only a catalogue beer identifier', () => {
