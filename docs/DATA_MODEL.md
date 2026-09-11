@@ -37,6 +37,30 @@ Producer attribution is also not fabricated. A zero or missing `products.produce
 
 The browser cannot write `user_id`, `secret_key`, roles, rating totals or provider metadata. Identity and totals are server authoritative.
 
+## Rating event target contract
+
+ADR [0005: Rating events, Quick Rate and repeat tastings](DECISIONS/0005-rating-events-quick-rate-and-repeat-tastings.md) governs future Quick Rate and repeat-tasting semantics.
+
+The deployed `ratings` table does **not** currently expose an event type, standalone Quick Rate value or Quick→Full expansion relationship. Therefore Quick Rate is not a deployed capability and must not be simulated by writing an overall shortcut value into `total_weighted`.
+
+Approved semantics are:
+
+- user-created event types are `full_tasting` and `quick_rate`;
+- every repeat tasting is a separate event; `(user_id, product_id)` is not unique;
+- Full Tasting retains the structured #428 score contract and is the only event type eligible for structured attribute aggregates, Overall/Style Scaled Score and PPP;
+- Quick Rate uses a separate overall `quick_score` from 0.5 through 5.0 in 0.5 increments and creates no structured `rating_scores` rows;
+- Quick Rate keeps `total_unweighted` and `total_weighted` null so it cannot leak into Full Tasting aggregates;
+- a later Full Tasting may link back to an earlier Quick Rate but does not overwrite or infer its structured dimensions;
+- Full Tasting and Quick Rate personal/community averages remain separately labelled metrics.
+
+Before Quick Rate can be enabled, the minimum additive provider target is:
+
+- `ratings.event_type` (`full_tasting | quick_rate`, with migration-only `legacy_unclassified` where existing data cannot be proven to meet the Full Tasting contract);
+- nullable `ratings.quick_score` constrained to the approved Quick Rate range/increment;
+- nullable `ratings.expanded_from_rating_id` self-reference from a Full Tasting to an owner-held Quick Rate for the same product.
+
+Existing `date_rated` remains the rating-event timestamp. Existing ratings may be backfilled to `full_tasting` only when their structured child data proves that classification; unknown legacy rows are not guessed. No provider mutation is authorised by documenting this target.
+
 ## Historical catalogue identity
 
 ADR [0004: Preserve historical catalogue identity](DECISIONS/0004-historical-catalogue-identity.md) governs product/producer history.

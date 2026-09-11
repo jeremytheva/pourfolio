@@ -94,6 +94,7 @@ test('profile rating history load failure has a focused retry path that recovers
         body: JSON.stringify({ error: 'Rating history unavailable.' })
       })
     }
+    await new Promise((resolve) => setTimeout(resolve, 150))
     return route.fallback()
   })
 
