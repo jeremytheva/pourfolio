@@ -4,16 +4,47 @@
 
 Brew Done It is not present in browser routing or navigation. Direct route
 requests use the launch catch-all and cannot load its client service or trigger
-game API traffic. Independently, the data gateway fails closed for every game
-path unless the server-only `BREW_DONE_IT_POLICY_ENABLED` value is exactly
-`true`. The flag must remain unset in normal environments and must never be
-published with a `VITE_` prefix. Enabling the gateway alone does not make the
-unapproved feature a supported product surface.
+game API traffic. Independently, the dedicated Brew Done It gateway fails closed
+for every game path unless the server-only `BREW_DONE_IT_POLICY_ENABLED` value is
+exactly `true`. The flag must remain unset in normal environments and must never
+be published with a `VITE_` prefix. Enabling the gateway alone does not make the
+feature a supported product surface.
 
-ADR 0001's accepted future model has no remote game trust boundary: one signed-in
-player and a physically present second player use session-memory state on one
-device. It does not read private rating history or persist rounds, scores or
-statistics, and refresh or sign-out clears all game data.
+[ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) approves a
+persistent cross-device model, but the provider collections remain deferred.
+Contained source may implement the approved boundary before deployment; it must
+not be made reachable until the schema, permissions, secret projection and
+connected two-device evidence are certified.
+
+## Brew Done It trust boundary
+
+Brew Done It is a two-account asynchronous game, so the server is authoritative
+for participant identity, role, selected beer, sequence, correctness, scoring
+and terminal state.
+
+The selected beer is sensitive game state while a round is active. The server
+must project different round views to the two participants:
+
+- the selector may receive `selected_product_id` for the round they created;
+- the guesser must not receive `selected_product_id` or an equivalent answer
+  field before the round becomes completed or forfeited;
+- the guesser must not receive server-added product, producer, category or other
+  data that directly reveals the selected beer;
+- a correct/incorrect result is calculated server-side from the protected
+  product identifier; and
+- the selected beer may be revealed to both players only after terminal state.
+
+React visibility is not an authorisation control. Tests must inspect the raw
+HTTP response received by the guesser's device.
+
+State-changing game requests use optimistic versions and idempotency keys.
+Browser-supplied participant IDs, turn numbers, correctness, score totals or
+completion state are ignored. A stale or repeated request must not create a
+second question, guess, round or score award.
+
+Base-game questions use only public catalogue facts. Shared rating history,
+cellar data, account data and relationship data are outside the approved base
+question boundary. Free-text questions are not approved for the first delivery.
 
 ## Trust boundaries
 
@@ -159,28 +190,29 @@ discovery exposes no authentication control while pending or failed.
 
 ## Logging
 
-Server errors log only correlation ID, status/name and operation counts needed for support. Never log request bodies, passwords, tokens, cookies, user IDs, cellar contents, rating selections, email addresses or provider responses. Return the correlation ID to the client for support.
+Server errors log only correlation ID, status/name and operation counts needed for support. Never log request bodies, passwords, tokens, cookies, user IDs, cellar contents, rating selections, email addresses, selected Brew Done It beers, challenge credentials or provider responses. Return the correlation ID to the client for support.
 
-## Unapproved remote proposal
+## Brew Done It provider controls required before enablement
 
-The retained remote policy code proposes fixed shared-history predicates,
-immutable two-account participation, bilateral game consent, block checks,
-server-derived catalogue targets and cut-offs, restricted boolean responses,
-two-predicate disclosure bounds, rate limits and replay prevention. These are
-defence-in-depth properties of unreachable research code, not controls for or
-authority to implement the accepted same-device model.
+The approved cross-device capability requires four persistent collections and
+participant-scoped enforcement described in
+[`nocodebackend/brew-done-it-schema-target.md`](nocodebackend/brew-done-it-schema-target.md).
+The application currently treats those collections as deferred and does not
+claim provider permission evidence.
 
-That proposal says shared-history question records retain only round ID, recognised predicate,
-sequence, asking-participant ID, boolean answer and server timestamp. They are
-retained with their parent game for 30 days after completion for abuse and
-policy investigation, then hard-deleted; no rating snapshot is retained.
-Waiting games expire after 24 hours. Consent timestamps and question records are
-deleted with an expired or deleted game, subject only to encrypted backup expiry
-within 30 further days. Operational logs must not contain predicates or answers.
-Its invitation, shared-history, persisted scoring, durable statistics and this
-retention schedule remain unapproved. They cannot be enabled until a
-superseding ADR and privacy/security review accept a remote data lifecycle and
-the required provider enforcement is proved.
+Before enablement, connected tests must prove:
+
+- an outsider cannot enumerate or read another pair's series/rounds;
+- the selector cannot submit guesser actions and the guesser cannot replace the selected beer;
+- the guesser's raw active-round response never contains the selected beer;
+- stale versions and repeated idempotency keys cannot duplicate actions or points;
+- a terminal round reveals the beer only after the terminal state is durable;
+- persistent statistics reconcile exactly to terminal round rows; and
+- invitation, archive and eventual deletion/retention controls behave as documented.
+
+The legacy shared-rating-history implementation in `api/data-proxy.js` remains
+quarantined source and is not the approved game gateway. It must not regain a
+routing path merely because its older tests still exist for regression history.
 
 ## Photos and deferred features
 
