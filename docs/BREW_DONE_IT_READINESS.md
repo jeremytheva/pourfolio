@@ -1,13 +1,13 @@
 # Brew Done It readiness
 
 Status: **v3 deduction redesign implemented in contained source; validation and provider migration pending**  
-Decision authority: [ADR 0003](DECISIONS/0003-adopt-brew-done-it-deduction-board.md)  
+Decision authority: [ADR 0005](DECISIONS/0005-adopt-brew-done-it-deduction-board.md)  
 Retained cross-device authority: [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md)  
 Schema target: [Brew Done It persistent schema target](nocodebackend/brew-done-it-schema-target.md)
 
 ## Purpose
 
-This is the capability-specific readiness gate for Brew Done It. ADR 0003 supersedes the former controlled-question/scoring model while retaining ADR 0002's persistent two-account/two-device architecture, protected secret, invitation/resume behaviour and concurrency boundary.
+This is the capability-specific readiness gate for Brew Done It. ADR 0005 supersedes the former controlled-question/scoring model while retaining ADR 0002's persistent two-account/two-device architecture, protected secret, invitation/resume behaviour and concurrency boundary.
 
 Approval of source implementation does **not** approve provider mutation or production enablement.
 
@@ -21,8 +21,9 @@ The v3 source now provides:
 - asynchronous invitation/share/resume behaviour;
 - an accessible two-sided **Brewery / Beer & Style** deduction board;
 - persistent `yes` / `no` / `unknown` deduction state across sessions/devices;
-- brewery candidate narrowing by certified location and the guesser's own previously-rated relationship;
-- beer candidate narrowing by brewery field, style, ABV, IBU and collaboration;
+- brewery candidate narrowing from the guesser's own previously-rated relationship;
+- beer candidate narrowing by remaining brewery field, style, ABV, IBU and collaboration;
+- state/country deduction controls deliberately unavailable until canonical brewery geography is governed and certified;
 - dark/barrel-aged notes that deliberately do **not** auto-filter until structured trait data is certified;
 - selector-only brewery/beer/style answer sheet;
 - optional guesser-controlled aggregate rating-history clues for hidden brewery/style/exact beer;
@@ -35,25 +36,41 @@ The v3 source now provides:
 
 The connected provider schema has not been migrated/certified for v3, so the feature remains unreachable.
 
-## Current implementation state — 11 September 2026
+## Current implementation state — 12 September 2026
 
-The merged persistent-core baseline is PR #410. The v3 redesign is being implemented on branch `codex/brew-done-it-deduction-v3` and must use a normal PR under repository lifecycle policy.
+The merged persistent-core baseline is PR #410. The v3 redesign is PR **#461** on `codex/brew-done-it-deduction-v3`.
 
-The v3 branch has changed gameplay, persistence fields, API routing and UI since the accepted PR #410 exact-head evidence. Therefore **PR #410 validation must not be reused as acceptance evidence for v3**.
+The branch has been reconciled with current `main` and PR #461 is structurally mergeable, but it remains **IMPLEMENTING / VALIDATION PENDING**. Gameplay, persistence fields, API routing and UI differ materially from the accepted PR #410 exact-head evidence, so PR #410 validation must not be reused as acceptance evidence for v3.
 
 Until v3 validation is explicitly run:
 
-- lifecycle remains **IMPLEMENTING / VALIDATION PENDING**;
 - continue non-provider source/documentation work where useful;
 - do not enable a playable route/navigation or policy flag;
 - do not create/change provider collections; and
-- do not merge the v3 PR as MERGE READY.
+- do not merge PR #461 as MERGE READY.
 
 ## Beer-profile entry-point contract
 
 While contained, **Play Brew-Done-It** on the beer profile remains informational and performs no game API request. Once separately enabled, it passes the viewed canonical product as a reviewable initial secret-beer selection. The selector may change the beer before creating the challenge, and server product validation remains authoritative.
 
 The selected beer must never be encoded into an invitation or guesser-facing payload.
+
+## Governed clue-data boundary
+
+Candidate narrowing must use only governed/certified facts.
+
+Currently supported source-backed narrowing includes:
+
+- producer relationship from canonical product data;
+- whether the authenticated guesser has previously rated a beer from that producer;
+- product category/style;
+- ABV;
+- IBU; and
+- collaboration.
+
+Current source does **not** treat producer free-text address/suburb identifiers as sufficient authority for state/country. Therefore state/country controls remain unavailable and geography fields in the selector sheet remain unknown until a canonical geography source is governed and certified.
+
+Dark and barrel-aged are useful social clues, but remain manual notes only until trustworthy structured trait metadata exists. Missing information must never be interpreted as `no`.
 
 ## Provider migration gate
 
@@ -80,7 +97,7 @@ The migration target is:
 
 `brew_done_it_questions` belongs to the superseded v2 model and is not required for new v3 play.
 
-Existing product/producer/category/location/rating reference data may support deduction options and selector aggregates only after the relevant fields/relationships are certified. Full field and recovery semantics are in the schema target.
+Existing governed product/producer/category/rating data may support deduction options and selector aggregates. Geography is not a v3 migration prerequisite and must remain unavailable until separately governed. Full field and recovery semantics are in the schema target.
 
 ## Connected certification
 
@@ -96,7 +113,7 @@ Prove:
 - the creator cannot join their own invitation as opponent;
 - browser-supplied participant/correctness/score fields are ignored/rejected;
 - only the selector receives the private answer sheet;
-- active guesser raw HTTP responses contain no `selected_product_id`, answer-sheet data or equivalent secret;
+- active guesser raw HTTP responses contain no `selected_product_id`, answer-sheet data or equivalent secret; and
 - the secret is revealed only after terminal state.
 
 ### Rating-history consent
@@ -118,12 +135,13 @@ Using two authenticated devices:
 
 1. Player A selects a beer and creates a challenge.
 2. Player B accepts on another device.
-3. Player B records brewery/state/history/style/ABV/IBU/collaboration deductions.
+3. Player B records previous-brewery-history/style/ABV/IBU/collaboration deductions.
 4. Refresh/sign-out/device change preserves the deduction board.
 5. `yes` and `no` narrow only according to certified facts; `unknown` eliminates nothing.
 6. brewery and beer candidate counts remain consistent with stored deductions.
-7. dark/barrel-aged can be recorded but do not auto-filter before certified trait metadata exists.
-8. Player B may submit brewery, exact-beer and style-fallback outcomes without the conversation itself becoming scored actions.
+7. geography is visibly unavailable rather than inferred while no governed source exists.
+8. dark/barrel-aged can be recorded but do not auto-filter before certified trait metadata exists.
+9. Player B may submit brewery, exact-beer and style-fallback outcomes without the conversation itself becoming scored actions.
 
 ### Scoring and lifecycle
 
@@ -190,10 +208,10 @@ That change requires provider, privacy, cross-device, scoring, recovery, accessi
 Brew Done It v3 enablement is blocked by its own capability boundary, not by unrelated launch work:
 
 - v3 provider collections/fields are not certified/deployed;
-- selector clue/reference relationships are not connected-certified;
 - rating-history consent/privacy behaviour is not connected-certified;
 - v3 formal-outcome recovery has not been failure-injection tested against NoCodeBackend;
-- two-account/two-device v3 evidence does not yet exist; and
+- two-account/two-device v3 evidence does not yet exist;
+- canonical brewery geography is unavailable for geography-based narrowing; and
 - no reviewed enablement change exists.
 
 These blockers remain scoped to Brew Done It and must not block unrelated Pourfolio launch work.
