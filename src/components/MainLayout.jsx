@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { FiHome, FiLogOut, FiMapPin, FiSearch, FiUser } from 'react-icons/fi'
+import { FiHome, FiLogOut, FiMapPin, FiSearch, FiSettings, FiUser } from 'react-icons/fi'
 import { Link, NavLink, useLocation } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import PublicDocumentLinks from './PublicDocumentLinks.jsx'
@@ -17,6 +17,7 @@ const routeLabel = (pathname) => {
   if (pathname === '/search') return 'Search'
   if (pathname === '/cellar') return 'Cellar'
   if (pathname === '/profile') return 'Profile and rating history'
+  if (pathname === '/settings') return 'Rating settings'
   if (/^\/products\/[^/]+\/rate$/.test(pathname)) return 'Rate beer'
   if (/^\/products\/[^/]+$/.test(pathname)) return 'Product details'
   if (/^\/breweries\/[^/]+$/.test(pathname)) return 'Brewery details'
@@ -51,9 +52,7 @@ function MainLayout({ children, user, onLogout }) {
     setIsSigningOut(true)
     try {
       const result = await onLogout?.()
-      if (result?.error) {
-        setSignOutError(result.error.message || 'Sign out failed. Please try again.')
-      }
+      if (result?.error) setSignOutError(result.error.message || 'Sign out failed. Please try again.')
     } catch {
       setSignOutError('Sign out failed. Please try again.')
     } finally {
@@ -86,7 +85,10 @@ function MainLayout({ children, user, onLogout }) {
               </NavLink>
             ))}
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <Link to="/settings" className={`rounded-lg p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 ${focusRing}`} aria-label="Rating settings">
+              <SafeIcon icon={FiSettings} className="h-5 w-5" />
+            </Link>
             <Link to="/profile" className={`max-w-32 truncate rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 ${focusRing}`}>
               {user?.name || 'Profile'}
             </Link>
@@ -103,22 +105,12 @@ function MainLayout({ children, user, onLogout }) {
           </div>
         </div>
         {signOutError && (
-          <div
-            ref={signOutErrorRef}
-            tabIndex={-1}
-            role="alert"
-            className="mx-auto max-w-7xl px-4 pb-3 text-sm font-medium text-red-700 outline-none sm:px-6 lg:px-8"
-          >
+          <div ref={signOutErrorRef} tabIndex={-1} role="alert" className="mx-auto max-w-7xl px-4 pb-3 text-sm font-medium text-red-700 outline-none sm:px-6 lg:px-8">
             {signOutError}
           </div>
         )}
       </header>
-      <main
-        ref={mainContentRef}
-        id="main-content"
-        tabIndex={-1}
-        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-400"
-      >
+      <main ref={mainContentRef} id="main-content" tabIndex={-1} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-400">
         {children}
       </main>
       <footer className="border-t border-gray-200 bg-white">
