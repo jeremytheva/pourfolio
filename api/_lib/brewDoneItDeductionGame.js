@@ -11,7 +11,8 @@ const id = (value, label) => {
   return text
 }
 const participant = (game, userId) => [game?.creator_participant_id, game?.opponent_participant_id]
-  .filter((value) => value !== null && value !== undefined).some((value) => String(value) === String(userId))
+  .filter((value) => value !== null && value !== undefined)
+  .some((value) => String(value) === String(userId))
 
 const requestKey = (request, userId) => {
   const key = String(request.body?.idempotencyKey || '').trim()
@@ -29,14 +30,13 @@ const roundAndGame = async (roundId, user) => {
 
 const activeGuesser = async (roundId, user) => {
   const result = await roundAndGame(roundId, user)
-  if (String(result.round.guesser_participant_id) !== String(user.id)) throw fail('Only the guesser can update the deduction board.', 403)
-  if (result.game.status !== 'active' || result.round.status !== 'guessing') throw fail('This round is not accepting deduction changes.', 409)
+  if (String(result.round.guesser_participant_id) !== String(user.id)) {
+    throw fail('Only the guesser can update the deduction board.', 403)
+  }
+  if (result.game.status !== 'active' || result.round.status !== 'guessing') {
+    throw fail('This round is not accepting deduction changes.', 409)
+  }
   return result
-}
-
-const safeGet = async (collection, recordId) => {
-  if (!recordId) return null
-  try { return await dataProvider.get(collection, recordId) } catch { return null }
 }
 
 const average = (ratings) => {
@@ -53,7 +53,11 @@ const aggregate = (ratings, productsById, predicate) => {
     ratingCount: matching.length,
     distinctBeerCount: new Set(matching.map((rating) => String(rating.product_id))).size,
     averageWeighted: average(matching),
-    lastRatedAt: matching.reduce((latest, rating) => !latest || Date.parse(rating.date_rated || 0) > Date.parse(latest || 0) ? rating.date_rated : latest, null)
+    lastRatedAt: matching.reduce((latest, rating) => {
+      const candidate = rating.date_rated
+      if (!candidate) return latest
+      return !latest || Date.parse(candidate) > Date.parse(latest) ? candidate : latest
+    }, null)
   }
 }
 
@@ -63,16 +67,17 @@ const sharingEnabled = (game, guesserId) => String(game.creator_participant_id) 
 
 export const getSelectorClues = async (roundId, response, user) => {
   const { round, game } = await roundAndGame(roundId, user)
-  if (String(round.selector_participant_id) !== String(user.id)) throw fail('Only the selector can view the secret clue sheet.', 403)
+  if (String(round.selector_participant_id) !== String(user.id)) {
+    throw fail('Only the selector can view the secret clue sheet.', 403)
+  }
+
   const product = await dataProvider.get(COLLECTIONS.products, round.selected_product_id)
   if (!product) throw fail('The selected product cannot be resolved.', 409)
 
-  const producer = await safeGet(COLLECTIONS.producers, product.producer_id)
-  const category = await safeGet(COLLECTIONS.categories, product.product_category_id)
-  const suburb = await safeGet(COLLECTIONS.suburbs, producer?.suburb_id)
-  const postcode = await safeGet(COLLECTIONS.postcode, suburb?.postcode_id)
-  const state = await safeGet(COLLECTIONS.states, postcode?.state_id)
-  const country = await safeGet(COLLECTIONS.countries, state?.country_id)
+  const [producer, category] = await Promise.all([
+    product.producer_id ? dataProvider.get(COLLECTIONS.producers, product.producer_id).catch(() => null) : null,
+    product.product_category_id ? dataProvider.get(COLLECTIONS.categories, product.product_category_id).catch(() => null) : null
+  ])
 
   let history = { enabled: false }
   if (sharingEnabled(game, round.guesser_participant_id)) {
@@ -94,11 +99,12 @@ export const getSelectorClues = async (roundId, response, user) => {
     brewery: {
       id: producer?.id ?? product.producer_id ?? null,
       name: producer?.producer_name || null,
-      suburb: suburb?.suburb || null,
-      postcode: postcode?.postcode || null,
-      state: state?.state || null,
-      stateAcronym: state?.state_acronym || null,
-      country: country?.country_name || null
+      // Geography intentionally remains unknown until a governed canonical source exists.
+      suburb: null,
+      postcode: null,
+      state: null,
+      stateAcronym: null,
+      country: null
     },
     beer: {
       id: product.id,
@@ -109,8 +115,20 @@ export const getSelectorClues = async (roundId, response, user) => {
       edition: product.edition || null,
       collaboration: product.collaboration === true || Number(product.collaboration) === 1
     },
-    style: { id: category?.id ?? product.product_category_id ?? null, name: category?.category_name || product.declared_category || null },
-    traits: { dark: 'unknown', barrelAged: 'unknown' },
+    style: {
+      id: category?.id ?? product.product_category_id ?? null,
+      name: category?.category_name || product.declared_category || null
+    },
+    traits: {
+      dark: 'unknown',
+      barrelAged: 'unknown'
+    },
+    capabilities: {
+      geography: false,
+      structuredDarkTrait: false,
+      structuredBarrelAgedTrait: false,
+      historyAggregates: history.enabled
+    },
     history
   })
 }
@@ -127,24 +145,45 @@ export const recordDeduction = async (roundId, request, response, user) => {
   const { round } = await activeGuesser(roundId, user)
   const key = requestKey(request, user.id)
   const input = sanitiseBrewDoneItDeductionInput(request.body)
-  const replay = list(await dataProvider.list(COLLECTIONS.brewDoneItDeductions, { round_id: round.id, idempotency_key: key }))[0]
-  if (replay) return response.status(200).json({ deduction: projectBrewDoneItDeduction(replay), replayed: true })
+  const replay = list(await dataProvider.list(COLLECTIONS.brewDoneItDeductions, {
+    round_id: round.id,
+    idempotency_key: key
+  }))[0]
+  if (replay) {
+    response.status(200).json({ deduction: projectBrewDoneItDeduction(replay), replayed: true })
+    return
+  }
 
   const existing = list(await dataProvider.list(COLLECTIONS.brewDoneItDeductions, { round_id: round.id })).find((item) =>
-    item.dimension === input.dimension && String(item.reference_id ?? '') === String(input.referenceId ?? '') &&
-    String(item.value_text ?? '') === String(input.valueText ?? '') && String(item.numeric_value ?? '') === String(input.numericValue ?? ''))
+    item.dimension === input.dimension &&
+    String(item.reference_id ?? '') === String(input.referenceId ?? '') &&
+    String(item.value_text ?? '') === String(input.valueText ?? '') &&
+    String(item.numeric_value ?? '') === String(input.numericValue ?? ''))
+
   const now = new Date().toISOString()
   let saved
   if (existing) {
-    await dataProvider.update(COLLECTIONS.brewDoneItDeductions, existing.id, { ...existing, answer: input.answer, updated_at: now, idempotency_key: key })
+    await dataProvider.update(COLLECTIONS.brewDoneItDeductions, existing.id, {
+      answer: input.answer,
+      updated_at: now,
+      idempotency_key: key
+    })
     saved = await dataProvider.get(COLLECTIONS.brewDoneItDeductions, existing.id)
   } else {
     saved = first(await dataProvider.create(COLLECTIONS.brewDoneItDeductions, {
-      round_id: round.id, recorded_by_participant_id: user.id, dimension: input.dimension, answer: input.answer,
-      value_text: input.valueText, reference_id: input.referenceId, numeric_value: input.numericValue,
-      created_at: now, updated_at: now, idempotency_key: key
+      round_id: round.id,
+      recorded_by_participant_id: user.id,
+      dimension: input.dimension,
+      answer: input.answer,
+      value_text: input.valueText,
+      reference_id: input.referenceId,
+      numeric_value: input.numericValue,
+      created_at: now,
+      updated_at: now,
+      idempotency_key: key
     }))
   }
+
   response.status(existing ? 200 : 201).json({ deduction: projectBrewDoneItDeduction(saved) })
 }
 
