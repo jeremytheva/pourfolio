@@ -44,6 +44,16 @@ const expectedUnavailable = [
   'product_image_reconciliation_audit'
 ]
 
+const feederTargetCollections = [
+  'product_producers',
+  'catalogue_source_records',
+  'product_images',
+  'producer_logos',
+  'product_external_ids',
+  'product_image_orphans',
+  'product_image_reconciliation_audit'
+]
+
 const add = (code, detail = {}) => findings.push({ code, ...detail })
 
 if (!fs.existsSync(contractPath)) {
@@ -113,7 +123,7 @@ if (!fs.existsSync(contractPath)) {
           add('DATA_CONTRACT_FEEDER_PROTECTED_FIELD_WRITABLE', { field })
         }
       }
-      for (const collection of expectedUnavailable) {
+      for (const collection of feederTargetCollections) {
         const policy = writer.collections?.[collection]
         if (!policy || (policy.operations ?? []).length !== 0 || (policy.writable_fields ?? []).length !== 0) {
           add('DATA_CONTRACT_FEEDER_UNAVAILABLE_WRITE_ENABLED', { collection })
