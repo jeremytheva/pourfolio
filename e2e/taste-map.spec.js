@@ -40,10 +40,10 @@ test('Beer Passport distinguishes tastings from unique beers and uses only verif
   await page.goto('/taste-map')
 
   await expect(page.getByRole('heading', { name: 'Your beer exploration' })).toBeVisible()
-  await expect(page.getByText('Tastings').locator('..')).toContainText('4')
-  await expect(page.getByText('Unique beers').locator('..')).toContainText('3')
-  await expect(page.getByText('Verified styles').locator('..')).toContainText('1')
-  await expect(page.getByText('Verified breweries').locator('..')).toContainText('1')
+  await expect(page.getByText('Tastings', { exact: true }).locator('..')).toContainText('4')
+  await expect(page.getByText('Unique beers', { exact: true }).locator('..')).toContainText('3')
+  await expect(page.getByText('Verified styles', { exact: true }).locator('..')).toContainText('1')
+  await expect(page.getByText('Verified breweries', { exact: true }).locator('..')).toContainText('1')
 
   await expect(page.getByRole('link', { name: 'Pale Ale', exact: true })).toHaveAttribute('href', '/styles/10')
   await expect(page.getByRole('link', { name: 'Rocky Ridge Brewing', exact: true })).toHaveAttribute('href', '/breweries/20')
@@ -97,5 +97,5 @@ test('Beer Passport load failure has a focused retry path', async ({ page }) => 
   await expect(alert).toContainText('Beer Passport unavailable')
   await page.getByRole('button', { name: 'Try again' }).click()
   await expect(page.getByRole('heading', { name: 'Your beer exploration' })).toBeVisible()
-  await expect(page.getByText('Unique beers').locator('..')).toContainText('1')
+  await expect(page.getByText('Unique beers', { exact: true }).locator('..')).toContainText('1')
 })
