@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { FiBookOpen, FiHome, FiLogOut, FiMapPin, FiSearch, FiUser } from 'react-icons/fi'
+import { FiBookOpen, FiCompass, FiHome, FiLogOut, FiMapPin, FiSearch, FiUser } from 'react-icons/fi'
 import { Link, NavLink, useLocation } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import PublicDocumentLinks from './PublicDocumentLinks.jsx'
@@ -7,6 +7,7 @@ import PublicDocumentLinks from './PublicDocumentLinks.jsx'
 const navigation = [
   { to: '/home', label: 'Discover', icon: FiHome },
   { to: '/styles', label: 'Styles', icon: FiBookOpen },
+  { to: '/taste-map', label: 'Beer Passport', icon: FiCompass },
   { to: '/places', label: 'Breweries & Venues', icon: FiMapPin },
   { to: '/search', label: 'Search', icon: FiSearch },
   { to: '/cellar', label: 'Cellar', icon: FiUser }
@@ -16,6 +17,7 @@ const routeLabel = (pathname) => {
   if (pathname === '/home') return 'Discover'
   if (pathname === '/styles') return 'Beer styles'
   if (/^\/styles\/[^/]+$/.test(pathname)) return 'Beer style details'
+  if (pathname === '/taste-map') return 'Taste Map and Beer Passport'
   if (pathname === '/places') return 'Breweries and venues'
   if (pathname === '/search') return 'Search'
   if (pathname === '/cellar') return 'Cellar'
