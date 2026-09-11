@@ -1,6 +1,6 @@
 # Brew Done It readiness
 
-Status: **application core implemented and contained; provider migration not yet approved or deployed**  
+Status: **application core implemented and contained; current head awaiting deferred validation; provider migration not yet approved or deployed**  
 Decision authority: [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md)  
 Schema target: [Brew Done It persistent schema target](nocodebackend/brew-done-it-schema-target.md)
 
@@ -29,6 +29,21 @@ The contained application core provides:
 - fail-closed server containment plus absent production route/navigation.
 
 The provider-evidenced deployed schema does **not** currently contain the required Brew Done It collections. The feature therefore remains unreachable.
+
+## Autonomous continuation state — 11 September 2026
+
+Active implementation is PR **#410** on `codex/brew-done-it-cross-device`.
+
+The earlier contained-core revision passed canonical repository validation, Browser/accessibility, Dependency Review and CodeQL. Subsequent commits added the beer-profile entry point, its product/readiness contract and the contained `initialProductId` preselection path. Those later commits have **not** inherited the earlier acceptance evidence.
+
+The owner has explicitly directed that validation be deferred while the Vercel Hobby build-rate limit is exhausted. Until that limit resets:
+
+- continue source/documentation work that does not require connected execution when useful;
+- do not repeatedly trigger or rely on Vercel preview deployment attempts;
+- keep PR #410 in **VALIDATING**, not MERGE READY; and
+- do not enable the game route, navigation, provider flag or deferred collections.
+
+The next validation action after the limit resets is to freeze the then-current PR head and run canonical `npm run platform:validate`, Browser/accessibility and relevant diagnostics against that exact revision. Review any real defect, confirm containment, then reassess merge readiness. No earlier exact-head result may be substituted for that validation.
 
 ## Beer-profile entry-point contract
 
