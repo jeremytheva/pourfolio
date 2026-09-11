@@ -1,21 +1,10 @@
 import crypto from 'node:crypto'
-import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../src/data/contract.js'
+import { DEPLOYED_COLLECTIONS as COLLECTIONS, pickFields } from '../src/data/contract.js'
+import { canonicalRatingKey, ratingDimension } from '../src/lib/ratingFormulaV1.js'
 import { requireSessionUser } from './_lib/authSession.js'
 import { dataProvider } from './_lib/dataProvider.js'
-import {
-  CATEGORY_FIELDS,
-  PRODUCT_FIELDS,
-  PRODUCER_FIELDS,
-  projectAttribute,
-  projectBonus
-} from './_lib/dataPolicy.js'
-import { pickFields } from '../src/data/contract.js'
-import {
-  enforceOrigin,
-  enforceRateLimit,
-  enforceRequestSize,
-  safeErrorMessage
-} from './_lib/httpSecurity.js'
+import { CATEGORY_FIELDS, PRODUCT_FIELDS, PRODUCER_FIELDS, projectAttribute, projectBonus } from './_lib/dataPolicy.js'
+import { enforceOrigin, enforceRateLimit, enforceRequestSize, safeErrorMessage } from './_lib/httpSecurity.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 
 const ALLOWED_METHODS = new Set(['GET'])
@@ -95,11 +84,11 @@ const hydrateProducts = async (products) => {
 const buildRatingInsights = async (ratings) => {
   const acceptedRatings = ratings
     .map((rating) => ({ id: String(rating.id ?? ''), total: Number(rating.total_weighted) }))
-    .filter((rating) => /^[1-9]\d*$/.test(rating.id) && Number.isFinite(rating.total) && rating.total >= 1 && rating.total <= 7)
-  const distribution = Array.from({ length: 7 }, (_, index) => ({ score: index + 1, count: 0 }))
+    .filter((rating) => /^[1-9]\d*$/.test(rating.id) && Number.isFinite(rating.total) && rating.total >= 0 && rating.total <= 5)
+  const distribution = Array.from({ length: 6 }, (_, score) => ({ score, count: 0 }))
   for (const rating of acceptedRatings) {
-    const bucket = Math.min(7, Math.max(1, Math.round(rating.total)))
-    distribution[bucket - 1].count += 1
+    const bucket = Math.min(5, Math.max(0, Math.round(rating.total)))
+    distribution[bucket].count += 1
   }
   if (!acceptedRatings.length) return { distribution, attributes: [] }
 
@@ -109,14 +98,17 @@ const buildRatingInsights = async (ratings) => {
     safeRelationshipList(COLLECTIONS.ratingAttributes)
   ])
   const attributesById = new Map(attributes
-    .filter((attribute) => /^[1-9]\d*$/.test(String(attribute.id ?? '')) && String(attribute.attribute_name ?? '').trim())
+    .filter((attribute) => /^[1-9]\d*$/.test(String(attribute.id ?? '')) && canonicalRatingKey(attribute.attribute_name))
     .map((attribute) => [String(attribute.id), attribute]))
   const aggregates = new Map()
   for (const score of scores) {
     const ratingId = String(score.rating_id ?? '')
     const attributeId = String(score.attribute_id ?? '')
+    const attribute = attributesById.get(attributeId)
+    const dimension = ratingDimension(attribute?.attribute_name)
     const value = Number(score.attribute_score)
-    if (!ratingIds.has(ratingId) || !attributesById.has(attributeId) || !Number.isInteger(value) || value < 1 || value > 7) continue
+    const min = dimension?.min ?? 1
+    if (!ratingIds.has(ratingId) || !dimension || !Number.isInteger(value) || value < min || value > dimension.max) continue
     const current = aggregates.get(attributeId) || { sum: 0, count: 0 }
     current.sum += value
     current.count += 1
@@ -157,17 +149,16 @@ const getProduct = async (id, response) => {
   const ratings = await safeRelationshipList(COLLECTIONS.ratings, { product_id: product.id })
   const validRatings = ratings.filter((rating) => {
     const total = Number(rating.total_weighted)
-    return Number.isFinite(total) && total >= 1 && total <= 7
+    return Number.isFinite(total) && total >= 0 && total <= 5
   })
   const totals = validRatings.map((rating) => Number(rating.total_weighted))
-  const ratingInsights = await buildRatingInsights(validRatings)
   response.status(200).json({
     ...hydrated,
     ratingSummary: {
       count: totals.length,
       average: totals.length ? Number((totals.reduce((sum, value) => sum + value, 0) / totals.length).toFixed(2)) : null
     },
-    ratingInsights,
+    ratingInsights: await buildRatingInsights(validRatings),
     ratings: []
   })
 }
@@ -179,11 +170,9 @@ const getProducer = async (id, response) => {
     response.status(404).json({ error: 'Producer not found.' })
     return
   }
-
   const relatedProducts = await safeRelationshipList(COLLECTIONS.products, { producer_id: producerId })
   const exactProducts = relatedProducts.filter((product) => String(product.producer_id ?? '') === producerId)
   const products = await hydrateProducts(exactProducts)
-
   response.status(200).json({
     producer: projectProducer(producer),
     products: products.filter((product) => product.producer && String(product.producer.id) === producerId)
@@ -204,7 +193,7 @@ const getRatingForm = async (request, response) => {
   ])
   response.status(200).json({
     product: hydratedProducts[0],
-    attributes: normaliseList(attributes).filter((attribute) => Number(attribute.is_scored) === 1).map(projectAttribute),
+    attributes: normaliseList(attributes).filter((attribute) => canonicalRatingKey(attribute.attribute_name)).map(projectAttribute),
     bonusAttributes: normaliseList(bonuses).map(projectBonus)
   })
 }
@@ -234,13 +223,10 @@ export default async function handler(request, response) {
     await routeCatalogueRequest(request, response)
   } catch (error) {
     const status = Number(error.status) >= 400 && Number(error.status) < 600 ? Number(error.status) : 500
-    if (status >= 500) {
-      writeTelemetryError(runtimeTelemetry({
-        route_template: '/api/nocodebackend/catalog/:resource', method: request.method,
-        status_class: `${Math.floor(status / 100)}xx`,
-        event_name: error.name === 'AbortError' ? 'provider_timeout' : 'gateway_failure', correlation_id: correlationId
-      }))
-    }
+    if (status >= 500) writeTelemetryError(runtimeTelemetry({
+      route_template: '/api/nocodebackend/catalog/:resource', method: request.method,
+      status_class: `${Math.floor(status / 100)}xx`, event_name: error.name === 'AbortError' ? 'provider_timeout' : 'gateway_failure', correlation_id: correlationId
+    }))
     response.status(status).json(error.payload || {
       error: status < 500 && error.message ? error.message : safeErrorMessage(status),
       code: error.code, requestId: correlationId
