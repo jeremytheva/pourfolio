@@ -23,7 +23,7 @@ import {
 const requestKey = () => `brew-done-it-${crypto.randomUUID()}`
 const terminalRound = (round) => ['completed', 'forfeited'].includes(round?.status)
 
-export default function BrewDoneIt({ user }) {
+export default function BrewDoneIt({ user, initialProductId = '' }) {
   const [game, setGame] = useState(null)
   const [round, setRound] = useState(null)
   const [series, setSeries] = useState([])
@@ -229,7 +229,7 @@ export default function BrewDoneIt({ user }) {
       {!game && (
         <>
           <BrewDoneItSeriesList series={series} userId={user?.id} busy={busy} onOpen={openSeries} />
-          <BrewDoneItInvite products={products} invitation={invitation} busy={busy} onCreate={create} onJoin={join} />
+          <BrewDoneItInvite products={products} invitation={invitation} busy={busy} initialProductId={initialProductId} onCreate={create} onJoin={join} />
         </>
       )}
 
