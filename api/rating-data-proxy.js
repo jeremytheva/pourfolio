@@ -8,6 +8,7 @@ import { loadBonusCatalogue } from './_lib/bonusAttributeCatalogue.js'
 import { dataProvider } from './_lib/dataProvider.js'
 import { isOwnedBy, projectRating } from './_lib/dataPolicy.js'
 import { enforceOrigin, enforceRateLimit, enforceRequestSize, safeErrorMessage } from './_lib/httpSecurity.js'
+import { buildStyleScoreIndex, styleScaledScoreForRating } from './_lib/styleScaledScore.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 
 const ALLOWED_METHODS = new Set(['GET', 'POST', 'DELETE'])
@@ -81,16 +82,30 @@ const ownedCellarForRating = async (body, userId, productId) => {
   return cellar
 }
 
-const populationScores = async () => records(await dataProvider.list(COLLECTIONS.ratings))
-  .map((rating) => Number(rating.total_weighted))
-  .filter((score) => Number.isFinite(score) && score >= 0 && score <= 5)
+const scorePopulations = async () => {
+  const [ratingRows, productRows, categoryRows] = await Promise.all([
+    dataProvider.list(COLLECTIONS.ratings).then(records),
+    dataProvider.list(COLLECTIONS.products).then(records),
+    dataProvider.list(COLLECTIONS.categories).then(records)
+  ])
 
-const advancedFor = (rating, population, cellar = null) => buildAdvancedScore({
-  score: Number(rating.total_weighted),
-  population,
-  retailPrice: cellar?.retail_price,
-  purchasePrice: cellar?.purchase_price,
-  volumeMl: cellar?.mls
+  return Object.freeze({
+    overall: Object.freeze(ratingRows
+      .map((rating) => Number(rating.total_weighted))
+      .filter((score) => Number.isFinite(score) && score >= 0 && score <= 5)),
+    styleIndex: buildStyleScoreIndex({ ratings: ratingRows, products: productRows, categories: categoryRows })
+  })
+}
+
+const advancedFor = (rating, populations, cellar = null) => ({
+  ...buildAdvancedScore({
+    score: Number(rating.total_weighted),
+    population: populations?.overall || [],
+    retailPrice: cellar?.retail_price,
+    purchasePrice: cellar?.purchase_price,
+    volumeMl: cellar?.mls
+  }),
+  ...styleScaledScoreForRating(rating, populations?.styleIndex)
 })
 
 const productProjection = async (productId) => {
@@ -162,9 +177,9 @@ const submitRating = async (request, response, user, correlationId) => {
     }
 
     const saved = { ...rating, ...totals }
-    const population = await populationScores()
+    const populations = await scorePopulations()
     response.status(201).json({
-      rating: { ...projectRating(saved), advanced_scores: advancedFor(saved, population, cellar) },
+      rating: { ...projectRating(saved), advanced_scores: advancedFor(saved, populations, cellar) },
       scoreCount: totals.scores.length,
       bonusCount: requestedBonusIds.length,
       bonusPointTotal,
@@ -189,8 +204,8 @@ const submitRating = async (request, response, user, correlationId) => {
 const listUserRatings = async (response, user) => {
   const ownerRatings = records(await dataProvider.list(COLLECTIONS.ratings, { user_id: user.id }))
     .filter((rating) => isOwnedBy(rating, user.id))
-  const [population, cellarRows] = await Promise.all([
-    populationScores(),
+  const [populations, cellarRows] = await Promise.all([
+    scorePopulations(),
     dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }).then(records)
   ])
   const cellarById = new Map(cellarRows.filter((item) => isOwnedBy(item, user.id)).map((item) => [String(item.id), item]))
@@ -201,7 +216,7 @@ const listUserRatings = async (response, user) => {
   response.status(200).json({
     items: ownerRatings.map((rating) => ({
       ...projectRating(rating),
-      advanced_scores: advancedFor(rating, population, cellarById.get(String(rating.cellar_id)) || null),
+      advanced_scores: advancedFor(rating, populations, cellarById.get(String(rating.cellar_id)) || null),
       product: productsById.get(String(rating.product_id)) || null
     })).sort((left, right) => String(right.date_rated || '').localeCompare(String(left.date_rated || '')))
   })
@@ -274,8 +289,7 @@ export default async function handler(request, response) {
     const status = Number(error.status) >= 400 && Number(error.status) < 600 ? Number(error.status) : 500
     if (status >= 500) writeTelemetryError(runtimeTelemetry({
       route_template: '/api/nocodebackend/ratings/:action', method: request.method,
-      status_class: `${Math.floor(status / 100)}xx`, event_name: error.name === 'AbortError' ? 'provider_timeout' : 'gateway_failure',
-      correlation_id: correlationId
+      status_class: `${Math.floor(status / 100)}xx`, event_name: error.name === 'AbortError' ? 'provider_timeout' : 'gateway_failure', correlation_id: correlationId
     }))
     response.status(status).json(error.payload || {
       error: status < 500 && error.message ? error.message : safeErrorMessage(status),
@@ -291,5 +305,6 @@ export const __testables = {
   listUserRatings,
   deleteRating,
   advancedFor,
+  scorePopulations,
   scoresWithDerivedBonus
 }
