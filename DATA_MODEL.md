@@ -33,6 +33,8 @@ erDiagram
     RATING_ATTRIBUTES ||--o{ RATING_SCORES : defines
     RATINGS ||--o{ BONUS_ATTRIBUTE_RATING_MAPPING : has
     BONUS_ATTRIBUTES ||--o{ BONUS_ATTRIBUTE_RATING_MAPPING : defines
+    BONUS_ATTRIBUTE_CATEGORIES ||--o{ BONUS_ATTRIBUTE_CATEGORY_MAPPING : groups
+    BONUS_ATTRIBUTES ||--o{ BONUS_ATTRIBUTE_CATEGORY_MAPPING : categorized_as
     CELLAR o|--o{ RATINGS : may_source
 ```
 
@@ -47,6 +49,8 @@ Launch paths use:
 - `rating_scores`
 - `rating_attributes`
 - `bonus_attributes`
+- `bonus_attribute_categories`
+- `bonus_attribute_category_mapping`
 - `bonus_attribute_rating_mapping`
 - `cellar`
 
@@ -129,13 +133,32 @@ The public catalogue must not expose individual private rating rows merely to co
 
 ## Bonus attributes
 
-Optional bonus ratings use:
+Bonus descriptors use the provider structures already present in the supplied backend export:
 
-- `bonus_attributes`;
-- `bonus_attribute_rating_mapping`;
-- `bonus_attribute_rating_mapping.bonus_attributes_id`.
+- `bonus_attributes` stores the descriptor and its `point_value`;
+- `bonus_attribute_categories` stores the category name;
+- `bonus_attribute_category_mapping` links a descriptor to a category;
+- `bonus_attribute_rating_mapping` links selected descriptors to a rating through `bonus_attributes_id`.
 
-Bonus relationships are optional.
+The rating form reads category membership from these tables. Categories corresponding to rating dimensions may be surfaced in a collapsed section on the matching rating card, while the final bonus browser exposes all categories.
+
+The supplied bonus-attribute export contains many historical rows with a blank `point_value`. The application treats a blank historical value as an **effective 0.2 points** without mutating the provider row. A stored numeric value remains authoritative.
+
+For each rating, selected effective point values are summed and converted to the scored Bonus dimension server-side:
+
+- no selected bonus points → Bonus `0`;
+- any positive total below `2` → Bonus `1`;
+- total `2` or greater → Bonus `2`.
+
+The browser may preview this result, but the server recalculates it from the selected bonus attribute IDs and does not trust a browser-supplied Bonus score.
+
+Authenticated users may add personal bonus attributes. New attributes:
+
+- are owner-scoped;
+- default to category `Overall`;
+- default to point value `0.2` in the interface;
+- accept point values from `0.1` through `0.8` in `0.1` increments;
+- are not exposed to other users unless a later governed sharing policy explicitly changes that rule.
 
 ## Cellar
 
