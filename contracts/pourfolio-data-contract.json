@@ -1,6 +1,6 @@
 {
   "contract_name": "pourfolio-data-contract",
-  "contract_version": "1.0.0",
+  "contract_version": "1.0.1",
   "authority": {
     "repository": "jeremytheva/pourfolio",
     "classification_document": "docs/nocodebackend/launch-schema-contract.md",
@@ -220,23 +220,6 @@
             "edition",
             "collaboration",
             "product_image"
-          ],
-          "local_only_fields": [
-            "product_url",
-            "category",
-            "pack",
-            "availability",
-            "availability_evidence",
-            "official_source_url",
-            "source_domain",
-            "first_seen_at",
-            "last_seen_at",
-            "last_verified_at",
-            "availability_state",
-            "extraction_evidence",
-            "successful_range_observations",
-            "consecutive_missing_observations",
-            "catalogue_import_key"
           ]
         },
         "producers": {
