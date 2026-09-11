@@ -8,6 +8,7 @@ import { publicDocuments } from './data/publicDocuments.js'
 const LoginPage = lazy(() => import('./pages/LoginPage.jsx'))
 const HomePage = lazy(() => import('./pages/HomePage.jsx'))
 const BeerDetails = lazy(() => import('./pages/BeerDetails.jsx'))
+const AddBeerProposal = lazy(() => import('./pages/AddBeerProposal.jsx'))
 const BreweryProfile = lazy(() => import('./pages/BreweryProfile.jsx'))
 const Styles = lazy(() => import('./pages/Styles.jsx'))
 const StyleProfile = lazy(() => import('./pages/StyleProfile.jsx'))
@@ -57,6 +58,7 @@ function App() {
             <Route path="/login" element={user ? <Navigate to="/home" replace /> : <LoginPage />} />
             <Route path="/home" element={protect(<HomePage />)} />
             <Route path="/search" element={protect(<HomePage searchMode />)} />
+            <Route path="/products/propose" element={protect(<AddBeerProposal />)} />
             <Route path="/places" element={protect(<Places />)} />
             <Route path="/styles" element={protect(<Styles />)} />
             <Route path="/styles/:styleId" element={protect(<StyleProfile />)} />
