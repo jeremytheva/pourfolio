@@ -19,10 +19,18 @@ export const DEFERRED_COLLECTIONS = Object.freeze({
   brewDoneItGames: 'brew_done_it_games',
   brewDoneItRounds: 'brew_done_it_rounds',
   brewDoneItGuesses: 'brew_done_it_guesses',
+  brewDoneItDeductions: 'brew_done_it_deductions',
+  // Retained only for the superseded v2 controlled-question implementation.
+  // Brew Done It v3 stores the guesser's deduction workspace instead of trying
+  // to model the players' spoken yes/no questions.
   brewDoneItQuestions: 'brew_done_it_questions',
-  // Retained only for the unreachable pre-ADR-0002 prototype. New Brew Done It
-  // code must use brewDoneItQuestions and catalogue facts, never rating history.
   brewDoneItHistoryQuestions: 'brew_done_it_history_questions',
+  // Existing provider reference tables used only by the contained Brew Done It
+  // clue sheet until they are separately certified for broader application use.
+  suburbs: 'suburbs',
+  postcode: 'postcode',
+  states: 'state',
+  countries: 'country',
   blockedRelationships: 'blocked_relationships'
 })
 
