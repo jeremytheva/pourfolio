@@ -3,6 +3,17 @@ import { dataProvider } from './dataProvider.js'
 
 const list = (value) => (Array.isArray(value) ? value : value ? [value] : []).filter((item) => item && typeof item === 'object')
 const byId = (records) => new Map(records.map((record) => [String(record.id), record]))
+const numericOrNull = (value) => {
+  if (value === null || value === undefined || value === '') return null
+  const number = Number(value)
+  return Number.isFinite(number) ? number : null
+}
+const booleanOrNull = (value) => {
+  if (value === null || value === undefined || value === '') return null
+  if (value === true || value === 1 || value === '1') return true
+  if (value === false || value === 0 || value === '0') return false
+  return null
+}
 
 /**
  * Return only deduction options backed by the currently governed catalogue.
@@ -45,9 +56,9 @@ export const getDeductionOptions = async (response, user) => {
     name: product.product_name,
     producerId: product.producer_id ?? null,
     categoryId: product.product_category_id ?? null,
-    abv: Number.isFinite(Number(product.abv)) ? Number(product.abv) : null,
-    ibu: Number.isFinite(Number(product.ibu)) ? Number(product.ibu) : null,
-    collaboration: product.collaboration === true || Number(product.collaboration) === 1
+    abv: numericOrNull(product.abv),
+    ibu: numericOrNull(product.ibu),
+    collaboration: booleanOrNull(product.collaboration)
   })).filter((product) => product.id && product.name)
 
   response.status(200).json({
@@ -66,3 +77,5 @@ export const getDeductionOptions = async (response, user) => {
     }
   })
 }
+
+export const __testables = { numericOrNull, booleanOrNull }
