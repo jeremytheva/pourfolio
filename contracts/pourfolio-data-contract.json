@@ -1,0 +1,285 @@
+{
+  "contract_name": "pourfolio-data-contract",
+  "contract_version": "1.0.0",
+  "authority": {
+    "repository": "jeremytheva/pourfolio",
+    "classification_document": "docs/nocodebackend/launch-schema-contract.md",
+    "detailed_mapping_document": "docs/nocodebackend/schema-mapping.md",
+    "consumer_repositories": [
+      "jeremytheva/pourfolio-feeder"
+    ],
+    "compatibility_rule": "Consumers must reject unsupported major versions and fail closed before mutation when a required collection or field is not authorised by this contract."
+  },
+  "evidence": {
+    "provider_instance": "54026_rating",
+    "basis": "repository-supplied provider export plus the governed launch classification",
+    "live_introspection": false
+  },
+  "provider": {
+    "name": "NoCodeBackend",
+    "auth_base_url": "https://app.nocodebackend.com/api/user-auth",
+    "data_base_url": "https://api.nocodebackend.com/",
+    "canonical_environment_variables": [
+      "NOCODEBACKEND_AUTH_BASE_URL",
+      "NOCODEBACKEND_DATA_BASE_URL",
+      "NOCODEBACKEND_SECRET_KEY",
+      "NOCODEBACKEND_INSTANCE"
+    ]
+  },
+  "classification_values": [
+    "DEPLOYED_REQUIRED",
+    "DEPLOYED_OPTIONAL",
+    "DEFERRED_TARGET",
+    "UNAVAILABLE"
+  ],
+  "collections": {
+    "products": {
+      "classification": "DEPLOYED_REQUIRED",
+      "provider_fields": [
+        "id",
+        "user_id",
+        "product_name",
+        "product_category_id",
+        "producer_id",
+        "abv",
+        "ibu",
+        "declared_category",
+        "edition",
+        "collaboration",
+        "product_image"
+      ],
+      "required_fields": [
+        "id",
+        "product_name"
+      ],
+      "optional_fields": [
+        "product_category_id",
+        "producer_id",
+        "abv",
+        "ibu",
+        "declared_category",
+        "edition",
+        "collaboration",
+        "product_image"
+      ],
+      "relationships": {
+        "product_category_id": "categories.id",
+        "producer_id": "producers.id"
+      }
+    },
+    "producers": {
+      "classification": "DEPLOYED_REQUIRED",
+      "provider_fields": [
+        "id",
+        "user_id",
+        "producer_name",
+        "address",
+        "suburb_id"
+      ]
+    },
+    "categories": {
+      "classification": "DEPLOYED_REQUIRED",
+      "provider_fields": [
+        "id",
+        "user_id",
+        "category_name",
+        "parent_id"
+      ]
+    },
+    "rating_attributes": {
+      "classification": "DEPLOYED_REQUIRED",
+      "provider_fields": [
+        "id",
+        "user_id",
+        "category_id",
+        "attribute_name",
+        "is_scored",
+        "weighting"
+      ]
+    },
+    "bonus_attributes": {
+      "classification": "DEPLOYED_OPTIONAL",
+      "provider_fields": [
+        "id",
+        "user_id",
+        "description",
+        "point_value"
+      ]
+    },
+    "ratings": {
+      "classification": "DEPLOYED_REQUIRED",
+      "provider_fields": [
+        "id",
+        "user_id",
+        "rating_id",
+        "product_id",
+        "cellar_id",
+        "date_rated",
+        "total_unweighted",
+        "total_weighted"
+      ],
+      "semantic_notes": {
+        "rating_id": "Physical presence does not certify the deferred durable submission-identity semantics documented by the launch contract."
+      }
+    },
+    "rating_scores": {
+      "classification": "DEPLOYED_REQUIRED",
+      "provider_fields": [
+        "id",
+        "user_id",
+        "attribute_id",
+        "rating_id",
+        "attribute_score"
+      ]
+    },
+    "bonus_attribute_rating_mapping": {
+      "classification": "DEPLOYED_OPTIONAL",
+      "provider_fields": [
+        "id",
+        "user_id",
+        "rating_id",
+        "bonus_attributes_id"
+      ]
+    },
+    "cellar": {
+      "classification": "DEPLOYED_REQUIRED",
+      "provider_fields": [
+        "id",
+        "user_id",
+        "product_id",
+        "location_id",
+        "quantity",
+        "mls",
+        "container",
+        "purchase_price",
+        "retail_price",
+        "date_received",
+        "sharing_series_id",
+        "series_version_id",
+        "purchase_location_id",
+        "purchased_by_id",
+        "gift",
+        "gift_from",
+        "bet_id",
+        "notes"
+      ]
+    },
+    "product_producers": {
+      "classification": "UNAVAILABLE",
+      "provider_fields": []
+    },
+    "profiles": {
+      "classification": "UNAVAILABLE",
+      "provider_fields": []
+    },
+    "catalogue_source_records": {
+      "classification": "UNAVAILABLE",
+      "provider_fields": []
+    },
+    "product_images": {
+      "classification": "UNAVAILABLE",
+      "provider_fields": []
+    },
+    "producer_logos": {
+      "classification": "UNAVAILABLE",
+      "provider_fields": []
+    },
+    "product_external_ids": {
+      "classification": "UNAVAILABLE",
+      "provider_fields": []
+    },
+    "product_image_orphans": {
+      "classification": "UNAVAILABLE",
+      "provider_fields": []
+    },
+    "product_image_reconciliation_audit": {
+      "classification": "UNAVAILABLE",
+      "provider_fields": []
+    }
+  },
+  "external_writers": {
+    "pourfolio-feeder": {
+      "default_policy": "deny",
+      "collections": {
+        "products": {
+          "operations": [
+            "create",
+            "update"
+          ],
+          "required_create_fields": [
+            "product_name",
+            "producer_id"
+          ],
+          "writable_fields": [
+            "product_name",
+            "product_category_id",
+            "producer_id",
+            "abv",
+            "ibu",
+            "declared_category",
+            "edition",
+            "collaboration",
+            "product_image"
+          ],
+          "local_only_fields": [
+            "product_url",
+            "category",
+            "pack",
+            "availability",
+            "availability_evidence",
+            "official_source_url",
+            "source_domain",
+            "first_seen_at",
+            "last_seen_at",
+            "last_verified_at",
+            "availability_state",
+            "extraction_evidence",
+            "successful_range_observations",
+            "consecutive_missing_observations",
+            "catalogue_import_key"
+          ]
+        },
+        "producers": {
+          "operations": [],
+          "writable_fields": [],
+          "reason": "The evidenced producers collection has no deployed logo field."
+        },
+        "catalogue_source_records": {
+          "operations": [],
+          "writable_fields": [],
+          "reason": "The collection is not evidenced in the active provider export."
+        },
+        "product_images": {
+          "operations": [],
+          "writable_fields": [],
+          "reason": "The collection is not evidenced in the active provider export."
+        },
+        "producer_logos": {
+          "operations": [],
+          "writable_fields": [],
+          "reason": "The collection is not evidenced in the active provider export."
+        },
+        "product_external_ids": {
+          "operations": [],
+          "writable_fields": [],
+          "reason": "The collection is not evidenced in the active provider export."
+        },
+        "product_image_orphans": {
+          "operations": [],
+          "writable_fields": [],
+          "reason": "The collection is not evidenced in the active provider export."
+        },
+        "product_image_reconciliation_audit": {
+          "operations": [],
+          "writable_fields": [],
+          "reason": "The collection is not evidenced in the active provider export."
+        },
+        "product_producers": {
+          "operations": [],
+          "writable_fields": [],
+          "reason": "Launch producer attribution remains products.producer_id until a governed migration is deployed and certified."
+        }
+      }
+    }
+  }
+}
