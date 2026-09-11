@@ -5,6 +5,23 @@ const writeJson = (response, status, payload) => {
   response.status(status).json(payload)
 }
 
+const pathSegments = (request) => {
+  const raw = request.query?.path
+  if (Array.isArray(raw)) return raw.map(String)
+  if (!raw) return []
+  return String(raw).split('/').filter(Boolean)
+}
+
+const publicProfileId = (value) => {
+  const id = String(value ?? '').trim()
+  if (!/^[A-Za-z0-9_-]{8,128}$/.test(id)) {
+    const error = new Error('Profile identifier is invalid.')
+    error.status = 400
+    throw error
+  }
+  return id
+}
+
 export default async function handler(request, response) {
   if (request.method !== 'GET' && request.method !== 'PUT') {
     response.setHeader?.('Allow', 'GET, PUT')
@@ -20,6 +37,28 @@ export default async function handler(request, response) {
     writeJson(response, status, {
       error: status === 401 ? 'Authentication is required.' : 'Profile service is unavailable.',
       ...(error?.code ? { code: String(error.code).toLowerCase() } : {})
+    })
+    return
+  }
+
+  const [resource, identifier] = pathSegments(request)
+  const isPublicProfileRequest = resource === 'profiles'
+
+  if (request.method === 'GET' && isPublicProfileRequest) {
+    try {
+      publicProfileId(identifier)
+    } catch (error) {
+      writeJson(response, error.status || 400, { error: error.message, code: 'invalid_profile_identifier' })
+      return
+    }
+
+    // The route exists so the browser/public-profile surface has a stable
+    // contract, but it must not read ratings by owner id until #422 deploys a
+    // certified profiles collection with opaque public_id and explicit
+    // rating_history_public consent.
+    writeJson(response, 503, {
+      error: 'Public user profiles are unavailable until profile persistence is deployed.',
+      code: 'profile_persistence_unavailable'
     })
     return
   }
