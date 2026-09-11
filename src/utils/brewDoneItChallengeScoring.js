@@ -1,3 +1,5 @@
+import { calculateBrewDoneItDeductionScore } from './brewDoneItDeductionScoring.js'
+
 export const BREW_DONE_IT_SCORING_VERSION = '2.0.0'
 
 export const BREW_DONE_IT_RULES = Object.freeze({
@@ -16,17 +18,7 @@ const requireCount = (value, label, maximum = BREW_DONE_IT_RULES.maxTurns) => {
   return value
 }
 
-/**
- * Brew Done It round scoring is intentionally simple and stable across devices.
- * Only the guesser can earn points. A correct beer guess starts at 10 points and
- * costs one point for each earlier controlled question and incorrect beer guess.
- * A round that ends without a correct beer guess awards zero points.
- */
-export const calculateBrewDoneItRoundScore = ({
-  correct,
-  questionCount = 0,
-  incorrectGuessCount = 0
-}) => {
+const calculateV2Score = ({ correct, questionCount = 0, incorrectGuessCount = 0 }) => {
   const questions = requireCount(questionCount, 'Question count', BREW_DONE_IT_RULES.maxQuestions)
   const incorrectGuesses = requireCount(incorrectGuessCount, 'Incorrect guess count')
   if (questions + incorrectGuesses > BREW_DONE_IT_RULES.maxTurns) {
@@ -54,4 +46,16 @@ export const calculateBrewDoneItRoundScore = ({
       rawTotal
     })
   })
+}
+
+/**
+ * Compatibility dispatcher while the contained v2 recovery code and v3 deduction
+ * code coexist. V2 callers continue to receive the unchanged 2.0.0 contract.
+ * V3 callers are identified only by v3-specific outcome keys and are delegated to
+ * the separately versioned deduction scorer.
+ */
+export const calculateBrewDoneItRoundScore = (input = {}) => {
+  const usesDeductionScoring = ['breweryCorrect', 'beerCorrect', 'styleCorrect', 'incorrectFormalGuessCount']
+    .some((key) => Object.hasOwn(input, key))
+  return usesDeductionScoring ? calculateBrewDoneItDeductionScore(input) : calculateV2Score(input)
 }
