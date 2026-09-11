@@ -1,13 +1,13 @@
 # Brew Done It readiness
 
 Status: **v3 deduction redesign implemented in contained source; validation and provider migration pending**  
-Decision authority: [ADR 0005](DECISIONS/0005-adopt-brew-done-it-deduction-board.md)  
+Decision authority: [ADR 0006](DECISIONS/0006-adopt-brew-done-it-deduction-board.md)  
 Retained cross-device authority: [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md)  
 Schema target: [Brew Done It persistent schema target](nocodebackend/brew-done-it-schema-target.md)
 
 ## Purpose
 
-This is the capability-specific readiness gate for Brew Done It. ADR 0005 supersedes the former controlled-question/scoring model while retaining ADR 0002's persistent two-account/two-device architecture, protected secret, invitation/resume behaviour and concurrency boundary.
+This is the capability-specific readiness gate for Brew Done It. ADR 0006 supersedes the former controlled-question/scoring model while retaining ADR 0002's persistent two-account/two-device architecture, protected secret, invitation/resume behaviour and concurrency boundary.
 
 Approval of source implementation does **not** approve provider mutation or production enablement.
 
@@ -21,17 +21,21 @@ The v3 source now provides:
 - asynchronous invitation/share/resume behaviour;
 - an accessible two-sided **Brewery / Beer & Style** deduction board;
 - persistent `yes` / `no` / `unknown` deduction state across sessions/devices;
-- brewery candidate narrowing from the guesser's own previously-rated relationship;
+- explicit brewery/beer exclusions with a persistent Set Unknown/undo path;
+- brewery candidate narrowing from the guesser's own previously-rated relationship where that relationship is fully attributable;
 - beer candidate narrowing by remaining brewery field, style, ABV, IBU and collaboration;
+- missing producer/category/ABV/IBU/collaboration/rating-attribution data preserved as unknown so it cannot silently eliminate a candidate;
 - state/country deduction controls deliberately unavailable until canonical brewery geography is governed and certified;
 - dark/barrel-aged notes that deliberately do **not** auto-filter until structured trait data is certified;
 - selector-only brewery/beer/style answer sheet;
 - optional guesser-controlled aggregate rating-history clues for hidden brewery/style/exact beer;
-- formal brewery, exact-beer and style-fallback submissions;
+- formal brewery, exact-beer and style-fallback submissions backed by canonical catalogue references;
 - scoring v3.0.0: brewery 4 + exact beer 6, or brewery 4 + style fallback 3, minus 1 per incorrect formal submission, clamped 0–10;
 - durable v3 formal-outcome reservation/reconciliation separated from the superseded v2 question/guess reconciler;
-- explicit round completion and forfeit;
-- v3 longitudinal/head-to-head outcome statistics; and
+- stable idempotent retries with rejection of request-key reuse for a different deduction/formal outcome;
+- exact provider-boolean normalization at the server projection and internal scoring boundaries;
+- explicit round completion and forfeit with replay safety;
+- v3 longitudinal/head-to-head outcome statistics including forfeited rounds in round counts; and
 - absent production route/navigation with `BREW_DONE_IT_POLICY_ENABLED` still unset.
 
 The connected provider schema has not been migrated/certified for v3, so the feature remains unreachable.
@@ -40,7 +44,7 @@ The connected provider schema has not been migrated/certified for v3, so the fea
 
 The merged persistent-core baseline is PR #410. The v3 redesign is PR **#461** on `codex/brew-done-it-deduction-v3`.
 
-The branch has been reconciled with current `main` and PR #461 is structurally mergeable, but it remains **IMPLEMENTING / VALIDATION PENDING**. Gameplay, persistence fields, API routing and UI differ materially from the accepted PR #410 exact-head evidence, so PR #410 validation must not be reused as acceptance evidence for v3.
+The branch has been reconciled with current `main`, including the accepted rating-event ADR 0005 and newer style-history work. Brew Done It's current gameplay authority is therefore ADR **0006**. PR #461 remains **IMPLEMENTING / VALIDATION PENDING**. Gameplay, persistence fields, API routing and UI differ materially from the accepted PR #410 exact-head evidence, so PR #410 validation must not be reused as acceptance evidence for v3.
 
 Until v3 validation is explicitly run:
 
@@ -61,12 +65,14 @@ Candidate narrowing must use only governed/certified facts.
 
 Currently supported source-backed narrowing includes:
 
-- producer relationship from canonical product data;
-- whether the authenticated guesser has previously rated a beer from that producer;
+- producer relationship from canonical product data where the relationship has a positive canonical identifier;
+- whether the authenticated guesser has previously rated a beer from that producer when all relevant rating-to-product-to-producer relationships are attributable;
 - product category/style;
 - ABV;
 - IBU; and
 - collaboration.
+
+A zero/blank relationship, missing product fact or incomplete personal-rating attribution remains unknown and cannot be used as evidence for `no`. If any remaining beer has no governed style/category, all style candidates remain possible rather than being silently narrowed away.
 
 Current source does **not** treat producer free-text address/suburb identifiers as sufficient authority for state/country. Therefore state/country controls remain unavailable and geography fields in the selector sheet remain unknown until a canonical geography source is governed and certified.
 
@@ -129,19 +135,25 @@ With sharing **on**, prove only approved aggregates are returned:
 
 for the hidden brewery/style/exact beer. Raw ratings, rating notes, cellar records and unrelated account data must remain absent.
 
+A lost-response retry of the same desired history-sharing state must be replay-safe. Provider values such as `"0"` must project as false rather than JavaScript-truthy values.
+
 ### Deduction board
 
 Using two authenticated devices:
 
 1. Player A selects a beer and creates a challenge.
 2. Player B accepts on another device.
-3. Player B records previous-brewery-history/style/ABV/IBU/collaboration deductions.
-4. Refresh/sign-out/device change preserves the deduction board.
-5. `yes` and `no` narrow only according to certified facts; `unknown` eliminates nothing.
-6. brewery and beer candidate counts remain consistent with stored deductions.
-7. geography is visibly unavailable rather than inferred while no governed source exists.
-8. dark/barrel-aged can be recorded but do not auto-filter before certified trait metadata exists.
-9. Player B may submit brewery, exact-beer and style-fallback outcomes without the conversation itself becoming scored actions.
+3. Player B records previous-brewery-history/style/ABV/IBU/collaboration deductions and explicit brewery/beer exclusions.
+4. Player B can return an existing deduction/exclusion to `unknown` without creating a contradictory scored action.
+5. Refresh/sign-out/device change preserves the deduction board.
+6. `yes` and `no` narrow only according to certified facts; `unknown` eliminates nothing.
+7. duplicate logical rows caused by concurrent writes resolve deterministically to one canonical latest workspace value.
+8. zero/blank producer/category relationships and incomplete rating attribution remain unknown.
+9. brewery, style and beer candidate counts remain consistent with stored deductions.
+10. geography is visibly unavailable rather than inferred while no governed source exists.
+11. dark/barrel-aged can be recorded but do not auto-filter before certified trait metadata exists.
+12. Player B may submit brewery, exact-beer and style-fallback outcomes without the conversation itself becoming scored actions.
+13. reusing an idempotency key for a different deduction payload fails safely rather than replaying the wrong clue.
 
 ### Scoring and lifecycle
 
@@ -155,6 +167,7 @@ Prove scoring v3.0.0 exactly:
 - ordinary questions/deductions cost 0;
 - score never leaves 0–10;
 - exact beer confirms brewery;
+- provider boolean-like values are normalized before internal scoring/lifecycle decisions;
 - explicit finish persists exactly one terminal result; and
 - terminal outcomes/statistics reconcile to round rows.
 
@@ -173,14 +186,16 @@ Prove:
 - at most one committed logical formal outcome exists;
 - an empty reservation creates no formal turn/penalty;
 - v3 `outcome:*` reservations are reconciled only by the v3 outcome reconciler;
+- ordinary list/detail reads repair a matching child left `pending` after round finalisation;
 - retries recover deterministically by idempotency key;
+- an idempotency key cannot be reused for a different formal reference/type;
 - stale versions fail safely;
 - no score/penalty duplicates; and
 - resume/game-detail/forfeit cannot accidentally execute the legacy v2 exact-beer reconciliation semantics.
 
 ### Asynchronous series flow
 
-Prove create → join → resume → deductions → formal outcomes → explicit finish → reveal → role swap → next round across different authenticated sessions/devices over elapsed time. Head-to-head brewery/exact-beer/style/point totals must reconcile after repeated rounds.
+Prove create → join → resume → deductions → formal outcomes → explicit finish → reveal → role swap → next round across different authenticated sessions/devices over elapsed time. Head-to-head brewery/exact-beer/style/point totals must reconcile after repeated rounds, including forfeited rounds in the durable round count.
 
 ### Accessibility and browser evidence
 
@@ -188,7 +203,7 @@ Before route enablement:
 
 - add the enabled route to the browser test matrix only after provider migration exists;
 - run automated WCAG 2.2 AA checks for challenge list, create/join, selector answer sheet, both deduction-card sides, formal outcomes, completion and recovery states;
-- verify keyboard operation and visible focus for all deduction controls;
+- verify keyboard operation and visible focus for all deduction controls, exclusions and Set Unknown actions;
 - verify status/live-region announcements for save, formal result, stale conflict, completion and invite actions; and
 - manually inspect screen-reader labels and secret-sensitive state transitions.
 
