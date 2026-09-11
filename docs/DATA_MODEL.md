@@ -21,6 +21,7 @@ The current database uses:
 
 - `products.producer_id` as the deployed product-to-producer relationship; the supplied backend export contains no `product_producers` junction table;
 - `products.product_category_id` for product classification;
+- `products.edition` as nullable free-text edition metadata, not a relational vintage/product-family identity;
 - `cellar.series_version_id` for the optional sharing-series edition/version relationship;
 - `bonus_attribute_rating_mapping.bonus_attributes_id` for optional rating bonuses;
 - a compact `ratings` header containing `product_id`, optional `cellar_id`, `date_rated`, `total_unweighted` and `total_weighted`;
@@ -30,11 +31,39 @@ The exported `cellar` table does **not** contain `status`, `quantity_acquired`, 
 
 These field names are pinned to the supplied schema/export evidence. `series_edition_id` and `bonus_attribute_id` are not launch write aliases.
 
-Sharing series and edition/version references on cellar records are nullable and optional. They must be `NULL` when not applicable and are never fabricated to satisfy a rating or cellar write.
+Sharing series and edition/version references on cellar records are nullable and optional. They must be `NULL` when not applicable and are never fabricated to satisfy a rating or cellar write. `series_version_id` is not a generic beer-vintage field and must not be repurposed for product lineage.
 
 Producer attribution is also not fabricated. A zero or missing `products.producer_id` remains unresolved until valid backend catalogue data or a governed multi-producer relationship is deployed.
 
 The browser cannot write `user_id`, `secret_key`, roles, rating totals or provider metadata. Identity and totals are server authoritative.
+
+## Historical catalogue identity
+
+ADR [0004: Preserve historical catalogue identity](DECISIONS/0004-historical-catalogue-identity.md) governs product/producer history.
+
+Current structural evidence does **not** provide:
+
+- product lifecycle state;
+- producer lifecycle state;
+- product-family/vintage lineage;
+- product or producer alias/name history;
+- producer successor/acquirer provenance.
+
+Therefore these capabilities are future additive provider targets, not deployed fields.
+
+Until that migration exists:
+
+- `products.id` and `producers.id` are durable identities and must never be reused for different entities;
+- products/producers referenced by ratings or cellar history are retained rather than deleted merely because they are retired, closed, acquired or historical;
+- `products.edition` remains descriptive metadata only;
+- `sharing_series_editions` and `cellar.series_version_id` retain their sharing-series semantics and are not overloaded as generic product editions;
+- existing `ratings.product_id` and `cellar.product_id` references must continue resolving to the historical product identity originally recorded;
+- historical `producer_id` attribution is not silently rewritten after acquisition/rename;
+- unknown lineage/rename/acquisition relationships remain unknown rather than inferred.
+
+The target lifecycle vocabulary is `active | seasonal | retired | historical` for products and `active | closed | acquired | renamed | historical` for producers. These states are approved semantics only; they must not be required by runtime code until an additive provider migration, backfill and connected certification are complete.
+
+Current availability is a separate fact from lifecycle identity. A historical/retired beer can remain viewable in rating/cellar history without being represented as currently available.
 
 The portable account export is a versioned JSON projection, not a new provider
 collection. Its source-only manifest contract exact-filters the five owner-data
