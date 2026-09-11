@@ -22,9 +22,9 @@ const invitationCodeFor = (creationKey) => {
 
 const safeRound = async (round) => {
   if (!round) return null
-  if (round.pending_action_key && String(round.pending_action_type || '').startsWith('outcome:')) {
-    return reconcileOutcomeRound(round)
-  }
+  const hasPendingOutcome = round.pending_action_key && String(round.pending_action_type || '').startsWith('outcome:')
+  const hasFinalisedOutcome = round.last_action_key && String(round.last_action_type || '').startsWith('outcome:')
+  if (hasPendingOutcome || hasFinalisedOutcome) return reconcileOutcomeRound(round)
   return round
 }
 
