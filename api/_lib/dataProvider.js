@@ -32,6 +32,9 @@ const normalisePage = (payload, requestedPage, requestedLimit) => {
 
   if (explicitTotal === undefined || explicitTotal === null || explicitTotal === '') {
     if (page !== requestedPage || pageSize !== requestedLimit || items.length > requestedLimit) throw providerContractError()
+    if (page === 1 && items.length === 0) {
+      return { items, page, pageSize, total: 0, totalPages: 0, totalIsEstimate: false }
+    }
     const completedBefore = (page - 1) * pageSize
     const hasPotentialNextPage = items.length === pageSize
     const total = completedBefore + items.length + (hasPotentialNextPage ? 1 : 0)

@@ -42,7 +42,7 @@ test('list matches Swagger read route, instance query and bearer headers', async
   assert.equal(request.url, `https://api.nocodebackend.com/read/ratings?Instance=${TEST_INSTANCE}&user_id=owner`)
   assert.deepEqual(request.options.headers, {
     accept: 'application/json',
-    authorization: 'Bearer test-secret'
+    authorization: `Bearer test-secret`
   })
 })
 
@@ -84,6 +84,21 @@ test('paginated product list uses documented search and ordering parameters', as
   }), { items, page: 2, pageSize: 25, total: 51, totalPages: 3 })
   assert.equal(requestedUrl,
     `https://api.nocodebackend.com/read/products?Instance=${TEST_INSTANCE}&product_name%5Blike%5D=porter&page=2&limit=25&sort=product_name&order=asc`)
+})
+
+test('first-page empty provider response without totals becomes the canonical zero-result page', async () => {
+  global.fetch = async () => response({ status: 'success', data: [] })
+
+  assert.deepEqual(await dataProvider.listPage('products', {
+    search: 'no-match', page: 1, limit: 24, orderBy: 'product_name', order: 'asc'
+  }), {
+    items: [],
+    page: 1,
+    pageSize: 24,
+    total: 0,
+    totalPages: 0,
+    totalIsEstimate: false
+  })
 })
 
 test('get uses read-by-id and filtered fallback after 404', async () => {
