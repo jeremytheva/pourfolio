@@ -94,7 +94,7 @@ Source/frontend failure recovery, response-boundary, data-presentation and acces
 
 ## Brew Done It — approved contained capability
 
-PR **#410** merged the persistent two-account/two-device foundation. ADR **0005**, building on ADR **0002**, now defines Brew Done It as a persistent social deduction game. PR **#461** implements the contained v3 redesign and remains **IMPLEMENTING / VALIDATION PENDING**. Brew Done It is not part of the current beer-first launch milestone and must not be treated as a launch dependency.
+PR **#410** merged the persistent two-account/two-device foundation. ADR **0006**, building on ADR **0002**, now defines Brew Done It as a persistent social deduction game. PR **#461** implements the contained v3 redesign and remains **IMPLEMENTING / VALIDATION PENDING**. Brew Done It is not part of the current beer-first launch milestone and must not be treated as a launch dependency.
 
 The approved v3 capability model is:
 
@@ -198,7 +198,7 @@ Unless separately approved, keep these outside the current launch milestone:
 - photo upload;
 - major framework/styling migrations unrelated to a launch blocker.
 
-Brew Done It is no longer an unapproved concept: ADR 0002 approves its persistent cross-device architecture and ADR 0005 approves the deduction-board gameplay model. It remains **launch-excluded and disabled** until its separate validation, provider migration/certification and enablement gates pass.
+Brew Done It is no longer an unapproved concept: ADR 0002 approves its persistent cross-device architecture and ADR 0006 approves the deduction-board gameplay model. It remains **launch-excluded and disabled** until its separate validation, provider migration/certification and enablement gates pass.
 
 ## Continuation rule
 
