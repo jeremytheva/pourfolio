@@ -13,6 +13,7 @@ export const filterBrewDoneItBreweries = (breweries = [], deductions = [], { geo
       return deductionMatches(brewery.country === deduction.value_text, deduction.answer)
     }
     if (deduction.dimension === 'brewery_previously_rated') {
+      if (missing(brewery.previouslyRated)) return true
       return deductionMatches(Boolean(brewery.previouslyRated), deduction.answer)
     }
     if (deduction.dimension === 'brewery_ruled_out') {
