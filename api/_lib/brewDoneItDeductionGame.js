@@ -82,6 +82,39 @@ const sharingEnabled = (game, guesserId) => String(game.creator_participant_id) 
   ? game.creator_history_clues_enabled === true || Number(game.creator_history_clues_enabled) === 1
   : game.opponent_history_clues_enabled === true || Number(game.opponent_history_clues_enabled) === 1
 
+const deductionLogicalKey = (deduction) => [
+  deduction.dimension,
+  deduction.reference_id ?? deduction.referenceId ?? '',
+  deduction.value_text ?? deduction.valueText ?? '',
+  deduction.numeric_value ?? deduction.numericValue ?? ''
+].map((value) => String(value ?? '')).join('|')
+
+const deductionTimestamp = (deduction) => {
+  const timestamp = Date.parse(deduction.updated_at || deduction.created_at || '')
+  return Number.isFinite(timestamp) ? timestamp : 0
+}
+
+const canonicalDeductions = (records) => {
+  const canonical = new Map()
+  for (const deduction of list(records)) {
+    const key = deductionLogicalKey(deduction)
+    const current = canonical.get(key)
+    if (!current) {
+      canonical.set(key, deduction)
+      continue
+    }
+    const nextTime = deductionTimestamp(deduction)
+    const currentTime = deductionTimestamp(current)
+    if (nextTime > currentTime || (nextTime === currentTime && String(deduction.id ?? '') > String(current.id ?? ''))) {
+      canonical.set(key, deduction)
+    }
+  }
+  return [...canonical.values()].sort((a, b) => {
+    const timeDifference = deductionTimestamp(a) - deductionTimestamp(b)
+    return timeDifference || String(a.id ?? '').localeCompare(String(b.id ?? ''))
+  })
+}
+
 export const getSelectorClues = async (roundId, response, user) => {
   const { round, game } = await roundAndGame(roundId, user)
   if (String(round.selector_participant_id) !== String(user.id)) {
@@ -152,8 +185,7 @@ export const getSelectorClues = async (roundId, response, user) => {
 
 export const listDeductions = async (roundId, response, user) => {
   await activeGuesser(roundId, user)
-  const deductions = list(await dataProvider.list(COLLECTIONS.brewDoneItDeductions, { round_id: roundId }))
-    .sort((a, b) => Date.parse(a.created_at || 0) - Date.parse(b.created_at || 0))
+  const deductions = canonicalDeductions(await dataProvider.list(COLLECTIONS.brewDoneItDeductions, { round_id: roundId }))
     .map(projectBrewDoneItDeduction)
   response.status(200).json({ deductions })
 }
@@ -171,11 +203,9 @@ export const recordDeduction = async (roundId, request, response, user) => {
     return
   }
 
-  const existing = list(await dataProvider.list(COLLECTIONS.brewDoneItDeductions, { round_id: round.id })).find((item) =>
-    item.dimension === input.dimension &&
-    String(item.reference_id ?? '') === String(input.referenceId ?? '') &&
-    String(item.value_text ?? '') === String(input.valueText ?? '') &&
-    String(item.numeric_value ?? '') === String(input.numericValue ?? ''))
+  const logicalKey = deductionLogicalKey(input)
+  const existing = canonicalDeductions(await dataProvider.list(COLLECTIONS.brewDoneItDeductions, { round_id: round.id }))
+    .find((item) => deductionLogicalKey(item) === logicalKey)
 
   const now = new Date().toISOString()
   let saved
@@ -204,4 +234,12 @@ export const recordDeduction = async (roundId, request, response, user) => {
   response.status(existing ? 200 : 201).json({ deduction: projectBrewDoneItDeduction(saved) })
 }
 
-export const __testables = { aggregate, sharingEnabled, weightedValue, booleanOrNull, latestRatedAt }
+export const __testables = {
+  aggregate,
+  sharingEnabled,
+  weightedValue,
+  booleanOrNull,
+  latestRatedAt,
+  deductionLogicalKey,
+  canonicalDeductions
+}
