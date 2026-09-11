@@ -14,6 +14,25 @@ const booleanOrNull = (value) => {
   if (value === false || value === 0 || value === '0') return false
   return null
 }
+const canonicalIdOrNull = (value) => {
+  const text = String(value ?? '').trim()
+  return /^[1-9]\d*$/.test(text) ? value : null
+}
+
+const ratedProducerKnowledge = (ratings, productsById) => {
+  const producerIds = new Set()
+  let complete = true
+  for (const rating of list(ratings)) {
+    const product = productsById.get(String(rating.product_id))
+    const producerId = canonicalIdOrNull(product?.producer_id)
+    if (!product || producerId === null) {
+      complete = false
+      continue
+    }
+    producerIds.add(String(producerId))
+  }
+  return { producerIds, complete }
+}
 
 /**
  * Return only deduction options backed by the currently governed catalogue.
@@ -31,20 +50,19 @@ export const getDeductionOptions = async (response, user) => {
 
   const products = list(productsRaw)
   const productsById = byId(products)
-  const previouslyRatedProducerIds = new Set()
-  for (const rating of list(ratingsRaw)) {
-    const product = productsById.get(String(rating.product_id))
-    if (product?.producer_id) previouslyRatedProducerIds.add(String(product.producer_id))
-  }
+  const ratingKnowledge = ratedProducerKnowledge(ratingsRaw, productsById)
 
-  const breweries = list(producersRaw).map((producer) => ({
-    id: producer.id,
-    name: producer.producer_name,
-    state: null,
-    stateAcronym: null,
-    country: null,
-    previouslyRated: previouslyRatedProducerIds.has(String(producer.id))
-  })).filter((producer) => producer.id && producer.name)
+  const breweries = list(producersRaw).map((producer) => {
+    const definitelyRated = ratingKnowledge.producerIds.has(String(producer.id))
+    return {
+      id: producer.id,
+      name: producer.producer_name,
+      state: null,
+      stateAcronym: null,
+      country: null,
+      previouslyRated: definitelyRated ? true : ratingKnowledge.complete ? false : null
+    }
+  }).filter((producer) => producer.id && producer.name)
     .sort((a, b) => a.name.localeCompare(b.name))
 
   const styles = list(categoriesRaw).map((category) => ({ id: category.id, name: category.category_name }))
@@ -54,8 +72,8 @@ export const getDeductionOptions = async (response, user) => {
   const beers = products.map((product) => ({
     id: product.id,
     name: product.product_name,
-    producerId: product.producer_id ?? null,
-    categoryId: product.product_category_id ?? null,
+    producerId: canonicalIdOrNull(product.producer_id),
+    categoryId: canonicalIdOrNull(product.product_category_id),
     abv: numericOrNull(product.abv),
     ibu: numericOrNull(product.ibu),
     collaboration: booleanOrNull(product.collaboration)
@@ -68,6 +86,7 @@ export const getDeductionOptions = async (response, user) => {
     capabilities: {
       geography: false,
       previousRatingRelationship: true,
+      previousRatingRelationshipComplete: ratingKnowledge.complete,
       style: true,
       abv: true,
       ibu: true,
@@ -78,4 +97,4 @@ export const getDeductionOptions = async (response, user) => {
   })
 }
 
-export const __testables = { numericOrNull, booleanOrNull }
+export const __testables = { numericOrNull, booleanOrNull, canonicalIdOrNull, ratedProducerKnowledge }
