@@ -1,4 +1,15 @@
 import { requireSessionUser } from './_lib/authSession.js'
+import {
+  ensureOwnerProfile,
+  findPublicProfile,
+  parsePublicProfileId,
+  profileHistoryIsPublic,
+  projectOwnerProfile,
+  projectPublicProfile,
+  updateOwnerProfile
+} from './_lib/profileStore.js'
+import { loadPublicRatingHistory } from './_lib/publicProfileHistory.js'
+import { enforceOrigin, enforceRateLimit, enforceRequestSize, safeErrorMessage } from './_lib/httpSecurity.js'
 
 const writeJson = (response, status, payload) => {
   response.setHeader?.('Cache-Control', 'no-store')
@@ -12,71 +23,68 @@ const pathSegments = (request) => {
   return String(raw).split('/').filter(Boolean)
 }
 
-const publicProfileId = (value) => {
-  const id = String(value ?? '').trim()
-  if (!/^[A-Za-z0-9_-]{8,128}$/.test(id)) {
-    const error = new Error('Profile identifier is invalid.')
-    error.status = 400
-    throw error
+const getPublicProfile = async (identifier, response) => {
+  const publicId = parsePublicProfileId(identifier)
+  const record = await findPublicProfile(publicId)
+  if (!record) {
+    writeJson(response, 404, { error: 'User profile not found.' })
+    return
   }
-  return id
+
+  const profile = projectPublicProfile(record)
+  if (!profileHistoryIsPublic(record.rating_history_public)) {
+    writeJson(response, 200, { profile, ratings: [], summary: { count: 0, average: null } })
+    return
+  }
+
+  const history = await loadPublicRatingHistory(record.user_id)
+  writeJson(response, 200, { profile, ...history })
+}
+
+export const routeProfileRequest = async (request, response, user) => {
+  const [resource, identifier, extra] = pathSegments(request)
+
+  if (request.method === 'GET' && resource === 'profiles' && identifier && !extra) {
+    await getPublicProfile(identifier, response)
+    return
+  }
+
+  if ((!resource || resource === 'profile') && !identifier) {
+    if (request.method === 'GET') {
+      const profile = await ensureOwnerProfile(user)
+      writeJson(response, 200, { profile: projectOwnerProfile(profile) })
+      return
+    }
+    if (request.method === 'PUT') {
+      const profile = await updateOwnerProfile(user, request.body)
+      writeJson(response, 200, { profile: projectOwnerProfile(profile) })
+      return
+    }
+  }
+
+  writeJson(response, 404, { error: 'Application data route not found.' })
 }
 
 export default async function handler(request, response) {
-  if (request.method !== 'GET' && request.method !== 'PUT') {
+  if (!['GET', 'PUT'].includes(request.method)) {
     response.setHeader?.('Allow', 'GET, PUT')
     writeJson(response, 405, { error: 'Method not allowed.' })
     return
   }
+  if (!enforceRequestSize(request, response) || !enforceOrigin(request, response)) return
+  if (!enforceRateLimit(request, response, {
+    key: request.method === 'GET' ? 'profile-read' : 'profile-write',
+    limit: request.method === 'GET' ? 240 : 60
+  })) return
 
-  let user
   try {
-    user = await requireSessionUser(request)
+    const user = await requireSessionUser(request)
+    await routeProfileRequest(request, response, user)
   } catch (error) {
     const status = Number(error?.status) >= 400 && Number(error?.status) < 600 ? Number(error.status) : 500
     writeJson(response, status, {
-      error: status === 401 ? 'Authentication is required.' : 'Profile service is unavailable.',
+      error: status < 500 && error?.message ? error.message : safeErrorMessage(status),
       ...(error?.code ? { code: String(error.code).toLowerCase() } : {})
     })
-    return
   }
-
-  const [resource, identifier] = pathSegments(request)
-  const isPublicProfileRequest = resource === 'profiles'
-
-  if (request.method === 'GET' && isPublicProfileRequest) {
-    try {
-      publicProfileId(identifier)
-    } catch (error) {
-      writeJson(response, error.status || 400, { error: error.message, code: 'invalid_profile_identifier' })
-      return
-    }
-
-    // The route exists so the browser/public-profile surface has a stable
-    // contract, but it must not read ratings by owner id until #422 deploys a
-    // certified profiles collection with opaque public_id and explicit
-    // rating_history_public consent.
-    writeJson(response, 503, {
-      error: 'Public user profiles are unavailable until profile persistence is deployed.',
-      code: 'profile_persistence_unavailable'
-    })
-    return
-  }
-
-  if (request.method === 'GET') {
-    writeJson(response, 200, {
-      profile: {
-        id: user.id,
-        name: user.name || 'User',
-        description: '',
-        avatar_url: null
-      }
-    })
-    return
-  }
-
-  writeJson(response, 503, {
-    error: 'Profile editing is unavailable until profile persistence is deployed.',
-    code: 'profile_persistence_unavailable'
-  })
 }

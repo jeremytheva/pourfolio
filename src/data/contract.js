@@ -7,14 +7,14 @@ export const DEPLOYED_COLLECTIONS = Object.freeze({
   ratingAttributes: 'rating_attributes',
   bonusAttributes: 'bonus_attributes',
   bonusRatingMappings: 'bonus_attribute_rating_mapping',
-  cellar: 'cellar'
+  cellar: 'cellar',
+  profiles: 'profiles'
 })
 
 // These names describe approved target/prototype capabilities only. They are not
 // part of the provider-evidenced launch schema and active launch routes must not
 // depend on them until a governed migration/capability verification promotes them.
 export const DEFERRED_COLLECTIONS = Object.freeze({
-  profiles: 'profiles',
   productProducers: 'product_producers',
   brewDoneItGames: 'brew_done_it_games',
   brewDoneItRounds: 'brew_done_it_rounds',
@@ -26,8 +26,8 @@ export const DEFERRED_COLLECTIONS = Object.freeze({
   blockedRelationships: 'blocked_relationships'
 })
 
-// Compatibility map for explicitly deferred/legacy code. Launch-facing code must
-// import DEPLOYED_COLLECTIONS instead so undeployed targets cannot be used by accident.
+// Compatibility map for explicitly deferred/legacy code. Launch-facing code should
+// import DEPLOYED_COLLECTIONS so undeployed targets cannot be used by accident.
 export const COLLECTIONS = Object.freeze({
   ...DEPLOYED_COLLECTIONS,
   ...DEFERRED_COLLECTIONS
@@ -43,7 +43,8 @@ export const NULLABLE_CELLAR_RELATIONSHIPS = Object.freeze([
 export const PROFILE_EDITABLE_FIELDS = Object.freeze([
   'name',
   'description',
-  'avatar_url'
+  'avatar_url',
+  'rating_history_public'
 ])
 
 // Exact browser-writable subset of the supplied 54026_rating `cellar` table.
