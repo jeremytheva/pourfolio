@@ -1,4 +1,5 @@
 import React from 'react'
+import BrewDoneItRoundHistory from './BrewDoneItRoundHistory.jsx'
 
 const button = 'rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-60'
 
@@ -16,6 +17,7 @@ export default function BrewDoneItRound({ game, round, role, busy, onRefresh, on
         <button type="button" className="rounded-lg border border-gray-300 px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2" disabled={busy} onClick={onRefresh}>Refresh round</button>
       </div>
       <div className="mt-6">{children}</div>
+      <BrewDoneItRoundHistory round={round} />
       {game.status === 'active' && round.status === 'guessing' && (
         <button type="button" className={`${button} mt-6 bg-red-700 hover:bg-red-800`} disabled={busy} onClick={onForfeit}>Forfeit round</button>
       )}
