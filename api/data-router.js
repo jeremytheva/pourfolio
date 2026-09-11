@@ -2,6 +2,7 @@ import catalogueHandler from './catalog-data-proxy.js'
 import cellarHandler from './cellar-data-proxy.js'
 import currentSchemaHandler from './current-data-proxy.js'
 import profileHandler from './profile-data-proxy.js'
+import ratingFormHandler from './rating-form-data-proxy.js'
 import ratingHandler from './rating-data-proxy.js'
 import brewDoneItHandler from './_lib/brewDoneItEntry.js'
 
@@ -18,7 +19,8 @@ export const pathSegments = (request) => {
 
 const routeRequest = async (request, response) => {
   const [resource] = pathSegments(request)
-  if (resource === 'catalog' || resource === 'rating-form') return catalogueHandler(request, response)
+  if (resource === 'catalog') return catalogueHandler(request, response)
+  if (resource === 'rating-form') return ratingFormHandler(request, response)
   if (resource === 'ratings') return ratingHandler(request, response)
   if (resource === 'cellar') return cellarHandler(request, response)
   if (resource === 'profile' || resource === 'profiles') return profileHandler(request, response)
