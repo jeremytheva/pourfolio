@@ -13,6 +13,7 @@ const Places = lazy(() => import('./pages/Places.jsx'))
 const RateBeer = lazy(() => import('./pages/RateBeer.jsx'))
 const Cellar = lazy(() => import('./pages/Cellar.jsx'))
 const Profile = lazy(() => import('./pages/Profile.jsx'))
+const PublicUserProfile = lazy(() => import('./pages/PublicUserProfile.jsx'))
 const PublicDocumentPage = lazy(() => import('./pages/PublicDocumentPage.jsx'))
 
 const LoadingState = () => (
@@ -57,6 +58,7 @@ function App() {
             <Route path="/products/:productId" element={protect(<BeerDetails />)} />
             <Route path="/products/:productId/rate" element={protect(<RateBeer />)} />
             <Route path="/breweries/:producerId" element={protect(<BreweryProfile />)} />
+            <Route path="/users/:publicProfileId" element={protect(<PublicUserProfile />)} />
             <Route path="/cellar" element={protect(<Cellar />)} />
             <Route path="/profile" element={protect(<Profile />)} />
             <Route path="/" element={<Navigate to={user ? '/home' : '/login'} replace />} />
