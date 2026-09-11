@@ -38,8 +38,8 @@ test('bonus catalogue uses provider categories, hides other users custom rows an
   ])
   assert.deepEqual(result.bonusAttributes.map(({ id, effective_point_value, category_keys }) => ({ id, effective_point_value, category_keys })), [
     { id: 1, effective_point_value: 0.2, category_keys: ['aroma'] },
-    { id: 4, effective_point_value: 0.2, category_keys: ['overall'] },
-    { id: 2, effective_point_value: 0.5, category_keys: ['overall'] }
+    { id: 2, effective_point_value: 0.5, category_keys: ['overall'] },
+    { id: 4, effective_point_value: 0.2, category_keys: ['overall'] }
   ])
   assert.equal(result.bonusAttributes.some((attribute) => attribute.id === 3), false)
 })
@@ -60,7 +60,7 @@ test('server replaces a client supplied Bonus score with the derived score', () 
   ])
 })
 
-test('custom bonus attributes default to caller supplied 0.2 and enforce 0.1 to 0.8 in 0.1 steps', () => {
+test('custom bonus attributes accept the default 0.2 and enforce 0.1 to 0.8 in 0.1 steps', () => {
   assert.deepEqual(sanitiseCustomBonusAttributeInput({
     description: '  Long   finish  ',
     point_value: 0.2
