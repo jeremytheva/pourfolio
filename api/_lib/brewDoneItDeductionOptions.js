@@ -48,5 +48,16 @@ export const getDeductionOptions = async (response, user) => {
     .filter((category) => category.id && category.name)
     .sort((a, b) => a.name.localeCompare(b.name))
 
-  response.status(200).json({ breweries, styles })
+  const beers = products.map((product) => ({
+    id: product.id,
+    name: product.product_name,
+    producerId: product.producer_id ?? null,
+    categoryId: product.product_category_id ?? null,
+    abv: Number.isFinite(Number(product.abv)) ? Number(product.abv) : null,
+    ibu: Number.isFinite(Number(product.ibu)) ? Number(product.ibu) : null,
+    collaboration: product.collaboration === true || Number(product.collaboration) === 1
+  })).filter((product) => product.id && product.name)
+    .sort((a, b) => a.name.localeCompare(b.name))
+
+  response.status(200).json({ breweries, styles, beers })
 }
