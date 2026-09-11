@@ -35,7 +35,7 @@ validation:
   ci: PASS
   runtime: VERIFIED
 last_verified_commit: "a053797b493ef4747b167efef3bf847ddd81ce92"
-last_updated: "2026-09-11T07:52:00+10:00"
+last_updated: "2026-09-11T10:50:00+10:00"
 ---
 
 # STATUS.md
@@ -109,6 +109,18 @@ PR **#391**, closing **#390**, merged at `a053797b493ef4747b167efef3bf847ddd81ce
 
 Exact-head acceptance for PR #391 at `1501da54d559342b926b74882e8767b64f73103f` passed canonical repository validation, Browser/accessibility, Dependency Review, CodeQL and Vercel status with zero unresolved review threads.
 
+## Breweries & Venues interface and accessibility — #397, #398, #400 and #401
+
+PR **#398**, closing **#397**, merged at `6c26ebe8aa52697f01a4a261b83acda063f92c09`. It added the signed-in `/places` surface, primary **Breweries & Venues** navigation, accessible Brewery/Venue tab semantics and the versioned **Pourfolio Rating Formula v1** definition. Brewery behaviour remains limited to verified producer relationships; the Venue tab truthfully reports that verified venue data is unavailable rather than fabricating venue records or mappings. The separately governed venue entity/rating-attribution dependency is tracked in **#399** and remains blocked at a provider/owner migration boundary.
+
+Exact-head acceptance for PR #398 at `a5758c02928e4b9de6e4f376c38845d9c5a6b6ef` passed canonical repository validation, Browser/accessibility, Dependency Review, CodeQL and Vercel status with zero unresolved review threads.
+
+PR **#401**, closing **#400**, merged at `239a20b4615252ae4356a02b6454ae4b0ea5bdb3`. It corrected the `/places` keyboard-operability gap by implementing roving focus/selection for ArrowLeft, ArrowRight, Home and End, added `/places` to automated WCAG coverage and added a keyboard-only regression proving users can reach the truthful venue awaiting-data state.
+
+Exact-head acceptance for PR #401 at `30376c33250632a7434cb4cfe09c48d997bf89d2` passed canonical repository validation, Browser/accessibility, Dependency Review, CodeQL and Vercel status with zero unresolved review threads.
+
+Neither interface slice changed provider schema/data, created venue relationships, fabricated catalogue mappings or weakened #165.
+
 ## Connected release credential hardening completed — #365 / PR #366
 
 PR **#366** prevents protected connected-release account credentials from being supplied to an arbitrary caller-provided HTTPS origin.
@@ -152,7 +164,8 @@ Key rules remain:
 - cellar sharing version uses `series_version_id`;
 - persistent `profiles` and `product_producers` are **UNAVAILABLE**;
 - active rating submission uses only current exported backend fields;
-- durable idempotency/workflow fields tracked by **#165** are proposed/not-yet-deployed and `/ratings/reconcile` remains unavailable until that provider migration is verified.
+- durable idempotency/workflow fields tracked by **#165** are proposed/not-yet-deployed and `/ratings/reconcile` remains unavailable until that provider migration is verified;
+- verified venue persistence and rating-to-venue attribution remain unavailable until **#399** is completed through governed migration/certification.
 
 ## Catalogue remediation boundary
 
@@ -171,9 +184,10 @@ Do not run rating create/delete, cellar CRUD certification, provider schema muta
 3. Keep `/ratings/reconcile` unavailable until the migration is deployed and verified.
 4. After #165, complete #144 backend/provider certification.
 5. While #165 remains blocked, continue independent beer-only launch hardening, reliability, accessibility and security work that does not fabricate catalogue decisions or require destructive connected writes.
-6. Complete backend-dependent #154 catalogue certification when its upstream requirements are satisfied.
-7. Finish full launch hardening and exact-production certification.
-8. Keep catalogue remediation decisions explicit and independently reviewed; do not fabricate the 193 pending decisions.
+6. Keep #399 blocked until an authoritative venue entity/rating-attribution migration and recovery plan is evidenced and approved.
+7. Complete backend-dependent #154 catalogue certification when its upstream requirements are satisfied.
+8. Finish full launch hardening and exact-production certification.
+9. Keep catalogue remediation decisions explicit and independently reviewed; do not fabricate the 193 pending decisions.
 
 ## Completion rule
 
