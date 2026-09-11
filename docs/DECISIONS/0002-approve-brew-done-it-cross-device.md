@@ -3,11 +3,11 @@
 - Status: Accepted for cross-device architecture; interaction/scoring portions superseded
 - Date: 2026-09-11
 - Supersedes: [ADR 0001](0001-approve-brew-done-it-same-device.md)
-- Partially superseded by: [ADR 0005](0005-adopt-brew-done-it-deduction-board.md)
+- Partially superseded by: [ADR 0006](0006-adopt-brew-done-it-deduction-board.md)
 
 ## Supersession note
 
-ADR 0005 is authoritative for Brew Done It conversation, deduction-board behaviour, brewery/style outcomes, rating-history clue consent and scoring version 3.0.0. This ADR remains authoritative for the persistent two-account/two-device series model, secret-beer privacy, invitation/resume behaviour, role rotation, server-authoritative state, optimistic concurrency/idempotency and production containment.
+ADR 0006 is authoritative for Brew Done It conversation, deduction-board behaviour, brewery/style outcomes, rating-history clue consent and scoring version 3.0.0. This ADR remains authoritative for the persistent two-account/two-device series model, secret-beer privacy, invitation/resume behaviour, role rotation, server-authoritative state, optimistic concurrency/idempotency and production containment.
 
 Any earlier text or implementation based on controlled server questions, question penalties, exact-beer-only outcomes or scoring version 2.0.0 is historical and must not be used as the current gameplay contract.
 
@@ -68,14 +68,14 @@ Production enablement requires the capability-specific gates in [`../BREW_DONE_I
 ## Consequences
 
 - ADR 0001 remains fully superseded.
-- ADR 0005 defines the current deduction-game interaction and scoring model.
+- ADR 0006 defines the current deduction-game interaction and scoring model.
 - Persistent Brew Done It tables are an approved target capability but remain deferred until provider migration evidence promotes them.
 - Authentication, invitations, idempotency, optimistic versioning, participant projection and asynchronous resume remain foundational requirements.
 - A completed round does not complete the series; the series remains available for later rounds and cumulative records.
 
 ## Links
 
-- [Current gameplay decision — ADR 0005](0005-adopt-brew-done-it-deduction-board.md)
+- [Current gameplay decision — ADR 0006](0006-adopt-brew-done-it-deduction-board.md)
 - [Product definition and acceptance criteria](../PRODUCT.md#brew-done-it--persistent-cross-device-deduction-game-currently-contained)
 - [Brew Done It schema target](../nocodebackend/brew-done-it-schema-target.md)
 - [Brew Done It readiness](../BREW_DONE_IT_READINESS.md)
