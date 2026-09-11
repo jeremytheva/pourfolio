@@ -3,7 +3,7 @@ import { validateCataloguePage, validateCatalogueProducer } from './catalogueRes
 
 const INVALID_PRODUCER_ID_MESSAGE = 'Producer identifier is invalid.'
 const INVALID_PRODUCER_ID_CODE = 'invalid_producer_identifier'
-const VERIFIED_PRODUCER_PAGE_SIZE = 100
+const VERIFIED_PRODUCER_PAGE_SIZE = 24
 
 export const normaliseCatalogueProducerId = (value) => {
   const identifier = typeof value === 'number'
