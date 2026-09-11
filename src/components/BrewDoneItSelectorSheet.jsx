@@ -1,9 +1,9 @@
 import React from 'react'
 
-const Field = ({ label, value }) => (
+const Field = ({ label, value, unavailable = false }) => (
   <div className="rounded-lg bg-white p-3">
     <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</dt>
-    <dd className="mt-1 font-semibold text-gray-900">{value ?? 'Not recorded'}</dd>
+    <dd className="mt-1 font-semibold text-gray-900">{unavailable ? 'Not yet available' : value ?? 'Not recorded'}</dd>
   </div>
 )
 
@@ -20,6 +20,8 @@ export default function BrewDoneItSelectorSheet({ clues, loading = false }) {
   if (loading) return <div className="rounded-lg bg-blue-50 p-4 text-blue-950" role="status">Loading answer sheet…</div>
   if (!clues) return <div className="rounded-lg bg-blue-50 p-4 text-blue-950">Your beer is locked in. Use the answer sheet to respond to the other player’s yes/no questions.</div>
 
+  const geographyAvailable = Boolean(clues.capabilities?.geography)
+
   return (
     <div className="space-y-5">
       <div className="grid gap-5 lg:grid-cols-2">
@@ -27,10 +29,15 @@ export default function BrewDoneItSelectorSheet({ clues, loading = false }) {
           <h3 className="text-lg font-semibold text-gray-900">Brewery</h3>
           <dl className="mt-3 grid grid-cols-2 gap-3">
             <Field label="Brewery" value={clues.brewery?.name} />
-            <Field label="State" value={clues.brewery?.stateAcronym || clues.brewery?.state} />
-            <Field label="Country" value={clues.brewery?.country} />
-            <Field label="Suburb" value={clues.brewery?.suburb} />
+            <Field label="State" value={clues.brewery?.stateAcronym || clues.brewery?.state} unavailable={!geographyAvailable} />
+            <Field label="Country" value={clues.brewery?.country} unavailable={!geographyAvailable} />
+            <Field label="Suburb" value={clues.brewery?.suburb} unavailable={!geographyAvailable} />
           </dl>
+          {!geographyAvailable && (
+            <p className="mt-3 rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-600" role="note">
+              Pourfolio does not yet have governed canonical brewery geography. Answer location questions manually if you know the brewery; the game will not infer a state or country from free-text address data.
+            </p>
+          )}
         </section>
 
         <section className="rounded-xl border border-gray-200 bg-gray-50 p-5">
