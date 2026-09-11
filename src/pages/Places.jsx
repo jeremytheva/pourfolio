@@ -1,5 +1,6 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from '../lib/router.jsx'
+import { producerService } from '../services/producerService.js'
 
 const tabs = [
   { id: 'breweries', label: 'Breweries' },
@@ -8,7 +9,37 @@ const tabs = [
 
 function Places() {
   const [activeTab, setActiveTab] = useState('breweries')
+  const [breweries, setBreweries] = useState([])
+  const [breweryStatus, setBreweryStatus] = useState('loading')
+  const [searchTerm, setSearchTerm] = useState('')
   const tabRefs = useRef({})
+
+  const loadBreweries = async () => {
+    setBreweryStatus('loading')
+    try {
+      setBreweries(await producerService.listVerifiedProducers())
+      setBreweryStatus('ready')
+    } catch {
+      setBreweries([])
+      setBreweryStatus('error')
+    }
+  }
+
+  useEffect(() => {
+    loadBreweries()
+  }, [])
+
+  const filteredBreweries = useMemo(() => {
+    const query = searchTerm.trim().toLocaleLowerCase()
+    if (!query) return breweries
+    return breweries.filter(({ producer }) => {
+      const searchable = [producer.producer_name, producer.address]
+        .filter((value) => typeof value === 'string')
+        .join(' ')
+        .toLocaleLowerCase()
+      return searchable.includes(query)
+    })
+  }, [breweries, searchTerm])
 
   const activateTab = (tabId) => {
     setActiveTab(tabId)
@@ -76,25 +107,74 @@ function Places() {
         >
           <h2 className="text-xl font-bold text-gray-900">Breweries</h2>
           <p className="mt-2 max-w-2xl text-gray-600">
-            Brewery profiles are shown only where Pourfolio has a verified producer relationship for catalogue products.
+            Brewery profiles appear only when current catalogue products carry a verified producer relationship.
           </p>
-          <p className="mt-4 text-sm text-gray-600">
-            Open a beer from Discover or Search and follow its verified brewery link to view the brewery profile and attributed products.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Link
-              to="/home"
-              className="rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
-            >
-              Discover beers
-            </Link>
-            <Link
-              to="/search"
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
-            >
-              Search catalogue
-            </Link>
-          </div>
+
+          {breweryStatus === 'loading' && (
+            <p className="mt-5 text-sm text-gray-600" role="status">Loading verified breweries…</p>
+          )}
+
+          {breweryStatus === 'error' && (
+            <div className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4" role="alert">
+              <p className="font-semibold text-red-900">Verified breweries could not be loaded.</p>
+              <button
+                type="button"
+                onClick={loadBreweries}
+                className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-900 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
+              >
+                Try again
+              </button>
+            </div>
+          )}
+
+          {breweryStatus === 'ready' && breweries.length === 0 && (
+            <p className="mt-5 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700" role="status">
+              No verified brewery relationships are currently available.
+            </p>
+          )}
+
+          {breweryStatus === 'ready' && breweries.length > 0 && (
+            <>
+              <div className="mt-5">
+                <label htmlFor="brewery-search" className="block text-sm font-semibold text-gray-800">Search verified breweries</label>
+                <input
+                  id="brewery-search"
+                  type="search"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  className="mt-2 w-full max-w-xl rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  placeholder="Search by brewery name or address"
+                />
+              </div>
+
+              <p className="mt-4 text-sm text-gray-600" role="status" aria-live="polite">
+                {filteredBreweries.length} verified {filteredBreweries.length === 1 ? 'brewery' : 'breweries'} shown.
+              </p>
+
+              {filteredBreweries.length ? (
+                <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {filteredBreweries.map(({ producer, productCount }) => (
+                    <li key={producer.id}>
+                      <Link
+                        to={`/breweries/${producer.id}`}
+                        className="block h-full rounded-lg border border-gray-200 p-4 hover:border-amber-300 hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
+                      >
+                        <span className="block font-semibold text-gray-900">{producer.producer_name}</span>
+                        {producer.address ? <span className="mt-1 block text-sm text-gray-600">{producer.address}</span> : null}
+                        <span className="mt-2 block text-sm text-gray-600">
+                          {productCount} attributed {productCount === 1 ? 'beer' : 'beers'}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+                  No verified breweries match this search.
+                </p>
+              )}
+            </>
+          )}
         </section>
       ) : (
         <section
