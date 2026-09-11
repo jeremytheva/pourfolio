@@ -11,6 +11,7 @@ const id = (value, label) => {
   if (!/^[1-9]\d*$/.test(text)) throw fail(`${label} is invalid.`)
   return text
 }
+const trueFlag = (value) => value === true || value === 1 || value === '1'
 const participant = (game, userId) => [game?.creator_participant_id, game?.opponent_participant_id]
   .filter((value) => value !== null && value !== undefined)
   .some((value) => String(value) === String(userId))
@@ -26,6 +27,12 @@ const mutation = (request) => {
 const conflict = (record) => {
   const error = fail('The game changed before this request was applied.', 409, 'VERSION_CONFLICT')
   error.payload = { error: error.message, code: error.code, currentVersion: Number(record?.version || 0) }
+  return error
+}
+
+const idempotencyConflict = () => {
+  const error = fail('This request key has already been used for a different Brew Done It action.', 409, 'IDEMPOTENCY_CONFLICT')
+  error.payload = { error: error.message, code: error.code }
   return error
 }
 
@@ -91,9 +98,9 @@ const requireOutcomeReference = async (input) => {
 }
 
 const requireOutcomeUnsolved = (round, input) => {
-  if (round.beer_correct) throw fail('The exact beer is already solved. Finish the round to bank the result.', 409)
-  if (input.guessType === 'brewery' && round.brewery_correct) throw fail('The brewery is already solved.', 409)
-  if (input.guessType === 'style' && round.style_correct) throw fail('The style fallback is already solved.', 409)
+  if (trueFlag(round.beer_correct)) throw fail('The exact beer is already solved. Finish the round to bank the result.', 409)
+  if (input.guessType === 'brewery' && trueFlag(round.brewery_correct)) throw fail('The brewery is already solved.', 409)
+  if (input.guessType === 'style' && trueFlag(round.style_correct)) throw fail('The style fallback is already solved.', 409)
 }
 
 const findGuessByKey = async (roundId, key) => list(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, {
@@ -112,16 +119,16 @@ const commitGuess = async (guess, roundVersion) => {
 const finaliseReservedOutcome = async (round, guess) => {
   const key = guess.idempotency_key
   if (!round.pending_action_key || round.pending_action_key !== key || !String(round.pending_action_type || '').startsWith('outcome:')) return round
-  const correct = Boolean(guess.is_correct)
+  const correct = trueFlag(guess.is_correct)
   const type = guess.guess_type
   const incorrect = Number(round.incorrect_formal_guess_count ?? round.incorrect_guess_count ?? 0) + (correct ? 0 : 1)
   return cas(COLLECTIONS.brewDoneItRounds, round, Number(round.version || 0), {
     turn_sequence: Number(round.turn_sequence || 0) + 1,
     incorrect_formal_guess_count: incorrect,
     incorrect_guess_count: incorrect,
-    brewery_correct: Boolean(round.brewery_correct) || (correct && (type === 'brewery' || type === 'beer')),
-    style_correct: Boolean(round.style_correct) || (correct && type === 'style'),
-    beer_correct: Boolean(round.beer_correct) || (correct && type === 'beer'),
+    brewery_correct: trueFlag(round.brewery_correct) || (correct && (type === 'brewery' || type === 'beer')),
+    style_correct: trueFlag(round.style_correct) || (correct && type === 'style'),
+    beer_correct: trueFlag(round.beer_correct) || (correct && type === 'beer'),
     pending_action_key: null,
     pending_action_type: null,
     pending_action_started_at: null,
@@ -164,6 +171,7 @@ export const submitOutcomeGuess = async (roundId, request, response, user) => {
   const key = `${user.id}:${idempotencyKey}`
   const replay = await findGuessByKey(round.id, key)
   if (replay?.action_state === 'committed') {
+    if (!sameFormalGuess(replay, input)) throw idempotencyConflict()
     response.status(200).json({ guess: projectBrewDoneItGuess(replay), round: projectBrewDoneItRound(round, user.id), replayed: true })
     return
   }
@@ -208,6 +216,7 @@ export const submitOutcomeGuess = async (roundId, request, response, user) => {
       }).catch(() => undefined)
       throw error
     }
+    if (!sameFormalGuess(guess, input)) throw idempotencyConflict()
   }
 
   const savedRound = await finaliseReservedOutcome(await dataProvider.get(COLLECTIONS.brewDoneItRounds, round.id), guess)
@@ -224,15 +233,18 @@ export const completeDeductionRound = async (roundId, request, response, user) =
     return
   }
   const { round } = requireActiveRound(loaded)
+  const breweryCorrect = trueFlag(round.brewery_correct)
+  const beerCorrect = trueFlag(round.beer_correct)
+  const styleCorrect = trueFlag(round.style_correct)
   const score = calculateBrewDoneItDeductionScore({
-    breweryCorrect: Boolean(round.brewery_correct),
-    beerCorrect: Boolean(round.beer_correct),
-    styleCorrect: Boolean(round.style_correct),
+    breweryCorrect,
+    beerCorrect,
+    styleCorrect,
     incorrectFormalGuessCount: Number(round.incorrect_formal_guess_count ?? round.incorrect_guess_count ?? 0)
   })
   const saved = await cas(COLLECTIONS.brewDoneItRounds, round, expectedVersion, {
     status: 'completed',
-    completion_reason: round.beer_correct ? 'exact_beer' : round.style_correct ? 'style_fallback' : round.brewery_correct ? 'brewery_only' : 'unsolved',
+    completion_reason: beerCorrect ? 'exact_beer' : styleCorrect ? 'style_fallback' : breweryCorrect ? 'brewery_only' : 'unsolved',
     completed_at: new Date().toISOString(),
     scoring_rules_version: score.version,
     awarded_points: score.total,
@@ -270,7 +282,7 @@ export const setHistoryClueSharing = async (gameId, request, response, user) => 
   const game = await dataProvider.get(COLLECTIONS.brewDoneItGames, id(gameId, 'Game identifier'))
   if (!game || !participant(game, user.id)) throw fail('Game not found.', 404)
   const field = String(game.creator_participant_id) === String(user.id) ? 'creator_history_clues_enabled' : 'opponent_history_clues_enabled'
-  const currentEnabled = game[field] === true || Number(game[field]) === 1
+  const currentEnabled = trueFlag(game[field])
   if (currentEnabled === request.body.enabled) {
     response.status(200).json({ game: projectBrewDoneItGame(game), replayed: true })
     return
@@ -282,4 +294,11 @@ export const setHistoryClueSharing = async (gameId, request, response, user) => 
   response.status(200).json({ game: projectBrewDoneItGame(saved) })
 }
 
-export const __testables = { isCorrect, guessFields, sameFormalGuess, outcomeReference, requireOutcomeUnsolved }
+export const __testables = {
+  isCorrect,
+  guessFields,
+  sameFormalGuess,
+  outcomeReference,
+  requireOutcomeUnsolved,
+  trueFlag
+}
