@@ -96,6 +96,11 @@ const requireOutcomeUnsolved = (round, input) => {
   if (input.guessType === 'style' && round.style_correct) throw fail('The style fallback is already solved.', 409)
 }
 
+const findGuessByKey = async (roundId, key) => list(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, {
+  round_id: roundId,
+  idempotency_key: key
+}))[0] || null
+
 const commitGuess = async (guess, roundVersion) => {
   await dataProvider.update(COLLECTIONS.brewDoneItGuesses, guess.id, {
     action_state: 'committed',
@@ -126,20 +131,30 @@ const finaliseReservedOutcome = async (round, guess) => {
 }
 
 export const reconcileOutcomeRound = async (round) => {
-  if (!round?.pending_action_key || !String(round.pending_action_type || '').startsWith('outcome:')) return round
-  const key = round.pending_action_key
-  const guess = list(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, { round_id: round.id, idempotency_key: key }))[0]
-  if (!guess) {
-    return cas(COLLECTIONS.brewDoneItRounds, round, Number(round.version || 0), {
-      pending_action_key: null,
-      pending_action_type: null,
-      pending_action_started_at: null
-    })
+  if (!round) return round
+
+  if (round.pending_action_key && String(round.pending_action_type || '').startsWith('outcome:')) {
+    const key = round.pending_action_key
+    const guess = await findGuessByKey(round.id, key)
+    if (!guess || guess.action_state === 'discarded') {
+      return cas(COLLECTIONS.brewDoneItRounds, round, Number(round.version || 0), {
+        pending_action_key: null,
+        pending_action_type: null,
+        pending_action_started_at: null
+      })
+    }
+
+    const savedRound = await finaliseReservedOutcome(round, guess)
+    if (guess.action_state !== 'committed') await commitGuess(guess, savedRound.version)
+    return savedRound
   }
 
-  const savedRound = await finaliseReservedOutcome(round, guess)
-  if (guess.action_state !== 'committed') await commitGuess(guess, savedRound.version)
-  return savedRound
+  if (round.last_action_key && String(round.last_action_type || '').startsWith('outcome:')) {
+    const guess = await findGuessByKey(round.id, round.last_action_key)
+    if (guess && guess.action_state === 'pending') await commitGuess(guess, round.version)
+  }
+
+  return round
 }
 
 export const submitOutcomeGuess = async (roundId, request, response, user) => {
@@ -147,7 +162,7 @@ export const submitOutcomeGuess = async (roundId, request, response, user) => {
   const { expectedVersion, idempotencyKey } = mutation(request)
   const input = sanitiseBrewDoneItOutcomeInput(request.body)
   const key = `${user.id}:${idempotencyKey}`
-  const replay = list(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, { round_id: round.id, idempotency_key: key }))[0]
+  const replay = await findGuessByKey(round.id, key)
   if (replay?.action_state === 'committed') {
     response.status(200).json({ guess: projectBrewDoneItGuess(replay), round: projectBrewDoneItRound(round, user.id), replayed: true })
     return
@@ -184,7 +199,7 @@ export const submitOutcomeGuess = async (roundId, request, response, user) => {
       idempotency_key: key
     }))
   } catch (error) {
-    guess = list(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, { round_id: round.id, idempotency_key: key }))[0]
+    guess = await findGuessByKey(round.id, key)
     if (!guess) {
       await cas(COLLECTIONS.brewDoneItRounds, reserved, Number(reserved.version || 0), {
         pending_action_key: null,
