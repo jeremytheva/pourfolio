@@ -1,12 +1,18 @@
-export const BREW_DONE_IT_SCORING_VERSION = '2.0.0'
+export const BREW_DONE_IT_SCORING_VERSION = '3.0.0'
 
 export const BREW_DONE_IT_RULES = Object.freeze({
   maximumRoundPoints: 10,
+  breweryPoints: 4,
+  exactBeerPoints: 6,
+  styleFallbackPoints: 3,
+  incorrectFormalGuessCost: 1,
   minimumRoundPoints: 0,
-  questionCost: 1,
-  incorrectGuessCost: 1,
   maxTurns: 20,
-  maxQuestions: 10
+  // Legacy v2 compatibility only. Spoken questions and deduction notes are free
+  // in v3 and are not counted toward score.
+  maxQuestions: 10,
+  questionCost: 0,
+  incorrectGuessCost: 1
 })
 
 const requireCount = (value, label, maximum = BREW_DONE_IT_RULES.maxTurns) => {
@@ -17,41 +23,61 @@ const requireCount = (value, label, maximum = BREW_DONE_IT_RULES.maxTurns) => {
 }
 
 /**
- * Brew Done It round scoring is intentionally simple and stable across devices.
- * Only the guesser can earn points. A correct beer guess starts at 10 points and
- * costs one point for each earlier controlled question and incorrect beer guess.
- * A round that ends without a correct beer guess awards zero points.
+ * Brew Done It v3 scores outcomes, not conversation.
+ *
+ * - identifying the brewery is worth 4 points;
+ * - identifying the exact beer is worth 6 additional points;
+ * - when the exact beer cannot be solved, identifying the style/category is worth
+ *   3 points instead of the exact-beer component;
+ * - ordinary yes/no questions and deduction notes are free;
+ * - each incorrect formal brewery/beer/style submission costs one point, clamped
+ *   so the round can never score below zero.
+ *
+ * `correct`, `questionCount` and `incorrectGuessCount` are accepted only so the
+ * contained superseded v2 handlers remain source-compatible until removed. A v2
+ * correct beer maps to brewery+beer correct under v3 and questions have no cost.
  */
 export const calculateBrewDoneItRoundScore = ({
+  breweryCorrect,
+  beerCorrect,
+  styleCorrect = false,
+  incorrectFormalGuessCount,
   correct,
-  questionCount = 0,
   incorrectGuessCount = 0
-}) => {
-  const questions = requireCount(questionCount, 'Question count', BREW_DONE_IT_RULES.maxQuestions)
-  const incorrectGuesses = requireCount(incorrectGuessCount, 'Incorrect guess count')
-  if (questions + incorrectGuesses > BREW_DONE_IT_RULES.maxTurns) {
-    throw new RangeError(`Combined scored actions cannot exceed ${BREW_DONE_IT_RULES.maxTurns}.`)
-  }
+} = {}) => {
+  const resolvedBeerCorrect = beerCorrect === undefined ? Boolean(correct) : Boolean(beerCorrect)
+  const resolvedBreweryCorrect = breweryCorrect === undefined ? Boolean(correct) : Boolean(breweryCorrect)
+  const resolvedStyleCorrect = Boolean(styleCorrect) && !resolvedBeerCorrect
+  const incorrectFormalGuesses = requireCount(
+    incorrectFormalGuessCount === undefined ? incorrectGuessCount : incorrectFormalGuessCount,
+    'Incorrect formal guess count'
+  )
 
-  const questionPenalty = questions * BREW_DONE_IT_RULES.questionCost
-  const incorrectGuessPenalty = incorrectGuesses * BREW_DONE_IT_RULES.incorrectGuessCost
-  const rawTotal = correct
-    ? BREW_DONE_IT_RULES.maximumRoundPoints - questionPenalty - incorrectGuessPenalty
-    : 0
+  const breweryPoints = resolvedBreweryCorrect ? BREW_DONE_IT_RULES.breweryPoints : 0
+  const beerOrStylePoints = resolvedBeerCorrect
+    ? BREW_DONE_IT_RULES.exactBeerPoints
+    : resolvedStyleCorrect
+      ? BREW_DONE_IT_RULES.styleFallbackPoints
+      : 0
+  const basePoints = breweryPoints + beerOrStylePoints
+  const penalty = incorrectFormalGuesses * BREW_DONE_IT_RULES.incorrectFormalGuessCost
   const total = Math.max(
     BREW_DONE_IT_RULES.minimumRoundPoints,
-    Math.min(BREW_DONE_IT_RULES.maximumRoundPoints, rawTotal)
+    Math.min(BREW_DONE_IT_RULES.maximumRoundPoints, basePoints - penalty)
   )
 
   return Object.freeze({
     version: BREW_DONE_IT_SCORING_VERSION,
     total,
-    correct: Boolean(correct),
+    breweryCorrect: resolvedBreweryCorrect,
+    beerCorrect: resolvedBeerCorrect,
+    styleCorrect: resolvedStyleCorrect,
     breakdown: Object.freeze({
-      startingPoints: correct ? BREW_DONE_IT_RULES.maximumRoundPoints : 0,
-      questionPenalty: questionPenalty === 0 ? 0 : -questionPenalty,
-      incorrectGuessPenalty: incorrectGuessPenalty === 0 ? 0 : -incorrectGuessPenalty,
-      rawTotal
+      breweryPoints,
+      exactBeerPoints: resolvedBeerCorrect ? BREW_DONE_IT_RULES.exactBeerPoints : 0,
+      styleFallbackPoints: resolvedStyleCorrect ? BREW_DONE_IT_RULES.styleFallbackPoints : 0,
+      incorrectFormalGuessPenalty: penalty === 0 ? 0 : -penalty,
+      basePoints
     })
   })
 }
