@@ -10,6 +10,9 @@ const INTERNAL_DATA_HANDLER_PATHS = [
   '/api/cellar-data-proxy',
   '/api/current-data-proxy',
   '/api/profile-data-proxy',
+  '/api/rating-form-data-proxy',
+  '/api/rating-data-proxy',
+  '/api/bonus-attribute-data-proxy',
   '/api/data-proxy'
 ]
 
@@ -107,7 +110,8 @@ test('canonical route captures are explicitly forwarded while unrelated query va
     ['/api/nocodebackend/auth/sign-in/email', '/api/auth-proxy', 'sign-in/email'],
     ['/api/nocodebackend/auth/get-session', '/api/auth-proxy', 'get-session'],
     ['/api/nocodebackend/catalog/products', '/api/data-router', 'catalog/products'],
-    ['/api/nocodebackend/catalog/products/featured/seasonal', '/api/data-router', 'catalog/products/featured/seasonal']
+    ['/api/nocodebackend/catalog/products/featured/seasonal', '/api/data-router', 'catalog/products/featured/seasonal'],
+    ['/api/nocodebackend/bonus-attributes', '/api/data-router', 'bonus-attributes']
   ]
   const originalQuery = {
     redirectTo: 'https://pourfolio.example/profile',
@@ -172,6 +176,9 @@ test('canonical application paths remain distinct from contained implementation 
   const ratings = resolveRoute(routes, '/api/nocodebackend/ratings/mine', {})
   assert.deepEqual(ratings, { destination: '/api/data-router', query: { path: 'ratings/mine' } })
 
+  const bonusAttributes = resolveRoute(routes, '/api/nocodebackend/bonus-attributes', {})
+  assert.deepEqual(bonusAttributes, { destination: '/api/data-router', query: { path: 'bonus-attributes' } })
+
   const brewDoneIt = resolveRoute(routes, '/api/nocodebackend/brew-done-it/stats', {})
   assert.deepEqual(brewDoneIt, { destination: '/api/data-router', query: { path: 'brew-done-it/stats' } })
 })
@@ -179,7 +186,7 @@ test('canonical application paths remain distinct from contained implementation 
 test('schema-aware data router owns launch resources and only delegates the game surface to legacy code', () => {
   assert.deepEqual(
     [...dataRouter.CURRENT_SCHEMA_RESOURCES].sort(),
-    ['catalog', 'cellar', 'rating-form', 'ratings']
+    ['bonus-attributes', 'catalog', 'cellar', 'rating-form', 'ratings']
   )
   assert.deepEqual([...dataRouter.LEGACY_RESOURCES], ['brew-done-it'])
 })
