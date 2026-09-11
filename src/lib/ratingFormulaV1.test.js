@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import assert from 'node:assert/strict'
+import { describe, it } from 'node:test'
 import {
   POURFOLIO_RATING_FORMULA_VERSION,
   RATING_DIMENSIONS,
@@ -7,10 +8,14 @@ import {
   normaliseRatingDimension
 } from './ratingFormulaV1.js'
 
+const closeTo = (actual, expected, tolerance = 1e-9) => {
+  assert.ok(Math.abs(actual - expected) <= tolerance, `expected ${actual} to be within ${tolerance} of ${expected}`)
+}
+
 describe('Pourfolio Rating Formula v1', () => {
   it('keeps the formula version and weights stable', () => {
-    expect(POURFOLIO_RATING_FORMULA_VERSION).toBe('v1')
-    expect(RATING_DIMENSIONS.map(({ key, weight }) => [key, weight])).toEqual([
+    assert.equal(POURFOLIO_RATING_FORMULA_VERSION, 'v1')
+    assert.deepEqual(RATING_DIMENSIONS.map(({ key, weight }) => [key, weight]), [
       ['design', 0.10],
       ['appearance', 0.10],
       ['aroma', 0.15],
@@ -20,7 +25,7 @@ describe('Pourfolio Rating Formula v1', () => {
       ['bonus', 0.07],
       ['burp', 0.03]
     ])
-    expect(RATING_DIMENSIONS.reduce((sum, dimension) => sum + dimension.weight, 0)).toBeCloseTo(1)
+    closeTo(RATING_DIMENSIONS.reduce((sum, dimension) => sum + dimension.weight, 0), 1)
   })
 
   it('returns 5 for both totals at the maximum score', () => {
@@ -35,8 +40,8 @@ describe('Pourfolio Rating Formula v1', () => {
       burp: 1
     })
 
-    expect(totals.weighted).toBeCloseTo(5)
-    expect(totals.unweighted).toBeCloseTo(5)
+    closeTo(totals.weighted, 5)
+    closeTo(totals.unweighted, 5)
   })
 
   it('gives each normalised dimension equal influence in the unweighted total', () => {
@@ -52,18 +57,18 @@ describe('Pourfolio Rating Formula v1', () => {
     })
 
     const expected = 5 * ((1 + (5 / 7)) / 8)
-    expect(totals.unweighted).toBeCloseTo(expected)
+    closeTo(totals.unweighted, expected)
   })
 
   it('rejects missing, out-of-range and non-binary burp values', () => {
-    expect(calculateRatingTotals({})).toBeNull()
-    expect(normaliseRatingDimension('design', 8)).toBeNull()
-    expect(normaliseRatingDimension('bonus', 3)).toBeNull()
-    expect(normaliseRatingDimension('burp', 0.5)).toBeNull()
+    assert.equal(calculateRatingTotals({}), null)
+    assert.equal(normaliseRatingDimension('design', 8), null)
+    assert.equal(normaliseRatingDimension('bonus', 3), null)
+    assert.equal(normaliseRatingDimension('burp', 0.5), null)
   })
 
   it('formats totals to two decimal places', () => {
-    expect(formatRatingTotal(4.276)).toBe('4.28')
-    expect(formatRatingTotal(null)).toBe('—')
+    assert.equal(formatRatingTotal(4.276), '4.28')
+    assert.equal(formatRatingTotal(null), '—')
   })
 })
