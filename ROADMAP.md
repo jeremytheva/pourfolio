@@ -193,3 +193,88 @@ Brew Done It is no longer an unapproved concept: ADR 0002 approves its contained
 ## Continuation rule
 
 Use dependency-scoped blocking. Keep blockers only where they protect work that actually depends on them. Postpone future-phase/release-only evidence until it becomes relevant, remove completed/stale blockers, and continue independent implementation without waiting for unrelated external administration.
+
+## Approved post-launch product expansion
+
+Issue **#433** is the authoritative tracker for the Untappd-informed Pourfolio expansion. It is separately approved for post-launch planning and does **not** expand or block the current beer-first launch milestone.
+
+The product direction is to adopt the strongest discovery and retention loop around Pourfolio's own scoring model:
+
+```text
+discover → save → taste → compare → find → follow → return
+```
+
+Pourfolio remains differentiated by structured attribute scoring, personalised weights, Scaled Score, Retail/Purchased PPP, personal taste analytics and an explainable personal Match Score.
+
+### Phase 4 — Personal beer intelligence (#434)
+
+Implement, in dependency order:
+
+- rating-event semantics for **Quick Rate**, **Full Tasting** and repeat tastings;
+- low-friction Quick Rate without fabricating structured attribute scores;
+- repeat-tasting history and comparison;
+- Want to Try, Favourites, Rebuy and other owner lists without duplicating Cellar;
+- private Taste Profile analytics;
+- explainable 0–100 Pourfolio Match Score;
+- unauthenticated read-only guest browsing through public projections;
+- Year in Pourfolio recap;
+- data portability through the existing Phase 2 export authority.
+
+Issue **#438** is the first decision issue and must lock Quick Rate / Full Tasting / repeat-tasting aggregate semantics before implementation. It depends only on the final inspectable scoring/data contract from **#428**.
+
+### Phase 5 — Availability and return loop (#435)
+
+After **#399** establishes authoritative venue data:
+
+- define verified venue-to-product offerings/menus with freshness metadata;
+- implement **Find This Beer** from verified offering data rather than old ratings;
+- add follows for beers, breweries and venues;
+- add an in-app updates/notification model and user controls;
+- later layer additional delivery channels without changing the core event/subscription contract.
+
+### Phase 6 — Social and exploration engagement (#436)
+
+After an explicit privacy/visibility model exists:
+
+- add an opt-in activity feed;
+- add lightweight reactions/comments and Save to Want to Try;
+- add exploration-focused achievements that reward breadth rather than drinking volume or speed;
+- add brewery/venue events after verified business ownership exists.
+
+Direct messaging remains excluded unless separately approved.
+
+### Phase 7 — Brewery and venue business ecosystem (#437)
+
+After venue/business identity is governed:
+
+- add brewery/venue claim and verification;
+- allow verified businesses to maintain factual profile/menu/event data;
+- add live menus using the Phase 5 offering contract;
+- add privacy-safe aggregate brewery/venue analytics;
+- add POS/menu adapters only after the native menu contract is stable.
+
+Businesses must never be able to edit, suppress or rewrite consumer ratings or personal tasting history. Venue scores remain product-derived and must not imply service, staff, food or ambience quality.
+
+### Expansion sequencing
+
+```text
+#428 advanced scoring
+        ↓
+#438 rating-event decision
+        ↓
+#434 Quick Rate / repeat tastings / lists / taste intelligence
+        ↓
+Match Score / recap
+
+#399 verified venue foundation
+        ↓
+#435 offerings / Find This Beer / follows / updates
+        ↓
+#437 verified business menus and analytics
+
+privacy/visibility decision
+        ↓
+#436 social feed / achievements / events
+```
+
+All expansion work remains subject to the repository's normal non-draft PR policy, focused issue-to-PR sizing, server-side authority, provider migration/recovery controls, privacy boundaries and applicable browser/accessibility evidence.
