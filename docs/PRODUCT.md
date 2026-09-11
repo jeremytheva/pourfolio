@@ -29,7 +29,7 @@ Deferred modules may remain as prototype source for future research, but they ar
 
 ## Brew Done It — persistent cross-device deduction game, currently contained
 
-Brew Done It is an approved persistent social deduction game under [ADR 0005](DECISIONS/0005-adopt-brew-done-it-deduction-board.md). ADR 0005 retains the cross-device architecture and security model from [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) while superseding its controlled-question and scoring model. The feature is not yet shipped in the launch application: it has no production navigation item or playable route, and the server capability remains fail-closed while the required NoCodeBackend collections are unverified.
+Brew Done It is an approved persistent social deduction game under [ADR 0006](DECISIONS/0006-adopt-brew-done-it-deduction-board.md). ADR 0006 retains the cross-device architecture and security model from [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) while superseding its controlled-question and scoring model. The feature is not yet shipped in the launch application: it has no production navigation item or playable route, and the server capability remains fail-closed while the required NoCodeBackend collections are unverified.
 
 ### Product model
 
@@ -43,9 +43,10 @@ For each round:
 4. the players may ask and answer natural yes/no questions without those questions becoming scored server actions;
 5. the guesser records useful answers in a persistent two-sided deduction board for **Brewery** and **Beer / Style**;
 6. catalogue-backed deductions narrow candidate breweries, styles and beers only where Pourfolio has governed source data;
-7. the guesser submits formal brewery, exact-beer and/or style-fallback outcomes when ready;
-8. the server determines correctness, formal-submission sequence and score; and
-9. the guesser explicitly finishes the round to bank the best achieved outcome.
+7. the guesser may explicitly rule out brewery/beer candidates and later return a deduction to `unknown`;
+8. the guesser submits formal brewery, exact-beer and/or style-fallback outcomes when ready;
+9. the server determines correctness, formal-submission sequence and score; and
+10. the guesser explicitly finishes the round to bank the best achieved outcome.
 
 The primary objective is to identify the brewery and exact beer. Because exact beer identification is not always practical, identifying the beer style/category is an approved fallback.
 
@@ -93,10 +94,12 @@ The guesser records useful answers as structured `yes`, `no` or `unknown` deduct
 
 The deduction card has two accessible sides/tabs:
 
-- **Brewery:** supported brewery clues, previous-rating relationship, brewery candidates and formal brewery guess; and
-- **Beer / Style:** style, ABV, IBU, collaboration, supported traits, beer candidate count, exact-beer guess and style fallback.
+- **Brewery:** supported brewery clues, previous-rating relationship, explicit brewery exclusions, brewery candidates and formal brewery guess; and
+- **Beer / Style:** style, ABV, IBU, collaboration, supported traits, explicit beer exclusions, beer candidate count, exact-beer guess and style fallback.
 
-Currently source-backed automatic narrowing supports producer relationships, the guesser's previous-rating relationship to producers, style/category, ABV, IBU and collaboration. State/country questions remain valid social questions but are not offered as automatic filters until Pourfolio has governed canonical brewery geography. The application must not infer geography from producer free-text addresses or unsupported provider tables.
+Currently source-backed automatic narrowing supports producer relationships, the guesser's previous-rating relationship to producers, style/category, ABV, IBU and collaboration. Zero/blank producer or category identifiers, missing numeric/boolean facts and incomplete rating attribution remain unknown. If any remaining beer has no governed category, all styles remain possible rather than being silently narrowed away.
+
+State/country questions remain valid social questions but are not offered as automatic filters until Pourfolio has governed canonical brewery geography. The application must not infer geography from producer free-text addresses or unsupported provider tables.
 
 Dark and barrel-aged remain manual notes until reliable structured trait metadata is certified; they must not be inferred from product names and must not automatically eliminate candidates.
 
@@ -111,7 +114,7 @@ Each participant controls whether their own Pourfolio rating history may be used
 - equivalent aggregates for the hidden style; and
 - equivalent aggregates for the exact hidden beer.
 
-The selector must not receive the guesser's raw rating list, review notes, cellar data or unrelated account information. Turning history clues off must suppress those aggregates.
+The selector must not receive the guesser's raw rating list, review notes, cellar data or unrelated account information. Turning history clues off must suppress those aggregates. A lost-response retry that asks for the same desired sharing state is replay-safe.
 
 ### Formal outcomes and scoring
 
@@ -127,14 +130,14 @@ A correct exact beer also confirms the brewery. Style fallback does not stack wi
 
 The guesser may finish the round after obtaining the result they consider achievable. Terminal outcomes are `exact_beer`, `style_fallback`, `brewery_only`, `unsolved` or `forfeit`.
 
-The completed round stores the scoring-rules version, total and itemised breakdown. Request replay must not create another formal submission, penalty or score award.
+The completed round stores the scoring-rules version, total and itemised breakdown. Request replay must not create another formal submission, penalty or score award. An idempotency key cannot be reused for a different logical deduction or formal guess.
 
 ### Persistent statistics
 
-Statistics are derived from completed rounds rather than browser-session state. At minimum the product reports:
+Statistics are derived from terminal rounds rather than browser-session state. At minimum the product reports:
 
 - persistent series count;
-- completed rounds and rounds played as guesser;
+- terminal rounds and rounds played as guesser, including forfeits in round counts;
 - breweries solved;
 - exact beers solved;
 - style fallbacks solved;
@@ -165,14 +168,14 @@ A playable production delivery must satisfy all of the following before `/brew-d
 - **Secret projection:** the guesser cannot obtain selected product identity or selector-only clue data from any active-round response.
 - **Persistent resume:** both participants can leave, sign back in and resume an accepted series and deduction board on another device.
 - **Natural conversation:** no fixed server question list is required for normal play and ordinary questions do not reduce score.
-- **Deduction persistence:** `yes`, `no` and `unknown` deductions survive refresh/device changes and missing data is never converted to `no`.
-- **Candidate narrowing:** supported previous-rating/style/ABV/IBU/collaboration deductions narrow only from certified catalogue facts.
+- **Deduction persistence:** `yes`, `no` and `unknown` deductions survive refresh/device changes, duplicate logical workspace rows resolve deterministically, and missing data is never converted to `no`.
+- **Candidate narrowing:** supported previous-rating/style/ABV/IBU/collaboration deductions and explicit exclusions narrow only from certified facts; unknown relationships/facts remain candidates.
 - **Geography safety:** state/country automatic filtering stays unavailable until canonical brewery geography is governed and certified; location is never inferred from free text.
 - **Trait safety:** dark/barrel-aged or future traits do not auto-filter until their source data is certified.
 - **History consent:** rating-history aggregates are selector-visible only when the guesser has enabled that preference, and raw rating/cellar data is not disclosed.
 - **Formal outcomes:** brewery, exact beer and style submissions resolve to valid catalogue identifiers; forged correctness/score fields do not alter state.
-- **Versioning and replay:** stale writes fail safely and idempotent retries do not create duplicate formal guesses, penalties, rounds or points.
-- **Scoring:** version 3.0.0 produces the documented 0–10 outcome score exactly once.
+- **Versioning and replay:** stale writes fail safely, same-action retries are idempotent and request keys cannot alias a different logical action.
+- **Scoring:** version 3.0.0 produces the documented 0–10 outcome score exactly once using normalized provider boolean values.
 - **Round lifecycle:** explicit completion or forfeit terminates the round and reveals the beer; the persistent series remains active.
 - **Role rotation:** the previous guesser becomes selector for the next round by default.
 - **Long-term statistics:** terminal rounds reconcile to durable overall/head-to-head brewery, exact-beer, style and point totals.
