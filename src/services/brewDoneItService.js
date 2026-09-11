@@ -8,6 +8,8 @@ const mutationBody = (expectedVersion, idempotencyKey, values = {}) => ({
   idempotencyKey
 })
 
+export const getBrewDoneItGames = () => apiRequest('/brew-done-it/games')
+
 export const createBrewDoneItGame = (productId, idempotencyKey) => apiRequest('/brew-done-it/games', {
   method: 'POST', body: mutationBody(0, idempotencyKey, { productId })
 })
