@@ -9,6 +9,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage.jsx'))
 const HomePage = lazy(() => import('./pages/HomePage.jsx'))
 const BeerDetails = lazy(() => import('./pages/BeerDetails.jsx'))
 const BreweryProfile = lazy(() => import('./pages/BreweryProfile.jsx'))
+const Places = lazy(() => import('./pages/Places.jsx'))
 const RateBeer = lazy(() => import('./pages/RateBeer.jsx'))
 const Cellar = lazy(() => import('./pages/Cellar.jsx'))
 const Profile = lazy(() => import('./pages/Profile.jsx'))
@@ -52,6 +53,7 @@ function App() {
             <Route path="/login" element={user ? <Navigate to="/home" replace /> : <LoginPage />} />
             <Route path="/home" element={protect(<HomePage />)} />
             <Route path="/search" element={protect(<HomePage searchMode />)} />
+            <Route path="/places" element={protect(<Places />)} />
             <Route path="/products/:productId" element={protect(<BeerDetails />)} />
             <Route path="/products/:productId/rate" element={protect(<RateBeer />)} />
             <Route path="/breweries/:producerId" element={protect(<BreweryProfile />)} />
