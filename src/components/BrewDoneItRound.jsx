@@ -18,7 +18,7 @@ export default function BrewDoneItRound({ game, round, role, busy, options, onRe
       </div>
       <div className="mt-6">{children}</div>
       <BrewDoneItRoundHistory gameId={game.id} round={round} options={options} />
-      {game.status === 'active' && round.status === 'guessing' && (
+      {role === 'guesser' && game.status === 'active' && round.status === 'guessing' && (
         <button type="button" className={`${button} mt-6 bg-red-700 hover:bg-red-800`} disabled={busy} onClick={onForfeit}>Forfeit round</button>
       )}
     </section>
