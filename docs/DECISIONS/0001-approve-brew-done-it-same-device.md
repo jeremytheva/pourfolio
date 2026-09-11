@@ -29,9 +29,12 @@ In particular, the following former requirements are withdrawn:
 - prohibition on persistent game collections;
 - prohibition on remote invitations or asynchronous turns.
 
+Any older same-device readiness/testing text is historical where it conflicts with ADR 0002. Current capability-specific rollout authority is `docs/BREW_DONE_IT_READINESS.md`; production containment remains in force until that gate and a separate enablement change pass.
+
 ## Links
 
 - [Superseding ADR 0002](0002-approve-brew-done-it-cross-device.md)
 - [Product definition and acceptance criteria](../PRODUCT.md#brew-done-it--persistent-cross-device-challenge-currently-contained)
+- [Brew Done It readiness](../BREW_DONE_IT_READINESS.md)
 - [Launch readiness](../LAUNCH_READINESS.md)
 - [Security boundary](../SECURITY.md)
