@@ -77,6 +77,25 @@ const sameFormalGuess = (guess, input) => guess.guess_type === input.guessType &
       : String(guess.guessed_category_id) === String(input.referenceId)
 )
 
+const outcomeReference = (guessType) => guessType === 'beer'
+  ? { collection: COLLECTIONS.products, label: 'Beer' }
+  : guessType === 'brewery'
+    ? { collection: COLLECTIONS.producers, label: 'Brewery' }
+    : { collection: COLLECTIONS.categories, label: 'Style' }
+
+const requireOutcomeReference = async (input) => {
+  const { collection, label } = outcomeReference(input.guessType)
+  const record = await dataProvider.get(collection, input.referenceId)
+  if (!record) throw fail(`${label} not found.`, 404)
+  return record
+}
+
+const requireOutcomeUnsolved = (round, input) => {
+  if (round.beer_correct) throw fail('The exact beer is already solved. Finish the round to bank the result.', 409)
+  if (input.guessType === 'brewery' && round.brewery_correct) throw fail('The brewery is already solved.', 409)
+  if (input.guessType === 'style' && round.style_correct) throw fail('The style fallback is already solved.', 409)
+}
+
 const commitGuess = async (guess, roundVersion) => {
   await dataProvider.update(COLLECTIONS.brewDoneItGuesses, guess.id, {
     action_state: 'committed',
@@ -133,7 +152,10 @@ export const submitOutcomeGuess = async (roundId, request, response, user) => {
     response.status(200).json({ guess: projectBrewDoneItGuess(replay), round: projectBrewDoneItRound(round, user.id), replayed: true })
     return
   }
+
+  requireOutcomeUnsolved(round, input)
   if (Number(round.turn_sequence || 0) >= Number(round.max_turns || 20)) throw fail('This round has no remaining formal submissions.', 409)
+  await requireOutcomeReference(input)
 
   const prior = list(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, { round_id: round.id }))
     .filter((guess) => !guess.action_state || guess.action_state === 'committed')
@@ -240,4 +262,4 @@ export const setHistoryClueSharing = async (gameId, request, response, user) => 
   response.status(200).json({ game: projectBrewDoneItGame(saved) })
 }
 
-export const __testables = { isCorrect, guessFields, sameFormalGuess }
+export const __testables = { isCorrect, guessFields, sameFormalGuess, outcomeReference, requireOutcomeUnsolved }
