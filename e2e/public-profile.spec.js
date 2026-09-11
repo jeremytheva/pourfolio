@@ -44,7 +44,7 @@ test('public user profile shows only the opted-in rated-beer history projection'
   await expect(page.getByRole('heading', { name: 'Rated beers', level: 2 })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Ace' })).toHaveAttribute('href', '/products/4')
   await expect(page.getByText('Hop House')).toBeVisible()
-  await expect(page.getByText('5.4 / 7')).toBeVisible()
+  await expect(page.getByLabel('Shared rating history').getByText('5.4 / 7')).toBeVisible()
   await expect(page.getByText('test@example.com')).toHaveCount(0)
   await expect(page.getByRole('button', { name: /Delete rating/ })).toHaveCount(0)
 })
