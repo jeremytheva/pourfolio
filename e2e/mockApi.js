@@ -43,6 +43,7 @@ export const installMockApi = async (page) => {
   let brewGame = null
   let guessCount = 0
   let staleOnce = true
+  let nextBonusId = 13
   const json = (route, body, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
 
   await page.route('**/api/nocodebackend/auth/get-session', (route) => route.fulfill({
@@ -101,19 +102,47 @@ export const installMockApi = async (page) => {
     body: JSON.stringify({
       product,
       attributes: [
+        { id: 1, attribute_name: 'Design', is_scored: 0, weighting: 0 },
         { id: 2, attribute_name: 'Appearance', is_scored: 1, weighting: 0.1 },
-        { id: 3, attribute_name: 'Aroma', is_scored: 1, weighting: 0.2 }
+        { id: 3, attribute_name: 'Aroma', is_scored: 1, weighting: 0.1 },
+        { id: 4, attribute_name: 'Mouthfeel', is_scored: 1, weighting: 0.2 },
+        { id: 5, attribute_name: 'Flavour', is_scored: 1, weighting: 0.25 },
+        { id: 6, attribute_name: 'Follow', is_scored: 1, weighting: 0.25 },
+        { id: 7, attribute_name: 'Bonus', is_scored: 1, weighting: 0.1 },
+        { id: 8, attribute_name: 'Burp', is_scored: 0, weighting: 0 }
       ],
       bonusAttributes: [
-        { id: 10, description: 'Better than expected for style', point_value: 0.1 }
-      ]
+        { id: 10, description: 'Fresh hop lift', point_value: 0.4, effective_point_value: 0.4, category_keys: ['aroma'] },
+        { id: 11, description: 'Did everything right', point_value: null, effective_point_value: 0.2, category_keys: ['overall'] },
+        { id: 12, description: 'Long clean finish', point_value: 0.8, effective_point_value: 0.8, category_keys: ['follow'] }
+      ],
+      bonusCategories: [
+        { key: 'aroma', name: 'Aroma' },
+        { key: 'follow', name: 'Follow' },
+        { key: 'overall', name: 'Overall' }
+      ],
+      defaultPointValue: 0.2
     })
   }))
+
+  await page.route('**/api/nocodebackend/bonus-attributes', async (route) => {
+    const body = route.request().postDataJSON()
+    return json(route, {
+      bonusAttribute: {
+        id: nextBonusId++,
+        description: body.description,
+        point_value: body.point_value,
+        effective_point_value: body.point_value,
+        category_keys: ['overall']
+      },
+      category: { key: 'overall', name: 'Overall' }
+    }, 201)
+  })
 
   await page.route('**/api/nocodebackend/ratings/submit', (route) => route.fulfill({
     status: 201,
     contentType: 'application/json',
-    body: JSON.stringify({ rating, scoreCount: 2, bonusCount: 0, duplicate: false })
+    body: JSON.stringify({ rating, scoreCount: 8, bonusCount: 0, bonusPointTotal: 0, bonusScore: 0, duplicate: false })
   }))
 
   await page.route('**/api/nocodebackend/ratings/mine', (route) => route.fulfill({
