@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { buildTasteMapSummary } from '../tasteMapSummary.js'
+import { buildStyleHistorySummary, buildTasteMapSummary } from '../tasteMapSummary.js'
 
 const paleAle = { id: 10, category_name: 'Pale Ale' }
 const stout = { id: 11, category_name: 'Stout' }
@@ -99,4 +99,57 @@ test('returns a frozen empty summary for absent history', () => {
   assert.equal(Object.isFrozen(summary), true)
   assert.equal(Object.isFrozen(summary.styles), true)
   assert.equal(Object.isFrozen(summary.breweries), true)
+})
+
+test('builds exact owner history for one canonical style and keeps repeat tastings', () => {
+  const ace = product()
+  const bravo = product({ id: 5, product_name: 'Bravo' })
+  const dark = product({ id: 6, product_name: 'Dark', product_category_id: 11, category: stout })
+
+  const summary = buildStyleHistorySummary({ items: [
+    rating(1, ace),
+    rating(2, ace),
+    rating(3, bravo),
+    rating(4, dark)
+  ] }, 10)
+
+  assert.deepEqual(summary, {
+    styleId: '10',
+    tastingCount: 3,
+    uniqueProductCount: 2,
+    products: [
+      { id: '4', name: 'Ace', tastingCount: 2 },
+      { id: '5', name: 'Bravo', tastingCount: 1 }
+    ]
+  })
+  assert.equal(Object.isFrozen(summary), true)
+  assert.equal(Object.isFrozen(summary.products), true)
+})
+
+test('style history excludes missing, mismatched and different-style relationships', () => {
+  const exact = product()
+  const mismatched = product({ id: 5, product_name: 'Mismatch', product_category_id: 11, category: paleAle })
+  const missing = product({ id: 6, product_name: 'Missing', product_category_id: null, category: null })
+  const stoutBeer = product({ id: 7, product_name: 'Stout Beer', product_category_id: 11, category: stout })
+
+  const summary = buildStyleHistorySummary({ items: [
+    rating(1, exact),
+    rating(2, mismatched),
+    rating(3, missing),
+    rating(4, stoutBeer)
+  ] }, '10')
+
+  assert.equal(summary.tastingCount, 1)
+  assert.equal(summary.uniqueProductCount, 1)
+  assert.deepEqual(summary.products, [{ id: '4', name: 'Ace', tastingCount: 1 }])
+})
+
+test('invalid style identifiers return an empty non-inferred history summary', () => {
+  const summary = buildStyleHistorySummary({ items: [rating(1, product())] }, '010')
+  assert.deepEqual(summary, {
+    styleId: null,
+    tastingCount: 0,
+    uniqueProductCount: 0,
+    products: []
+  })
 })

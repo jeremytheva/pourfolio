@@ -114,4 +114,44 @@ export const buildTasteMapSummary = (payload) => {
   })
 }
 
+export const buildStyleHistorySummary = (payload, requestedStyleId) => {
+  const styleId = canonicalPositiveId(requestedStyleId)
+  const ratings = Array.isArray(payload?.items) ? payload.items : []
+  const products = new Map()
+  let tastingCount = 0
+
+  if (styleId) {
+    for (const rating of ratings) {
+      const product = exactProduct(rating)
+      if (!product) continue
+      const style = exactStyle(product)
+      if (!style || style.id !== styleId) continue
+
+      const productId = canonicalPositiveId(product.id)
+      const productName = product.product_name.trim()
+      const current = products.get(productId) || { id: productId, name: productName, tastingCount: 0 }
+      if (current.name !== productName) continue
+      current.tastingCount += 1
+      products.set(productId, current)
+      tastingCount += 1
+    }
+  }
+
+  const ratedProducts = Object.freeze([...products.values()]
+    .map((product) => Object.freeze({ ...product }))
+    .sort((left, right) => {
+      const byCount = right.tastingCount - left.tastingCount
+      if (byCount) return byCount
+      const byName = left.name.localeCompare(right.name)
+      return byName || Number(left.id) - Number(right.id)
+    }))
+
+  return Object.freeze({
+    styleId,
+    tastingCount,
+    uniqueProductCount: ratedProducts.length,
+    products: ratedProducts
+  })
+}
+
 export const __testables = { canonicalPositiveId, exactProduct, exactStyle, exactProducer }
