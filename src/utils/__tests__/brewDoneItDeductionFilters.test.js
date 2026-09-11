@@ -44,6 +44,13 @@ test('missing brewery attribution remains possible after brewery narrowing', () 
   assert.deepEqual(result.map((beer) => beer.id), [1, 3])
 })
 
+test('explicit beer exclusions remove only the selected candidate', () => {
+  const result = filterBrewDoneItBeers(beers, [
+    { dimension: 'beer_ruled_out', answer: 'yes', reference_id: 2 }
+  ], new Set(['10', '20']))
+  assert.deepEqual(result.map((beer) => beer.id), [1, 3])
+})
+
 test('unavailable geography does not eliminate breweries', () => {
   const breweries = [
     { id: 10, state: null, country: null, previouslyRated: true },
@@ -62,6 +69,17 @@ test('previously-rated brewery relationship narrows known brewery candidates', (
   ]
   const result = filterBrewDoneItBreweries(breweries, [
     { dimension: 'brewery_previously_rated', answer: 'no' }
+  ])
+  assert.deepEqual(result.map((brewery) => brewery.id), [20])
+})
+
+test('explicit brewery exclusions remove only the selected candidate', () => {
+  const breweries = [
+    { id: 10, previouslyRated: true },
+    { id: 20, previouslyRated: false }
+  ]
+  const result = filterBrewDoneItBreweries(breweries, [
+    { dimension: 'brewery_ruled_out', answer: 'yes', reference_id: 10 }
   ])
   assert.deepEqual(result.map((brewery) => brewery.id), [20])
 })
