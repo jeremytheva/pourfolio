@@ -200,7 +200,7 @@ export default function BrewDoneIt({ user }) {
     setInvitation(null)
     setRevealedProduct(null)
     setError('')
-    try { await loadSeries() } catch {}
+    await loadSeries().catch(() => undefined)
   }
 
   const canStartNextRound = game?.status === 'active' && terminalRound(round) && role === 'guesser'
