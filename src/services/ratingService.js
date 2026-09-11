@@ -10,6 +10,13 @@ export const ratingService = {
     }))
   },
 
+  createBonusAttribute({ description, pointValue }) {
+    return apiRequest('/bonus-attributes', {
+      method: 'POST',
+      body: { description, point_value: pointValue }
+    })
+  },
+
   submitRating(rating) {
     return apiRequest('/ratings/submit', {
       method: 'POST',
