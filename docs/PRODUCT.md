@@ -53,6 +53,8 @@ Refreshing, signing out or moving to another device must not erase an accepted s
 
 The selector chooses the secret beer before sharing the challenge. The server stores that choice as protected round state.
 
+The beer detail/profile page is an approved selector entry point. It exposes **Play Brew-Done-It** beside the normal beer actions. While the game remains contained, activating this button truthfully explains that play is not yet enabled and performs no Brew Done It API request or game-state persistence. Once the separately reviewed enablement change makes the game route reachable, the button must carry the viewed canonical `product.id` into Brew Done It as the selector's initial beer preselection. The selector must be able to review or change that beer before creating the challenge, and the server must still validate the submitted product before persisting it as protected round state.
+
 The initial supported transport may use a game number plus challenge code or a shareable challenge link. Both participants must authenticate. Joining binds the second authenticated account to the persistent series. A later in-app player picker or notification workflow may replace or supplement the shareable-code transport without changing the series/round model.
 
 Waiting invitations expire. Once joined, the persistent series remains available until an approved archive/deletion action removes it.
@@ -127,6 +129,7 @@ An enabled delivery must provide a way for authenticated participants to resume 
 A playable production delivery must satisfy all of the following before `/brew-done-it`, navigation or the server policy flag is enabled:
 
 - **Two-device identity:** two distinct authenticated accounts can participate from separate browser/device sessions and neither can impersonate the other role.
+- **Beer-profile entry:** Play Brew-Done-It on a beer profile carries that canonical product into the create-challenge screen as a reviewable preselection without creating a challenge automatically or exposing the secret to the opponent.
 - **Secret-first challenge:** the selector chooses a valid catalogue beer before the challenge is shared.
 - **Secret projection:** the challenged user cannot obtain the selected product identifier or equivalent answer data from any active-round response.
 - **Persistent resume:** both participants can leave, sign back in and resume an accepted series from another session/device.
@@ -146,7 +149,8 @@ A playable production delivery must satisfy all of the following before `/brew-d
 The source may contain the approved future implementation while the feature remains disabled. Production containment remains mandatory until the provider schema and connected evidence are complete:
 
 - no application route or navigation item;
-- no Brew Done It frontend code in the production browser bundle;
+- no playable Brew Done It frontend code in the production browser bundle;
+- the beer-profile Play Brew-Done-It entry point remains informational only and makes no game request;
 - `BREW_DONE_IT_POLICY_ENABLED` unset in normal deployment configuration; and
 - disabled API requests return the ordinary application 404 before provider access.
 
