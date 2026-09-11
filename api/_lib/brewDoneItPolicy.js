@@ -119,6 +119,16 @@ const pickFields = (record, fields) => {
   }, {})
 }
 
+const booleanFlag = (value) => value === true || value === 1 || value === '1'
+
+const normaliseBooleanFields = (projected, fields) => {
+  if (!projected) return projected
+  for (const field of fields) {
+    if (Object.hasOwn(projected, field)) projected[field] = booleanFlag(projected[field])
+  }
+  return projected
+}
+
 const requestError = (message) => {
   const error = new Error(message)
   error.status = 400
@@ -248,13 +258,28 @@ export const sanitiseBrewDoneItQuestionInput = (input) => {
   return { questionType, referenceId: null, threshold: null }
 }
 
-export const projectBrewDoneItGame = (record) => pickFields(record, GAME_FIELDS)
-export const projectBrewDoneItGuess = (record) => pickFields(record, GUESS_FIELDS)
+export const projectBrewDoneItGame = (record) => normaliseBooleanFields(
+  pickFields(record, GAME_FIELDS),
+  ['creator_history_clues_enabled', 'opponent_history_clues_enabled']
+)
+
+export const projectBrewDoneItGuess = (record) => normaliseBooleanFields(
+  pickFields(record, GUESS_FIELDS),
+  ['is_correct']
+)
+
 export const projectBrewDoneItDeduction = (record) => pickFields(record, DEDUCTION_FIELDS)
-export const projectBrewDoneItQuestion = (record) => pickFields(record, QUESTION_FIELDS)
+
+export const projectBrewDoneItQuestion = (record) => normaliseBooleanFields(
+  pickFields(record, QUESTION_FIELDS),
+  ['answer']
+)
 
 export const projectBrewDoneItRound = (record, viewerId) => {
-  const projected = pickFields(record, ROUND_FIELDS)
+  const projected = normaliseBooleanFields(
+    pickFields(record, ROUND_FIELDS),
+    ['brewery_correct', 'style_correct', 'beer_correct']
+  )
   const selectorViewing = String(record?.selector_participant_id) === String(viewerId)
   const roundEnded = ['completed', 'forfeited'].includes(record?.status)
   if (selectorViewing || roundEnded) projected.selected_product_id = record?.selected_product_id
@@ -269,5 +294,7 @@ export const __testables = {
   QUESTION_FIELDS,
   positiveId,
   requiredNumber,
-  requiredText
+  requiredText,
+  booleanFlag,
+  normaliseBooleanFields
 }
