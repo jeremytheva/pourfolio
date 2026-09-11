@@ -3,17 +3,19 @@ import React, { useState } from 'react'
 const control = 'mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500'
 const button = 'rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60'
 
-export default function BrewDoneItInvite({ products, invitation, busy, onCreate, onJoin }) {
-  const [productId, setProductId] = useState('')
+export default function BrewDoneItInvite({ products, invitation, busy, initialProductId = '', onCreate, onJoin }) {
+  const [productId, setProductId] = useState(initialProductId === null || initialProductId === undefined ? '' : String(initialProductId))
   const [gameId, setGameId] = useState('')
   const [inviteCode, setInviteCode] = useState('')
+  const selectedProduct = products.find((item) => String(item.id) === String(productId)) || null
+  const profileBeerSelected = Boolean(initialProductId) && String(productId) === String(initialProductId) && Boolean(selectedProduct)
 
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="invitation-heading">
       <h2 id="invitation-heading" className="text-xl font-semibold text-gray-900">Start or join a challenge</h2>
       <p className="mt-2 text-sm text-gray-600">Both players use their own Pourfolio account and device. Choose the beer before sharing the challenge.</p>
 
-      <form className="mt-5" onSubmit={(event) => { event.preventDefault(); if (productId) onCreate(productId) }}>
+      <form className="mt-5" onSubmit={(event) => { event.preventDefault(); if (selectedProduct) onCreate(selectedProduct.id) }}>
         <h3 className="font-semibold text-gray-900">Create a challenge</h3>
         <label className="mt-3 block text-sm font-medium text-gray-800">Beer to guess
           <select required value={productId} onChange={(event) => setProductId(event.target.value)} className={control}>
@@ -23,8 +25,13 @@ export default function BrewDoneItInvite({ products, invitation, busy, onCreate,
             ))}
           </select>
         </label>
+        {profileBeerSelected && (
+          <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-950" role="status">
+            {selectedProduct.product_name} was selected from its beer profile. Review the choice before creating the challenge.
+          </p>
+        )}
         <p className="mt-2 text-sm text-gray-600">The other player cannot see this selection until the round ends.</p>
-        <button className={`${button} mt-4`} disabled={busy || !productId}>Create challenge</button>
+        <button className={`${button} mt-4`} disabled={busy || !selectedProduct}>Create challenge</button>
       </form>
 
       {invitation && (
