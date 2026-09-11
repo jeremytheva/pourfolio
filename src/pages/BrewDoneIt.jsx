@@ -35,7 +35,7 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
   const [round, setRound] = useState(null)
   const [series, setSeries] = useState([])
   const [invitation, setInvitation] = useState(null)
-  const [options, setOptions] = useState({ breweries: [], styles: [] })
+  const [options, setOptions] = useState({ breweries: [], styles: [], beers: [], capabilities: {} })
   const [deductions, setDeductions] = useState([])
   const [selectorClues, setSelectorClues] = useState(null)
   const [cluesLoading, setCluesLoading] = useState(false)
@@ -117,17 +117,22 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
   }, [game?.id, loadRevealedProduct, loadRoundWorkspace, loadSeries, loadStats, run])
 
   useEffect(() => {
-    getBrewDoneItOptions().then(setOptions).catch(() => setOptions({ breweries: [], styles: [] }))
+    getBrewDoneItOptions().then(setOptions).catch(() => setOptions({ breweries: [], styles: [], beers: [], capabilities: {} }))
     Promise.all([loadSeries(), loadStats()]).catch(() => undefined)
   }, [loadSeries, loadStats])
 
-  const remember = (action) => { lastAction.current = action; return action() }
+  const remember = (action) => {
+    lastAction.current = action
+    return action()
+  }
 
   const create = (productId) => {
     const key = requestKey()
     return remember(async () => {
       const result = await run(() => createBrewDoneItGame(productId, key), () => 'Challenge created. Send the challenge details to the other player.')
-      setGame(result.game); setRound(result.round); setInvitation({ gameId: result.game.id, code: result.invitationCode })
+      setGame(result.game)
+      setRound(result.round)
+      setInvitation({ gameId: result.game.id, code: result.invitationCode })
       await loadSeries()
     })
   }
@@ -136,56 +141,81 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
     const key = requestKey()
     return remember(async () => {
       const result = await run(() => joinBrewDoneItGame(gameId, inviteCode.trim(), 0, key), () => 'Challenge accepted. Start narrowing the brewery and beer.')
-      setGame(result.game); setRound(result.round); setInvitation(null)
+      setGame(result.game)
+      setRound(result.round)
+      setInvitation(null)
       await Promise.all([loadSeries(), loadRoundWorkspace(result.round)])
     })
   }
 
-  const saveDeduction = (deduction) => remember(async () => {
-    await run(() => saveBrewDoneItDeduction(round.id, deduction, round.version || 0, requestKey()), () => 'Deduction saved.')
-    const payload = await getBrewDoneItDeductions(round.id)
-    setDeductions(Array.isArray(payload.deductions) ? payload.deductions : [])
-  })
+  const saveDeduction = (deduction) => {
+    const key = requestKey()
+    return remember(async () => {
+      await run(() => saveBrewDoneItDeduction(round.id, deduction, round.version || 0, key), () => 'Deduction saved.')
+      const payload = await getBrewDoneItDeductions(round.id)
+      setDeductions(Array.isArray(payload.deductions) ? payload.deductions : [])
+    })
+  }
 
-  const submitOutcome = (guessType, referenceId) => remember(async () => {
-    const result = await run(
-      () => submitBrewDoneItOutcome(round.id, guessType, referenceId, round.version || 0, requestKey()),
-      (value) => value.guess?.is_correct ? `${guessType === 'beer' ? 'Exact beer' : guessType} correct.` : `${guessType === 'beer' ? 'Beer' : guessType} guess incorrect.`
-    )
-    setRound(result.round)
-    await loadSeries()
-  })
+  const submitOutcome = (guessType, referenceId) => {
+    const key = requestKey()
+    return remember(async () => {
+      const result = await run(
+        () => submitBrewDoneItOutcome(round.id, guessType, referenceId, round.version || 0, key),
+        (value) => value.guess?.is_correct ? `${guessType === 'beer' ? 'Exact beer' : guessType} correct.` : `${guessType === 'beer' ? 'Beer' : guessType} guess incorrect.`
+      )
+      setRound(result.round)
+      await loadSeries()
+    })
+  }
 
-  const completeRound = () => remember(async () => {
-    const result = await run(() => completeBrewDoneItRound(round.id, round.version || 0, requestKey()), (value) => `Round complete: ${value.round.awarded_points || 0} points.`)
-    setRound(result.round)
-    await Promise.all([loadRevealedProduct(result.round), loadSeries(), loadStats()])
-  })
+  const completeRound = () => {
+    const key = requestKey()
+    return remember(async () => {
+      const result = await run(() => completeBrewDoneItRound(round.id, round.version || 0, key), (value) => `Round complete: ${value.round.awarded_points || 0} points.`)
+      setRound(result.round)
+      await Promise.all([loadRevealedProduct(result.round), loadSeries(), loadStats()])
+    })
+  }
 
-  const updateHistorySharing = (enabled) => remember(async () => {
-    const result = await run(() => setBrewDoneItHistorySharing(game.id, enabled, game.version || 0, requestKey()), () => enabled ? 'Rating-history clues enabled.' : 'Rating-history clues disabled.')
-    setGame(result.game)
-    await loadSeries()
-  })
+  const updateHistorySharing = (enabled) => {
+    const key = requestKey()
+    return remember(async () => {
+      const result = await run(() => setBrewDoneItHistorySharing(game.id, enabled, game.version || 0, key), () => enabled ? 'Rating-history clues enabled.' : 'Rating-history clues disabled.')
+      setGame(result.game)
+      await loadSeries()
+    })
+  }
 
   const startNextRound = (productId) => {
     const key = requestKey()
     return remember(async () => {
       const result = await run(() => createBrewDoneItRound(game.id, productId, game.version || 0, key), () => 'Next round created. Your opponent can start narrowing the new beer.')
-      setGame(result.game); setRound(result.round); setRevealedProduct(null)
+      setGame(result.game)
+      setRound(result.round)
+      setRevealedProduct(null)
       await Promise.all([loadSeries(), loadRoundWorkspace(result.round)])
     })
   }
 
   const forfeit = async () => {
     if (!window.confirm('Forfeit this round? It will end with zero points for the guesser.')) return
-    const result = await run(() => forfeitBrewDoneItRound(round.id, round.version || 0, requestKey()), () => 'Round forfeited. The series remains available for another round.')
-    setRound(result.round)
-    await Promise.all([loadRevealedProduct(result.round), loadSeries(), loadStats()])
+    const key = requestKey()
+    return remember(async () => {
+      const result = await run(() => forfeitBrewDoneItRound(round.id, round.version || 0, key), () => 'Round forfeited. The series remains available for another round.')
+      setRound(result.round)
+      await Promise.all([loadRevealedProduct(result.round), loadSeries(), loadStats()])
+    })
   }
 
   const returnToChallenges = async () => {
-    setGame(null); setRound(null); setInvitation(null); setRevealedProduct(null); setDeductions([]); setSelectorClues(null); setError('')
+    setGame(null)
+    setRound(null)
+    setInvitation(null)
+    setRevealedProduct(null)
+    setDeductions([])
+    setSelectorClues(null)
+    setError('')
     await loadSeries().catch(() => undefined)
   }
 
@@ -205,20 +235,52 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
       </header>
 
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announcement}</div>
-      {error && <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-4 text-red-950"><p>{error}</p><div className="mt-3 flex flex-wrap gap-3"><button type="button" className="rounded-md bg-red-800 px-3 py-2 font-semibold text-white" onClick={() => lastAction.current?.()}>Retry action</button>{game && <button type="button" className="rounded-md border border-red-800 px-3 py-2 font-semibold" onClick={refresh}>Refresh series</button>}<button type="button" className="rounded-md px-3 py-2 underline" onClick={returnToChallenges}>Return to challenges</button></div></div>}
+      {error && (
+        <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-4 text-red-950">
+          <p>{error}</p>
+          <div className="mt-3 flex flex-wrap gap-3">
+            <button type="button" className="rounded-md bg-red-800 px-3 py-2 font-semibold text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2" onClick={() => lastAction.current?.()}>Retry action</button>
+            {game && <button type="button" className="rounded-md border border-red-800 px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2" onClick={refresh}>Refresh series</button>}
+            <button type="button" className="rounded-md px-3 py-2 underline focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2" onClick={returnToChallenges}>Return to challenges</button>
+          </div>
+        </div>
+      )}
 
-      {!game && <><BrewDoneItSeriesList series={series} userId={user?.id} busy={busy} onOpen={openSeries} /><BrewDoneItInvite invitation={invitation} busy={busy} initialProductId={initialProductId} onCreate={create} onJoin={join} /></>}
+      {!game && (
+        <>
+          <BrewDoneItSeriesList series={series} userId={user?.id} busy={busy} onOpen={openSeries} />
+          <BrewDoneItInvite invitation={invitation} busy={busy} initialProductId={initialProductId} onCreate={create} onJoin={join} />
+        </>
+      )}
       {game && <button type="button" className="underline focus:outline-none focus:ring-2 focus:ring-amber-500" disabled={busy} onClick={returnToChallenges}>All challenges</button>}
 
-      {game?.status === 'waiting' && <section className="rounded-xl border border-amber-200 bg-amber-50 p-6"><h2 className="text-xl font-semibold text-amber-950">Challenge waiting for another player</h2><p className="mt-2 text-amber-950">Series {game.id} is waiting to be accepted. Your selected beer remains hidden.</p>{invitation && <div className="mt-3"><p className="break-all font-mono text-sm">Game {invitation.gameId}: {invitation.code}</p><BrewDoneItInvitationShare gameId={invitation.gameId} inviteCode={invitation.code} disabled={busy} /></div>}<button type="button" className="mt-4 underline" disabled={busy} onClick={refresh}>Refresh challenge</button></section>}
+      {game?.status === 'waiting' && (
+        <section className="rounded-xl border border-amber-200 bg-amber-50 p-6" aria-labelledby="brew-waiting-heading">
+          <h2 id="brew-waiting-heading" className="text-xl font-semibold text-amber-950">Challenge waiting for another player</h2>
+          <p className="mt-2 text-amber-950">Series {game.id} is waiting to be accepted. Your selected beer remains hidden.</p>
+          {invitation && <div className="mt-3"><p className="break-all font-mono text-sm">Game {invitation.gameId}: {invitation.code}</p><BrewDoneItInvitationShare gameId={invitation.gameId} inviteCode={invitation.code} disabled={busy} /></div>}
+          <button type="button" className="mt-4 underline focus:outline-none focus:ring-2 focus:ring-amber-500" disabled={busy} onClick={refresh}>Refresh challenge</button>
+        </section>
+      )}
 
-      {game?.status === 'active' && round && !terminalRound(round) && <BrewDoneItRound game={game} round={round} role={role} busy={busy} onRefresh={refresh} onForfeit={forfeit}>
-        {role === 'selector'
-          ? <BrewDoneItSelectorSheet clues={selectorClues} loading={cluesLoading} />
-          : <BrewDoneItDeductionBoard round={round} options={options} deductions={deductions} busy={busy} historySharing={historySharing} onHistorySharing={updateHistorySharing} onSaveDeduction={saveDeduction} onOutcome={submitOutcome} onComplete={completeRound} />}
-      </BrewDoneItRound>}
+      {game?.status === 'active' && round && !terminalRound(round) && (
+        <BrewDoneItRound game={game} round={round} role={role} busy={busy} onRefresh={refresh} onForfeit={forfeit}>
+          {role === 'selector'
+            ? <BrewDoneItSelectorSheet clues={selectorClues} loading={cluesLoading} />
+            : <BrewDoneItDeductionBoard round={round} options={options} deductions={deductions} busy={busy} historySharing={historySharing} onHistorySharing={updateHistorySharing} onSaveDeduction={saveDeduction} onOutcome={submitOutcome} onComplete={completeRound} />}
+        </BrewDoneItRound>
+      )}
 
-      {terminalRound(round) && <><BrewDoneItScore round={round} selectedProduct={revealedProduct} />{canStartNextRound ? <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"><BrewDoneItSelection busy={busy} onSelect={startNextRound} /></section> : game?.status === 'active' ? <div role="status" className="rounded-lg bg-blue-50 p-4 text-blue-950">The other player chooses the beer for the next round. Refresh after they create it.</div> : null}</>}
+      {terminalRound(round) && (
+        <>
+          <BrewDoneItScore round={round} selectedProduct={revealedProduct} />
+          {canStartNextRound ? (
+            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"><BrewDoneItSelection busy={busy} onSelect={startNextRound} /></section>
+          ) : game?.status === 'active' ? (
+            <div role="status" className="rounded-lg bg-blue-50 p-4 text-blue-950">The other player chooses the beer for the next round. Refresh after they create it.</div>
+          ) : null}
+        </>
+      )}
       <BrewDoneItStatistics stats={stats} />
     </div>
   )
