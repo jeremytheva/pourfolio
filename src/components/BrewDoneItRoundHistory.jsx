@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { beverageService } from '../services/beverageService.js'
+import { getBrewDoneItGame } from '../services/brewDoneItService.js'
 
 const questionText = (question) => {
   switch (question.question_type) {
@@ -12,10 +13,29 @@ const questionText = (question) => {
   }
 }
 
-export default function BrewDoneItRoundHistory({ round }) {
-  const guesses = Array.isArray(round?.guesses) ? round.guesses : []
-  const questions = Array.isArray(round?.questions) ? round.questions : []
+export default function BrewDoneItRoundHistory({ gameId, round }) {
+  const [hydratedRound, setHydratedRound] = useState(round)
   const [productNames, setProductNames] = useState({})
+  const guesses = Array.isArray(hydratedRound?.guesses) ? hydratedRound.guesses : []
+  const questions = Array.isArray(hydratedRound?.questions) ? hydratedRound.questions : []
+
+  useEffect(() => {
+    setHydratedRound(round)
+    if (!gameId || !round?.id) return undefined
+
+    let active = true
+    getBrewDoneItGame(gameId)
+      .then((payload) => {
+        if (!active) return
+        const authoritativeRound = Array.isArray(payload.rounds)
+          ? payload.rounds.find((candidate) => String(candidate.id) === String(round.id))
+          : null
+        if (authoritativeRound) setHydratedRound(authoritativeRound)
+      })
+      .catch(() => undefined)
+
+    return () => { active = false }
+  }, [gameId, round?.id, round?.version])
 
   useEffect(() => {
     const ids = [...new Set(guesses.map((guess) => String(guess.guessed_product_id || '')).filter(Boolean))]
