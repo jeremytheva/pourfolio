@@ -40,7 +40,7 @@ last_updated: "2026-09-11T13:05:00+10:00"
 
 # STATUS.md
 
-Last materially reviewed: 11 September 2026
+Last materially reviewed: 12 September 2026
 
 ## Current phase
 
@@ -99,26 +99,30 @@ The remaining #165 work is therefore active P1 work but **blocked at an irrevers
 
 ## Brew Done It deduction v3 — #410 merged / PR #461
 
-PR **#410** merged the contained persistent cross-device core. ADR **0002** remains authoritative for the persistent two-account/two-device architecture, protected secret, invitation/resume behaviour, role rotation, concurrency/idempotency and production containment. ADR **0005** now defines the gameplay model.
+PR **#410** merged the contained persistent cross-device core. ADR **0002** remains authoritative for the persistent two-account/two-device architecture, protected secret, invitation/resume behaviour, role rotation, concurrency/idempotency and production containment. ADR **0006** now defines the deduction-board gameplay model; ADR **0005** is the separate rating-event/Quick Rate decision on current `main`.
 
-PR **#461** implements the contained v3 deduction redesign and is currently **IMPLEMENTING / VALIDATION PENDING**. The branch has been reconciled with current `main` and is structurally mergeable, but it must not be treated as MERGE READY until the final exact head receives the repository-owned validation and applicable browser/accessibility/security evidence.
+PR **#461** implements the contained v3 deduction redesign and is currently **IMPLEMENTING / VALIDATION PENDING**. The branch has been reconciled with current `main`, but it must not be treated as MERGE READY until the final exact head receives the repository-owned validation and applicable browser/accessibility/security evidence.
 
 The current v3 source includes:
 
 - natural player-to-player yes/no conversation rather than fixed/scored server questions;
 - a persistent two-sided **Brewery / Beer & Style** deduction board with `yes` / `no` / `unknown` state;
-- candidate narrowing only from governed facts, currently including producer relationships, the guesser's own previous-rating relationship, style/category, ABV, IBU and collaboration;
-- missing catalogue values preserved as unknown rather than silently converted to `0` / `No`;
+- explicit brewery/beer exclusions plus a Set Unknown undo/reset path;
+- candidate narrowing only from governed facts, currently including producer relationships, the guesser's own previous-rating relationship where attribution is complete, style/category, ABV, IBU and collaboration;
+- zero/blank relationships and missing catalogue/rating-attribution values preserved as unknown rather than silently converted to `0` / `No`;
+- unknown beer categories preserving all style candidates rather than falsely narrowing the style field;
 - state/country automatic filtering intentionally unavailable until canonical brewery geography is governed and certified; free-text producer address data is not used to infer geography;
 - dark/barrel-aged as manual deduction notes only until trustworthy structured trait metadata exists;
 - selector-only answer facts plus optional guesser-controlled aggregate rating-history clues for the hidden brewery/style/exact beer, without exposing raw rating history, notes or cellar data;
-- formal brewery, exact-beer and style-fallback submissions;
+- formal brewery, exact-beer and style-fallback submissions validated against canonical catalogue references;
 - scoring v3.0.0: brewery 4 + exact beer 6, or brewery 4 + style fallback 3, minus 1 per incorrect formal submission, clamped 0–10; ordinary conversation/deductions are free;
-- stable request idempotency across UI retries;
-- v3 formal-outcome reservation/reconciliation, including recovery when round finalisation succeeds before the child commit marker;
+- normalized provider boolean values at both internal gameplay/scoring and browser projection boundaries;
+- stable request idempotency across UI retries, plus safe conflicts when a request key is reused for a different deduction or formal outcome;
+- deterministic projection of duplicate logical deduction rows to the latest workspace value;
+- v3 formal-outcome reservation/reconciliation, including recovery when round finalisation succeeds before the child commit marker and repair on later reads;
 - explicit finish/forfeit replay safety;
-- v3 brewery/exact-beer/style/head-to-head statistics; and
-- focused source tests for scoring, deduction filtering and missing-value normalisation, ready for the later exact-head validation run.
+- v3 brewery/exact-beer/style/head-to-head statistics with forfeited rounds included in durable round counts; and
+- focused source tests for scoring, projection/privacy, idempotency identity, deduction filtering, statistics and missing-value normalisation, ready for the later exact-head validation run.
 
 Containment is unchanged: `/brew-done-it` remains absent from production routing/navigation, the beer-profile entry point remains informational while contained, `BREW_DONE_IT_POLICY_ENABLED` remains unset, and no Brew Done It provider mutation has been performed.
 
