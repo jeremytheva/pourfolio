@@ -45,16 +45,15 @@ export const producerService = {
   async listVerifiedProducers() {
     const products = []
     let page = 1
-    let totalPages = 1
-    do {
+    while (true) {
       const catalogue = validateCataloguePage(
         await apiRequest(`/catalog/products?page=${page}&limit=${VERIFIED_PRODUCER_PAGE_SIZE}`),
         { expectedPage: page, expectedPageSize: VERIFIED_PRODUCER_PAGE_SIZE }
       )
       products.push(...catalogue.items)
-      totalPages = catalogue.totalPages
+      if (page >= catalogue.totalPages) break
       page += 1
-    } while (page <= totalPages)
+    }
     return verifiedProducerIndexFromProducts(products)
   }
 }
