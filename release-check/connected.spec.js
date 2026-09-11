@@ -173,6 +173,24 @@ test('catalogue, pagination, direct details, rating form boundary and session-ba
   authenticatedStorageState = await page.context().storageState()
 })
 
+test('Breweries & Venues is keyboard operable and preserves the verified-data boundary', async ({ page }) => {
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
+  await page.goto('/places')
+
+  const breweries = page.getByRole('tab', { name: 'Breweries' })
+  const venues = page.getByRole('tab', { name: 'Venues' })
+  await expect(breweries).toHaveAttribute('aria-selected', 'true')
+  await breweries.focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(venues).toBeFocused()
+  await expect(venues).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tabpanel', { name: 'Venues' })).toBeVisible()
+  await expect(page.getByText('Venue discovery is awaiting verified data.')).toBeVisible()
+  await page.keyboard.press('ArrowLeft')
+  await expect(breweries).toBeFocused()
+  await expect(breweries).toHaveAttribute('aria-selected', 'true')
+})
+
 test('rating create/history/delete uses exact cleanup identity', async ({ page }) => {
   test.skip(!destructiveEnabled, `Requires RELEASE_DESTRUCTIVE_CONFIRMATION=${DESTRUCTIVE_CONFIRMATION}`)
 
@@ -254,7 +272,7 @@ test('cellar CRUD and cross-account ownership boundaries use guaranteed cleanup'
 test('expired session returns every protected direct route to sign-in', async ({ page }) => {
   await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
   await page.context().clearCookies()
-  for (const path of ['/home', '/search', '/cellar', '/profile']) {
+  for (const path of ['/home', '/search', '/places', '/cellar', '/profile']) {
     await page.goto(path)
     await expect(page).toHaveURL(/\/login$/)
   }
@@ -268,7 +286,7 @@ test('axe has no serious or critical violations on every reachable launch page',
   try {
     const catalogue = await responseJson(await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1'))
     const productId = catalogue.items[0].id
-    const paths = ['/home', '/search', `/products/${productId}`, `/products/${productId}/rate`, '/cellar', '/profile']
+    const paths = ['/home', '/search', '/places', `/products/${productId}`, `/products/${productId}/rate`, '/cellar', '/profile']
     for (const path of paths) {
       await page.goto(path)
       await expect(page.locator('main, h1').first()).toBeVisible()
