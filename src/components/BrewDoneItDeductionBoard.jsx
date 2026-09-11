@@ -43,6 +43,12 @@ const labelFor = (deduction, options) => {
   return `${names[deduction.dimension] || deduction.dimension}${value !== '' ? `: ${value}` : ''}`
 }
 
+const valuesForDeduction = (deduction) => ({
+  ...(deduction.reference_id === null || deduction.reference_id === undefined ? {} : { referenceId: deduction.reference_id }),
+  ...(deduction.value_text === null || deduction.value_text === undefined ? {} : { valueText: deduction.value_text }),
+  ...(deduction.numeric_value === null || deduction.numeric_value === undefined ? {} : { numericValue: deduction.numeric_value })
+})
+
 export default function BrewDoneItDeductionBoard({
   round,
   options = { breweries: [], styles: [], beers: [], capabilities: {} },
@@ -89,6 +95,7 @@ export default function BrewDoneItDeductionBoard({
   const filteredStyleIds = useMemo(() => new Set(filteredBeers.map((beer) => String(beer.categoryId)).filter(Boolean)), [filteredBeers])
   const filteredStyles = useMemo(() => (options.styles || []).filter((style) => filteredStyleIds.has(String(style.id))), [filteredStyleIds, options.styles])
   const save = (dimension, answer, values = {}) => onSaveDeduction({ dimension, answer, ...values })
+  const setUnknown = (deduction) => save(deduction.dimension, 'unknown', valuesForDeduction(deduction))
   const styleName = (styleId) => (options.styles || []).find((item) => String(item.id) === String(styleId))?.name || null
   const progress = [['Brewery', round?.brewery_correct], ['Exact beer', round?.beer_correct], ['Style fallback', round?.style_correct]]
 
@@ -187,7 +194,18 @@ export default function BrewDoneItDeductionBoard({
       {deductions.length > 0 && (
         <div className="rounded-xl border border-gray-200 bg-white p-5">
           <h4 className="font-semibold text-gray-900">Saved deductions</h4>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-2">{deductions.map((item) => <li key={item.id} className="rounded-lg bg-gray-50 px-3 py-2 text-sm"><strong>{labelFor(item, options)}</strong> — <span className="capitalize">{item.answer}</span></li>)}</ul>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+            {deductions.map((item) => (
+              <li key={item.id} className="rounded-lg bg-gray-50 px-3 py-2 text-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div><strong>{labelFor(item, options)}</strong> — <span className="capitalize">{item.answer}</span></div>
+                  {item.answer !== 'unknown' && !['brewery_country', 'brewery_state'].includes(item.dimension) && (
+                    <button type="button" disabled={busy} onClick={() => setUnknown(item)} className="shrink-0 rounded px-2 py-1 text-xs font-semibold text-amber-800 underline focus:outline-none focus:ring-2 focus:ring-amber-500">Set unknown</button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
