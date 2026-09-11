@@ -196,31 +196,35 @@ Use dependency-scoped blocking. Keep blockers only where they protect work that 
 
 ## Approved post-launch product expansion
 
-Issue **#433** is the authoritative tracker for the Untappd-informed Pourfolio expansion. It is separately approved for post-launch planning and does **not** expand or block the current beer-first launch milestone.
+Issue **#433** is the original authoritative tracker for the Untappd-informed Pourfolio expansion. The RateBeer review is incorporated into the same plan rather than creating a parallel roadmap. This entire expansion remains separately approved for post-launch planning and does **not** expand or block the current beer-first launch milestone.
 
-The product direction is to adopt the strongest discovery and retention loop around Pourfolio's own scoring model:
+The combined product direction is:
 
 ```text
-discover → save → taste → compare → find → follow → return
+discover → save → taste → analyse → compare → explore → find → follow → return
 ```
 
-Pourfolio remains differentiated by structured attribute scoring, personalised weights, Scaled Score, Retail/Purchased PPP, personal taste analytics and an explainable personal Match Score.
+The Untappd-derived loop contributes low-friction capture, discovery, availability and retention. The RateBeer-derived additions contribute fair style-relative comparison, rankings, analytical exploration, style reference depth and historical catalogue preservation. Pourfolio remains differentiated by structured attribute scoring, personalised weights, Overall/Style Scaled Scores, Retail/Purchased PPP, personal taste analytics and an explainable personal Match Score.
 
 ### Phase 4 — Personal beer intelligence (#434)
 
 Implement, in dependency order:
 
-- rating-event semantics for **Quick Rate**, **Full Tasting** and repeat tastings;
+- **#438** rating-event semantics for **Quick Rate**, **Full Tasting** and repeat tastings;
 - low-friction Quick Rate without fabricating structured attribute scores;
 - repeat-tasting history and comparison;
+- optional attribute-level Full Tasting notes so users can record why individual dimensions received their scores;
+- **#444 historical product/brewery lifecycle** so active, seasonal, retired/historical products, vintages/editions and renamed/closed/acquired breweries preserve stable historical identity for ratings and cellar records;
+- **#440 Style Scaled Score** alongside the existing Overall Scaled Score, using verified canonical style identity and the same governed tie-aware percentile principles;
 - Want to Try, Favourites, Rebuy and other owner lists without duplicating Cellar;
-- private Taste Profile analytics;
-- explainable 0–100 Pourfolio Match Score;
-- unauthenticated read-only guest browsing through public projections;
-- Year in Pourfolio recap;
+- private Taste Profile analytics using both Overall and Style Scaled Score context where valid;
+- **#441 Pourfolio Rankings and advanced discovery** by verified style, producer, geography, time period and metric, with deterministic ties, explicit minimum samples, advanced filters and curated seasonal/top-list presets;
+- **#442 Taste Map / Beer Passport** showing private exploration across verified countries/regions, breweries and styles, with accessible non-map equivalents;
+- **#443 Beer Style Explorer** pages that keep governed style reference facts separate from community aggregates and combine style information, rankings, personal history and discovery;
+- explainable 0–100 Pourfolio Match Score plus similar-beer suggestions that state why a recommendation is similar, using documented style/brewery/attribute-profile signals rather than opaque ML;
+- unauthenticated read-only guest browsing through public catalogue/product/brewery/style/ranking projections;
+- Year in Pourfolio recap including privacy-safe exploration, style and value insights;
 - data portability through the existing Phase 2 export authority.
-
-Issue **#438** is the first decision issue and must lock Quick Rate / Full Tasting / repeat-tasting aggregate semantics before implementation. It depends only on the final inspectable scoring/data contract from **#428**.
 
 ### Phase 5 — Availability and return loop (#435)
 
@@ -232,6 +236,8 @@ After **#399** establishes authoritative venue data:
 - add an in-app updates/notification model and user controls;
 - later layer additional delivery channels without changing the core event/subscription contract.
 
+Historical identity from #444 must remain separate from current availability: a retired beer may remain fully visible in history while correctly reporting no current verified availability.
+
 ### Phase 6 — Social and exploration engagement (#436)
 
 After an explicit privacy/visibility model exists:
@@ -239,11 +245,12 @@ After an explicit privacy/visibility model exists:
 - add an opt-in activity feed;
 - add lightweight reactions/comments and Save to Want to Try;
 - add exploration-focused achievements that reward breadth rather than drinking volume or speed;
+- add expertise indicators based on breadth and qualifying detailed tasting history within styles/regions/breweries, never raw consumption leaderboards;
 - add brewery/venue events after verified business ownership exists.
 
-Direct messaging remains excluded unless separately approved.
+Direct messaging remains excluded unless separately approved. Conventional standalone forums are also not planned at this stage; discussion should remain attached to relevant feed/product/event contexts unless a later product decision changes this.
 
-### Phase 7 — Brewery and venue business ecosystem (#437)
+### Phase 7 — Brewery, venue and catalogue stewardship ecosystem (#437)
 
 After venue/business identity is governed:
 
@@ -251,9 +258,11 @@ After venue/business identity is governed:
 - allow verified businesses to maintain factual profile/menu/event data;
 - add live menus using the Phase 5 offering contract;
 - add privacy-safe aggregate brewery/venue analytics;
+- add a moderated community/business **catalogue correction and missing-beer submission** workflow where submissions are proposals, not direct mutations, and accepted corrections preserve stable identifiers/history from #444;
+- evaluate a separate **Beer Venue Experience** rating after #399/product-derived Venue Score are stable; if approved, keep it explicitly separate and limited to beer-relevant dimensions such as selection, freshness/quality, beer service/knowledge and value;
 - add POS/menu adapters only after the native menu contract is stable.
 
-Businesses must never be able to edit, suppress or rewrite consumer ratings or personal tasting history. Venue scores remain product-derived and must not imply service, staff, food or ambience quality.
+Businesses must never be able to edit, suppress or rewrite consumer ratings or personal tasting history. The current Venue Score remains product-derived and must not imply service, staff, food or ambience quality. Any future Beer Venue Experience score must have a separate label, dimensions and aggregate contract and must never be merged into the product-derived Venue Score.
 
 ### Expansion sequencing
 
@@ -262,19 +271,40 @@ Businesses must never be able to edit, suppress or rewrite consumer ratings or p
         ↓
 #438 rating-event decision
         ↓
-#434 Quick Rate / repeat tastings / lists / taste intelligence
+#444 historical identity / vintage compatibility audit
         ↓
-Match Score / recap
+#440 Style Scaled Score
+        ↓
+#434 Quick Rate / repeat tastings / lists / Taste Profile
+        ↓
+#441 rankings + advanced discovery
+        ↓
+#442 Taste Map / #443 Style Explorer
+        ↓
+Match Score / similar beers / recap
 
 #399 verified venue foundation
         ↓
 #435 offerings / Find This Beer / follows / updates
         ↓
-#437 verified business menus and analytics
+#437 verified business menus / catalogue stewardship / analytics
 
 privacy/visibility decision
         ↓
-#436 social feed / achievements / events
+#436 social feed / exploration achievements / expertise indicators / events
 ```
+
+### Explicit product exclusions and boundaries
+
+- no direct messaging unless separately approved;
+- no conventional standalone forum in the current roadmap;
+- no gamification or leaderboards based on drinking speed or raw alcohol volume;
+- no business modification/suppression of consumer ratings;
+- no inference of current venue availability from stale ratings/check-ins;
+- no opaque ML recommendation model in Match Score V1;
+- no direct community mutation of canonical catalogue data;
+- no deletion/reuse of historical product identities referenced by rating or cellar history;
+- no conflation of product-derived Venue Score with a future Beer Venue Experience rating;
+- no RateBeer-derived feature becomes a blocker for the existing beer-first launch without a separate explicit scope decision.
 
 All expansion work remains subject to the repository's normal non-draft PR policy, focused issue-to-PR sizing, server-side authority, provider migration/recovery controls, privacy boundaries and applicable browser/accessibility evidence.
