@@ -264,7 +264,7 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
       )}
 
       {game?.status === 'active' && round && !terminalRound(round) && (
-        <BrewDoneItRound game={game} round={round} role={role} busy={busy} onRefresh={refresh} onForfeit={forfeit}>
+        <BrewDoneItRound game={game} round={round} role={role} busy={busy} options={options} onRefresh={refresh} onForfeit={forfeit}>
           {role === 'selector'
             ? <BrewDoneItSelectorSheet clues={selectorClues} loading={cluesLoading} />
             : <BrewDoneItDeductionBoard round={round} options={options} deductions={deductions} busy={busy} historySharing={historySharing} onHistorySharing={updateHistorySharing} onSaveDeduction={saveDeduction} onOutcome={submitOutcome} onComplete={completeRound} />}
