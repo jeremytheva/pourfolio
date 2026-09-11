@@ -19,6 +19,9 @@ export const DEFERRED_COLLECTIONS = Object.freeze({
   brewDoneItGames: 'brew_done_it_games',
   brewDoneItRounds: 'brew_done_it_rounds',
   brewDoneItGuesses: 'brew_done_it_guesses',
+  brewDoneItQuestions: 'brew_done_it_questions',
+  // Retained only for the unreachable pre-ADR-0002 prototype. New Brew Done It
+  // code must use brewDoneItQuestions and catalogue facts, never rating history.
   brewDoneItHistoryQuestions: 'brew_done_it_history_questions',
   blockedRelationships: 'blocked_relationships'
 })
