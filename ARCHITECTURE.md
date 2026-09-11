@@ -96,9 +96,9 @@ Successful password sign-in, sign-up or OTP verification must resolve a stable u
 
 ## Data boundary
 
-`api/data-proxy.js` is the application data gateway.
+`api/data-router.js` is the canonical application data dispatcher. Launch resources are delegated to schema-aware handlers. Approved-but-deferred Brew Done It traffic is isolated in `api/_lib/brewDoneItGateway.js` and remains fail-closed unless its server-only policy flag is deliberately enabled after provider certification.
 
-The gateway:
+The data layer:
 
 - verifies a session on every private data request;
 - derives owner identity server-side;
@@ -180,16 +180,22 @@ Current state:
 
 - no launch route;
 - no launch navigation item;
-- retained game code is not authoritative launch behaviour.
+- `BREW_DONE_IT_POLICY_ENABLED` remains unset in normal deployments;
+- persistent provider collections remain deferred/not provider-certified.
 
-Accepted future state under ADR 0001:
+Accepted future state under [ADR 0002](docs/DECISIONS/0002-approve-brew-done-it-cross-device.md):
 
-- same-device only;
-- one authenticated Pourfolio user and one physically present adult;
-- controlled yes/no question bank;
-- live beer catalogue selection;
-- all game state in React memory only;
-- no invitations, second-account requirement, backend round, stored score or durable statistics.
+- two authenticated Pourfolio users on separate devices;
+- a persistent two-player series containing repeated beer-challenge rounds;
+- the selector chooses a catalogue beer before the challenge is shared;
+- the guesser never receives the secret beer identity while the round is active;
+- controlled public-catalogue yes/no questions and exact beer guesses;
+- server-derived 0–10 round scoring;
+- durable round history and head-to-head statistics across sessions;
+- selector/guesser roles swap for each subsequent round by default;
+- optimistic versioning and idempotency protect asynchronous play.
+
+`api/_lib/brewDoneItGateway.js` contains the approved application boundary, while the older implementation in `api/data-proxy.js` remains legacy/quarantined source. The new capability may merge while disabled, but route/navigation and the policy flag must not be enabled until the schema and connected two-device evidence satisfy the migration gate in `docs/nocodebackend/brew-done-it-schema-target.md`.
 
 ## Deployment
 
@@ -213,3 +219,4 @@ Vercel provides:
 - No provider payload accepted without projection / validation.
 - No schema assumption treated as deployed fact without evidence.
 - No destructive lifecycle exposed before its end-to-end security and recovery contract exists.
+- No Brew Done It secret beer in an active-round response to the guesser.
