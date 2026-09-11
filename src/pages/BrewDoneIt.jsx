@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import BrewDoneItGuess from '../components/BrewDoneItGuess.jsx'
+import BrewDoneItInvitationShare from '../components/BrewDoneItInvitationShare.jsx'
 import BrewDoneItInvite from '../components/BrewDoneItInvite.jsx'
 import BrewDoneItQuestion from '../components/BrewDoneItQuestion.jsx'
 import BrewDoneItRound from '../components/BrewDoneItRound.jsx'
@@ -241,7 +242,12 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
         <section className="rounded-xl border border-amber-200 bg-amber-50 p-6" aria-labelledby="waiting-heading">
           <h2 id="waiting-heading" className="text-xl font-semibold text-amber-950">Challenge waiting for another player</h2>
           <p className="mt-2 text-amber-950">Series {game.id} is waiting to be accepted. Your selected beer remains hidden from the invited player.</p>
-          {invitation && <p className="mt-3 break-all font-mono text-sm">Game {invitation.gameId}: {invitation.code}</p>}
+          {invitation && (
+            <div className="mt-3">
+              <p className="break-all font-mono text-sm">Game {invitation.gameId}: {invitation.code}</p>
+              <BrewDoneItInvitationShare gameId={invitation.gameId} inviteCode={invitation.code} disabled={busy} />
+            </div>
+          )}
           <button type="button" className="mt-4 underline focus:outline-none focus:ring-2 focus:ring-amber-500" disabled={busy} onClick={refresh}>Refresh challenge</button>
         </section>
       )}
