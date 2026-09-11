@@ -29,11 +29,12 @@ const validPayload = () => ({
 
 test('accepts the safe public profile and rated-beer projection unchanged', () => {
   const payload = validPayload()
-  assert.equal(validatePublicProfileResponse(payload), payload)
+  assert.equal(validatePublicProfileResponse(payload, 'profile_abcdefgh1234'), payload)
 })
 
-test('rejects private identity and owner-only fields', () => {
+test('rejects private identity and owner-only fields anywhere in the public envelope', () => {
   for (const mutation of [
+    (payload) => { payload.user_id = 'secret-owner-id' },
     (payload) => { payload.profile.user_id = 'secret-owner-id' },
     (payload) => { payload.profile.email = 'private@example.com' },
     (payload) => { payload.ratings[0].cellar_id = 9 },
@@ -63,6 +64,13 @@ test('rejects incoherent summaries, duplicate ratings and product mismatches', (
   const wrongProduct = validPayload()
   wrongProduct.ratings[0].product.id = 99
   assert.throws(() => validatePublicProfileResponse(wrongProduct), ApiError)
+})
+
+test('rejects a valid response for a different public profile identifier', () => {
+  assert.throws(
+    () => validatePublicProfileResponse(validPayload(), 'profile_different5678'),
+    (error) => error instanceof ApiError && error.code === 'invalid_public_profile_response'
+  )
 })
 
 test('public profile identifiers are opaque URL-safe values, not arbitrary input', () => {
