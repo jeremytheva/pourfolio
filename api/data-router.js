@@ -2,7 +2,7 @@ import catalogueHandler from './catalog-data-proxy.js'
 import cellarHandler from './cellar-data-proxy.js'
 import currentSchemaHandler from './current-data-proxy.js'
 import profileHandler from './profile-data-proxy.js'
-import brewDoneItHandler from './_lib/brewDoneItGateway.js'
+import brewDoneItHandler from './_lib/brewDoneItEntry.js'
 
 const CURRENT_SCHEMA_RESOURCES = new Set(['catalog', 'rating-form', 'ratings', 'cellar'])
 const DEFERRED_CAPABILITY_RESOURCES = new Set(['brew-done-it'])
