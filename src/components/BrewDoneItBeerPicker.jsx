@@ -28,15 +28,13 @@ export default function BrewDoneItBeerPicker({
     let active = true
     beverageService.getProduct(normalisedInitialId)
       .then((product) => {
-        if (!active) return
-        setInitialProduct(product)
-        if (!value) onChange(String(product.id))
+        if (active) setInitialProduct(product)
       })
       .catch(() => {
         if (active) setInitialProduct(null)
       })
     return () => { active = false }
-  }, [normalisedInitialId, onChange, value])
+  }, [normalisedInitialId])
 
   useEffect(() => {
     let active = true
