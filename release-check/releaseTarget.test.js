@@ -4,7 +4,8 @@ import {
   parseReleaseBaseUrl,
   parseReleaseSha,
   validateReadinessPayload,
-  verifyReleaseTarget
+  verifyReleaseTarget,
+  verifyReleaseTargetWithRetry
 } from './releaseTarget.js'
 
 const sha = '0123456789abcdef0123456789abcdef01234567'
@@ -116,4 +117,85 @@ test('verification fails closed on redirects, errors, malformed JSON and provena
       /readiness|provenance/i
     )
   }
+})
+
+test('bounded retry tolerates deployment propagation then requires the exact release', async () => {
+  let calls = 0
+  const sleeps = []
+  const staleSha = 'f'.repeat(40)
+  const result = await verifyReleaseTargetWithRetry({
+    baseUrl: publicProduction,
+    releaseSha: sha,
+    attempts: 3,
+    delayMs: 25,
+    sleepImpl: async (milliseconds) => { sleeps.push(milliseconds) },
+    fetchImpl: async () => {
+      calls += 1
+      const commitSha = calls < 3 ? staleSha : sha
+      return {
+        status: 200,
+        json: async () => readiness({ release: { commitSha, environment: 'production' } })
+      }
+    }
+  })
+
+  assert.equal(calls, 3)
+  assert.deepEqual(sleeps, [25, 25])
+  assert.deepEqual(result, {
+    origin: publicProduction,
+    commitSha: sha,
+    environment: 'production',
+    dataProvider: 'ok'
+  })
+})
+
+test('bounded retry still fails closed after the configured propagation window', async () => {
+  let calls = 0
+  let sleeps = 0
+  await assert.rejects(
+    verifyReleaseTargetWithRetry({
+      baseUrl: publicProduction,
+      releaseSha: sha,
+      attempts: 3,
+      delayMs: 1,
+      sleepImpl: async () => { sleeps += 1 },
+      fetchImpl: async () => {
+        calls += 1
+        return {
+          status: 200,
+          json: async () => readiness({ release: { commitSha: 'f'.repeat(40), environment: 'production' } })
+        }
+      }
+    }),
+    /provenance/i
+  )
+
+  assert.equal(calls, 3)
+  assert.equal(sleeps, 2)
+})
+
+test('retry configuration is bounded and invalid release inputs fail before polling', async () => {
+  for (const attempts of [0, 61, 1.5]) {
+    await assert.rejects(
+      verifyReleaseTargetWithRetry({ baseUrl: deployment, releaseSha: sha, attempts }),
+      /attempt count/i
+    )
+  }
+  for (const delayMs of [-1, 60001, 1.5]) {
+    await assert.rejects(
+      verifyReleaseTargetWithRetry({ baseUrl: deployment, releaseSha: sha, delayMs }),
+      /delay/i
+    )
+  }
+
+  let called = false
+  await assert.rejects(
+    verifyReleaseTargetWithRetry({
+      baseUrl: 'https://attacker.invalid',
+      releaseSha: sha,
+      fetchImpl: async () => { called = true }
+    }),
+    /Release URL/
+  )
+  assert.equal(called, false)
 })
