@@ -4,7 +4,7 @@ import {
   canonicalRatingKey,
   normaliseRatingDimension,
   sanitiseRatingWeights
-} from '../lib/ratingFormulaV1.js'
+} from '../lib/ratingFormulaV2.js'
 
 const round = (value) => Number(value.toFixed(2))
 
