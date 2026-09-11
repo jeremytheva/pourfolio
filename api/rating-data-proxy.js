@@ -1,8 +1,10 @@
 import crypto from 'node:crypto'
 import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../src/data/contract.js'
-import { buildAdvancedScore } from '../src/lib/ratingFormulaV1.js'
+import { bonusScoreFromPoints, selectedBonusPointTotal } from '../src/lib/bonusAttributes.js'
+import { buildAdvancedScore, canonicalRatingKey } from '../src/lib/ratingFormulaV1.js'
 import { calculateRatingTotals } from '../src/utils/ratingSubmission.js'
 import { requireSessionUser } from './_lib/authSession.js'
+import { loadBonusCatalogue } from './_lib/bonusAttributeCatalogue.js'
 import { dataProvider } from './_lib/dataProvider.js'
 import { isOwnedBy, projectRating } from './_lib/dataPolicy.js'
 import { enforceOrigin, enforceRateLimit, enforceRequestSize, safeErrorMessage } from './_lib/httpSecurity.js'
@@ -52,6 +54,20 @@ const validateBonusIds = (requested, available) => {
   return selected
 }
 
+const scoresWithDerivedBonus = (submittedScores, attributes, bonusScore) => {
+  const bonusAttribute = records(attributes).find((attribute) => canonicalRatingKey(attribute.attribute_name) === 'bonus')
+  if (!bonusAttribute?.id) {
+    const error = new Error('The Bonus rating attribute is unavailable.')
+    error.status = 503
+    throw error
+  }
+  const bonusId = String(bonusAttribute.id)
+  const scores = asArray(submittedScores)
+    .filter((score) => String(score?.attributeId ?? score?.attribute_id ?? '') !== bonusId)
+  scores.push({ attributeId: bonusAttribute.id, score: bonusScore })
+  return scores
+}
+
 const ownedCellarForRating = async (body, userId, productId) => {
   const raw = body.cellarId ?? body.cellar_id
   if (raw === undefined || raw === null || raw === '') return null
@@ -94,18 +110,21 @@ const productProjection = async (productId) => {
 const submitRating = async (request, response, user, correlationId) => {
   const body = request.body && typeof request.body === 'object' && !Array.isArray(request.body) ? request.body : {}
   const productId = positiveId(body.productId ?? body.product_id, 'Product identifier')
-  const [product, attributes, bonuses] = await Promise.all([
+  const [product, attributes, bonusCatalogue] = await Promise.all([
     dataProvider.get(COLLECTIONS.products, productId),
     dataProvider.list(COLLECTIONS.ratingAttributes),
-    dataProvider.list(COLLECTIONS.bonusAttributes)
+    loadBonusCatalogue(user.id)
   ])
   if (!product) {
     response.status(404).json({ error: 'Product not found.' })
     return
   }
 
-  const totals = calculateRatingTotals(body.scores, records(attributes), body.weights)
-  const requestedBonusIds = validateBonusIds(body.bonusAttributeIds, bonuses)
+  const requestedBonusIds = validateBonusIds(body.bonusAttributeIds, bonusCatalogue.bonusAttributes)
+  const bonusPointTotal = selectedBonusPointTotal(bonusCatalogue.bonusAttributes, requestedBonusIds)
+  const bonusScore = bonusScoreFromPoints(bonusPointTotal)
+  const derivedScores = scoresWithDerivedBonus(body.scores, attributes, bonusScore)
+  const totals = calculateRatingTotals(derivedScores, records(attributes), body.weights)
   const cellar = await ownedCellarForRating(body, user.id, productId)
   const created = []
 
@@ -148,6 +167,8 @@ const submitRating = async (request, response, user, correlationId) => {
       rating: { ...projectRating(saved), advanced_scores: advancedFor(saved, population, cellar) },
       scoreCount: totals.scores.length,
       bonusCount: requestedBonusIds.length,
+      bonusPointTotal,
+      bonusScore,
       duplicate: false
     })
   } catch (error) {
@@ -264,4 +285,11 @@ export default async function handler(request, response) {
   }
 }
 
-export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor }
+export const __testables = {
+  routeRatingRequest,
+  submitRating,
+  listUserRatings,
+  deleteRating,
+  advancedFor,
+  scoresWithDerivedBonus
+}
