@@ -13,7 +13,7 @@ const ATTRIBUTE_LABELS = Object.freeze({
 })
 
 function Settings() {
-  const [settings, setSettings] = useState(() => getSettings('beer'))
+  const [settings, setSettings] = useState(() => getSettings())
   const [weights, setWeights] = useState(settings.ratingWeights)
   const [status, setStatus] = useState('')
   const validation = validateWeights(weights)
@@ -39,7 +39,7 @@ function Settings() {
       return
     }
     const next = { ...settings, ratingWeights: weights }
-    if (!saveSettings(next, 'beer')) {
+    if (!saveSettings(next)) {
       setStatus('error')
       return
     }
@@ -49,7 +49,7 @@ function Settings() {
 
   const reset = () => {
     if (!window.confirm('Reset your beer rating weights to the Pourfolio defaults?')) return
-    const next = resetSettings('beer')
+    const next = resetSettings()
     setSettings(next)
     setWeights(next.ratingWeights)
     setStatus('reset')
