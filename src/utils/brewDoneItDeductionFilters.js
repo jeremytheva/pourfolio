@@ -15,6 +15,10 @@ export const filterBrewDoneItBreweries = (breweries = [], deductions = [], { geo
     if (deduction.dimension === 'brewery_previously_rated') {
       return deductionMatches(Boolean(brewery.previouslyRated), deduction.answer)
     }
+    if (deduction.dimension === 'brewery_ruled_out') {
+      if (deduction.answer !== 'yes') return true
+      return String(brewery.id) !== String(deduction.reference_id)
+    }
     return true
   }))
 
@@ -27,6 +31,10 @@ export const filterBrewDoneItBeers = (beers = [], deductions = [], breweryIds = 
     return deductions.every((deduction) => {
       if (deduction.answer === 'unknown' || ['dark', 'barrel_aged'].includes(deduction.dimension)) return true
 
+      if (deduction.dimension === 'beer_ruled_out') {
+        if (deduction.answer !== 'yes') return true
+        return String(beer.id) !== String(deduction.reference_id)
+      }
       if (deduction.dimension === 'style') {
         if (missing(beer.categoryId)) return true
         return deductionMatches(String(beer.categoryId) === String(deduction.reference_id), deduction.answer)
