@@ -10,7 +10,7 @@ export const getCurrentUserProfile = () => apiRequest('/profile')
 export const getPublicUserProfile = async (publicProfileId) => {
   const id = normalisePublicProfileId(publicProfileId)
   const payload = await apiRequest(`/profiles/${encodeURIComponent(id)}`)
-  return validatePublicProfileResponse(payload)
+  return validatePublicProfileResponse(payload, id)
 }
 
 export const profileService = {
