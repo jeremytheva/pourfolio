@@ -9,6 +9,7 @@ const mutationBody = (expectedVersion, idempotencyKey, values = {}) => ({
 })
 
 export const getBrewDoneItGames = () => apiRequest('/brew-done-it/games')
+export const getBrewDoneItOptions = () => apiRequest('/brew-done-it/options')
 
 export const createBrewDoneItGame = (productId, idempotencyKey) => apiRequest('/brew-done-it/games', {
   method: 'POST', body: mutationBody(0, idempotencyKey, { productId })
@@ -63,7 +64,6 @@ export const transitionBrewDoneItGame = (gameId, action, expectedVersion, idempo
 export const getBrewDoneItStats = () => apiRequest('/brew-done-it/stats')
 
 // Superseded v2 exports are retained temporarily for source compatibility only.
-// The v3 UI does not call these endpoints; the server returns 410 for them.
 export const submitBrewDoneItGuess = (roundId, productId, expectedVersion, idempotencyKey) =>
   apiRequest(`${roundPath(roundId)}/guesses`, {
     method: 'POST', body: mutationBody(expectedVersion, idempotencyKey, { productId })
