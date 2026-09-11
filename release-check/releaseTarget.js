@@ -100,3 +100,42 @@ export const verifyReleaseTarget = async ({ baseUrl, releaseSha, fetchImpl = glo
     ...validateReadinessPayload(payload, expectedSha)
   })
 }
+
+export const verifyReleaseTargetWithRetry = async ({
+  baseUrl,
+  releaseSha,
+  fetchImpl = globalThis.fetch,
+  attempts = 12,
+  delayMs = 5000,
+  sleepImpl = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))
+}) => {
+  const origin = parseReleaseBaseUrl(baseUrl)
+  const expectedSha = parseReleaseSha(releaseSha)
+
+  if (!Number.isSafeInteger(attempts) || attempts < 1 || attempts > 60) {
+    throw new Error('Release verification attempt count is invalid.')
+  }
+  if (!Number.isSafeInteger(delayMs) || delayMs < 0 || delayMs > 60000) {
+    throw new Error('Release verification delay is invalid.')
+  }
+  if (typeof fetchImpl !== 'function' || typeof sleepImpl !== 'function') {
+    throw new Error('Release verifier is unavailable.')
+  }
+
+  let lastError
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await verifyReleaseTarget({
+        baseUrl: origin,
+        releaseSha: expectedSha,
+        fetchImpl
+      })
+    } catch (error) {
+      lastError = error
+      if (attempt === attempts) break
+      await sleepImpl(delayMs)
+    }
+  }
+
+  throw lastError
+}
