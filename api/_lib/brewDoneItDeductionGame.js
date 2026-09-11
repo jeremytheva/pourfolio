@@ -39,10 +39,31 @@ const activeGuesser = async (roundId, user) => {
   return result
 }
 
+const weightedValue = (value) => {
+  if (value === null || value === undefined || value === '') return null
+  const number = Number(value)
+  return Number.isFinite(number) && number >= 1 && number <= 7 ? number : null
+}
+
+const booleanOrNull = (value) => {
+  if (value === null || value === undefined || value === '') return null
+  if (value === true || value === 1 || value === '1') return true
+  if (value === false || value === 0 || value === '0') return false
+  return null
+}
+
 const average = (ratings) => {
-  const values = ratings.map((rating) => Number(rating.total_weighted)).filter(Number.isFinite)
+  const values = ratings.map((rating) => weightedValue(rating.total_weighted)).filter((value) => value !== null)
   return values.length ? Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2)) : null
 }
+
+const latestRatedAt = (ratings) => ratings.reduce((latest, rating) => {
+  const candidate = rating.date_rated
+  const timestamp = Date.parse(candidate || '')
+  if (!Number.isFinite(timestamp)) return latest
+  if (!latest) return candidate
+  return timestamp > Date.parse(latest) ? candidate : latest
+}, null)
 
 const aggregate = (ratings, productsById, predicate) => {
   const matching = ratings.filter((rating) => {
@@ -53,11 +74,7 @@ const aggregate = (ratings, productsById, predicate) => {
     ratingCount: matching.length,
     distinctBeerCount: new Set(matching.map((rating) => String(rating.product_id))).size,
     averageWeighted: average(matching),
-    lastRatedAt: matching.reduce((latest, rating) => {
-      const candidate = rating.date_rated
-      if (!candidate) return latest
-      return !latest || Date.parse(candidate) > Date.parse(latest) ? candidate : latest
-    }, null)
+    lastRatedAt: latestRatedAt(matching)
   }
 }
 
@@ -113,7 +130,7 @@ export const getSelectorClues = async (roundId, response, user) => {
       ibu: product.ibu ?? null,
       declaredCategory: product.declared_category || null,
       edition: product.edition || null,
-      collaboration: product.collaboration === true || Number(product.collaboration) === 1
+      collaboration: booleanOrNull(product.collaboration)
     },
     style: {
       id: category?.id ?? product.product_category_id ?? null,
@@ -187,4 +204,4 @@ export const recordDeduction = async (roundId, request, response, user) => {
   response.status(existing ? 200 : 201).json({ deduction: projectBrewDoneItDeduction(saved) })
 }
 
-export const __testables = { aggregate, sharingEnabled }
+export const __testables = { aggregate, sharingEnabled, weightedValue, booleanOrNull, latestRatedAt }
