@@ -1,156 +1,102 @@
-import { beverageTypes } from './beverageTypes'
-import { DEFAULT_RATING_WEIGHTS, sanitiseRatingWeights } from '../lib/ratingFormulaV1.js'
+import { DEFAULT_RATING_WEIGHTS, sanitiseRatingWeights } from '../lib/ratingFormulaV2.js'
 
-const SETTINGS_KEY = 'brewBudsSettings'
-const ADMIN_UPDATES_KEY = 'brewBudsAdminUpdates'
+const SETTINGS_KEY = 'pourfolioRatingSettings'
+const LEGACY_SETTINGS_KEY = 'brewBudsSettings_beer'
 const SETTINGS_VERSION = 2
 
-const beerDefaults = () => ({
+export const getDefaultSettings = () => ({
   ratingWeights: { ...DEFAULT_RATING_WEIGHTS },
-  hideBonus: false,
-  maxWeightSum: 1,
-  beverageType: 'beer',
-  settingsVersion: SETTINGS_VERSION,
-  lastAdminUpdateCheck: null
+  settingsVersion: SETTINGS_VERSION
 })
 
-export const getDefaultSettings = (beverageType = 'beer') => {
-  if (beverageType === 'beer') return beerDefaults()
-  const beverage = beverageTypes[beverageType] || beverageTypes.beer
-  return {
-    ratingWeights: { ...beverage.defaultWeights },
-    hideBonus: false,
-    maxWeightSum: beverage.maxWeightSum,
-    beverageType,
-    settingsVersion: SETTINGS_VERSION,
-    lastAdminUpdateCheck: null
-  }
-}
-
-const isCurrentBeerSettings = (settings) => {
-  if (settings?.settingsVersion !== SETTINGS_VERSION) return false
+const normaliseStoredSettings = (settings) => {
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) return null
   try {
-    sanitiseRatingWeights(settings.ratingWeights)
-    return true
-  } catch {
-    return false
-  }
-}
-
-export const getSettings = (beverageType = 'beer') => {
-  const defaults = getDefaultSettings(beverageType)
-  try {
-    const stored = localStorage.getItem(`${SETTINGS_KEY}_${beverageType}`)
-    if (!stored) return defaults
-    const settings = JSON.parse(stored)
-    if (beverageType === 'beer' && !isCurrentBeerSettings(settings)) return defaults
     return {
-      ...defaults,
-      ...settings,
-      ratingWeights: { ...defaults.ratingWeights, ...(settings.ratingWeights || {}) }
+      ratingWeights: sanitiseRatingWeights(settings.ratingWeights),
+      settingsVersion: SETTINGS_VERSION
+    }
+  } catch {
+    return null
+  }
+}
+
+const readStoredSettings = (key) => {
+  const raw = localStorage.getItem(key)
+  if (!raw) return null
+  try {
+    return normaliseStoredSettings(JSON.parse(raw))
+  } catch {
+    return null
+  }
+}
+
+export const getSettings = () => {
+  try {
+    const current = readStoredSettings(SETTINGS_KEY)
+    if (current) return current
+
+    const legacy = readStoredSettings(LEGACY_SETTINGS_KEY)
+    if (legacy) {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(legacy))
+      localStorage.removeItem(LEGACY_SETTINGS_KEY)
+      return legacy
     }
   } catch (error) {
-    console.error('Error loading settings:', error)
-    return defaults
+    console.error('Error loading rating settings:', error)
   }
+  return getDefaultSettings()
 }
 
-export const saveSettings = (settings, beverageType = 'beer') => {
+export const saveSettings = (settings) => {
   try {
-    const next = { ...settings, settingsVersion: SETTINGS_VERSION }
-    if (beverageType === 'beer') next.ratingWeights = sanitiseRatingWeights(next.ratingWeights)
-    localStorage.setItem(`${SETTINGS_KEY}_${beverageType}`, JSON.stringify(next))
+    const next = normaliseStoredSettings(settings)
+    if (!next) return false
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(next))
+    localStorage.removeItem(LEGACY_SETTINGS_KEY)
     return true
   } catch (error) {
-    console.error('Error saving settings:', error)
+    console.error('Error saving rating settings:', error)
     return false
   }
 }
 
-export const resetSettings = (beverageType = 'beer') => {
+export const resetSettings = () => {
   try {
-    localStorage.removeItem(`${SETTINGS_KEY}_${beverageType}`)
-    return getDefaultSettings(beverageType)
+    localStorage.removeItem(SETTINGS_KEY)
+    localStorage.removeItem(LEGACY_SETTINGS_KEY)
   } catch (error) {
-    console.error('Error resetting settings:', error)
-    return getDefaultSettings(beverageType)
+    console.error('Error resetting rating settings:', error)
   }
+  return getDefaultSettings()
 }
 
 export const validateWeights = (weights, expectedSum = 1) => {
-  const values = Object.values(weights || {}).map(Number)
-  const sum = values.reduce((total, weight) => total + weight, 0)
-  const invalidRange = values.some((weight) => !Number.isFinite(weight) || weight < 0 || weight > 1)
-  const allZero = values.length === 0 || values.every((weight) => weight === 0)
-  const incorrectTotal = Math.abs(sum - expectedSum) > 0.001
-  const isValid = !invalidRange && !allZero && !incorrectTotal
+  let normalised
+  try {
+    normalised = sanitiseRatingWeights(weights)
+  } catch {
+    return {
+      isValid: false,
+      sum: 0,
+      maxSum: expectedSum,
+      errors: { invalidRange: true, allZero: false, incorrectTotal: true, exceedsMax: false }
+    }
+  }
 
+  const values = Object.values(normalised)
+  const sum = values.reduce((total, weight) => total + weight, 0)
+  const allZero = values.every((weight) => weight === 0)
+  const incorrectTotal = Math.abs(sum - expectedSum) > 0.001
   return {
-    isValid,
+    isValid: !allZero && !incorrectTotal,
     sum,
     maxSum: expectedSum,
-    errors: { invalidRange, allZero, incorrectTotal, exceedsMax: sum > expectedSum + 0.001 }
-  }
-}
-
-export const getAllBeverageSettings = () => {
-  const allSettings = {}
-  Object.keys(beverageTypes).forEach((type) => { allSettings[type] = getSettings(type) })
-  return allSettings
-}
-
-export const createAdminUpdate = (beverageType, newWeights, message) => {
-  const update = {
-    id: Date.now(),
-    beverageType,
-    newWeights,
-    message,
-    timestamp: new Date().toISOString(),
-    applied: false
-  }
-  try {
-    const existing = localStorage.getItem(ADMIN_UPDATES_KEY)
-    const updates = existing ? JSON.parse(existing) : []
-    updates.push(update)
-    localStorage.setItem(ADMIN_UPDATES_KEY, JSON.stringify(updates))
-    return true
-  } catch (error) {
-    console.error('Error creating admin update:', error)
-    return false
-  }
-}
-
-export const getPendingAdminUpdates = () => {
-  try {
-    const stored = localStorage.getItem(ADMIN_UPDATES_KEY)
-    if (stored) return JSON.parse(stored).filter((update) => !update.applied)
-  } catch (error) {
-    console.error('Error getting admin updates:', error)
-  }
-  return []
-}
-
-export const applyAdminUpdate = (updateId, accept = true) => {
-  try {
-    const stored = localStorage.getItem(ADMIN_UPDATES_KEY)
-    if (!stored) return false
-    const updates = JSON.parse(stored)
-    const update = updates.find((item) => item.id === updateId)
-    if (!update) return false
-    update.applied = true
-    update.accepted = accept
-    if (accept) {
-      const currentSettings = getSettings(update.beverageType)
-      currentSettings.ratingWeights = { ...update.newWeights }
-      currentSettings.lastAdminUpdateCheck = new Date().toISOString()
-      if (!saveSettings(currentSettings, update.beverageType)) return false
+    errors: {
+      invalidRange: false,
+      allZero,
+      incorrectTotal,
+      exceedsMax: sum > expectedSum + 0.001
     }
-    localStorage.setItem(ADMIN_UPDATES_KEY, JSON.stringify(updates))
-    return true
-  } catch (error) {
-    console.error('Error applying admin update:', error)
-    return false
   }
 }
-
-export const dismissAdminUpdate = (updateId) => applyAdminUpdate(updateId, false)
