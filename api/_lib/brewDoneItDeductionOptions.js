@@ -29,7 +29,6 @@ export const getDeductionOptions = async (response, user) => {
   const breweries = list(producersRaw).map((producer) => ({
     id: producer.id,
     name: producer.producer_name,
-    // Null is authoritative here: geography is not yet governed/certified.
     state: null,
     stateAcronym: null,
     country: null,
@@ -41,7 +40,7 @@ export const getDeductionOptions = async (response, user) => {
     .filter((category) => category.id && category.name)
     .sort((a, b) => a.name.localeCompare(b.name))
 
-  const catalogueProducts = products.map((product) => ({
+  const beers = products.map((product) => ({
     id: product.id,
     name: product.product_name,
     producerId: product.producer_id ?? null,
@@ -54,7 +53,7 @@ export const getDeductionOptions = async (response, user) => {
   response.status(200).json({
     breweries,
     styles,
-    products: catalogueProducts,
+    beers,
     capabilities: {
       geography: false,
       previousRatingRelationship: true,
