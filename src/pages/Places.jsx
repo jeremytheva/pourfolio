@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { Link } from '../lib/router.jsx'
 
 const tabs = [
@@ -8,6 +8,26 @@ const tabs = [
 
 function Places() {
   const [activeTab, setActiveTab] = useState('breweries')
+  const tabRefs = useRef({})
+
+  const activateTab = (tabId) => {
+    setActiveTab(tabId)
+    requestAnimationFrame(() => tabRefs.current[tabId]?.focus())
+  }
+
+  const handleTabKeyDown = (event, tabId) => {
+    const index = tabs.findIndex((tab) => tab.id === tabId)
+    let nextIndex = null
+
+    if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length
+    if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length
+    if (event.key === 'Home') nextIndex = 0
+    if (event.key === 'End') nextIndex = tabs.length - 1
+
+    if (nextIndex === null) return
+    event.preventDefault()
+    activateTab(tabs[nextIndex].id)
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -25,6 +45,7 @@ function Places() {
           return (
             <button
               key={tab.id}
+              ref={(element) => { tabRefs.current[tab.id] = element }}
               id={`${tab.id}-tab`}
               type="button"
               role="tab"
@@ -32,6 +53,7 @@ function Places() {
               aria-controls={`${tab.id}-panel`}
               tabIndex={selected ? 0 : -1}
               onClick={() => setActiveTab(tab.id)}
+              onKeyDown={(event) => handleTabKeyDown(event, tab.id)}
               className={`rounded-t-lg px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 ${
                 selected
                   ? 'border-b-2 border-amber-600 text-amber-800'
