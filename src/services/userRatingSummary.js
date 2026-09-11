@@ -6,7 +6,7 @@ export const buildUserProductRatingSummary = (payload, productId) => {
   const totals = payload.items
     .filter((rating) => rating && typeof rating === 'object' && sameId(rating.product_id, productId))
     .map((rating) => Number(rating.total_weighted))
-    .filter((value) => Number.isFinite(value) && value >= 1 && value <= 7)
+    .filter((value) => Number.isFinite(value) && value >= 0 && value <= 5)
 
   if (!totals.length) return null
 
