@@ -8,15 +8,25 @@ const answers = ['yes', 'no', 'unknown']
 
 const AnswerButtons = ({ disabled, onAnswer }) => (
   <div className="mt-2 flex flex-wrap gap-2">
-    {answers.map((answer) => <button key={answer} type="button" disabled={disabled} onClick={() => onAnswer(answer)} className={answerButton}>{answer}</button>)}
+    {answers.map((answer) => (
+      <button key={answer} type="button" disabled={disabled} onClick={() => onAnswer(answer)} className={answerButton}>{answer}</button>
+    ))}
   </div>
 )
 
 const labelFor = (deduction) => {
   const names = {
-    brewery_country: 'Country', brewery_state: 'State', brewery_previously_rated: 'Previously rated brewery',
-    style: 'Style', abv_at_least: 'ABV at least', abv_below: 'ABV below', ibu_at_least: 'IBU at least',
-    ibu_below: 'IBU below', collaboration: 'Collaboration', dark: 'Dark', barrel_aged: 'Barrel aged'
+    brewery_country: 'Country',
+    brewery_state: 'State',
+    brewery_previously_rated: 'Previously rated brewery',
+    style: 'Style',
+    abv_at_least: 'ABV at least',
+    abv_below: 'ABV below',
+    ibu_at_least: 'IBU at least',
+    ibu_below: 'IBU below',
+    collaboration: 'Collaboration',
+    dark: 'Dark',
+    barrel_aged: 'Barrel aged'
   }
   const value = deduction.value_text || deduction.numeric_value || ''
   return `${names[deduction.dimension] || deduction.dimension}${value !== '' ? `: ${value}` : ''}`
@@ -26,7 +36,7 @@ const deductionMatches = (matches, answer) => answer === 'unknown' ? true : answ
 
 export default function BrewDoneItDeductionBoard({
   round,
-  options = { breweries: [], styles: [], beers: [] },
+  options = { breweries: [], styles: [], beers: [], capabilities: {} },
   deductions = [],
   busy,
   historySharing,
@@ -45,18 +55,21 @@ export default function BrewDoneItDeductionBoard({
   const [styleGuess, setStyleGuess] = useState('')
   const [beerGuess, setBeerGuess] = useState('')
 
+  const capabilities = options.capabilities || {}
+  const geographyAvailable = Boolean(capabilities.geography)
   const breweryDeductions = deductions.filter((item) => item.dimension.startsWith('brewery_'))
   const beerDeductions = deductions.filter((item) => !item.dimension.startsWith('brewery_'))
   const states = useMemo(() => [...new Set((options.breweries || []).map((item) => item.stateAcronym || item.state).filter(Boolean))].sort(), [options.breweries])
   const countries = useMemo(() => [...new Set((options.breweries || []).map((item) => item.country).filter(Boolean))].sort(), [options.breweries])
 
   const filteredBreweries = useMemo(() => (options.breweries || []).filter((brewery) => breweryDeductions.every((item) => {
+    if (item.answer === 'unknown') return true
     let matches = true
-    if (item.dimension === 'brewery_state') matches = [brewery.stateAcronym, brewery.state].includes(item.value_text)
-    if (item.dimension === 'brewery_country') matches = brewery.country === item.value_text
+    if (item.dimension === 'brewery_state') matches = geographyAvailable && [brewery.stateAcronym, brewery.state].includes(item.value_text)
+    if (item.dimension === 'brewery_country') matches = geographyAvailable && brewery.country === item.value_text
     if (item.dimension === 'brewery_previously_rated') matches = Boolean(brewery.previouslyRated)
     return deductionMatches(matches, item.answer)
-  })), [breweryDeductions, options.breweries])
+  })), [breweryDeductions, geographyAvailable, options.breweries])
 
   const breweryIds = useMemo(() => new Set(filteredBreweries.map((brewery) => String(brewery.id))), [filteredBreweries])
 
@@ -102,9 +115,30 @@ export default function BrewDoneItDeductionBoard({
         <div className="grid gap-5 lg:grid-cols-2">
           <div className="space-y-5 rounded-xl border border-gray-200 bg-gray-50 p-5">
             <h4 className="font-semibold text-gray-900">Record brewery clues</h4>
-            <div><label className="text-sm font-medium text-gray-800">Is the brewery in this state?<select value={stateValue} onChange={(event) => setStateValue(event.target.value)} className={selectClass}><option value="">Choose state</option>{states.map((state) => <option key={state}>{state}</option>)}</select></label><AnswerButtons disabled={busy || !stateValue} onAnswer={(answer) => save('brewery_state', answer, { valueText: stateValue })} /></div>
-            <div><label className="text-sm font-medium text-gray-800">Is the brewery in this country?<select value={countryValue} onChange={(event) => setCountryValue(event.target.value)} className={selectClass}><option value="">Choose country</option>{countries.map((country) => <option key={country}>{country}</option>)}</select></label><AnswerButtons disabled={busy || !countryValue} onAnswer={(answer) => save('brewery_country', answer, { valueText: countryValue })} /></div>
-            <div><p className="text-sm font-medium text-gray-800">Have I rated beer from this brewery before?</p><AnswerButtons disabled={busy} onAnswer={(answer) => save('brewery_previously_rated', answer)} /></div>
+            {geographyAvailable ? (
+              <>
+                <div>
+                  <label className="text-sm font-medium text-gray-800">Is the brewery in this state?
+                    <select value={stateValue} onChange={(event) => setStateValue(event.target.value)} className={selectClass}><option value="">Choose state</option>{states.map((state) => <option key={state}>{state}</option>)}</select>
+                  </label>
+                  <AnswerButtons disabled={busy || !stateValue} onAnswer={(answer) => save('brewery_state', answer, { valueText: stateValue })} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-800">Is the brewery in this country?
+                    <select value={countryValue} onChange={(event) => setCountryValue(event.target.value)} className={selectClass}><option value="">Choose country</option>{countries.map((country) => <option key={country}>{country}</option>)}</select>
+                  </label>
+                  <AnswerButtons disabled={busy || !countryValue} onAnswer={(answer) => save('brewery_country', answer, { valueText: countryValue })} />
+                </div>
+              </>
+            ) : (
+              <div className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700" role="note">
+                <strong>State/country filtering is not available yet.</strong> Pourfolio will add these deduction controls after canonical brewery geography is governed and certified; it will not infer location from free-text addresses.
+              </div>
+            )}
+            <div>
+              <p className="text-sm font-medium text-gray-800">Have I rated beer from this brewery before?</p>
+              <AnswerButtons disabled={busy} onAnswer={(answer) => save('brewery_previously_rated', answer)} />
+            </div>
           </div>
 
           <div className="rounded-xl border border-gray-200 bg-white p-5">
@@ -119,20 +153,31 @@ export default function BrewDoneItDeductionBoard({
           <div className="space-y-5 rounded-xl border border-gray-200 bg-gray-50 p-5">
             <h4 className="font-semibold text-gray-900">Record beer / style clues</h4>
             <div><label className="text-sm font-medium text-gray-800">Is it this style?<select value={styleValue} onChange={(event) => setStyleValue(event.target.value)} className={selectClass}><option value="">Choose style</option>{(options.styles || []).map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label><AnswerButtons disabled={busy || !styleValue} onAnswer={(answer) => save('style', answer, { referenceId: styleValue, valueText: styleName(styleValue) })} /></div>
-            <div><label className="text-sm font-medium text-gray-800">Is the ABV at least this high?<select value={abvValue} onChange={(event) => setAbvValue(event.target.value)} className={selectClass}>{[4,5,6,7,8,10].map((value) => <option key={value} value={value}>{value}%</option>)}</select></label><AnswerButtons disabled={busy} onAnswer={(answer) => save('abv_at_least', answer, { numericValue: Number(abvValue) })} /></div>
-            <div><label className="text-sm font-medium text-gray-800">Is the IBU at least this high?<select value={ibuValue} onChange={(event) => setIbuValue(event.target.value)} className={selectClass}>{[20,40,60,80].map((value) => <option key={value} value={value}>{value} IBU</option>)}</select></label><AnswerButtons disabled={busy} onAnswer={(answer) => save('ibu_at_least', answer, { numericValue: Number(ibuValue) })} /></div>
-            {['collaboration', 'dark', 'barrel_aged'].map((dimension) => <div key={dimension}><p className="text-sm font-medium capitalize text-gray-800">Is it {dimension.replace('_', ' ')}?</p><AnswerButtons disabled={busy} onAnswer={(answer) => save(dimension, answer)} />{['dark', 'barrel_aged'].includes(dimension) && <p className="mt-1 text-xs text-gray-500">Recorded for your notes only until this trait is reliably available in the catalogue.</p>}</div>)}
+            <div><label className="text-sm font-medium text-gray-800">Is the ABV at least this high?<select value={abvValue} onChange={(event) => setAbvValue(event.target.value)} className={selectClass}>{[4, 5, 6, 7, 8, 10].map((value) => <option key={value} value={value}>{value}%</option>)}</select></label><AnswerButtons disabled={busy} onAnswer={(answer) => save('abv_at_least', answer, { numericValue: Number(abvValue) })} /></div>
+            <div><label className="text-sm font-medium text-gray-800">Is the IBU at least this high?<select value={ibuValue} onChange={(event) => setIbuValue(event.target.value)} className={selectClass}>{[20, 40, 60, 80].map((value) => <option key={value} value={value}>{value} IBU</option>)}</select></label><AnswerButtons disabled={busy} onAnswer={(answer) => save('ibu_at_least', answer, { numericValue: Number(ibuValue) })} /></div>
+            {['collaboration', 'dark', 'barrel_aged'].map((dimension) => (
+              <div key={dimension}>
+                <p className="text-sm font-medium capitalize text-gray-800">Is it {dimension.replace('_', ' ')}?</p>
+                <AnswerButtons disabled={busy} onAnswer={(answer) => save(dimension, answer)} />
+                {['dark', 'barrel_aged'].includes(dimension) && <p className="mt-1 text-xs text-gray-500">Recorded for your notes only until this trait is reliably available in the catalogue.</p>}
+              </div>
+            ))}
           </div>
 
           <div className="space-y-5 rounded-xl border border-gray-200 bg-white p-5">
-            <div><h4 className="font-semibold text-gray-900">Current field</h4><p className="mt-1 text-sm text-gray-600">Your saved catalogue deductions currently leave <strong>{filteredBeers.length}</strong> beers across <strong>{filteredStyles.length}</strong> styles. Dark/barrel-aged notes do not auto-filter until that metadata is certified.</p></div>
+            <div><h4 className="font-semibold text-gray-900">Current field</h4><p className="mt-1 text-sm text-gray-600">Your supported catalogue deductions currently leave <strong>{filteredBeers.length}</strong> beers across <strong>{filteredStyles.length}</strong> styles. Dark/barrel-aged notes do not auto-filter until that metadata is certified.</p></div>
             <div className="border-t border-gray-200 pt-4"><h4 className="font-semibold text-gray-900">Exact beer guess</h4><p className="mt-1 text-sm text-gray-600">Exact beer is worth 6 points and also confirms the brewery.</p><div className="mt-3"><BrewDoneItBeerPicker id="brew-outcome-beer" value={beerGuess} onChange={setBeerGuess} disabled={busy} /></div><button type="button" disabled={busy || !beerGuess || round?.beer_correct} onClick={() => onOutcome('beer', beerGuess)} className={`${buttonClass} mt-3`}>{round?.beer_correct ? 'Beer solved' : 'Submit beer guess'}</button></div>
             <div className="border-t border-gray-200 pt-4"><h4 className="font-semibold text-gray-900">Style fallback</h4><p className="mt-1 text-sm text-gray-600">If the exact beer is not practical to solve, the correct style is worth 3 points instead.</p><select value={styleGuess} onChange={(event) => setStyleGuess(event.target.value)} className={selectClass}><option value="">Choose style</option>{filteredStyles.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select><button type="button" disabled={busy || !styleGuess || round?.style_correct || round?.beer_correct} onClick={() => onOutcome('style', styleGuess)} className={`${buttonClass} mt-3`}>{round?.style_correct ? 'Style solved' : 'Submit style guess'}</button></div>
           </div>
         </div>
       )}
 
-      {deductions.length > 0 && <div className="rounded-xl border border-gray-200 bg-white p-5"><h4 className="font-semibold text-gray-900">Saved deductions</h4><ul className="mt-3 grid gap-2 sm:grid-cols-2">{deductions.map((item) => <li key={item.id} className="rounded-lg bg-gray-50 px-3 py-2 text-sm"><strong>{labelFor(item)}</strong> — <span className="capitalize">{item.answer}</span></li>)}</ul></div>}
+      {deductions.length > 0 && (
+        <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <h4 className="font-semibold text-gray-900">Saved deductions</h4>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">{deductions.map((item) => <li key={item.id} className="rounded-lg bg-gray-50 px-3 py-2 text-sm"><strong>{labelFor(item)}</strong> — <span className="capitalize">{item.answer}</span></li>)}</ul>
+        </div>
+      )}
 
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
         <div className="flex flex-wrap gap-2">{progress.map(([label, done]) => <span key={label} className={`rounded-full px-3 py-1 text-sm font-semibold ${done ? 'bg-green-100 text-green-900' : 'bg-white text-gray-700'}`}>{label}: {done ? 'solved' : 'open'}</span>)}</div>
