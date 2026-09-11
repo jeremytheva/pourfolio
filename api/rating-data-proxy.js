@@ -1,6 +1,6 @@
 import crypto from 'node:crypto'
 import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../src/data/contract.js'
-import { buildAdvancedScore } from '../src/lib/ratingFormulaV1.js'
+import { buildAdvancedScore } from '../src/lib/ratingFormulaV2.js'
 import { calculateRatingTotals } from '../src/utils/ratingSubmission.js'
 import { requireSessionUser } from './_lib/authSession.js'
 import { dataProvider } from './_lib/dataProvider.js'
