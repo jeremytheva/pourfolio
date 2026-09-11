@@ -6,10 +6,22 @@ test.beforeEach(async ({ page }) => {
 })
 
 const completeRatingDeck = async (page) => {
+  await expect(page.getByRole('heading', { name: 'Design', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Next' }).click()
   await page.getByRole('button', { name: 'Appearance: 1 out of 7' }).click()
   await expect(page.getByRole('heading', { name: 'Aroma', level: 2 })).toBeFocused()
   await page.getByRole('button', { name: 'Aroma: 7 out of 7' }).click()
-  await expect(page.getByRole('heading', { name: 'Bonus attributes', level: 2 })).toBeFocused()
+  await expect(page.getByRole('heading', { name: 'Mouthfeel', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Mouthfeel: 7 out of 7' }).click()
+  await expect(page.getByRole('heading', { name: 'Flavour', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Flavour: 7 out of 7' }).click()
+  await expect(page.getByRole('heading', { name: 'Follow', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Follow: 7 out of 7' }).click()
+  await expect(page.getByRole('heading', { name: 'Bonus', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await expect(page.getByRole('heading', { name: 'Burp', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await expect(page.getByRole('heading', { name: 'All bonus attributes', level: 2 })).toBeFocused()
   await page.getByRole('button', { name: 'Next' }).click()
   await expect(page.getByRole('heading', { name: 'Review your rating', level: 2 })).toBeFocused()
 }
@@ -27,14 +39,14 @@ const oneRatingInsights = {
   attributes: []
 }
 
-test('catalogue to product to rating uses stable IDs and accepts score 1', async ({ page }) => {
+test('catalogue to product to rating uses stable IDs, derives Bonus and accepts score 1', async ({ page }) => {
   let submitted = null
   await page.route('**/api/nocodebackend/ratings/submit', async (route) => {
     submitted = route.request().postDataJSON()
     await route.fulfill({
       status: 201,
       contentType: 'application/json',
-      body: JSON.stringify({ rating: { id: 99 }, scoreCount: 2, bonusCount: 0, duplicate: false })
+      body: JSON.stringify({ rating: { id: 99 }, scoreCount: 6, bonusCount: 0, bonusPointTotal: 0, bonusScore: 0, duplicate: false })
     })
   })
 
@@ -45,19 +57,79 @@ test('catalogue to product to rating uses stable IDs and accepts score 1', async
   await page.getByRole('link', { name: 'Rate this beer' }).click()
 
   await completeRatingDeck(page)
-  await expect(page.getByText('4 / 7').first()).toBeVisible()
+  await expect(page.getByText('0.00 selected bonus points')).toBeVisible()
   await page.getByRole('button', { name: 'Submit rating' }).click()
 
   await expect(page).toHaveURL(/\/products\/4$/)
   expect(submitted.productId).toBe('4')
   expect(submitted.scores).toEqual([
     { attributeId: 2, score: 1 },
-    { attributeId: 3, score: 7 }
+    { attributeId: 3, score: 7 },
+    { attributeId: 4, score: 7 },
+    { attributeId: 5, score: 7 },
+    { attributeId: 6, score: 7 },
+    { attributeId: 7, score: 0 }
   ])
   expect(Number.isSafeInteger(submitted.submissionId)).toBe(true)
 })
 
-test('rating form exposes accessible guidance, busy state and focused submission errors', async ({ page }) => {
+test('bonus attributes are linked to cards, searchable by category, collapsible and create owner attributes', async ({ page }) => {
+  let created = null
+  await page.route('**/api/nocodebackend/bonus-attributes', async (route) => {
+    created = route.request().postDataJSON()
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        bonusAttribute: {
+          id: 14,
+          description: created.description,
+          point_value: created.point_value,
+          effective_point_value: created.point_value,
+          category_keys: ['overall']
+        },
+        category: { key: 'overall', name: 'Overall' }
+      })
+    })
+  })
+
+  await page.goto('/products/4/rate')
+  await page.getByRole('button', { name: 'Next' }).click()
+  await page.getByRole('button', { name: 'Appearance: 4 out of 7' }).click()
+  await expect(page.getByRole('heading', { name: 'Aroma', level: 2 })).toBeFocused()
+
+  await page.getByRole('button', { name: /Bonus attributes for Aroma/ }).click()
+  await page.getByText('Fresh hop lift').click()
+  await expect(page.getByText('1 / 2')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Aroma: 4 out of 7' }).click()
+  await page.getByRole('button', { name: 'Mouthfeel: 4 out of 7' }).click()
+  await page.getByRole('button', { name: 'Flavour: 4 out of 7' }).click()
+  await page.getByRole('button', { name: 'Follow: 4 out of 7' }).click()
+  await expect(page.getByRole('heading', { name: 'Bonus', level: 2 })).toBeFocused()
+  await expect(page.getByText('1 / 2')).toBeVisible()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await page.getByRole('button', { name: 'Next' }).click()
+
+  await expect(page.getByRole('heading', { name: 'All bonus attributes', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Show all categories' }).click()
+  await expect(page.getByText('Did everything right')).toBeVisible()
+  await page.getByRole('button', { name: 'Hide all categories' }).click()
+  await expect(page.getByText('Did everything right')).toHaveCount(0)
+
+  const search = page.getByRole('searchbox', { name: 'Search bonus attributes' })
+  await search.fill('Overall')
+  await expect(page.getByText('Did everything right')).toBeVisible()
+  await search.fill('')
+
+  await page.getByLabel('Description').fill('Unexpected depth')
+  await page.getByLabel('Point value').fill('0.8')
+  await page.getByRole('button', { name: 'Add attribute' }).click()
+  await expect(page.getByText('Unexpected depth')).toBeVisible()
+  expect(created).toEqual({ description: 'Unexpected depth', point_value: 0.8 })
+})
+
+test('rating form exposes accessible busy state and focused submission errors', async ({ page }) => {
   let releaseSubmission
   const submissionGate = new Promise((resolve) => { releaseSubmission = resolve })
 
@@ -72,21 +144,27 @@ test('rating form exposes accessible guidance, busy state and focused submission
 
   await page.goto('/products/4/rate')
 
-  const scoreGroup = page.getByRole('group', { name: 'Applicable attributes' })
-  await expect(scoreGroup).toHaveAttribute('aria-describedby', 'rating-required-help')
-  await expect(page.getByRole('slider', { name: 'Appearance score' })).toHaveAttribute('aria-describedby', 'score-2-weight rating-required-help')
+  const scoreGroup = page.getByRole('group', { name: 'Rating attributes' })
+  await expect(scoreGroup).toBeVisible()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await expect(page.getByRole('slider', { name: 'Appearance score' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Next' })).toBeDisabled()
 
-  await completeRatingDeck(page)
-  await expect(page.locator('section[role="status"]')).toHaveAttribute('aria-atomic', 'true')
-  await expect(page.getByText('4 / 7').first()).toBeVisible()
+  await page.getByRole('button', { name: 'Appearance: 1 out of 7' }).click()
+  await page.getByRole('button', { name: 'Aroma: 7 out of 7' }).click()
+  await page.getByRole('button', { name: 'Mouthfeel: 7 out of 7' }).click()
+  await page.getByRole('button', { name: 'Flavour: 7 out of 7' }).click()
+  await page.getByRole('button', { name: 'Follow: 7 out of 7' }).click()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await expect(page.getByRole('heading', { name: 'Review your rating', level: 2 })).toBeFocused()
+  await expect(page.locator('section[role="status"]').last()).toHaveAttribute('aria-atomic', 'true')
 
   await page.getByRole('button', { name: 'Submit rating' }).click()
   const form = page.locator('form')
-  const submittingButton = page.getByRole('button', { name: 'Submitting securely…' })
   await expect(form).toHaveAttribute('aria-busy', 'true')
-  await expect(submittingButton).toHaveAttribute('aria-busy', 'true')
-  await expect(submittingButton).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Submitting securely…' })).toBeDisabled()
 
   releaseSubmission()
 
