@@ -20,6 +20,25 @@ const response = () => ({
   json(value) { this.body = value; return this }
 })
 
+const installReadProvider = (games, rounds) => {
+  dataProvider.list = async (collection, filters = {}) => {
+    const rows = collection === COLLECTIONS.brewDoneItGames
+      ? games
+      : collection === COLLECTIONS.brewDoneItRounds
+        ? rounds
+        : []
+    return rows.filter((record) => Object.entries(filters).every(([key, value]) => String(record[key]) === String(value)))
+  }
+  dataProvider.get = async (collection, id) => {
+    const rows = collection === COLLECTIONS.brewDoneItGames
+      ? games
+      : collection === COLLECTIONS.brewDoneItRounds
+        ? rounds
+        : []
+    return rows.find((record) => String(record.id) === String(id)) || null
+  }
+}
+
 test('series listing returns only participant games and hides an active secret from its guesser', async () => {
   process.env.NOCODEBACKEND_SECRET_KEY = 'test-only-secret'
   const games = [
@@ -31,11 +50,7 @@ test('series listing returns only participant games and hides an active secret f
     { id: 10, game_id: 1, round_number: 1, selector_participant_id: 'alpha', guesser_participant_id: 'beta', selected_product_id: 77, status: 'guessing', turn_sequence: 0, max_turns: 20, question_count: 0, incorrect_guess_count: 0, version: 0 },
     { id: 20, game_id: 2, round_number: 1, selector_participant_id: 'beta', guesser_participant_id: 'gamma', selected_product_id: 88, status: 'guessing', turn_sequence: 0, max_turns: 20, question_count: 0, incorrect_guess_count: 0, version: 0 }
   ]
-
-  dataProvider.list = async (collection, filters = {}) => {
-    const rows = collection === COLLECTIONS.brewDoneItGames ? games : collection === COLLECTIONS.brewDoneItRounds ? rounds : []
-    return rows.filter((record) => Object.entries(filters).every(([key, value]) => String(record[key]) === String(value)))
-  }
+  installReadProvider(games, rounds)
 
   const result = response()
   await __testables.listParticipantSeries(result, { id: 'beta' })
@@ -62,13 +77,7 @@ test('waiting challenge creator can recover the original invitation code after r
     last_activity_at: '2026-09-01T00:00:00.000Z',
     version: 0
   }
-  dataProvider.list = async (collection, filters = {}) => {
-    if (collection === COLLECTIONS.brewDoneItGames) {
-      return [game].filter((record) => Object.entries(filters).every(([key, value]) => String(record[key]) === String(value)))
-    }
-    if (collection === COLLECTIONS.brewDoneItRounds) return []
-    return []
-  }
+  installReadProvider([game], [])
 
   const result = response()
   await __testables.listParticipantSeries(result, { id: 'alpha' })
@@ -79,8 +88,10 @@ test('waiting challenge creator can recover the original invitation code after r
   assert.equal(result.body.series[0].game.creation_idempotency_key, undefined)
 })
 
-test('series list request matcher does not intercept individual game requests', () => {
-  assert.equal(__testables.isSeriesListRequest({ method: 'GET', query: { path: ['brew-done-it', 'games'] } }), true)
-  assert.equal(__testables.isSeriesListRequest({ method: 'GET', query: { path: ['brew-done-it', 'games', '1'] } }), false)
-  assert.equal(__testables.isSeriesListRequest({ method: 'POST', query: { path: ['brew-done-it', 'games'] } }), false)
+test('entry routing intercepts only series reads, game reads and durable round actions', () => {
+  assert.deepEqual(__testables.routeKind({ method: 'GET', query: { path: ['brew-done-it', 'games'] } }), { kind: 'series-list' })
+  assert.deepEqual(__testables.routeKind({ method: 'GET', query: { path: ['brew-done-it', 'games', '1'] } }), { kind: 'game-detail', id: '1' })
+  assert.deepEqual(__testables.routeKind({ method: 'POST', query: { path: ['brew-done-it', 'rounds', '10', 'guesses'] } }), { kind: 'guess', id: '10' })
+  assert.deepEqual(__testables.routeKind({ method: 'POST', query: { path: ['brew-done-it', 'rounds', '10', 'questions'] } }), { kind: 'question', id: '10' })
+  assert.equal(__testables.routeKind({ method: 'POST', query: { path: ['brew-done-it', 'games'] } }), null)
 })
