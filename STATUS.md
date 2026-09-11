@@ -97,26 +97,34 @@ Until the migration is deployed and verified:
 
 The remaining #165 work is therefore active P1 work but **blocked at an irreversible provider boundary**, not deferred behind #225.
 
-## Brew Done It contained cross-device implementation — #409 / PR #410
+## Brew Done It deduction v3 — #410 merged / PR #461
 
-ADR **0002** supersedes the earlier same-device/session-memory game model and approves Brew Done It as a persistent, asynchronous challenge between two authenticated Pourfolio users on separate devices.
+PR **#410** merged the contained persistent cross-device core. ADR **0002** remains authoritative for the persistent two-account/two-device architecture, protected secret, invitation/resume behaviour, role rotation, concurrency/idempotency and production containment. ADR **0005** now defines the gameplay model.
 
-PR **#410** implements the contained application core without enabling the feature in production. The implementation includes:
+PR **#461** implements the contained v3 deduction redesign and is currently **IMPLEMENTING / VALIDATION PENDING**. The branch has been reconciled with current `main` and is structurally mergeable, but it must not be treated as MERGE READY until the final exact head receives the repository-owned validation and applicable browser/accessibility/security evidence.
 
-- selector-first secret beer choice before challenge sharing;
-- persistent two-player series and multi-round role rotation;
-- beer-only guesses and controlled public-catalogue questions;
-- scoring v2 with durable head-to-head statistics;
-- raw-response projection that withholds `selected_product_id` from the guesser until a round is terminal;
-- resumable challenge listing across refresh, sign-out and device changes;
-- optimistic concurrency and idempotency; and
-- a reservation plus `pending` / `committed` / `discarded` child-action ledger so ambiguous provider failures cannot silently invent or duplicate gameplay turns.
+The current v3 source includes:
 
-The contained-core merge boundary is intentionally separate from provider enablement. `/brew-done-it` remains absent from production routing/navigation, `BREW_DONE_IT_POLICY_ENABLED` remains unset and the four Brew Done It collections remain deferred/not provider-evidenced.
+- natural player-to-player yes/no conversation rather than fixed/scored server questions;
+- a persistent two-sided **Brewery / Beer & Style** deduction board with `yes` / `no` / `unknown` state;
+- candidate narrowing only from governed facts, currently including producer relationships, the guesser's own previous-rating relationship, style/category, ABV, IBU and collaboration;
+- missing catalogue values preserved as unknown rather than silently converted to `0` / `No`;
+- state/country automatic filtering intentionally unavailable until canonical brewery geography is governed and certified; free-text producer address data is not used to infer geography;
+- dark/barrel-aged as manual deduction notes only until trustworthy structured trait metadata exists;
+- selector-only answer facts plus optional guesser-controlled aggregate rating-history clues for the hidden brewery/style/exact beer, without exposing raw rating history, notes or cellar data;
+- formal brewery, exact-beer and style-fallback submissions;
+- scoring v3.0.0: brewery 4 + exact beer 6, or brewery 4 + style fallback 3, minus 1 per incorrect formal submission, clamped 0–10; ordinary conversation/deductions are free;
+- stable request idempotency across UI retries;
+- v3 formal-outcome reservation/reconciliation, including recovery when round finalisation succeeds before the child commit marker;
+- explicit finish/forfeit replay safety;
+- v3 brewery/exact-beer/style/head-to-head statistics; and
+- focused source tests for scoring, deduction filtering and missing-value normalisation, ready for the later exact-head validation run.
 
-Production enablement is blocked by a Brew Done It-specific provider migration/certification boundary, not by the ordinary beer-first launch blocker chain. Before enabling the feature, the provider must provision and certify `brew_done_it_games`, `brew_done_it_rounds`, `brew_done_it_guesses` and `brew_done_it_questions`, prove secret projection and failure recovery with connected two-account/two-device evidence, complete accessibility evidence and pass a separate reviewed enablement change. See `docs/BREW_DONE_IT_READINESS.md` and `docs/nocodebackend/brew-done-it-schema-target.md`.
+Containment is unchanged: `/brew-done-it` remains absent from production routing/navigation, the beer-profile entry point remains informational while contained, `BREW_DONE_IT_POLICY_ENABLED` remains unset, and no Brew Done It provider mutation has been performed.
 
-These Brew Done It blockers remain scoped to the feature and must not block unrelated Phase 3 launch work.
+The v3 provider target is `brew_done_it_games`, `brew_done_it_rounds`, `brew_done_it_guesses` and `brew_done_it_deductions`. `brew_done_it_questions` is legacy v2 only and is not required for new v3 play.
+
+Production enablement remains blocked by the Brew-specific provider/certification boundary: schema/permission evidence, rating-history consent/privacy evidence, failure-injection recovery evidence, two-account/two-device persistence, accessibility/browser evidence and a separate reviewed enablement change. These blockers remain scoped to Brew Done It and must not block unrelated Phase 3 work. See `docs/BREW_DONE_IT_READINESS.md` and `docs/nocodebackend/brew-done-it-schema-target.md`.
 
 ## Recent launch product work — #384, #385, #388 and #390
 
@@ -199,7 +207,7 @@ Real producer/brewery routes and links use only producer relationships verified 
 
 Do not run rating create/delete, cellar CRUD certification, provider schema mutation, constraint creation or provider backfill against a real connected environment unless the action is explicitly authorised and appropriate cleanup/restore safeguards are evidenced. Exact-record cleanup must be verified for test writes. Failure to prove cleanup or restoration remains a material blocker and must not be converted into a pass.
 
-The same rule applies to Brew Done It provider schema creation: PR #410 may define the target and merge contained source, but no Brew Done It collection should be provisioned or enabled until its migration/recovery plan is evidenced and explicitly approved.
+The same rule applies to Brew Done It provider schema creation: PR #461 may define the v3 target and contained source, but no Brew Done It collection should be provisioned or enabled until its migration/recovery plan is evidenced and explicitly approved.
 
 ## Next dependency-correct work
 
@@ -210,7 +218,7 @@ The same rule applies to Brew Done It provider schema creation: PR #410 may defi
 5. While #165 remains blocked, continue independent beer-only launch hardening, reliability, accessibility and security work that does not fabricate catalogue decisions or require destructive connected writes.
 6. Keep #399 blocked until an authoritative venue entity/rating-attribution migration and recovery plan is evidenced and approved.
 7. Complete backend-dependent #154 catalogue certification when its upstream requirements are satisfied.
-8. Keep Brew Done It contained after #410; its next phase is the separately approved provider migration/certification plan in `docs/BREW_DONE_IT_READINESS.md`.
+8. Keep Brew Done It contained through PR #461; finish source hardening, then run exact-head validation before any merge-readiness decision. Provider migration/certification remains a later separately approved phase.
 9. Finish full launch hardening and exact-production certification.
 10. Keep catalogue remediation decisions explicit and independently reviewed; do not fabricate the 193 pending decisions.
 
