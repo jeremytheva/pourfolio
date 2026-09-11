@@ -69,7 +69,7 @@ export function RatingCardBonusAttributes({ ratingKey, label, bonusAttributes, b
   )
 }
 
-export function AllBonusAttributes({ bonusAttributes, bonusCategories, selectedIds, onToggle, onCreate }) {
+export function AllBonusAttributes({ bonusAttributes, bonusCategories, selectedIds, onToggle, onCreate, headingRef }) {
   const [query, setQuery] = useState('')
   const [expanded, setExpanded] = useState(() => new Set())
   const [description, setDescription] = useState('')
@@ -82,11 +82,12 @@ export function AllBonusAttributes({ bonusAttributes, bonusCategories, selectedI
   const normalisedQuery = query.trim().toLocaleLowerCase()
 
   const categoryRows = useMemo(() => (bonusCategories || []).map((category) => {
-    const items = (bonusAttributes || []).filter((attribute) =>
-      (attribute.category_keys || []).includes(category.key) &&
-      (!normalisedQuery || String(attribute.description || '').toLocaleLowerCase().includes(normalisedQuery))
+    const allItems = (bonusAttributes || []).filter((attribute) => (attribute.category_keys || []).includes(category.key))
+    const categoryMatches = normalisedQuery && String(category.name || '').toLocaleLowerCase().includes(normalisedQuery)
+    const items = allItems.filter((attribute) =>
+      !normalisedQuery || categoryMatches || String(attribute.description || '').toLocaleLowerCase().includes(normalisedQuery)
     )
-    return { ...category, items }
+    return { ...category, allItems, items }
   }).filter((category) => category.items.length), [bonusAttributes, bonusCategories, normalisedQuery])
 
   const toggleCategory = (key) => setExpanded((current) => {
@@ -119,7 +120,7 @@ export function AllBonusAttributes({ bonusAttributes, bonusCategories, selectedI
   return (
     <div>
       <p className="text-sm font-medium text-amber-700">Bonus attributes</p>
-      <h2 className="mt-2 text-3xl font-bold text-gray-900">All bonus attributes</h2>
+      <h2 ref={headingRef} tabIndex={-1} className="mt-2 text-3xl font-bold text-gray-900 outline-none">All bonus attributes</h2>
       <p className="mt-2 text-gray-600">Select every descriptor that applies. The selected values are added together and converted automatically to the scored Bonus value.</p>
 
       <div className="mt-5 grid gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:grid-cols-2" role="status" aria-live="polite">
@@ -133,7 +134,7 @@ export function AllBonusAttributes({ bonusAttributes, bonusCategories, selectedI
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search descriptions"
+            placeholder="Search descriptions or categories"
             className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
           />
         </label>
@@ -146,7 +147,7 @@ export function AllBonusAttributes({ bonusAttributes, bonusCategories, selectedI
       <div className="mt-5 space-y-3">
         {categoryRows.map((category) => {
           const isOpen = normalisedQuery ? true : expanded.has(category.key)
-          const selectedCount = category.items.filter((attribute) => selectedIds.includes(String(attribute.id))).length
+          const selectedCount = category.allItems.filter((attribute) => selectedIds.includes(String(attribute.id))).length
           return (
             <section key={category.key} className="overflow-hidden rounded-xl border border-gray-200">
               <button
@@ -156,7 +157,7 @@ export function AllBonusAttributes({ bonusAttributes, bonusCategories, selectedI
                 className="flex w-full items-center justify-between gap-3 bg-gray-50 px-4 py-3 text-left"
               >
                 <span className="font-semibold text-gray-900">{category.name}</span>
-                <span className="text-sm text-gray-600">{selectedCount}/{category.items.length} selected · {isOpen ? 'Hide' : 'Show'}</span>
+                <span className="text-sm text-gray-600">{selectedCount}/{category.allItems.length} selected · {isOpen ? 'Hide' : 'Show'}</span>
               </button>
               {isOpen && <div className="grid gap-3 p-4 sm:grid-cols-2">{category.items.map((attribute) => (
                 <BonusOption key={`${category.key}-${attribute.id}`} attribute={attribute} checked={selectedIds.includes(String(attribute.id))} onToggle={onToggle} />
