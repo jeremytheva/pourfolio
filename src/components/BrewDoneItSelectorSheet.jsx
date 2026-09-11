@@ -11,10 +11,12 @@ const History = ({ title, value = {} }) => (
   <div className="rounded-lg border border-blue-100 bg-white p-3">
     <h4 className="font-semibold text-gray-900">{title}</h4>
     <p className="mt-1 text-sm text-gray-700">{value.distinctBeerCount || 0} beers · {value.ratingCount || 0} ratings</p>
-    <p className="text-sm text-gray-700">Average: {value.averageWeighted ?? 'No ratings'}</p>
+    <p className="text-sm text-gray-700">Average: {value.averageWeighted ?? 'No valid scored ratings'}</p>
     {value.lastRatedAt && <p className="text-xs text-gray-500">Last rated: {new Date(value.lastRatedAt).toLocaleDateString()}</p>}
   </div>
 )
+
+const yesNoUnknown = (value) => value === true ? 'Yes' : value === false ? 'No' : 'Unknown'
 
 export default function BrewDoneItSelectorSheet({ clues, loading = false }) {
   if (loading) return <div className="rounded-lg bg-blue-50 p-4 text-blue-950" role="status">Loading answer sheet…</div>
@@ -47,7 +49,7 @@ export default function BrewDoneItSelectorSheet({ clues, loading = false }) {
             <Field label="Style" value={clues.style?.name || clues.beer?.declaredCategory} />
             <Field label="ABV" value={clues.beer?.abv === null || clues.beer?.abv === undefined ? null : `${clues.beer.abv}%`} />
             <Field label="IBU" value={clues.beer?.ibu} />
-            <Field label="Collaboration" value={clues.beer?.collaboration ? 'Yes' : 'No'} />
+            <Field label="Collaboration" value={yesNoUnknown(clues.beer?.collaboration)} />
             <Field label="Edition" value={clues.beer?.edition} />
             <Field label="Dark" value={clues.traits?.dark === 'unknown' ? 'Answer manually' : clues.traits?.dark} />
             <Field label="Barrel aged" value={clues.traits?.barrelAged === 'unknown' ? 'Answer manually' : clues.traits?.barrelAged} />
