@@ -8,6 +8,8 @@ Pourfolio is the authoritative repository for application/provider data contract
 
 Pourfolio and Pourfolio Feeder remain separate repositories because they have different runtime and release responsibilities. Pourfolio owns user-facing application behaviour and the authoritative provider contract. Pourfolio Feeder owns discovery, ingestion, normalisation, reconciliation and scheduled enrichment work.
 
+The authoritative contract describes provider-facing collections, fields, relationships and writer permissions only. Feeder-internal discovery, provenance, source-confidence and lifecycle fields belong in `pourfolio-feeder` and must not be added here merely to make an undeployed backend write appear compatible.
+
 The feeder must not independently declare a provider collection or field deployed. Before any provider mutation it must consume this contract and fail closed when the contract cannot be loaded, the major version is unsupported, or the requested collection, operation or field is not authorised.
 
 Read-only feeder discovery may continue without a mutation-capability claim. Target-state feeder migrations and documentation do not override this contract.
