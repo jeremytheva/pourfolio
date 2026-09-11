@@ -163,6 +163,12 @@ test('canonical application paths remain distinct from contained implementation 
   const profile = resolveRoute(routes, '/api/nocodebackend/profile', {})
   assert.deepEqual(profile, { destination: '/api/data-router', query: { path: 'profile' } })
 
+  const publicProfile = resolveRoute(routes, '/api/nocodebackend/profiles/profile_abcdefgh1234', {})
+  assert.deepEqual(publicProfile, {
+    destination: '/api/data-router',
+    query: { path: 'profiles/profile_abcdefgh1234' }
+  })
+
   const ratings = resolveRoute(routes, '/api/nocodebackend/ratings/mine', {})
   assert.deepEqual(ratings, { destination: '/api/data-router', query: { path: 'ratings/mine' } })
 
@@ -180,7 +186,7 @@ test('schema-aware data router owns launch resources and only delegates the game
 
 test('data router rejects unknown resources without entering the legacy data handler', async () => {
   const response = createResponse()
-  await dataRouter.routeRequest({ method: 'GET', query: { path: 'profiles' } }, response)
+  await dataRouter.routeRequest({ method: 'GET', query: { path: 'unrecognised-resource' } }, response)
 
   assert.equal(response.statusCode, 404)
   assert.deepEqual(response.body, { error: 'Application data route not found.' })
