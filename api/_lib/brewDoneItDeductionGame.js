@@ -8,7 +8,7 @@ import {
 
 const list = (value) => (Array.isArray(value) ? value : value ? [value] : []).filter((item) => item && typeof item === 'object')
 const first = (value) => list(value)[0] || value || null
-const fail = (message, status = 400) => Object.assign(new Error(message), { status })
+const fail = (message, status = 400, code = null) => Object.assign(new Error(message), { status, ...(code ? { code } : {}) })
 const id = (value, label) => {
   const text = String(value ?? '').trim()
   if (!/^[1-9]\d*$/.test(text)) throw fail(`${label} is invalid.`)
@@ -23,6 +23,12 @@ const requestKey = (request, userId) => {
   if (!/^[A-Za-z0-9:_-]{8,180}$/.test(key)) throw fail('The idempotency key is invalid.')
   return `${userId}:${key}`
 }
+
+const idempotencyConflict = () => fail(
+  'This request key has already been used for a different Brew Done It deduction.',
+  409,
+  'IDEMPOTENCY_CONFLICT'
+)
 
 const roundAndGame = async (roundId, user) => {
   const round = await dataProvider.get(COLLECTIONS.brewDoneItRounds, id(roundId, 'Round identifier'))
@@ -92,6 +98,18 @@ const deductionLogicalKey = (deduction) => [
   deduction.value_text ?? deduction.valueText ?? '',
   deduction.numeric_value ?? deduction.numericValue ?? ''
 ].map((value) => String(value ?? '')).join('|')
+
+const sameDeductionRequest = (stored, input) => {
+  if (stored.dimension !== input.dimension || stored.answer !== input.answer) return false
+  if (String(stored.reference_id ?? '') !== String(input.referenceId ?? '')) return false
+  if (String(stored.numeric_value ?? '') !== String(input.numericValue ?? '')) return false
+  if ([BREW_DONE_IT_DEDUCTION_DIMENSIONS.breweryCountry, BREW_DONE_IT_DEDUCTION_DIMENSIONS.breweryState].includes(input.dimension)) {
+    return String(stored.value_text ?? '') === String(input.valueText ?? '')
+  }
+  // Style display labels are server-canonicalized and therefore are not part of
+  // the caller's idempotency identity; the category reference is authoritative.
+  return true
+}
 
 const deductionTimestamp = (deduction) => {
   const timestamp = Date.parse(deduction.updated_at || deduction.created_at || '')
@@ -228,6 +246,7 @@ export const recordDeduction = async (roundId, request, response, user) => {
     idempotency_key: key
   }))[0]
   if (replay) {
+    if (!sameDeductionRequest(replay, input)) throw idempotencyConflict()
     response.status(200).json({ deduction: projectBrewDoneItDeduction(replay), replayed: true })
     return
   }
@@ -271,5 +290,6 @@ export const __testables = {
   booleanOrNull,
   latestRatedAt,
   deductionLogicalKey,
+  sameDeductionRequest,
   canonicalDeductions
 }
