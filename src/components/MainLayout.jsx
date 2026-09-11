@@ -1,22 +1,25 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { FiHome, FiLogOut, FiSearch, FiUser } from 'react-icons/fi'
+import { FiHome, FiLogOut, FiMapPin, FiSearch, FiUser } from 'react-icons/fi'
 import { Link, NavLink, useLocation } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import PublicDocumentLinks from './PublicDocumentLinks.jsx'
 
 const navigation = [
   { to: '/home', label: 'Discover', icon: FiHome },
+  { to: '/places', label: 'Breweries & Venues', icon: FiMapPin },
   { to: '/search', label: 'Search', icon: FiSearch },
   { to: '/cellar', label: 'Cellar', icon: FiUser }
 ]
 
 const routeLabel = (pathname) => {
   if (pathname === '/home') return 'Discover'
+  if (pathname === '/places') return 'Breweries and venues'
   if (pathname === '/search') return 'Search'
   if (pathname === '/cellar') return 'Cellar'
   if (pathname === '/profile') return 'Profile and rating history'
   if (/^\/products\/[^/]+\/rate$/.test(pathname)) return 'Rate beer'
   if (/^\/products\/[^/]+$/.test(pathname)) return 'Product details'
+  if (/^\/breweries\/[^/]+$/.test(pathname)) return 'Brewery details'
   return 'Pourfolio'
 }
 
@@ -69,12 +72,12 @@ function MainLayout({ children, user, onLogout }) {
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <Link to="/home" className={`rounded-md text-2xl font-bold text-amber-700 ${focusRing}`}>Pourfolio</Link>
-          <nav aria-label="Primary navigation" className="order-3 flex w-full items-center gap-1 sm:order-none sm:w-auto">
+          <nav aria-label="Primary navigation" className="order-3 flex w-full items-center gap-1 overflow-x-auto sm:order-none sm:w-auto">
             {navigation.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={({ isActive }) => `flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium sm:flex-none ${focusRing} ${
+                className={({ isActive }) => `flex min-w-max flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium sm:flex-none ${focusRing} ${
                   isActive ? 'bg-amber-100 text-amber-900' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 }`}
               >
