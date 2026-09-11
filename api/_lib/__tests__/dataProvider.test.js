@@ -119,19 +119,19 @@ test('get uses read-by-id and filtered fallback after 404', async () => {
 test('create, update, compare-and-set and delete use operation routes and JSON content type', async () => {
   const requests = []
   global.fetch = async (url, options) => {
-    requests.push({ url: String(url), options }
+    requests.push({ url: String(url), options })
     return response({ status: 'success', data: { id: 3 } })
   }
 
   await dataProvider.create('cellar', { product_id: 1 })
   await dataProvider.update('cellar', 3, { quantity: 2 })
-  await dataProvider.compareAndSet('cellar', 3, 4, { version: 5 })
+  await dataProvider.compareAndSet('ratings', 3, 4, { version: 5 })
   await dataProvider.remove('cellar', 3)
 
   assert.deepEqual(requests.map(({ url, options }) => [url, options.method]), [
     [`https://api.nocodebackend.com/create/cellar?Instance=${TEST_INSTANCE}`, 'POST'],
     [`https://api.nocodebackend.com/update/cellar/3?Instance=${TEST_INSTANCE}`, 'PUT'],
-    [`https://api.nocodebackend.com/update/cellar/3?Instance=${TEST_INSTANCE}&expected_version=4`, 'PUT'],
+    [`https://api.nocodebackend.com/update/ratings/3?Instance=${TEST_INSTANCE}&expected_version=4`, 'PUT'],
     [`https://api.nocodebackend.com/delete/cellar/3?Instance=${TEST_INSTANCE}`, 'DELETE']
   ])
   assert.equal(requests[0].options.headers['content-type'], 'application/json')
