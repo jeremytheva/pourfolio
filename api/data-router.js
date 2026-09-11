@@ -6,6 +6,9 @@ import brewDoneItHandler from './_lib/brewDoneItGateway.js'
 
 const CURRENT_SCHEMA_RESOURCES = new Set(['catalog', 'rating-form', 'ratings', 'cellar'])
 const DEFERRED_CAPABILITY_RESOURCES = new Set(['brew-done-it'])
+// Compatibility export for existing structural tests; Brew Done It no longer
+// enters api/data-proxy.js and is handled by its dedicated deferred gateway.
+const LEGACY_RESOURCES = DEFERRED_CAPABILITY_RESOURCES
 
 export const pathSegments = (request) => {
   const raw = request.query?.path
@@ -33,4 +36,9 @@ export default async function handler(request, response) {
   return routeRequest(request, response)
 }
 
-export const __testables = { CURRENT_SCHEMA_RESOURCES, DEFERRED_CAPABILITY_RESOURCES, routeRequest }
+export const __testables = {
+  CURRENT_SCHEMA_RESOURCES,
+  DEFERRED_CAPABILITY_RESOURCES,
+  LEGACY_RESOURCES,
+  routeRequest
+}
