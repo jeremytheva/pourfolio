@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import BrewDoneItBeerPicker from './BrewDoneItBeerPicker.jsx'
+import { filterBrewDoneItBeers, filterBrewDoneItBreweries } from '../utils/brewDoneItDeductionFilters.js'
 
 const selectClass = 'mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500'
 const buttonClass = 'rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-60'
@@ -32,8 +33,6 @@ const labelFor = (deduction) => {
   return `${names[deduction.dimension] || deduction.dimension}${value !== '' ? `: ${value}` : ''}`
 }
 
-const deductionMatches = (matches, answer) => answer === 'unknown' ? true : answer === 'yes' ? matches : !matches
-
 export default function BrewDoneItDeductionBoard({
   round,
   options = { breweries: [], styles: [], beers: [], capabilities: {} },
@@ -62,31 +61,18 @@ export default function BrewDoneItDeductionBoard({
   const states = useMemo(() => [...new Set((options.breweries || []).map((item) => item.stateAcronym || item.state).filter(Boolean))].sort(), [options.breweries])
   const countries = useMemo(() => [...new Set((options.breweries || []).map((item) => item.country).filter(Boolean))].sort(), [options.breweries])
 
-  const filteredBreweries = useMemo(() => (options.breweries || []).filter((brewery) => breweryDeductions.every((item) => {
-    if (item.answer === 'unknown') return true
-    let matches = true
-    if (item.dimension === 'brewery_state') matches = geographyAvailable && [brewery.stateAcronym, brewery.state].includes(item.value_text)
-    if (item.dimension === 'brewery_country') matches = geographyAvailable && brewery.country === item.value_text
-    if (item.dimension === 'brewery_previously_rated') matches = Boolean(brewery.previouslyRated)
-    return deductionMatches(matches, item.answer)
-  })), [breweryDeductions, geographyAvailable, options.breweries])
+  const filteredBreweries = useMemo(() => filterBrewDoneItBreweries(
+    options.breweries || [],
+    breweryDeductions,
+    { geographyAvailable }
+  ), [breweryDeductions, geographyAvailable, options.breweries])
 
   const breweryIds = useMemo(() => new Set(filteredBreweries.map((brewery) => String(brewery.id))), [filteredBreweries])
-
-  const filteredBeers = useMemo(() => (options.beers || []).filter((beer) => {
-    if (beer.producerId && !breweryIds.has(String(beer.producerId))) return false
-    return beerDeductions.every((item) => {
-      if (item.answer === 'unknown' || ['dark', 'barrel_aged'].includes(item.dimension)) return true
-      let matches = true
-      if (item.dimension === 'style') matches = String(beer.categoryId) === String(item.reference_id)
-      if (item.dimension === 'abv_at_least') matches = Number.isFinite(beer.abv) && beer.abv >= Number(item.numeric_value)
-      if (item.dimension === 'abv_below') matches = Number.isFinite(beer.abv) && beer.abv < Number(item.numeric_value)
-      if (item.dimension === 'ibu_at_least') matches = Number.isFinite(beer.ibu) && beer.ibu >= Number(item.numeric_value)
-      if (item.dimension === 'ibu_below') matches = Number.isFinite(beer.ibu) && beer.ibu < Number(item.numeric_value)
-      if (item.dimension === 'collaboration') matches = Boolean(beer.collaboration)
-      return deductionMatches(matches, item.answer)
-    })
-  }), [beerDeductions, breweryIds, options.beers])
+  const filteredBeers = useMemo(() => filterBrewDoneItBeers(
+    options.beers || [],
+    beerDeductions,
+    breweryIds
+  ), [beerDeductions, breweryIds, options.beers])
 
   const filteredStyleIds = useMemo(() => new Set(filteredBeers.map((beer) => String(beer.categoryId)).filter(Boolean)), [filteredBeers])
   const filteredStyles = useMemo(() => (options.styles || []).filter((style) => filteredStyleIds.has(String(style.id))), [filteredStyleIds, options.styles])
@@ -98,7 +84,7 @@ export default function BrewDoneItDeductionBoard({
     <section className="space-y-5" aria-labelledby="deduction-board-heading">
       <div>
         <h3 id="deduction-board-heading" className="text-xl font-semibold text-gray-900">Deduction board</h3>
-        <p className="mt-1 text-sm text-gray-600">Ask natural yes/no questions. Record useful answers here so the board persists across sessions and devices. Unknown never eliminates a candidate, and questions themselves do not cost points.</p>
+        <p className="mt-1 text-sm text-gray-600">Ask natural yes/no questions. Record useful answers here so the board persists across sessions and devices. Unknown source data never eliminates a candidate, and questions themselves do not cost points.</p>
       </div>
 
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Deduction card side">
@@ -165,7 +151,7 @@ export default function BrewDoneItDeductionBoard({
           </div>
 
           <div className="space-y-5 rounded-xl border border-gray-200 bg-white p-5">
-            <div><h4 className="font-semibold text-gray-900">Current field</h4><p className="mt-1 text-sm text-gray-600">Your supported catalogue deductions currently leave <strong>{filteredBeers.length}</strong> beers across <strong>{filteredStyles.length}</strong> styles. Dark/barrel-aged notes do not auto-filter until that metadata is certified.</p></div>
+            <div><h4 className="font-semibold text-gray-900">Current field</h4><p className="mt-1 text-sm text-gray-600">Your supported catalogue deductions currently leave <strong>{filteredBeers.length}</strong> beers across <strong>{filteredStyles.length}</strong> styles. Beers with missing source facts remain candidates rather than being silently treated as “No”. Dark/barrel-aged notes do not auto-filter until that metadata is certified.</p></div>
             <div className="border-t border-gray-200 pt-4"><h4 className="font-semibold text-gray-900">Exact beer guess</h4><p className="mt-1 text-sm text-gray-600">Exact beer is worth 6 points and also confirms the brewery.</p><div className="mt-3"><BrewDoneItBeerPicker id="brew-outcome-beer" value={beerGuess} onChange={setBeerGuess} disabled={busy} /></div><button type="button" disabled={busy || !beerGuess || round?.beer_correct} onClick={() => onOutcome('beer', beerGuess)} className={`${buttonClass} mt-3`}>{round?.beer_correct ? 'Beer solved' : 'Submit beer guess'}</button></div>
             <div className="border-t border-gray-200 pt-4"><h4 className="font-semibold text-gray-900">Style fallback</h4><p className="mt-1 text-sm text-gray-600">If the exact beer is not practical to solve, the correct style is worth 3 points instead.</p><select value={styleGuess} onChange={(event) => setStyleGuess(event.target.value)} className={selectClass}><option value="">Choose style</option>{filteredStyles.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select><button type="button" disabled={busy || !styleGuess || round?.style_correct || round?.beer_correct} onClick={() => onOutcome('style', styleGuess)} className={`${buttonClass} mt-3`}>{round?.style_correct ? 'Style solved' : 'Submit style guess'}</button></div>
           </div>
