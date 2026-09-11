@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import { installMockApi, product } from './mockApi.js'
 
-const routes = ['/home', '/products/4', '/products/4/rate', '/breweries/20', '/cellar', '/profile']
+const routes = ['/home', '/places', '/products/4', '/products/4/rate', '/breweries/20', '/cellar', '/profile']
 const publicDocumentRoutes = ['/privacy', '/terms', '/moderation', '/support', '/retention']
 
 test('/login has no serious or critical automated accessibility violations', async ({ page }) => {
@@ -122,6 +122,36 @@ test('/home pagination moves focus to the named results region and exposes curre
   await expect(page.getByRole('link', { name: /Beer 25/ })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Next product page, page 2' })).toBeDisabled()
   await expect(page.getByRole('button', { name: 'Previous product page, page 1' })).toBeEnabled()
+})
+
+test('/places tabs are keyboard operable and keep focus with the selected tab', async ({ page }) => {
+  await installMockApi(page)
+  await page.goto('/places')
+
+  const breweries = page.getByRole('tab', { name: 'Breweries' })
+  const venues = page.getByRole('tab', { name: 'Venues' })
+
+  await breweries.focus()
+  await expect(breweries).toBeFocused()
+  await expect(breweries).toHaveAttribute('aria-selected', 'true')
+
+  await page.keyboard.press('ArrowRight')
+  await expect(venues).toBeFocused()
+  await expect(venues).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tabpanel', { name: 'Venues' })).toBeVisible()
+  await expect(page.getByText('Venue discovery is awaiting verified data.')).toBeVisible()
+
+  await page.keyboard.press('Home')
+  await expect(breweries).toBeFocused()
+  await expect(breweries).toHaveAttribute('aria-selected', 'true')
+
+  await page.keyboard.press('End')
+  await expect(venues).toBeFocused()
+  await expect(venues).toHaveAttribute('aria-selected', 'true')
+
+  await page.keyboard.press('ArrowLeft')
+  await expect(breweries).toBeFocused()
+  await expect(breweries).toHaveAttribute('aria-selected', 'true')
 })
 
 for (const route of routes) {
