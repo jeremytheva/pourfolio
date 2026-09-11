@@ -3,7 +3,7 @@ import { dataProvider } from './dataProvider.js'
 import { isOwnedBy } from './dataPolicy.js'
 
 const isId = (value) => /^[1-9]\d*$/.test(String(value ?? ''))
-const isScore = (value) => Number.isFinite(Number(value)) && Number(value) >= 1 && Number(value) <= 7
+const isScore = (value) => Number.isFinite(Number(value)) && Number(value) >= 0 && Number(value) <= 5
 
 export async function loadPublicRatingHistory(userId) {
   const raw = await dataProvider.list(DEPLOYED_COLLECTIONS.ratings, { user_id: userId })
@@ -13,7 +13,7 @@ export async function loadPublicRatingHistory(userId) {
 
   const ratings = []
   for (const row of rows) {
-    if (!isId(row.id) || !isId(row.product_id) || !row.date_rated || !isScore(row.total_unweighted) || !isScore(row.total_weighted)) continue
+    if (!isId(row.id) || !isId(row.product_id) || !row.date_rated || !isScore(row.total_weighted)) continue
     const product = await dataProvider.get(DEPLOYED_COLLECTIONS.products, row.product_id)
     if (!product || !isId(product.id) || !String(product.product_name || '').trim()) continue
     let producer = null
@@ -23,14 +23,15 @@ export async function loadPublicRatingHistory(userId) {
         producer = { id: record.id, producer_name: String(record.producer_name).trim().slice(0, 255) }
       }
     }
-    ratings.push({
+    const projected = {
       id: row.id,
       product_id: row.product_id,
       date_rated: String(row.date_rated).trim().slice(0, 64),
-      total_unweighted: Number(row.total_unweighted),
       total_weighted: Number(row.total_weighted),
       product: { id: product.id, product_name: String(product.product_name).trim().slice(0, 255), producer }
-    })
+    }
+    if (isScore(row.total_unweighted)) projected.total_unweighted = Number(row.total_unweighted)
+    ratings.push(projected)
   }
 
   ratings.sort((a, b) => String(b.date_rated).localeCompare(String(a.date_rated)))
