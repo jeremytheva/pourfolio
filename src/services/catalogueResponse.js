@@ -2,13 +2,8 @@ import { ApiError } from '../lib/nocodeBackend.js'
 
 const INVALID_CATALOGUE_MESSAGE = 'The server returned invalid catalogue data. Please try again.'
 const INVALID_CATALOGUE_CODE = 'invalid_catalogue_response'
-
 const PAGE_KEYS = new Set(['items', 'page', 'pageSize', 'total', 'totalPages'])
-const PRODUCT_KEYS = new Set([
-  'id', 'product_name', 'product_category_id', 'producer_id', 'abv', 'ibu',
-  'declared_category', 'edition', 'collaboration', 'product_image', 'producer',
-  'producers', 'category'
-])
+const PRODUCT_KEYS = new Set(['id', 'product_name', 'product_category_id', 'producer_id', 'abv', 'ibu', 'declared_category', 'edition', 'collaboration', 'product_image', 'producer', 'producers', 'category'])
 const DETAIL_KEYS = new Set([...PRODUCT_KEYS, 'ratingSummary', 'ratingInsights', 'ratings'])
 const PRODUCER_KEYS = new Set(['id', 'producer_name', 'address', 'suburb_id'])
 const PRODUCER_DETAIL_KEYS = new Set(['producer', 'products'])
@@ -57,8 +52,7 @@ const validateStableId = (value, { nullable = false, emptyAsNull = false } = {})
   return value
 }
 const validateOptionalNumber = (value, { max }) => {
-  if (value === null) return value
-  if (value === '') return null
+  if (value === null || value === '') return value === '' ? null : value
   if (typeof value !== 'number' && typeof value !== 'string') invalid()
   if (typeof value === 'string' && (!DECIMAL_NUMBER.test(value) || !value.length)) invalid()
   const numericValue = Number(value)
@@ -97,10 +91,10 @@ const validateCategory = (value) => {
 }
 const validateRatingInsights = (value, summary) => {
   const insights = readDataProperties(value, RATING_INSIGHTS_KEYS, ['distribution', 'attributes'])
-  if (!Array.isArray(insights.distribution) || insights.distribution.length !== 7 || !Array.isArray(insights.attributes)) invalid()
+  if (!Array.isArray(insights.distribution) || insights.distribution.length !== 6 || !Array.isArray(insights.attributes)) invalid()
   const distribution = insights.distribution.map((value, index) => {
     const bucket = readDataProperties(value, RATING_BUCKET_KEYS, ['score', 'count'])
-    if (bucket.score !== index + 1 || !Number.isSafeInteger(bucket.count) || bucket.count < 0) invalid()
+    if (bucket.score !== index || !Number.isSafeInteger(bucket.count) || bucket.count < 0) invalid()
     return { score: bucket.score, count: bucket.count }
   })
   if (distribution.reduce((sum, bucket) => sum + bucket.count, 0) !== summary.count) invalid()
@@ -108,13 +102,12 @@ const validateRatingInsights = (value, summary) => {
     const attribute = readDataProperties(value, ATTRIBUTE_INSIGHT_KEYS, ['attributeId', 'name', 'average', 'count'])
     const attributeId = validateStableId(attribute.attributeId)
     const name = validateText(attribute.name, { required: true })
-    if (typeof attribute.average !== 'number' || !Number.isFinite(attribute.average) || attribute.average < 1 || attribute.average > 7) invalid()
+    if (typeof attribute.average !== 'number' || !Number.isFinite(attribute.average) || attribute.average < 0 || attribute.average > 7) invalid()
     if (!Number.isSafeInteger(attribute.count) || attribute.count < 1 || attribute.count > summary.count) invalid()
     return { attributeId, name, average: attribute.average, count: attribute.count }
   })
   if (summary.count === 0 && attributes.length) invalid()
-  const ids = new Set(attributes.map((attribute) => String(attribute.attributeId)))
-  if (ids.size !== attributes.length) invalid()
+  if (new Set(attributes.map((attribute) => String(attribute.attributeId))).size !== attributes.length) invalid()
   return { distribution, attributes }
 }
 const validateProduct = (value, { detail = false } = {}) => {
@@ -132,9 +125,8 @@ const validateProduct = (value, { detail = false } = {}) => {
   if (Object.hasOwn(product, 'producers')) {
     if (!Array.isArray(product.producers)) invalid()
     result.producers = product.producers.map(validateProducer)
-    const producerIds = new Set(result.producers.map((producer) => String(producer.id)))
-    if (producerIds.size !== result.producers.length) invalid()
-    if (result.producer && !producerIds.has(String(result.producer.id))) invalid()
+    const ids = new Set(result.producers.map((producer) => String(producer.id)))
+    if (ids.size !== result.producers.length || (result.producer && !ids.has(String(result.producer.id)))) invalid()
   }
   result.category = validateCategory(product.category)
   if (result.producer && (!Object.hasOwn(result, 'producer_id') || result.producer_id === null || !sameId(result.producer.id, result.producer_id))) invalid()
@@ -142,7 +134,9 @@ const validateProduct = (value, { detail = false } = {}) => {
   if (detail) {
     const summary = readDataProperties(product.ratingSummary, RATING_SUMMARY_KEYS, ['count', 'average'])
     if (!Number.isSafeInteger(summary.count) || summary.count < 0) invalid()
-    if (summary.count === 0) { if (summary.average !== null) invalid() } else if (typeof summary.average !== 'number' || !Number.isFinite(summary.average) || summary.average < 1 || summary.average > 7) invalid()
+    if (summary.count === 0) {
+      if (summary.average !== null) invalid()
+    } else if (typeof summary.average !== 'number' || !Number.isFinite(summary.average) || summary.average < 0 || summary.average > 5) invalid()
     result.ratingSummary = { count: summary.count, average: summary.average }
     result.ratingInsights = validateRatingInsights(product.ratingInsights, result.ratingSummary)
     if (Object.hasOwn(product, 'ratings') && (!Array.isArray(product.ratings) || product.ratings.length > 0)) invalid()
@@ -158,6 +152,7 @@ const deepFreeze = (value) => {
 const validate = (validator) => {
   try { return deepFreeze(validator()) } catch { throw new ApiError(INVALID_CATALOGUE_MESSAGE, { status: 502, code: INVALID_CATALOGUE_CODE }) }
 }
+
 export const validateCataloguePage = (payload, { expectedPage, expectedPageSize } = {}) => validate(() => {
   const page = readDataProperties(payload, PAGE_KEYS, ['items', 'page', 'pageSize', 'total', 'totalPages'])
   if (!Array.isArray(page.items)) invalid()
@@ -169,8 +164,7 @@ export const validateCataloguePage = (payload, { expectedPage, expectedPageSize 
   const expectedItems = page.total === 0 ? 0 : page.page < page.totalPages ? page.pageSize : page.total - (page.pageSize * (page.totalPages - 1))
   if (page.items.length !== expectedItems) invalid()
   const items = page.items.map((item) => validateProduct(item))
-  const identifiers = new Set(items.map((item) => String(item.id)))
-  if (identifiers.size !== items.length) invalid()
+  if (new Set(items.map((item) => String(item.id))).size !== items.length) invalid()
   return { items, page: page.page, pageSize: page.pageSize, total: page.total, totalPages: page.totalPages }
 })
 export const validateCatalogueProduct = (payload, { expectedProductId } = {}) => validate(() => {
@@ -184,8 +178,7 @@ export const validateCatalogueProducer = (payload, { expectedProducerId } = {}) 
   if (!producer || (expectedProducerId !== undefined && !sameId(producer.id, validateStableId(expectedProducerId)))) invalid()
   if (!Array.isArray(detail.products)) invalid()
   const products = detail.products.map((item) => validateProduct(item))
-  const identifiers = new Set(products.map((product) => String(product.id)))
-  if (identifiers.size !== products.length) invalid()
+  if (new Set(products.map((product) => String(product.id))).size !== products.length) invalid()
   for (const product of products) {
     if (product.producer_id === null || product.producer_id === undefined || !sameId(product.producer_id, producer.id)) invalid()
     if (!product.producer || !sameId(product.producer.id, producer.id)) invalid()
