@@ -2,8 +2,9 @@ import crypto from 'node:crypto'
 import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../src/data/contract.js'
 import { canonicalRatingKey } from '../src/lib/ratingFormulaV1.js'
 import { requireSessionUser } from './_lib/authSession.js'
+import { loadBonusCatalogue } from './_lib/bonusAttributeCatalogue.js'
 import { dataProvider } from './_lib/dataProvider.js'
-import { projectAttribute, projectBonus } from './_lib/dataPolicy.js'
+import { projectAttribute } from './_lib/dataPolicy.js'
 import { enforceOrigin, enforceRateLimit, enforceRequestSize, safeErrorMessage } from './_lib/httpSecurity.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 
@@ -44,12 +45,12 @@ export default async function handler(request, response) {
   if (!enforceRateLimit(request, response, { key: 'data-read', limit: 240 })) return
 
   try {
-    await requireSessionUser(request)
+    const user = await requireSessionUser(request)
     const productId = positiveId(request.query?.product_id)
-    const [product, attributes, bonuses] = await Promise.all([
+    const [product, attributes, bonusCatalogue] = await Promise.all([
       dataProvider.get(COLLECTIONS.products, productId),
       dataProvider.list(COLLECTIONS.ratingAttributes),
-      dataProvider.list(COLLECTIONS.bonusAttributes)
+      loadBonusCatalogue(user.id)
     ])
     if (!product) {
       response.status(404).json({ error: 'Product not found.' })
@@ -61,7 +62,7 @@ export default async function handler(request, response) {
       attributes: records(attributes)
         .filter((attribute) => canonicalRatingKey(attribute.attribute_name))
         .map(projectAttribute),
-      bonusAttributes: records(bonuses).map(projectBonus)
+      ...bonusCatalogue
     })
   } catch (error) {
     const status = Number(error.status) >= 400 && Number(error.status) < 600 ? Number(error.status) : 500
