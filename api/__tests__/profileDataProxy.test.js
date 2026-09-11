@@ -35,8 +35,7 @@ test.afterEach(() => {
   }
 })
 
-test('GET profile returns the authenticated session user without reading a profiles collection', async () => {
-  const requests = []
+const authenticate = (requests = []) => {
   global.fetch = async (url, options) => {
     requests.push({ url: String(url), options })
     return new Response(JSON.stringify({ user: { id: 'user-1', name: 'Test User', email: 'test@example.com' } }), {
@@ -44,6 +43,11 @@ test('GET profile returns the authenticated session user without reading a profi
       headers: { 'content-type': 'application/json' }
     })
   }
+}
+
+test('GET profile returns the authenticated session user without reading a profiles collection', async () => {
+  const requests = []
+  authenticate(requests)
 
   const response = createResponse()
   await profileHandler({ method: 'GET', headers: { cookie: 'session=test' } }, response)
@@ -58,14 +62,45 @@ test('GET profile returns the authenticated session user without reading a profi
 })
 
 test('PUT profile fails explicitly while profile persistence is not deployed', async () => {
-  global.fetch = async () => new Response(JSON.stringify({ user: { id: 'user-1', name: 'Test User' } }), {
-    status: 200,
-    headers: { 'content-type': 'application/json' }
-  })
+  authenticate()
 
   const response = createResponse()
   await profileHandler({ method: 'PUT', headers: { cookie: 'session=test' }, body: { name: 'Changed' } }, response)
 
   assert.equal(response.statusCode, 503)
   assert.equal(response.body.code, 'profile_persistence_unavailable')
+})
+
+test('public profile reads fail closed until the certified profiles collection is deployed', async () => {
+  const requests = []
+  authenticate(requests)
+
+  const response = createResponse()
+  await profileHandler({
+    method: 'GET',
+    headers: { cookie: 'session=test' },
+    query: { path: ['profiles', 'profile_abcdefgh1234'] }
+  }, response)
+
+  assert.equal(response.statusCode, 503)
+  assert.equal(response.body.code, 'profile_persistence_unavailable')
+  assert.equal(requests.length, 1)
+  assert.equal(requests.some(({ url }) => url.includes('/read/profiles')), false)
+  assert.equal(requests.some(({ url }) => url.includes('/read/ratings')), false)
+})
+
+test('public profile route rejects malformed identifiers before any profile/rating provider read', async () => {
+  const requests = []
+  authenticate(requests)
+
+  const response = createResponse()
+  await profileHandler({
+    method: 'GET',
+    headers: { cookie: 'session=test' },
+    query: { path: ['profiles', '../owner-secret'] }
+  }, response)
+
+  assert.equal(response.statusCode, 400)
+  assert.equal(response.body.code, 'invalid_profile_identifier')
+  assert.equal(requests.length, 1)
 })
