@@ -14,8 +14,8 @@ const signInResponse = (response) => {
 const retryAfterMilliseconds = (response) => {
   const value = response.headers()['retry-after']
   const seconds = Number(value)
-  if (Number.isFinite(seconds) && seconds >= 0) return Math.min(Math.ceil(seconds * 1000), 60_000)
-  return 60_000
+  if (Number.isFinite(seconds) && seconds >= 0) return Math.min(Math.ceil(seconds * 1000), 20_000)
+  return 20_000
 }
 
 export const signIn = async (page, email, password) => {
