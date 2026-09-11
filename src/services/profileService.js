@@ -1,7 +1,15 @@
-import { apiRequest } from '../lib/nocodeBackend.js'
+import { ApiError, apiRequest } from '../lib/nocodeBackend.js'
 import { normalisePublicProfileId, validatePublicProfileResponse } from './publicProfileResponse.js'
 
-export const getCurrentUserProfile = () => apiRequest('/profile')
+export const getCurrentUserProfile = async () => {
+  const payload = await apiRequest('/profile')
+  if (!payload?.profile?.public_id) {
+    throw new ApiError('Profile editing is not available yet. Your account details currently come from your authenticated session.', {
+      code: 'profile_persistence_unavailable'
+    })
+  }
+  return payload
+}
 
 export const updateCurrentUserProfile = (updates) => apiRequest('/profile', {
   method: 'PUT',
