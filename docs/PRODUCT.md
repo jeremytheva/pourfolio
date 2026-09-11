@@ -27,78 +27,130 @@ Ratings and cellar records do not require a sharing series or edition.
 
 Deferred modules may remain as prototype source for future research, but they are not reachable or bundled by launch routing and must not show fake success, statistics or user data.
 
-## Brew Done It — accepted same-device game, currently contained
+## Brew Done It — persistent cross-device challenge, currently contained
 
-Brew Done It is not shipped in the launch application. It has no navigation
-item or route, and a direct request returns to the authenticated home screen
-without loading game code or calling a game API. The retained remote,
-persistent implementation does not match the accepted decision and must remain
-unreachable until a superseding ADR and separately reviewed delivery approve a
-product model, privacy boundary and data lifecycle.
+Brew Done It is an approved persistent social game under [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md), but it is not yet shipped in the launch application. It has no production navigation item or route, and the server capability remains fail-closed while the required NoCodeBackend collections are unverified. ADR 0001's same-device/session-memory model is superseded and must not be used as the current product contract.
 
-These are three distinct states and must not be conflated:
+### Product model
 
-1. **Current containment:** no Brew Done It route or controls are shipped.
-2. **Accepted model:** ADR 0001 permits a separately delivered, session-memory,
-   same-device game with no remote or persistent behaviour.
-3. **Unapproved proposal:** retained two-account and persistent implementation
-   code is research material only and cannot be enabled or treated as a product
-   requirement until a superseding ADR is accepted.
+Two authenticated Pourfolio users play from their own devices. A Brew Done It **series** is the durable head-to-head relationship between those two players. A **round** is one beer challenge within that series.
 
-### Accepted same-device contract
+For each round:
 
-The product review recorded in [ADR 0001](DECISIONS/0001-approve-brew-done-it-same-device.md) approves **same-device play only**. Brew Done It is neither live multiplayer nor asynchronous: one authenticated player and a second, physically present adult share one device and pass it between turns. The first production slice is deliberately local to the current React session. It does not create a social graph, send invitations or persist game activity.
+1. the selector chooses one secret beer from the canonical Pourfolio catalogue;
+2. the challenge is made available to the other authenticated player;
+3. the guesser must not receive the selected beer identity while the round is active;
+4. the guesser may ask controlled catalogue questions and submit catalogue-backed beer guesses;
+5. the server determines answers, correctness, action sequence and score;
+6. the round ends on a correct beer guess, the action limit or a forfeit; and
+7. the completed score is retained as part of the persistent series record.
 
-There is no remote invitation flow. The signed-in player may play with any consenting adult who is physically present; the second player does not need a Pourfolio account and an existing Drinking Buddy relationship is not required. Drinking Buddies, chat and remote play remain deferred.
+After a terminal round, selector and guesser roles swap by default for the next round. A completed round does not complete the series. The same two users may continue playing over days, weeks or longer and their scores accumulate across completed rounds.
 
-Questions are selected from a controlled, reviewed question bank and answered **yes** or **no**. Free-typed questions are not permitted. Secret beers must be selected from the live beer catalogue rather than entered as arbitrary text.
+Refreshing, signing out or moving to another device must not erase an accepted series, its rounds, questions, guesses or scoring history.
 
-The question bank for the accepted model uses catalogue facts only. It must not
-inspect either person's rating history, cellar, account, relationships or other
-private records. Every secret, answer, question, guess, score and statistic
-exists only in React memory for the current browser session. The implementation
-must not write game data to a backend, browser persistence (including
-`localStorage`) or analytics. Refresh and sign-out clear the round and all game
-statistics.
+### Challenge creation and joining
 
-### Acceptance criteria
+The selector chooses the secret beer before sharing the challenge. The server stores that choice as protected round state.
 
-A playable production delivery must satisfy all of the following criteria before its controls are enabled:
+The initial supported transport may use a game number plus challenge code or a shareable challenge link. Both participants must authenticate. Joining binds the second authenticated account to the persistent series. A later in-app player picker or notification workflow may replace or supplement the shareable-code transport without changing the series/round model.
 
-- **Round creation:** an authenticated player can start a two-player, same-device round, provide distinct display names and see a clear pass-the-device privacy prompt; creating a round makes no server write.
-- **Beer selection:** each player privately selects one secret beer from the live beer catalogue; the opponent cannot reveal that choice before the round completes.
-- **Turn order:** the creator chooses who starts, turns then alternate, and the current player and hand-off state are always announced visibly and to assistive technology.
-- **Yes/no questions:** on a turn, a player selects one unused question from the controlled question bank and the opponent records only “yes” or “no”; the question and answer remain visible in the round history.
-- **Guesses:** instead of asking a question, the current player may make one catalogue-backed beer guess; an incorrect guess ends that turn and a correct guess completes the round.
-- **Scoring:** the session-memory calculator awards 10 points for a correct beer guess and subtracts 1 point for each earlier question or incorrect guess by that player, clamped to 0–10; the calculation and itemised inputs are shown at completion, and a draw awards zero points to both players. No score is stored remotely or in browser persistence.
-- **Completion:** the round completes on a correct guess or, after 20 total turns without one, as a draw; both secret beers are then revealed and no further turns can be recorded.
-- **Abandonment:** either player can abandon after a confirmation; the round ends with no winner and zero points, and abandoned activity is not counted in statistics.
-- **Rematches:** after completion, both players can start a rematch with names and starting player swapped, cleared secrets/history and no information carried across except the session statistics.
-- **Statistics:** the page reports completed rounds, wins and points for the current in-memory session only; it labels those statistics as session-only, excludes abandoned rounds and clears them on refresh or sign-out.
+Waiting invitations expire. Once joined, the persistent series remains available until an approved archive/deletion action removes it.
 
-The initial protected route may explain these reviewed rules while the interactive controls remain unavailable. Enabling play is a separate delivery that must demonstrate every criterion above, catalogue-data validation, accessibility, and tests. It must not substitute mock players, beer choices, outcomes or statistics.
+### Secret-beer privacy
 
-### Unapproved remote and persistent proposal
+The secret beer is protected on the server, not merely hidden by React.
 
-The repository retains an earlier proposal for a different product: two
-authenticated accounts create or join persisted rounds through invitations and
-may query narrowly disclosed shared rating-history predicates after bilateral
-consent. That proposal also includes stored, versioned scoring and itemised
-breakdowns; multi-round ranking and durable aggregate statistics; waiting-game
-expiry; completed-game retention and deletion; and remote authorisation,
-blocking, rate-limit and replay requirements.
+During an active round:
 
-None of those requirements is authoritative for the accepted same-device
-model. In particular, the accepted model has no second authenticated account,
-invitation, shared-history query, backend round, stored score, durable
-statistics or retention schedule. Retained client, service, gateway and policy
-test code for those behaviours must remain unreachable and fail closed.
+- the selector may receive the selected product identifier;
+- the guesser response must omit `selected_product_id` and equivalent answer fields;
+- the server must not add product, producer, category or other fields that directly reveal the answer to the guesser;
+- the browser cannot submit authoritative correctness or score values; and
+- catalogue questions return only their controlled answer and non-secret question metadata.
 
-The remote proposal cannot be implemented or enabled until a superseding ADR
-is accepted following product and privacy review. That decision must define the
-threat model, server-side ownership and consent policy, scoring contract,
-retention and deletion lifecycle, schema mapping, migration/rollout approach,
-abuse controls, accessibility criteria and connected-environment tests.
+After the round becomes completed or forfeited, the selected beer may be revealed to both players.
+
+### Questions and guesses
+
+A guess is an exact beer selected from the canonical catalogue. Brewery-only and category/style-only submissions are not beer guesses.
+
+Controlled yes/no questions may use public catalogue facts. The approved base question types are:
+
+- producer/brewery;
+- beer category;
+- ABV threshold;
+- IBU threshold; and
+- collaboration status.
+
+Questions must not inspect either player's rating history, cellar, account data or relationships. The retained shared-rating-history prototype is not part of the approved base game. Free-text questions are not approved for the first delivery.
+
+### Round scoring
+
+Scoring is versioned and calculated by the server. Scoring version 2.0.0 is:
+
+- 10 starting points for a correct beer guess;
+- minus 1 point for each earlier controlled question in that round;
+- minus 1 point for each earlier incorrect beer guess in that round;
+- clamped to 0–10 points; and
+- 0 points when the round ends without a correct beer guess.
+
+The completed round stores the scoring-rules version, total and itemised penalty breakdown. Request replay must not create another score award.
+
+### Persistent statistics
+
+Statistics are derived from completed persistent rounds rather than browser-session state. At minimum the product reports:
+
+- persistent series count;
+- completed rounds;
+- rounds played as guesser;
+- correct beer guesses;
+- total points earned;
+- average points per guessing round; and
+- per-opponent head-to-head completed rounds, points for/against and correct guesses.
+
+The round ledger remains authoritative so aggregates can be recomputed and reconciled.
+
+### Asynchronous states
+
+The product must represent waiting states honestly. A user may close the app and return later while:
+
+- a challenge is waiting to be accepted;
+- the other participant is choosing the next beer;
+- the guesser has not yet taken another action; or
+- a completed round is waiting for the next selector to start another round.
+
+An enabled delivery must provide a way for authenticated participants to resume their persistent active series without relying on previous browser memory.
+
+### Acceptance criteria before enablement
+
+A playable production delivery must satisfy all of the following before `/brew-done-it`, navigation or the server policy flag is enabled:
+
+- **Two-device identity:** two distinct authenticated accounts can participate from separate browser/device sessions and neither can impersonate the other role.
+- **Secret-first challenge:** the selector chooses a valid catalogue beer before the challenge is shared.
+- **Secret projection:** the challenged user cannot obtain the selected product identifier or equivalent answer data from any active-round response.
+- **Persistent resume:** both participants can leave, sign back in and resume an accepted series from another session/device.
+- **Controlled questions:** only reviewed catalogue-backed question types are accepted and answers are calculated server-side.
+- **Beer-only guesses:** guesses resolve to valid catalogue products; duplicates and forged score/correctness fields do not alter authoritative state.
+- **Versioning and replay:** stale writes fail safely and idempotent retries do not create duplicate questions, guesses, rounds or points.
+- **Scoring:** version 2.0.0 produces the documented 0–10 round score and persists the completed score exactly once.
+- **Round lifecycle:** a correct guess, action-limit completion or forfeit produces a terminal round and reveals the beer; the persistent series remains active.
+- **Role rotation:** the previous guesser becomes selector for the next round by default.
+- **Long-term statistics:** completed round records reconcile to durable overall and head-to-head statistics across multiple sessions.
+- **Expiry/archive:** waiting challenges expire safely and an active series can only be archived when it has no live round.
+- **Accessibility:** enabled flows pass keyboard, focus, status-announcement and WCAG 2.2 AA evidence.
+- **Provider evidence:** the required collections, uniqueness/version fields and permissions are verified in the connected provider environment.
+
+### Current containment
+
+The source may contain the approved future implementation while the feature remains disabled. Production containment remains mandatory until the provider schema and connected evidence are complete:
+
+- no application route or navigation item;
+- no Brew Done It frontend code in the production browser bundle;
+- `BREW_DONE_IT_POLICY_ENABLED` unset in normal deployment configuration; and
+- disabled API requests return the ordinary application 404 before provider access.
+
+The persistent schema target is documented in [Brew Done It schema target](nocodebackend/brew-done-it-schema-target.md).
 
 ## Launch quality bar
 
