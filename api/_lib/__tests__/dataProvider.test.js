@@ -42,7 +42,7 @@ test('list matches Swagger read route, instance query and bearer headers', async
   assert.equal(request.url, `https://api.nocodebackend.com/read/ratings?Instance=${TEST_INSTANCE}&user_id=owner`)
   assert.deepEqual(request.options.headers, {
     accept: 'application/json',
-    authorization: 'Bearer test-secret'
+    authorization: `Bearer test-secret`
   })
 })
 
@@ -125,13 +125,13 @@ test('create, update, compare-and-set and delete use operation routes and JSON c
 
   await dataProvider.create('cellar', { product_id: 1 })
   await dataProvider.update('cellar', 3, { quantity: 2 })
-  await dataProvider.compareAndSet('ratings', 3, 4, { version: 5 })
+  await dataProvider.compareAndSet('cellar', 3, 4, { version: 5 })
   await dataProvider.remove('cellar', 3)
 
   assert.deepEqual(requests.map(({ url, options }) => [url, options.method]), [
     [`https://api.nocodebackend.com/create/cellar?Instance=${TEST_INSTANCE}`, 'POST'],
     [`https://api.nocodebackend.com/update/cellar/3?Instance=${TEST_INSTANCE}`, 'PUT'],
-    [`https://api.nocodebackend.com/update/ratings/3?Instance=${TEST_INSTANCE}&expected_version=4`, 'PUT'],
+    [`https://api.nocodebackend.com/update/cellar/3?Instance=${TEST_INSTANCE}&expected_version=4`, 'PUT'],
     [`https://api.nocodebackend.com/delete/cellar/3?Instance=${TEST_INSTANCE}`, 'DELETE']
   ])
   assert.equal(requests[0].options.headers['content-type'], 'application/json')
