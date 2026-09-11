@@ -5,6 +5,8 @@ import SafeIcon from '../common/SafeIcon.jsx'
 import { cellarService } from '../services/cellarService.js'
 import { formatDate } from '../utils/dateFormatting.js'
 
+const isGiftValue = (value) => value === true || value === 1 || value === '1' || value === 'true'
+
 function Cellar() {
   const [items, setItems] = useState([])
   const [query, setQuery] = useState('')
@@ -102,6 +104,8 @@ function Cellar() {
       purchase_price: item.purchase_price ?? '',
       retail_price: item.retail_price ?? '',
       date_received: item.date_received ? String(item.date_received).slice(0, 10) : '',
+      gift: isGiftValue(item.gift),
+      gift_from: item.gift_from ?? '',
       notes: item.notes ?? ''
     })
   }
@@ -228,6 +232,7 @@ function Cellar() {
                       {item.container ? ` · ${item.container}` : ''}
                       {` · ${formatDate(item.date_received)}`}
                     </p>
+                    {isGiftValue(item.gift) && <p className="mt-2 text-sm text-gray-600">Gift{item.gift_from ? ` from ${item.gift_from}` : ''}</p>}
                     {item.notes && <p className="mt-3 max-w-3xl text-sm text-gray-700">{item.notes}</p>}
                     {(item.sharing_series_id || item.series_version_id) && (
                       <p className="mt-2 text-xs text-gray-500">
@@ -283,6 +288,23 @@ function Cellar() {
                     <label className="text-sm font-medium text-gray-700">Date received
                       <input type="date" value={draft.date_received} onChange={(event) => setDraft((current) => ({ ...current, date_received: event.target.value }))} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
                     </label>
+                    <label className="flex items-center gap-3 text-sm font-medium text-gray-700 sm:col-span-3">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(draft.gift)}
+                        onChange={(event) => {
+                          const gift = event.target.checked
+                          setDraft((current) => ({ ...current, gift, gift_from: gift ? current.gift_from : '' }))
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 text-amber-700 focus:ring-amber-500"
+                      />
+                      Gift
+                    </label>
+                    {draft.gift && (
+                      <label className="text-sm font-medium text-gray-700 sm:col-span-3">Gift from
+                        <input value={draft.gift_from} onChange={(event) => setDraft((current) => ({ ...current, gift_from: event.target.value }))} maxLength={255} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
+                      </label>
+                    )}
                     <label className="text-sm font-medium text-gray-700 sm:col-span-3">Notes
                       <textarea maxLength={255} rows={2} value={draft.notes} onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
                     </label>
