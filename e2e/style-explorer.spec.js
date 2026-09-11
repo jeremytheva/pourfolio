@@ -32,6 +32,19 @@ test('style explorer derives verified styles and opens a stable style route', as
   await expect(page.getByRole('link', { name: /Ace/ })).toBeVisible()
 })
 
+test('product detail links only its verified canonical style identity', async ({ page }) => {
+  await installStyleMockApi(page)
+  await page.goto('/products/4')
+
+  const styleLink = page.getByRole('link', { name: 'Pale Ale', exact: true })
+  await expect(page.getByText('Canonical style:')).toBeVisible()
+  await expect(styleLink).toHaveAttribute('href', '/styles/10')
+  await styleLink.click()
+
+  await expect(page).toHaveURL(/\/styles\/10$/)
+  await expect(page.getByRole('heading', { name: 'Pale Ale' })).toBeVisible()
+})
+
 test('style search filters only verified catalogue styles', async ({ page }) => {
   await installStyleMockApi(page)
   await page.goto('/styles')
