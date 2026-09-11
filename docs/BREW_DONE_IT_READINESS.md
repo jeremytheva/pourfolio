@@ -24,10 +24,25 @@ The contained application core provides:
 - viewer-specific response projection that hides `selected_product_id` from the guesser until a round is terminal;
 - resumable challenge listing across sessions/devices;
 - optimistic versioning and idempotency;
-- a durable pending/committed/discarded action ledger for recovery from ambiguous provider failures; and
+- a durable pending/committed/discarded action ledger for recovery from ambiguous provider failures;
+- a contained beer-profile **Play Brew-Done-It** entry point that identifies the viewed beer as the intended future secret selection without adding a game route, game API call or browser-persisted game state; and
 - fail-closed server containment plus absent production route/navigation.
 
 The provider-evidenced deployed schema does **not** currently contain the required Brew Done It collections. The feature therefore remains unreachable.
+
+## Beer-profile entry-point contract
+
+The beer detail/profile page is an approved selector entry point for future Brew Done It play.
+
+While the feature remains contained:
+
+- the **Play Brew-Done-It** button is visible and keyboard-operable;
+- activating it explains that Brew Done It is not enabled yet and identifies the currently viewed beer as the intended secret-beer selection;
+- activation performs no Brew Done It API request;
+- activation adds no `/brew-done-it` route dependency; and
+- activation stores no game or secret-beer state in `localStorage`, session storage or another browser persistence mechanism.
+
+When the separately reviewed enablement change makes the game route reachable, the same entry point must hand off the canonical current `product.id` as the selector's initial beer choice. The Brew Done It screen must treat that value only as a preselection: the user may review/change it before creating the challenge, and the server must still resolve and validate the submitted catalogue product before persisting protected round state. The beer identity must never be encoded into an invitation or guesser-facing payload.
 
 ## Merge boundary
 
@@ -37,7 +52,7 @@ The contained application-core PR may merge when repository validation, review a
 - `BREW_DONE_IT_POLICY_ENABLED` remains unset;
 - Brew Done It collections remain deferred;
 - no provider schema/data mutation occurs; and
-- existing beer-first launch behaviour is unchanged.
+- existing beer-first launch behaviour is unchanged apart from the truthful contained beer-profile entry point described above.
 
 A failed Vercel preview caused solely by account/build-rate quota is diagnostic rather than an application defect when the exact head independently passes the repository-owned build/browser gates and no deployment-specific defect is evidenced. It does not authorize feature enablement.
 
@@ -128,14 +143,15 @@ Before enabling the route:
 
 - add `/brew-done-it` to the connected browser test matrix only after the provider migration is available;
 - run automated WCAG 2.2 AA checks on challenge list, create/join, active round, completion and error/recovery states;
-- verify keyboard-only operation for beer selection, controlled questions, guesses, refresh/retry and next-round actions;
-- verify live-region/status announcements for join, question answer, guess result, stale conflict and completion;
+- verify keyboard-only operation for beer-profile entry, beer selection, controlled questions, guesses, refresh/retry and next-round actions;
+- verify live-region/status announcements for the contained beer-profile availability message and, once enabled, join, question answer, guess result, stale conflict and completion;
 - manually inspect focus order and screen-reader labels for secret-sensitive states.
 
 ## Enablement gate
 
 Only a separate reviewed enablement change may:
 
+- make the existing beer-profile entry point navigate into playable Brew Done It;
 - add `/brew-done-it` to application routing;
 - add Brew Done It to navigation;
 - set or require `BREW_DONE_IT_POLICY_ENABLED=true` in a user-facing environment; or
