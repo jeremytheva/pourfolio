@@ -2,11 +2,13 @@ import { ApiError } from '../lib/nocodeBackend.js'
 
 const INVALID_PUBLIC_PROFILE_MESSAGE = 'The server returned invalid profile data. Please try again.'
 
+const PAYLOAD_KEYS = new Set(['profile', 'ratings', 'summary'])
 const PROFILE_KEYS = new Set(['public_id', 'name', 'description', 'avatar_url'])
 const SUMMARY_KEYS = new Set(['count', 'average'])
 const RATING_KEYS = new Set(['id', 'product_id', 'date_rated', 'total_unweighted', 'total_weighted', 'product'])
 const PRODUCT_KEYS = new Set(['id', 'product_name', 'producer'])
 const PRODUCER_KEYS = new Set(['id', 'producer_name'])
+const PUBLIC_PROFILE_ID_PATTERN = /^[A-Za-z0-9_-]{8,128}$/
 
 const invalid = () => {
   throw new ApiError(INVALID_PUBLIC_PROFILE_MESSAGE, { code: 'invalid_public_profile_response' })
@@ -43,10 +45,11 @@ const validateRating = (rating) => {
   return rating
 }
 
-export const validatePublicProfileResponse = (payload) => {
-  if (!plainObject(payload)) invalid()
+export const validatePublicProfileResponse = (payload, expectedPublicId = null) => {
+  if (!plainObject(payload) || !hasOnlyKeys(payload, PAYLOAD_KEYS)) invalid()
   if (!plainObject(payload.profile) || !hasOnlyKeys(payload.profile, PROFILE_KEYS)) invalid()
-  if (!nonEmptyString(payload.profile.public_id, 128)) invalid()
+  if (!nonEmptyString(payload.profile.public_id, 128) || !PUBLIC_PROFILE_ID_PATTERN.test(payload.profile.public_id)) invalid()
+  if (expectedPublicId !== null && payload.profile.public_id !== expectedPublicId) invalid()
   if (!nonEmptyString(payload.profile.name, 120)) invalid()
   if (!nullableString(payload.profile.description, 1000)) invalid()
   if (!nullableString(payload.profile.avatar_url, 2048)) invalid()
@@ -70,7 +73,7 @@ export const validatePublicProfileResponse = (payload) => {
 
 export const normalisePublicProfileId = (value) => {
   const id = String(value ?? '').trim()
-  if (!/^[A-Za-z0-9_-]{8,128}$/.test(id)) {
+  if (!PUBLIC_PROFILE_ID_PATTERN.test(id)) {
     throw new ApiError('Profile identifier is invalid.', { status: 400, code: 'invalid_profile_identifier' })
   }
   return id
