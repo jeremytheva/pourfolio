@@ -86,6 +86,21 @@ test('paginated product list uses documented search and ordering parameters', as
     `https://api.nocodebackend.com/read/products?Instance=${TEST_INSTANCE}&product_name%5Blike%5D=porter&page=2&limit=25&sort=product_name&order=asc`)
 })
 
+test('first-page empty provider response without totals becomes the canonical zero-result page', async () => {
+  global.fetch = async () => response({ status: 'success', data: [] })
+
+  assert.deepEqual(await dataProvider.listPage('products', {
+    search: 'no-match', page: 1, limit: 24, orderBy: 'product_name', order: 'asc'
+  }), {
+    items: [],
+    page: 1,
+    pageSize: 24,
+    total: 0,
+    totalPages: 0,
+    totalIsEstimate: false
+  })
+})
+
 test('get uses read-by-id and filtered fallback after 404', async () => {
   const urls = []
   global.fetch = async (url) => {
@@ -104,7 +119,7 @@ test('get uses read-by-id and filtered fallback after 404', async () => {
 test('create, update, compare-and-set and delete use operation routes and JSON content type', async () => {
   const requests = []
   global.fetch = async (url, options) => {
-    requests.push({ url: String(url), options })
+    requests.push({ url: String(url), options }
     return response({ status: 'success', data: { id: 3 } })
   }
 
