@@ -9,7 +9,21 @@ import { formatDate } from '../utils/dateFormatting.js'
 
 const AdvancedScores = ({ scores }) => {
   if (!scores) return null
-  return <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-gray-600 sm:grid-cols-4"><div><dt>Score / 100</dt><dd className="font-semibold text-gray-900">{scores.score_out_of_100 ?? '—'}</dd></div><div><dt>Scaled score</dt><dd className="font-semibold text-gray-900">{scores.scaled_score ?? '—'}</dd></div><div><dt>Retail PPP</dt><dd className="font-semibold text-gray-900">{scores.retail_ppp ?? '—'}</dd></div><div><dt>Purchased PPP</dt><dd className="font-semibold text-gray-900">{scores.purchased_ppp ?? '—'}</dd></div></dl>
+  return (
+    <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-gray-600 sm:grid-cols-3 lg:grid-cols-5">
+      <div><dt>Score / 100</dt><dd className="font-semibold text-gray-900">{scores.score_out_of_100 ?? '—'}</dd></div>
+      <div><dt>Overall Scaled Score</dt><dd className="font-semibold text-gray-900">{scores.scaled_score ?? '—'}</dd></div>
+      <div>
+        <dt>Style Scaled Score</dt>
+        <dd className="font-semibold text-gray-900">{scores.style_scaled_score ?? '—'}</dd>
+        {scores.style_scaled_score != null && Number(scores.style_sample_size) > 0 && (
+          <p className="mt-0.5 text-[11px] text-gray-500">Compared with {scores.style_sample_size} {Number(scores.style_sample_size) === 1 ? 'rating' : 'ratings'} in this style</p>
+        )}
+      </div>
+      <div><dt>Retail PPP</dt><dd className="font-semibold text-gray-900">{scores.retail_ppp ?? '—'}</dd></div>
+      <div><dt>Purchased PPP</dt><dd className="font-semibold text-gray-900">{scores.purchased_ppp ?? '—'}</dd></div>
+    </dl>
+  )
 }
 
 function Profile() {
