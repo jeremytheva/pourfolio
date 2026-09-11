@@ -1,4 +1,5 @@
 import { ApiError } from '../lib/nocodeBackend.js'
+import { ratingDimension } from '../lib/ratingFormulaV1.js'
 
 const INVALID_CATALOGUE_MESSAGE = 'The server returned invalid catalogue data. Please try again.'
 const INVALID_CATALOGUE_CODE = 'invalid_catalogue_response'
@@ -97,10 +98,10 @@ const validateCategory = (value) => {
 }
 const validateRatingInsights = (value, summary) => {
   const insights = readDataProperties(value, RATING_INSIGHTS_KEYS, ['distribution', 'attributes'])
-  if (!Array.isArray(insights.distribution) || insights.distribution.length !== 7 || !Array.isArray(insights.attributes)) invalid()
+  if (!Array.isArray(insights.distribution) || insights.distribution.length !== 6 || !Array.isArray(insights.attributes)) invalid()
   const distribution = insights.distribution.map((value, index) => {
     const bucket = readDataProperties(value, RATING_BUCKET_KEYS, ['score', 'count'])
-    if (bucket.score !== index + 1 || !Number.isSafeInteger(bucket.count) || bucket.count < 0) invalid()
+    if (bucket.score !== index || !Number.isSafeInteger(bucket.count) || bucket.count < 0) invalid()
     return { score: bucket.score, count: bucket.count }
   })
   if (distribution.reduce((sum, bucket) => sum + bucket.count, 0) !== summary.count) invalid()
@@ -108,7 +109,9 @@ const validateRatingInsights = (value, summary) => {
     const attribute = readDataProperties(value, ATTRIBUTE_INSIGHT_KEYS, ['attributeId', 'name', 'average', 'count'])
     const attributeId = validateStableId(attribute.attributeId)
     const name = validateText(attribute.name, { required: true })
-    if (typeof attribute.average !== 'number' || !Number.isFinite(attribute.average) || attribute.average < 1 || attribute.average > 7) invalid()
+    const dimension = ratingDimension(name)
+    const min = dimension?.min ?? 1
+    if (!dimension || typeof attribute.average !== 'number' || !Number.isFinite(attribute.average) || attribute.average < min || attribute.average > dimension.max) invalid()
     if (!Number.isSafeInteger(attribute.count) || attribute.count < 1 || attribute.count > summary.count) invalid()
     return { attributeId, name, average: attribute.average, count: attribute.count }
   })
@@ -142,7 +145,9 @@ const validateProduct = (value, { detail = false } = {}) => {
   if (detail) {
     const summary = readDataProperties(product.ratingSummary, RATING_SUMMARY_KEYS, ['count', 'average'])
     if (!Number.isSafeInteger(summary.count) || summary.count < 0) invalid()
-    if (summary.count === 0) { if (summary.average !== null) invalid() } else if (typeof summary.average !== 'number' || !Number.isFinite(summary.average) || summary.average < 1 || summary.average > 7) invalid()
+    if (summary.count === 0) {
+      if (summary.average !== null) invalid()
+    } else if (typeof summary.average !== 'number' || !Number.isFinite(summary.average) || summary.average < 0 || summary.average > 5) invalid()
     result.ratingSummary = { count: summary.count, average: summary.average }
     result.ratingInsights = validateRatingInsights(product.ratingInsights, result.ratingSummary)
     if (Object.hasOwn(product, 'ratings') && (!Array.isArray(product.ratings) || product.ratings.length > 0)) invalid()
