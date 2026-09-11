@@ -1,6 +1,10 @@
 import { COLLECTIONS } from '../../src/data/contract.js'
 import { dataProvider } from './dataProvider.js'
-import { projectBrewDoneItDeduction, sanitiseBrewDoneItDeductionInput } from './brewDoneItPolicy.js'
+import {
+  BREW_DONE_IT_DEDUCTION_DIMENSIONS,
+  projectBrewDoneItDeduction,
+  sanitiseBrewDoneItDeductionInput
+} from './brewDoneItPolicy.js'
 
 const list = (value) => (Array.isArray(value) ? value : value ? [value] : []).filter((item) => item && typeof item === 'object')
 const first = (value) => list(value)[0] || value || null
@@ -115,6 +119,31 @@ const canonicalDeductions = (records) => {
   })
 }
 
+const resolveDeductionInput = async (input) => {
+  const dimensions = BREW_DONE_IT_DEDUCTION_DIMENSIONS
+  if ([dimensions.breweryCountry, dimensions.breweryState].includes(input.dimension)) {
+    throw fail('Brewery geography deductions are not available until canonical geography is certified.', 409)
+  }
+
+  if (input.dimension === dimensions.style) {
+    const category = await dataProvider.get(COLLECTIONS.categories, input.referenceId)
+    if (!category) throw fail('Style not found.', 404)
+    return { ...input, valueText: category.category_name || null }
+  }
+
+  if (input.dimension === dimensions.breweryRuledOut) {
+    const producer = await dataProvider.get(COLLECTIONS.producers, input.referenceId)
+    if (!producer) throw fail('Brewery not found.', 404)
+  }
+
+  if (input.dimension === dimensions.beerRuledOut) {
+    const product = await dataProvider.get(COLLECTIONS.products, input.referenceId)
+    if (!product) throw fail('Beer not found.', 404)
+  }
+
+  return input
+}
+
 export const getSelectorClues = async (roundId, response, user) => {
   const { round, game } = await roundAndGame(roundId, user)
   if (String(round.selector_participant_id) !== String(user.id)) {
@@ -193,7 +222,7 @@ export const listDeductions = async (roundId, response, user) => {
 export const recordDeduction = async (roundId, request, response, user) => {
   const { round } = await activeGuesser(roundId, user)
   const key = requestKey(request, user.id)
-  const input = sanitiseBrewDoneItDeductionInput(request.body)
+  let input = sanitiseBrewDoneItDeductionInput(request.body)
   const replay = list(await dataProvider.list(COLLECTIONS.brewDoneItDeductions, {
     round_id: round.id,
     idempotency_key: key
@@ -203,6 +232,7 @@ export const recordDeduction = async (roundId, request, response, user) => {
     return
   }
 
+  input = await resolveDeductionInput(input)
   const logicalKey = deductionLogicalKey(input)
   const existing = canonicalDeductions(await dataProvider.list(COLLECTIONS.brewDoneItDeductions, { round_id: round.id }))
     .find((item) => deductionLogicalKey(item) === logicalKey)
