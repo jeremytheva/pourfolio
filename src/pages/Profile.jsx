@@ -7,6 +7,18 @@ import { profileService } from '../services/profileService.js'
 import { ratingService } from '../services/ratingService.js'
 import { formatDate } from '../utils/dateFormatting.js'
 
+const AdvancedScores = ({ scores }) => {
+  if (!scores) return null
+  return (
+    <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-gray-600 sm:grid-cols-4">
+      <div><dt>Score / 100</dt><dd className="font-semibold text-gray-900">{scores.score_out_of_100 ?? '—'}</dd></div>
+      <div><dt>Overall Scaled Score</dt><dd className="font-semibold text-gray-900">{scores.scaled_score ?? '—'}</dd></div>
+      <div><dt>Retail PPP</dt><dd className="font-semibold text-gray-900">{scores.retail_ppp ?? '—'}</dd></div>
+      <div><dt>Purchased PPP</dt><dd className="font-semibold text-gray-900">{scores.purchased_ppp ?? '—'}</dd></div>
+    </dl>
+  )
+}
+
 function Profile() {
   const { user } = useAuth()
   const [profile, setProfile] = useState(null)
@@ -90,7 +102,7 @@ function Profile() {
   }, [ratings])
 
   const average = useMemo(() => {
-    const values = ratings.map((rating) => Number(rating.total_weighted)).filter(Number.isFinite)
+    const values = ratings.map((rating) => Number(rating.total_weighted)).filter((value) => Number.isFinite(value) && value >= 0 && value <= 5)
     return values.length ? (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2) : null
   }, [ratings])
 
@@ -164,22 +176,10 @@ function Profile() {
 
           {profileStatus === 'ready' && (
             <form onSubmit={saveProfile} className="space-y-4" aria-busy={savingProfile ? 'true' : 'false'}>
-              <div>
-                <label htmlFor="profile-name" className="text-sm font-medium text-gray-800">Display name</label>
-                <input id="profile-name" value={profileForm.name} onChange={(event) => setProfileForm((current) => ({ ...current, name: event.target.value }))} maxLength={120} required className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
-              </div>
-              <div>
-                <label htmlFor="profile-description" className="text-sm font-medium text-gray-800">About</label>
-                <textarea id="profile-description" value={profileForm.description} onChange={(event) => setProfileForm((current) => ({ ...current, description: event.target.value }))} maxLength={1000} rows={4} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
-              </div>
-              <div>
-                <label htmlFor="profile-avatar" className="text-sm font-medium text-gray-800">Avatar URL</label>
-                <input id="profile-avatar" type="url" value={profileForm.avatar_url} onChange={(event) => setProfileForm((current) => ({ ...current, avatar_url: event.target.value }))} maxLength={2048} placeholder="https://…" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
-              </div>
-              <label className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 text-sm text-gray-700">
-                <input type="checkbox" checked={profileForm.rating_history_public} onChange={(event) => setProfileForm((current) => ({ ...current, rating_history_public: event.target.checked }))} className="mt-1" />
-                <span><span className="font-medium text-gray-900">Share my rating history</span><span className="mt-1 block text-gray-600">When enabled, other signed-in users can see the beers you have rated and your overall scores.</span></span>
-              </label>
+              <div><label htmlFor="profile-name" className="text-sm font-medium text-gray-800">Display name</label><input id="profile-name" value={profileForm.name} onChange={(event) => setProfileForm((current) => ({ ...current, name: event.target.value }))} maxLength={120} required className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" /></div>
+              <div><label htmlFor="profile-description" className="text-sm font-medium text-gray-800">About</label><textarea id="profile-description" value={profileForm.description} onChange={(event) => setProfileForm((current) => ({ ...current, description: event.target.value }))} maxLength={1000} rows={4} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" /></div>
+              <div><label htmlFor="profile-avatar" className="text-sm font-medium text-gray-800">Avatar URL</label><input id="profile-avatar" type="url" value={profileForm.avatar_url} onChange={(event) => setProfileForm((current) => ({ ...current, avatar_url: event.target.value }))} maxLength={2048} placeholder="https://…" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" /></div>
+              <label className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 text-sm text-gray-700"><input type="checkbox" checked={profileForm.rating_history_public} onChange={(event) => setProfileForm((current) => ({ ...current, rating_history_public: event.target.checked }))} className="mt-1" /><span><span className="font-medium text-gray-900">Share my rating history</span><span className="mt-1 block text-gray-600">When enabled, other signed-in users can see the beers you have rated and your overall scores. Private price and PPP information is never shared.</span></span></label>
               <button type="submit" disabled={savingProfile} className="w-full rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800 disabled:cursor-wait disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">{savingProfile ? 'Saving profile…' : 'Save profile'}</button>
               {profileSaved && <p className="text-sm font-medium text-green-700" role="status">{profileSaved}</p>}
             </form>
@@ -192,8 +192,8 @@ function Profile() {
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="rating-history" aria-busy={ratingsStatus === 'loading' ? 'true' : 'false'}>
           {deleteError && <div ref={deleteErrorRef} tabIndex={-1} className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 outline-none focus:ring-2 focus:ring-red-300" role="alert">{deleteError}</div>}
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <div><h2 ref={ratingHistoryHeadingRef} id="rating-history" tabIndex={-1} className="text-2xl font-semibold text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2">My ratings</h2><p className="mt-1 text-sm text-gray-600">Only ratings owned by your authenticated account are returned.</p></div>
-            <div className="text-right"><p className="text-xs uppercase tracking-wide text-gray-500">Average</p><p className="text-2xl font-bold text-amber-800">{average ? `${average} / 7` : '—'}</p></div>
+            <div><h2 ref={ratingHistoryHeadingRef} id="rating-history" tabIndex={-1} className="text-2xl font-semibold text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2">My ratings</h2><p className="mt-1 text-sm text-gray-600">Advanced scores are calculated from your Full Tasting and private cellar price data when available.</p></div>
+            <div className="text-right"><p className="text-xs uppercase tracking-wide text-gray-500">Average</p><p className="text-2xl font-bold text-amber-800">{average ? `${average} / 5` : '—'}</p></div>
           </div>
 
           {ratingsStatus === 'loading' && <p className="py-10 text-center text-gray-600" role="status">Loading rating history…</p>}
@@ -201,7 +201,7 @@ function Profile() {
           {ratingsStatus === 'ready' && ratings.length === 0 && <div className="py-10 text-center"><SafeIcon icon={FiStar} className="mx-auto mb-3 h-9 w-9 text-gray-300" /><p className="font-medium text-gray-800">No ratings yet</p><Link to="/home" className="mt-2 inline-block text-sm font-medium text-amber-700 hover:underline">Browse products</Link></div>}
           {ratingsStatus === 'ready' && ratings.length > 0 && <ul className="mt-5 divide-y divide-gray-200" aria-label="Rating history">{ratings.map((rating) => {
             const isDeleting = deletingRatingId === rating.id
-            return <li key={rating.id} className="flex items-start justify-between gap-4 py-4" aria-busy={isDeleting ? 'true' : undefined}><div><Link ref={(node) => { if (node) ratingLinkRefs.current.set(rating.id, node); else ratingLinkRefs.current.delete(rating.id) }} to={`/products/${rating.product_id}`} className="font-semibold text-gray-900 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">{rating.product?.product_name || `Product ${rating.product_id}`}</Link><p className="mt-1 text-sm text-gray-600">{rating.product?.producer?.producer_name || 'Producer not recorded'}</p><p className="mt-1 text-xs text-gray-500">{formatDate(rating.date_rated)}</p></div><div className="flex items-center gap-3"><span className="whitespace-nowrap text-lg font-semibold text-amber-800">{rating.total_weighted} / 7</span><button type="button" onClick={() => deleteRating(rating)} disabled={isDeleting} className="rounded-lg p-2 text-red-700 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2" aria-label={`${isDeleting ? 'Deleting rating for' : 'Delete rating for'} ${rating.product?.product_name || 'product'}`}><SafeIcon icon={FiTrash2} className="h-4 w-4" /></button></div></li>
+            return <li key={rating.id} className="py-5" aria-busy={isDeleting ? 'true' : undefined}><div className="flex items-start justify-between gap-4"><div><Link ref={(node) => { if (node) ratingLinkRefs.current.set(rating.id, node); else ratingLinkRefs.current.delete(rating.id) }} to={`/products/${rating.product_id}`} className="font-semibold text-gray-900 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">{rating.product?.product_name || `Product ${rating.product_id}`}</Link><p className="mt-1 text-sm text-gray-600">{rating.product?.producer?.producer_name || 'Producer not recorded'}</p><p className="mt-1 text-xs text-gray-500">{formatDate(rating.date_rated)}</p></div><div className="flex items-center gap-3"><span className="whitespace-nowrap text-lg font-semibold text-amber-800">{rating.total_weighted} / 5</span><button type="button" onClick={() => deleteRating(rating)} disabled={isDeleting} className="rounded-lg p-2 text-red-700 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2" aria-label={`${isDeleting ? 'Deleting rating for' : 'Delete rating for'} ${rating.product?.product_name || 'product'}`}><SafeIcon icon={FiTrash2} className="h-4 w-4" /></button></div></div><AdvancedScores scores={rating.advanced_scores} /></li>
           })}</ul>}
         </section>
       </div>
