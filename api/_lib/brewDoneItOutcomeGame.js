@@ -270,6 +270,11 @@ export const setHistoryClueSharing = async (gameId, request, response, user) => 
   const game = await dataProvider.get(COLLECTIONS.brewDoneItGames, id(gameId, 'Game identifier'))
   if (!game || !participant(game, user.id)) throw fail('Game not found.', 404)
   const field = String(game.creator_participant_id) === String(user.id) ? 'creator_history_clues_enabled' : 'opponent_history_clues_enabled'
+  const currentEnabled = game[field] === true || Number(game[field]) === 1
+  if (currentEnabled === request.body.enabled) {
+    response.status(200).json({ game: projectBrewDoneItGame(game), replayed: true })
+    return
+  }
   const saved = await cas(COLLECTIONS.brewDoneItGames, game, expectedVersion, {
     [field]: request.body.enabled,
     last_activity_at: new Date().toISOString()
