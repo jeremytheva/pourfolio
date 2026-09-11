@@ -23,7 +23,7 @@ const routeRequest = async (request, response) => {
     return catalogueHandler(request, response)
   }
   if (resource === 'cellar') return cellarHandler(request, response)
-  if (resource === 'profile') return profileHandler(request, response)
+  if (resource === 'profile' || resource === 'profiles') return profileHandler(request, response)
   if (CURRENT_SCHEMA_RESOURCES.has(resource)) {
     return currentSchemaHandler(request, response)
   }
