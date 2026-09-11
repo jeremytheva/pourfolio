@@ -49,8 +49,8 @@ export const calculateBrewDoneItRoundScore = ({
     correct: Boolean(correct),
     breakdown: Object.freeze({
       startingPoints: correct ? BREW_DONE_IT_RULES.maximumRoundPoints : 0,
-      questionPenalty: -questionPenalty,
-      incorrectGuessPenalty: -incorrectGuessPenalty,
+      questionPenalty: questionPenalty === 0 ? 0 : -questionPenalty,
+      incorrectGuessPenalty: incorrectGuessPenalty === 0 ? 0 : -incorrectGuessPenalty,
       rawTotal
     })
   })
