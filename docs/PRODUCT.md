@@ -29,7 +29,7 @@ Deferred modules may remain as prototype source for future research, but they ar
 
 ## Brew Done It — persistent cross-device deduction game, currently contained
 
-Brew Done It is an approved persistent social deduction game under [ADR 0003](DECISIONS/0003-adopt-brew-done-it-deduction-board.md). ADR 0003 retains the cross-device architecture and security model from [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) while superseding its controlled-question and scoring model. The feature is not yet shipped in the launch application: it has no production navigation item or playable route, and the server capability remains fail-closed while the required NoCodeBackend collections are unverified.
+Brew Done It is an approved persistent social deduction game under [ADR 0005](DECISIONS/0005-adopt-brew-done-it-deduction-board.md). ADR 0005 retains the cross-device architecture and security model from [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) while superseding its controlled-question and scoring model. The feature is not yet shipped in the launch application: it has no production navigation item or playable route, and the server capability remains fail-closed while the required NoCodeBackend collections are unverified.
 
 ### Product model
 
@@ -42,7 +42,7 @@ For each round:
 3. the guesser must not receive the secret beer identity while the round is active;
 4. the players may ask and answer natural yes/no questions without those questions becoming scored server actions;
 5. the guesser records useful answers in a persistent two-sided deduction board for **Brewery** and **Beer / Style**;
-6. catalogue-backed deductions narrow candidate breweries, styles and beers;
+6. catalogue-backed deductions narrow candidate breweries, styles and beers only where Pourfolio has governed source data;
 7. the guesser submits formal brewery, exact-beer and/or style-fallback outcomes when ready;
 8. the server determines correctness, formal-submission sequence and score; and
 9. the guesser explicitly finishes the round to bank the best achieved outcome.
@@ -93,14 +93,16 @@ The guesser records useful answers as structured `yes`, `no` or `unknown` deduct
 
 The deduction card has two accessible sides/tabs:
 
-- **Brewery:** location, previous-rating relationship, brewery candidates and formal brewery guess; and
+- **Brewery:** supported brewery clues, previous-rating relationship, brewery candidates and formal brewery guess; and
 - **Beer / Style:** style, ABV, IBU, collaboration, supported traits, beer candidate count, exact-beer guess and style fallback.
 
-Catalogue-backed deductions automatically narrow candidates. Dark and barrel-aged remain manual notes until reliable structured trait metadata is certified; they must not be inferred from product names.
+Currently source-backed automatic narrowing supports producer relationships, the guesser's previous-rating relationship to producers, style/category, ABV, IBU and collaboration. State/country questions remain valid social questions but are not offered as automatic filters until Pourfolio has governed canonical brewery geography. The application must not infer geography from producer free-text addresses or unsupported provider tables.
+
+Dark and barrel-aged remain manual notes until reliable structured trait metadata is certified; they must not be inferred from product names and must not automatically eliminate candidates.
 
 ### Selector answer sheet and history clues
 
-The selector receives a private server projection containing the facts needed to answer questions accurately, including supported brewery location, beer/style, ABV, IBU, collaboration and edition information.
+The selector receives a private server projection containing the governed facts needed to answer questions accurately, including brewery name, beer/style, ABV, IBU, collaboration and edition information. Geography remains explicitly unavailable/unknown until a governed canonical source exists rather than being inferred.
 
 Each participant controls whether their own Pourfolio rating history may be used for game clues. When enabled, the opponent acting as selector may receive aggregate facts about the hidden answer, such as:
 
@@ -164,7 +166,8 @@ A playable production delivery must satisfy all of the following before `/brew-d
 - **Persistent resume:** both participants can leave, sign back in and resume an accepted series and deduction board on another device.
 - **Natural conversation:** no fixed server question list is required for normal play and ordinary questions do not reduce score.
 - **Deduction persistence:** `yes`, `no` and `unknown` deductions survive refresh/device changes and missing data is never converted to `no`.
-- **Candidate narrowing:** supported brewery/style/ABV/IBU/collaboration deductions narrow only from certified catalogue facts.
+- **Candidate narrowing:** supported previous-rating/style/ABV/IBU/collaboration deductions narrow only from certified catalogue facts.
+- **Geography safety:** state/country automatic filtering stays unavailable until canonical brewery geography is governed and certified; location is never inferred from free text.
 - **Trait safety:** dark/barrel-aged or future traits do not auto-filter until their source data is certified.
 - **History consent:** rating-history aggregates are selector-visible only when the guesser has enabled that preference, and raw rating/cellar data is not disclosed.
 - **Formal outcomes:** brewery, exact beer and style submissions resolve to valid catalogue identifiers; forged correctness/score fields do not alter state.
