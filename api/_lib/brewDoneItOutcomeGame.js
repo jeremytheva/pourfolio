@@ -1,5 +1,5 @@
 import { COLLECTIONS } from '../../src/data/contract.js'
-import { calculateBrewDoneItRoundScore } from '../../src/utils/brewDoneItChallengeScoring.js'
+import { calculateBrewDoneItDeductionScore } from '../../src/utils/brewDoneItDeductionScoring.js'
 import { dataProvider } from './dataProvider.js'
 import { projectBrewDoneItGame, projectBrewDoneItGuess, projectBrewDoneItRound, sanitiseBrewDoneItOutcomeInput } from './brewDoneItPolicy.js'
 
@@ -12,7 +12,8 @@ const id = (value, label) => {
   return text
 }
 const participant = (game, userId) => [game?.creator_participant_id, game?.opponent_participant_id]
-  .filter((value) => value !== null && value !== undefined).some((value) => String(value) === String(userId))
+  .filter((value) => value !== null && value !== undefined)
+  .some((value) => String(value) === String(userId))
 
 const mutation = (request) => {
   const expectedVersion = Number(request.body?.expectedVersion)
@@ -41,16 +42,22 @@ const cas = async (collection, record, expectedVersion, updates) => {
   return saved
 }
 
-const activeGuesser = async (roundId, user) => {
+const guesserRound = async (roundId, user) => {
   let round = await dataProvider.get(COLLECTIONS.brewDoneItRounds, id(roundId, 'Round identifier'))
   if (!round) throw fail('Round not found.', 404)
   const game = await dataProvider.get(COLLECTIONS.brewDoneItGames, round.game_id)
   if (!game || !participant(game, user.id)) throw fail('Round not found.', 404)
   if (String(round.guesser_participant_id) !== String(user.id)) throw fail('Only the guesser can submit an outcome.', 403)
   round = await reconcileOutcomeRound(round)
+  return { round, game }
+}
+
+const requireActiveRound = ({ round, game }) => {
   if (game.status !== 'active' || round.status !== 'guessing') throw fail('This round is not accepting outcomes.', 409)
   return { round, game }
 }
+
+const activeGuesser = async (roundId, user) => requireActiveRound(await guesserRound(roundId, user))
 
 const isCorrect = (input, product) => input.guessType === 'brewery'
   ? String(input.referenceId) === String(product.producer_id)
@@ -69,6 +76,14 @@ const sameFormalGuess = (guess, input) => guess.guess_type === input.guessType &
     : input.guessType === 'brewery' ? String(guess.guessed_producer_id) === String(input.referenceId)
       : String(guess.guessed_category_id) === String(input.referenceId)
 )
+
+const commitGuess = async (guess, roundVersion) => {
+  await dataProvider.update(COLLECTIONS.brewDoneItGuesses, guess.id, {
+    action_state: 'committed',
+    committed_round_version: roundVersion
+  })
+  return dataProvider.get(COLLECTIONS.brewDoneItGuesses, guess.id)
+}
 
 const finaliseReservedOutcome = async (round, guess) => {
   const key = guess.idempotency_key
@@ -102,10 +117,9 @@ export const reconcileOutcomeRound = async (round) => {
       pending_action_started_at: null
     })
   }
+
   const savedRound = await finaliseReservedOutcome(round, guess)
-  if (guess.action_state !== 'committed') {
-    await dataProvider.update(COLLECTIONS.brewDoneItGuesses, guess.id, { ...guess, action_state: 'committed', committed_round_version: savedRound.version })
-  }
+  if (guess.action_state !== 'committed') await commitGuess(guess, savedRound.version)
   return savedRound
 }
 
@@ -115,7 +129,10 @@ export const submitOutcomeGuess = async (roundId, request, response, user) => {
   const input = sanitiseBrewDoneItOutcomeInput(request.body)
   const key = `${user.id}:${idempotencyKey}`
   const replay = list(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, { round_id: round.id, idempotency_key: key }))[0]
-  if (replay?.action_state === 'committed') return response.status(200).json({ guess: projectBrewDoneItGuess(replay), round: projectBrewDoneItRound(round, user.id), replayed: true })
+  if (replay?.action_state === 'committed') {
+    response.status(200).json({ guess: projectBrewDoneItGuess(replay), round: projectBrewDoneItRound(round, user.id), replayed: true })
+    return
+  }
   if (Number(round.turn_sequence || 0) >= Number(round.max_turns || 20)) throw fail('This round has no remaining formal submissions.', 409)
 
   const prior = list(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, { round_id: round.id }))
@@ -147,25 +164,30 @@ export const submitOutcomeGuess = async (roundId, request, response, user) => {
   } catch (error) {
     guess = list(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, { round_id: round.id, idempotency_key: key }))[0]
     if (!guess) {
-      await cas(COLLECTIONS.brewDoneItRounds, reserved, Number(reserved.version || 0), { pending_action_key: null, pending_action_type: null, pending_action_started_at: null }).catch(() => undefined)
+      await cas(COLLECTIONS.brewDoneItRounds, reserved, Number(reserved.version || 0), {
+        pending_action_key: null,
+        pending_action_type: null,
+        pending_action_started_at: null
+      }).catch(() => undefined)
       throw error
     }
   }
 
   const savedRound = await finaliseReservedOutcome(await dataProvider.get(COLLECTIONS.brewDoneItRounds, round.id), guess)
-  if (guess.action_state !== 'committed') {
-    await dataProvider.update(COLLECTIONS.brewDoneItGuesses, guess.id, { ...guess, action_state: 'committed', committed_round_version: savedRound.version })
-    guess = await dataProvider.get(COLLECTIONS.brewDoneItGuesses, guess.id)
-  }
+  if (guess.action_state !== 'committed') guess = await commitGuess(guess, savedRound.version)
   response.status(201).json({ guess: projectBrewDoneItGuess(guess), round: projectBrewDoneItRound(savedRound, user.id) })
 }
 
 export const completeDeductionRound = async (roundId, request, response, user) => {
-  const { round } = await activeGuesser(roundId, user)
   const { expectedVersion, idempotencyKey } = mutation(request)
   const key = `${user.id}:${idempotencyKey}`
-  if (round.terminal_idempotency_key === key) return response.status(200).json({ round: projectBrewDoneItRound(round, user.id), replayed: true })
-  const score = calculateBrewDoneItRoundScore({
+  const loaded = await guesserRound(roundId, user)
+  if (loaded.round.terminal_idempotency_key === key && loaded.round.status === 'completed') {
+    response.status(200).json({ round: projectBrewDoneItRound(loaded.round, user.id), replayed: true })
+    return
+  }
+  const { round } = requireActiveRound(loaded)
+  const score = calculateBrewDoneItDeductionScore({
     breweryCorrect: Boolean(round.brewery_correct),
     beerCorrect: Boolean(round.beer_correct),
     styleCorrect: Boolean(round.style_correct),
@@ -184,10 +206,15 @@ export const completeDeductionRound = async (roundId, request, response, user) =
 }
 
 export const forfeitDeductionRound = async (roundId, request, response, user) => {
-  const { round } = await activeGuesser(roundId, user)
   const { expectedVersion, idempotencyKey } = mutation(request)
   const key = `${user.id}:${idempotencyKey}`
-  const score = calculateBrewDoneItRoundScore({})
+  const loaded = await guesserRound(roundId, user)
+  if (loaded.round.terminal_idempotency_key === key && loaded.round.status === 'forfeited') {
+    response.status(200).json({ round: projectBrewDoneItRound(loaded.round, user.id), replayed: true })
+    return
+  }
+  const { round } = requireActiveRound(loaded)
+  const score = calculateBrewDoneItDeductionScore({})
   const saved = await cas(COLLECTIONS.brewDoneItRounds, round, expectedVersion, {
     status: 'forfeited',
     completion_reason: 'forfeit',
@@ -206,7 +233,10 @@ export const setHistoryClueSharing = async (gameId, request, response, user) => 
   const game = await dataProvider.get(COLLECTIONS.brewDoneItGames, id(gameId, 'Game identifier'))
   if (!game || !participant(game, user.id)) throw fail('Game not found.', 404)
   const field = String(game.creator_participant_id) === String(user.id) ? 'creator_history_clues_enabled' : 'opponent_history_clues_enabled'
-  const saved = await cas(COLLECTIONS.brewDoneItGames, game, expectedVersion, { [field]: request.body.enabled, last_activity_at: new Date().toISOString() })
+  const saved = await cas(COLLECTIONS.brewDoneItGames, game, expectedVersion, {
+    [field]: request.body.enabled,
+    last_activity_at: new Date().toISOString()
+  })
   response.status(200).json({ game: projectBrewDoneItGame(saved) })
 }
 
