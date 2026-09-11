@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { FiChevronLeft, FiChevronRight, FiRefreshCw, FiSearch } from 'react-icons/fi'
 import SafeIcon from '../common/SafeIcon.jsx'
 import OptimizedBeerCard from '../components/OptimizedBeerCard.jsx'
+import { Link } from '../lib/router.jsx'
 import { beverageService } from '../services/beverageService.js'
 
 function HomePage({ searchMode = false }) {
@@ -138,6 +139,14 @@ function HomePage({ searchMode = false }) {
             <SafeIcon icon={FiSearch} className="mx-auto mb-3 h-10 w-10 text-gray-300" />
             <h3 className="text-lg font-semibold text-gray-800">No matching products</h3>
             <p className="mt-1 text-gray-500">Try a shorter product, producer or style name.</p>
+            {debouncedQuery && (
+              <Link
+                to={`/products/propose?name=${encodeURIComponent(debouncedQuery)}`}
+                className="mt-4 inline-flex rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2"
+              >
+                Propose this missing beer
+              </Link>
+            )}
           </div>
         )}
 
