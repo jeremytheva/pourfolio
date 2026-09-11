@@ -1,11 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { beverageService } from '../services/beverageService.js'
-import { getBrewDoneItGame, getBrewDoneItOptions } from '../services/brewDoneItService.js'
+import { getBrewDoneItGame } from '../services/brewDoneItService.js'
 
-export default function BrewDoneItRoundHistory({ gameId, round }) {
+export default function BrewDoneItRoundHistory({ gameId, round, options = { breweries: [], styles: [] } }) {
   const [hydratedRound, setHydratedRound] = useState(round)
   const [productNames, setProductNames] = useState({})
-  const [optionNames, setOptionNames] = useState({ breweries: {}, styles: {} })
   const guesses = Array.isArray(hydratedRound?.guesses) ? hydratedRound.guesses : []
 
   useEffect(() => {
@@ -25,26 +24,29 @@ export default function BrewDoneItRoundHistory({ gameId, round }) {
   }, [gameId, round?.id, round?.version])
 
   useEffect(() => {
-    let active = true
-    getBrewDoneItOptions().then((payload) => {
-      if (!active) return
-      setOptionNames({
-        breweries: Object.fromEntries((payload.breweries || []).map((item) => [String(item.id), item.name])),
-        styles: Object.fromEntries((payload.styles || []).map((item) => [String(item.id), item.name]))
-      })
-    }).catch(() => undefined)
-    return () => { active = false }
-  }, [])
-
-  useEffect(() => {
     const ids = [...new Set(guesses.map((guess) => String(guess.guessed_product_id || '')).filter(Boolean))]
-    if (!ids.length) { setProductNames({}); return undefined }
+    if (!ids.length) {
+      setProductNames({})
+      return undefined
+    }
     let active = true
     Promise.all(ids.map(async (id) => {
-      try { const product = await beverageService.getProduct(id); return [id, product.product_name] } catch { return [id, null] }
-    })).then((pairs) => { if (active) setProductNames(Object.fromEntries(pairs.filter(([, name]) => name))) })
+      try {
+        const product = await beverageService.getProduct(id)
+        return [id, product.product_name]
+      } catch {
+        return [id, null]
+      }
+    })).then((pairs) => {
+      if (active) setProductNames(Object.fromEntries(pairs.filter(([, name]) => name)))
+    })
     return () => { active = false }
   }, [guesses])
+
+  const optionNames = useMemo(() => ({
+    breweries: Object.fromEntries((options.breweries || []).map((item) => [String(item.id), item.name])),
+    styles: Object.fromEntries((options.styles || []).map((item) => [String(item.id), item.name]))
+  }), [options.breweries, options.styles])
 
   const actions = useMemo(() => guesses
     .filter((guess) => !guess.action_state || guess.action_state === 'committed')
