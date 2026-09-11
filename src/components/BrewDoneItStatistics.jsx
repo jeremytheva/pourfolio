@@ -16,52 +16,32 @@ const scorePosition = (record) => {
 export default function BrewDoneItStatistics({ stats }) {
   const headToHead = Array.isArray(stats.headToHead) ? stats.headToHead : []
   const guessingRounds = Number(stats.roundsAsGuesser || 0)
-  const correctGuesses = Number(stats.correctGuesses || 0)
-  const accuracy = guessingRounds ? Math.round((correctGuesses / guessingRounds) * 100) : 0
+  const brewerySolved = Number(stats.brewerySolved || 0)
+  const exactBeerSolved = Number(stats.exactBeerSolved || 0)
+  const styleFallbackSolved = Number(stats.styleFallbackSolved || 0)
+  const rate = (count) => guessingRounds ? `${Math.round((count / guessingRounds) * 100)}%` : '0%'
 
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="statistics-heading">
       <h2 id="statistics-heading" className="text-xl font-semibold text-gray-900">Your Brew Done It record</h2>
       <p className="mt-1 text-sm text-gray-600">These totals persist across rounds, devices and future sessions.</p>
-      <dl className="mt-4 grid grid-cols-2 gap-3 text-center sm:grid-cols-3 lg:grid-cols-6">
+      <dl className="mt-4 grid grid-cols-2 gap-3 text-center sm:grid-cols-4 lg:grid-cols-8">
         <div><dt className="text-sm text-gray-600">Series</dt><dd className="text-2xl font-bold">{stats.seriesCount || 0}</dd></div>
         <div><dt className="text-sm text-gray-600">Rounds</dt><dd className="text-2xl font-bold">{stats.completedRounds || 0}</dd></div>
         <div><dt className="text-sm text-gray-600">Guessing rounds</dt><dd className="text-2xl font-bold">{guessingRounds}</dd></div>
-        <div><dt className="text-sm text-gray-600">Correct</dt><dd className="text-2xl font-bold">{correctGuesses}</dd></div>
+        <div><dt className="text-sm text-gray-600">Brewery solved</dt><dd className="text-2xl font-bold">{brewerySolved}</dd><dd className="text-xs text-gray-500">{rate(brewerySolved)}</dd></div>
+        <div><dt className="text-sm text-gray-600">Exact beer</dt><dd className="text-2xl font-bold">{exactBeerSolved}</dd><dd className="text-xs text-gray-500">{rate(exactBeerSolved)}</dd></div>
+        <div><dt className="text-sm text-gray-600">Style fallback</dt><dd className="text-2xl font-bold">{styleFallbackSolved}</dd><dd className="text-xs text-gray-500">{rate(styleFallbackSolved)}</dd></div>
         <div><dt className="text-sm text-gray-600">Points</dt><dd className="text-2xl font-bold">{stats.awardedPoints || 0}</dd></div>
-        <div><dt className="text-sm text-gray-600">Accuracy</dt><dd className="text-2xl font-bold">{accuracy}%</dd></div>
+        <div><dt className="text-sm text-gray-600">Avg score</dt><dd className="text-2xl font-bold">{stats.averagePointsPerGuessingRound || 0}</dd></div>
       </dl>
-      <p className="mt-3 text-sm text-gray-600">Average score when guessing: <span className="font-semibold text-gray-900">{stats.averagePointsPerGuessingRound || 0}</span> points.</p>
 
       {headToHead.length > 0 && (
         <div className="mt-6 overflow-x-auto">
           <h3 className="font-semibold text-gray-900">Head-to-head</h3>
-          <p className="mt-1 text-sm text-gray-600">Each row combines every completed round played against that opponent.</p>
           <table className="mt-2 min-w-full text-left text-sm">
-            <thead>
-              <tr className="border-b">
-                <th className="py-2 pr-4">Opponent</th>
-                <th className="py-2 pr-4">Position</th>
-                <th className="py-2 pr-4">Rounds</th>
-                <th className="py-2 pr-4">Points</th>
-                <th className="py-2 pr-4">Opponent points</th>
-                <th className="py-2 pr-4">Correct guesses</th>
-                <th className="py-2">Last played</th>
-              </tr>
-            </thead>
-            <tbody>
-              {headToHead.map((record) => (
-                <tr className="border-b" key={record.opponentParticipantId}>
-                  <td className="py-2 pr-4">Player {record.opponentParticipantId}</td>
-                  <td className="py-2 pr-4 font-medium">{scorePosition(record)}</td>
-                  <td className="py-2 pr-4">{record.completedRounds}</td>
-                  <td className="py-2 pr-4">{record.pointsFor}</td>
-                  <td className="py-2 pr-4">{record.pointsAgainst}</td>
-                  <td className="py-2 pr-4">{record.correctGuessesFor || 0}–{record.correctGuessesAgainst || 0}</td>
-                  <td className="py-2">{formatDate(record.lastPlayedAt)}</td>
-                </tr>
-              ))}
-            </tbody>
+            <thead><tr className="border-b"><th className="py-2 pr-4">Opponent</th><th className="py-2 pr-4">Position</th><th className="py-2 pr-4">Rounds</th><th className="py-2 pr-4">Points</th><th className="py-2 pr-4">Brewery</th><th className="py-2 pr-4">Exact beer</th><th className="py-2 pr-4">Style</th><th className="py-2">Last played</th></tr></thead>
+            <tbody>{headToHead.map((record) => <tr className="border-b" key={record.opponentParticipantId}><td className="py-2 pr-4">Player {record.opponentParticipantId}</td><td className="py-2 pr-4 font-medium">{scorePosition(record)}</td><td className="py-2 pr-4">{record.completedRounds}</td><td className="py-2 pr-4">{record.pointsFor}–{record.pointsAgainst}</td><td className="py-2 pr-4">{record.brewerySolvedFor || 0}–{record.brewerySolvedAgainst || 0}</td><td className="py-2 pr-4">{record.exactBeerSolvedFor || 0}–{record.exactBeerSolvedAgainst || 0}</td><td className="py-2 pr-4">{record.styleFallbackSolvedFor || 0}–{record.styleFallbackSolvedAgainst || 0}</td><td className="py-2">{formatDate(record.lastPlayedAt)}</td></tr>)}</tbody>
           </table>
         </div>
       )}

@@ -2,6 +2,8 @@ const GAME_FIELDS = Object.freeze([
   'id',
   'creator_participant_id',
   'opponent_participant_id',
+  'creator_history_clues_enabled',
+  'opponent_history_clues_enabled',
   'status',
   'current_round_number',
   'created_at',
@@ -23,6 +25,10 @@ const ROUND_FIELDS = Object.freeze([
   'max_turns',
   'question_count',
   'incorrect_guess_count',
+  'incorrect_formal_guess_count',
+  'brewery_correct',
+  'style_correct',
+  'beer_correct',
   'created_at',
   'started_at',
   'completed_at',
@@ -37,9 +43,24 @@ const GUESS_FIELDS = Object.freeze([
   'id',
   'round_id',
   'turn_sequence',
+  'guess_type',
   'guessed_product_id',
+  'guessed_producer_id',
+  'guessed_category_id',
   'is_correct',
   'created_at'
+])
+
+const DEDUCTION_FIELDS = Object.freeze([
+  'id',
+  'round_id',
+  'dimension',
+  'answer',
+  'value_text',
+  'reference_id',
+  'numeric_value',
+  'created_at',
+  'updated_at'
 ])
 
 const QUESTION_FIELDS = Object.freeze([
@@ -53,6 +74,8 @@ const QUESTION_FIELDS = Object.freeze([
   'created_at'
 ])
 
+// Legacy v2 controlled-question contract. v3 retains this only so historical
+// contained code remains readable; the v3 browser surface does not call it.
 export const BREW_DONE_IT_QUESTION_TYPES = Object.freeze({
   producer: 'producer',
   category: 'category',
@@ -63,6 +86,30 @@ export const BREW_DONE_IT_QUESTION_TYPES = Object.freeze({
 
 export const BREW_DONE_IT_ABV_THRESHOLDS = Object.freeze([4, 5, 6, 7, 8, 10])
 export const BREW_DONE_IT_IBU_THRESHOLDS = Object.freeze([20, 40, 60, 80])
+
+export const BREW_DONE_IT_OUTCOME_TYPES = Object.freeze({
+  brewery: 'brewery',
+  beer: 'beer',
+  style: 'style'
+})
+
+export const BREW_DONE_IT_DEDUCTION_DIMENSIONS = Object.freeze({
+  breweryCountry: 'brewery_country',
+  breweryState: 'brewery_state',
+  breweryPreviouslyRated: 'brewery_previously_rated',
+  breweryRuledOut: 'brewery_ruled_out',
+  style: 'style',
+  abvAtLeast: 'abv_at_least',
+  abvBelow: 'abv_below',
+  ibuAtLeast: 'ibu_at_least',
+  ibuBelow: 'ibu_below',
+  collaboration: 'collaboration',
+  dark: 'dark',
+  barrelAged: 'barrel_aged',
+  beerRuledOut: 'beer_ruled_out'
+})
+
+export const BREW_DONE_IT_DEDUCTION_ANSWERS = Object.freeze(['yes', 'no', 'unknown'])
 
 const pickFields = (record, fields) => {
   if (!record || typeof record !== 'object' || Array.isArray(record)) return null
@@ -91,6 +138,33 @@ const positiveId = (value, label) => {
   return result
 }
 
+const optionalPositiveId = (value, label) => {
+  if (value === undefined || value === null || value === '') return null
+  return positiveId(value, label)
+}
+
+const optionalText = (value, label, maxLength = 120) => {
+  if (value === undefined || value === null || value === '') return null
+  const text = String(value).trim()
+  if (!text || text.length > maxLength || [...text].some((character) => character.codePointAt(0) < 32)) {
+    const error = new Error(`${label} is invalid.`)
+    error.status = 400
+    throw error
+  }
+  return text
+}
+
+const optionalNumber = (value, label) => {
+  if (value === undefined || value === null || value === '') return null
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric) || numeric < 0 || numeric > 1000) {
+    const error = new Error(`${label} is invalid.`)
+    error.status = 400
+    throw error
+  }
+  return numeric
+}
+
 export const sanitiseBrewDoneItCreateInput = (input) => {
   const body = requirePlainObject(input)
   return { productId: positiveId(body.productId, 'Product identifier') }
@@ -110,6 +184,43 @@ export const sanitiseBrewDoneItJoinInput = (input) => {
 export const sanitiseBrewDoneItGuessInput = (input) => {
   const body = requirePlainObject(input)
   return { productId: positiveId(body.productId, 'Product identifier') }
+}
+
+export const sanitiseBrewDoneItOutcomeInput = (input) => {
+  const body = requirePlainObject(input)
+  const guessType = String(body.guessType ?? '').trim()
+  if (!Object.values(BREW_DONE_IT_OUTCOME_TYPES).includes(guessType)) {
+    const error = new Error('Outcome guess type is invalid.')
+    error.status = 400
+    throw error
+  }
+  return {
+    guessType,
+    referenceId: positiveId(body.referenceId, 'Guess reference')
+  }
+}
+
+export const sanitiseBrewDoneItDeductionInput = (input) => {
+  const body = requirePlainObject(input)
+  const dimension = String(body.dimension ?? '').trim()
+  if (!Object.values(BREW_DONE_IT_DEDUCTION_DIMENSIONS).includes(dimension)) {
+    const error = new Error('Deduction dimension is invalid.')
+    error.status = 400
+    throw error
+  }
+  const answer = String(body.answer ?? '').trim().toLowerCase()
+  if (!BREW_DONE_IT_DEDUCTION_ANSWERS.includes(answer)) {
+    const error = new Error('Deduction answer is invalid.')
+    error.status = 400
+    throw error
+  }
+  return {
+    dimension,
+    answer,
+    valueText: optionalText(body.valueText, 'Deduction value'),
+    referenceId: optionalPositiveId(body.referenceId, 'Deduction reference'),
+    numericValue: optionalNumber(body.numericValue, 'Deduction number')
+  }
 }
 
 export const sanitiseBrewDoneItQuestionInput = (input) => {
@@ -150,6 +261,7 @@ export const sanitiseBrewDoneItQuestionInput = (input) => {
 
 export const projectBrewDoneItGame = (record) => pickFields(record, GAME_FIELDS)
 export const projectBrewDoneItGuess = (record) => pickFields(record, GUESS_FIELDS)
+export const projectBrewDoneItDeduction = (record) => pickFields(record, DEDUCTION_FIELDS)
 export const projectBrewDoneItQuestion = (record) => pickFields(record, QUESTION_FIELDS)
 
 export const projectBrewDoneItRound = (record, viewerId) => {
@@ -164,6 +276,7 @@ export const __testables = {
   GAME_FIELDS,
   ROUND_FIELDS,
   GUESS_FIELDS,
+  DEDUCTION_FIELDS,
   QUESTION_FIELDS,
   positiveId
 }

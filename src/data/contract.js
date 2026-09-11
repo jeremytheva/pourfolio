@@ -19,9 +19,12 @@ export const DEFERRED_COLLECTIONS = Object.freeze({
   brewDoneItGames: 'brew_done_it_games',
   brewDoneItRounds: 'brew_done_it_rounds',
   brewDoneItGuesses: 'brew_done_it_guesses',
+  brewDoneItDeductions: 'brew_done_it_deductions',
+  // Legacy v2 collection retained only for backwards compatibility while the
+  // contained deduction-board model is developed. New v3 gameplay does not
+  // persist natural-language/conversational questions as scored actions.
   brewDoneItQuestions: 'brew_done_it_questions',
-  // Retained only for the unreachable pre-ADR-0002 prototype. New Brew Done It
-  // code must use brewDoneItQuestions and catalogue facts, never rating history.
+  // Retained only for the unreachable pre-ADR-0002 prototype.
   brewDoneItHistoryQuestions: 'brew_done_it_history_questions',
   blockedRelationships: 'blocked_relationships'
 })
