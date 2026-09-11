@@ -84,7 +84,7 @@ Hiding a field in React is insufficient. The guesser's HTTP response itself must
 
 State-changing requests use server-authorised participant roles, optimistic version checks and idempotency keys. A stale or replayed request must not create an additional round, guess, question or score award.
 
-The server is authoritative for participant identity, role, turn/action sequence, correctness, scoring and terminal state.
+The server is authoritative for participant identity, role, turn/action sequence, correctness, scoring and terminal state. Question/guess writes use a recoverable round reservation and durable pending/committed/discarded action state so ambiguous provider failures can be reconciled without inventing a gameplay turn.
 
 ### Containment and provider rollout
 
@@ -98,10 +98,12 @@ Production enablement requires, at minimum:
 2. participant-scoped provider permissions or an equivalent server-only enforcement boundary;
 3. connected tests proving the guesser never receives the secret before completion;
 4. cross-device create/join/resume/guess/complete/next-round evidence;
-5. idempotency and stale-version evidence;
+5. idempotency, stale-version and action-reconciliation evidence;
 6. retention/deletion behaviour for games and round history;
 7. keyboard and WCAG 2.2 AA evidence for the enabled UI; and
 8. a separately reviewed change that adds the route/navigation and enables the policy flag.
+
+The capability-specific gate is defined in [`../BREW_DONE_IT_READINESS.md`](../BREW_DONE_IT_READINESS.md). Any older same-device/session-memory readiness or testing language is historical where it conflicts with this ADR; containment requirements remain valid until the separate enablement gate passes.
 
 ## Consequences
 
@@ -123,5 +125,6 @@ Production enablement requires, at minimum:
 
 - [Product definition and acceptance criteria](../PRODUCT.md#brew-done-it--persistent-cross-device-challenge-currently-contained)
 - [Brew Done It schema target](../nocodebackend/brew-done-it-schema-target.md)
+- [Brew Done It readiness](../BREW_DONE_IT_READINESS.md)
 - [Launch readiness](../LAUNCH_READINESS.md)
 - [Security](../SECURITY.md)
