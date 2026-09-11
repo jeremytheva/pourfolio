@@ -4,6 +4,7 @@ import { filterBrewDoneItBeers, filterBrewDoneItBreweries } from '../utils/brewD
 
 const selectClass = 'mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500'
 const buttonClass = 'rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-60'
+const secondaryButtonClass = 'rounded-lg border border-gray-300 bg-white px-4 py-2 font-semibold text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-60'
 const answerButton = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium capitalize hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-60'
 const answers = ['yes', 'no', 'unknown']
 
@@ -15,7 +16,16 @@ const AnswerButtons = ({ disabled, onAnswer }) => (
   </div>
 )
 
-const labelFor = (deduction) => {
+const labelFor = (deduction, options) => {
+  if (deduction.dimension === 'brewery_ruled_out') {
+    const name = (options.breweries || []).find((item) => String(item.id) === String(deduction.reference_id))?.name
+    return `Brewery ruled out: ${name || `#${deduction.reference_id}`}`
+  }
+  if (deduction.dimension === 'beer_ruled_out') {
+    const name = (options.beers || []).find((item) => String(item.id) === String(deduction.reference_id))?.name
+    return `Beer ruled out: ${name || `#${deduction.reference_id}`}`
+  }
+
   const names = {
     brewery_country: 'Country',
     brewery_state: 'State',
@@ -53,6 +63,8 @@ export default function BrewDoneItDeductionBoard({
   const [breweryGuess, setBreweryGuess] = useState('')
   const [styleGuess, setStyleGuess] = useState('')
   const [beerGuess, setBeerGuess] = useState('')
+  const [ruledOutBrewery, setRuledOutBrewery] = useState('')
+  const [ruledOutBeer, setRuledOutBeer] = useState('')
 
   const capabilities = options.capabilities || {}
   const geographyAvailable = Boolean(capabilities.geography)
@@ -125,6 +137,15 @@ export default function BrewDoneItDeductionBoard({
               <p className="text-sm font-medium text-gray-800">Have I rated beer from this brewery before?</p>
               <AnswerButtons disabled={busy} onAnswer={(answer) => save('brewery_previously_rated', answer)} />
             </div>
+            <div className="border-t border-gray-200 pt-4">
+              <label className="text-sm font-medium text-gray-800">Rule out a brewery
+                <select value={ruledOutBrewery} onChange={(event) => setRuledOutBrewery(event.target.value)} className={selectClass}>
+                  <option value="">Choose brewery</option>
+                  {filteredBreweries.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}
+                </select>
+              </label>
+              <button type="button" disabled={busy || !ruledOutBrewery} onClick={() => save('brewery_ruled_out', 'yes', { referenceId: ruledOutBrewery })} className={`${secondaryButtonClass} mt-3`}>Rule out brewery</button>
+            </div>
           </div>
 
           <div className="rounded-xl border border-gray-200 bg-white p-5">
@@ -148,6 +169,11 @@ export default function BrewDoneItDeductionBoard({
                 {['dark', 'barrel_aged'].includes(dimension) && <p className="mt-1 text-xs text-gray-500">Recorded for your notes only until this trait is reliably available in the catalogue.</p>}
               </div>
             ))}
+            <div className="border-t border-gray-200 pt-4">
+              <p className="text-sm font-medium text-gray-800">Rule out a beer</p>
+              <div className="mt-2"><BrewDoneItBeerPicker id="brew-rule-out-beer" value={ruledOutBeer} onChange={setRuledOutBeer} disabled={busy} /></div>
+              <button type="button" disabled={busy || !ruledOutBeer} onClick={() => save('beer_ruled_out', 'yes', { referenceId: ruledOutBeer })} className={`${secondaryButtonClass} mt-3`}>Rule out beer</button>
+            </div>
           </div>
 
           <div className="space-y-5 rounded-xl border border-gray-200 bg-white p-5">
@@ -161,7 +187,7 @@ export default function BrewDoneItDeductionBoard({
       {deductions.length > 0 && (
         <div className="rounded-xl border border-gray-200 bg-white p-5">
           <h4 className="font-semibold text-gray-900">Saved deductions</h4>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-2">{deductions.map((item) => <li key={item.id} className="rounded-lg bg-gray-50 px-3 py-2 text-sm"><strong>{labelFor(item)}</strong> — <span className="capitalize">{item.answer}</span></li>)}</ul>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">{deductions.map((item) => <li key={item.id} className="rounded-lg bg-gray-50 px-3 py-2 text-sm"><strong>{labelFor(item, options)}</strong> — <span className="capitalize">{item.answer}</span></li>)}</ul>
         </div>
       )}
 
