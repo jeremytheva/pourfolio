@@ -4,6 +4,7 @@ import { getSelectorClues, listDeductions, recordDeduction } from './brewDoneItD
 import { getDeductionOptions } from './brewDoneItDeductionOptions.js'
 import brewDoneItEntry from './brewDoneItEntry.js'
 import { completeDeductionRound, setHistoryClueSharing, submitOutcomeGuess } from './brewDoneItOutcomeGame.js'
+import { statsForUserV3 } from './brewDoneItStatsV3.js'
 import { enforceOrigin, enforceRateLimit, enforceRequestSize, safeErrorMessage } from './httpSecurity.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './telemetry.js'
 
@@ -15,6 +16,7 @@ const routeKind = (request) => {
   const path = pathParts(request)
   if (path[0] !== 'brew-done-it') return null
   if (request.method === 'GET' && path.length === 2 && path[1] === 'options') return { kind: 'options' }
+  if (request.method === 'GET' && path.length === 2 && path[1] === 'stats') return { kind: 'stats' }
   if (path[1] === 'games' && path.length === 4 && path[3] === 'history-sharing' && request.method === 'POST') return { kind: 'history-sharing', id: path[2] }
   if (path[1] !== 'rounds' || path.length !== 4) return null
   if (path[3] === 'deductions' && request.method === 'GET') return { kind: 'deduction-list', id: path[2] }
@@ -43,6 +45,7 @@ const runV3Route = async (request, response, route) => {
   try {
     const user = await requireSessionUser(request)
     if (route.kind === 'options') return getDeductionOptions(response, user)
+    if (route.kind === 'stats') return statsForUserV3(response, user)
     if (route.kind === 'history-sharing') return setHistoryClueSharing(route.id, request, response, user)
     if (route.kind === 'deduction-list') return listDeductions(route.id, response, user)
     if (route.kind === 'deduction-save') return recordDeduction(route.id, request, response, user)
@@ -57,11 +60,9 @@ const runV3Route = async (request, response, route) => {
     const status = Number(error.status) >= 400 && Number(error.status) < 600 ? Number(error.status) : 500
     if (status >= 500) {
       writeTelemetryError(runtimeTelemetry({
-        route_template: '/api/nocodebackend/brew-done-it/v3',
-        method: request.method,
+        route_template: '/api/nocodebackend/brew-done-it/v3', method: request.method,
         status_class: `${Math.floor(status / 100)}xx`,
-        event_name: error.name === 'AbortError' ? 'provider_timeout' : 'gateway_failure',
-        correlation_id: correlationId
+        event_name: error.name === 'AbortError' ? 'provider_timeout' : 'gateway_failure', correlation_id: correlationId
       }))
     }
     response.status(status).json(error.payload || {
