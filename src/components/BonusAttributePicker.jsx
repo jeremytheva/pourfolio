@@ -100,9 +100,12 @@ export function AllBonusAttributes({ bonusAttributes, bonusCategories, selectedI
   const showAll = () => setExpanded(new Set((bonusCategories || []).map((category) => category.key)))
   const hideAll = () => setExpanded(new Set())
 
-  const submitNewAttribute = async (event) => {
-    event.preventDefault()
+  const submitNewAttribute = async () => {
     if (creating) return
+    if (!description.trim()) {
+      setCreateError('Enter a description for the bonus attribute.')
+      return
+    }
     setCreateError('')
     setCreating(true)
     try {
@@ -168,17 +171,16 @@ export function AllBonusAttributes({ bonusAttributes, bonusCategories, selectedI
         {!categoryRows.length && <p className="rounded-lg bg-gray-50 p-4 text-sm text-gray-600">No bonus attributes match this search.</p>}
       </div>
 
-      <form onSubmit={submitNewAttribute} className="mt-8 rounded-2xl border border-gray-200 bg-gray-50 p-5">
-        <h3 className="text-lg font-semibold text-gray-900">Add a new bonus attribute</h3>
+      <section className="mt-8 rounded-2xl border border-gray-200 bg-gray-50 p-5" aria-labelledby="add-bonus-attribute-heading">
+        <h3 id="add-bonus-attribute-heading" className="text-lg font-semibold text-gray-900">Add a new bonus attribute</h3>
         <p className="mt-1 text-sm text-gray-600">New attributes are private to your account, use the Overall category, and default to {BONUS_ATTRIBUTE_DEFAULT_POINT_VALUE.toFixed(1)} points.</p>
         {createError && <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{createError}</p>}
         <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_10rem]">
           <label className="text-sm font-semibold text-gray-800">Description
-            <input required maxLength={255} value={description} onChange={(event) => setDescription(event.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+            <input maxLength={255} value={description} onChange={(event) => setDescription(event.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
           </label>
           <label className="text-sm font-semibold text-gray-800">Point value
             <input
-              required
               type="number"
               min={BONUS_ATTRIBUTE_MIN_POINT_VALUE}
               max={BONUS_ATTRIBUTE_MAX_POINT_VALUE}
@@ -189,8 +191,8 @@ export function AllBonusAttributes({ bonusAttributes, bonusCategories, selectedI
             />
           </label>
         </div>
-        <div className="mt-3 flex items-center justify-between gap-3"><span className="text-sm text-gray-600">Category: <strong>Overall</strong></span><button type="submit" disabled={creating} className="rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white disabled:bg-gray-400">{creating ? 'Adding…' : 'Add attribute'}</button></div>
-      </form>
+        <div className="mt-3 flex items-center justify-between gap-3"><span className="text-sm text-gray-600">Category: <strong>Overall</strong></span><button type="button" onClick={submitNewAttribute} disabled={creating} className="rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white disabled:bg-gray-400">{creating ? 'Adding…' : 'Add attribute'}</button></div>
+      </section>
     </div>
   )
 }
