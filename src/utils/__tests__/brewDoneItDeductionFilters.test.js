@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { filterBrewDoneItBeers, filterBrewDoneItBreweries } from '../brewDoneItDeductionFilters.js'
+import { filterBrewDoneItBeers, filterBrewDoneItBreweries, filterBrewDoneItStyles } from '../brewDoneItDeductionFilters.js'
 
 const beers = [
   { id: 1, producerId: 10, categoryId: 100, abv: 6.5, ibu: 50, collaboration: true },
@@ -51,6 +51,17 @@ test('explicit beer exclusions remove only the selected candidate', () => {
   assert.deepEqual(result.map((beer) => beer.id), [1, 3])
 })
 
+test('unknown beer categories keep all styles possible', () => {
+  const styles = [{ id: 100 }, { id: 200 }, { id: 300 }]
+  assert.deepEqual(filterBrewDoneItStyles(styles, [beers[0], beers[2]]), styles)
+})
+
+test('styles narrow only when every remaining beer has a known category', () => {
+  const styles = [{ id: 100 }, { id: 200 }, { id: 300 }]
+  const result = filterBrewDoneItStyles(styles, [beers[0], beers[1]])
+  assert.deepEqual(result.map((style) => style.id), [100, 200])
+})
+
 test('unavailable geography does not eliminate breweries', () => {
   const breweries = [
     { id: 10, state: null, country: null, previouslyRated: true },
@@ -62,15 +73,16 @@ test('unavailable geography does not eliminate breweries', () => {
   assert.equal(result.length, 2)
 })
 
-test('previously-rated brewery relationship narrows known brewery candidates', () => {
+test('previously-rated brewery relationship narrows known brewery candidates but preserves unknown ones', () => {
   const breweries = [
     { id: 10, previouslyRated: true },
-    { id: 20, previouslyRated: false }
+    { id: 20, previouslyRated: false },
+    { id: 30, previouslyRated: null }
   ]
   const result = filterBrewDoneItBreweries(breweries, [
     { dimension: 'brewery_previously_rated', answer: 'no' }
   ])
-  assert.deepEqual(result.map((brewery) => brewery.id), [20])
+  assert.deepEqual(result.map((brewery) => brewery.id), [20, 30])
 })
 
 test('explicit brewery exclusions remove only the selected candidate', () => {
