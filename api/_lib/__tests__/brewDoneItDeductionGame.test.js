@@ -2,13 +2,55 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { __testables } from '../brewDoneItDeductionGame.js'
 
-const { canonicalDeductions, deductionLogicalKey } = __testables
+const { canonicalDeductions, deductionLogicalKey, sameDeductionRequest } = __testables
 
 test('logical deduction keys are stable across API and provider field shapes', () => {
   assert.equal(
     deductionLogicalKey({ dimension: 'style', referenceId: '12', valueText: 'IPA', numericValue: null }),
     deductionLogicalKey({ dimension: 'style', reference_id: '12', value_text: 'IPA', numeric_value: null })
   )
+})
+
+test('idempotent deduction replay requires the same logical clue and answer', () => {
+  const stored = {
+    dimension: 'abv_at_least',
+    answer: 'yes',
+    reference_id: null,
+    numeric_value: 6,
+    value_text: null
+  }
+  assert.equal(sameDeductionRequest(stored, {
+    dimension: 'abv_at_least',
+    answer: 'yes',
+    referenceId: null,
+    numericValue: 6,
+    valueText: null
+  }), true)
+  assert.equal(sameDeductionRequest(stored, {
+    dimension: 'abv_at_least',
+    answer: 'no',
+    referenceId: null,
+    numericValue: 6,
+    valueText: null
+  }), false)
+  assert.equal(sameDeductionRequest(stored, {
+    dimension: 'abv_at_least',
+    answer: 'yes',
+    referenceId: null,
+    numericValue: 7,
+    valueText: null
+  }), false)
+})
+
+test('style idempotency identity uses canonical reference rather than display label', () => {
+  const stored = { dimension: 'style', answer: 'yes', reference_id: 12, value_text: 'India Pale Ale' }
+  assert.equal(sameDeductionRequest(stored, {
+    dimension: 'style',
+    answer: 'yes',
+    referenceId: '12',
+    valueText: 'IPA',
+    numericValue: null
+  }), true)
 })
 
 test('canonical deductions keep only the newest row for one logical clue', () => {
