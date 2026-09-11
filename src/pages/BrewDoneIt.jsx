@@ -5,6 +5,7 @@ import BrewDoneItQuestion from '../components/BrewDoneItQuestion.jsx'
 import BrewDoneItRound from '../components/BrewDoneItRound.jsx'
 import BrewDoneItScore from '../components/BrewDoneItScore.jsx'
 import BrewDoneItSelection from '../components/BrewDoneItSelection.jsx'
+import BrewDoneItSeriesList from '../components/BrewDoneItSeriesList.jsx'
 import BrewDoneItStatistics from '../components/BrewDoneItStatistics.jsx'
 import { beverageService } from '../services/beverageService.js'
 import {
@@ -13,6 +14,7 @@ import {
   createBrewDoneItRound,
   forfeitBrewDoneItRound,
   getBrewDoneItGame,
+  getBrewDoneItGames,
   getBrewDoneItStats,
   joinBrewDoneItGame,
   submitBrewDoneItGuess
@@ -24,6 +26,7 @@ const terminalRound = (round) => ['completed', 'forfeited'].includes(round?.stat
 export default function BrewDoneIt({ user }) {
   const [game, setGame] = useState(null)
   const [round, setRound] = useState(null)
+  const [series, setSeries] = useState([])
   const [invitation, setInvitation] = useState(null)
   const [products, setProducts] = useState([])
   const [revealedProduct, setRevealedProduct] = useState(null)
@@ -68,6 +71,24 @@ export default function BrewDoneIt({ user }) {
     }
   }, [])
 
+  const loadSeries = useCallback(async () => {
+    const payload = await getBrewDoneItGames()
+    setSeries(Array.isArray(payload.series) ? payload.series : [])
+  }, [])
+
+  const loadStats = useCallback(async () => {
+    setStats(await getBrewDoneItStats())
+  }, [])
+
+  const openSeries = useCallback(async (gameId, invitationCode = null) => {
+    const result = await run(() => getBrewDoneItGame(gameId), () => 'Series loaded.')
+    const latestRound = result.rounds?.at(-1) || null
+    setGame(result.game)
+    setRound(latestRound)
+    setInvitation(invitationCode ? { gameId: result.game.id, code: invitationCode } : null)
+    await loadRevealedProduct(latestRound)
+  }, [loadRevealedProduct, run])
+
   const refresh = useCallback(async () => {
     if (!game?.id) return
     const result = await run(() => getBrewDoneItGame(game.id), () => 'Series updated.')
@@ -75,14 +96,15 @@ export default function BrewDoneIt({ user }) {
     setGame(result.game)
     setRound(latestRound)
     await loadRevealedProduct(latestRound)
-  }, [game?.id, loadRevealedProduct, run])
+    await Promise.all([loadSeries(), loadStats()])
+  }, [game?.id, loadRevealedProduct, loadSeries, loadStats, run])
 
   useEffect(() => {
     beverageService.getProducts({ limit: 100 })
       .then((payload) => setProducts(payload.items || []))
       .catch(() => setError('Catalogue choices could not be loaded. Retry when your connection is available.'))
-    getBrewDoneItStats().then(setStats).catch(() => {})
-  }, [])
+    Promise.all([loadSeries(), loadStats()]).catch(() => {})
+  }, [loadSeries, loadStats])
 
   const remember = (action) => {
     lastAction.current = action
@@ -99,6 +121,7 @@ export default function BrewDoneIt({ user }) {
       setGame(result.game)
       setRound(result.round)
       setInvitation({ gameId: result.game.id, code: result.invitationCode })
+      await loadSeries()
     })
   }
 
@@ -112,6 +135,7 @@ export default function BrewDoneIt({ user }) {
       setGame(result.game)
       setRound(result.round)
       setInvitation(null)
+      await loadSeries()
     })
   }
 
@@ -123,6 +147,7 @@ export default function BrewDoneIt({ user }) {
         (value) => `Answer: ${value.question.answer ? 'yes' : 'no'}.`
       )
       setRound(result.round)
+      await loadSeries()
     })
   }
 
@@ -136,9 +161,10 @@ export default function BrewDoneIt({ user }) {
           : 'Incorrect beer. The round remains open.'
       )
       setRound(result.round)
+      await loadSeries()
       if (terminalRound(result.round)) {
         await loadRevealedProduct(result.round)
-        getBrewDoneItStats().then(setStats).catch(() => {})
+        await loadStats()
       }
     })
   }
@@ -153,6 +179,7 @@ export default function BrewDoneIt({ user }) {
       setGame(result.game)
       setRound(result.round)
       setRevealedProduct(null)
+      await loadSeries()
     })
   }
 
@@ -164,7 +191,16 @@ export default function BrewDoneIt({ user }) {
     )
     setRound(result.round)
     await loadRevealedProduct(result.round)
-    getBrewDoneItStats().then(setStats).catch(() => {})
+    await Promise.all([loadSeries(), loadStats()])
+  }
+
+  const returnToChallenges = async () => {
+    setGame(null)
+    setRound(null)
+    setInvitation(null)
+    setRevealedProduct(null)
+    setError('')
+    try { await loadSeries() } catch {}
   }
 
   const canStartNextRound = game?.status === 'active' && terminalRound(round) && role === 'guesser'
@@ -185,12 +221,21 @@ export default function BrewDoneIt({ user }) {
           <div className="mt-3 flex flex-wrap gap-3">
             <button type="button" className="rounded-md bg-red-800 px-3 py-2 font-semibold text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2" onClick={() => lastAction.current?.()}>Retry action</button>
             {game && <button type="button" className="rounded-md border border-red-800 px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-red-600" onClick={refresh}>Refresh series</button>}
-            <button type="button" className="rounded-md px-3 py-2 underline focus:outline-none focus:ring-2 focus:ring-red-600" onClick={() => { setGame(null); setRound(null); setInvitation(null); setError('') }}>Return to challenges</button>
+            <button type="button" className="rounded-md px-3 py-2 underline focus:outline-none focus:ring-2 focus:ring-red-600" onClick={returnToChallenges}>Return to challenges</button>
           </div>
         </div>
       )}
 
-      {!game && <BrewDoneItInvite products={products} invitation={invitation} busy={busy} onCreate={create} onJoin={join} />}
+      {!game && (
+        <>
+          <BrewDoneItSeriesList series={series} userId={user?.id} busy={busy} onOpen={openSeries} />
+          <BrewDoneItInvite products={products} invitation={invitation} busy={busy} onCreate={create} onJoin={join} />
+        </>
+      )}
+
+      {game && (
+        <button type="button" className="underline focus:outline-none focus:ring-2 focus:ring-amber-500" disabled={busy} onClick={returnToChallenges}>All challenges</button>
+      )}
 
       {game?.status === 'waiting' && (
         <section className="rounded-xl border border-amber-200 bg-amber-50 p-6" aria-labelledby="waiting-heading">
