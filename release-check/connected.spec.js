@@ -21,6 +21,29 @@ const isCatalogueResponse = (response, { page, query = null }) => {
   return query === null ? !url.searchParams.has('q') : url.searchParams.get('q') === query
 }
 
+const completeRatingCards = async (page) => {
+  let completedAttributes = 0
+  while (await page.getByRole('slider').count()) {
+    const currentHeading = page.getByRole('heading', { level: 2 }).first()
+    const headingText = await currentHeading.textContent()
+    expect(headingText).toBeTruthy()
+
+    const scoreOne = page.locator('button[aria-label$=": 1 out of 7"]').first()
+    await expect(scoreOne).toBeVisible()
+    await scoreOne.click()
+    await expect(currentHeading).not.toHaveText(headingText)
+
+    completedAttributes += 1
+    expect(completedAttributes).toBeLessThanOrEqual(20)
+  }
+
+  expect(completedAttributes).toBeGreaterThan(0)
+  await expect(page.getByRole('heading', { name: 'Bonus attributes' })).toBeVisible()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await expect(page.getByRole('heading', { name: 'Review your rating' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Submit rating' })).toBeEnabled()
+}
+
 test.describe.configure({ mode: 'serial', retries: 0 })
 
 test('host health, headers, SPA fallback and rejected redirects', async ({ page, request }) => {
@@ -207,10 +230,7 @@ test('rating create/history/delete uses exact cleanup identity', async ({ page }
 
   try {
     await page.goto(`/products/${product.id}/rate`)
-    const scores = page.getByRole('combobox')
-    for (let index = 0; index < await scores.count(); index += 1) {
-      await scores.nth(index).selectOption(index % 2 ? '7' : '1')
-    }
+    await completeRatingCards(page)
     await page.getByRole('button', { name: 'Submit rating' }).click()
     await expect(page).toHaveURL(new RegExp(`/products/${product.id}$`))
 
