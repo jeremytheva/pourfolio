@@ -4,7 +4,7 @@ import { beverageService } from '../services/beverageService.js'
 import { producerService } from '../services/producerService.js'
 import { styleService } from '../services/styleService.js'
 
-const normalise = (value) => value.trim().toLocaleLowerCase().replace(/\s+/gu, ' ')
+const normalise = (value) => String(value || '').trim().toLocaleLowerCase().replace(/\s+/gu, ' ')
 
 function AddBeerProposal() {
   const location = useLocation()
@@ -20,6 +20,8 @@ function AddBeerProposal() {
   })
   const [producers, setProducers] = useState([])
   const [styles, setStyles] = useState([])
+  const [producerQuery, setProducerQuery] = useState('')
+  const [styleQuery, setStyleQuery] = useState('')
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
   const [duplicates, setDuplicates] = useState([])
@@ -51,6 +53,20 @@ function AddBeerProposal() {
     () => styles.find(({ style }) => String(style.id) === form.product_category_id)?.style || null,
     [form.product_category_id, styles]
   )
+  const filteredProducers = useMemo(() => {
+    const query = normalise(producerQuery)
+    if (!query) return producers
+    return producers.filter(({ producer }) => (
+      String(producer.id) === form.producer_id || normalise(producer.producer_name).includes(query)
+    ))
+  }, [form.producer_id, producerQuery, producers])
+  const filteredStyles = useMemo(() => {
+    const query = normalise(styleQuery)
+    if (!query) return styles
+    return styles.filter(({ style }) => (
+      String(style.id) === form.product_category_id || normalise(style.category_name).includes(query)
+    ))
+  }, [form.product_category_id, styleQuery, styles])
 
   useEffect(() => {
     const name = form.product_name.trim()
@@ -61,8 +77,8 @@ function AddBeerProposal() {
     }
 
     let active = true
+    setDuplicateStatus('loading')
     const timeout = window.setTimeout(() => {
-      setDuplicateStatus('loading')
       beverageService.getProducts({ search: name, page: 1, limit: 24 })
         .then((payload) => {
           if (!active) return
@@ -103,6 +119,7 @@ function AddBeerProposal() {
     (abv === null || (Number.isFinite(abv) && abv >= 0 && abv <= 30)) &&
     (ibu === null || (Number.isFinite(ibu) && ibu >= 0 && ibu <= 200))
   )
+  const duplicateCheckReady = duplicateStatus === 'ready'
 
   if (status === 'loading') return <div className="mx-auto max-w-3xl px-4 py-16 text-center text-gray-600" role="status">Loading canonical breweries and styles…</div>
   if (status === 'error') return <div className="mx-auto max-w-3xl px-4 py-16"><div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-900"><h1 className="text-lg font-semibold">Beer proposal unavailable</h1><p className="mt-1">{error}</p></div></div>
@@ -115,24 +132,36 @@ function AddBeerProposal() {
         <p className="mt-2 text-gray-600">Choose verified catalogue relationships. This flow prepares a moderated proposal; it does not directly overwrite the canonical catalogue.</p>
       </header>
 
-      <form className="mt-8 space-y-6" onSubmit={(event) => { event.preventDefault(); if (valid) setReviewing(true) }}>
+      <form className="mt-8 space-y-6" onSubmit={(event) => { event.preventDefault(); if (valid && duplicateCheckReady) setReviewing(true) }}>
         <label className="block text-sm font-medium text-gray-700">Beer name
           <input required minLength={2} maxLength={160} value={form.product_name} onChange={(event) => setField('product_name', event.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
         </label>
 
-        <label className="block text-sm font-medium text-gray-700">Brewery / producer
-          <select required value={form.producer_id} onChange={(event) => setField('producer_id', event.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200">
-            <option value="">Select a verified brewery</option>
-            {producers.map(({ producer }) => <option key={producer.id} value={String(producer.id)}>{producer.producer_name}</option>)}
-          </select>
-        </label>
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Search breweries
+            <input type="search" value={producerQuery} onChange={(event) => setProducerQuery(event.target.value)} aria-describedby="producer-search-status" placeholder="Filter verified breweries" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
+          </label>
+          <p id="producer-search-status" className="text-xs text-gray-500" role="status" aria-live="polite">{filteredProducers.length} of {producers.length} verified breweries shown.</p>
+          <label className="block text-sm font-medium text-gray-700">Brewery / producer
+            <select required value={form.producer_id} onChange={(event) => setField('producer_id', event.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200">
+              <option value="">Select a verified brewery</option>
+              {filteredProducers.map(({ producer }) => <option key={producer.id} value={String(producer.id)}>{producer.producer_name}</option>)}
+            </select>
+          </label>
+        </div>
 
-        <label className="block text-sm font-medium text-gray-700">Beer style / category
-          <select required value={form.product_category_id} onChange={(event) => setField('product_category_id', event.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200">
-            <option value="">Select a verified style</option>
-            {styles.map(({ style }) => <option key={style.id} value={String(style.id)}>{style.category_name}</option>)}
-          </select>
-        </label>
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Search beer styles
+            <input type="search" value={styleQuery} onChange={(event) => setStyleQuery(event.target.value)} aria-describedby="style-search-status" placeholder="Filter verified styles" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
+          </label>
+          <p id="style-search-status" className="text-xs text-gray-500" role="status" aria-live="polite">{filteredStyles.length} of {styles.length} verified styles shown.</p>
+          <label className="block text-sm font-medium text-gray-700">Beer style / category
+            <select required value={form.product_category_id} onChange={(event) => setField('product_category_id', event.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200">
+              <option value="">Select a verified style</option>
+              {filteredStyles.map(({ style }) => <option key={style.id} value={String(style.id)}>{style.category_name}</option>)}
+            </select>
+          </label>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm font-medium text-gray-700">ABV %
@@ -158,14 +187,14 @@ function AddBeerProposal() {
           <p className="mt-1 text-sm text-gray-600" role="status" aria-live="polite">
             {duplicateStatus === 'idle' && 'Enter a beer name and brewery to check the current catalogue.'}
             {duplicateStatus === 'loading' && 'Checking the catalogue…'}
-            {duplicateStatus === 'error' && 'Duplicate checking is temporarily unavailable. A proposal must not be treated as approved until this check can run.'}
+            {duplicateStatus === 'error' && 'Duplicate checking is temporarily unavailable. Review is blocked until this check can run.'}
             {duplicateStatus === 'ready' && duplicates.length === 0 && 'No likely duplicate was found in the current search results.'}
             {duplicateStatus === 'ready' && duplicates.length > 0 && `${duplicates.length} possible duplicate${duplicates.length === 1 ? '' : 's'} found.`}
           </p>
           {duplicates.length > 0 && <ul className="mt-3 space-y-2">{duplicates.map((product) => <li key={product.id}><Link to={`/products/${product.id}`} className="font-medium text-amber-800 underline">{product.product_name}</Link></li>)}</ul>}
         </section>
 
-        <button type="submit" disabled={!valid || duplicateStatus === 'loading'} className="rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Review proposal</button>
+        <button type="submit" disabled={!valid || !duplicateCheckReady} className="rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Review proposal</button>
       </form>
 
       {reviewing && (
