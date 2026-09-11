@@ -93,5 +93,6 @@ test('entry routing intercepts only series reads, game reads and durable round a
   assert.deepEqual(__testables.routeKind({ method: 'GET', query: { path: ['brew-done-it', 'games', '1'] } }), { kind: 'game-detail', id: '1' })
   assert.deepEqual(__testables.routeKind({ method: 'POST', query: { path: ['brew-done-it', 'rounds', '10', 'guesses'] } }), { kind: 'guess', id: '10' })
   assert.deepEqual(__testables.routeKind({ method: 'POST', query: { path: ['brew-done-it', 'rounds', '10', 'questions'] } }), { kind: 'question', id: '10' })
+  assert.deepEqual(__testables.routeKind({ method: 'POST', query: { path: ['brew-done-it', 'rounds', '10', 'forfeit'] } }), { kind: 'forfeit', id: '10' })
   assert.equal(__testables.routeKind({ method: 'POST', query: { path: ['brew-done-it', 'games'] } }), null)
 })
