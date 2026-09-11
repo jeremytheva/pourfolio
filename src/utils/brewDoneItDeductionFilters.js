@@ -64,4 +64,10 @@ export const filterBrewDoneItBeers = (beers = [], deductions = [], breweryIds = 
     })
   })
 
+export const filterBrewDoneItStyles = (styles = [], candidateBeers = []) => {
+  if (candidateBeers.some((beer) => missing(beer.categoryId))) return styles
+  const styleIds = new Set(candidateBeers.map((beer) => String(beer.categoryId)).filter(Boolean))
+  return styles.filter((style) => styleIds.has(String(style.id)))
+}
+
 export const __testables = { deductionMatches, missing }
