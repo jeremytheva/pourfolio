@@ -1,8 +1,21 @@
 import { expect, test } from '@playwright/test'
-import { installMockApi } from './mockApi.js'
+import { installMockApi, product } from './mockApi.js'
+
+const installPlacesMockApi = async (page) => {
+  await installMockApi(page)
+  await page.route('**/api/nocodebackend/catalog/products?**', (route) => {
+    const requestUrl = new URL(route.request().url())
+    const pageSize = Number(requestUrl.searchParams.get('limit') || 24)
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ items: [product], page: 1, pageSize, total: 1, totalPages: 1 })
+    })
+  })
+}
 
 test('places lists only verified brewery relationships and links to the brewery profile', async ({ page }) => {
-  await installMockApi(page)
+  await installPlacesMockApi(page)
   await page.goto('/places')
 
   await expect(page.getByText('1 verified brewery shown.', { exact: true })).toBeVisible()
@@ -15,7 +28,7 @@ test('places lists only verified brewery relationships and links to the brewery 
 })
 
 test('places brewery search keeps unmatched verified data honest', async ({ page }) => {
-  await installMockApi(page)
+  await installPlacesMockApi(page)
   await page.goto('/places')
 
   const search = page.getByRole('searchbox', { name: 'Search verified breweries' })
