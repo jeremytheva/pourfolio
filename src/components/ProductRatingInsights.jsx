@@ -1,10 +1,11 @@
 import React from 'react'
+import { sortRatingAttributes } from '../utils/ratingAttributeOrder.js'
 
 const scoreLabel = (score) => `${score} out of 7`
 
 function ProductRatingInsights({ summary, insights, userSummary = null }) {
   const distribution = Array.isArray(insights?.distribution) ? insights.distribution : []
-  const attributes = Array.isArray(insights?.attributes) ? insights.attributes : []
+  const attributes = sortRatingAttributes(Array.isArray(insights?.attributes) ? insights.attributes : [])
   const total = Number.isSafeInteger(summary?.count) ? summary.count : 0
   const maxBucket = Math.max(1, ...distribution.map((bucket) => bucket.count))
   const comparison = userSummary && Number.isFinite(summary?.average)
