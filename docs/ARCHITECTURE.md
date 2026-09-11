@@ -38,7 +38,13 @@ Chat, Drinking Buddies, events, venues, analytics, producer claims, administrati
 
 ## Authentication boundary
 
-`api/auth-proxy.js` is the authentication proxy, and `api/data-proxy.js` is the owner-enforcing application-data gateway. `vercel.json` maps the unchanged same-origin `/api/nocodebackend/auth/*` and `/api/nocodebackend/*` interfaces to these flat Vercel Functions before applying the SPA fallback. Vercel supplies each `:path*` capture as `request.query.path` and retains the request’s other query parameters for redirects, pagination, search and filtering.
+`api/auth-proxy.js` is the authentication proxy. `api/data-router.js` is the
+canonical data dispatcher and delegates launch resources to schema-aware
+handlers. `vercel.json` maps the unchanged same-origin
+`/api/nocodebackend/auth/*` and `/api/nocodebackend/*` interfaces to these flat
+Vercel Functions before applying the SPA fallback. Vercel supplies each
+`:path*` capture as `request.query.path` and retains the request’s other query
+parameters for redirects, pagination, search and filtering.
 
 `api/auth-proxy.js` exposes a fixed action/method matrix. It adds the server-only provider secret, forwards the session cookie, validates unsafe request origins, limits request size and rate, times out upstream requests, and maps provider failures to safe errors. Upstream authentication cookies are rewritten as host-only, root-path cookies for the Pourfolio deployment and retain their expiry and explicit SameSite policy while always receiving `HttpOnly` and `Secure`.
 
@@ -63,15 +69,22 @@ Public sign-up supplies only email, password, name and non-authoritative display
 
 ## Data boundary
 
-`api/data-proxy.js`:
+The canonical `api/data-router.js` dispatches requests by explicit resource.
+Launch data uses the schema-aware catalogue, cellar, current-data and profile
+handlers. Brew Done It is isolated in `api/_lib/brewDoneItGateway.js`; although
+its source implements the accepted future contract, it remains a deferred
+capability and fails closed unless its server-only policy flag is enabled after
+provider certification.
 
-- verifies the session on every data request;
+The data layer:
+
+- verifies the session on every private data request;
 - uses server-only `NOCODEBACKEND_DATA_BASE_URL` and `NOCODEBACKEND_SECRET_KEY`;
-- exposes only product catalogue/details, rating-form/submission/history, cellar and profile workflows; catalogue details contain only a rating count and average, while owner-only `/ratings/mine` provides personal rating history;
-- derives owner IDs from the session;
-- verifies ownership again before update/delete or cellar linkage;
-- strips browser-supplied identity, role, secret and total fields;
-- projects every response through explicit public/owner field lists;
+- exposes only explicitly routed workflows;
+- derives owner and participant IDs from the session;
+- verifies ownership/participation before private reads and writes;
+- strips browser-supplied identity, role, secret and authoritative total fields;
+- projects every response through explicit public/owner/participant field lists; and
 - assigns a correlation ID without logging request bodies or personal data.
 
 Successful catalogue JSON crosses a second, browser-side shape boundary before
@@ -91,7 +104,9 @@ non-canonical browser route IDs fail before network access. These checks keep a
 successful response for another page or product from being labelled with the
 current route.
 
-The canonical data contract is [schema mapping](nocodebackend/schema-mapping.md).
+The canonical launch data contract is [schema mapping](nocodebackend/schema-mapping.md).
+The approved deferred Brew Done It data target is
+[Brew Done It schema target](nocodebackend/brew-done-it-schema-target.md).
 
 ## Account lifecycle boundary
 
@@ -130,13 +145,12 @@ all browser identities/selectors and returns a frozen format/version/boolean
 result without copying request text. It performs no request parsing,
 authentication, provider operation, deletion, logging or network request.
 
-None of these modules is imported by `api/auth-proxy.js`,
-`api/data-proxy.js`, any browser service or any page. The current provider
-session contract contains no verified
-recent-authentication timestamp, and the current collection API has no proved
-consistent multi-collection snapshot. Exposing any module now would therefore
-create an incomplete security and data-consistency boundary. The export endpoint
-criteria and portable fields are defined in the
+None of these modules is imported by `api/auth-proxy.js`, the launch data
+handlers, any browser service or any page. The current provider session contract
+contains no verified recently-authenticated timestamp, and the current
+collection API has no proved consistent multi-collection snapshot. Exposing any
+module now would therefore create an incomplete security and data-consistency
+boundary. The export endpoint criteria and portable fields are defined in the
 [account export contract](account-export-contract.md); destructive-workflow
 criteria are defined in the
 [deletion-plan contract](account-deletion-plan-contract.md) and
@@ -149,36 +163,61 @@ deletion also remain absent from the fixed auth action matrix. Account-deletion
 orchestration remains absent: the source-only confirmation, plan and count
 reconciliation are not routes, authentication decisions, provider queries,
 jobs, delete operations, final provider proof or receipts. A durable server-only
-job store, write fence, provider identity
-operation and approved retention policy remain required. The
-complete gate is tracked in the
+job store, write fence, provider identity operation and approved retention
+policy remain required. The complete gate is tracked in the
 [account lifecycle readiness review](account-lifecycle-readiness.md).
 
 ## Brew Done It containment boundary
 
-Brew Done It is absent from the launch route table and primary navigation. The
-existing catch-all route sends a direct `/brew-done-it` request to `/home` for
-an authenticated user (or `/login` otherwise), so the retained game page and
-service modules are neither imported nor executed by the launch application.
-Consequently the contained UI cannot inspect, create, join or resume a game and
-makes no game API request.
+Brew Done It remains absent from the launch route table and primary navigation.
+The launch catch-all therefore prevents the retained page/service modules from
+being loaded by production browser routing.
 
-ADR 0001 accepts only a future same-device implementation: one authenticated
-player shares the device with a physically present second player, and all round
-state, scoring and statistics remain in React memory until refresh or sign-out.
-It requires no invitation, second account, game collection or retention policy.
-This accepted model is distinct from both today's containment and the retained
-remote implementation.
+[ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) supersedes the
+old same-device decision and approves the following future architecture:
 
-The retained gateway policy remains a second, server-side boundary. Every
-`brew-done-it` data route returns the ordinary not-found response unless the
-server-only `BREW_DONE_IT_POLICY_ENABLED` value is exactly `true`. Normal
-environments must leave the flag unset; it is not a `VITE_` variable and is
-never sent to browser code. The focused policy tests remain in place for the
-retained authorisation, privacy, idempotency and state-transition logic, but do
-not constitute approval to enable the feature. That code's two-account rounds,
-invitations, shared-history queries, persistence, stored scoring, retention and
-durable statistics are an unapproved proposal requiring a superseding ADR.
+```mermaid
+flowchart LR
+  S[Authenticated selector device] --> G[Same-origin Brew Done It gateway]
+  R[Authenticated guesser device] --> G
+  G --> A[Session + participant policy]
+  A --> X[Secret-aware response projection]
+  A --> B[(Persistent Brew Done It collections)]
+  B --> P[(Canonical products catalogue)]
+```
+
+A persistent `brew_done_it_games` row represents the two-player series. Each
+`brew_done_it_rounds` row is one beer challenge in that series. The selector
+chooses a catalogue product before the initial challenge is shared. The first
+round waits for the second authenticated account; after acceptance it becomes
+an asynchronous guessing round. Completed/forfeited rounds remain in the series
+ledger, and the previous guesser becomes selector for the next round by default.
+The series remains active rather than terminating after one beer.
+
+Question and guess actions are persisted. Base questions use controlled public
+catalogue facts only; shared-rating-history predicates are not part of the
+approved model. Guesses are exact catalogue beers. Round scoring is calculated
+server-side under a versioned 0–10 contract and aggregate/head-to-head
+statistics are derived from terminal round records.
+
+The selected beer is a server-side projection boundary. During an active round
+the selector may receive its selected product identifier, while the guesser
+must not receive that identifier or equivalent answer data. On terminal round
+state the beer may be revealed to both players. Role checks, optimistic versions
+and idempotency keys protect asynchronous writes and retries.
+
+The canonical router sends Brew Done It traffic to the dedicated
+`api/_lib/brewDoneItGateway.js`, not the older game code retained inside
+`api/data-proxy.js`. The older shared-history implementation remains quarantined
+for regression/history only.
+
+A second containment boundary remains server-side: every Brew Done It request
+returns the ordinary not-found response before authentication/provider access
+unless `BREW_DONE_IT_POLICY_ENABLED` is exactly `true`. Normal environments
+leave the flag unset. The four target game collections remain in
+`DEFERRED_COLLECTIONS` until the migration/certification gate in
+[`nocodebackend/brew-done-it-schema-target.md`](nocodebackend/brew-done-it-schema-target.md)
+is complete.
 
 ## Rating integrity
 
@@ -219,4 +258,7 @@ Optional server variables:
 Source code cannot prove remote collection permissions, production environment
 values, import reconciliation, backup/restore, alert routing, legal text,
 recently authenticated account export, account deletion or operational support
-ownership. These remain release gates in [Launch Readiness](LAUNCH_READINESS.md).
+ownership. It also cannot prove the deferred Brew Done It provider schema or
+cross-device secret-projection behaviour until those collections are created in
+a connected environment. These remain release gates in
+[Launch Readiness](LAUNCH_READINESS.md).

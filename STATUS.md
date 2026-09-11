@@ -35,7 +35,7 @@ validation:
   ci: PASS
   runtime: VERIFIED
 last_verified_commit: "a053797b493ef4747b167efef3bf847ddd81ce92"
-last_updated: "2026-09-11T10:50:00+10:00"
+last_updated: "2026-09-11T13:05:00+10:00"
 ---
 
 # STATUS.md
@@ -96,6 +96,27 @@ Until the migration is deployed and verified:
 - no uniqueness/constraint or existing-row backfill may be performed without a provider-supported migration mechanism, backup/restore evidence, explicit approval and cleanup safeguards.
 
 The remaining #165 work is therefore active P1 work but **blocked at an irreversible provider boundary**, not deferred behind #225.
+
+## Brew Done It contained cross-device implementation — #409 / PR #410
+
+ADR **0002** supersedes the earlier same-device/session-memory game model and approves Brew Done It as a persistent, asynchronous challenge between two authenticated Pourfolio users on separate devices.
+
+PR **#410** implements the contained application core without enabling the feature in production. The implementation includes:
+
+- selector-first secret beer choice before challenge sharing;
+- persistent two-player series and multi-round role rotation;
+- beer-only guesses and controlled public-catalogue questions;
+- scoring v2 with durable head-to-head statistics;
+- raw-response projection that withholds `selected_product_id` from the guesser until a round is terminal;
+- resumable challenge listing across refresh, sign-out and device changes;
+- optimistic concurrency and idempotency; and
+- a reservation plus `pending` / `committed` / `discarded` child-action ledger so ambiguous provider failures cannot silently invent or duplicate gameplay turns.
+
+The contained-core merge boundary is intentionally separate from provider enablement. `/brew-done-it` remains absent from production routing/navigation, `BREW_DONE_IT_POLICY_ENABLED` remains unset and the four Brew Done It collections remain deferred/not provider-evidenced.
+
+Production enablement is blocked by a Brew Done It-specific provider migration/certification boundary, not by the ordinary beer-first launch blocker chain. Before enabling the feature, the provider must provision and certify `brew_done_it_games`, `brew_done_it_rounds`, `brew_done_it_guesses` and `brew_done_it_questions`, prove secret projection and failure recovery with connected two-account/two-device evidence, complete accessibility evidence and pass a separate reviewed enablement change. See `docs/BREW_DONE_IT_READINESS.md` and `docs/nocodebackend/brew-done-it-schema-target.md`.
+
+These Brew Done It blockers remain scoped to the feature and must not block unrelated Phase 3 launch work.
 
 ## Recent launch product work — #384, #385, #388 and #390
 
@@ -165,7 +186,8 @@ Key rules remain:
 - persistent `profiles` and `product_producers` are **UNAVAILABLE**;
 - active rating submission uses only current exported backend fields;
 - durable idempotency/workflow fields tracked by **#165** are proposed/not-yet-deployed and `/ratings/reconcile` remains unavailable until that provider migration is verified;
-- verified venue persistence and rating-to-venue attribution remain unavailable until **#399** is completed through governed migration/certification.
+- verified venue persistence and rating-to-venue attribution remain unavailable until **#399** is completed through governed migration/certification;
+- Brew Done It persistent collections remain **DEFERRED / NOT PROVIDER-EVIDENCED** until their separately governed migration and certification are complete.
 
 ## Catalogue remediation boundary
 
@@ -177,6 +199,8 @@ Real producer/brewery routes and links use only producer relationships verified 
 
 Do not run rating create/delete, cellar CRUD certification, provider schema mutation, constraint creation or provider backfill against a real connected environment unless the action is explicitly authorised and appropriate cleanup/restore safeguards are evidenced. Exact-record cleanup must be verified for test writes. Failure to prove cleanup or restoration remains a material blocker and must not be converted into a pass.
 
+The same rule applies to Brew Done It provider schema creation: PR #410 may define the target and merge contained source, but no Brew Done It collection should be provisioned or enabled until its migration/recovery plan is evidenced and explicitly approved.
+
 ## Next dependency-correct work
 
 1. Progress #165 only up to the provider/irreversible migration boundary; evidence the required schema/constraint semantics, safe backfill and backup/restore mechanism without mutating provider data.
@@ -186,8 +210,9 @@ Do not run rating create/delete, cellar CRUD certification, provider schema muta
 5. While #165 remains blocked, continue independent beer-only launch hardening, reliability, accessibility and security work that does not fabricate catalogue decisions or require destructive connected writes.
 6. Keep #399 blocked until an authoritative venue entity/rating-attribution migration and recovery plan is evidenced and approved.
 7. Complete backend-dependent #154 catalogue certification when its upstream requirements are satisfied.
-8. Finish full launch hardening and exact-production certification.
-9. Keep catalogue remediation decisions explicit and independently reviewed; do not fabricate the 193 pending decisions.
+8. Keep Brew Done It contained after #410; its next phase is the separately approved provider migration/certification plan in `docs/BREW_DONE_IT_READINESS.md`.
+9. Finish full launch hardening and exact-production certification.
+10. Keep catalogue remediation decisions explicit and independently reviewed; do not fabricate the 193 pending decisions.
 
 ## Completion rule
 
