@@ -55,14 +55,18 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
       if (successMessage) setAnnouncement(successMessage(result))
       return result
     } catch (caught) {
-      const stale = caught.status === 409 && !/expired/i.test(caught.message)
-      setError(/expired/i.test(caught.message)
+      const expired = /expired/i.test(caught.message || '')
+      const stale = caught.code === 'VERSION_CONFLICT'
+      const safeBusinessError = caught.status >= 400 && caught.status < 500 && caught.message
+      setError(expired
         ? 'This challenge has expired. Create or join another challenge.'
         : stale
           ? 'The challenge changed before your action was accepted. Refresh before trying again.'
           : caught.status === 0
             ? 'Brew Done It could not be reached. Check your connection and retry.'
-            : 'That action could not be completed. Refresh the series and try again.')
+            : safeBusinessError
+              ? caught.message
+              : 'That action could not be completed. Refresh the series and try again.')
       throw caught
     } finally {
       setBusy(false)
@@ -221,8 +225,8 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
 
   const historySharing = game && user ? (
     String(game.creator_participant_id) === String(user.id)
-      ? Boolean(game.creator_history_clues_enabled)
-      : Boolean(game.opponent_history_clues_enabled)
+      ? game.creator_history_clues_enabled === true
+      : game.opponent_history_clues_enabled === true
   ) : false
   const canStartNextRound = game?.status === 'active' && terminalRound(round) && role === 'guesser'
 
