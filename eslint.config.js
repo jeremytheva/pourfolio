@@ -36,5 +36,13 @@ export default [
       'no-case-declarations': 'off',
       'no-useless-catch': 'off'
     },
+  },
+  {
+    files: ['api/_lib/brewDoneItGateway.js'],
+    rules: {
+      // Creation rollback is deliberately best-effort: the original provider
+      // failure must remain authoritative even if cleanup cannot be completed.
+      'no-empty': ['error', { allowEmptyCatch: true }]
+    }
   }
 ];
