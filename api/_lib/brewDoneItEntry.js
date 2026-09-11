@@ -8,6 +8,7 @@ import {
   submitSafeGuess
 } from './brewDoneItActionLedger.js'
 import brewDoneItHandler from './brewDoneItGateway.js'
+import { forfeitSafeRound } from './brewDoneItRoundTransitions.js'
 import { dataProvider } from './dataProvider.js'
 import {
   projectBrewDoneItGame,
@@ -81,6 +82,7 @@ const routeKind = (request) => {
   if (request.method === 'POST' && path.length === 4 && path[0] === 'brew-done-it' && path[1] === 'rounds') {
     if (path[3] === 'guesses') return { kind: 'guess', id: path[2] }
     if (path[3] === 'questions') return { kind: 'question', id: path[2] }
+    if (path[3] === 'forfeit') return { kind: 'forfeit', id: path[2] }
   }
   return null
 }
@@ -112,6 +114,7 @@ const runContainedRoute = async (request, response, route) => {
     if (route.kind === 'game-detail') return showSafeGame(route.id, response, user)
     if (route.kind === 'guess') return submitSafeGuess(route.id, request, response, user)
     if (route.kind === 'question') return askSafeQuestion(route.id, request, response, user)
+    if (route.kind === 'forfeit') return forfeitSafeRound(route.id, request, response, user)
   } catch (error) {
     const status = Number(error.status) >= 400 && Number(error.status) < 600 ? Number(error.status) : 500
     if (status >= 500) {
