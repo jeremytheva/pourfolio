@@ -1,7 +1,7 @@
-import { verifyReleaseTarget } from '../release-check/releaseTarget.js'
+import { verifyReleaseTargetWithRetry } from '../release-check/releaseTarget.js'
 
 try {
-  const verified = await verifyReleaseTarget({
+  const verified = await verifyReleaseTargetWithRetry({
     baseUrl: process.env.RELEASE_BASE_URL,
     releaseSha: process.env.RELEASE_SHA
   })
