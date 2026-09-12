@@ -1,5 +1,3 @@
-import { RATING_DISTRIBUTION_BUCKETS } from '../src/lib/completedRatingContract.js'
-
 export const product = {
   id: 4,
   product_name: 'Ace',
@@ -29,21 +27,37 @@ const rating = {
 }
 
 const ratingInsights = {
-  distribution: RATING_DISTRIBUTION_BUCKETS.map((bucket) => ({
-    ...bucket,
-    count: bucket.key === '3.5-4.0' ? 1 : 0
-  })),
+  distribution: [
+    { score: 0, count: 0 },
+    { score: 1, count: 0 },
+    { score: 2, count: 0 },
+    { score: 3, count: 0 },
+    { score: 4, count: 1 },
+    { score: 5, count: 0 }
+  ],
   attributes: [
     { attributeId: 2, name: 'Appearance', average: 4, count: 1 },
     { attributeId: 3, name: 'Aroma', average: 4, count: 1 }
   ]
 }
 
+const bonusAttributes = [
+  { id: 10, description: 'Aroma pop', point_value: 0.8, effective_point_value: 0.8, category_keys: ['aroma'] },
+  { id: 11, description: 'Long finish', point_value: 0.8, effective_point_value: 0.8, category_keys: ['follow'] },
+  { id: 12, description: 'Style wow', point_value: 0.5, effective_point_value: 0.5, category_keys: ['overall'] }
+]
+const bonusCategories = [
+  { key: 'aroma', name: 'Aroma' },
+  { key: 'follow', name: 'Follow' },
+  { key: 'overall', name: 'Overall' }
+]
+
 export const installMockApi = async (page) => {
   let brewRound = null
   let brewGame = null
   let guessCount = 0
   let staleOnce = true
+  let nextBonusId = 13
   const json = (route, body, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
 
   await page.route('**/api/nocodebackend/auth/get-session', (route) => route.fulfill({
@@ -111,16 +125,29 @@ export const installMockApi = async (page) => {
         { id: 8, attribute_name: 'Design', is_scored: 0, weighting: 0 },
         { id: 9, attribute_name: 'Burp', is_scored: 0, weighting: 0 }
       ],
-      bonusAttributes: [
-        { id: 10, description: 'Better than expected for style', point_value: 0.1 }
-      ]
+      bonusAttributes,
+      bonusCategories,
+      bonusDefaultPointValue: 0.2
     })
   }))
+
+  await page.route('**/api/nocodebackend/bonus-attributes', async (route) => {
+    if (route.request().method() !== 'POST') return route.fallback()
+    const body = route.request().postDataJSON()
+    const created = {
+      id: nextBonusId++,
+      description: body.description,
+      point_value: body.pointValue,
+      effective_point_value: body.pointValue,
+      category_keys: ['overall']
+    }
+    return json(route, { bonusAttribute: created, category: { key: 'overall', name: 'Overall' } }, 201)
+  })
 
   await page.route('**/api/nocodebackend/ratings/submit', (route) => route.fulfill({
     status: 201,
     contentType: 'application/json',
-    body: JSON.stringify({ rating, scoreCount: 6, bonusCount: 0, duplicate: false })
+    body: JSON.stringify({ rating, scoreCount: 6, bonusCount: 0, bonusPointTotal: 0, bonusScore: 0, duplicate: false })
   }))
 
   await page.route('**/api/nocodebackend/ratings/mine', (route) => route.fulfill({

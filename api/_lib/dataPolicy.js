@@ -5,6 +5,7 @@ import {
   normaliseNullableId,
   pickFields
 } from '../../src/data/contract.js'
+import { validateCustomBonusPointValue } from '../../src/lib/bonusAttributes.js'
 
 export const PRODUCT_FIELDS = Object.freeze([
   'id',
@@ -24,6 +25,8 @@ export const CATEGORY_FIELDS = Object.freeze(['id', 'category_name', 'parent_id'
 export const RATING_FIELDS = Object.freeze(['id', 'product_id', 'cellar_id', 'date_rated', 'total_unweighted', 'total_weighted'])
 export const ATTRIBUTE_FIELDS = Object.freeze(['id', 'category_id', 'attribute_name', 'is_scored', 'weighting'])
 export const BONUS_FIELDS = Object.freeze(['id', 'description', 'point_value'])
+export const BONUS_CATEGORY_FIELDS = Object.freeze(['id', 'category'])
+export const BONUS_CATEGORY_MAPPING_FIELDS = Object.freeze(['id', 'category_id', 'bonus_attribute_id'])
 export const PROFILE_FIELDS = Object.freeze(['id', 'name', 'description', 'avatar_url'])
 export const BREW_DONE_IT_GAME_FIELDS = Object.freeze([
   'id', 'selector_participant_id', 'guesser_participant_id', 'status', 'created_at', 'joined_at', 'completed_at',
@@ -48,6 +51,16 @@ const positiveId = (value, label) => {
   const result = String(value ?? '').trim()
   if (!/^[1-9]\d*$/.test(result)) throw new Error(`${label} is invalid.`)
   return result
+}
+
+export const sanitiseCustomBonusAttributeInput = (input) => {
+  const body = requirePlainObject(input)
+  const description = String(body.description ?? '').trim().replace(/\s+/g, ' ')
+  if (!description || description.length > 255) throw new Error('Bonus attribute description must be between 1 and 255 characters.')
+  return {
+    description,
+    point_value: validateCustomBonusPointValue(body.point_value ?? body.pointValue)
+  }
 }
 
 export const sanitiseBrewDoneItJoinInput = (input) => {
@@ -150,6 +163,8 @@ export const projectProduct = (record, producer = null, category = null) => ({
 export const projectRating = (record) => pickFields(record, RATING_FIELDS)
 export const projectAttribute = (record) => pickFields(record, ATTRIBUTE_FIELDS)
 export const projectBonus = (record) => pickFields(record, BONUS_FIELDS)
+export const projectBonusCategory = (record) => pickFields(record, BONUS_CATEGORY_FIELDS)
+export const projectBonusCategoryMapping = (record) => pickFields(record, BONUS_CATEGORY_MAPPING_FIELDS)
 export const projectProfile = (record) => pickFields(record, PROFILE_FIELDS)
 
 export const isOwnedBy = (record, userId) => Boolean(record && String(record.user_id) === String(userId))

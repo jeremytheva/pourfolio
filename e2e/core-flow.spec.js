@@ -1,50 +1,60 @@
 import { expect, test } from '@playwright/test'
-import { RATING_DISTRIBUTION_BUCKETS } from '../src/lib/completedRatingContract.js'
 import { installMockApi, product } from './mockApi.js'
 
 test.beforeEach(async ({ page }) => {
   await installMockApi(page)
 })
 
-const completeRatingDeck = async (page) => {
-  await expect(page.getByRole('heading', { name: 'Design', level: 2 })).toBeVisible()
-  await page.getByRole('button', { name: 'Skip this attribute' }).click()
-  await expect(page.getByRole('heading', { name: 'Appearance', level: 2 })).toBeFocused()
+const completeRatingDeck = async (page, { designSkipped = false } = {}) => {
+  if (!designSkipped) {
+    await expect(page.getByRole('heading', { name: 'Design', level: 2 })).toBeVisible()
+    await page.getByRole('button', { name: 'Skip this attribute' }).click()
+    await expect(page.getByRole('heading', { name: 'Appearance', level: 2 })).toBeFocused()
+  }
 
   await page.getByRole('button', { name: 'Appearance: 1 out of 7' }).click()
   await expect(page.getByRole('heading', { name: 'Aroma', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: /Bonus attributes for Aroma/ }).click()
+  await page.getByRole('checkbox', { name: /Aroma pop/ }).check()
   await page.getByRole('button', { name: 'Aroma: 7 out of 7' }).click()
   await expect(page.getByRole('heading', { name: 'Mouthfeel', level: 2 })).toBeFocused()
   await page.getByRole('button', { name: 'Mouthfeel: 7 out of 7' }).click()
   await expect(page.getByRole('heading', { name: 'Flavour', level: 2 })).toBeFocused()
   await page.getByRole('button', { name: 'Flavour: 7 out of 7' }).click()
   await expect(page.getByRole('heading', { name: 'Follow', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: /Bonus attributes for Follow/ }).click()
+  await page.getByRole('checkbox', { name: /Long finish/ }).check()
   await page.getByRole('button', { name: 'Follow: 7 out of 7' }).click()
-  await expect(page.getByRole('heading', { name: 'Bonus', level: 2 })).toBeFocused()
-  await page.getByRole('button', { name: 'Bonus: 2 out of 2' }).click()
   await expect(page.getByRole('heading', { name: 'Burp', level: 2 })).toBeFocused()
   await page.getByRole('button', { name: 'Skip this attribute' }).click()
-  await expect(page.getByRole('heading', { name: 'Bonus attributes', level: 2 })).toBeFocused()
+  await expect(page.getByRole('heading', { name: 'All bonus attributes', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: /^Overall/ }).click()
+  await page.getByRole('checkbox', { name: /Style wow/ }).check()
+  await expect(page.getByText('2 / 2', { exact: true }).first()).toBeVisible()
   await page.getByRole('button', { name: 'Next' }).click()
   await expect(page.getByRole('heading', { name: 'Review your rating', level: 2 })).toBeFocused()
 }
 
 const oneRatingInsights = {
-  distribution: RATING_DISTRIBUTION_BUCKETS.map((bucket) => ({
-    ...bucket,
-    count: bucket.key === '3.5-4.0' ? 1 : 0
-  })),
+  distribution: [
+    { score: 0, count: 0 },
+    { score: 1, count: 0 },
+    { score: 2, count: 0 },
+    { score: 3, count: 0 },
+    { score: 4, count: 1 },
+    { score: 5, count: 0 }
+  ],
   attributes: []
 }
 
-test('catalogue to product to rating uses stable IDs and accepts score 1', async ({ page }) => {
+test('catalogue to product to rating derives Bonus from selected attributes', async ({ page }) => {
   let submitted = null
   await page.route('**/api/nocodebackend/ratings/submit', async (route) => {
     submitted = route.request().postDataJSON()
     await route.fulfill({
       status: 201,
       contentType: 'application/json',
-      body: JSON.stringify({ rating: { id: 99 }, scoreCount: 6, bonusCount: 0, duplicate: false })
+      body: JSON.stringify({ rating: { id: 99 }, scoreCount: 6, bonusCount: 3, bonusPointTotal: 2.1, bonusScore: 2, duplicate: false })
     })
   })
 
@@ -65,9 +75,10 @@ test('catalogue to product to rating uses stable IDs and accepts score 1', async
     { attributeId: 3, score: 7 },
     { attributeId: 4, score: 7 },
     { attributeId: 5, score: 7 },
-    { attributeId: 6, score: 7 },
-    { attributeId: 7, score: 2 }
+    { attributeId: 6, score: 7 }
   ])
+  expect(submitted.scores.some((score) => score.attributeId === 7)).toBe(false)
+  expect(submitted.bonusAttributeIds).toEqual(['10', '11', '12'])
   expect(submitted.weights).toEqual({
     appearance: 0.1,
     aroma: 0.1,
@@ -79,7 +90,7 @@ test('catalogue to product to rating uses stable IDs and accepts score 1', async
   expect(Number.isSafeInteger(submitted.submissionId)).toBe(true)
 })
 
-test('rating form exposes accessible guidance, busy state and focused submission errors', async ({ page }) => {
+test('rating form preserves accessible guidance and focused submission errors with derived Bonus', async ({ page }) => {
   let releaseSubmission
   const submissionGate = new Promise((resolve) => { releaseSubmission = resolve })
 
@@ -103,23 +114,7 @@ test('rating form exposes accessible guidance, busy state and focused submission
   await expect(page.getByRole('slider', { name: 'Appearance score' })).toHaveAttribute('aria-describedby', 'score-2-weight rating-required-help')
   await expect(page.getByRole('button', { name: 'Next' })).toBeDisabled()
 
-  await page.getByRole('button', { name: 'Appearance: 1 out of 7' }).click()
-  await expect(page.getByRole('heading', { name: 'Aroma', level: 2 })).toBeFocused()
-  await page.getByRole('button', { name: 'Aroma: 7 out of 7' }).click()
-  await expect(page.getByRole('heading', { name: 'Mouthfeel', level: 2 })).toBeFocused()
-  await page.getByRole('button', { name: 'Mouthfeel: 7 out of 7' }).click()
-  await expect(page.getByRole('heading', { name: 'Flavour', level: 2 })).toBeFocused()
-  await page.getByRole('button', { name: 'Flavour: 7 out of 7' }).click()
-  await expect(page.getByRole('heading', { name: 'Follow', level: 2 })).toBeFocused()
-  await page.getByRole('button', { name: 'Follow: 7 out of 7' }).click()
-  await expect(page.getByRole('heading', { name: 'Bonus', level: 2 })).toBeFocused()
-  await page.getByRole('button', { name: 'Bonus: 2 out of 2' }).click()
-  await expect(page.getByRole('heading', { name: 'Burp', level: 2 })).toBeFocused()
-  await page.getByRole('button', { name: 'Skip this attribute' }).click()
-  await expect(page.getByRole('heading', { name: 'Bonus attributes', level: 2 })).toBeFocused()
-  await page.getByRole('button', { name: 'Next' }).click()
-  await expect(page.getByRole('heading', { name: 'Review your rating', level: 2 })).toBeFocused()
-
+  await completeRatingDeck(page, { designSkipped: true })
   await expect(page.locator('section[role="status"]')).toHaveAttribute('aria-atomic', 'true')
   await expect(page.getByText('4.57 / 5').first()).toBeVisible()
 
