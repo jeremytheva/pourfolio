@@ -8,6 +8,7 @@ const {
   canonicalIdOrNull,
   committedDeduction,
   deductionLogicalKey,
+  deductionTimestamp,
   sameDeductionRequest,
   unavailableAggregate
 } = __testables
@@ -68,6 +69,18 @@ test('only committed or legacy-state deduction rows can enter the projected boar
   assert.equal(committedDeduction({ action_state: 'discarded' }), false)
 })
 
+test('deduction ordering uses immutable creation time rather than later settlement time', () => {
+  const olderRecoveredLater = {
+    created_at: '2026-09-11T10:00:00.000Z',
+    updated_at: '2026-09-11T10:05:00.000Z'
+  }
+  const newerSettledEarlier = {
+    created_at: '2026-09-11T10:01:00.000Z',
+    updated_at: '2026-09-11T10:02:00.000Z'
+  }
+  assert.ok(deductionTimestamp(olderRecoveredLater) < deductionTimestamp(newerSettledEarlier))
+})
+
 test('canonical deductions ignore pending and discarded events', () => {
   const rows = canonicalDeductions([
     { id: 1, dimension: 'collaboration', answer: 'yes', action_state: 'committed', created_at: '2026-09-11T10:00:00.000Z' },
@@ -77,6 +90,31 @@ test('canonical deductions ignore pending and discarded events', () => {
   assert.equal(rows.length, 1)
   assert.equal(rows[0].id, 1)
   assert.equal(rows[0].answer, 'yes')
+})
+
+test('a delayed recovery of an older clue cannot overwrite a newer committed clue', () => {
+  const rows = canonicalDeductions([
+    {
+      id: 1,
+      dimension: 'collaboration',
+      answer: 'yes',
+      action_state: 'committed',
+      created_at: '2026-09-11T10:00:00.000Z',
+      updated_at: '2026-09-11T10:05:00.000Z'
+    },
+    {
+      id: 2,
+      dimension: 'collaboration',
+      answer: 'no',
+      action_state: 'committed',
+      created_at: '2026-09-11T10:01:00.000Z',
+      updated_at: '2026-09-11T10:02:00.000Z'
+    }
+  ])
+
+  assert.equal(rows.length, 1)
+  assert.equal(rows[0].id, 2)
+  assert.equal(rows[0].answer, 'no')
 })
 
 test('canonical deductions keep only the newest committed append-only event for one logical clue', () => {
@@ -104,11 +142,11 @@ test('canonical deductions keep only the newest committed append-only event for 
   assert.equal(rows[0].answer, 'no')
 })
 
-test('canonical deductions use row id as a deterministic timestamp tie-breaker', () => {
+test('canonical deductions use row id as a deterministic creation-time tie-breaker', () => {
   const timestamp = '2026-09-11T10:00:00.000Z'
   const rows = canonicalDeductions([
-    { id: 8, dimension: 'dark', answer: 'yes', action_state: 'committed', created_at: timestamp, updated_at: timestamp },
-    { id: 9, dimension: 'dark', answer: 'unknown', action_state: 'committed', created_at: timestamp, updated_at: timestamp }
+    { id: 8, dimension: 'dark', answer: 'yes', action_state: 'committed', created_at: timestamp, updated_at: '2026-09-11T10:02:00.000Z' },
+    { id: 9, dimension: 'dark', answer: 'unknown', action_state: 'committed', created_at: timestamp, updated_at: '2026-09-11T10:01:00.000Z' }
   ])
 
   assert.equal(rows.length, 1)
