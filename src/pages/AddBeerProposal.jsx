@@ -1,28 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from '../lib/router.jsx'
 import { beverageService } from '../services/beverageService.js'
+import { buildCatalogueDuplicateCandidates } from '../services/catalogueProposalDuplicates.js'
 import { producerService } from '../services/producerService.js'
 import { styleService } from '../services/styleService.js'
 
 const normalise = (value) => String(value || '').trim().toLocaleLowerCase().replace(/\s+/gu, ' ')
-
-const duplicateCandidate = (product, form) => {
-  const sameProducer = String(product.producer_id || '') === form.producer_id
-  const proposedName = normalise(form.product_name)
-  const candidateName = normalise(product.product_name)
-  const exactName = Boolean(proposedName) && candidateName === proposedName
-  const similarName = Boolean(proposedName) && (candidateName.includes(proposedName) || proposedName.includes(candidateName))
-  if (!sameProducer || (!exactName && !similarName)) return null
-
-  const styleMatch = Boolean(form.product_category_id) && String(product.product_category_id || '') === form.product_category_id
-  const proposedEdition = normalise(form.edition)
-  const candidateEdition = normalise(product.edition)
-  const editionMatch = Boolean(proposedEdition && candidateEdition && proposedEdition === candidateEdition)
-  const editionConflict = Boolean(proposedEdition && candidateEdition && proposedEdition !== candidateEdition)
-  const strength = (exactName ? 4 : 2) + (styleMatch ? 2 : 0) + (editionMatch ? 2 : 0) - (editionConflict ? 1 : 0)
-
-  return Object.freeze({ product, exactName, styleMatch, editionMatch, editionConflict, strength })
-}
 
 function AddBeerProposal() {
   const location = useLocation()
@@ -100,11 +83,7 @@ function AddBeerProposal() {
       beverageService.getProducts({ search: name, page: 1, limit: 24 })
         .then((payload) => {
           if (!active) return
-          const candidates = payload.items
-            .map((product) => duplicateCandidate(product, form))
-            .filter(Boolean)
-            .sort((left, right) => right.strength - left.strength || String(left.product.product_name).localeCompare(String(right.product.product_name)))
-          setDuplicates(candidates)
+          setDuplicates(buildCatalogueDuplicateCandidates(payload.items, form))
           setDuplicateStatus('ready')
         })
         .catch(() => {
