@@ -4,6 +4,7 @@ import { getSelectorClues, listDeductions, recordDeduction } from './brewDoneItD
 import { getDeductionOptions } from './brewDoneItDeductionOptions.js'
 import brewDoneItEntry from './brewDoneItEntry.js'
 import { completeDeductionRound, forfeitDeductionRound, setHistoryClueSharing, submitOutcomeGuess } from './brewDoneItOutcomeGame.js'
+import { createGameV3, createNextRoundV3, joinGameV3 } from './brewDoneItSeriesV3.js'
 import { statsForUserV3 } from './brewDoneItStatsV3.js'
 import { listParticipantSeriesV3, showGameV3 } from './brewDoneItViewV3.js'
 import { enforceOrigin, enforceRateLimit, enforceRequestSize, safeErrorMessage } from './httpSecurity.js'
@@ -17,10 +18,15 @@ const routeKind = (request) => {
   const path = pathParts(request)
   if (path[0] !== 'brew-done-it') return null
   if (request.method === 'GET' && path.length === 2 && path[1] === 'games') return { kind: 'series-list' }
+  if (request.method === 'POST' && path.length === 2 && path[1] === 'games') return { kind: 'game-create' }
   if (request.method === 'GET' && path.length === 2 && path[1] === 'options') return { kind: 'options' }
   if (request.method === 'GET' && path.length === 2 && path[1] === 'stats') return { kind: 'stats' }
   if (request.method === 'GET' && path.length === 3 && path[1] === 'games') return { kind: 'game-detail', id: path[2] }
-  if (path[1] === 'games' && path.length === 4 && path[3] === 'history-sharing' && request.method === 'POST') return { kind: 'history-sharing', id: path[2] }
+  if (path[1] === 'games' && path.length === 4) {
+    if (path[3] === 'join' && request.method === 'POST') return { kind: 'game-join', id: path[2] }
+    if (path[3] === 'rounds' && request.method === 'POST') return { kind: 'round-create', id: path[2] }
+    if (path[3] === 'history-sharing' && request.method === 'POST') return { kind: 'history-sharing', id: path[2] }
+  }
   if (path[1] !== 'rounds' || path.length !== 4) return null
   if (path[3] === 'deductions' && request.method === 'GET') return { kind: 'deduction-list', id: path[2] }
   if (path[3] === 'deductions' && request.method === 'POST') return { kind: 'deduction-save', id: path[2] }
@@ -49,9 +55,12 @@ const runV3Route = async (request, response, route) => {
   try {
     const user = await requireSessionUser(request)
     if (route.kind === 'series-list') return listParticipantSeriesV3(response, user)
+    if (route.kind === 'game-create') return createGameV3(request, response, user)
     if (route.kind === 'options') return getDeductionOptions(response, user)
     if (route.kind === 'stats') return statsForUserV3(response, user)
     if (route.kind === 'game-detail') return showGameV3(route.id, response, user)
+    if (route.kind === 'game-join') return joinGameV3(route.id, request, response, user)
+    if (route.kind === 'round-create') return createNextRoundV3(route.id, request, response, user)
     if (route.kind === 'history-sharing') return setHistoryClueSharing(route.id, request, response, user)
     if (route.kind === 'deduction-list') return listDeductions(route.id, response, user)
     if (route.kind === 'deduction-save') return recordDeduction(route.id, request, response, user)
