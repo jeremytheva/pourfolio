@@ -23,9 +23,18 @@ const maximumScores = [
   { attributeId: 5, score: 7 },
   { attributeId: 6, score: 7 },
   { attributeId: 7, score: 2 },
-  { attributeId: 1, score: 1 },
-  { attributeId: 8, score: 0 }
+  { attributeId: 1, score: 7 },
+  { attributeId: 8, score: 1 }
 ]
+
+const defaultWeights = {
+  appearance: 0.1,
+  aroma: 0.1,
+  mouthfeel: 0.2,
+  flavour: 0.25,
+  follow: 0.25,
+  bonus: 0.1
+}
 
 const responseHarness = () => ({
   statusCode: null,
@@ -48,60 +57,132 @@ const withProviderMocks = async (overrides, callback) => {
   }
 }
 
-test('submitRating ignores browser totals and persists server-recomputed five-point totals', async () => {
-  const created = []
+const durableProvider = () => {
+  const state = {
+    [COLLECTIONS.ratings]: [],
+    [COLLECTIONS.ratingScores]: [],
+    [COLLECTIONS.bonusRatingMappings]: []
+  }
   let nextId = 100
+  const listState = (collection, filters = {}) => (state[collection] || []).filter((item) =>
+    Object.entries(filters).every(([key, value]) => String(item[key]) === String(value))
+  )
 
-  await withProviderMocks({
-    get: async (collection, id) => {
-      if (collection === COLLECTIONS.products && String(id) === '4') return { id: 4, product_name: 'Ace', product_category_id: 10, producer_id: 20 }
-      return null
-    },
-    list: async (collection) => {
-      if (collection === COLLECTIONS.ratingAttributes) return attributes
-      if (collection === COLLECTIONS.bonusAttributes) return []
-      if (collection === COLLECTIONS.ratings) return [{ id: 100, total_weighted: 5 }]
-      return []
-    },
-    create: async (collection, body) => {
-      const record = { id: nextId++, ...body }
-      created.push({ collection, body: record })
-      return record
-    },
-    remove: async () => null
-  }, async () => {
-    const response = responseHarness()
-    await __testables.submitRating({
-      body: {
-        productId: 4,
-        total_weighted: 1,
-        total_unweighted: 1,
-        scores: maximumScores,
-        weights: { appearance: 0.1, aroma: 0.1, mouthfeel: 0.2, flavour: 0.25, follow: 0.25, bonus: 0.1 },
-        bonusAttributeIds: []
+  return {
+    state,
+    mocks: {
+      isUniqueConflict: (error) => error?.status === 409,
+      get: async (collection, id) => {
+        if (collection === COLLECTIONS.products && String(id) === '4') {
+          return { id: 4, product_name: 'Ace', product_category_id: 10, producer_id: 20 }
+        }
+        if (collection === COLLECTIONS.cellar) return null
+        return (state[collection] || []).find((item) => String(item.id) === String(id)) || null
+      },
+      list: async (collection, filters = {}) => {
+        if (collection === COLLECTIONS.ratingAttributes) return attributes
+        if (collection === COLLECTIONS.bonusAttributes) return []
+        return listState(collection, filters)
+      },
+      create: async (collection, body) => {
+        const uniqueField = collection === COLLECTIONS.ratings ? 'submission_key' : 'uniqueness_key'
+        if ((state[collection] || []).some((item) => item[uniqueField] === body[uniqueField])) {
+          throw Object.assign(new Error('conflict'), { status: 409 })
+        }
+        const record = { id: nextId++, ...body }
+        state[collection].push(record)
+        return record
+      },
+      compareAndSet: async (collection, id, expectedVersion, body) => {
+        const record = state[collection].find((item) => String(item.id) === String(id))
+        if (!record || Number(record.submission_version) !== expectedVersion) {
+          throw Object.assign(new Error('conflict'), { status: 409, code: 'VERSION_CONFLICT' })
+        }
+        Object.assign(record, body)
+        return record
+      },
+      remove: async (collection, id) => {
+        const index = state[collection].findIndex((item) => String(item.id) === String(id))
+        if (index >= 0) state[collection].splice(index, 1)
       }
-    }, response, { id: 'user-1' }, 'test-request')
+    }
+  }
+}
 
-    assert.equal(response.statusCode, 201)
-    assert.equal(response.body.rating.total_weighted, 5)
-    assert.equal(response.body.rating.total_unweighted, 5)
-    assert.equal(response.body.rating.advanced_scores.score_out_of_100, 100)
+const submitMaximum = async (response, weights = defaultWeights) => __testables.submitRating({
+  body: {
+    productId: 4,
+    submissionId: 1700000000000001,
+    total_weighted: 1,
+    total_unweighted: 1,
+    scores: maximumScores,
+    weights,
+    bonusAttributeIds: []
+  }
+}, response, { id: 'user-1' }, 'test-request')
 
-    const ratingWrite = created.find((entry) => entry.collection === COLLECTIONS.ratings)
-    assert.equal(ratingWrite.body.total_weighted, 5)
-    assert.equal(ratingWrite.body.total_unweighted, 5)
-    assert.equal(Object.hasOwn(ratingWrite.body, 'weights'), false)
-    assert.equal(Object.hasOwn(ratingWrite.body, 'score_out_of_100'), false)
+test('submitRating ignores browser totals, persists server-recomputed five-point totals and replays idempotently', async () => {
+  const provider = durableProvider()
+
+  await withProviderMocks(provider.mocks, async () => {
+    const firstResponse = responseHarness()
+    await submitMaximum(firstResponse)
+
+    assert.equal(firstResponse.statusCode, 201)
+    assert.equal(firstResponse.body.rating.total_weighted, 5)
+    assert.equal(firstResponse.body.rating.total_unweighted, 5)
+    assert.equal(firstResponse.body.rating.advanced_scores.score_out_of_100, 100)
+    assert.equal(firstResponse.body.duplicate, false)
+
+    const ratingWrite = provider.state[COLLECTIONS.ratings][0]
+    assert.equal(ratingWrite.total_weighted, 5)
+    assert.equal(ratingWrite.total_unweighted, 5)
+    assert.equal(ratingWrite.submission_state, 'complete')
+    assert.equal(ratingWrite.rating_id, 1700000000000001)
+    assert.equal(Object.hasOwn(ratingWrite, 'weights'), false)
+    assert.equal(Object.hasOwn(ratingWrite, 'score_out_of_100'), false)
+    assert.equal(provider.state[COLLECTIONS.ratingScores].length, 8)
+
+    const retryResponse = responseHarness()
+    await submitMaximum(retryResponse)
+    assert.equal(retryResponse.statusCode, 200)
+    assert.equal(retryResponse.body.duplicate, true)
+    assert.equal(provider.state[COLLECTIONS.ratings].length, 1)
+    assert.equal(provider.state[COLLECTIONS.ratingScores].length, 8)
   })
 })
 
-test('owner history preserves exact category metadata and derives private PPP from owned cellar data', async () => {
+test('a submission id cannot be replayed with different personalised weights', async () => {
+  const provider = durableProvider()
+
+  await withProviderMocks(provider.mocks, async () => {
+    const firstResponse = responseHarness()
+    await submitMaximum(firstResponse)
+    assert.equal(firstResponse.statusCode, 201)
+
+    const alteredWeights = { ...defaultWeights, appearance: 0.2, aroma: 0 }
+    await assert.rejects(
+      submitMaximum(responseHarness(), alteredWeights),
+      (error) => error.status === 409
+    )
+    assert.equal(provider.state[COLLECTIONS.ratings].length, 1)
+  })
+})
+
+test('owner history preserves exact category metadata, derives private PPP and hides incomplete ratings', async () => {
   await withProviderMocks({
     list: async (collection, filters = {}) => {
       if (collection === COLLECTIONS.ratings && filters.user_id === 'user-1') {
-        return [{ id: 99, user_id: 'user-1', product_id: 4, cellar_id: 55, date_rated: '2026-09-11T00:00:00.000Z', total_unweighted: 4, total_weighted: 4 }]
+        return [
+          { id: 99, user_id: 'user-1', product_id: 4, cellar_id: 55, date_rated: '2026-09-11T00:00:00.000Z', total_unweighted: 4, total_weighted: 4, submission_state: 'complete' },
+          { id: 101, user_id: 'user-1', product_id: 4, cellar_id: 55, date_rated: '2026-09-12T00:00:00.000Z', total_unweighted: 5, total_weighted: 5, submission_state: 'pending' }
+        ]
       }
-      if (collection === COLLECTIONS.ratings) return [{ id: 99, total_weighted: 4 }, { id: 100, total_weighted: 5 }]
+      if (collection === COLLECTIONS.ratings) return [
+        { id: 99, total_weighted: 4, submission_state: 'complete' },
+        { id: 100, total_weighted: 5, submission_state: 'complete' },
+        { id: 101, total_weighted: 5, submission_state: 'pending' }
+      ]
       if (collection === COLLECTIONS.cellar) return [{ id: 55, user_id: 'user-1', product_id: 4, mls: 375, purchase_price: 8, retail_price: 10 }]
       return []
     },
