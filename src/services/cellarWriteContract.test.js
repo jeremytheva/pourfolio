@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { CELLAR_EDITABLE_FIELDS } from '../data/contract.js'
+import { CELLAR_EDITABLE_FIELDS, CELLAR_GATED_RELATIONSHIP_FIELDS } from '../data/contract.js'
 import { projectCellarWrite } from './cellarWriteContract.js'
 
 const EXPORTED_CELLAR_WRITABLE_FIELDS = [
@@ -23,11 +23,21 @@ const EXPORTED_CELLAR_WRITABLE_FIELDS = [
   'notes'
 ]
 
+const GATED_RELATIONSHIP_FIELDS = [
+  'location_id',
+  'sharing_series_id',
+  'series_version_id',
+  'purchase_location_id',
+  'purchased_by_id',
+  'bet_id'
+]
+
 test('canonical cellar writable fields match the supplied backend table', () => {
   assert.deepEqual(CELLAR_EDITABLE_FIELDS, EXPORTED_CELLAR_WRITABLE_FIELDS)
+  assert.deepEqual(CELLAR_GATED_RELATIONSHIP_FIELDS, GATED_RELATIONSHIP_FIELDS)
 })
 
-test('projects only canonical cellar writable fields without mutating input', () => {
+test('projects only launch-supported cellar writable fields without mutating input', () => {
   const input = {
     product_id: 42,
     quantity: '2',
@@ -48,10 +58,26 @@ test('projects only canonical cellar writable fields without mutating input', ()
   assert.deepEqual(projectCellarWrite(input, { requireProduct: true }), {
     product_id: 42,
     quantity: '2',
-    series_version_id: null,
     notes: 'Keep cold'
   })
   assert.deepEqual(input, snapshot)
+})
+
+test('rejects non-null relationship fields that have no verified launch lookup capability', () => {
+  for (const field of CELLAR_GATED_RELATIONSHIP_FIELDS) {
+    assert.throws(
+      () => projectCellarWrite({ product_id: 42, [field]: 12 }, { requireProduct: true }),
+      new RegExp(`Cellar relationship ${field} is unavailable`, 'u')
+    )
+  }
+})
+
+test('null or blank gated relationship values are omitted rather than transported', () => {
+  const input = Object.fromEntries(CELLAR_GATED_RELATIONSHIP_FIELDS.map((field, index) => [field, index % 2 ? '' : null]))
+  assert.deepEqual(projectCellarWrite({ product_id: 42, notes: 'Keep cold', ...input }, { requireProduct: true }), {
+    product_id: 42,
+    notes: 'Keep cold'
+  })
 })
 
 test('rejects an update containing only fields absent from the exported cellar table', () => {

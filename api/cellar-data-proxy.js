@@ -37,6 +37,15 @@ const parsePositiveId = (value, label = 'Record identifier') => {
   return text
 }
 
+const sanitiseCellarRequest = (input, options) => {
+  try {
+    return sanitiseCellarInput(input, options)
+  } catch (error) {
+    if (!error.status) error.status = 400
+    throw error
+  }
+}
+
 const safeProviderGet = async (collection, id) => {
   try {
     return await dataProvider.get(collection, id)
@@ -89,7 +98,7 @@ const listCellar = async (response, user) => {
 }
 
 const createCellar = async (request, response, user) => {
-  const input = sanitiseCellarInput(request.body || {})
+  const input = sanitiseCellarRequest(request.body || {})
   const product = await dataProvider.get(COLLECTIONS.products, parsePositiveId(input.product_id, 'Product identifier'))
   if (!product) {
     response.status(404).json({ error: 'Product not found.' })
@@ -120,7 +129,7 @@ const getOwnedCellarRecord = async (id, user) => {
 
 const updateCellar = async (id, request, response, user) => {
   const existing = await getOwnedCellarRecord(id, user)
-  const updates = sanitiseCellarInput(request.body || {}, { partial: true })
+  const updates = sanitiseCellarRequest(request.body || {}, { partial: true })
   if (updates.product_id !== undefined) {
     const requestedProduct = await dataProvider.get(COLLECTIONS.products, parsePositiveId(updates.product_id, 'Product identifier'))
     if (!requestedProduct) {
@@ -189,4 +198,4 @@ export default async function handler(request, response) {
   }
 }
 
-export const __testables = { safeProviderGet, hydrateProduct }
+export const __testables = { safeProviderGet, hydrateProduct, sanitiseCellarRequest }

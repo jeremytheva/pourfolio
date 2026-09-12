@@ -45,6 +45,18 @@ export const NULLABLE_CELLAR_RELATIONSHIPS = Object.freeze([
   'series_version_id'
 ])
 
+// These columns exist in the supplied cellar table, but launch code has no
+// verified lookup/ownership API for the referenced records. Non-null browser or
+// API writes must fail closed until those capabilities are separately certified.
+export const CELLAR_GATED_RELATIONSHIP_FIELDS = Object.freeze([
+  'location_id',
+  'sharing_series_id',
+  'series_version_id',
+  'purchase_location_id',
+  'purchased_by_id',
+  'bet_id'
+])
+
 export const PROFILE_EDITABLE_FIELDS = Object.freeze([
   'name',
   'description',
