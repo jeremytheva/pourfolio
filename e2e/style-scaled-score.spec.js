@@ -36,7 +36,7 @@ test('owner rating history distinguishes overall and style scaled scores', async
   const history = page.getByRole('list', { name: 'Rating history' })
   await expect(history.getByText('Overall Scaled Score', { exact: true }).locator('..')).toContainText('50')
   await expect(history.getByText('Style Scaled Score', { exact: true }).locator('..')).toContainText('75')
-  await expect(history.getByText('3 style ratings', { exact: true })).toBeVisible()
+  await expect(history.getByText(/\(3 style ratings\)/)).toBeVisible()
   await expect(history.getByText(/Top \d+%/)).toHaveCount(0)
 
   const result = await new AxeBuilder({ page })
