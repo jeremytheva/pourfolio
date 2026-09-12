@@ -20,12 +20,32 @@ const invitationCodeFor = (creationKey) => {
   return crypto.createHmac('sha256', signingKey).update(String(creationKey)).digest('base64url')
 }
 
+const stalePendingDeduction = (event, round) => event?.action_state === 'pending' && (
+  round?.status !== 'guessing' ||
+  Number(event.observed_round_version || 0) !== Number(round?.version || 0)
+)
+
+const discardStalePendingDeductions = async (round) => {
+  if (!round?.id) return round
+  const events = list(await dataProvider.list(COLLECTIONS.brewDoneItDeductions, { round_id: round.id }))
+  const stale = events.filter((event) => stalePendingDeduction(event, round))
+  if (!stale.length) return round
+  const updatedAt = new Date().toISOString()
+  await Promise.all(stale.map((event) => dataProvider.update(COLLECTIONS.brewDoneItDeductions, event.id, {
+    action_state: 'discarded',
+    committed_round_version: null,
+    updated_at: updatedAt
+  })))
+  return round
+}
+
 const safeRound = async (round) => {
   if (!round) return null
   const hasPendingOutcome = round.pending_action_key && String(round.pending_action_type || '').startsWith('outcome:')
   const hasFinalisedOutcome = round.last_action_key && String(round.last_action_type || '').startsWith('outcome:')
-  if (hasPendingOutcome || hasFinalisedOutcome) return reconcileOutcomeRound(round)
-  return round
+  const reconciled = hasPendingOutcome || hasFinalisedOutcome ? await reconcileOutcomeRound(round) : round
+  await discardStalePendingDeductions(reconciled)
+  return reconciled
 }
 
 const committedGuesses = async (roundId) => list(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, { round_id: roundId }))
@@ -87,4 +107,10 @@ export const showGameV3 = async (gameId, response, user) => {
   response.status(200).json({ game: projectBrewDoneItGame(game), rounds: projectedRounds })
 }
 
-export const __testables = { invitationCodeFor, safeRound, committedGuesses }
+export const __testables = {
+  invitationCodeFor,
+  safeRound,
+  committedGuesses,
+  stalePendingDeduction,
+  discardStalePendingDeductions
+}
