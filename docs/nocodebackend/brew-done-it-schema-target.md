@@ -11,7 +11,7 @@ This document defines the minimum persistent NoCodeBackend contract for the Brew
 - `brew_done_it_games` is the durable two-player series and stores each participant's history-clue preference.
 - `brew_done_it_rounds` is the authoritative ledger of secret-beer challenges and terminal scores.
 - `brew_done_it_guesses` stores only formal brewery, exact-beer and style outcome submissions.
-- `brew_done_it_deductions` stores append-only deduction workspace events; reads project the latest event for each logical clue and deduction events do not consume formal turns or directly affect scoring.
+- `brew_done_it_deductions` stores append-only deduction workspace events; reads reconcile recoverable pending events and project only the latest committed event for each logical clue.
 - ordinary spoken/free-form yes/no questions are not persisted as gameplay actions.
 - the selected beer is protected server state and is never projected to the active guesser.
 - selector-only answer-sheet/history aggregates are server projected and never exposed to the active guesser.
@@ -167,11 +167,11 @@ Rules:
 
 ## `brew_done_it_deductions`
 
-One row per accepted append-only structured deduction event. Multiple rows may represent successive answers for the same logical clue; the application projects only the latest event for that clue into the active board.
+One row per append-only structured deduction mutation event. Events begin `pending` and are promoted to `committed` only when the server verifies that the same active guessing-round snapshot still exists; stale events become `discarded`. Multiple committed events may represent successive answers for the same logical clue, but only the newest committed event is projected into the active board.
 
 | Field | Required | Purpose |
 | --- | --- | --- |
-| `id` | yes | Provider primary key / deterministic ordering tie-breaker |
+| `id` | yes | Provider primary key / deterministic creation-time tie-breaker |
 | `round_id` | yes | Parent round |
 | `recorded_by_participant_id` | yes | Server-derived guesser identity |
 | `dimension` | yes | Allowlisted deduction dimension |
@@ -180,8 +180,11 @@ One row per accepted append-only structured deduction event. Multiple rows may r
 | `reference_id` | conditional | Canonical catalogue reference where applicable |
 | `numeric_value` | conditional | ABV/IBU threshold where applicable |
 | `idempotency_key` | yes | Immutable stable retry identity for this event |
-| `created_at` | yes | Server event timestamp |
-| `updated_at` | yes | Event ordering timestamp; initially equal to `created_at` for append-only v3 events |
+| `observed_round_version` | yes | Round version observed when the event was created |
+| `action_state` | yes | `pending`, `committed`, or `discarded` |
+| `committed_round_version` | nullable until committed | Verified active round version under which the event was accepted |
+| `created_at` | yes | Immutable logical event-order timestamp |
+| `updated_at` | yes | Lifecycle/settlement timestamp; must not determine logical clue order |
 
 Initial dimensions retained by the application contract:
 
@@ -202,9 +205,16 @@ Initial dimensions retained by the application contract:
 Rules:
 
 - only the active guesser may create events for that round;
-- deduction events are append-only after acceptance; a later answer creates a new event rather than mutating the earlier event or its idempotency key;
+- new deductions require the browser's `expectedVersion` to equal the authoritative round version; an existing idempotent replay is resolved before applying that stale-version gate;
+- a newly persisted event records `observed_round_version` and starts as `pending`;
+- settlement requires the same authenticated guesser, active parent game, `guessing` round state and exact `observed_round_version`;
+- settlement first promotes the event to `committed`, then re-reads the round/game snapshot; if a formal or terminal mutation completed before that verification read, the event is changed to `discarded` and the client receives a version conflict;
+- if a round mutation occurs only after the verification read, the deduction is linearized before that later mutation and remains validly committed;
+- board reads reconcile recoverable `pending` events so a lost provider/client response does not strand accepted state across devices;
+- only `committed` events may enter the projected board; `pending` and `discarded` events are never candidate-filtering facts;
+- deduction events are append-only in logical payload: a later answer creates a new event rather than mutating the earlier clue/answer/idempotency identity;
 - `idempotency_key` must be unique at the intended deduction-event scope and must remain permanently bound to its original payload;
-- deduction changes do not increment `turn_sequence` or score penalties;
+- deduction changes do not increment formal `turn_sequence` or score penalties;
 - payload fields are normalized by dimension so unrelated text/reference/numeric values are discarded/rejected;
 - style, brewery-exclusion and beer-exclusion references resolve server-side to canonical category/producer/product records before persistence;
 - the server canonicalizes style display text from the category record rather than trusting browser labels;
@@ -215,9 +225,9 @@ Rules:
 - if any remaining beer has an unknown category, all styles remain possible;
 - state/country writes fail closed until canonical geography is governed and certified;
 - dark/barrel-aged rows are manual notes until certified structured trait data exists;
-- reads collapse all events by logical clue and project the latest event by event timestamp, using row ID as a deterministic tie-breaker;
+- reads collapse committed events by logical clue and order them by immutable `created_at`, using row ID as a deterministic tie-breaker; later lifecycle settlement must not reorder an older event above a newer event;
 - duplicate physical rows caused by a provider race must not create contradictory projected state; provider uniqueness on `idempotency_key` is still required before enablement;
-- a retry of an older idempotency key returns its original accepted event without changing the latest board state; and
+- a retry of an older idempotency key returns/reconciles its original event without reverting a newer board answer; and
 - an idempotency key may replay only the same logical clue **and answer**; using it for another threshold/reference/answer fails with an idempotency conflict.
 
 ## Formal-outcome reconciliation protocol
@@ -273,7 +283,7 @@ Provider/server policy must jointly ensure:
 Before setting `BREW_DONE_IT_POLICY_ENABLED=true` in a user-facing environment:
 
 1. create/certify the four v3 collections: games, rounds, guesses and deductions;
-2. retain schema evidence for fields/types/indexes/relationships, history-sharing defaults, unique (`game_id`, `round_number`), creation/join/round/deduction/formal-outcome idempotency requirements and `creation_request_fingerprint`;
+2. retain schema evidence for fields/types/indexes/relationships, history-sharing defaults, unique (`game_id`, `round_number`), creation/join/round/deduction/formal-outcome idempotency requirements, `creation_request_fingerprint`, and deduction `observed_round_version` / `action_state` / `committed_round_version` fields;
 3. prove game create retries recover ambiguous provider responses and reject the same creation key with a different selected beer;
 4. prove join retries use the server-loaded current version, retain only the one-way invitation digest and reject the same join key with a different invitation payload;
 5. prove next-round retries are recognized before ordinary stale/current-round gates, recover a partially persisted parent transition and reject the same key with a different selected beer;
@@ -281,15 +291,16 @@ Before setting `BREW_DONE_IT_POLICY_ENABLED=true` in a user-facing environment:
 7. run disposable two-account/two-device create, join, resume, deduction, exclusion/undo, brewery guess, exact-beer guess, style fallback, explicit finish, role-swap and next-round flows;
 8. prove the active guesser's raw HTTP responses contain no secret beer, invitation internals or selector clue-sheet data;
 9. prove history aggregates are absent when sharing is off, contain only approved aggregates when sharing is on, distinguish governed zero results from unresolved relationships, and never group unrelated unresolved products together;
-10. prove yes/no/unknown deduction events persist, latest-event projection is deterministic and `unknown` never eliminates candidates;
-11. prove an older delayed retry returns its original deduction event without reverting a newer board answer;
-12. prove unknown producer/category/numeric/boolean/rating-attribution facts remain candidates rather than being treated as negative facts;
-13. prove geography remains unavailable rather than inferred while no governed canonical source exists;
-14. retry/stale-device/failure-injection formal outcomes and prove exactly one committed result or zero with no invented penalty;
-15. prove idempotency-key reuse for a different deduction/outcome fails rather than replaying the wrong mutation;
-16. prove dark/barrel-aged manual notes do not auto-filter before certified trait metadata exists;
-17. reconcile v3 statistics exactly to terminal round rows, including forfeited rounds in round counts;
-18. clean disposable fixtures and retain redacted evidence; and
-19. review retention/deletion, accessibility and browser evidence before route/navigation enablement.
+10. prove yes/no/unknown deduction events persist, only committed events enter the board, and `unknown` never eliminates candidates;
+11. failure-inject deduction creation/settlement and prove read-time recovery of pending events, stale-round discard, exact expected-version enforcement and no pending/discarded event leakage into candidate filtering;
+12. prove an older delayed retry keeps its immutable creation order and cannot revert a newer committed board answer even when its settlement timestamp is later;
+13. prove unknown producer/category/numeric/boolean/rating-attribution facts remain candidates rather than being treated as negative facts;
+14. prove geography remains unavailable rather than inferred while no governed canonical source exists;
+15. retry/stale-device/failure-injection formal outcomes and prove exactly one committed result or zero with no invented penalty;
+16. prove idempotency-key reuse for a different deduction/outcome fails rather than replaying the wrong mutation;
+17. prove dark/barrel-aged manual notes do not auto-filter before certified trait metadata exists;
+18. reconcile v3 statistics exactly to terminal round rows, including forfeited rounds in round counts;
+19. clean disposable fixtures and retain redacted evidence; and
+20. review retention/deletion, accessibility and browser evidence before route/navigation enablement.
 
 Until those gates pass, Brew Done It remains in `DEFERRED_COLLECTIONS`, the playable route remains absent, and the server policy remains fail-closed.
