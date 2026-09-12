@@ -27,6 +27,7 @@ import {
   submitBrewDoneItOutcome
 } from '../services/brewDoneItService.js'
 import { isBrewDoneItInvitationExpired } from '../utils/brewDoneItInvitation.js'
+import { mergeProjectedRoundGuess } from '../utils/brewDoneItRoundState.js'
 
 const requestKey = () => `brew-done-it-${crypto.randomUUID()}`
 const terminalRound = (round) => ['completed', 'forfeited'].includes(round?.status)
@@ -171,7 +172,7 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
         () => submitBrewDoneItOutcome(round.id, guessType, referenceId, round.version || 0, key),
         (value) => value.guess?.is_correct ? `${guessType === 'beer' ? 'Exact beer' : guessType} correct.` : `${guessType === 'beer' ? 'Beer' : guessType} guess incorrect.`
       )
-      setRound(result.round)
+      setRound((current) => mergeProjectedRoundGuess(current, result.round, result.guess))
       await loadSeries()
     })
   }
