@@ -11,7 +11,7 @@ This document defines the minimum persistent NoCodeBackend contract for the Brew
 - `brew_done_it_games` is the durable two-player series and stores each participant's history-clue preference.
 - `brew_done_it_rounds` is the authoritative ledger of secret-beer challenges and terminal scores.
 - `brew_done_it_guesses` stores only formal brewery, exact-beer and style outcome submissions.
-- `brew_done_it_deductions` stores the guesser's persistent deduction workspace; deduction rows do not consume formal turns or directly affect scoring.
+- `brew_done_it_deductions` stores append-only deduction workspace events; reads project the latest event for each logical clue and deduction events do not consume formal turns or directly affect scoring.
 - ordinary spoken/free-form yes/no questions are not persisted as gameplay actions.
 - the selected beer is protected server state and is never projected to the active guesser.
 - selector-only answer-sheet/history aggregates are server projected and never exposed to the active guesser.
@@ -138,11 +138,11 @@ Rules:
 
 ## `brew_done_it_deductions`
 
-One row per persistent structured clue in the guesser's workspace.
+One row per accepted append-only structured deduction event. Multiple rows may represent successive answers for the same logical clue; the application projects only the latest event for that clue into the active board.
 
 | Field | Required | Purpose |
 | --- | --- | --- |
-| `id` | yes | Provider primary key |
+| `id` | yes | Provider primary key / deterministic ordering tie-breaker |
 | `round_id` | yes | Parent round |
 | `recorded_by_participant_id` | yes | Server-derived guesser identity |
 | `dimension` | yes | Allowlisted deduction dimension |
@@ -150,9 +150,9 @@ One row per persistent structured clue in the guesser's workspace.
 | `value_text` | conditional | Canonical/display value where applicable |
 | `reference_id` | conditional | Canonical catalogue reference where applicable |
 | `numeric_value` | conditional | ABV/IBU threshold where applicable |
-| `idempotency_key` | yes | Stable retry identity |
-| `created_at` | yes | Creation timestamp |
-| `updated_at` | yes | Latest answer update timestamp |
+| `idempotency_key` | yes | Immutable stable retry identity for this event |
+| `created_at` | yes | Server event timestamp |
+| `updated_at` | yes | Event ordering timestamp; initially equal to `created_at` for append-only v3 events |
 
 Initial dimensions retained by the application contract:
 
@@ -172,19 +172,23 @@ Initial dimensions retained by the application contract:
 
 Rules:
 
-- only the active guesser may create/update rows for that round;
+- only the active guesser may create events for that round;
+- deduction events are append-only after acceptance; a later answer creates a new event rather than mutating the earlier event or its idempotency key;
+- `idempotency_key` must be unique at the intended deduction-event scope and must remain permanently bound to its original payload;
 - deduction changes do not increment `turn_sequence` or score penalties;
 - payload fields are normalized by dimension so unrelated text/reference/numeric values are discarded/rejected;
 - style, brewery-exclusion and beer-exclusion references resolve server-side to canonical category/producer/product records before persistence;
 - the server canonicalizes style display text from the category record rather than trusting browser labels;
-- `unknown` never eliminates a candidate and provides the undo/reset state for an existing clue;
+- `unknown` never eliminates a candidate and provides the undo/reset state through a new append-only event;
 - missing source data is not converted to `no`;
 - zero/blank product producer/category identifiers remain unknown rather than becoming candidates for a fabricated relationship;
 - if personal rating attribution is incomplete, an otherwise-unmatched brewery's previous-rating relation remains unknown rather than false;
 - if any remaining beer has an unknown category, all styles remain possible;
 - state/country writes fail closed until canonical geography is governed and certified;
 - dark/barrel-aged rows are manual notes until certified structured trait data exists;
-- duplicate logical workspace rows caused by concurrent writes are projected deterministically using the latest update (with a stable ID tie-breaker); and
+- reads collapse all events by logical clue and project the latest event by event timestamp, using row ID as a deterministic tie-breaker;
+- duplicate physical rows caused by a provider race must not create contradictory projected state; provider uniqueness on `idempotency_key` is still required before enablement;
+- a retry of an older idempotency key returns its original accepted event without changing the latest board state; and
 - an idempotency key may replay only the same logical clue **and answer**; using it for another threshold/reference/answer fails with an idempotency conflict.
 
 ## Formal-outcome reconciliation protocol
@@ -217,7 +221,7 @@ The selector-only answer sheet currently resolves only governed public catalogue
 - product ABV/IBU/collaboration/edition fields; and
 - optional aggregate history derived from the consenting guesser's own ratings plus those product relationships.
 
-The selector receives only approved history aggregates: rating count, distinct-beer count, average weighted score and last-rated date scoped to the hidden brewery/style/beer. Invalid/missing weighted scores and invalid dates are excluded from those aggregates. Raw ratings, rating notes, cellar data and unrelated private account data are excluded.
+The selector receives only approved history aggregates: rating count, distinct-beer count, average weighted score and last-rated date scoped to the hidden brewery/style/beer. Invalid/missing weighted scores and invalid dates are excluded. A governed relationship with no matching ratings is represented as a known zero result; an unresolved hidden producer/category relationship is represented as `available: false` and must not aggregate unrelated unresolved products together. Raw ratings, rating notes, cellar data and unrelated private account data are excluded.
 
 Brew Done It does **not** currently depend on a provider `suburb`, `postcode`, `state` or `country` collection. Producer free-text address or `suburb_id` is not parsed/inferred into state/country. A future governed geography capability may add automatic state/country filtering under a separate evidence-backed change; it is not a prerequisite for the four v3 Brew collections.
 
@@ -239,19 +243,20 @@ Provider/server policy must jointly ensure:
 Before setting `BREW_DONE_IT_POLICY_ENABLED=true` in a user-facing environment:
 
 1. create/certify the four v3 collections: games, rounds, guesses and deductions;
-2. retain schema evidence for fields/types/indexes/relationships and history-sharing defaults;
+2. retain schema evidence for fields/types/indexes/relationships, history-sharing defaults and uniqueness of deduction/formal-outcome idempotency keys;
 3. certify the existing product/producer/category/rating relationships used for candidate narrowing and history aggregates;
 4. run disposable two-account/two-device create, join, resume, deduction, exclusion/undo, brewery guess, exact-beer guess, style fallback, explicit finish, role-swap and next-round flows;
 5. prove the active guesser's raw HTTP responses contain no secret beer or selector clue-sheet data;
-6. prove history aggregates are absent when sharing is off and contain only approved aggregates when sharing is on;
-7. prove yes/no/unknown deductions persist, duplicate logical rows resolve deterministically and `unknown` never eliminates candidates;
-8. prove unknown producer/category/numeric/boolean/rating-attribution facts remain candidates rather than being treated as negative facts;
-9. prove geography remains unavailable rather than inferred while no governed canonical source exists;
-10. retry/stale-device/failure-injection formal outcomes and prove exactly one committed result or zero with no invented penalty;
-11. prove idempotency-key reuse for a different deduction/outcome fails rather than replaying the wrong mutation;
-12. prove dark/barrel-aged manual notes do not auto-filter before certified trait metadata exists;
-13. reconcile v3 statistics exactly to terminal round rows, including forfeited rounds in round counts;
-14. clean disposable fixtures and retain redacted evidence; and
-15. review retention/deletion, accessibility and browser evidence before route/navigation enablement.
+6. prove history aggregates are absent when sharing is off, contain only approved aggregates when sharing is on, distinguish governed zero results from unresolved relationships, and never group unrelated unresolved products together;
+7. prove yes/no/unknown deduction events persist, latest-event projection is deterministic and `unknown` never eliminates candidates;
+8. prove an older delayed retry returns its original deduction event without reverting a newer board answer;
+9. prove unknown producer/category/numeric/boolean/rating-attribution facts remain candidates rather than being treated as negative facts;
+10. prove geography remains unavailable rather than inferred while no governed canonical source exists;
+11. retry/stale-device/failure-injection formal outcomes and prove exactly one committed result or zero with no invented penalty;
+12. prove idempotency-key reuse for a different deduction/outcome fails rather than replaying the wrong mutation;
+13. prove dark/barrel-aged manual notes do not auto-filter before certified trait metadata exists;
+14. reconcile v3 statistics exactly to terminal round rows, including forfeited rounds in round counts;
+15. clean disposable fixtures and retain redacted evidence; and
+16. review retention/deletion, accessibility and browser evidence before route/navigation enablement.
 
 Until those gates pass, Brew Done It remains in `DEFERRED_COLLECTIONS`, the playable route remains absent, and the server policy remains fail-closed.
