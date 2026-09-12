@@ -26,10 +26,12 @@ const participant = (game, userId) => [game?.creator_participant_id, game?.oppon
   .filter((value) => value !== null && value !== undefined)
   .some((value) => String(value) === String(userId))
 
-const requestKey = (request, userId) => {
-  const key = String(request.body?.idempotencyKey || '').trim()
-  if (!/^[A-Za-z0-9:_-]{8,180}$/.test(key)) throw fail('The idempotency key is invalid.')
-  return `${userId}:${key}`
+const mutation = (request, userId) => {
+  const expectedVersion = Number(request.body?.expectedVersion)
+  const idempotencyKey = String(request.body?.idempotencyKey || '').trim()
+  if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 0) throw fail('The expected version is invalid.')
+  if (!/^[A-Za-z0-9:_-]{8,180}$/.test(idempotencyKey)) throw fail('The idempotency key is invalid.')
+  return { expectedVersion, key: `${userId}:${idempotencyKey}` }
 }
 
 const idempotencyConflict = () => fail(
@@ -138,7 +140,9 @@ const sameDeductionRequest = (stored, input) => {
 }
 
 const deductionTimestamp = (deduction) => {
-  const timestamp = Date.parse(deduction.updated_at || deduction.created_at || '')
+  // Append-only v3 event order is established when the event is created. Lifecycle
+  // settlement may update updated_at later and must never make an older retry newer.
+  const timestamp = Date.parse(deduction.created_at || deduction.updated_at || '')
   return Number.isFinite(timestamp) ? timestamp : 0
 }
 
@@ -191,6 +195,25 @@ const findDeductionByRequestKey = async (roundId, key) => list(await dataProvide
   idempotency_key: key
 }))[0] || null
 
+const sameDeductionSnapshot = (round, game, event, user) => Boolean(
+  round &&
+  game &&
+  participant(game, user.id) &&
+  String(event.recorded_by_participant_id) === String(user.id) &&
+  String(round.guesser_participant_id) === String(user.id) &&
+  game.status === 'active' &&
+  round.status === 'guessing' &&
+  Number(round.version || 0) === Number(event.observed_round_version || 0)
+)
+
+const discardDeductionEvent = async (event) => {
+  await dataProvider.update(COLLECTIONS.brewDoneItDeductions, event.id, {
+    action_state: 'discarded',
+    committed_round_version: null,
+    updated_at: new Date().toISOString()
+  })
+}
+
 const settleDeductionEvent = async (event, user) => {
   if (event.action_state === 'committed') return event
   if (event.action_state === 'discarded') {
@@ -200,31 +223,39 @@ const settleDeductionEvent = async (event, user) => {
 
   const round = await dataProvider.get(COLLECTIONS.brewDoneItRounds, event.round_id)
   const game = round ? await dataProvider.get(COLLECTIONS.brewDoneItGames, round.game_id) : null
-  const sameActiveRound = Boolean(
-    round &&
-    game &&
-    participant(game, user.id) &&
-    String(round.guesser_participant_id) === String(user.id) &&
-    game.status === 'active' &&
-    round.status === 'guessing' &&
-    Number(round.version || 0) === Number(event.observed_round_version || 0)
-  )
-
-  if (!sameActiveRound) {
-    await dataProvider.update(COLLECTIONS.brewDoneItDeductions, event.id, {
-      action_state: 'discarded',
-      committed_round_version: null,
-      updated_at: new Date().toISOString()
-    })
+  if (!sameDeductionSnapshot(round, game, event, user)) {
+    await discardDeductionEvent(event)
     throw staleDeduction(round)
   }
 
+  const committedAt = new Date().toISOString()
   await dataProvider.update(COLLECTIONS.brewDoneItDeductions, event.id, {
     action_state: 'committed',
     committed_round_version: Number(round.version || 0),
-    updated_at: new Date().toISOString()
+    updated_at: committedAt
   })
-  return dataProvider.get(COLLECTIONS.brewDoneItDeductions, event.id)
+  const committed = await dataProvider.get(COLLECTIONS.brewDoneItDeductions, event.id)
+  if (!committed || committed.action_state !== 'committed') throw fail('The deduction could not be durably committed.', 502)
+
+  // Establish a safe linearization boundary. If a terminal/formal mutation completed
+  // before this verification read, the deduction is discarded. If it occurs after
+  // this read, the deduction was accepted first and may remain committed.
+  const verifiedRound = await dataProvider.get(COLLECTIONS.brewDoneItRounds, event.round_id)
+  const verifiedGame = verifiedRound ? await dataProvider.get(COLLECTIONS.brewDoneItGames, verifiedRound.game_id) : null
+  if (!sameDeductionSnapshot(verifiedRound, verifiedGame, event, user)) {
+    await discardDeductionEvent(committed)
+    throw staleDeduction(verifiedRound)
+  }
+  return committed
+}
+
+const reconcileDeductionEvents = async (records, user) => {
+  const reconciled = []
+  for (const event of list(records)) {
+    if (event.action_state === 'pending') reconciled.push(await settleDeductionEvent(event, user))
+    else reconciled.push(event)
+  }
+  return reconciled
 }
 
 const persistDeductionEvent = async (round, user, key, input) => {
@@ -326,14 +357,17 @@ export const getSelectorClues = async (roundId, response, user) => {
 
 export const listDeductions = async (roundId, response, user) => {
   await activeGuesser(roundId, user)
-  const deductions = canonicalDeductions(await dataProvider.list(COLLECTIONS.brewDoneItDeductions, { round_id: roundId }))
-    .map(projectBrewDoneItDeduction)
+  const events = await reconcileDeductionEvents(
+    await dataProvider.list(COLLECTIONS.brewDoneItDeductions, { round_id: roundId }),
+    user
+  )
+  const deductions = canonicalDeductions(events).map(projectBrewDoneItDeduction)
   response.status(200).json({ deductions })
 }
 
 export const recordDeduction = async (roundId, request, response, user) => {
   const { round } = await activeGuesser(roundId, user)
-  const key = requestKey(request, user.id)
+  const { expectedVersion, key } = mutation(request, user.id)
   let input = sanitiseBrewDoneItDeductionInput(request.body)
   const replay = await findDeductionByRequestKey(round.id, key)
   if (replay) {
@@ -342,6 +376,7 @@ export const recordDeduction = async (roundId, request, response, user) => {
     response.status(200).json({ deduction: projectBrewDoneItDeduction(settled), replayed: true })
     return
   }
+  if (Number(round.version || 0) !== expectedVersion) throw staleDeduction(round)
   input = await resolveDeductionInput(input)
   const saved = await persistDeductionEvent(round, user, key, input)
   response.status(201).json({ deduction: projectBrewDoneItDeduction(saved) })
@@ -357,6 +392,7 @@ export const __testables = {
   latestRatedAt,
   deductionLogicalKey,
   sameDeductionRequest,
+  deductionTimestamp,
   committedDeduction,
   canonicalDeductions
 }
