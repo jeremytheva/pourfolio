@@ -1,9 +1,10 @@
 import React from 'react'
 import BrewDoneItInvitationExpiry from './BrewDoneItInvitationExpiry.jsx'
 import BrewDoneItInvitationShare from './BrewDoneItInvitationShare.jsx'
+import { isBrewDoneItInvitationExpired } from '../utils/brewDoneItInvitation.js'
 
-const describeState = (game, round, userId) => {
-  if (game.status === 'waiting') return 'Waiting for the other player to accept'
+const describeState = (game, round, userId, invitationExpired = false) => {
+  if (game.status === 'waiting') return invitationExpired ? 'The invitation expiry time has passed' : 'Waiting for the other player to accept'
   if (!round) return 'Series has no round yet'
   if (round.status === 'completed' || round.status === 'forfeited') {
     return String(round.guesser_participant_id) === String(userId)
@@ -15,7 +16,8 @@ const describeState = (game, round, userId) => {
     : 'Waiting for the other player to guess'
 }
 
-const actionState = (game, round, userId) => {
+const actionState = (game, round, userId, invitationExpired = false) => {
+  if (game.status === 'waiting' && invitationExpired) return { label: 'Invitation expired', tone: 'bg-red-100 text-red-900' }
   if (game.status === 'waiting') return { label: 'Invitation pending', tone: 'bg-amber-100 text-amber-900' }
   if (!round) return { label: 'Waiting', tone: 'bg-gray-100 text-gray-700' }
   const terminal = round.status === 'completed' || round.status === 'forfeited'
@@ -36,7 +38,8 @@ export default function BrewDoneItSeriesList({ series, userId, busy, onOpen }) {
       <p className="mt-1 text-sm text-gray-600">Resume an existing challenge or series from this device. Your turn and waiting states persist between sessions.</p>
       <ul className="mt-4 divide-y divide-gray-200">
         {series.map(({ game, round, invitationCode }) => {
-          const state = actionState(game, round, userId)
+          const invitationExpired = game.status === 'waiting' && isBrewDoneItInvitationExpired(game.expires_at)
+          const state = actionState(game, round, userId, invitationExpired)
           return (
             <li className="py-4" key={game.id}>
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -45,12 +48,12 @@ export default function BrewDoneItSeriesList({ series, userId, busy, onOpen }) {
                     <p className="font-semibold text-gray-900">Series {game.id}{round ? ` · Round ${round.round_number}` : ''}</p>
                     <span className={`rounded-full px-2 py-1 text-xs font-semibold ${state.tone}`}>{state.label}</span>
                   </div>
-                  <p className="mt-1 text-sm text-gray-600">{describeState(game, round, userId)}</p>
+                  <p className="mt-1 text-sm text-gray-600">{describeState(game, round, userId, invitationExpired)}</p>
                   {game.status === 'waiting' && invitationCode && (
                     <div className="mt-2 rounded-lg bg-amber-50 p-3">
                       <p className="break-all font-mono text-xs text-gray-700">Game {game.id}: {invitationCode}</p>
                       <BrewDoneItInvitationExpiry expiresAt={game.expires_at} />
-                      <BrewDoneItInvitationShare gameId={game.id} inviteCode={invitationCode} disabled={busy} />
+                      <BrewDoneItInvitationShare gameId={game.id} inviteCode={invitationCode} disabled={busy || invitationExpired} />
                     </div>
                   )}
                 </div>
