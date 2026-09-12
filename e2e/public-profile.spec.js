@@ -15,8 +15,8 @@ const publicProfile = {
       id: 14,
       product_id: 4,
       date_rated: '2026-09-10T10:00:00.000Z',
-      total_unweighted: 5.2,
-      total_weighted: 5.4,
+      total_unweighted: 4.2,
+      total_weighted: 4.4,
       product: {
         id: 4,
         product_name: 'Ace',
@@ -24,7 +24,7 @@ const publicProfile = {
       }
     }
   ],
-  summary: { count: 1, average: 5.4 }
+  summary: { count: 1, average: 4.4 }
 }
 
 test.beforeEach(async ({ page }) => {
@@ -44,7 +44,7 @@ test('public user profile shows only the opted-in rated-beer history projection'
   await expect(page.getByRole('heading', { name: 'Rated beers', level: 2 })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Ace' })).toHaveAttribute('href', '/products/4')
   await expect(page.getByText('Hop House')).toBeVisible()
-  await expect(page.getByLabel('Shared rating history').getByText('5.4 / 7')).toBeVisible()
+  await expect(page.getByLabel('Shared rating history').getByText('4.4 / 5')).toBeVisible()
   await expect(page.getByText('test@example.com')).toHaveCount(0)
   await expect(page.getByRole('button', { name: /Delete rating/ })).toHaveCount(0)
 })

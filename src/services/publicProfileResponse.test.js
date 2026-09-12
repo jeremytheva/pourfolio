@@ -15,8 +15,8 @@ const validPayload = () => ({
       id: 14,
       product_id: 22,
       date_rated: '2026-09-10T10:00:00.000Z',
-      total_unweighted: 5.2,
-      total_weighted: 5.4,
+      total_unweighted: 4.2,
+      total_weighted: 4.4,
       product: {
         id: 22,
         product_name: 'Example Stout',
@@ -24,7 +24,7 @@ const validPayload = () => ({
       }
     }
   ],
-  summary: { count: 1, average: 5.4 }
+  summary: { count: 1, average: 4.4 }
 })
 
 test('accepts the safe public profile and rated-beer projection unchanged', () => {

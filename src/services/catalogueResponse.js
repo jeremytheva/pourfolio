@@ -1,4 +1,6 @@
+import { completedRatingTotal, RATING_DISTRIBUTION_BUCKETS } from '../lib/completedRatingContract.js'
 import { ApiError } from '../lib/nocodeBackend.js'
+import { ratingDimension } from '../lib/ratingFormulaV1.js'
 
 const INVALID_CATALOGUE_MESSAGE = 'The server returned invalid catalogue data. Please try again.'
 const INVALID_CATALOGUE_CODE = 'invalid_catalogue_response'
@@ -15,7 +17,7 @@ const PRODUCER_DETAIL_KEYS = new Set(['producer', 'products'])
 const CATEGORY_KEYS = new Set(['id', 'category_name', 'parent_id'])
 const RATING_SUMMARY_KEYS = new Set(['count', 'average'])
 const RATING_INSIGHTS_KEYS = new Set(['distribution', 'attributes'])
-const RATING_BUCKET_KEYS = new Set(['score', 'count'])
+const RATING_BUCKET_KEYS = new Set(['key', 'label', 'minExclusive', 'maxInclusive', 'count'])
 const ATTRIBUTE_INSIGHT_KEYS = new Set(['attributeId', 'name', 'average', 'count'])
 const DECIMAL_NUMBER = /^(?:\d+(?:\.\d+)?|\.\d+)$/u
 
@@ -97,18 +99,23 @@ const validateCategory = (value) => {
 }
 const validateRatingInsights = (value, summary) => {
   const insights = readDataProperties(value, RATING_INSIGHTS_KEYS, ['distribution', 'attributes'])
-  if (!Array.isArray(insights.distribution) || insights.distribution.length !== 7 || !Array.isArray(insights.attributes)) invalid()
+  if (!Array.isArray(insights.distribution) || insights.distribution.length !== RATING_DISTRIBUTION_BUCKETS.length || !Array.isArray(insights.attributes)) invalid()
   const distribution = insights.distribution.map((value, index) => {
-    const bucket = readDataProperties(value, RATING_BUCKET_KEYS, ['score', 'count'])
-    if (bucket.score !== index + 1 || !Number.isSafeInteger(bucket.count) || bucket.count < 0) invalid()
-    return { score: bucket.score, count: bucket.count }
+    const bucket = readDataProperties(value, RATING_BUCKET_KEYS, ['key', 'label', 'minExclusive', 'maxInclusive', 'count'])
+    const contract = RATING_DISTRIBUTION_BUCKETS[index]
+    if (bucket.key !== contract.key || bucket.label !== contract.label ||
+      bucket.minExclusive !== contract.minExclusive || bucket.maxInclusive !== contract.maxInclusive ||
+      !Number.isSafeInteger(bucket.count) || bucket.count < 0) invalid()
+    return { ...contract, count: bucket.count }
   })
   if (distribution.reduce((sum, bucket) => sum + bucket.count, 0) !== summary.count) invalid()
   const attributes = insights.attributes.map((value) => {
     const attribute = readDataProperties(value, ATTRIBUTE_INSIGHT_KEYS, ['attributeId', 'name', 'average', 'count'])
     const attributeId = validateStableId(attribute.attributeId)
     const name = validateText(attribute.name, { required: true })
-    if (typeof attribute.average !== 'number' || !Number.isFinite(attribute.average) || attribute.average < 1 || attribute.average > 7) invalid()
+    const dimension = ratingDimension(name)
+    const min = dimension?.min ?? 1
+    if (!dimension || typeof attribute.average !== 'number' || !Number.isFinite(attribute.average) || attribute.average < min || attribute.average > dimension.max) invalid()
     if (!Number.isSafeInteger(attribute.count) || attribute.count < 1 || attribute.count > summary.count) invalid()
     return { attributeId, name, average: attribute.average, count: attribute.count }
   })
@@ -142,7 +149,9 @@ const validateProduct = (value, { detail = false } = {}) => {
   if (detail) {
     const summary = readDataProperties(product.ratingSummary, RATING_SUMMARY_KEYS, ['count', 'average'])
     if (!Number.isSafeInteger(summary.count) || summary.count < 0) invalid()
-    if (summary.count === 0) { if (summary.average !== null) invalid() } else if (typeof summary.average !== 'number' || !Number.isFinite(summary.average) || summary.average < 1 || summary.average > 7) invalid()
+    if (summary.count === 0) {
+      if (summary.average !== null) invalid()
+    } else if (typeof summary.average !== 'number' || completedRatingTotal(summary.average) === null) invalid()
     result.ratingSummary = { count: summary.count, average: summary.average }
     result.ratingInsights = validateRatingInsights(product.ratingInsights, result.ratingSummary)
     if (Object.hasOwn(product, 'ratings') && (!Array.isArray(product.ratings) || product.ratings.length > 0)) invalid()

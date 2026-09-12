@@ -1,3 +1,5 @@
+import { RATING_DISTRIBUTION_BUCKETS } from '../src/lib/completedRatingContract.js'
+
 export const product = {
   id: 4,
   product_name: 'Ace',
@@ -19,19 +21,18 @@ const rating = {
   cellar_id: null,
   date_rated: '2026-07-27T00:00:00.000Z',
   total_unweighted: 4,
-  total_weighted: 4
+  total_weighted: 4,
+  score_out_of_100: 80,
+  scaled_score: 50,
+  retail_ppp: null,
+  purchased_ppp: null
 }
 
 const ratingInsights = {
-  distribution: [
-    { score: 1, count: 0 },
-    { score: 2, count: 0 },
-    { score: 3, count: 0 },
-    { score: 4, count: 1 },
-    { score: 5, count: 0 },
-    { score: 6, count: 0 },
-    { score: 7, count: 0 }
-  ],
+  distribution: RATING_DISTRIBUTION_BUCKETS.map((bucket) => ({
+    ...bucket,
+    count: bucket.key === '3.5-4.0' ? 1 : 0
+  })),
   attributes: [
     { attributeId: 2, name: 'Appearance', average: 4, count: 1 },
     { attributeId: 3, name: 'Aroma', average: 4, count: 1 }
@@ -102,7 +103,13 @@ export const installMockApi = async (page) => {
       product,
       attributes: [
         { id: 2, attribute_name: 'Appearance', is_scored: 1, weighting: 0.1 },
-        { id: 3, attribute_name: 'Aroma', is_scored: 1, weighting: 0.2 }
+        { id: 3, attribute_name: 'Aroma', is_scored: 1, weighting: 0.1 },
+        { id: 4, attribute_name: 'Mouthfeel', is_scored: 1, weighting: 0.2 },
+        { id: 5, attribute_name: 'Flavour', is_scored: 1, weighting: 0.25 },
+        { id: 6, attribute_name: 'Follow', is_scored: 1, weighting: 0.25 },
+        { id: 7, attribute_name: 'Bonus', is_scored: 1, weighting: 0.1 },
+        { id: 8, attribute_name: 'Design', is_scored: 0, weighting: 0 },
+        { id: 9, attribute_name: 'Burp', is_scored: 0, weighting: 0 }
       ],
       bonusAttributes: [
         { id: 10, description: 'Better than expected for style', point_value: 0.1 }
@@ -113,7 +120,7 @@ export const installMockApi = async (page) => {
   await page.route('**/api/nocodebackend/ratings/submit', (route) => route.fulfill({
     status: 201,
     contentType: 'application/json',
-    body: JSON.stringify({ rating, scoreCount: 2, bonusCount: 0, duplicate: false })
+    body: JSON.stringify({ rating, scoreCount: 6, bonusCount: 0, duplicate: false })
   }))
 
   await page.route('**/api/nocodebackend/ratings/mine', (route) => route.fulfill({

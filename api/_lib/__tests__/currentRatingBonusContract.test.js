@@ -14,6 +14,24 @@ const response = () => ({
   json(value) { this.body = value; return this }
 })
 
+const ratingAttributes = [
+  { id: 2, attribute_name: 'Appearance', is_scored: 1, weighting: 0.1 },
+  { id: 3, attribute_name: 'Aroma', is_scored: 1, weighting: 0.1 },
+  { id: 4, attribute_name: 'Mouthfeel', is_scored: 1, weighting: 0.2 },
+  { id: 5, attribute_name: 'Flavour', is_scored: 1, weighting: 0.25 },
+  { id: 6, attribute_name: 'Follow', is_scored: 1, weighting: 0.25 },
+  { id: 7, attribute_name: 'Bonus', is_scored: 1, weighting: 0.1 }
+]
+
+const scores = [
+  { attributeId: 2, score: 6 },
+  { attributeId: 3, score: 5 },
+  { attributeId: 4, score: 5 },
+  { attributeId: 5, score: 6 },
+  { attributeId: 6, score: 5 },
+  { attributeId: 7, score: 1 }
+]
+
 test('current-schema rating submission writes the supplied bonus_attributes_id field', async () => {
   const created = []
   let nextId = 100
@@ -23,7 +41,7 @@ test('current-schema rating submission writes the supplied bonus_attributes_id f
     return null
   }
   dataProvider.list = async (collection) => {
-    if (collection === COLLECTIONS.ratingAttributes) return [{ id: 2, is_scored: 1, weighting: 1 }]
+    if (collection === COLLECTIONS.ratingAttributes) return ratingAttributes
     if (collection === COLLECTIONS.bonusAttributes) return [{ id: 7 }]
     return []
   }
@@ -38,7 +56,7 @@ test('current-schema rating submission writes the supplied bonus_attributes_id f
   await __testables.submitRating({
     body: {
       productId: 10,
-      scores: [{ attributeId: 2, score: 6 }],
+      scores,
       bonusAttributeIds: [7]
     }
   }, result, { id: 'user-contract' }, 'contract-request')

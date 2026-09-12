@@ -146,7 +146,7 @@ test('opted-in public profile returns only projected rated beer history', async 
     profiles: [ownerProfile({ rating_history_public: 1 })],
     ratings: [{
       id: 99, user_id: 'user-1', product_id: 4, cellar_id: 55,
-      date_rated: '2026-09-11T08:00:00.000Z', total_unweighted: 4.5, total_weighted: 5.25,
+      date_rated: '2026-09-11T08:00:00.000Z', total_unweighted: 4.5, total_weighted: 4.25,
       submission_key: 'private', submission_state: 'complete'
     }]
   })
@@ -154,13 +154,13 @@ test('opted-in public profile returns only projected rated beer history', async 
 
   assert.equal(response.statusCode, 200)
   assert.equal(response.body.summary.count, 1)
-  assert.equal(response.body.summary.average, 5.25)
+  assert.equal(response.body.summary.average, 4.25)
   assert.deepEqual(response.body.ratings[0], {
     id: 99,
     product_id: 4,
     date_rated: '2026-09-11T08:00:00.000Z',
     total_unweighted: 4.5,
-    total_weighted: 5.25,
+    total_weighted: 4.25,
     product: { id: 4, product_name: 'Ace', producer: { id: 20, producer_name: 'Rocky Ridge Brewing' } }
   })
   assert.equal(JSON.stringify(response.body).includes('user_id'), false)

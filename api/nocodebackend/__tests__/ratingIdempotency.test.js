@@ -11,7 +11,14 @@ const user = { id: 'user-a' }
 const body = {
   productId: 10,
   submissionId: 99,
-  scores: [{ attributeId: 2, score: 6 }, { attributeId: 3, score: 4 }],
+  scores: [
+    { attributeId: 2, score: 6 },
+    { attributeId: 3, score: 4 },
+    { attributeId: 4, score: 5 },
+    { attributeId: 5, score: 6 },
+    { attributeId: 6, score: 5 },
+    { attributeId: 7, score: 1 }
+  ],
   bonusAttributeIds: [7]
 }
 const response = () => ({ statusCode: null, body: null, status(code) { this.statusCode = code; return this }, json(value) { this.body = value; return this } })
@@ -33,7 +40,12 @@ const installMemoryProvider = ({ cellar, failCreate, failGet, failList, failUpda
   dataProvider.list = async (collection, filters = {}) => {
     if (await failList?.(collection, filters, records)) throw Object.assign(new Error('list failure'), { status: 502 })
     if (collection === COLLECTIONS.ratingAttributes) return [
-      { id: 2, is_scored: 1, weighting: 1 }, { id: 3, is_scored: 1, weighting: 1 }
+      { id: 2, attribute_name: 'Appearance', is_scored: 1, weighting: 0.1 },
+      { id: 3, attribute_name: 'Aroma', is_scored: 1, weighting: 0.1 },
+      { id: 4, attribute_name: 'Mouthfeel', is_scored: 1, weighting: 0.2 },
+      { id: 5, attribute_name: 'Flavour', is_scored: 1, weighting: 0.25 },
+      { id: 6, attribute_name: 'Follow', is_scored: 1, weighting: 0.25 },
+      { id: 7, attribute_name: 'Bonus', is_scored: 1, weighting: 0.1 }
     ]
     if (collection === COLLECTIONS.bonusAttributes) return [{ id: 7 }]
     return (records[collection] || []).filter((item) => Object.entries(filters).every(([key, value]) => String(item[key]) === String(value)))
@@ -77,7 +89,7 @@ test('concurrent duplicate requests converge on one complete owner submission', 
   const [first, second] = await Promise.all([submit(), submit()])
   assert.deepEqual([first.statusCode, second.statusCode].sort(), [200, 201])
   assert.equal(records.ratings.length, 1)
-  assert.equal(records.rating_scores.length, 2)
+  assert.equal(records.rating_scores.length, 6)
   assert.equal(records.bonus_attribute_rating_mapping.length, 1)
   assert.equal(records.ratings[0].submission_state, 'complete')
 })
@@ -148,7 +160,7 @@ test('a failure after a persisted score write is reconciled without duplicate ch
   await assert.rejects(submit(), /incomplete/)
   const retried = await submit()
   assert.equal(retried.statusCode, 200)
-  assert.equal(records.rating_scores.length, 2)
+  assert.equal(records.rating_scores.length, 6)
   assert.equal(records.bonus_attribute_rating_mapping.length, 1)
   assert.equal(records.ratings[0].submission_state, 'complete')
 })
@@ -166,7 +178,7 @@ test('a failure after a persisted bonus write is reconciled without duplicate ch
   await assert.rejects(submit(), /incomplete/)
   const retried = await submit()
   assert.equal(retried.statusCode, 200)
-  assert.equal(records.rating_scores.length, 2)
+  assert.equal(records.rating_scores.length, 6)
   assert.equal(records.bonus_attribute_rating_mapping.length, 1)
 })
 
@@ -225,7 +237,7 @@ test('a concurrent child-write failure cannot demote another retry completion', 
   assert.equal(reconciledFailure.statusCode, 200)
   assert.equal(records.ratings[0].submission_state, 'complete')
   assert.equal(records.ratings.length, 1)
-  assert.equal(records.rating_scores.length, 2)
+  assert.equal(records.rating_scores.length, 6)
   assert.equal(records.bonus_attribute_rating_mapping.length, 1)
   assert.equal((await submit()).statusCode, 200)
 })
@@ -255,7 +267,7 @@ test('a concurrent failed-state update cannot demote another retry completion', 
   assert.equal(reconciledFailure.statusCode, 200)
   assert.equal(records.ratings[0].submission_state, 'complete')
   assert.equal(records.ratings.length, 1)
-  assert.equal(records.rating_scores.length, 2)
+  assert.equal(records.rating_scores.length, 6)
   assert.equal(records.bonus_attribute_rating_mapping.length, 1)
   const retry = await submit()
   assert.equal(retry.statusCode, 200)
@@ -280,7 +292,7 @@ test('success requires a durable complete workflow-state re-read', async () => {
 test('verification rejects a child whose deterministic key hides corrupt score data', async () => {
   let corruptOnce = true
   const records = installMemoryProvider({ failList(collection, filters, state) {
-    if (collection === COLLECTIONS.ratingScores && filters.rating_id && state.rating_scores.length === 2 && corruptOnce) {
+    if (collection === COLLECTIONS.ratingScores && filters.rating_id && state.rating_scores.length === 6 && corruptOnce) {
       corruptOnce = false
       state.rating_scores[0].attribute_score = 1
     }
