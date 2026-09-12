@@ -2,6 +2,10 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../../src/data/contract.js'
+import {
+  buildCompletedRatingDistribution,
+  completedRatingTotal
+} from '../../src/lib/completedRatingContract.js'
 import { dataProvider } from '../_lib/dataProvider.js'
 import { __testables } from '../catalog-data-proxy.js'
 
@@ -25,7 +29,7 @@ const withProviderMocks = async (overrides, callback) => {
   }
 }
 
-test('catalogue aggregates only durable complete ratings with present five-point totals', async () => {
+test('catalogue aggregates only durable complete ratings with present valid five-point totals', async () => {
   let ratingFilters = null
   await withProviderMocks({
     get: async (collection, id) => {
@@ -45,7 +49,8 @@ test('catalogue aggregates only durable complete ratings with present five-point
           { id: 3, submission_state: 'pending', total_weighted: 5 },
           { id: 4, submission_state: 'failed', total_weighted: 1 },
           { id: 5, submission_state: 'complete', total_weighted: null },
-          { id: 6, submission_state: 'complete', total_weighted: 6 }
+          { id: 6, submission_state: 'complete', total_weighted: 0 },
+          { id: 7, submission_state: 'complete', total_weighted: 6 }
         ]
       }
       if (collection === COLLECTIONS.ratingScores) return []
@@ -59,21 +64,22 @@ test('catalogue aggregates only durable complete ratings with present five-point
     assert.equal(response.statusCode, 200)
     assert.deepEqual(ratingFilters, { product_id: 4, submission_state: 'complete' })
     assert.deepEqual(response.body.ratingSummary, { count: 2, average: 4.5 })
-    assert.deepEqual(response.body.ratingInsights.distribution, [
-      { score: 0, count: 0 },
-      { score: 1, count: 0 },
-      { score: 2, count: 0 },
-      { score: 3, count: 0 },
-      { score: 4, count: 1 },
-      { score: 5, count: 1 }
-    ])
+    assert.deepEqual(response.body.ratingInsights.distribution, buildCompletedRatingDistribution([4, 5]))
+    assert.equal(
+      response.body.ratingInsights.distribution.reduce((sum, bucket) => sum + bucket.count, 0),
+      response.body.ratingSummary.count
+    )
   })
 })
 
-test('zero remains a valid complete five-point aggregate while absent totals do not', () => {
-  assert.equal(__testables.ratingTotal({ total_weighted: 0 }), 0)
-  assert.equal(__testables.ratingTotal({ total_weighted: null }), null)
-  assert.equal(__testables.ratingTotal({ total_weighted: '' }), null)
-  assert.equal(__testables.isCompletedRating({ submission_state: 'complete', total_weighted: 0 }), true)
+test('completed rating totals exclude zero and absent values', () => {
+  assert.equal(completedRatingTotal(0), null)
+  assert.equal(completedRatingTotal(null), null)
+  assert.equal(completedRatingTotal(''), null)
+  assert.equal(completedRatingTotal(0.01), 0.01)
+  assert.equal(completedRatingTotal(5), 5)
+  assert.equal(completedRatingTotal(5.01), null)
+  assert.equal(__testables.isCompletedRating({ submission_state: 'complete', total_weighted: 0 }), false)
+  assert.equal(__testables.isCompletedRating({ submission_state: 'complete', total_weighted: 0.01 }), true)
   assert.equal(__testables.isCompletedRating({ submission_state: 'pending', total_weighted: 4 }), false)
 })
