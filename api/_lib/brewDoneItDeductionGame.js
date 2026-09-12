@@ -1,4 +1,5 @@
 import { COLLECTIONS } from '../../src/data/contract.js'
+import { completedRatingTotal } from '../../src/lib/completedRatingContract.js'
 import { dataProvider } from './dataProvider.js'
 import { listAllBrewDoneItRecords } from './brewDoneItData.js'
 import {
@@ -71,11 +72,8 @@ const activeGuesser = async (roundId, user) => {
   return result
 }
 
-const weightedValue = (value) => {
-  if (value === null || value === undefined || value === '') return null
-  const number = Number(value)
-  return Number.isFinite(number) && number >= 1 && number <= 7 ? number : null
-}
+const completedRating = (rating) => rating?.submission_state === 'complete' && completedRatingTotal(rating?.total_weighted) !== null
+const weightedValue = (value) => completedRatingTotal(value)
 
 const booleanOrNull = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -99,6 +97,7 @@ const latestRatedAt = (ratings) => ratings.reduce((latest, rating) => {
 
 const aggregate = (ratings, productsById, predicate) => {
   const matching = ratings.filter((rating) => {
+    if (!completedRating(rating)) return false
     const product = productsById.get(String(rating.product_id))
     return product && predicate(product)
   })
@@ -300,10 +299,10 @@ export const getSelectorClues = async (roundId, response, user) => {
   let history = { enabled: false }
   if (sharingEnabled(game, round.guesser_participant_id)) {
     const [ratings, products] = await Promise.all([
-      listAllBrewDoneItRecords(COLLECTIONS.ratings, { user_id: round.guesser_participant_id }),
+      listAllBrewDoneItRecords(COLLECTIONS.ratings, { user_id: round.guesser_participant_id, submission_state: 'complete' }),
       listAllBrewDoneItRecords(COLLECTIONS.products)
     ])
-    const cleanRatings = list(ratings)
+    const cleanRatings = list(ratings).filter(completedRating)
     const productsById = new Map(list(products).map((item) => [String(item.id), item]))
     history = {
       enabled: true,
@@ -383,6 +382,7 @@ export const __testables = {
   unavailableAggregate,
   canonicalIdOrNull,
   sharingEnabled,
+  completedRating,
   weightedValue,
   booleanOrNull,
   latestRatedAt,
