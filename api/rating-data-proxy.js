@@ -1,9 +1,11 @@
 import crypto from 'node:crypto'
 import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../src/data/contract.js'
+import { bonusScoreFromPoints, selectedBonusPointTotal } from '../src/lib/bonusAttributes.js'
 import { completedRatingTotal } from '../src/lib/completedRatingContract.js'
-import { buildAdvancedScore } from '../src/lib/ratingFormulaV1.js'
+import { buildAdvancedScore, canonicalRatingKey } from '../src/lib/ratingFormulaV1.js'
 import { calculateRatingTotals } from '../src/utils/ratingSubmission.js'
 import { requireSessionUser } from './_lib/authSession.js'
+import { loadBonusCatalogue } from './_lib/bonusAttributeCatalogue.js'
 import { dataProvider } from './_lib/dataProvider.js'
 import { isOwnedBy, projectRating } from './_lib/dataPolicy.js'
 import { enforceOrigin, enforceRateLimit, enforceRequestSize, safeErrorMessage } from './_lib/httpSecurity.js'
@@ -51,6 +53,20 @@ const validateBonusIds = (requested, available) => {
     throw error
   }
   return selected
+}
+
+const scoresWithDerivedBonus = (submittedScores, attributes, bonusScore) => {
+  const bonusAttribute = records(attributes).find((attribute) => canonicalRatingKey(attribute.attribute_name) === 'bonus')
+  if (!bonusAttribute?.id) {
+    const error = new Error('The Bonus rating attribute is unavailable.')
+    error.status = 503
+    throw error
+  }
+  const bonusId = String(bonusAttribute.id)
+  const scores = asArray(submittedScores)
+    .filter((score) => String(score?.attributeId ?? score?.attribute_id ?? '') !== bonusId)
+  scores.push({ attributeId: bonusAttribute.id, score: bonusScore })
+  return scores
 }
 
 const ownedCellarForRating = async (body, userId, productId) => {
@@ -204,13 +220,25 @@ const createChildIdempotently = async (collection, payload, loadExisting) => {
   }
 }
 
-const submissionResponse = async ({ response, status, rating, totals, requestedBonusIds, duplicate, cellar }) => {
+const submissionResponse = async ({
+  response,
+  status,
+  rating,
+  totals,
+  requestedBonusIds,
+  bonusPointTotal,
+  bonusScore,
+  duplicate,
+  cellar
+}) => {
   const saved = { ...rating, ...totals }
   const population = await populationScores()
   response.status(status).json({
     rating: { ...projectRating(saved), advanced_scores: advancedFor(saved, population, cellar) },
     scoreCount: totals.scores.length,
     bonusCount: requestedBonusIds.length,
+    bonusPointTotal,
+    bonusScore,
     duplicate
   })
 }
@@ -219,18 +247,21 @@ const submitRating = async (request, response, user, correlationId) => {
   const body = request.body && typeof request.body === 'object' && !Array.isArray(request.body) ? request.body : {}
   const productId = positiveId(body.productId ?? body.product_id, 'Product identifier')
   const submissionId = submissionIdentifier(body)
-  const [product, attributes, bonuses] = await Promise.all([
+  const [product, attributes, bonusCatalogue] = await Promise.all([
     dataProvider.get(COLLECTIONS.products, productId),
     dataProvider.list(COLLECTIONS.ratingAttributes),
-    dataProvider.list(COLLECTIONS.bonusAttributes)
+    loadBonusCatalogue(user.id)
   ])
   if (!product || String(product.id ?? '') !== productId) {
     response.status(404).json({ error: 'Product not found.' })
     return
   }
 
-  const totals = calculateRatingTotals(body.scores, records(attributes), body.weights)
-  const requestedBonusIds = validateBonusIds(body.bonusAttributeIds, bonuses)
+  const requestedBonusIds = validateBonusIds(body.bonusAttributeIds, bonusCatalogue.bonusAttributes)
+  const bonusPointTotal = selectedBonusPointTotal(bonusCatalogue.bonusAttributes, requestedBonusIds)
+  const bonusScore = bonusScoreFromPoints(bonusPointTotal)
+  const derivedScores = scoresWithDerivedBonus(body.scores, attributes, bonusScore)
+  const totals = calculateRatingTotals(derivedScores, records(attributes), body.weights)
   const cellar = await ownedCellarForRating(body, user.id, productId)
   const cellarId = cellar?.id ?? null
   const key = submissionKey(user.id, submissionId)
@@ -318,6 +349,8 @@ const submitRating = async (request, response, user, correlationId) => {
       rating,
       totals,
       requestedBonusIds,
+      bonusPointTotal,
+      bonusScore,
       duplicate,
       cellar
     })
@@ -337,6 +370,8 @@ const submitRating = async (request, response, user, correlationId) => {
               rating: persisted,
               totals,
               requestedBonusIds,
+              bonusPointTotal,
+              bonusScore,
               duplicate: true,
               cellar
             })
@@ -535,5 +570,6 @@ export const __testables = {
   validateSubmissionChildren,
   transitionRating,
   submissionFingerprint,
-  isCompletedRating
+  isCompletedRating,
+  scoresWithDerivedBonus
 }

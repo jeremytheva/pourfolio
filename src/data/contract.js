@@ -6,6 +6,8 @@ export const DEPLOYED_COLLECTIONS = Object.freeze({
   ratingScores: 'rating_scores',
   ratingAttributes: 'rating_attributes',
   bonusAttributes: 'bonus_attributes',
+  bonusAttributeCategories: 'bonus_attribute_categories',
+  bonusAttributeCategoryMappings: 'bonus_attribute_category_mapping',
   bonusRatingMappings: 'bonus_attribute_rating_mapping',
   cellar: 'cellar',
   profiles: 'profiles'

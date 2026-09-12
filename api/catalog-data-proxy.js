@@ -6,13 +6,13 @@ import {
 } from '../src/lib/completedRatingContract.js'
 import { canonicalRatingKey, ratingDimension } from '../src/lib/ratingFormulaV1.js'
 import { requireSessionUser } from './_lib/authSession.js'
+import { loadBonusCatalogue } from './_lib/bonusAttributeCatalogue.js'
 import { dataProvider } from './_lib/dataProvider.js'
 import {
   CATEGORY_FIELDS,
   PRODUCT_FIELDS,
   PRODUCER_FIELDS,
-  projectAttribute,
-  projectBonus
+  projectAttribute
 } from './_lib/dataPolicy.js'
 import { pickFields } from '../src/data/contract.js'
 import {
@@ -198,31 +198,33 @@ const getProducer = async (id, response) => {
   })
 }
 
-const getRatingForm = async (request, response) => {
+const getRatingForm = async (request, response, user) => {
   const productId = parsePositiveId(request.query?.product_id, 'Product identifier')
   const product = await dataProvider.get(COLLECTIONS.products, productId)
   if (!product) {
     response.status(404).json({ error: 'Product not found.' })
     return
   }
-  const [hydratedProducts, attributes, bonuses] = await Promise.all([
+  const [hydratedProducts, attributes, bonusCatalogue] = await Promise.all([
     hydrateProducts([product]),
     dataProvider.list(COLLECTIONS.ratingAttributes),
-    dataProvider.list(COLLECTIONS.bonusAttributes)
+    loadBonusCatalogue(user.id)
   ])
   response.status(200).json({
     product: hydratedProducts[0],
     attributes: normaliseList(attributes).filter((attribute) => canonicalRatingKey(attribute.attribute_name)).map(projectAttribute),
-    bonusAttributes: normaliseList(bonuses).map(projectBonus)
+    bonusAttributes: bonusCatalogue.bonusAttributes,
+    bonusCategories: bonusCatalogue.bonusCategories,
+    bonusDefaultPointValue: bonusCatalogue.defaultPointValue
   })
 }
 
-export const routeCatalogueRequest = async (request, response) => {
+export const routeCatalogueRequest = async (request, response, user) => {
   const [resource, id, action] = pathSegments(request)
   if (resource === 'catalog' && id === 'products' && !action) return listProducts(request, response)
   if (resource === 'catalog' && id === 'products' && action) return getProduct(action, response)
   if (resource === 'catalog' && id === 'producers' && action) return getProducer(action, response)
-  if (resource === 'rating-form' && !id) return getRatingForm(request, response)
+  if (resource === 'rating-form' && !id) return getRatingForm(request, response, user)
   response.status(404).json({ error: 'Application data route not found.' })
 }
 
@@ -238,8 +240,8 @@ export default async function handler(request, response) {
   if (!enforceRequestSize(request, response) || !enforceOrigin(request, response)) return
   if (!enforceRateLimit(request, response, { key: 'data-read', limit: 240 })) return
   try {
-    await requireSessionUser(request)
-    await routeCatalogueRequest(request, response)
+    const user = await requireSessionUser(request)
+    await routeCatalogueRequest(request, response, user)
   } catch (error) {
     const status = Number(error.status) >= 400 && Number(error.status) < 600 ? Number(error.status) : 500
     if (status >= 500) {
@@ -262,5 +264,6 @@ export const __testables = {
   isCompletedRating,
   buildRatingInsights,
   getProduct,
-  getProducer
+  getProducer,
+  getRatingForm
 }
