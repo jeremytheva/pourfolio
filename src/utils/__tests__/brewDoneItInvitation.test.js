@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { formatBrewDoneItInvitation, parseBrewDoneItInvitation } from '../brewDoneItInvitation.js'
+import {
+  formatBrewDoneItInvitation,
+  isBrewDoneItInvitationExpired,
+  parseBrewDoneItInvitation
+} from '../brewDoneItInvitation.js'
 
 const code = 'AbCdEfGhIjKlMnOpQrStUvWxYz012345'
 
@@ -23,4 +27,12 @@ test('pasted whitespace is normalized but arbitrary text and malformed credentia
   assert.equal(parseBrewDoneItInvitation('Game 0: invalid'), null)
   assert.equal(parseBrewDoneItInvitation('https://example.test/challenge?code=secret'), null)
   assert.equal(formatBrewDoneItInvitation('0', code), '')
+})
+
+test('invitation expiry uses the persisted timestamp without treating invalid data as expired', () => {
+  const now = Date.parse('2026-09-12T02:00:00.000Z')
+  assert.equal(isBrewDoneItInvitationExpired('2026-09-12T01:59:59.000Z', now), true)
+  assert.equal(isBrewDoneItInvitationExpired('2026-09-12T02:00:00.000Z', now), true)
+  assert.equal(isBrewDoneItInvitationExpired('2026-09-12T02:00:01.000Z', now), false)
+  assert.equal(isBrewDoneItInvitationExpired('not-a-date', now), false)
 })
