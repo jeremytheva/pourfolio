@@ -1,5 +1,6 @@
 import crypto from 'node:crypto'
 import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../src/data/contract.js'
+import { completedRatingTotal } from '../src/lib/completedRatingContract.js'
 import { buildAdvancedScore } from '../src/lib/ratingFormulaV1.js'
 import { calculateRatingTotals } from '../src/utils/ratingSubmission.js'
 import { requireSessionUser } from './_lib/authSession.js'
@@ -12,7 +13,8 @@ const ALLOWED_METHODS = new Set(['GET', 'POST', 'DELETE'])
 const asArray = (value) => (Array.isArray(value) ? value : value ? [value] : [])
 const records = (value) => asArray(value).filter((item) => item && typeof item === 'object')
 const first = (value) => (Array.isArray(value) ? value[0] || null : value || null)
-const isCompletedRating = (rating) => rating?.submission_state === 'complete'
+const isCompletedRating = (rating) =>
+  rating?.submission_state === 'complete' && completedRatingTotal(rating?.total_weighted) !== null
 
 const pathSegments = (request) => {
   const raw = request.query?.path
@@ -66,11 +68,11 @@ const ownedCellarForRating = async (body, userId, productId) => {
 
 const populationScores = async () => records(await dataProvider.list(COLLECTIONS.ratings))
   .filter(isCompletedRating)
-  .map((rating) => Number(rating.total_weighted))
-  .filter((score) => Number.isFinite(score) && score >= 0 && score <= 5)
+  .map((rating) => completedRatingTotal(rating.total_weighted))
+  .filter((score) => score !== null)
 
 const advancedFor = (rating, population, cellar = null) => buildAdvancedScore({
-  score: Number(rating.total_weighted),
+  score: completedRatingTotal(rating.total_weighted),
   population,
   retailPrice: cellar?.retail_price,
   purchasePrice: cellar?.purchase_price,
@@ -324,7 +326,7 @@ const submitRating = async (request, response, user, correlationId) => {
     if (rating?.id) {
       try {
         const persisted = await dataProvider.get(COLLECTIONS.ratings, rating.id)
-        if (ratingIdentityMatches(persisted, user.id, fingerprint) && persisted.submission_state === 'complete') {
+        if (ratingIdentityMatches(persisted, user.id, fingerprint) && isCompletedRating(persisted)) {
           const reconciled = await validateSubmissionChildren(
             persisted, user.id, totals.scores, requestedBonusIds, key
           )
@@ -362,8 +364,10 @@ const submitRating = async (request, response, user, correlationId) => {
 }
 
 const listUserRatings = async (response, user) => {
-  const ownerRatings = records(await dataProvider.list(COLLECTIONS.ratings, { user_id: user.id }))
-    .filter((rating) => isOwnedBy(rating, user.id) && isCompletedRating(rating))
+  const ownerRatings = records(await dataProvider.list(COLLECTIONS.ratings, {
+    user_id: user.id,
+    submission_state: 'complete'
+  })).filter((rating) => isOwnedBy(rating, user.id) && isCompletedRating(rating))
   const [population, cellarRows] = await Promise.all([
     populationScores(),
     dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }).then(records)
@@ -530,5 +534,6 @@ export const __testables = {
   findSubmission,
   validateSubmissionChildren,
   transitionRating,
-  submissionFingerprint
+  submissionFingerprint,
+  isCompletedRating
 }
