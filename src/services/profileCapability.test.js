@@ -45,7 +45,8 @@ test('public profile UI is routed by opaque public profile id and contains no ow
   const page = readSource('src/pages/PublicUserProfile.jsx')
 
   assert.match(app, /\/users\/:publicProfileId/)
-  assert.match(page, /Previous ratings this user has chosen to share\./)
+  assert.match(page, /Previous Full Tasting scores this user has chosen to share\./)
+  assert.match(page, /Private price and PPP information is never included\./)
   assert.doesNotMatch(page, /Delete rating/)
   assert.doesNotMatch(page, /user\.email/)
   assert.doesNotMatch(page, /cellar_id/)
