@@ -1,4 +1,5 @@
 import React from 'react'
+import BrewDoneItInvitationExpiry from './BrewDoneItInvitationExpiry.jsx'
 import BrewDoneItInvitationShare from './BrewDoneItInvitationShare.jsx'
 
 const describeState = (game, round, userId) => {
@@ -48,6 +49,7 @@ export default function BrewDoneItSeriesList({ series, userId, busy, onOpen }) {
                   {game.status === 'waiting' && invitationCode && (
                     <div className="mt-2 rounded-lg bg-amber-50 p-3">
                       <p className="break-all font-mono text-xs text-gray-700">Game {game.id}: {invitationCode}</p>
+                      <BrewDoneItInvitationExpiry expiresAt={game.expires_at} />
                       <BrewDoneItInvitationShare gameId={game.id} inviteCode={invitationCode} disabled={busy} />
                     </div>
                   )}
