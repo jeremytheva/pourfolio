@@ -64,8 +64,6 @@ const requireActiveRound = ({ round, game }) => {
   return { round, game }
 }
 
-const activeGuesser = async (roundId, user) => requireActiveRound(await guesserRound(roundId, user))
-
 const isCorrect = (input, product) => input.guessType === 'brewery'
   ? String(input.referenceId) === String(product.producer_id)
   : input.guessType === 'style'
@@ -165,7 +163,8 @@ export const reconcileOutcomeRound = async (round) => {
 }
 
 export const submitOutcomeGuess = async (roundId, request, response, user) => {
-  const { round } = await activeGuesser(roundId, user)
+  const loaded = await guesserRound(roundId, user)
+  const { round } = loaded
   const { expectedVersion, idempotencyKey } = mutation(request)
   const input = sanitiseBrewDoneItOutcomeInput(request.body)
   const key = `${user.id}:${idempotencyKey}`
@@ -176,6 +175,7 @@ export const submitOutcomeGuess = async (roundId, request, response, user) => {
     return
   }
 
+  requireActiveRound(loaded)
   requireOutcomeUnsolved(round, input)
   if (Number(round.turn_sequence || 0) >= Number(round.max_turns || 20)) throw fail('This round has no remaining formal submissions.', 409)
   await requireOutcomeReference(input)
