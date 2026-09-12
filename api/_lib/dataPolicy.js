@@ -1,6 +1,6 @@
 import {
   CELLAR_EDITABLE_FIELDS,
-  NULLABLE_CELLAR_RELATIONSHIPS,
+  CELLAR_GATED_RELATIONSHIP_FIELDS,
   PROFILE_EDITABLE_FIELDS,
   normaliseNullableId,
   pickFields
@@ -118,6 +118,16 @@ export const sanitiseProfileUpdates = (input) => {
   return updates
 }
 
+const rejectUnverifiedCellarRelationship = (field, value) => {
+  const normalised = normaliseNullableId(value)
+  if (normalised !== null) {
+    const error = new Error(`Cellar relationship ${field} is unavailable until its verified lookup capability is enabled.`)
+    error.status = 400
+    throw error
+  }
+  return null
+}
+
 export const sanitiseCellarInput = (input, { partial = false } = {}) => {
   const result = pickFields(input, CELLAR_EDITABLE_FIELDS) || {}
 
@@ -126,11 +136,9 @@ export const sanitiseCellarInput = (input, { partial = false } = {}) => {
   } else {
     result.product_id = positiveId(result.product_id, 'Product identifier')
   }
-  if (result.location_id !== undefined) result.location_id = normaliseNullableId(result.location_id)
-  if (result.purchase_location_id !== undefined) result.purchase_location_id = normaliseNullableId(result.purchase_location_id)
-  if (result.bet_id !== undefined) result.bet_id = normaliseNullableId(result.bet_id)
-  for (const field of NULLABLE_CELLAR_RELATIONSHIPS) {
-    if (result[field] !== undefined) result[field] = normaliseNullableId(result[field])
+
+  for (const field of CELLAR_GATED_RELATIONSHIP_FIELDS) {
+    if (result[field] !== undefined) result[field] = rejectUnverifiedCellarRelationship(field, result[field])
   }
 
   if (result.quantity !== undefined) result.quantity = asOptionalNumber(result.quantity, { integer: true, min: 0, max: 10000 })
@@ -139,7 +147,7 @@ export const sanitiseCellarInput = (input, { partial = false } = {}) => {
   if (result.retail_price !== undefined) result.retail_price = asOptionalNumber(result.retail_price, { min: 0, max: 1000000 })
   if (result.gift !== undefined) result.gift = result.gift ? 1 : 0
 
-  for (const field of ['container', 'gift_from', 'notes', 'purchased_by_id']) {
+  for (const field of ['container', 'gift_from', 'notes']) {
     if (result[field] !== undefined && result[field] !== null) {
       result[field] = String(result[field]).trim().slice(0, 255)
     }
