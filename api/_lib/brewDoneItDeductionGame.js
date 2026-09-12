@@ -8,7 +8,11 @@ import {
 
 const list = (value) => (Array.isArray(value) ? value : value ? [value] : []).filter((item) => item && typeof item === 'object')
 const first = (value) => list(value)[0] || value || null
-const fail = (message, status = 400, code = null) => Object.assign(new Error(message), { status, ...(code ? { code } : {}) })
+const fail = (message, status = 400, code = null, payload = null) => {
+  const error = Object.assign(new Error(message), { status, ...(code ? { code } : {}) })
+  if (payload) error.payload = payload
+  return error
+}
 const id = (value, label) => {
   const text = String(value ?? '').trim()
   if (!/^[1-9]\d*$/.test(text)) throw fail(`${label} is invalid.`)
@@ -32,6 +36,17 @@ const idempotencyConflict = () => fail(
   'This request key has already been used for a different Brew Done It deduction.',
   409,
   'IDEMPOTENCY_CONFLICT'
+)
+
+const staleDeduction = (round) => fail(
+  'The round changed before this deduction was accepted. Refresh the challenge before trying again.',
+  409,
+  'VERSION_CONFLICT',
+  {
+    error: 'The round changed before this deduction was accepted. Refresh the challenge before trying again.',
+    code: 'VERSION_CONFLICT',
+    currentVersion: Number(round?.version || 0)
+  }
 )
 
 const roundAndGame = async (roundId, user) => {
@@ -127,9 +142,11 @@ const deductionTimestamp = (deduction) => {
   return Number.isFinite(timestamp) ? timestamp : 0
 }
 
+const committedDeduction = (deduction) => !deduction.action_state || deduction.action_state === 'committed'
+
 const canonicalDeductions = (records) => {
   const canonical = new Map()
-  for (const deduction of list(records)) {
+  for (const deduction of list(records).filter(committedDeduction)) {
     const key = deductionLogicalKey(deduction)
     const current = canonical.get(key)
     if (!current) {
@@ -174,6 +191,42 @@ const findDeductionByRequestKey = async (roundId, key) => list(await dataProvide
   idempotency_key: key
 }))[0] || null
 
+const settleDeductionEvent = async (event, user) => {
+  if (event.action_state === 'committed') return event
+  if (event.action_state === 'discarded') {
+    const round = await dataProvider.get(COLLECTIONS.brewDoneItRounds, event.round_id)
+    throw staleDeduction(round)
+  }
+
+  const round = await dataProvider.get(COLLECTIONS.brewDoneItRounds, event.round_id)
+  const game = round ? await dataProvider.get(COLLECTIONS.brewDoneItGames, round.game_id) : null
+  const sameActiveRound = Boolean(
+    round &&
+    game &&
+    participant(game, user.id) &&
+    String(round.guesser_participant_id) === String(user.id) &&
+    game.status === 'active' &&
+    round.status === 'guessing' &&
+    Number(round.version || 0) === Number(event.observed_round_version || 0)
+  )
+
+  if (!sameActiveRound) {
+    await dataProvider.update(COLLECTIONS.brewDoneItDeductions, event.id, {
+      action_state: 'discarded',
+      committed_round_version: null,
+      updated_at: new Date().toISOString()
+    })
+    throw staleDeduction(round)
+  }
+
+  await dataProvider.update(COLLECTIONS.brewDoneItDeductions, event.id, {
+    action_state: 'committed',
+    committed_round_version: Number(round.version || 0),
+    updated_at: new Date().toISOString()
+  })
+  return dataProvider.get(COLLECTIONS.brewDoneItDeductions, event.id)
+}
+
 const persistDeductionEvent = async (round, user, key, input) => {
   const now = new Date().toISOString()
   const body = {
@@ -184,18 +237,23 @@ const persistDeductionEvent = async (round, user, key, input) => {
     value_text: input.valueText,
     reference_id: input.referenceId,
     numeric_value: input.numericValue,
+    observed_round_version: Number(round.version || 0),
+    action_state: 'pending',
+    committed_round_version: null,
     created_at: now,
     updated_at: now,
     idempotency_key: key
   }
+  let event
   try {
-    return first(await dataProvider.create(COLLECTIONS.brewDoneItDeductions, body))
+    event = first(await dataProvider.create(COLLECTIONS.brewDoneItDeductions, body))
   } catch (error) {
-    const persisted = await findDeductionByRequestKey(round.id, key)
-    if (!persisted) throw error
-    if (!sameDeductionRequest(persisted, input)) throw idempotencyConflict()
-    return persisted
+    event = await findDeductionByRequestKey(round.id, key)
+    if (!event) throw error
+    if (!sameDeductionRequest(event, input)) throw idempotencyConflict()
   }
+  if (!event?.id) throw fail('The deduction service did not return an event identifier.', 502)
+  return settleDeductionEvent(event, user)
 }
 
 export const getSelectorClues = async (roundId, response, user) => {
@@ -280,7 +338,8 @@ export const recordDeduction = async (roundId, request, response, user) => {
   const replay = await findDeductionByRequestKey(round.id, key)
   if (replay) {
     if (!sameDeductionRequest(replay, input)) throw idempotencyConflict()
-    response.status(200).json({ deduction: projectBrewDoneItDeduction(replay), replayed: true })
+    const settled = await settleDeductionEvent(replay, user)
+    response.status(200).json({ deduction: projectBrewDoneItDeduction(settled), replayed: true })
     return
   }
   input = await resolveDeductionInput(input)
@@ -298,5 +357,6 @@ export const __testables = {
   latestRatedAt,
   deductionLogicalKey,
   sameDeductionRequest,
+  committedDeduction,
   canonicalDeductions
 }
