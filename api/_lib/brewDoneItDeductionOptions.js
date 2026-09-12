@@ -48,11 +48,13 @@ export const getDeductionOptions = async (response, user) => {
     listAllBrewDoneItRecords(COLLECTIONS.ratings, { user_id: user.id })
   ])
 
+  const producers = list(producersRaw)
+  const producersById = byId(producers)
   const products = list(productsRaw)
   const productsById = byId(products)
   const ratingKnowledge = ratedProducerKnowledge(ratingsRaw, productsById)
 
-  const breweries = list(producersRaw).map((producer) => {
+  const breweries = producers.map((producer) => {
     const producerId = canonicalIdOrNull(producer.id)
     const definitelyRated = producerId !== null && ratingKnowledge.producerIds.has(producerId)
     return {
@@ -72,15 +74,19 @@ export const getDeductionOptions = async (response, user) => {
   })).filter((category) => category.id && category.name)
     .sort((a, b) => a.name.localeCompare(b.name))
 
-  const beers = products.map((product) => ({
-    id: canonicalIdOrNull(product.id),
-    name: product.product_name,
-    producerId: canonicalIdOrNull(product.producer_id),
-    categoryId: canonicalIdOrNull(product.product_category_id),
-    abv: numericOrNull(product.abv),
-    ibu: numericOrNull(product.ibu),
-    collaboration: booleanOrNull(product.collaboration)
-  })).filter((product) => product.id && product.name)
+  const beers = products.map((product) => {
+    const producerId = canonicalIdOrNull(product.producer_id)
+    return {
+      id: canonicalIdOrNull(product.id),
+      name: product.product_name,
+      producerId,
+      producerName: producerId ? producersById.get(producerId)?.producer_name || null : null,
+      categoryId: canonicalIdOrNull(product.product_category_id),
+      abv: numericOrNull(product.abv),
+      ibu: numericOrNull(product.ibu),
+      collaboration: booleanOrNull(product.collaboration)
+    }
+  }).filter((product) => product.id && product.name)
 
   response.status(200).json({
     breweries,
