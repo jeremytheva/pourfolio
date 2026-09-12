@@ -1,5 +1,9 @@
 import crypto from 'node:crypto'
 import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../src/data/contract.js'
+import {
+  buildCompletedRatingDistribution,
+  completedRatingTotal
+} from '../src/lib/completedRatingContract.js'
 import { canonicalRatingKey, ratingDimension } from '../src/lib/ratingFormulaV1.js'
 import { requireSessionUser } from './_lib/authSession.js'
 import { dataProvider } from './_lib/dataProvider.js'
@@ -93,25 +97,15 @@ const hydrateProducts = async (products) => {
   })
 }
 
-const ratingTotal = (rating) => {
-  const raw = rating?.total_weighted
-  if (raw === null || raw === undefined || (typeof raw === 'string' && raw.trim() === '')) return null
-  const total = Number(raw)
-  return Number.isFinite(total) && total >= 0 && total <= 5 ? total : null
-}
-
-const isCompletedRating = (rating) => rating?.submission_state === 'complete' && ratingTotal(rating) !== null
+const isCompletedRating = (rating) =>
+  rating?.submission_state === 'complete' && completedRatingTotal(rating?.total_weighted) !== null
 
 const buildRatingInsights = async (ratings) => {
   const acceptedRatings = ratings
     .filter(isCompletedRating)
-    .map((rating) => ({ id: String(rating.id ?? ''), total: ratingTotal(rating) }))
+    .map((rating) => ({ id: String(rating.id ?? ''), total: completedRatingTotal(rating.total_weighted) }))
     .filter((rating) => /^[1-9]\d*$/.test(rating.id))
-  const distribution = Array.from({ length: 6 }, (_, score) => ({ score, count: 0 }))
-  for (const rating of acceptedRatings) {
-    const bucket = Math.min(5, Math.max(0, Math.round(rating.total)))
-    distribution[bucket].count += 1
-  }
+  const distribution = buildCompletedRatingDistribution(acceptedRatings.map((rating) => rating.total))
   if (!acceptedRatings.length) return { distribution, attributes: [] }
 
   const ratingIds = new Set(acceptedRatings.map((rating) => rating.id))
@@ -173,7 +167,7 @@ const getProduct = async (id, response) => {
     submission_state: 'complete'
   })
   const validRatings = ratings.filter(isCompletedRating)
-  const totals = validRatings.map(ratingTotal)
+  const totals = validRatings.map((rating) => completedRatingTotal(rating.total_weighted))
   const ratingInsights = await buildRatingInsights(validRatings)
   response.status(200).json({
     ...hydrated,
@@ -265,7 +259,6 @@ export default async function handler(request, response) {
 export const __testables = {
   hydrateProducts,
   safeRelationshipList,
-  ratingTotal,
   isCompletedRating,
   buildRatingInsights,
   getProduct,
