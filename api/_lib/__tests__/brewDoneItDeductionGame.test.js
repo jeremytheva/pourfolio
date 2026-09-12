@@ -6,6 +6,7 @@ const {
   aggregate,
   canonicalDeductions,
   canonicalIdOrNull,
+  committedDeduction,
   deductionLogicalKey,
   sameDeductionRequest,
   unavailableAggregate
@@ -60,12 +61,31 @@ test('style idempotency identity uses canonical reference rather than display la
   }), true)
 })
 
-test('canonical deductions keep only the newest append-only event for one logical clue', () => {
+test('only committed or legacy-state deduction rows can enter the projected board', () => {
+  assert.equal(committedDeduction({ action_state: 'committed' }), true)
+  assert.equal(committedDeduction({}), true)
+  assert.equal(committedDeduction({ action_state: 'pending' }), false)
+  assert.equal(committedDeduction({ action_state: 'discarded' }), false)
+})
+
+test('canonical deductions ignore pending and discarded events', () => {
+  const rows = canonicalDeductions([
+    { id: 1, dimension: 'collaboration', answer: 'yes', action_state: 'committed', created_at: '2026-09-11T10:00:00.000Z' },
+    { id: 2, dimension: 'collaboration', answer: 'no', action_state: 'pending', created_at: '2026-09-11T10:01:00.000Z' },
+    { id: 3, dimension: 'collaboration', answer: 'unknown', action_state: 'discarded', created_at: '2026-09-11T10:02:00.000Z' }
+  ])
+  assert.equal(rows.length, 1)
+  assert.equal(rows[0].id, 1)
+  assert.equal(rows[0].answer, 'yes')
+})
+
+test('canonical deductions keep only the newest committed append-only event for one logical clue', () => {
   const rows = canonicalDeductions([
     {
       id: 1,
       dimension: 'collaboration',
       answer: 'yes',
+      action_state: 'committed',
       created_at: '2026-09-11T10:00:00.000Z',
       updated_at: '2026-09-11T10:00:00.000Z'
     },
@@ -73,6 +93,7 @@ test('canonical deductions keep only the newest append-only event for one logica
       id: 2,
       dimension: 'collaboration',
       answer: 'no',
+      action_state: 'committed',
       created_at: '2026-09-11T10:01:00.000Z',
       updated_at: '2026-09-11T10:02:00.000Z'
     }
@@ -86,8 +107,8 @@ test('canonical deductions keep only the newest append-only event for one logica
 test('canonical deductions use row id as a deterministic timestamp tie-breaker', () => {
   const timestamp = '2026-09-11T10:00:00.000Z'
   const rows = canonicalDeductions([
-    { id: 8, dimension: 'dark', answer: 'yes', created_at: timestamp, updated_at: timestamp },
-    { id: 9, dimension: 'dark', answer: 'unknown', created_at: timestamp, updated_at: timestamp }
+    { id: 8, dimension: 'dark', answer: 'yes', action_state: 'committed', created_at: timestamp, updated_at: timestamp },
+    { id: 9, dimension: 'dark', answer: 'unknown', action_state: 'committed', created_at: timestamp, updated_at: timestamp }
   ])
 
   assert.equal(rows.length, 1)
@@ -97,8 +118,8 @@ test('canonical deductions use row id as a deterministic timestamp tie-breaker',
 
 test('different clue values remain independent deductions', () => {
   const rows = canonicalDeductions([
-    { id: 1, dimension: 'abv_at_least', numeric_value: 5, answer: 'yes' },
-    { id: 2, dimension: 'abv_at_least', numeric_value: 7, answer: 'no' }
+    { id: 1, dimension: 'abv_at_least', numeric_value: 5, answer: 'yes', action_state: 'committed' },
+    { id: 2, dimension: 'abv_at_least', numeric_value: 7, answer: 'no', action_state: 'committed' }
   ])
 
   assert.equal(rows.length, 2)
