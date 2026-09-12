@@ -1,5 +1,5 @@
 import { COLLECTIONS } from '../../src/data/contract.js'
-import { dataProvider } from './dataProvider.js'
+import { listAllBrewDoneItRecords } from './brewDoneItData.js'
 
 const list = (value) => (Array.isArray(value) ? value : value ? [value] : []).filter((item) => item && typeof item === 'object')
 const byId = (records) => new Map(records.map((record) => [String(record.id), record]))
@@ -42,10 +42,10 @@ const ratedProducerKnowledge = (ratings, productsById) => {
  */
 export const getDeductionOptions = async (response, user) => {
   const [producersRaw, categoriesRaw, productsRaw, ratingsRaw] = await Promise.all([
-    dataProvider.list(COLLECTIONS.producers),
-    dataProvider.list(COLLECTIONS.categories),
-    dataProvider.list(COLLECTIONS.products),
-    dataProvider.list(COLLECTIONS.ratings, { user_id: user.id })
+    listAllBrewDoneItRecords(COLLECTIONS.producers),
+    listAllBrewDoneItRecords(COLLECTIONS.categories),
+    listAllBrewDoneItRecords(COLLECTIONS.products),
+    listAllBrewDoneItRecords(COLLECTIONS.ratings, { user_id: user.id })
   ])
 
   const products = list(productsRaw)
