@@ -85,12 +85,17 @@ export default function BrewDoneItDeductionBoard({
     { geographyAvailable }
   ), [breweryDeductions, geographyAvailable, options.breweries])
 
+  const knownBreweryIds = useMemo(
+    () => new Set((options.breweries || []).map((brewery) => String(brewery.id))),
+    [options.breweries]
+  )
   const breweryIds = useMemo(() => new Set(filteredBreweries.map((brewery) => String(brewery.id))), [filteredBreweries])
   const filteredBeers = useMemo(() => filterBrewDoneItBeers(
     options.beers || [],
     beerDeductions,
-    breweryIds
-  ), [beerDeductions, breweryIds, options.beers])
+    breweryIds,
+    knownBreweryIds
+  ), [beerDeductions, breweryIds, knownBreweryIds, options.beers])
 
   const filteredStyles = useMemo(() => filterBrewDoneItStyles(options.styles || [], filteredBeers), [filteredBeers, options.styles])
   const save = (dimension, answer, values = {}) => onSaveDeduction({ dimension, answer, ...values })
