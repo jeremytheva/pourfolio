@@ -1,6 +1,7 @@
 import crypto from 'node:crypto'
 import { COLLECTIONS } from '../../src/data/contract.js'
 import { dataProvider } from './dataProvider.js'
+import { listAllBrewDoneItRecords } from './brewDoneItData.js'
 import { reconcileOutcomeRound } from './brewDoneItOutcomeGame.js'
 import { projectBrewDoneItGame, projectBrewDoneItGuess, projectBrewDoneItRound } from './brewDoneItPolicy.js'
 
@@ -27,7 +28,7 @@ const stalePendingDeduction = (event, round) => event?.action_state === 'pending
 
 const discardStalePendingDeductions = async (round) => {
   if (!round?.id) return round
-  const events = list(await dataProvider.list(COLLECTIONS.brewDoneItDeductions, { round_id: round.id }))
+  const events = list(await listAllBrewDoneItRecords(COLLECTIONS.brewDoneItDeductions, { round_id: round.id }))
   const stale = events.filter((event) => stalePendingDeduction(event, round))
   if (!stale.length) return round
   const updatedAt = new Date().toISOString()
@@ -48,7 +49,7 @@ const safeRound = async (round) => {
   return reconciled
 }
 
-const committedGuesses = async (roundId) => list(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, { round_id: roundId }))
+const committedGuesses = async (roundId) => list(await listAllBrewDoneItRecords(COLLECTIONS.brewDoneItGuesses, { round_id: roundId }))
   .filter((guess) => !guess.action_state || guess.action_state === 'committed')
   .sort((left, right) => Number(left.turn_sequence || 0) - Number(right.turn_sequence || 0))
   .map(projectBrewDoneItGuess)
@@ -61,8 +62,8 @@ const getParticipantGame = async (gameId, user) => {
 
 export const listParticipantSeriesV3 = async (response, user) => {
   const [created, joined] = await Promise.all([
-    dataProvider.list(COLLECTIONS.brewDoneItGames, { creator_participant_id: user.id }),
-    dataProvider.list(COLLECTIONS.brewDoneItGames, { opponent_participant_id: user.id })
+    listAllBrewDoneItRecords(COLLECTIONS.brewDoneItGames, { creator_participant_id: user.id }),
+    listAllBrewDoneItRecords(COLLECTIONS.brewDoneItGames, { opponent_participant_id: user.id })
   ])
   const byId = new Map()
   for (const game of [...list(created), ...list(joined)]) {
@@ -70,7 +71,7 @@ export const listParticipantSeriesV3 = async (response, user) => {
   }
 
   const series = await Promise.all([...byId.values()].map(async (game) => {
-    const rounds = list(await dataProvider.list(COLLECTIONS.brewDoneItRounds, { game_id: game.id }))
+    const rounds = list(await listAllBrewDoneItRecords(COLLECTIONS.brewDoneItRounds, { game_id: game.id }))
       .sort((left, right) => Number(left.round_number || 0) - Number(right.round_number || 0))
     const currentRound = await safeRound(rounds.at(-1) || null)
     const result = {
@@ -93,7 +94,7 @@ export const listParticipantSeriesV3 = async (response, user) => {
 
 export const showGameV3 = async (gameId, response, user) => {
   const game = await getParticipantGame(gameId, user)
-  const rounds = list(await dataProvider.list(COLLECTIONS.brewDoneItRounds, { game_id: game.id }))
+  const rounds = list(await listAllBrewDoneItRecords(COLLECTIONS.brewDoneItRounds, { game_id: game.id }))
     .sort((left, right) => Number(left.round_number || 0) - Number(right.round_number || 0))
 
   const projectedRounds = await Promise.all(rounds.map(async (source) => {
