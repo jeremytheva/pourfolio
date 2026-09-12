@@ -2,8 +2,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { FiArrowLeft, FiCheck, FiChevronLeft, FiChevronRight, FiRefreshCw } from 'react-icons/fi'
 import { Link, useNavigate, useParams } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
+import { AllBonusAttributes, RatingCardBonusAttributes } from '../components/BonusAttributePicker.jsx'
 import { cellarService } from '../services/cellarService.js'
 import { ratingService } from '../services/ratingService.js'
+import { bonusScoreFromPoints, selectedBonusPointTotal } from '../lib/bonusAttributes.js'
 import { calculatePPP, canonicalRatingKey, ratingDimension } from '../lib/ratingFormulaV1.js'
 import { calculateRatingTotals, createSubmissionId } from '../utils/ratingSubmission.js'
 import { getSettings } from '../utils/settingsManager.js'
@@ -16,6 +18,8 @@ function RateBeer() {
   const [formDefinition, setFormDefinition] = useState(null)
   const [scores, setScores] = useState({})
   const [bonusIds, setBonusIds] = useState([])
+  const [bonusAttributes, setBonusAttributes] = useState([])
+  const [bonusCategories, setBonusCategories] = useState([])
   const [cellarItems, setCellarItems] = useState([])
   const [cellarId, setCellarId] = useState('')
   const [status, setStatus] = useState('loading')
@@ -42,6 +46,8 @@ function RateBeer() {
     ]).then(([form, cellarPayload]) => {
       if (!active) return
       setFormDefinition(form)
+      setBonusAttributes(Array.isArray(form?.bonusAttributes) ? form.bonusAttributes : [])
+      setBonusCategories(Array.isArray(form?.bonusCategories) ? form.bonusCategories : [])
       setCellarItems((cellarPayload.items || []).filter((item) => String(item.product_id) === String(productId)))
       setScores({})
       setBonusIds([])
@@ -83,6 +89,7 @@ function RateBeer() {
   }
 
   const attributes = formDefinition?.attributes || []
+  const bonusAttribute = useMemo(() => attributes.find((attribute) => canonicalRatingKey(attribute.attribute_name) === 'bonus') || null, [attributes])
   const rows = useMemo(() => attributes.map((attribute) => {
     const key = canonicalRatingKey(attribute.attribute_name)
     const dimension = ratingDimension(key)
@@ -94,22 +101,24 @@ function RateBeer() {
       weight,
       required: Boolean(dimension?.scored && weight > 0)
     }
-  }).filter((row) => row.dimension), [attributes, weights])
+  }).filter((row) => row.dimension && row.key !== 'bonus'), [attributes, weights])
+
+  const bonusPointTotal = useMemo(() => selectedBonusPointTotal(bonusAttributes, bonusIds), [bonusAttributes, bonusIds])
+  const derivedBonusScore = useMemo(() => bonusScoreFromPoints(bonusPointTotal), [bonusPointTotal])
 
   const preview = useMemo(() => {
-    if (!formDefinition) return null
+    if (!formDefinition || !bonusAttribute) return null
     try {
-      return calculateRatingTotals(
-        rows
+      return calculateRatingTotals([
+        ...rows
           .filter(({ attribute }) => scores[attribute.id] !== undefined)
           .map(({ attribute }) => ({ attributeId: attribute.id, score: scores[attribute.id] })),
-        attributes,
-        weights
-      )
+        { attributeId: bonusAttribute.id, score: derivedBonusScore }
+      ], attributes, weights)
     } catch {
       return null
     }
-  }, [attributes, formDefinition, rows, scores, weights])
+  }, [attributes, bonusAttribute, derivedBonusScore, formDefinition, rows, scores, weights])
 
   const selectedCellar = cellarItems.find((item) => String(item.id) === String(cellarId)) || null
   const retailPPP = preview && selectedCellar
@@ -119,12 +128,11 @@ function RateBeer() {
     ? calculatePPP(preview.total_weighted, selectedCellar.purchase_price, selectedCellar.mls)
     : null
 
-  const hasBonusTags = (formDefinition?.bonusAttributes || []).length > 0
-  const bonusTagStep = rows.length
-  const reviewStep = rows.length + (hasBonusTags ? 1 : 0)
+  const bonusStep = rows.length
+  const reviewStep = rows.length + 1
   const totalSteps = reviewStep + 1
   const currentRow = step < rows.length ? rows[step] : null
-  const isBonusTagStep = hasBonusTags && step === bonusTagStep
+  const isBonusStep = step === bonusStep
   const isReview = step === reviewStep
   const canAdvance = !currentRow || !currentRow.required || scores[currentRow.attribute.id] !== undefined
   const submitting = status === 'submitting'
@@ -152,10 +160,22 @@ function RateBeer() {
     moveToStep(step + 1)
   }
 
-  const toggleBonusTag = (id) => {
+  const toggleBonusAttribute = (id) => {
     setBonusIds((current) => current.includes(id)
       ? current.filter((item) => item !== id)
       : [...current, id])
+  }
+
+  const createBonusAttribute = async ({ description, pointValue }) => {
+    const payload = await ratingService.createBonusAttribute({ description, pointValue })
+    const created = payload?.bonusAttribute
+    if (!created?.id) throw new Error('The bonus attribute service returned an invalid response.')
+    const id = String(created.id)
+    setBonusAttributes((current) => current.some((attribute) => String(attribute.id) === id) ? current : [...current, created])
+    if (payload?.category?.key) {
+      setBonusCategories((current) => current.some((category) => category.key === payload.category.key) ? current : [...current, payload.category])
+    }
+    setBonusIds((current) => current.includes(id) ? current : [...current, id])
   }
 
   const submit = async (event) => {
@@ -216,6 +236,7 @@ function RateBeer() {
 
   const product = formDefinition.product
   const progress = Math.round(((step + 1) / totalSteps) * 100)
+  const bonusWeight = Number(weights.bonus || 0)
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -239,7 +260,7 @@ function RateBeer() {
       {error && <div ref={errorRef} tabIndex={-1} className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 outline-none focus:ring-2 focus:ring-red-300" role="alert">{error}</div>}
 
       <form onSubmit={submit} aria-busy={submitting ? 'true' : 'false'}>
-        <p id="rating-required-help" className="sr-only">Every positively weighted scoring attribute is required. Zero-weight scoring attributes, Design and Burp may be skipped.</p>
+        <p id="rating-required-help" className="sr-only">Every positively weighted manual scoring attribute is required. Bonus is calculated from selected bonus attributes. Zero-weight scoring attributes, Design and Burp may be skipped.</p>
         <section
           role="group"
           aria-label="Applicable attributes"
@@ -250,7 +271,7 @@ function RateBeer() {
           onPointerCancel={() => { pointerStartXRef.current = null }}
         >
           {currentRow && (() => {
-            const { attribute, dimension, weight, required } = currentRow
+            const { attribute, key, dimension, weight, required } = currentRow
             const min = dimension.min ?? 1
             const options = Array.from({ length: dimension.max - min + 1 }, (_, index) => min + index)
             const optionGrid = options.length > 3 ? 'grid-cols-7' : options.length === 3 ? 'grid-cols-3' : 'grid-cols-2'
@@ -299,6 +320,16 @@ function RateBeer() {
                     ))}
                   </div>
                 </div>
+
+                <RatingCardBonusAttributes
+                  ratingKey={key}
+                  label={dimension.label}
+                  bonusAttributes={bonusAttributes}
+                  bonusCategories={bonusCategories}
+                  selectedIds={bonusIds}
+                  onToggle={toggleBonusAttribute}
+                />
+
                 {!required && (
                   <button type="button" onClick={() => skipScore(attribute.id)} className="mt-5 w-full rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2">
                     {scores[attribute.id] === undefined ? 'Skip this attribute' : 'Clear and skip'}
@@ -308,27 +339,22 @@ function RateBeer() {
             )
           })()}
 
-          {isBonusTagStep && (
-            <div>
-              <p className="text-sm font-medium text-amber-700">Optional</p>
-              <h2 ref={cardHeadingRef} tabIndex={-1} className="mt-2 text-3xl font-bold text-gray-900 outline-none">Bonus attributes</h2>
-              <p className="mt-2 text-gray-600">Record any descriptive bonus attributes that apply. These tags are separate from your scored Bonus value.</p>
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                {formDefinition.bonusAttributes.map((bonus) => (
-                  <label key={bonus.id} className="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 p-4 hover:bg-gray-50 focus-within:ring-2 focus-within:ring-amber-700 focus-within:ring-offset-2">
-                    <input type="checkbox" checked={bonusIds.includes(String(bonus.id))} onChange={() => toggleBonusTag(String(bonus.id))} className="mt-1 h-5 w-5 accent-amber-600" />
-                    <span className="font-medium text-gray-800">{bonus.description}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+          {isBonusStep && (
+            <AllBonusAttributes
+              headingRef={cardHeadingRef}
+              bonusAttributes={bonusAttributes}
+              bonusCategories={bonusCategories}
+              selectedIds={bonusIds}
+              onToggle={toggleBonusAttribute}
+              onCreate={createBonusAttribute}
+            />
           )}
 
           {isReview && (
             <div>
               <p className="text-sm font-medium text-amber-700">Final check</p>
               <h2 ref={cardHeadingRef} tabIndex={-1} className="mt-2 text-3xl font-bold text-gray-900 outline-none">Review your rating</h2>
-              <p className="mt-2 text-gray-600">Your personalised weights produce the final score out of 5. Design and Burp never affect that score.</p>
+              <p className="mt-2 text-gray-600">Your personalised weights produce the final score out of 5. Bonus is calculated from selected bonus attributes. Design and Burp never affect that score.</p>
 
               <div className="mt-6 divide-y divide-gray-200 rounded-xl border border-gray-200">
                 {rows.map(({ attribute, dimension, weight }, index) => (
@@ -343,6 +369,16 @@ function RateBeer() {
                     </div>
                   </div>
                 ))}
+                <div className="flex items-center justify-between gap-3 p-4">
+                  <div>
+                    <p className="font-medium text-gray-900">Bonus</p>
+                    <p className="text-xs text-gray-500">{Math.round(bonusWeight * 100)}% weight · {bonusIds.length} {bonusIds.length === 1 ? 'attribute' : 'attributes'} · {bonusPointTotal.toFixed(2)} points</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <strong className="text-amber-800">{derivedBonusScore} / 2</strong>
+                    <button type="button" onClick={() => moveToStep(bonusStep)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2">Edit</button>
+                  </div>
+                </div>
               </div>
 
               {cellarItems.length > 0 && (
@@ -369,7 +405,7 @@ function RateBeer() {
                     {retailPPP !== null && <div><dt className="text-sm text-amber-800">Retail PPP</dt><dd className="text-xl font-semibold text-amber-950">{retailPPP.toFixed(2)}</dd></div>}
                     {purchasedPPP !== null && <div><dt className="text-sm text-amber-800">Purchased PPP</dt><dd className="text-xl font-semibold text-amber-950">{purchasedPPP.toFixed(2)}</dd></div>}
                   </dl>
-                ) : <p className="mt-2 text-sm text-amber-900">Complete every positively weighted attribute to calculate your score.</p>}
+                ) : <p className="mt-2 text-sm text-amber-900">Complete every positively weighted manual attribute to calculate your score.</p>}
               </section>
 
               <button type="submit" disabled={submitting || !preview} aria-busy={submitting} className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-amber-700 px-5 py-3 font-semibold text-white hover:bg-amber-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2 disabled:cursor-wait disabled:bg-gray-500">
