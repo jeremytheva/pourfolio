@@ -208,7 +208,11 @@ export const createGameV3 = async (request, response, user) => {
       invitationCode
     })
   } catch (error) {
-    try { await dataProvider.remove(COLLECTIONS.brewDoneItGames, game.id) } catch {}
+    try {
+      await dataProvider.remove(COLLECTIONS.brewDoneItGames, game.id)
+    } catch {
+      // Best-effort rollback only; the original round-creation error remains authoritative.
+    }
     throw error
   }
 }
