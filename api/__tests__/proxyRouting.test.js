@@ -6,6 +6,7 @@ import { pathSegments as dataRouterPathSegments, __testables as dataRouter } fro
 import internalNotFoundHandler from '../internal-not-found.js'
 
 const INTERNAL_DATA_HANDLER_PATHS = [
+  '/api/bonus-attribute-data-proxy',
   '/api/catalog-data-proxy',
   '/api/cellar-data-proxy',
   '/api/current-data-proxy',
