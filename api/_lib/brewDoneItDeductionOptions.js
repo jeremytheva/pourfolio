@@ -1,4 +1,5 @@
 import { COLLECTIONS } from '../../src/data/contract.js'
+import { completedRatingTotal } from '../../src/lib/completedRatingContract.js'
 import { listAllBrewDoneItRecords } from './brewDoneItData.js'
 
 const list = (value) => (Array.isArray(value) ? value : value ? [value] : []).filter((item) => item && typeof item === 'object')
@@ -18,11 +19,12 @@ const canonicalIdOrNull = (value) => {
   const text = String(value ?? '').trim()
   return /^[1-9]\d*$/.test(text) ? text : null
 }
+const completedRating = (rating) => rating?.submission_state === 'complete' && completedRatingTotal(rating?.total_weighted) !== null
 
 const ratedProducerKnowledge = (ratings, productsById) => {
   const producerIds = new Set()
   let complete = true
-  for (const rating of list(ratings)) {
+  for (const rating of list(ratings).filter(completedRating)) {
     const product = productsById.get(String(rating.product_id))
     const producerId = canonicalIdOrNull(product?.producer_id)
     if (!product || producerId === null) {
@@ -45,7 +47,7 @@ export const getDeductionOptions = async (response, user) => {
     listAllBrewDoneItRecords(COLLECTIONS.producers),
     listAllBrewDoneItRecords(COLLECTIONS.categories),
     listAllBrewDoneItRecords(COLLECTIONS.products),
-    listAllBrewDoneItRecords(COLLECTIONS.ratings, { user_id: user.id })
+    listAllBrewDoneItRecords(COLLECTIONS.ratings, { user_id: user.id, submission_state: 'complete' })
   ])
 
   const producers = list(producersRaw)
@@ -106,4 +108,4 @@ export const getDeductionOptions = async (response, user) => {
   })
 }
 
-export const __testables = { numericOrNull, booleanOrNull, canonicalIdOrNull, ratedProducerKnowledge }
+export const __testables = { numericOrNull, booleanOrNull, canonicalIdOrNull, completedRating, ratedProducerKnowledge }
