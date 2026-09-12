@@ -19,4 +19,9 @@ export const parseBrewDoneItInvitation = (value) => {
   return { gameId: match[1], inviteCode: match[2] }
 }
 
+export const isBrewDoneItInvitationExpired = (expiresAt, now = Date.now()) => {
+  const expiry = Date.parse(expiresAt || '')
+  return Number.isFinite(expiry) && Number.isFinite(Number(now)) ? expiry <= Number(now) : false
+}
+
 export const __testables = { normaliseText, INVITATION_CODE_PATTERN, POSITIVE_ID_PATTERN }
