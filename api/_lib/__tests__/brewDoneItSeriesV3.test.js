@@ -3,6 +3,7 @@ import test from 'node:test'
 import { __testables } from '../brewDoneItSeriesV3.js'
 
 const {
+  canAdoptPersistedRound,
   creationRequestFingerprint,
   invitationCodeFor,
   invitationDigest,
@@ -55,6 +56,66 @@ test('v3 opening and next rounds initialize deduction outcome state explicitly',
   assert.equal(next.guesser_participant_id, 10)
   assert.equal(next.selected_product_id, '44')
   assert.equal(next.round_creation_idempotency_key, '20:brew-done-it-1234567890abcdef')
+})
+
+test('persisted next round remains safely adoptable after unrelated game version changes', () => {
+  const game = {
+    id: 7,
+    creator_participant_id: 10,
+    opponent_participant_id: 20,
+    status: 'active',
+    current_round_number: 1,
+    version: 5
+  }
+  const predecessor = {
+    id: 101,
+    game_id: 7,
+    round_number: 1,
+    selector_participant_id: 10,
+    guesser_participant_id: 20,
+    status: 'completed'
+  }
+  const persisted = {
+    id: 102,
+    game_id: 7,
+    round_number: 2,
+    selector_participant_id: 20,
+    guesser_participant_id: 10,
+    status: 'guessing'
+  }
+
+  assert.equal(canAdoptPersistedRound(game, [predecessor, persisted], persisted, 20), true)
+})
+
+test('persisted next round is not adoptable when predecessor or role rotation no longer matches', () => {
+  const game = {
+    id: 7,
+    creator_participant_id: 10,
+    opponent_participant_id: 20,
+    status: 'active',
+    current_round_number: 1,
+    version: 5
+  }
+  const predecessor = {
+    id: 101,
+    game_id: 7,
+    round_number: 1,
+    selector_participant_id: 10,
+    guesser_participant_id: 20,
+    status: 'completed'
+  }
+  const wrongRoles = {
+    id: 102,
+    game_id: 7,
+    round_number: 2,
+    selector_participant_id: 10,
+    guesser_participant_id: 20,
+    status: 'guessing'
+  }
+
+  assert.equal(canAdoptPersistedRound(game, [predecessor, wrongRoles], wrongRoles, 20), false)
+  assert.equal(canAdoptPersistedRound({ ...game, current_round_number: 2 }, [predecessor, wrongRoles], wrongRoles, 20), false)
+  assert.equal(canAdoptPersistedRound({ ...game, status: 'archived' }, [predecessor, wrongRoles], wrongRoles, 20), false)
 })
 
 test('series mutation contract requires an optimistic version and durable request key', () => {
