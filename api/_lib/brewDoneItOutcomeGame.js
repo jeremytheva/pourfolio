@@ -12,6 +12,10 @@ const id = (value, label) => {
   if (!/^[1-9]\d*$/.test(text)) throw fail(`${label} is invalid.`)
   return text
 }
+const canonicalIdOrNull = (value) => {
+  const text = String(value ?? '').trim()
+  return /^[1-9]\d*$/.test(text) ? text : null
+}
 const trueFlag = (value) => value === true || value === 1 || value === '1'
 const participant = (game, userId) => [game?.creator_participant_id, game?.opponent_participant_id]
   .filter((value) => value !== null && value !== undefined)
@@ -102,6 +106,15 @@ const requireOutcomeUnsolved = (round, input) => {
   if (input.guessType === 'style' && trueFlag(round.style_correct)) throw fail('The style fallback is already solved.', 409)
 }
 
+const requireScorableOutcome = (input, product) => {
+  if (input.guessType === 'brewery' && !canonicalIdOrNull(product?.producer_id)) {
+    throw fail('This beer has no governed brewery relationship, so a formal brewery guess cannot be scored.', 409, 'OUTCOME_UNAVAILABLE')
+  }
+  if (input.guessType === 'style' && !canonicalIdOrNull(product?.product_category_id)) {
+    throw fail('This beer has no governed style relationship, so a formal style fallback cannot be scored.', 409, 'OUTCOME_UNAVAILABLE')
+  }
+}
+
 const findGuessByKey = async (roundId, key) => list(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, {
   round_id: roundId,
   idempotency_key: key
@@ -187,6 +200,7 @@ export const submitOutcomeGuess = async (roundId, request, response, user) => {
 
   const product = await dataProvider.get(COLLECTIONS.products, round.selected_product_id)
   if (!product) throw fail('The selected product cannot be resolved.', 409)
+  requireScorableOutcome(input, product)
   const correct = isCorrect(input, product)
   const reserved = await cas(COLLECTIONS.brewDoneItRounds, round, expectedVersion, {
     pending_action_key: key,
@@ -301,5 +315,7 @@ export const __testables = {
   sameFormalGuess,
   outcomeReference,
   requireOutcomeUnsolved,
+  requireScorableOutcome,
+  canonicalIdOrNull,
   trueFlag
 }
