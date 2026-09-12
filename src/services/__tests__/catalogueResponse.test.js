@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
+import { RATING_DISTRIBUTION_BUCKETS } from '../../lib/completedRatingContract.js'
 import { ApiError } from '../../lib/nocodeBackend.js'
 import {
   beverageService,
@@ -44,15 +45,13 @@ const page = {
   totalPages: 1
 }
 
+const distributionWithCounts = (counts = {}) => RATING_DISTRIBUTION_BUCKETS.map((bucket) => ({
+  ...bucket,
+  count: counts[bucket.key] || 0
+}))
+
 const ratingInsights = {
-  distribution: [
-    { score: 0, count: 0 },
-    { score: 1, count: 0 },
-    { score: 2, count: 0 },
-    { score: 3, count: 0 },
-    { score: 4, count: 1 },
-    { score: 5, count: 1 }
-  ],
+  distribution: distributionWithCounts({ '4.0-4.5': 1, '4.5-5.0': 1 }),
   attributes: [
     { attributeId: 2, name: 'Appearance', average: 4.5, count: 2 },
     { attributeId: '3', name: 'Aroma', average: 5, count: 1 }
@@ -222,7 +221,7 @@ test('accepts an honest zero-rating aggregate state', () => {
     ...product,
     ratingSummary: { count: 0, average: null },
     ratingInsights: {
-      distribution: Array.from({ length: 6 }, (_, score) => ({ score, count: 0 })),
+      distribution: distributionWithCounts(),
       attributes: []
     },
     ratings: []
@@ -248,8 +247,9 @@ test('rejects malformed aggregates and individual rating records from public det
     { ...detail, ratingSummary: { count: 1, average: Number.NaN } },
     { ...detail, ratingInsights: null },
     { ...detail, ratingInsights: { distribution: [], attributes: [] } },
-    { ...detail, ratingInsights: { ...ratingInsights, distribution: ratingInsights.distribution.slice(0, 5) } },
-    { ...detail, ratingInsights: { ...ratingInsights, distribution: ratingInsights.distribution.map((bucket, index) => index === 0 ? { ...bucket, score: 7 } : bucket) } },
+    { ...detail, ratingInsights: { ...ratingInsights, distribution: ratingInsights.distribution.slice(0, 9) } },
+    { ...detail, ratingInsights: { ...ratingInsights, distribution: ratingInsights.distribution.map((bucket, index) => index === 0 ? { ...bucket, key: 'wrong' } : bucket) } },
+    { ...detail, ratingInsights: { ...ratingInsights, distribution: ratingInsights.distribution.map((bucket, index) => index === 0 ? { ...bucket, maxInclusive: 0.6 } : bucket) } },
     { ...detail, ratingInsights: { ...ratingInsights, distribution: ratingInsights.distribution.map((bucket, index) => index === 0 ? { ...bucket, count: 1 } : bucket) } },
     { ...detail, ratingInsights: { ...ratingInsights, attributes: [{ attributeId: 2, name: 'Appearance', average: 0, count: 2 }] } },
     { ...detail, ratingInsights: { ...ratingInsights, attributes: [{ attributeId: 2, name: 'Appearance', average: 4, count: 3 }] } },
