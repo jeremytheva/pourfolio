@@ -9,6 +9,18 @@ const completeRatingDeck = async (page) => {
   await page.getByRole('button', { name: 'Appearance: 1 out of 7' }).click()
   await expect(page.getByRole('heading', { name: 'Aroma', level: 2 })).toBeFocused()
   await page.getByRole('button', { name: 'Aroma: 7 out of 7' }).click()
+  await expect(page.getByRole('heading', { name: 'Mouthfeel', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Mouthfeel: 7 out of 7' }).click()
+  await expect(page.getByRole('heading', { name: 'Flavour', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Flavour: 7 out of 7' }).click()
+  await expect(page.getByRole('heading', { name: 'Follow', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Follow: 7 out of 7' }).click()
+  await expect(page.getByRole('heading', { name: 'Bonus', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Bonus: 2 out of 2' }).click()
+  await expect(page.getByRole('heading', { name: 'Design', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Skip this attribute' }).click()
+  await expect(page.getByRole('heading', { name: 'Burp', level: 2 })).toBeFocused()
+  await page.getByRole('button', { name: 'Skip this attribute' }).click()
   await expect(page.getByRole('heading', { name: 'Bonus attributes', level: 2 })).toBeFocused()
   await page.getByRole('button', { name: 'Next' }).click()
   await expect(page.getByRole('heading', { name: 'Review your rating', level: 2 })).toBeFocused()
@@ -16,13 +28,12 @@ const completeRatingDeck = async (page) => {
 
 const oneRatingInsights = {
   distribution: [
+    { score: 0, count: 0 },
     { score: 1, count: 0 },
     { score: 2, count: 0 },
     { score: 3, count: 0 },
     { score: 4, count: 1 },
-    { score: 5, count: 0 },
-    { score: 6, count: 0 },
-    { score: 7, count: 0 }
+    { score: 5, count: 0 }
   ],
   attributes: []
 }
@@ -34,7 +45,7 @@ test('catalogue to product to rating uses stable IDs and accepts score 1', async
     await route.fulfill({
       status: 201,
       contentType: 'application/json',
-      body: JSON.stringify({ rating: { id: 99 }, scoreCount: 2, bonusCount: 0, duplicate: false })
+      body: JSON.stringify({ rating: { id: 99 }, scoreCount: 6, bonusCount: 0, duplicate: false })
     })
   })
 
@@ -45,15 +56,27 @@ test('catalogue to product to rating uses stable IDs and accepts score 1', async
   await page.getByRole('link', { name: 'Rate this beer' }).click()
 
   await completeRatingDeck(page)
-  await expect(page.getByText('4 / 7').first()).toBeVisible()
+  await expect(page.getByText('4.57 / 5').first()).toBeVisible()
   await page.getByRole('button', { name: 'Submit rating' }).click()
 
   await expect(page).toHaveURL(/\/products\/4$/)
   expect(submitted.productId).toBe('4')
   expect(submitted.scores).toEqual([
     { attributeId: 2, score: 1 },
-    { attributeId: 3, score: 7 }
+    { attributeId: 3, score: 7 },
+    { attributeId: 4, score: 7 },
+    { attributeId: 5, score: 7 },
+    { attributeId: 6, score: 7 },
+    { attributeId: 7, score: 2 }
   ])
+  expect(submitted.weights).toEqual({
+    appearance: 0.1,
+    aroma: 0.1,
+    mouthfeel: 0.2,
+    flavour: 0.25,
+    follow: 0.25,
+    bonus: 0.1
+  })
   expect(Number.isSafeInteger(submitted.submissionId)).toBe(true)
 })
 
@@ -79,7 +102,7 @@ test('rating form exposes accessible guidance, busy state and focused submission
 
   await completeRatingDeck(page)
   await expect(page.locator('section[role="status"]')).toHaveAttribute('aria-atomic', 'true')
-  await expect(page.getByText('4 / 7').first()).toBeVisible()
+  await expect(page.getByText('4.57 / 5').first()).toBeVisible()
 
   await page.getByRole('button', { name: 'Submit rating' }).click()
   const form = page.locator('form')
@@ -211,6 +234,6 @@ test('profile exposes session-backed identity without unavailable persistence co
   await expect(profile.getByRole('button', { name: /save profile/i })).toHaveCount(0)
   await expect(profile.getByRole('textbox')).toHaveCount(0)
   await expect(page.getByLabel(/role/i)).toHaveCount(0)
-  await expect(page.getByText('4 / 7')).toBeVisible()
+  await expect(page.getByText('4 / 5')).toBeVisible()
   expect(profilePutRequests).toBe(0)
 })
