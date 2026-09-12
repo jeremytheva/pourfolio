@@ -33,6 +33,12 @@ export default function BrewDoneItBeerPicker({
   )
 
   useEffect(() => {
+    if (candidateMode && value && !normalisedCandidates.some((product) => String(product.id) === String(value))) {
+      onChange('')
+    }
+  }, [candidateMode, normalisedCandidates, onChange, value])
+
+  useEffect(() => {
     if (candidateMode || !normalisedInitialId) {
       setInitialProduct(null)
       return undefined
