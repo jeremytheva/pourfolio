@@ -6,6 +6,24 @@ import { styleService } from '../services/styleService.js'
 
 const normalise = (value) => String(value || '').trim().toLocaleLowerCase().replace(/\s+/gu, ' ')
 
+const duplicateCandidate = (product, form) => {
+  const sameProducer = String(product.producer_id || '') === form.producer_id
+  const proposedName = normalise(form.product_name)
+  const candidateName = normalise(product.product_name)
+  const exactName = Boolean(proposedName) && candidateName === proposedName
+  const similarName = Boolean(proposedName) && (candidateName.includes(proposedName) || proposedName.includes(candidateName))
+  if (!sameProducer || (!exactName && !similarName)) return null
+
+  const styleMatch = Boolean(form.product_category_id) && String(product.product_category_id || '') === form.product_category_id
+  const proposedEdition = normalise(form.edition)
+  const candidateEdition = normalise(product.edition)
+  const editionMatch = Boolean(proposedEdition && candidateEdition && proposedEdition === candidateEdition)
+  const editionConflict = Boolean(proposedEdition && candidateEdition && proposedEdition !== candidateEdition)
+  const strength = (exactName ? 4 : 2) + (styleMatch ? 2 : 0) + (editionMatch ? 2 : 0) - (editionConflict ? 1 : 0)
+
+  return Object.freeze({ product, exactName, styleMatch, editionMatch, editionConflict, strength })
+}
+
 function AddBeerProposal() {
   const location = useLocation()
   const suggestedName = new URLSearchParams(location.search).get('name') || ''
@@ -82,12 +100,10 @@ function AddBeerProposal() {
       beverageService.getProducts({ search: name, page: 1, limit: 24 })
         .then((payload) => {
           if (!active) return
-          const needle = normalise(name)
-          const candidates = payload.items.filter((product) => {
-            const sameProducer = String(product.producer_id || '') === form.producer_id
-            const productName = normalise(product.product_name || '')
-            return sameProducer && (productName === needle || productName.includes(needle) || needle.includes(productName))
-          })
+          const candidates = payload.items
+            .map((product) => duplicateCandidate(product, form))
+            .filter(Boolean)
+            .sort((left, right) => right.strength - left.strength || String(left.product.product_name).localeCompare(String(right.product.product_name)))
           setDuplicates(candidates)
           setDuplicateStatus('ready')
         })
@@ -102,7 +118,7 @@ function AddBeerProposal() {
       active = false
       window.clearTimeout(timeout)
     }
-  }, [form.product_name, form.producer_id])
+  }, [form.product_name, form.producer_id, form.product_category_id, form.edition])
 
   const setField = (field, value) => {
     setReviewing(false)
@@ -189,9 +205,9 @@ function AddBeerProposal() {
             {duplicateStatus === 'loading' && 'Checking the catalogue…'}
             {duplicateStatus === 'error' && 'Duplicate checking is temporarily unavailable. Review is blocked until this check can run.'}
             {duplicateStatus === 'ready' && duplicates.length === 0 && 'No likely duplicate was found in the current search results.'}
-            {duplicateStatus === 'ready' && duplicates.length > 0 && `${duplicates.length} possible duplicate${duplicates.length === 1 ? '' : 's'} found.`}
+            {duplicateStatus === 'ready' && duplicates.length > 0 && `${duplicates.length} possible duplicate${duplicates.length === 1 ? '' : 's'} found. Compare the signals below before continuing.`}
           </p>
-          {duplicates.length > 0 && <ul className="mt-3 space-y-2">{duplicates.map((product) => <li key={product.id}><Link to={`/products/${product.id}`} className="font-medium text-amber-800 underline">{product.product_name}</Link></li>)}</ul>}
+          {duplicates.length > 0 && <ul className="mt-3 space-y-3">{duplicates.map(({ product, exactName, styleMatch, editionMatch, editionConflict }) => <li key={product.id} className="rounded-lg border border-gray-200 bg-white p-3"><Link to={`/products/${product.id}`} className="font-medium text-amber-800 underline">{product.product_name}</Link><p className="mt-1 text-xs text-gray-600">Same brewery · {exactName ? 'same name' : 'similar name'}{styleMatch ? ' · same style' : ''}{editionMatch ? ' · same edition' : ''}{editionConflict ? ' · different edition' : ''}</p></li>)}</ul>}
         </section>
 
         <button type="submit" disabled={!valid || !duplicateCheckReady} className="rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Review proposal</button>
