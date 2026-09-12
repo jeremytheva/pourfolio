@@ -23,6 +23,9 @@ The v3 source now provides:
 - an accessible two-sided **Brewery / Beer & Style** deduction board;
 - persistent `yes` / `no` / `unknown` deduction state across sessions/devices;
 - append-only deduction events so a delayed retry cannot overwrite a newer answer;
+- deduction events that begin `pending`, carry the observed round version, and become `committed` only after the same active guessing-round snapshot is verified; stale events become `discarded`;
+- automatic board-read recovery for same-version pending deductions and game/resume cleanup for pending deductions made stale by a later round version or terminal state;
+- immutable creation-time ordering so late settlement/recovery cannot make an older deduction supersede a newer one;
 - explicit brewery/beer exclusions with a persistent Set Unknown/undo path;
 - brewery candidate narrowing from the guesser's own previously-rated relationship where that relationship is fully attributable;
 - beer candidate narrowing by remaining brewery field, style, ABV, IBU and collaboration;
@@ -104,7 +107,7 @@ Dark and barrel-aged are useful social clues, but remain manual notes only until
 
 Before a connected provider mutation, retain evidence for:
 
-1. the exact v3 schema and field/index plan, including `creation_request_fingerprint`, retained `invitation_digest`, and append-only deduction events;
+1. the exact v3 schema and field/index plan, including `creation_request_fingerprint`, retained `invitation_digest`, and deduction `observed_round_version`, `action_state` and `committed_round_version` fields;
 2. provider support for required create/update/filter/compare-and-set behaviour;
 3. provider uniqueness/lookup behaviour for creation, join, round-creation, deduction and formal-outcome idempotency identities;
 4. backup/restore or disposable-environment recovery;
@@ -190,16 +193,20 @@ Using two authenticated devices:
 4. Player B can return an existing deduction/exclusion to `unknown` without creating a contradictory scored action.
 5. Refresh/sign-out/device change preserves the deduction board.
 6. `yes` and `no` narrow only according to certified facts; `unknown` eliminates nothing.
-7. each accepted deduction mutation appends a durable event rather than overwriting the previous event/idempotency identity.
-8. reads collapse events to one latest logical clue using deterministic timestamp/ID ordering.
-9. a delayed retry of an older event returns that original event without reverting the newer projected board answer.
-10. duplicate physical rows caused by a provider race do not create contradictory projected state, while provider uniqueness on event idempotency identity remains required before enablement.
-11. zero/blank producer/category relationships and incomplete rating attribution remain unknown.
-12. brewery, style and beer candidate counts remain consistent with stored deductions.
-13. geography is visibly unavailable rather than inferred while no governed source exists.
-14. dark/barrel-aged can be recorded but do not auto-filter before certified trait metadata exists.
-15. Player B may submit brewery, exact-beer and style-fallback outcomes without the conversation itself becoming scored actions.
-16. reusing an idempotency key for a different deduction payload fails safely rather than replaying the wrong clue.
+7. each new deduction requires the client-known round version to match the authoritative round version before its event is created; an existing idempotent replay is recognized before this stale-version check.
+8. each new event is persisted as `pending` with `observed_round_version`, then becomes `committed` only if the same game/round/guesser snapshot is still active and unchanged.
+9. after event commit, a verification read detects a formal/terminal mutation that completed first; such an event is changed to `discarded` and never enters candidate filtering.
+10. a same-version pending event left by a lost response is reconciled by a later guesser board read.
+11. series/game-detail resume reads discard pending events that are provably stale because the round version changed or the round became terminal, while leaving same-version recoverable pending events untouched.
+12. only `committed` deduction events enter the projected board; `pending` and `discarded` rows are never clue facts.
+13. logical clue ordering uses immutable event `created_at` plus row-ID tie-breaking, not later settlement `updated_at`, so a delayed older recovery cannot revert a newer answer.
+14. duplicate physical rows caused by a provider race do not create contradictory projected state, while provider uniqueness on event idempotency identity remains required before enablement.
+15. zero/blank producer/category relationships and incomplete rating attribution remain unknown.
+16. brewery, style and beer candidate counts remain consistent with stored deductions.
+17. geography is visibly unavailable rather than inferred while no governed source exists.
+18. dark/barrel-aged can be recorded but do not auto-filter before certified trait metadata exists.
+19. Player B may submit brewery, exact-beer and style-fallback outcomes without the conversation itself becoming scored actions.
+20. reusing an idempotency key for a different deduction payload fails safely rather than replaying the wrong clue.
 
 ### Scoring and lifecycle
 
@@ -221,6 +228,9 @@ Prove scoring v3.0.0 exactly:
 
 Inject failures:
 
+- after deduction-event persistence but before settlement;
+- after deduction-event commit but before the verification read/response;
+- while another formal or terminal round mutation changes the observed round version;
 - after formal-outcome reservation but before guess-child creation;
 - after child persistence but before round finalisation;
 - after round finalisation but before child commit marker;
@@ -232,10 +242,13 @@ Inject failures:
 
 Prove:
 
+- a recoverable same-version pending deduction is committed on a later board read;
+- a pending deduction made stale by a later round version/terminal state is discarded on settlement or resume cleanup;
+- a delayed older deduction never overtakes a newer event merely because settlement happened later;
 - at most one committed logical formal outcome exists;
-- an empty reservation creates no formal turn/penalty;
+- an empty formal reservation creates no formal turn/penalty;
 - v3 `outcome:*` reservations are reconciled only by the v3 outcome reconciler;
-- ordinary list/detail reads repair a matching child left `pending` after round finalisation;
+- ordinary list/detail reads repair a matching formal child left `pending` after round finalisation;
 - retries recover deterministically by idempotency key and bound payload identity;
 - an idempotency key cannot be reused for a different formal reference/type, deduction payload or selected beer;
 - stale versions fail safely where the caller is expected to know a version;
