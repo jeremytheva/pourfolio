@@ -46,13 +46,12 @@ const page = {
 
 const ratingInsights = {
   distribution: [
+    { score: 0, count: 0 },
     { score: 1, count: 0 },
     { score: 2, count: 0 },
     { score: 3, count: 0 },
     { score: 4, count: 1 },
-    { score: 5, count: 1 },
-    { score: 6, count: 0 },
-    { score: 7, count: 0 }
+    { score: 5, count: 1 }
   ],
   attributes: [
     { attributeId: 2, name: 'Appearance', average: 4.5, count: 2 },
@@ -223,7 +222,7 @@ test('accepts an honest zero-rating aggregate state', () => {
     ...product,
     ratingSummary: { count: 0, average: null },
     ratingInsights: {
-      distribution: Array.from({ length: 7 }, (_, index) => ({ score: index + 1, count: 0 })),
+      distribution: Array.from({ length: 6 }, (_, score) => ({ score, count: 0 })),
       attributes: []
     },
     ratings: []
@@ -249,7 +248,7 @@ test('rejects malformed aggregates and individual rating records from public det
     { ...detail, ratingSummary: { count: 1, average: Number.NaN } },
     { ...detail, ratingInsights: null },
     { ...detail, ratingInsights: { distribution: [], attributes: [] } },
-    { ...detail, ratingInsights: { ...ratingInsights, distribution: ratingInsights.distribution.slice(0, 6) } },
+    { ...detail, ratingInsights: { ...ratingInsights, distribution: ratingInsights.distribution.slice(0, 5) } },
     { ...detail, ratingInsights: { ...ratingInsights, distribution: ratingInsights.distribution.map((bucket, index) => index === 0 ? { ...bucket, score: 7 } : bucket) } },
     { ...detail, ratingInsights: { ...ratingInsights, distribution: ratingInsights.distribution.map((bucket, index) => index === 0 ? { ...bucket, count: 1 } : bucket) } },
     { ...detail, ratingInsights: { ...ratingInsights, attributes: [{ attributeId: 2, name: 'Appearance', average: 0, count: 2 }] } },
