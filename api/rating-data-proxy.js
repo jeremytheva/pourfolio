@@ -9,6 +9,7 @@ import { loadBonusCatalogue } from './_lib/bonusAttributeCatalogue.js'
 import { dataProvider } from './_lib/dataProvider.js'
 import { isOwnedBy, projectRating } from './_lib/dataPolicy.js'
 import { enforceOrigin, enforceRateLimit, enforceRequestSize, safeErrorMessage } from './_lib/httpSecurity.js'
+import { buildStyleScoreIndex, styleScaledScoreForRating } from './_lib/styleScaledScore.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 
 const ALLOWED_METHODS = new Set(['GET', 'POST', 'DELETE'])
@@ -32,6 +33,12 @@ const positiveId = (value, label = 'Record identifier') => {
     throw error
   }
   return text
+}
+
+const canonicalPositiveId = (value) => {
+  const text = String(value ?? '').trim()
+  const number = Number(text)
+  return Number.isSafeInteger(number) && number > 0 && String(number) === text ? text : null
 }
 
 const submissionIdentifier = (body) => {
@@ -82,17 +89,43 @@ const ownedCellarForRating = async (body, userId, productId) => {
   return cellar
 }
 
-const populationScores = async () => records(await dataProvider.list(COLLECTIONS.ratings))
-  .filter(isCompletedRating)
-  .map((rating) => completedRatingTotal(rating.total_weighted))
-  .filter((score) => score !== null)
+const loadExactRecords = async (collection, ids) => {
+  const requested = new Set([...ids].map(canonicalPositiveId).filter(Boolean))
+  if (!requested.size) return []
+  return records(await dataProvider.list(collection, { 'id[in]': [...requested].join(',') }))
+    .filter((record) => requested.has(canonicalPositiveId(record?.id)))
+}
 
-const advancedFor = (rating, population, cellar = null) => buildAdvancedScore({
-  score: completedRatingTotal(rating.total_weighted),
-  population,
-  retailPrice: cellar?.retail_price,
-  purchasePrice: cellar?.purchase_price,
-  volumeMl: cellar?.mls
+const scorePopulations = async () => {
+  const ratingRows = records(await dataProvider.list(COLLECTIONS.ratings)).filter(isCompletedRating)
+  const overall = Object.freeze(ratingRows
+    .map((rating) => completedRatingTotal(rating.total_weighted))
+    .filter((score) => score !== null))
+
+  const productIds = new Set(ratingRows.map((rating) => canonicalPositiveId(rating.product_id)).filter(Boolean))
+  const productRows = await loadExactRecords(COLLECTIONS.products, productIds)
+  const categoryIds = new Set(productRows
+    .map((product) => canonicalPositiveId(product.product_category_id))
+    .filter(Boolean))
+  const categoryRows = await loadExactRecords(COLLECTIONS.categories, categoryIds)
+
+  return Object.freeze({
+    overall,
+    styleIndex: buildStyleScoreIndex({ ratings: ratingRows, products: productRows, categories: categoryRows })
+  })
+}
+
+const populationScores = async () => (await scorePopulations()).overall
+
+const advancedFor = (rating, populations, cellar = null) => ({
+  ...buildAdvancedScore({
+    score: completedRatingTotal(rating.total_weighted),
+    population: populations?.overall || [],
+    retailPrice: cellar?.retail_price,
+    purchasePrice: cellar?.purchase_price,
+    volumeMl: cellar?.mls
+  }),
+  ...styleScaledScoreForRating(rating, populations?.styleIndex)
 })
 
 const exactNamedRelationship = (record, id, nameField) => {
@@ -232,9 +265,9 @@ const submissionResponse = async ({
   cellar
 }) => {
   const saved = { ...rating, ...totals }
-  const population = await populationScores()
+  const populations = await scorePopulations()
   response.status(status).json({
-    rating: { ...projectRating(saved), advanced_scores: advancedFor(saved, population, cellar) },
+    rating: { ...projectRating(saved), advanced_scores: advancedFor(saved, populations, cellar) },
     scoreCount: totals.scores.length,
     bonusCount: requestedBonusIds.length,
     bonusPointTotal,
@@ -403,8 +436,8 @@ const listUserRatings = async (response, user) => {
     user_id: user.id,
     submission_state: 'complete'
   })).filter((rating) => isOwnedBy(rating, user.id) && isCompletedRating(rating))
-  const [population, cellarRows] = await Promise.all([
-    populationScores(),
+  const [populations, cellarRows] = await Promise.all([
+    scorePopulations(),
     dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }).then(records)
   ])
   const cellarById = new Map(cellarRows
@@ -419,7 +452,7 @@ const listUserRatings = async (response, user) => {
   response.status(200).json({
     items: ownerRatings.map((rating) => ({
       ...projectRating(rating),
-      advanced_scores: advancedFor(rating, population, cellarById.get(String(rating.cellar_id)) || null),
+      advanced_scores: advancedFor(rating, populations, cellarById.get(String(rating.cellar_id)) || null),
       product: productsById.get(String(rating.product_id)) || null
     })).sort((left, right) => String(right.date_rated || '').localeCompare(String(left.date_rated || '')))
   })
@@ -565,6 +598,7 @@ export const __testables = {
   deleteRating,
   advancedFor,
   productProjection,
+  scorePopulations,
   populationScores,
   findSubmission,
   validateSubmissionChildren,
