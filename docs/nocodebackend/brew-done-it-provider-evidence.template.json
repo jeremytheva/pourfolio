@@ -1,0 +1,57 @@
+{
+  "schema": "pourfolio.brew-done-it-provider-evidence.v1",
+  "releaseSha": "0000000000000000000000000000000000000000",
+  "environment": "isolated-staging",
+  "targetSchema": {
+    "schemaTargetRef": "docs:brew-done-it-schema-target",
+    "schemaTargetSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "collections": [
+      "brew_done_it_games",
+      "brew_done_it_rounds",
+      "brew_done_it_guesses",
+      "brew_done_it_deductions"
+    ],
+    "legacyQuestionsExcluded": true
+  },
+  "providerCapabilities": {
+    "create": { "status": "PENDING", "evidenceRef": "evidence:pending-create" },
+    "read": { "status": "PENDING", "evidenceRef": "evidence:pending-read" },
+    "update": { "status": "PENDING", "evidenceRef": "evidence:pending-update" },
+    "delete": { "status": "PENDING", "evidenceRef": "evidence:pending-delete" },
+    "filteredRead": { "status": "PENDING", "evidenceRef": "evidence:pending-filtered-read" },
+    "pagination": { "status": "PENDING", "evidenceRef": "evidence:pending-pagination" },
+    "compareAndSet": { "status": "PENDING", "evidenceRef": "evidence:pending-compare-and-set" }
+  },
+  "idempotency": {
+    "challengeCreation": { "status": "PENDING", "evidenceRef": "evidence:pending-challenge-creation" },
+    "join": { "status": "PENDING", "evidenceRef": "evidence:pending-join" },
+    "nextRound": { "status": "PENDING", "evidenceRef": "evidence:pending-next-round" },
+    "deduction": { "status": "PENDING", "evidenceRef": "evidence:pending-deduction" },
+    "formalOutcome": { "status": "PENDING", "evidenceRef": "evidence:pending-formal-outcome" }
+  },
+  "recovery": {
+    "backupOrDisposableRef": "evidence:pending-backup-or-disposable",
+    "restoreOrResetRef": "evidence:pending-restore-or-reset",
+    "failureInjectionPlanRef": "evidence:pending-failure-injection-plan",
+    "rollbackAbortRef": "evidence:pending-rollback-abort"
+  },
+  "permissions": {
+    "policyRef": "evidence:pending-permission-policy",
+    "participantIsolationRef": "evidence:pending-participant-isolation",
+    "secretProjectionRef": "evidence:pending-secret-projection",
+    "selectorSheetRef": "evidence:pending-selector-sheet"
+  },
+  "cleanup": {
+    "procedureRef": "evidence:pending-cleanup-procedure",
+    "fixtureNamespaceRef": "evidence:pending-fixture-namespace",
+    "verificationRef": "evidence:pending-cleanup-verification"
+  },
+  "approvals": {
+    "migrationOwner": "pending-migration-owner",
+    "securityDataApprover": "pending-security-approver",
+    "releaseApprover": "pending-release-approver",
+    "independentReviewer": "pending-independent-reviewer",
+    "approvalRef": "approval:pending-brew-provider-migration",
+    "providerMutationApproved": false
+  }
+}
