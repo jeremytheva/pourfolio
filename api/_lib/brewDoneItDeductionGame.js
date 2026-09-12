@@ -1,5 +1,6 @@
 import { COLLECTIONS } from '../../src/data/contract.js'
 import { dataProvider } from './dataProvider.js'
+import { listAllBrewDoneItRecords } from './brewDoneItData.js'
 import {
   BREW_DONE_IT_DEDUCTION_DIMENSIONS,
   projectBrewDoneItDeduction,
@@ -140,8 +141,6 @@ const sameDeductionRequest = (stored, input) => {
 }
 
 const deductionTimestamp = (deduction) => {
-  // Append-only v3 event order is established when the event is created. Lifecycle
-  // settlement may update updated_at later and must never make an older retry newer.
   const timestamp = Date.parse(deduction.created_at || deduction.updated_at || '')
   return Number.isFinite(timestamp) ? timestamp : 0
 }
@@ -237,9 +236,6 @@ const settleDeductionEvent = async (event, user) => {
   const committed = await dataProvider.get(COLLECTIONS.brewDoneItDeductions, event.id)
   if (!committed || committed.action_state !== 'committed') throw fail('The deduction could not be durably committed.', 502)
 
-  // Establish a safe linearization boundary. If a terminal/formal mutation completed
-  // before this verification read, the deduction is discarded. If it occurs after
-  // this read, the deduction was accepted first and may remain committed.
   const verifiedRound = await dataProvider.get(COLLECTIONS.brewDoneItRounds, event.round_id)
   const verifiedGame = verifiedRound ? await dataProvider.get(COLLECTIONS.brewDoneItGames, verifiedRound.game_id) : null
   if (!sameDeductionSnapshot(verifiedRound, verifiedGame, event, user)) {
@@ -304,8 +300,8 @@ export const getSelectorClues = async (roundId, response, user) => {
   let history = { enabled: false }
   if (sharingEnabled(game, round.guesser_participant_id)) {
     const [ratings, products] = await Promise.all([
-      dataProvider.list(COLLECTIONS.ratings, { user_id: round.guesser_participant_id }),
-      dataProvider.list(COLLECTIONS.products)
+      listAllBrewDoneItRecords(COLLECTIONS.ratings, { user_id: round.guesser_participant_id }),
+      listAllBrewDoneItRecords(COLLECTIONS.products)
     ])
     const cleanRatings = list(ratings)
     const productsById = new Map(list(products).map((item) => [String(item.id), item]))
@@ -358,7 +354,7 @@ export const getSelectorClues = async (roundId, response, user) => {
 export const listDeductions = async (roundId, response, user) => {
   await activeGuesser(roundId, user)
   const events = await reconcileDeductionEvents(
-    await dataProvider.list(COLLECTIONS.brewDoneItDeductions, { round_id: roundId }),
+    await listAllBrewDoneItRecords(COLLECTIONS.brewDoneItDeductions, { round_id: roundId }),
     user
   )
   const deductions = canonicalDeductions(events).map(projectBrewDoneItDeduction)
