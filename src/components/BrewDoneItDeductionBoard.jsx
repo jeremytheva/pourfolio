@@ -49,6 +49,8 @@ const valuesForDeduction = (deduction) => ({
   ...(deduction.numeric_value === null || deduction.numeric_value === undefined ? {} : { numericValue: deduction.numeric_value })
 })
 
+const validNumber = (value, maximum) => value !== '' && Number.isFinite(Number(value)) && Number(value) >= 0 && Number(value) <= maximum
+
 export default function BrewDoneItDeductionBoard({
   round,
   options = { breweries: [], styles: [], beers: [], capabilities: {} },
@@ -64,7 +66,9 @@ export default function BrewDoneItDeductionBoard({
   const [stateValue, setStateValue] = useState('')
   const [countryValue, setCountryValue] = useState('')
   const [styleValue, setStyleValue] = useState('')
+  const [abvDimension, setAbvDimension] = useState('abv_at_least')
   const [abvValue, setAbvValue] = useState('6')
+  const [ibuDimension, setIbuDimension] = useState('ibu_at_least')
   const [ibuValue, setIbuValue] = useState('40')
   const [breweryGuess, setBreweryGuess] = useState('')
   const [styleGuess, setStyleGuess] = useState('')
@@ -176,8 +180,32 @@ export default function BrewDoneItDeductionBoard({
           <div className="space-y-5 rounded-xl border border-gray-200 bg-gray-50 p-5">
             <h4 className="font-semibold text-gray-900">Record beer / style clues</h4>
             <div><label className="text-sm font-medium text-gray-800">Is it this style?<select value={styleValue} onChange={(event) => setStyleValue(event.target.value)} className={selectClass}><option value="">Choose style</option>{(options.styles || []).map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label><AnswerButtons disabled={busy || !styleValue} onAnswer={(answer) => save('style', answer, { referenceId: styleValue, valueText: styleName(styleValue) })} /></div>
-            <div><label className="text-sm font-medium text-gray-800">Is the ABV at least this high?<select value={abvValue} onChange={(event) => setAbvValue(event.target.value)} className={selectClass}>{[4, 5, 6, 7, 8, 10].map((value) => <option key={value} value={value}>{value}%</option>)}</select></label><AnswerButtons disabled={busy} onAnswer={(answer) => save('abv_at_least', answer, { numericValue: Number(abvValue) })} /></div>
-            <div><label className="text-sm font-medium text-gray-800">Is the IBU at least this high?<select value={ibuValue} onChange={(event) => setIbuValue(event.target.value)} className={selectClass}>{[20, 40, 60, 80].map((value) => <option key={value} value={value}>{value} IBU</option>)}</select></label><AnswerButtons disabled={busy} onAnswer={(answer) => save('ibu_at_least', answer, { numericValue: Number(ibuValue) })} /></div>
+            <div>
+              <p className="text-sm font-medium text-gray-800">ABV comparison</p>
+              <div className="mt-1 grid gap-2 sm:grid-cols-[1fr_1fr]">
+                <select aria-label="ABV comparison operator" value={abvDimension} onChange={(event) => setAbvDimension(event.target.value)} className={selectClass}>
+                  <option value="abv_at_least">At least</option>
+                  <option value="abv_below">Below</option>
+                </select>
+                <label className="sr-only" htmlFor="brew-abv-threshold">ABV threshold</label>
+                <input id="brew-abv-threshold" type="number" min="0" max="100" step="0.1" inputMode="decimal" value={abvValue} onChange={(event) => setAbvValue(event.target.value)} className={selectClass} aria-describedby="brew-abv-help" />
+              </div>
+              <p id="brew-abv-help" className="mt-1 text-xs text-gray-500">Record the selector’s answer for any ABV threshold, including decimals.</p>
+              <AnswerButtons disabled={busy || !validNumber(abvValue, 100)} onAnswer={(answer) => save(abvDimension, answer, { numericValue: Number(abvValue) })} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-800">IBU comparison</p>
+              <div className="mt-1 grid gap-2 sm:grid-cols-[1fr_1fr]">
+                <select aria-label="IBU comparison operator" value={ibuDimension} onChange={(event) => setIbuDimension(event.target.value)} className={selectClass}>
+                  <option value="ibu_at_least">At least</option>
+                  <option value="ibu_below">Below</option>
+                </select>
+                <label className="sr-only" htmlFor="brew-ibu-threshold">IBU threshold</label>
+                <input id="brew-ibu-threshold" type="number" min="0" max="1000" step="1" inputMode="numeric" value={ibuValue} onChange={(event) => setIbuValue(event.target.value)} className={selectClass} aria-describedby="brew-ibu-help" />
+              </div>
+              <p id="brew-ibu-help" className="mt-1 text-xs text-gray-500">Use the threshold that matches the question you asked.</p>
+              <AnswerButtons disabled={busy || !validNumber(ibuValue, 1000)} onAnswer={(answer) => save(ibuDimension, answer, { numericValue: Number(ibuValue) })} />
+            </div>
             {['collaboration', 'dark', 'barrel_aged'].map((dimension) => (
               <div key={dimension}>
                 <p className="text-sm font-medium capitalize text-gray-800">Is it {dimension.replace('_', ' ')}?</p>
