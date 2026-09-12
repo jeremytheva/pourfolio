@@ -22,12 +22,12 @@ test('missing collaboration remains unknown rather than false', () => {
   assert.equal(booleanOrNull('unexpected'), null)
 })
 
-test('zero and blank relationship identifiers remain unknown', () => {
+test('catalogue relationship identifiers normalize to positive-id strings', () => {
   assert.equal(canonicalIdOrNull(null), null)
   assert.equal(canonicalIdOrNull(''), null)
   assert.equal(canonicalIdOrNull(0), null)
   assert.equal(canonicalIdOrNull('0'), null)
-  assert.equal(canonicalIdOrNull(12), 12)
+  assert.equal(canonicalIdOrNull(12), '12')
   assert.equal(canonicalIdOrNull('12'), '12')
 })
 
