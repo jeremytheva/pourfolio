@@ -313,32 +313,54 @@ const nextRoundBody = ({ game, previous, productId, requestKey, now }) => ({
   version: 0
 })
 
+const canAdoptPersistedRound = (game, rounds, created, userId) => {
+  const targetNumber = Number(created?.round_number || 0)
+  const predecessorNumber = targetNumber - 1
+  if (!game || !created || targetNumber < 2) return false
+  if (game.status !== 'active' || !game.opponent_participant_id) return false
+  if (Number(game.current_round_number || 0) !== predecessorNumber) return false
+  const predecessor = list(rounds).find((round) => Number(round.round_number || 0) === predecessorNumber)
+  if (!predecessor || !TERMINAL_ROUND_STATES.has(predecessor.status)) return false
+  if (String(created.game_id) !== String(game.id)) return false
+  if (String(created.selector_participant_id) !== String(userId)) return false
+  if (String(created.selector_participant_id) !== String(predecessor.guesser_participant_id)) return false
+  if (String(created.guesser_participant_id) !== String(predecessor.selector_participant_id)) return false
+  return true
+}
+
+const adoptPersistedRound = async (game, rounds, created, userId) => {
+  const targetNumber = Number(created.round_number)
+  if (Number(game.current_round_number || 0) === targetNumber) return game
+  if (!canAdoptPersistedRound(game, rounds, created, userId)) throw versionConflict(game)
+
+  const updates = {
+    current_round_number: targetNumber,
+    last_activity_at: created.created_at || new Date().toISOString()
+  }
+  try {
+    return await compareAndSet(COLLECTIONS.brewDoneItGames, game, Number(game.version || 0), updates)
+  } catch (error) {
+    const refreshed = await dataProvider.get(COLLECTIONS.brewDoneItGames, game.id)
+    if (Number(refreshed?.current_round_number || 0) === targetNumber) return refreshed
+    if (!canAdoptPersistedRound(refreshed, rounds, created, userId)) throw error
+    return compareAndSet(COLLECTIONS.brewDoneItGames, refreshed, Number(refreshed.version || 0), updates)
+  }
+}
+
 export const createNextRoundV3 = async (gameId, request, response, user) => {
   const { expectedVersion, idempotencyKey } = mutation(request)
   const { productId } = sanitiseBrewDoneItCreateInput(request.body)
-  if (!await dataProvider.get(COLLECTIONS.products, productId)) throw fail('Product not found.', 404)
   let game = await dataProvider.get(COLLECTIONS.brewDoneItGames, positiveId(gameId, 'Game identifier'))
   if (!game || !participant(game, user.id)) throw fail('Game not found.', 404)
   if (game.status !== 'active' || !game.opponent_participant_id) throw fail('This series cannot start another round.', 409)
+  if (!await dataProvider.get(COLLECTIONS.products, productId)) throw fail('Product not found.', 404)
 
   let rounds = await roundsFor(game.id)
   const requestKey = `${user.id}:${idempotencyKey}`
   const replayed = rounds.find((round) => round.round_creation_idempotency_key === requestKey)
   if (replayed) {
     if (String(replayed.selected_product_id) !== String(productId)) throw idempotencyConflict()
-    if (Number(game.current_round_number || 0) !== Number(replayed.round_number)) {
-      if (Number(game.version || 0) !== expectedVersion) throw versionConflict(game)
-      try {
-        game = await compareAndSet(COLLECTIONS.brewDoneItGames, game, expectedVersion, {
-          current_round_number: Number(replayed.round_number),
-          last_activity_at: replayed.created_at || new Date().toISOString()
-        })
-      } catch (error) {
-        const refreshed = await dataProvider.get(COLLECTIONS.brewDoneItGames, game.id)
-        if (Number(refreshed?.current_round_number || 0) !== Number(replayed.round_number)) throw error
-        game = refreshed
-      }
-    }
+    game = await adoptPersistedRound(game, rounds, replayed, user.id)
     response.status(200).json({ game: projectBrewDoneItGame(game), round: projectBrewDoneItRound(replayed, user.id), replayed: true })
     return
   }
@@ -362,16 +384,9 @@ export const createNextRoundV3 = async (gameId, request, response, user) => {
   }
   if (!created?.id) throw fail('The game service did not return a round identifier.', 502)
 
-  try {
-    game = await compareAndSet(COLLECTIONS.brewDoneItGames, game, expectedVersion, {
-      current_round_number: Number(created.round_number),
-      last_activity_at: now
-    })
-  } catch (error) {
-    const refreshed = await dataProvider.get(COLLECTIONS.brewDoneItGames, game.id)
-    if (Number(refreshed?.current_round_number || 0) !== Number(created.round_number)) throw error
-    game = refreshed
-  }
+  rounds = [...rounds.filter((round) => String(round.id) !== String(created.id)), created]
+    .sort((left, right) => Number(left.round_number || 0) - Number(right.round_number || 0))
+  game = await adoptPersistedRound(game, rounds, created, user.id)
 
   response.status(201).json({ game: projectBrewDoneItGame(game), round: projectBrewDoneItRound(created, user.id) })
 }
@@ -382,5 +397,6 @@ export const __testables = {
   invitationDigest,
   initialRoundBody,
   nextRoundBody,
+  canAdoptPersistedRound,
   mutation
 }
