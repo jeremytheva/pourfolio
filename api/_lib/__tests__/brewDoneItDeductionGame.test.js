@@ -2,7 +2,14 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { __testables } from '../brewDoneItDeductionGame.js'
 
-const { canonicalDeductions, deductionLogicalKey, sameDeductionRequest } = __testables
+const {
+  aggregate,
+  canonicalDeductions,
+  canonicalIdOrNull,
+  deductionLogicalKey,
+  sameDeductionRequest,
+  unavailableAggregate
+} = __testables
 
 test('logical deduction keys are stable across API and provider field shapes', () => {
   assert.equal(
@@ -53,7 +60,7 @@ test('style idempotency identity uses canonical reference rather than display la
   }), true)
 })
 
-test('canonical deductions keep only the newest row for one logical clue', () => {
+test('canonical deductions keep only the newest append-only event for one logical clue', () => {
   const rows = canonicalDeductions([
     {
       id: 1,
@@ -95,4 +102,26 @@ test('different clue values remain independent deductions', () => {
   ])
 
   assert.equal(rows.length, 2)
+})
+
+test('zero blank and missing catalogue relationship ids remain unresolved', () => {
+  assert.equal(canonicalIdOrNull(null), null)
+  assert.equal(canonicalIdOrNull(''), null)
+  assert.equal(canonicalIdOrNull(0), null)
+  assert.equal(canonicalIdOrNull('0'), null)
+  assert.equal(canonicalIdOrNull(12), '12')
+  assert.equal(canonicalIdOrNull('12'), '12')
+})
+
+test('history aggregates distinguish a governed zero result from an unresolved relationship', () => {
+  const products = new Map([['1', { id: 1, producer_id: 10 }]])
+  const known = aggregate([], products, () => true)
+  const unknown = unavailableAggregate()
+
+  assert.equal(known.available, true)
+  assert.equal(known.ratingCount, 0)
+  assert.equal(known.distinctBeerCount, 0)
+  assert.equal(unknown.available, false)
+  assert.equal(unknown.ratingCount, 0)
+  assert.equal(unknown.distinctBeerCount, 0)
 })
