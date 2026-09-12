@@ -39,6 +39,24 @@ test('secret beer is revealed to both participants after completion', () => {
   assert.equal(projectBrewDoneItRound(round, 'guesser').selected_product_id, 123)
 })
 
+test('internal invitation and creation retry fields never enter the game browser projection', () => {
+  const projected = projectBrewDoneItGame({
+    id: 5,
+    status: 'waiting',
+    invitation_digest: 'private-digest',
+    creation_idempotency_key: 'private-key',
+    creation_request_fingerprint: 'private-fingerprint',
+    join_idempotency_key: 'private-join-key',
+    terminal_idempotency_key: 'private-terminal-key'
+  })
+  assert.equal(projected.id, 5)
+  assert.equal(projected.invitation_digest, undefined)
+  assert.equal(projected.creation_idempotency_key, undefined)
+  assert.equal(projected.creation_request_fingerprint, undefined)
+  assert.equal(projected.join_idempotency_key, undefined)
+  assert.equal(projected.terminal_idempotency_key, undefined)
+})
+
 test('provider boolean-like values are normalised before browser projection', () => {
   const game = projectBrewDoneItGame({
     id: 1,
