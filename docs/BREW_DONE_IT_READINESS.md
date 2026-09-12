@@ -1,15 +1,16 @@
 # Brew Done It readiness
 
-Status: **v3 deduction redesign implemented in contained source; validation and provider migration pending**  
+Status: **v3 contained source validated and merged; provider migration evidence remains blocked pending real isolated evidence and explicit approval**  
 Decision authority: [ADR 0006](DECISIONS/0006-adopt-brew-done-it-deduction-board.md)  
 Retained cross-device authority: [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md)  
-Schema target: [Brew Done It persistent schema target](nocodebackend/brew-done-it-schema-target.md)
+Schema target: [Brew Done It persistent schema target](nocodebackend/brew-done-it-schema-target.md)  
+Provider evidence template: [Brew Done It provider evidence template](nocodebackend/brew-done-it-provider-evidence.template.json)
 
 ## Purpose
 
 This is the capability-specific readiness gate for Brew Done It. ADR 0006 supersedes the former controlled-question/scoring model while retaining ADR 0002's persistent two-account/two-device architecture, protected secret, invitation/resume behaviour and concurrency boundary.
 
-Approval of source implementation does **not** approve provider mutation or production enablement.
+Approval or merge of source implementation does **not** approve provider mutation or production enablement.
 
 ## Current contained source state
 
@@ -28,14 +29,18 @@ The v3 source now provides:
 - immutable creation-time ordering so late settlement/recovery cannot make an older deduction supersede a newer one;
 - explicit brewery/beer exclusions with a persistent Set Unknown/undo path;
 - brewery candidate narrowing from the guesser's own previously-rated relationship where that relationship is fully attributable;
-- beer candidate narrowing by remaining brewery field, style, ABV, IBU and collaboration;
+- beer candidate narrowing by remaining brewery field, style, arbitrary ABV/IBU threshold and collaboration;
+- searchable brewery elimination and candidate-scoped exact-beer/rule-out search;
+- correct formal brewery/style/beer outcomes applied as authoritative candidate constraints across refresh/resume;
 - missing producer/category/ABV/IBU/collaboration/rating-attribution data preserved as unknown so it cannot silently eliminate a candidate;
 - selector history aggregates that distinguish a governed zero result from an unresolved hidden producer/style relationship;
+- history/familiarity restricted to canonical completed ratings (`submission_state = complete` with weighted total `> 0` and `<= 5`);
 - state/country deduction controls deliberately unavailable until canonical brewery geography is governed and certified;
 - dark/barrel-aged notes that deliberately do **not** auto-filter until structured trait data is certified;
-- selector-only brewery/beer/style answer sheet;
+- selector-only brewery/beer/style answer sheet with explicit unscorable relationship warnings;
 - optional guesser-controlled aggregate rating-history clues for hidden brewery/style/exact beer;
 - formal brewery, exact-beer and style-fallback submissions backed by canonical catalogue references;
+- brewery/style formal outcomes rejected as unscorable rather than penalised when the hidden relationship itself is unresolved;
 - scoring v3.0.0: brewery 4 + exact beer 6, or brewery 4 + style fallback 3, minus 1 per incorrect formal submission, clamped 0–10;
 - durable v3 formal-outcome reservation/reconciliation separated from the superseded v2 question/guess reconciler;
 - stable idempotent retries with rejection of request-key reuse for a different deduction/formal outcome;
@@ -45,23 +50,41 @@ The v3 source now provides:
 - recovery of ambiguous game/round create and join transitions by durable identity re-read;
 - exact provider-boolean normalization at the server projection and internal scoring boundaries;
 - explicit round completion and forfeit with replay safety;
-- v3 longitudinal/head-to-head outcome statistics including forfeited rounds in round counts; and
+- v3 longitudinal/head-to-head outcome statistics including forfeited rounds in terminal round counts; and
 - absent production route/navigation with `BREW_DONE_IT_POLICY_ENABLED` still unset.
 
 The connected provider schema has not been migrated/certified for v3, so the feature remains unreachable.
 
 ## Current implementation state — 12 September 2026
 
-The merged persistent-core baseline is PR #410. The v3 redesign is PR **#461** on `codex/brew-done-it-deduction-v3`.
+The persistent cross-device baseline from PR **#410** is merged. The deduction-board redesign from PR **#461** is also merged at `d555bf493931d8700d6a41fd5ff4fd36736b4025`.
 
-The branch is currently synchronized with `main`, including the accepted rating-event ADR 0005 and newer style-history work. Brew Done It's current gameplay authority is ADR **0006**. PR #461 remains **IMPLEMENTING / VALIDATION PENDING**. Gameplay, persistence fields, API routing and UI differ materially from the accepted PR #410 exact-head evidence, so PR #410 validation must not be reused as acceptance evidence for v3.
+PR #461's exact accepted head `da0dbc1ab627e6cbea219923466c99a52ce28326` passed canonical `npm run platform:validate`, Browser/accessibility, Dependency Review and CodeQL, had Vercel deployment success, zero unresolved review threads and zero commits behind `main` at merge assessment. This is the accepted source-validation baseline for the v3 redesign; PR #410 evidence must not be substituted for v3-specific behaviour.
 
-Until v3 validation is explicitly run:
+The non-destructive provider-migration evidence gate from PR **#477** is merged at `e6300768020e024ca877b4f5a25cad2d6660329a`. It adds:
 
-- continue non-provider source/documentation work where useful;
+- `scripts/audit-brew-done-it-provider-evidence.js`;
+- `npm run audit:brew-provider-evidence -- --manifest <path>`;
+- the versioned evidence contract `pourfolio.brew-done-it-provider-evidence.v1`;
+- focused regression tests, including a test proving the checked-in template remains blocked; and
+- `docs/nocodebackend/brew-done-it-provider-evidence.template.json` as the canonical evidence-collection starting point.
+
+The checked-in template is deliberately **BLOCKED**: provider capability/idempotency evidence is `PENDING` and `providerMutationApproved` is `false`. A source audit PASS is necessary but not sufficient for migration and must never be fabricated from application source.
+
+Current next boundary:
+
+1. gather real provider capability, idempotency, recovery, permission/secret-projection and cleanup evidence in an isolated/disposable provider environment;
+2. replace template placeholders only with redacted evidence references/digests;
+3. run `npm run audit:brew-provider-evidence -- --manifest <completed-manifest>` and require PASS;
+4. obtain explicit provider-mutation approval and independent review; and only then
+5. consider a separately reviewed provider-migration change.
+
+Until those conditions are met:
+
 - do not enable a playable route/navigation or policy flag;
-- do not create/change provider collections; and
-- do not merge PR #461 as MERGE READY.
+- do not create/change Brew Done It provider collections;
+- do not represent the evidence template as approved; and
+- do not treat merged source as connected-provider certification.
 
 ## Beer-profile entry-point contract
 
@@ -80,7 +103,7 @@ Retry identity is part of this contract:
 - creating a challenge binds one creation idempotency key to one selected product through a server-only request fingerprint;
 - a creation replay with another selected product fails rather than recovering the wrong challenge;
 - the raw invitation code is never stored; its one-way digest may remain after join solely to prove that an idempotent join replay carries the same invitation payload;
-- a joining user is not required to know the pre-join participant-only game version; the server validates the invitation and then uses the server-loaded current version for compare-and-set;
+- a joining user is not required to know the pre-join participant-only current game version; the server validates the invitation and then uses the server-loaded current version for compare-and-set;
 - later-round creation keys remain bound to the originally selected product; and
 - a later-round replay is checked before ordinary current-round/stale-version gates so a lost response or partially persisted parent transition can be recovered deterministically.
 
@@ -108,15 +131,23 @@ Dark and barrel-aged are useful social clues, but remain manual notes only until
 Before a connected provider mutation, retain evidence for:
 
 1. the exact v3 schema and field/index plan, including `creation_request_fingerprint`, retained `invitation_digest`, and deduction `observed_round_version`, `action_state` and `committed_round_version` fields;
-2. provider support for required create/update/filter/compare-and-set behaviour;
+2. provider support for required create, read, update, delete, filtered-read, pagination and compare-and-set behaviour;
 3. provider uniqueness/lookup behaviour for creation, join, round-creation, deduction and formal-outcome idempotency identities;
-4. backup/restore or disposable-environment recovery;
+4. backup/restore or disposable-environment recovery plus failure-injection and rollback/abort plans;
 5. permissions preventing direct enumeration and secret disclosure;
-6. cleanup procedure for disposable test accounts/fixtures;
-7. rollback/abort criteria; and
-8. explicit owner approval for provider mutation.
+6. cleanup procedure and verification for disposable test accounts/fixtures;
+7. source/release provenance; and
+8. explicit owner/security/release approval plus independent review before provider mutation.
 
-Do not infer provider support from application source alone.
+The evidence must be recorded using the versioned manifest contract and checked with:
+
+```text
+npm run audit:brew-provider-evidence -- --manifest <completed-manifest>
+```
+
+The auditor is local-only: it validates evidence references and privacy/minimisation rules and performs no provider/network write. It requires the exact v3 collection set, rejects legacy `brew_done_it_questions`, rejects incomplete capability/idempotency/recovery/permission/cleanup evidence, rejects credential-like/unredacted values, and requires `providerMutationApproved: true` with an independent reviewer distinct from migration/security/release approval actors.
+
+Do not infer provider support from application source alone. Do not change the checked-in template merely to make the audit pass without real evidence.
 
 ## Required v3 Brew Done It collections
 
@@ -285,11 +316,12 @@ That change requires provider, privacy, cross-device, scoring, recovery, accessi
 
 Brew Done It v3 enablement is blocked by its own capability boundary, not by unrelated launch work:
 
+- the canonical provider-evidence template remains BLOCKED because real isolated-provider capability/idempotency/recovery/privacy/cleanup evidence has not been supplied and provider mutation is not approved;
 - v3 provider collections/fields/uniqueness constraints are not certified/deployed;
 - rating-history consent/privacy behaviour is not connected-certified;
 - v3 create/join/round/deduction/formal-outcome recovery has not been failure-injection tested against NoCodeBackend;
 - two-account/two-device v3 evidence does not yet exist;
 - canonical brewery geography is unavailable for geography-based narrowing; and
-- no reviewed enablement change exists.
+- no reviewed provider-migration or enablement change exists.
 
 These blockers remain scoped to Brew Done It and must not block unrelated Pourfolio launch work.
