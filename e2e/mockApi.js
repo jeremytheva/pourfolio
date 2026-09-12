@@ -1,3 +1,5 @@
+import { RATING_DISTRIBUTION_BUCKETS } from '../src/lib/completedRatingContract.js'
+
 export const product = {
   id: 4,
   product_name: 'Ace',
@@ -27,14 +29,10 @@ const rating = {
 }
 
 const ratingInsights = {
-  distribution: [
-    { score: 0, count: 0 },
-    { score: 1, count: 0 },
-    { score: 2, count: 0 },
-    { score: 3, count: 0 },
-    { score: 4, count: 1 },
-    { score: 5, count: 0 }
-  ],
+  distribution: RATING_DISTRIBUTION_BUCKETS.map((bucket) => ({
+    ...bucket,
+    count: bucket.key === '3.5-4.0' ? 1 : 0
+  })),
   attributes: [
     { attributeId: 2, name: 'Appearance', average: 4, count: 1 },
     { attributeId: 3, name: 'Aroma', average: 4, count: 1 }
