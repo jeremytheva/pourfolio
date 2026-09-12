@@ -33,7 +33,7 @@ export const statsForUserV3 = async (response, user) => {
   })))
 
   const headToHead = new Map()
-  let completedRounds = 0
+  let terminalRounds = 0
   let roundsAsGuesser = 0
   let brewerySolved = 0
   let exactBeerSolved = 0
@@ -45,6 +45,7 @@ export const statsForUserV3 = async (response, user) => {
     const key = String(opponentId)
     const aggregate = headToHead.get(key) || {
       opponentParticipantId: opponentId,
+      terminalRounds: 0,
       completedRounds: 0,
       pointsFor: 0,
       pointsAgainst: 0,
@@ -58,8 +59,10 @@ export const statsForUserV3 = async (response, user) => {
     }
 
     for (const round of rounds) {
-      completedRounds += 1
-      aggregate.completedRounds += 1
+      terminalRounds += 1
+      aggregate.terminalRounds += 1
+      // Compatibility alias retained while v3 remains contained. It also counts forfeits.
+      aggregate.completedRounds = aggregate.terminalRounds
       const userWasGuesser = String(round.guesser_participant_id) === String(user.id)
       const scored = round.status === 'completed'
       const points = scored ? safePoints(round.awarded_points) : 0
@@ -90,7 +93,9 @@ export const statsForUserV3 = async (response, user) => {
 
   response.status(200).json({
     seriesCount: games.length,
-    completedRounds,
+    terminalRounds,
+    // Compatibility alias retained while contained; this includes forfeited terminal rounds.
+    completedRounds: terminalRounds,
     roundsAsGuesser,
     brewerySolved,
     exactBeerSolved,
