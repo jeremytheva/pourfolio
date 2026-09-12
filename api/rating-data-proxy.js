@@ -12,6 +12,7 @@ const ALLOWED_METHODS = new Set(['GET', 'POST', 'DELETE'])
 const asArray = (value) => (Array.isArray(value) ? value : value ? [value] : [])
 const records = (value) => asArray(value).filter((item) => item && typeof item === 'object')
 const first = (value) => (Array.isArray(value) ? value[0] || null : value || null)
+const isCompletedRating = (rating) => rating?.submission_state === 'complete'
 
 const pathSegments = (request) => {
   const raw = request.query?.path
@@ -29,16 +30,14 @@ const positiveId = (value, label = 'Record identifier') => {
   return text
 }
 
-const removeCreatedRecords = async (created) => {
-  let cleanupFailed = false
-  for (const { collection, id } of [...created].reverse()) {
-    try {
-      await dataProvider.remove(collection, id)
-    } catch (error) {
-      if (error?.status !== 404) cleanupFailed = true
-    }
+const submissionIdentifier = (body) => {
+  const value = Number(body.submissionId ?? body.rating_id)
+  if (!Number.isSafeInteger(value) || value <= 0) {
+    const error = new Error('Rating submission identifier is invalid.')
+    error.status = 400
+    throw error
   }
-  return cleanupFailed
+  return value
 }
 
 const validateBonusIds = (requested, available) => {
@@ -66,6 +65,7 @@ const ownedCellarForRating = async (body, userId, productId) => {
 }
 
 const populationScores = async () => records(await dataProvider.list(COLLECTIONS.ratings))
+  .filter(isCompletedRating)
   .map((rating) => Number(rating.total_weighted))
   .filter((score) => Number.isFinite(score) && score >= 0 && score <= 5)
 
@@ -107,9 +107,116 @@ const productProjection = async (productId) => {
   }
 }
 
+const submissionKey = (userId, submissionId) => `${userId}:${submissionId}`
+const scoreKey = (key, attributeId) => `${key}:score:${attributeId}`
+const bonusKey = (key, bonusId) => `${key}:bonus:${bonusId}`
+
+const submissionFingerprint = (productId, cellarId, totals, bonusIds) => crypto
+  .createHash('sha256')
+  .update(JSON.stringify({
+    productId: String(productId),
+    cellarId,
+    scores: totals.scores,
+    weights: totals.weights,
+    bonusIds: [...bonusIds].sort()
+  }))
+  .digest('hex')
+
+const findSubmission = async (userId, submissionId) => records(await dataProvider.list(
+  COLLECTIONS.ratings,
+  { user_id: userId, rating_id: submissionId }
+)).find((rating) => isOwnedBy(rating, userId) && Number(rating.rating_id) === submissionId) || null
+
+const validateSubmissionChildren = async (rating, userId, expectedScores, expectedBonusIds, key) => {
+  const [scoreRows, bonusRows] = await Promise.all([
+    dataProvider.list(COLLECTIONS.ratingScores, { rating_id: rating.id, user_id: userId }),
+    dataProvider.list(COLLECTIONS.bonusRatingMappings, { rating_id: rating.id, user_id: userId })
+  ])
+  const ownedScores = records(scoreRows).filter((item) => isOwnedBy(item, userId))
+  const ownedBonuses = records(bonusRows).filter((item) => isOwnedBy(item, userId))
+  const expectedScoreKeys = new Set(expectedScores.map((score) => scoreKey(key, score.attribute_id)))
+  const expectedBonusKeys = new Set(expectedBonusIds.map((id) => bonusKey(key, id)))
+  const expectedScoresByKey = new Map(expectedScores.map((score) => [scoreKey(key, score.attribute_id), score]))
+
+  return {
+    complete: ownedScores.length === expectedScoreKeys.size &&
+      ownedBonuses.length === expectedBonusKeys.size &&
+      ownedScores.every((item) => {
+        const expected = expectedScoresByKey.get(item.uniqueness_key)
+        return expected &&
+          String(item.rating_id) === String(rating.id) &&
+          String(item.attribute_id) === String(expected.attribute_id) &&
+          String(item.attribute_score) === String(expected.attribute_score)
+      }) &&
+      ownedBonuses.every((item) => expectedBonusKeys.has(item.uniqueness_key) &&
+        String(item.rating_id) === String(rating.id) &&
+        item.uniqueness_key === bonusKey(key, item.bonus_attributes_id)),
+    scoreKeys: new Set(ownedScores.map((item) => item.uniqueness_key)),
+    bonusKeys: new Set(ownedBonuses.map((item) => item.uniqueness_key))
+  }
+}
+
+const ratingIdentityMatches = (rating, userId, fingerprint) =>
+  isOwnedBy(rating, userId) && rating?.submission_fingerprint === fingerprint
+
+const transitionRating = async (rating, userId, fingerprint, fromStates, toState) => {
+  const persisted = await dataProvider.get(COLLECTIONS.ratings, rating.id)
+  if (!ratingIdentityMatches(persisted, userId, fingerprint)) {
+    const error = new Error('The persisted rating no longer matches this submission.')
+    error.status = 409
+    throw error
+  }
+  if (persisted.submission_state === toState ||
+      (toState === 'failed' && persisted.submission_state === 'complete')) return persisted
+  if (!fromStates.has(persisted.submission_state)) {
+    throw new Error('The rating workflow state cannot make that transition.')
+  }
+
+  const version = Number(persisted.submission_version)
+  if (!Number.isSafeInteger(version) || version < 0) {
+    throw new Error('The rating workflow version is invalid.')
+  }
+  await dataProvider.compareAndSet(COLLECTIONS.ratings, persisted.id, version, {
+    submission_state: toState,
+    submission_version: version + 1
+  })
+  const transitioned = await dataProvider.get(COLLECTIONS.ratings, persisted.id)
+  if (!ratingIdentityMatches(transitioned, userId, fingerprint) ||
+      transitioned.submission_state !== toState || Number(transitioned.submission_version) !== version + 1) {
+    throw new Error('Rating workflow state was not durably updated.')
+  }
+  return transitioned
+}
+
+const createChildIdempotently = async (collection, payload, loadExisting) => {
+  try {
+    const created = first(await dataProvider.create(collection, payload))
+    if (!created?.id) throw new Error('The rating service did not return a child identifier.')
+  } catch (error) {
+    if (!dataProvider.isUniqueConflict(error)) throw error
+    const existing = await loadExisting()
+    const matchesExpected = existing && Object.entries(payload).every(([field, value]) =>
+      String(existing[field] ?? '') === String(value ?? '')
+    )
+    if (!matchesExpected || !isOwnedBy(existing, payload.user_id)) throw error
+  }
+}
+
+const submissionResponse = async ({ response, status, rating, totals, requestedBonusIds, duplicate, cellar }) => {
+  const saved = { ...rating, ...totals }
+  const population = await populationScores()
+  response.status(status).json({
+    rating: { ...projectRating(saved), advanced_scores: advancedFor(saved, population, cellar) },
+    scoreCount: totals.scores.length,
+    bonusCount: requestedBonusIds.length,
+    duplicate
+  })
+}
+
 const submitRating = async (request, response, user, correlationId) => {
   const body = request.body && typeof request.body === 'object' && !Array.isArray(request.body) ? request.body : {}
   const productId = positiveId(body.productId ?? body.product_id, 'Product identifier')
+  const submissionId = submissionIdentifier(body)
   const [product, attributes, bonuses] = await Promise.all([
     dataProvider.get(COLLECTIONS.products, productId),
     dataProvider.list(COLLECTIONS.ratingAttributes),
@@ -123,62 +230,132 @@ const submitRating = async (request, response, user, correlationId) => {
   const totals = calculateRatingTotals(body.scores, records(attributes), body.weights)
   const requestedBonusIds = validateBonusIds(body.bonusAttributeIds, bonuses)
   const cellar = await ownedCellarForRating(body, user.id, productId)
-  const created = []
+  const cellarId = cellar?.id ?? null
+  const key = submissionKey(user.id, submissionId)
+  const fingerprint = submissionFingerprint(productId, cellarId, totals, requestedBonusIds)
+  let rating = await findSubmission(user.id, submissionId)
+  let duplicate = Boolean(rating)
+
+  if (rating && rating.submission_fingerprint !== fingerprint) {
+    const error = new Error('The submission identifier is already used by different rating data.')
+    error.status = 409
+    throw error
+  }
 
   try {
-    const rating = first(await dataProvider.create(COLLECTIONS.ratings, {
-      user_id: user.id,
-      product_id: product.id,
-      cellar_id: cellar?.id ?? null,
-      date_rated: new Date().toISOString(),
-      total_unweighted: totals.total_unweighted,
-      total_weighted: totals.total_weighted
-    }))
-    if (!rating?.id) throw new Error('The rating service did not return a rating identifier.')
-    created.push({ collection: COLLECTIONS.ratings, id: rating.id })
+    if (!rating) {
+      try {
+        rating = first(await dataProvider.create(COLLECTIONS.ratings, {
+          user_id: user.id,
+          rating_id: submissionId,
+          submission_key: key,
+          submission_fingerprint: fingerprint,
+          submission_state: 'pending',
+          submission_version: 0,
+          expected_score_count: totals.scores.length,
+          expected_bonus_count: requestedBonusIds.length,
+          product_id: product.id,
+          cellar_id: cellarId,
+          date_rated: new Date().toISOString(),
+          total_unweighted: totals.total_unweighted,
+          total_weighted: totals.total_weighted
+        }))
+      } catch (error) {
+        rating = await findSubmission(user.id, submissionId)
+        if (!rating || (!dataProvider.isUniqueConflict(error) && error?.name !== 'TimeoutError')) throw error
+        duplicate = true
+      }
+      if (!rating?.id) throw new Error('The rating service did not return a rating identifier.')
+      if (!ratingIdentityMatches(rating, user.id, fingerprint)) {
+        const conflict = new Error('The submission identifier is already used by different rating data.')
+        conflict.status = 409
+        throw conflict
+      }
+    }
+
+    const existingChildren = await validateSubmissionChildren(
+      rating, user.id, totals.scores, requestedBonusIds, key
+    )
 
     for (const score of totals.scores) {
-      const child = first(await dataProvider.create(COLLECTIONS.ratingScores, {
+      const uniquenessKey = scoreKey(key, score.attribute_id)
+      if (existingChildren.scoreKeys.has(uniquenessKey)) continue
+      await createChildIdempotently(COLLECTIONS.ratingScores, {
         user_id: user.id,
-        rating_id: rating.id,
         attribute_id: score.attribute_id,
-        attribute_score: score.attribute_score
-      }))
-      if (!child?.id) throw new Error('The rating service did not return a score identifier.')
-      created.push({ collection: COLLECTIONS.ratingScores, id: child.id })
+        rating_id: rating.id,
+        attribute_score: score.attribute_score,
+        uniqueness_key: uniquenessKey
+      }, async () => records(await dataProvider.list(COLLECTIONS.ratingScores, {
+        user_id: user.id,
+        uniqueness_key: uniquenessKey
+      }))[0])
     }
 
     for (const bonusId of requestedBonusIds) {
-      const child = first(await dataProvider.create(COLLECTIONS.bonusRatingMappings, {
+      const uniquenessKey = bonusKey(key, bonusId)
+      if (existingChildren.bonusKeys.has(uniquenessKey)) continue
+      await createChildIdempotently(COLLECTIONS.bonusRatingMappings, {
         user_id: user.id,
         rating_id: rating.id,
-        bonus_attributes_id: bonusId
-      }))
-      if (!child?.id) throw new Error('The rating service did not return a bonus mapping identifier.')
-      created.push({ collection: COLLECTIONS.bonusRatingMappings, id: child.id })
+        bonus_attributes_id: bonusId,
+        uniqueness_key: uniquenessKey
+      }, async () => records(await dataProvider.list(COLLECTIONS.bonusRatingMappings, {
+        user_id: user.id,
+        uniqueness_key: uniquenessKey
+      }))[0])
     }
 
-    const saved = { ...rating, ...totals }
-    const population = await populationScores()
-    response.status(201).json({
-      rating: { ...projectRating(saved), advanced_scores: advancedFor(saved, population, cellar) },
-      scoreCount: totals.scores.length,
-      bonusCount: requestedBonusIds.length,
-      duplicate: false
+    const completed = await validateSubmissionChildren(rating, user.id, totals.scores, requestedBonusIds, key)
+    if (!completed.complete) throw new Error('Rating children remain incomplete after reconciliation.')
+    rating = await transitionRating(rating, user.id, fingerprint, new Set(['pending', 'failed']), 'complete')
+
+    await submissionResponse({
+      response,
+      status: duplicate ? 200 : 201,
+      rating,
+      totals,
+      requestedBonusIds,
+      duplicate,
+      cellar
     })
   } catch (error) {
-    const cleanupFailed = await removeCreatedRecords(created)
+    let stateUpdateFailed = false
+    if (rating?.id) {
+      try {
+        const persisted = await dataProvider.get(COLLECTIONS.ratings, rating.id)
+        if (ratingIdentityMatches(persisted, user.id, fingerprint) && persisted.submission_state === 'complete') {
+          const reconciled = await validateSubmissionChildren(
+            persisted, user.id, totals.scores, requestedBonusIds, key
+          )
+          if (reconciled.complete) {
+            await submissionResponse({
+              response,
+              status: 200,
+              rating: persisted,
+              totals,
+              requestedBonusIds,
+              duplicate: true,
+              cellar
+            })
+            return
+          }
+        }
+        await transitionRating(rating, user.id, fingerprint, new Set(['pending']), 'failed')
+      } catch {
+        stateUpdateFailed = true
+      }
+    }
+
     writeTelemetryError(runtimeTelemetry({
       route_template: '/api/nocodebackend/ratings/:action',
       method: 'POST',
       status_class: '5xx',
-      event_name: cleanupFailed ? 'rating_compensation_failure' : 'rating_submission_failure',
+      event_name: stateUpdateFailed ? 'rating_reconciliation_state_update_failure' : 'rating_reconciliation_failure',
       correlation_id: correlationId
     }))
     if (error.status && error.status < 500) throw error
-    const workflowError = new Error(cleanupFailed
-      ? 'Rating submission failed and cleanup could not be fully confirmed.'
-      : 'Rating submission failed without being saved.')
+    const workflowError = new Error('Rating submission is incomplete and can be retried safely.')
     workflowError.status = 502
     throw workflowError
   }
@@ -186,7 +363,7 @@ const submitRating = async (request, response, user, correlationId) => {
 
 const listUserRatings = async (response, user) => {
   const ownerRatings = records(await dataProvider.list(COLLECTIONS.ratings, { user_id: user.id }))
-    .filter((rating) => isOwnedBy(rating, user.id))
+    .filter((rating) => isOwnedBy(rating, user.id) && isCompletedRating(rating))
   const [population, cellarRows] = await Promise.all([
     populationScores(),
     dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }).then(records)
@@ -194,7 +371,9 @@ const listUserRatings = async (response, user) => {
   const cellarById = new Map(cellarRows
     .filter((item) => isOwnedBy(item, user.id))
     .map((item) => [String(item.id), item]))
-  const productIds = [...new Set(ownerRatings.map((rating) => String(rating.product_id || '')).filter((id) => /^[1-9]\d*$/.test(id)))]
+  const productIds = [...new Set(ownerRatings
+    .map((rating) => String(rating.product_id || ''))
+    .filter((id) => /^[1-9]\d*$/.test(id)))]
   const products = await Promise.all(productIds.map(async (id) => [id, await productProjection(id)]))
   const productsById = new Map(products)
 
@@ -207,22 +386,9 @@ const listUserRatings = async (response, user) => {
   })
 }
 
-const deleteOwnedChildren = async (collection, ratingId, userId) => {
-  const children = records(await dataProvider.list(collection, { rating_id: ratingId, user_id: userId }))
-  for (const child of children) {
-    const exact = await dataProvider.get(collection, child.id)
-    if (!isOwnedBy(exact, userId) || String(exact.rating_id) !== String(ratingId)) continue
-    try {
-      await dataProvider.remove(collection, exact.id)
-    } catch (error) {
-      if (error?.status !== 404) throw error
-    }
-  }
-}
-
 const deleteRating = async (id, response, user) => {
   const ratingId = positiveId(id, 'Rating identifier')
-  const rating = await dataProvider.get(COLLECTIONS.ratings, ratingId)
+  let rating = await dataProvider.get(COLLECTIONS.ratings, ratingId)
   if (!rating) {
     response.status(404).json({ error: 'Rating not found.' })
     return
@@ -231,9 +397,78 @@ const deleteRating = async (id, response, user) => {
     response.status(403).json({ error: 'You are not authorised to delete this rating.' })
     return
   }
-  await deleteOwnedChildren(COLLECTIONS.ratingScores, ratingId, user.id)
-  await deleteOwnedChildren(COLLECTIONS.bonusRatingMappings, ratingId, user.id)
-  await dataProvider.remove(COLLECTIONS.ratings, ratingId)
+  if (rating.submission_state === 'deleted') {
+    response.status(204).end()
+    return
+  }
+
+  if (rating.submission_state !== 'deleting') {
+    const version = Number(rating.submission_version)
+    if (!Number.isSafeInteger(version) || version < 0) throw new Error('The rating workflow version is invalid.')
+    try {
+      await dataProvider.compareAndSet(COLLECTIONS.ratings, ratingId, version, {
+        submission_state: 'deleting',
+        submission_version: version + 1
+      })
+    } catch (error) {
+      if (error?.code !== 'VERSION_CONFLICT') throw error
+    }
+    rating = await dataProvider.get(COLLECTIONS.ratings, ratingId)
+    if (!isOwnedBy(rating, user.id)) {
+      const error = new Error('The rating ownership changed during deletion.')
+      error.status = 409
+      throw error
+    }
+    if (rating.submission_state === 'deleted') {
+      response.status(204).end()
+      return
+    }
+    if (rating.submission_state !== 'deleting') {
+      const error = new Error('The rating changed before deletion could start.')
+      error.status = 409
+      throw error
+    }
+  }
+
+  const childCollections = [COLLECTIONS.ratingScores, COLLECTIONS.bonusRatingMappings]
+  for (const collection of childCollections) {
+    const children = records(await dataProvider.list(collection, { rating_id: ratingId, user_id: user.id }))
+    for (const listedChild of children) {
+      const child = await dataProvider.get(collection, listedChild.id)
+      if (!isOwnedBy(child, user.id) || String(child.rating_id) !== String(ratingId)) continue
+      try {
+        await dataProvider.remove(collection, child.id)
+      } catch (error) {
+        if (error?.status !== 404) throw error
+      }
+    }
+  }
+
+  for (const collection of childCollections) {
+    const remaining = records(await dataProvider.list(collection, { rating_id: ratingId, user_id: user.id }))
+      .filter((child) => isOwnedBy(child, user.id) && String(child.rating_id) === String(ratingId))
+    if (remaining.length) throw new Error('Rating deletion reconciliation remains incomplete.')
+  }
+
+  const persisted = await dataProvider.get(COLLECTIONS.ratings, ratingId)
+  if (!isOwnedBy(persisted, user.id)) throw new Error('The rating ownership changed during deletion.')
+  if (persisted.submission_state !== 'deleted') {
+    const version = Number(persisted.submission_version)
+    if (persisted.submission_state !== 'deleting' || !Number.isSafeInteger(version) || version < 0) {
+      throw new Error('The rating deletion workflow state is invalid.')
+    }
+    try {
+      await dataProvider.compareAndSet(COLLECTIONS.ratings, ratingId, version, {
+        submission_state: 'deleted',
+        submission_version: version + 1,
+        deleted_at: new Date().toISOString()
+      })
+    } catch (error) {
+      if (error?.code !== 'VERSION_CONFLICT') throw error
+      const reconciled = await dataProvider.get(COLLECTIONS.ratings, ratingId)
+      if (!isOwnedBy(reconciled, user.id) || reconciled.submission_state !== 'deleted') throw error
+    }
+  }
   response.status(204).end()
 }
 
@@ -244,15 +479,9 @@ export const routeRatingRequest = async (request, response, user, correlationId)
     return
   }
   if (request.method === 'POST' && id === 'submit') return submitRating(request, response, user, correlationId)
+  if (request.method === 'POST' && id === 'reconcile') return submitRating(request, response, user, correlationId)
   if (request.method === 'GET' && id === 'mine') return listUserRatings(response, user)
   if (request.method === 'DELETE' && id && !action) return deleteRating(id, response, user)
-  if (request.method === 'POST' && id === 'reconcile') {
-    response.status(409).json({
-      error: 'Rating reconciliation requires database idempotency fields that are not present in the current schema.',
-      code: 'rating_reconciliation_unavailable'
-    })
-    return
-  }
   response.status(404).json({ error: 'Application data route not found.' })
 }
 
@@ -266,7 +495,10 @@ export default async function handler(request, response) {
     return
   }
   if (!enforceRequestSize(request, response) || !enforceOrigin(request, response)) return
-  if (!enforceRateLimit(request, response, { key: request.method === 'GET' ? 'data-read' : 'data-write', limit: request.method === 'GET' ? 240 : 60 })) return
+  if (!enforceRateLimit(request, response, {
+    key: request.method === 'GET' ? 'data-read' : 'data-write',
+    limit: request.method === 'GET' ? 240 : 60
+  })) return
   try {
     const user = await requireSessionUser(request)
     await routeRatingRequest(request, response, user, correlationId)
@@ -294,5 +526,9 @@ export const __testables = {
   deleteRating,
   advancedFor,
   productProjection,
-  populationScores
+  populationScores,
+  findSubmission,
+  validateSubmissionChildren,
+  transitionRating,
+  submissionFingerprint
 }
