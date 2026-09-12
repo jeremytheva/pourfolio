@@ -19,6 +19,7 @@ This document defines the minimum persistent NoCodeBackend contract for the Brew
 - challenge/round creation idempotency keys remain bound to the originally selected beer and may not replay with a different secret.
 - join retries remain bound to the original one-way invitation digest; the raw invitation code is never stored.
 - repeated request keys identify one logical mutation and cannot be reused for a different deduction or formal outcome.
+- completeness-sensitive catalogue/history/series reads use explicit validated pagination; provider-default list sizes must never silently define the candidate universe, personal-history aggregates, replay history or statistics.
 - provider boolean-like values are normalized before gameplay/scoring decisions or browser projection.
 - statistics are derived from terminal rounds rather than independently mutable totals.
 - `brew_done_it_questions` is legacy v2 only and is not part of the v3 provider target.
@@ -133,7 +134,7 @@ Required invariants:
 
 ### Later-round creation replay rules
 
-A next-round retry is resolved **before** normal current-round/stale-version gates. If a round already carries the caller's `round_creation_idempotency_key`, it may replay only when its `selected_product_id` matches the requested beer. If round creation persisted but the parent game's `current_round_number` update did not, the retry may complete that parent transition only when the expected game version still permits it. If the parent update already persisted but its response was lost, the persisted round number is accepted as recovered success.
+A next-round retry is resolved **before** normal current-round/stale-version gates. If a round already carries the caller's `round_creation_idempotency_key`, it may replay only when its `selected_product_id` matches the requested beer. If round creation persisted but the parent game's `current_round_number` update did not, the server may adopt that persisted child using the **server-loaded current game version** only when the game still points to that child's exact terminal predecessor, the child is the immediate next round, and selector/guesser rotation matches the predecessor. If those structural invariants no longer hold, recovery fails safely rather than adopting the orphan. If the parent update already persisted but its response was lost, the persisted round number is accepted as recovered success.
 
 ## `brew_done_it_guesses`
 
@@ -160,8 +161,8 @@ Rules:
 - exactly one guessed reference is populated according to `guess_type`;
 - each referenced brewery/beer/style must resolve to the canonical catalogue before a new formal submission is accepted;
 - browser-supplied participant/correctness/sequence/state/points are ignored;
-- repeated identical formal outcomes are rejected against committed history;
-- a committed idempotency key may replay only the same `guess_type` and catalogue reference;
+- repeated identical formal outcomes are rejected against the complete committed round history, not only a provider-default first page;
+- a committed idempotency key may replay only the same `guess_type` and catalogue reference, including after the round later becomes terminal;
 - only committed rows count toward penalties/statistics/history; and
 - ambiguous provider writes are reconciled by idempotency key and the round reservation.
 
@@ -222,6 +223,7 @@ Rules:
 - missing source data is not converted to `no`;
 - zero/blank product producer/category identifiers remain unknown rather than becoming candidates for a fabricated relationship;
 - if personal rating attribution is incomplete, an otherwise-unmatched brewery's previous-rating relation remains unknown rather than false;
+- if brewery deductions reduce the governed brewery field to zero, beers with governed producer attribution to those eliminated breweries stay eliminated; beers whose producer relationship is missing or does not resolve to the governed brewery universe remain possible as unknowns;
 - if any remaining beer has an unknown category, all styles remain possible;
 - state/country writes fail closed until canonical geography is governed and certified;
 - dark/barrel-aged rows are manual notes until certified structured trait data exists;
@@ -247,7 +249,7 @@ Recovery rules:
 - if no child persisted, roll back the empty reservation with no formal turn/penalty;
 - reads/resume/forfeit must reconcile v3 `outcome:*` reservations through the v3 reconciler, never through the legacy v2 question/beer reconciler;
 - if round finalisation succeeded but the child commit marker did not, a later list/detail read repairs the matching pending child via `last_action_key` / `last_action_type`;
-- a retry of a committed idempotency key returns the existing result without a second penalty;
+- a retry of a committed idempotency key returns the existing result without a second penalty even if the round subsequently became terminal;
 - reusing a committed idempotency key for a different formal outcome fails safely; and
 - a stale second device fails safely rather than advancing the round twice.
 
@@ -258,7 +260,7 @@ The selector-only answer sheet currently resolves only governed public catalogue
 - product → producer;
 - product → category/style;
 - product ABV/IBU/collaboration/edition fields; and
-- optional aggregate history derived from the consenting guesser's own ratings plus those product relationships.
+- optional aggregate history derived from the consenting guesser's complete own-rating history plus complete paged product relationships.
 
 The selector receives only approved history aggregates: rating count, distinct-beer count, average weighted score and last-rated date scoped to the hidden brewery/style/beer. Invalid/missing weighted scores and invalid dates are excluded. A governed relationship with no matching ratings is represented as a known zero result; an unresolved hidden producer/category relationship is represented as `available: false` and must not aggregate unrelated unresolved products together. Raw ratings, rating notes, cellar data and unrelated private account data are excluded.
 
@@ -284,23 +286,25 @@ Before setting `BREW_DONE_IT_POLICY_ENABLED=true` in a user-facing environment:
 
 1. create/certify the four v3 collections: games, rounds, guesses and deductions;
 2. retain schema evidence for fields/types/indexes/relationships, history-sharing defaults, unique (`game_id`, `round_number`), creation/join/round/deduction/formal-outcome idempotency requirements, `creation_request_fingerprint`, and deduction `observed_round_version` / `action_state` / `committed_round_version` fields;
-3. prove game create retries recover ambiguous provider responses and reject the same creation key with a different selected beer;
-4. prove join retries use the server-loaded current version, retain only the one-way invitation digest and reject the same join key with a different invitation payload;
-5. prove next-round retries are recognized before ordinary stale/current-round gates, recover a partially persisted parent transition and reject the same key with a different selected beer;
-6. certify the existing product/producer/category/rating relationships used for candidate narrowing and history aggregates;
-7. run disposable two-account/two-device create, join, resume, deduction, exclusion/undo, brewery guess, exact-beer guess, style fallback, explicit finish, role-swap and next-round flows;
-8. prove the active guesser's raw HTTP responses contain no secret beer, invitation internals or selector clue-sheet data;
-9. prove history aggregates are absent when sharing is off, contain only approved aggregates when sharing is on, distinguish governed zero results from unresolved relationships, and never group unrelated unresolved products together;
-10. prove yes/no/unknown deduction events persist, only committed events enter the board, and `unknown` never eliminates candidates;
-11. failure-inject deduction creation/settlement and prove read-time recovery of pending events, stale-round discard, exact expected-version enforcement and no pending/discarded event leakage into candidate filtering;
-12. prove an older delayed retry keeps its immutable creation order and cannot revert a newer committed board answer even when its settlement timestamp is later;
-13. prove unknown producer/category/numeric/boolean/rating-attribution facts remain candidates rather than being treated as negative facts;
-14. prove geography remains unavailable rather than inferred while no governed canonical source exists;
-15. retry/stale-device/failure-injection formal outcomes and prove exactly one committed result or zero with no invented penalty;
-16. prove idempotency-key reuse for a different deduction/outcome fails rather than replaying the wrong mutation;
-17. prove dark/barrel-aged manual notes do not auto-filter before certified trait metadata exists;
-18. reconcile v3 statistics exactly to terminal round rows, including forfeited rounds in round counts;
-19. clean disposable fixtures and retain redacted evidence; and
-20. review retention/deletion, accessibility and browser evidence before route/navigation enablement.
+3. certify page/limit/filter behavior for products, producers, categories, ratings, games, rounds, guesses and deductions; prove the application either receives every page or fails closed rather than silently truncating a candidate/history/statistics set;
+4. prove game create retries recover ambiguous provider responses and reject the same creation key with a different selected beer;
+5. prove join retries use the server-loaded current version, retain only the one-way invitation digest and reject the same join key with a different invitation payload;
+6. prove next-round retries are recognized before ordinary stale/current-round gates, structurally adopt a partially persisted legitimate child after unrelated game-version changes, reject an orphan whose predecessor/role invariants no longer hold, and reject the same key with a different selected beer;
+7. certify the existing product/producer/category/rating relationships used for candidate narrowing and history aggregates;
+8. run disposable two-account/two-device create, join, resume, deduction, exclusion/undo, brewery guess, exact-beer guess, style fallback, explicit finish, role-swap and next-round flows;
+9. prove the active guesser's raw HTTP responses contain no secret beer, invitation internals or selector clue-sheet data;
+10. prove history aggregates are absent when sharing is off, contain only approved aggregates when sharing is on, distinguish governed zero results from unresolved relationships, and never group unrelated unresolved products together;
+11. prove yes/no/unknown deduction events persist, only committed events enter the board, and `unknown` never eliminates candidates;
+12. failure-inject deduction creation/settlement and prove read-time recovery of pending events, stale-round discard, exact expected-version enforcement and no pending/discarded event leakage into candidate filtering;
+13. prove an older delayed retry keeps its immutable creation order and cannot revert a newer committed board answer even when its settlement timestamp is later;
+14. prove zero remaining governed breweries does not restore beers from eliminated governed breweries, while unresolved producer relationships remain possible;
+15. prove unknown producer/category/numeric/boolean/rating-attribution facts remain candidates rather than being treated as negative facts;
+16. prove geography remains unavailable rather than inferred while no governed canonical source exists;
+17. retry/stale-device/failure-injection formal outcomes and prove exactly one committed result or zero with no invented penalty, including committed replay after terminal transition;
+18. prove idempotency-key reuse for a different deduction/outcome fails rather than replaying the wrong mutation;
+19. prove dark/barrel-aged manual notes do not auto-filter before certified trait metadata exists;
+20. reconcile v3 statistics exactly to complete paged terminal-round history, including forfeited rounds in round counts;
+21. clean disposable fixtures and retain redacted evidence; and
+22. review retention/deletion, accessibility and browser evidence before route/navigation enablement.
 
 Until those gates pass, Brew Done It remains in `DEFERRED_COLLECTIONS`, the playable route remains absent, and the server policy remains fail-closed.
