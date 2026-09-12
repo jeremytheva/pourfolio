@@ -213,7 +213,7 @@ export const createGameV3 = async (request, response, user) => {
 }
 
 export const joinGameV3 = async (gameId, request, response, user) => {
-  const { expectedVersion, idempotencyKey } = mutation(request)
+  const { idempotencyKey } = mutation(request)
   const id = positiveId(gameId, 'Game identifier')
   const { inviteCode } = sanitiseBrewDoneItJoinInput(request.body)
   const digest = invitationDigest(inviteCode)
@@ -243,14 +243,14 @@ export const joinGameV3 = async (gameId, request, response, user) => {
   }
 
   if (!game || game.invitation_digest !== digest) throw fail('Game invitation is invalid.', 404)
-  if (Number(game.version || 0) !== expectedVersion) throw versionConflict(game)
   if (!Number.isFinite(Date.parse(game.expires_at)) || Date.parse(game.expires_at) <= Date.now()) throw fail('Game invitation has expired.', 409)
   if (game.status !== 'waiting' || game.opponent_participant_id) throw fail('Game invitation is no longer available.', 409)
   if (String(game.creator_participant_id) === String(user.id)) throw fail('The challenge creator cannot join as the opponent.', 409)
 
   const joinedAt = new Date().toISOString()
+  const joinVersion = Number(game.version || 0)
   try {
-    game = await compareAndSet(COLLECTIONS.brewDoneItGames, game, expectedVersion, {
+    game = await compareAndSet(COLLECTIONS.brewDoneItGames, game, joinVersion, {
       opponent_participant_id: user.id,
       status: 'active',
       joined_at: joinedAt,
