@@ -10,9 +10,15 @@ const Field = ({ label, value, unavailable = false }) => (
 const History = ({ title, value = {} }) => (
   <div className="rounded-lg border border-blue-100 bg-white p-3">
     <h4 className="font-semibold text-gray-900">{title}</h4>
-    <p className="mt-1 text-sm text-gray-700">{value.distinctBeerCount || 0} beers · {value.ratingCount || 0} ratings</p>
-    <p className="text-sm text-gray-700">Average: {value.averageWeighted ?? 'No valid scored ratings'}</p>
-    {value.lastRatedAt && <p className="text-xs text-gray-500">Last rated: {new Date(value.lastRatedAt).toLocaleDateString()}</p>}
+    {value.available === false ? (
+      <p className="mt-1 text-sm text-gray-700">Unavailable because this catalogue relationship is unresolved.</p>
+    ) : (
+      <>
+        <p className="mt-1 text-sm text-gray-700">{value.distinctBeerCount || 0} beers · {value.ratingCount || 0} ratings</p>
+        <p className="text-sm text-gray-700">Average: {value.averageWeighted ?? 'No valid scored ratings'}</p>
+        {value.lastRatedAt && <p className="text-xs text-gray-500">Last rated: {new Date(value.lastRatedAt).toLocaleDateString()}</p>}
+      </>
+    )}
   </div>
 )
 
