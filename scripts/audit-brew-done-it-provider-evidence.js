@@ -8,7 +8,7 @@ const SHA256 = /^[0-9a-f]{64}$/
 const FULL_SHA = /^[0-9a-f]{40}$/
 const SAFE_REF = /^[A-Za-z0-9][A-Za-z0-9._:/#-]{2,199}$/
 const SAFE_ACTOR = /^[A-Za-z0-9][A-Za-z0-9._-]{1,63}$/
-const SENSITIVE = /(?:bearer\s|password|secret|token\s*[=:]|api[_-]?key|cookie|session\s*[=:]|invitation[_-]?code)/i
+const SENSITIVE = /(?:bearer\s|password\s*[=:]|secret(?:[_-]?key)?\s*[=:]|token\s*[=:]|api[_-]?key\s*[=:]|cookie\s*[=:]|session\s*[=:]|invitation[_-]?code\s*[=:])/i
 
 const REQUIRED_COLLECTIONS = Object.freeze([
   'brew_done_it_deductions',
