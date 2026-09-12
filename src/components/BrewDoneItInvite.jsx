@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import BrewDoneItBeerPicker from './BrewDoneItBeerPicker.jsx'
+import BrewDoneItInvitationExpiry from './BrewDoneItInvitationExpiry.jsx'
 import { parseBrewDoneItInvitation } from '../utils/brewDoneItInvitation.js'
 
 const control = 'mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500'
@@ -73,7 +74,8 @@ export default function BrewDoneItInvite({ invitation, busy, initialProductId = 
       {invitation && (
         <div className="mt-5 rounded-lg bg-amber-50 p-4" role="status">
           <h3 className="font-semibold text-amber-950">Challenge ready</h3>
-          <p className="mt-1 text-sm">Send the game number and challenge code to the other player. The invitation expires after seven days.</p>
+          <p className="mt-1 text-sm">Send the game number and challenge code to the other player.</p>
+          <BrewDoneItInvitationExpiry expiresAt={invitation.expiresAt} />
           <p className="mt-2 break-all font-mono text-sm">Game {invitation.gameId}: {invitation.code}</p>
         </div>
       )}
