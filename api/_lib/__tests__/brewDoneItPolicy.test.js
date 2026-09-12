@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  projectBrewDoneItDeduction,
   projectBrewDoneItGame,
   projectBrewDoneItGuess,
   projectBrewDoneItRound,
@@ -55,6 +56,32 @@ test('internal invitation and creation retry fields never enter the game browser
   assert.equal(projected.creation_request_fingerprint, undefined)
   assert.equal(projected.join_idempotency_key, undefined)
   assert.equal(projected.terminal_idempotency_key, undefined)
+})
+
+test('deduction lifecycle and retry internals never enter the browser projection', () => {
+  const projected = projectBrewDoneItDeduction({
+    id: 7,
+    round_id: 12,
+    dimension: 'style',
+    answer: 'yes',
+    reference_id: 44,
+    value_text: 'IPA',
+    created_at: '2026-09-12T03:00:00.000Z',
+    updated_at: '2026-09-12T03:01:00.000Z',
+    action_state: 'committed',
+    observed_round_version: 5,
+    committed_round_version: 5,
+    recorded_by_participant_id: 22,
+    idempotency_key: 'private-deduction-key'
+  })
+
+  assert.equal(projected.id, 7)
+  assert.equal(projected.dimension, 'style')
+  assert.equal(projected.action_state, undefined)
+  assert.equal(projected.observed_round_version, undefined)
+  assert.equal(projected.committed_round_version, undefined)
+  assert.equal(projected.recorded_by_participant_id, undefined)
+  assert.equal(projected.idempotency_key, undefined)
 })
 
 test('provider boolean-like values are normalised before browser projection', () => {
