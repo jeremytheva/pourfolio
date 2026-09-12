@@ -1,4 +1,5 @@
 import { ApiError, apiRequest } from '../lib/nocodeBackend.js'
+import { projectProfileWrite } from './profileWriteContract.js'
 import { normalisePublicProfileId, validatePublicProfileResponse } from './publicProfileResponse.js'
 
 export const getCurrentUserProfile = async () => {
@@ -13,7 +14,7 @@ export const getCurrentUserProfile = async () => {
 
 export const updateCurrentUserProfile = (updates) => apiRequest('/profile', {
   method: 'PUT',
-  body: updates
+  body: projectProfileWrite(updates)
 })
 
 export const getPublicUserProfile = async (publicProfileId) => {
