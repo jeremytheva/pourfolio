@@ -6,6 +6,12 @@ test.beforeEach(async ({ page }) => {
 })
 
 const completeRatingDeck = async (page) => {
+  const designHeading = page.getByRole('heading', { name: 'Design', level: 2 })
+  if (await designHeading.isVisible()) {
+    await page.getByRole('button', { name: 'Skip this attribute' }).click()
+    await expect(page.getByRole('heading', { name: 'Appearance', level: 2 })).toBeFocused()
+  }
+
   await page.getByRole('button', { name: 'Appearance: 1 out of 7' }).click()
   await expect(page.getByRole('heading', { name: 'Aroma', level: 2 })).toBeFocused()
   await page.getByRole('button', { name: 'Aroma: 7 out of 7' }).click()
@@ -17,8 +23,6 @@ const completeRatingDeck = async (page) => {
   await page.getByRole('button', { name: 'Follow: 7 out of 7' }).click()
   await expect(page.getByRole('heading', { name: 'Bonus', level: 2 })).toBeFocused()
   await page.getByRole('button', { name: 'Bonus: 2 out of 2' }).click()
-  await expect(page.getByRole('heading', { name: 'Design', level: 2 })).toBeFocused()
-  await page.getByRole('button', { name: 'Skip this attribute' }).click()
   await expect(page.getByRole('heading', { name: 'Burp', level: 2 })).toBeFocused()
   await page.getByRole('button', { name: 'Skip this attribute' }).click()
   await expect(page.getByRole('heading', { name: 'Bonus attributes', level: 2 })).toBeFocused()
@@ -97,6 +101,10 @@ test('rating form exposes accessible guidance, busy state and focused submission
 
   const scoreGroup = page.getByRole('group', { name: 'Applicable attributes' })
   await expect(scoreGroup).toHaveAttribute('aria-describedby', 'rating-required-help')
+  await expect(page.getByRole('slider', { name: 'Design score' })).toHaveAttribute('aria-describedby', 'score-8-weight rating-required-help')
+  await expect(page.getByRole('button', { name: 'Skip this attribute' })).toBeEnabled()
+  await page.getByRole('button', { name: 'Skip this attribute' }).click()
+  await expect(page.getByRole('heading', { name: 'Appearance', level: 2 })).toBeFocused()
   await expect(page.getByRole('slider', { name: 'Appearance score' })).toHaveAttribute('aria-describedby', 'score-2-weight rating-required-help')
   await expect(page.getByRole('button', { name: 'Next' })).toBeDisabled()
 
