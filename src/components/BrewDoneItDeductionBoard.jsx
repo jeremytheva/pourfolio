@@ -98,6 +98,11 @@ export default function BrewDoneItDeductionBoard({
   ), [beerDeductions, breweryIds, knownBreweryIds, options.beers])
 
   const filteredStyles = useMemo(() => filterBrewDoneItStyles(options.styles || [], filteredBeers), [filteredBeers, options.styles])
+  const unresolvedProducerBeerCount = useMemo(
+    () => filteredBeers.filter((beer) => !beer.producerId).length,
+    [filteredBeers]
+  )
+  const onlyUnresolvedProducerBeersRemain = filteredBreweries.length === 0 && filteredBeers.length > 0 && unresolvedProducerBeerCount === filteredBeers.length
   const save = (dimension, answer, values = {}) => onSaveDeduction({ dimension, answer, ...values })
   const setUnknown = (deduction) => save(deduction.dimension, 'unknown', valuesForDeduction(deduction))
   const styleName = (styleId) => (options.styles || []).find((item) => String(item.id) === String(styleId))?.name || null
@@ -188,7 +193,20 @@ export default function BrewDoneItDeductionBoard({
           </div>
 
           <div className="space-y-5 rounded-xl border border-gray-200 bg-white p-5">
-            <div><h4 className="font-semibold text-gray-900">Current field</h4><p className="mt-1 text-sm text-gray-600">Your supported catalogue deductions currently leave <strong>{filteredBeers.length}</strong> beers across <strong>{filteredStyles.length}</strong> styles. Beers with missing source facts remain candidates rather than being silently treated as “No”. Dark/barrel-aged notes do not auto-filter until that metadata is certified.</p></div>
+            <div>
+              <h4 className="font-semibold text-gray-900">Current field</h4>
+              <p className="mt-1 text-sm text-gray-600">Your supported catalogue deductions currently leave <strong>{filteredBeers.length}</strong> beers across <strong>{filteredStyles.length}</strong> styles. Beers with missing source facts remain candidates rather than being silently treated as “No”. Dark/barrel-aged notes do not auto-filter until that metadata is certified.</p>
+              {onlyUnresolvedProducerBeersRemain && (
+                <p className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-950" role="status">
+                  <strong>No governed brewery candidates remain.</strong> The {filteredBeers.length} remaining beer{filteredBeers.length === 1 ? '' : 's'} stay possible only because their brewery attribution is unresolved. Continue with beer/style clues or set a brewery deduction back to Unknown if the answer may have been recorded incorrectly.
+                </p>
+              )}
+              {filteredBeers.length === 0 && (
+                <p className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950" role="alert">
+                  <strong>No beer candidates match the saved deductions.</strong> Review the saved clues below and set a contradictory or uncertain deduction back to Unknown before continuing.
+                </p>
+              )}
+            </div>
             <div className="border-t border-gray-200 pt-4"><h4 className="font-semibold text-gray-900">Exact beer guess</h4><p className="mt-1 text-sm text-gray-600">Exact beer is worth 6 points and also confirms the brewery.</p><div className="mt-3"><BrewDoneItBeerPicker id="brew-outcome-beer" value={beerGuess} onChange={setBeerGuess} disabled={busy} /></div><button type="button" disabled={busy || !beerGuess || round?.beer_correct} onClick={() => onOutcome('beer', beerGuess)} className={`${buttonClass} mt-3`}>{round?.beer_correct ? 'Beer solved' : 'Submit beer guess'}</button></div>
             <div className="border-t border-gray-200 pt-4"><h4 className="font-semibold text-gray-900">Style fallback</h4><p className="mt-1 text-sm text-gray-600">If the exact beer is not practical to solve, the correct style is worth 3 points instead.</p><select value={styleGuess} onChange={(event) => setStyleGuess(event.target.value)} className={selectClass}><option value="">Choose style</option>{filteredStyles.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select><button type="button" disabled={busy || !styleGuess || round?.style_correct || round?.beer_correct} onClick={() => onOutcome('style', styleGuess)} className={`${buttonClass} mt-3`}>{round?.style_correct ? 'Style solved' : 'Submit style guess'}</button></div>
           </div>
