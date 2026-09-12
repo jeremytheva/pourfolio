@@ -179,7 +179,7 @@ test('canonical application paths remain distinct from contained implementation 
 test('schema-aware data router owns launch resources and only delegates the game surface to legacy code', () => {
   assert.deepEqual(
     [...dataRouter.CURRENT_SCHEMA_RESOURCES].sort(),
-    ['catalog', 'cellar', 'rating-form', 'ratings']
+    ['bonus-attributes', 'catalog', 'cellar', 'rating-form', 'ratings']
   )
   assert.deepEqual([...dataRouter.LEGACY_RESOURCES], ['brew-done-it'])
 })
