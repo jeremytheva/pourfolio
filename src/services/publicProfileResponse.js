@@ -19,7 +19,7 @@ const hasOnlyKeys = (value, allowed) => Object.keys(value).every((key) => allowe
 const nonEmptyString = (value, max) => typeof value === 'string' && value.trim().length > 0 && value.length <= max
 const nullableString = (value, max) => value === null || (typeof value === 'string' && value.length <= max)
 const positiveId = (value) => /^[1-9]\d*$/.test(String(value ?? ''))
-const finiteScore = (value) => Number.isFinite(Number(value)) && Number(value) >= 1 && Number(value) <= 7
+const finiteScore = (value) => Number.isFinite(Number(value)) && Number(value) >= 0 && Number(value) <= 5
 
 const validateProducer = (producer) => {
   if (producer === null) return null
@@ -40,7 +40,8 @@ const validateRating = (rating) => {
   if (!plainObject(rating) || !hasOnlyKeys(rating, RATING_KEYS)) invalid()
   if (!positiveId(rating.id) || !positiveId(rating.product_id)) invalid()
   if (!nonEmptyString(rating.date_rated, 64)) invalid()
-  if (!finiteScore(rating.total_weighted) || !finiteScore(rating.total_unweighted)) invalid()
+  if (!finiteScore(rating.total_weighted)) invalid()
+  if (rating.total_unweighted !== undefined && rating.total_unweighted !== null && !finiteScore(rating.total_unweighted)) invalid()
   validateProduct(rating.product, rating.product_id)
   return rating
 }

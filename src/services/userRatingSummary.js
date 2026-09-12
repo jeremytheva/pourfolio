@@ -1,3 +1,5 @@
+import { completedRatingTotal } from '../lib/completedRatingContract.js'
+
 const sameId = (left, right) => String(left) === String(right)
 
 export const buildUserProductRatingSummary = (payload, productId) => {
@@ -5,8 +7,8 @@ export const buildUserProductRatingSummary = (payload, productId) => {
 
   const totals = payload.items
     .filter((rating) => rating && typeof rating === 'object' && sameId(rating.product_id, productId))
-    .map((rating) => Number(rating.total_weighted))
-    .filter((value) => Number.isFinite(value) && value >= 1 && value <= 7)
+    .map((rating) => completedRatingTotal(rating.total_weighted))
+    .filter((value) => value !== null)
 
   if (!totals.length) return null
 
