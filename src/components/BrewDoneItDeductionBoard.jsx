@@ -7,6 +7,7 @@ const buttonClass = 'rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white 
 const secondaryButtonClass = 'rounded-lg border border-gray-300 bg-white px-4 py-2 font-semibold text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-60'
 const answerButton = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium capitalize hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-60'
 const answers = ['yes', 'no', 'unknown']
+const MAX_VISIBLE_BREWERIES = 25
 
 const AnswerButtons = ({ disabled, onAnswer }) => (
   <div className="mt-2 flex flex-wrap gap-2">
@@ -50,6 +51,7 @@ const valuesForDeduction = (deduction) => ({
 })
 
 const validNumber = (value, maximum) => value !== '' && Number.isFinite(Number(value)) && Number(value) >= 0 && Number(value) <= maximum
+const matchesText = (value, query) => String(value || '').toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())
 
 export default function BrewDoneItDeductionBoard({
   round,
@@ -70,10 +72,10 @@ export default function BrewDoneItDeductionBoard({
   const [abvValue, setAbvValue] = useState('6')
   const [ibuDimension, setIbuDimension] = useState('ibu_at_least')
   const [ibuValue, setIbuValue] = useState('40')
+  const [breweryQuery, setBreweryQuery] = useState('')
   const [breweryGuess, setBreweryGuess] = useState('')
   const [styleGuess, setStyleGuess] = useState('')
   const [beerGuess, setBeerGuess] = useState('')
-  const [ruledOutBrewery, setRuledOutBrewery] = useState('')
   const [ruledOutBeer, setRuledOutBeer] = useState('')
 
   const capabilities = options.capabilities || {}
@@ -88,6 +90,11 @@ export default function BrewDoneItDeductionBoard({
     breweryDeductions,
     { geographyAvailable }
   ), [breweryDeductions, geographyAvailable, options.breweries])
+
+  const visibleBreweries = useMemo(() => {
+    if (!breweryQuery.trim()) return filteredBreweries
+    return filteredBreweries.filter((brewery) => matchesText(brewery.name, breweryQuery))
+  }, [breweryQuery, filteredBreweries])
 
   const knownBreweryIds = useMemo(
     () => new Set((options.breweries || []).map((brewery) => String(brewery.id))),
@@ -157,14 +164,34 @@ export default function BrewDoneItDeductionBoard({
               <p className="text-sm font-medium text-gray-800">Have I rated beer from this brewery before?</p>
               <AnswerButtons disabled={busy} onAnswer={(answer) => save('brewery_previously_rated', answer)} />
             </div>
+
             <div className="border-t border-gray-200 pt-4">
-              <label className="text-sm font-medium text-gray-800">Rule out a brewery
-                <select value={ruledOutBrewery} onChange={(event) => setRuledOutBrewery(event.target.value)} className={selectClass}>
-                  <option value="">Choose brewery</option>
-                  {filteredBreweries.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}
-                </select>
-              </label>
-              <button type="button" disabled={busy || !ruledOutBrewery} onClick={() => save('brewery_ruled_out', 'yes', { referenceId: ruledOutBrewery })} className={`${secondaryButtonClass} mt-3`}>Rule out brewery</button>
+              <label htmlFor="brew-brewery-candidate-search" className="text-sm font-medium text-gray-800">Search remaining breweries</label>
+              <input id="brew-brewery-candidate-search" type="search" value={breweryQuery} onChange={(event) => setBreweryQuery(event.target.value)} placeholder="Filter brewery candidates" className={selectClass} />
+              <p className="mt-2 text-xs text-gray-600" role="status" aria-live="polite">{visibleBreweries.length} of {filteredBreweries.length} remaining breweries match this search.</p>
+
+              {filteredBreweries.length === 0 ? (
+                <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-950" role="status">
+                  <strong>No governed brewery candidates remain.</strong> {filteredBeers.length > 0 ? 'Some beers may still remain because their brewery attribution is unresolved; switch to Beer / style to continue.' : 'Review saved brewery clues and set an uncertain deduction back to Unknown.'}
+                </div>
+              ) : visibleBreweries.length === 0 ? (
+                <p className="mt-3 text-sm text-gray-600">No remaining brewery matches this search.</p>
+              ) : (
+                <>
+                  <ul className="mt-3 max-h-72 space-y-2 overflow-y-auto" aria-label="Remaining brewery candidates">
+                    {visibleBreweries.slice(0, MAX_VISIBLE_BREWERIES).map((brewery) => (
+                      <li key={brewery.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                        <span className="font-medium text-gray-900">{brewery.name}</span>
+                        <span className="flex flex-wrap gap-2">
+                          <button type="button" disabled={busy || round?.brewery_correct} onClick={() => setBreweryGuess(String(brewery.id))} className="rounded px-2 py-1 text-xs font-semibold text-amber-800 underline focus:outline-none focus:ring-2 focus:ring-amber-500">Select as guess</button>
+                          <button type="button" disabled={busy} onClick={() => save('brewery_ruled_out', 'yes', { referenceId: brewery.id })} className="rounded px-2 py-1 text-xs font-semibold text-gray-700 underline focus:outline-none focus:ring-2 focus:ring-amber-500">Rule out</button>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {visibleBreweries.length > MAX_VISIBLE_BREWERIES && <p className="mt-2 text-xs text-gray-500">Showing the first {MAX_VISIBLE_BREWERIES}. Refine the search to see other remaining breweries.</p>}
+                </>
+              )}
             </div>
           </div>
 
