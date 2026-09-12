@@ -29,6 +29,8 @@ export default function BrewDoneItSelectorSheet({ clues, loading = false }) {
   if (!clues) return <div className="rounded-lg bg-blue-50 p-4 text-blue-950">Your beer is locked in. Use the answer sheet to respond to the other player’s yes/no questions.</div>
 
   const geographyAvailable = Boolean(clues.capabilities?.geography)
+  const breweryOutcomeAvailable = Boolean(clues.brewery?.id && clues.brewery?.name)
+  const styleOutcomeAvailable = Boolean(clues.style?.id)
 
   return (
     <div className="space-y-5">
@@ -41,6 +43,11 @@ export default function BrewDoneItSelectorSheet({ clues, loading = false }) {
             <Field label="Country" value={clues.brewery?.country} unavailable={!geographyAvailable} />
             <Field label="Suburb" value={clues.brewery?.suburb} unavailable={!geographyAvailable} />
           </dl>
+          {!breweryOutcomeAvailable && (
+            <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950" role="note">
+              <strong>This beer has no governed brewery relationship.</strong> You may answer brewery questions manually if you know the answer, but Pourfolio cannot validate a formal brewery guess from this catalogue record. An exact-beer result can still be scored.
+            </p>
+          )}
           {!geographyAvailable && (
             <p className="mt-3 rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-600" role="note">
               Pourfolio does not yet have governed canonical brewery geography. Answer location questions manually if you know the brewery; the game will not infer a state or country from free-text address data.
@@ -60,6 +67,11 @@ export default function BrewDoneItSelectorSheet({ clues, loading = false }) {
             <Field label="Dark" value={clues.traits?.dark === 'unknown' ? 'Answer manually' : clues.traits?.dark} />
             <Field label="Barrel aged" value={clues.traits?.barrelAged === 'unknown' ? 'Answer manually' : clues.traits?.barrelAged} />
           </dl>
+          {!styleOutcomeAvailable && (
+            <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950" role="note">
+              <strong>This beer has no governed canonical style relationship.</strong> You may answer style questions manually, but Pourfolio cannot validate the scored style-fallback result for this catalogue record. Exact-beer scoring remains available.
+            </p>
+          )}
         </section>
       </div>
 
