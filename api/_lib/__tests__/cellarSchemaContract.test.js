@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { projectCellarRecord } from '../../cellar-data-proxy.js'
+import { CELLAR_EDITABLE_FIELDS } from '../../../src/data/contract.js'
 import { sanitiseCellarInput } from '../dataPolicy.js'
 
-test('cellar writes preserve the exported series_version_id field', () => {
-  assert.deepEqual(
-    sanitiseCellarInput({ product_id: 12, sharing_series_id: 6, series_version_id: 74 }),
-    { product_id: '12', sharing_series_id: 6, series_version_id: 74 }
+test('exported series relationships remain canonical fields but non-null launch writes are capability-gated', () => {
+  assert.equal(CELLAR_EDITABLE_FIELDS.includes('sharing_series_id'), true)
+  assert.equal(CELLAR_EDITABLE_FIELDS.includes('series_version_id'), true)
+  assert.throws(
+    () => sanitiseCellarInput({ product_id: 12, sharing_series_id: 6, series_version_id: 74 }),
+    /verified lookup capability/u
   )
 })
 
@@ -61,7 +64,7 @@ test('server sanitisation drops fields absent from the exported cellar table', (
   )
 })
 
-test('series and version remain independently nullable', () => {
+test('series and version remain independently nullable for explicit clearing', () => {
   assert.deepEqual(
     sanitiseCellarInput({ product_id: 12, sharing_series_id: '', series_version_id: '' }),
     { product_id: '12', sharing_series_id: null, series_version_id: null }
