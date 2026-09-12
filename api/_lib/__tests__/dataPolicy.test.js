@@ -6,6 +6,7 @@ import {
   sanitiseCellarInput,
   sanitiseProfileUpdates
 } from '../dataPolicy.js'
+import { CELLAR_GATED_RELATIONSHIP_FIELDS } from '../../../src/data/contract.js'
 
 test('profile updates use an explicit editable-field allowlist', () => {
   assert.deepEqual(
@@ -52,14 +53,22 @@ test('partial cellar updates distinguish an omitted product from an invalid supp
   )
 })
 
-test('optional cellar series relationships are normalised to null', () => {
-  const result = sanitiseCellarInput({
-    product_id: 12,
-    sharing_series_id: '',
-    series_version_id: null
+test('gated cellar relationships normalise empty values to null', () => {
+  const input = { product_id: 12 }
+  CELLAR_GATED_RELATIONSHIP_FIELDS.forEach((field, index) => {
+    input[field] = index % 2 ? '' : null
   })
-  assert.equal(result.sharing_series_id, null)
-  assert.equal(result.series_version_id, null)
+  const result = sanitiseCellarInput(input)
+  for (const field of CELLAR_GATED_RELATIONSHIP_FIELDS) assert.equal(result[field], null)
+})
+
+test('non-null gated cellar relationships fail closed until lookup ownership is verified', () => {
+  for (const field of CELLAR_GATED_RELATIONSHIP_FIELDS) {
+    assert.throws(
+      () => sanitiseCellarInput({ product_id: 12, [field]: 9 }),
+      (error) => error.status === 400 && error.message.includes(`Cellar relationship ${field} is unavailable`)
+    )
+  }
 })
 
 test('zero is not accepted as a fabricated optional relationship id', () => {
