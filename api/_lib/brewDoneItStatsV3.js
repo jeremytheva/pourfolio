@@ -1,5 +1,5 @@
 import { COLLECTIONS } from '../../src/data/contract.js'
-import { dataProvider } from './dataProvider.js'
+import { listAllBrewDoneItRecords } from './brewDoneItData.js'
 
 const list = (value) => (Array.isArray(value) ? value : value ? [value] : []).filter((item) => item && typeof item === 'object')
 const terminalRound = (round) => ['completed', 'forfeited'].includes(round?.status)
@@ -15,8 +15,8 @@ const validTimestamp = (value) => {
 
 const gamesForUser = async (userId) => {
   const [created, joined] = await Promise.all([
-    dataProvider.list(COLLECTIONS.brewDoneItGames, { creator_participant_id: userId }),
-    dataProvider.list(COLLECTIONS.brewDoneItGames, { opponent_participant_id: userId })
+    listAllBrewDoneItRecords(COLLECTIONS.brewDoneItGames, { creator_participant_id: userId }),
+    listAllBrewDoneItRecords(COLLECTIONS.brewDoneItGames, { opponent_participant_id: userId })
   ])
   const byId = new Map()
   for (const game of [...list(created), ...list(joined)]) {
@@ -29,7 +29,7 @@ export const statsForUserV3 = async (response, user) => {
   const games = await gamesForUser(user.id)
   const roundsByGame = await Promise.all(games.map(async (game) => ({
     game,
-    rounds: list(await dataProvider.list(COLLECTIONS.brewDoneItRounds, { game_id: game.id })).filter(terminalRound)
+    rounds: list(await listAllBrewDoneItRecords(COLLECTIONS.brewDoneItRounds, { game_id: game.id })).filter(terminalRound)
   })))
 
   const headToHead = new Map()
