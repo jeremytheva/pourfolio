@@ -1,3 +1,4 @@
+import { completedRatingTotal } from '../lib/completedRatingContract.js'
 import {
   DEFAULT_RATING_WEIGHTS,
   calculateRatingTotals as calculateFormulaTotals,
@@ -81,10 +82,17 @@ export const calculateRatingTotals = (scores, attributes, weights = DEFAULT_RATI
   const totals = calculateFormulaTotals(validated.scoreValues, validated.weights)
   if (!totals) throw new Error('The rating total could not be calculated.')
 
+  const weighted = round(totals.weighted)
+  if (completedRatingTotal(weighted) === null) {
+    throw new Error('A completed rating score must be greater than 0 and no more than 5.')
+  }
+
   return {
     scores: validated.scores,
-    total_unweighted: Number.isFinite(totals.standard) ? round(totals.standard) : null,
-    total_weighted: round(totals.weighted),
+    total_unweighted: Number.isFinite(totals.standard) && completedRatingTotal(round(totals.standard)) !== null
+      ? round(totals.standard)
+      : null,
+    total_weighted: weighted,
     score_out_of_100: round(totals.scoreOutOf100),
     weights: validated.weights
   }
