@@ -22,10 +22,18 @@ const maximumScores = [
   { attributeId: 4, score: 7 },
   { attributeId: 5, score: 7 },
   { attributeId: 6, score: 7 },
-  { attributeId: 7, score: 2 },
+  { attributeId: 7, score: 0 },
   { attributeId: 1, score: 7 },
   { attributeId: 8, score: 1 }
 ]
+
+const bonusAttributes = [
+  { id: 50, description: 'Exceptional balance', point_value: 0.8 },
+  { id: 51, description: 'Outstanding finish', point_value: 0.8 },
+  { id: 52, description: 'Memorable character', point_value: 0.4 }
+]
+
+const maximumBonusIds = bonusAttributes.map(({ id }) => id)
 
 const defaultWeights = {
   appearance: 0.1,
@@ -81,7 +89,9 @@ const durableProvider = () => {
       },
       list: async (collection, filters = {}) => {
         if (collection === COLLECTIONS.ratingAttributes) return attributes
-        if (collection === COLLECTIONS.bonusAttributes) return []
+        if (collection === COLLECTIONS.bonusAttributes) return bonusAttributes
+        if (collection === COLLECTIONS.bonusAttributeCategories) return []
+        if (collection === COLLECTIONS.bonusAttributeCategoryMappings) return []
         return listState(collection, filters)
       },
       create: async (collection, body) => {
@@ -117,11 +127,11 @@ const submitMaximum = async (response, weights = defaultWeights) => __testables.
     total_unweighted: 1,
     scores: maximumScores,
     weights,
-    bonusAttributeIds: []
+    bonusAttributeIds: maximumBonusIds
   }
 }, response, { id: 'user-1' }, 'test-request')
 
-test('submitRating ignores browser totals, persists server-recomputed five-point totals and replays idempotently', async () => {
+test('submitRating ignores browser totals and Bonus, persists server-derived five-point totals and replays idempotently', async () => {
   const provider = durableProvider()
 
   await withProviderMocks(provider.mocks, async () => {
@@ -132,6 +142,8 @@ test('submitRating ignores browser totals, persists server-recomputed five-point
     assert.equal(firstResponse.body.rating.total_weighted, 5)
     assert.equal(firstResponse.body.rating.total_unweighted, 5)
     assert.equal(firstResponse.body.rating.advanced_scores.score_out_of_100, 100)
+    assert.equal(firstResponse.body.bonusPointTotal, 2)
+    assert.equal(firstResponse.body.bonusScore, 2)
     assert.equal(firstResponse.body.duplicate, false)
 
     const ratingWrite = provider.state[COLLECTIONS.ratings][0]
@@ -142,6 +154,7 @@ test('submitRating ignores browser totals, persists server-recomputed five-point
     assert.equal(Object.hasOwn(ratingWrite, 'weights'), false)
     assert.equal(Object.hasOwn(ratingWrite, 'score_out_of_100'), false)
     assert.equal(provider.state[COLLECTIONS.ratingScores].length, 8)
+    assert.equal(provider.state[COLLECTIONS.bonusRatingMappings].length, 3)
 
     const retryResponse = responseHarness()
     await submitMaximum(retryResponse)
@@ -149,6 +162,7 @@ test('submitRating ignores browser totals, persists server-recomputed five-point
     assert.equal(retryResponse.body.duplicate, true)
     assert.equal(provider.state[COLLECTIONS.ratings].length, 1)
     assert.equal(provider.state[COLLECTIONS.ratingScores].length, 8)
+    assert.equal(provider.state[COLLECTIONS.bonusRatingMappings].length, 3)
   })
 })
 
