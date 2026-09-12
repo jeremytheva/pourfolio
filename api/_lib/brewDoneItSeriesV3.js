@@ -2,6 +2,7 @@ import crypto from 'node:crypto'
 import { COLLECTIONS } from '../../src/data/contract.js'
 import { BREW_DONE_IT_RULES } from '../../src/utils/brewDoneItChallengeScoring.js'
 import { dataProvider } from './dataProvider.js'
+import { listAllBrewDoneItRecords } from './brewDoneItData.js'
 import {
   projectBrewDoneItGame,
   projectBrewDoneItRound,
@@ -82,7 +83,7 @@ const creationRequestFingerprint = (creationKey, productId) => crypto
   .update(`create:${creationKey}:${productId}`)
   .digest('hex')
 
-const roundsFor = async (gameId) => list(await dataProvider.list(COLLECTIONS.brewDoneItRounds, { game_id: gameId }))
+const roundsFor = async (gameId) => list(await listAllBrewDoneItRecords(COLLECTIONS.brewDoneItRounds, { game_id: gameId }))
   .sort((left, right) => Number(left.round_number || 0) - Number(right.round_number || 0))
 
 const initialRoundBody = (game, productId, createdAt) => ({
@@ -255,7 +256,6 @@ export const joinGameV3 = async (gameId, request, response, user) => {
       status: 'active',
       joined_at: joinedAt,
       last_activity_at: joinedAt,
-      // Retain the digest only for retry-payload validation. The raw code is never stored.
       invitation_digest: digest,
       join_idempotency_key: requestKey
     })
