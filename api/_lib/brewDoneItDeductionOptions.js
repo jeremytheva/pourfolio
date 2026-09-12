@@ -16,7 +16,7 @@ const booleanOrNull = (value) => {
 }
 const canonicalIdOrNull = (value) => {
   const text = String(value ?? '').trim()
-  return /^[1-9]\d*$/.test(text) ? value : null
+  return /^[1-9]\d*$/.test(text) ? text : null
 }
 
 const ratedProducerKnowledge = (ratings, productsById) => {
@@ -29,7 +29,7 @@ const ratedProducerKnowledge = (ratings, productsById) => {
       complete = false
       continue
     }
-    producerIds.add(String(producerId))
+    producerIds.add(producerId)
   }
   return { producerIds, complete }
 }
@@ -53,9 +53,10 @@ export const getDeductionOptions = async (response, user) => {
   const ratingKnowledge = ratedProducerKnowledge(ratingsRaw, productsById)
 
   const breweries = list(producersRaw).map((producer) => {
-    const definitelyRated = ratingKnowledge.producerIds.has(String(producer.id))
+    const producerId = canonicalIdOrNull(producer.id)
+    const definitelyRated = producerId !== null && ratingKnowledge.producerIds.has(producerId)
     return {
-      id: producer.id,
+      id: producerId,
       name: producer.producer_name,
       state: null,
       stateAcronym: null,
@@ -65,12 +66,14 @@ export const getDeductionOptions = async (response, user) => {
   }).filter((producer) => producer.id && producer.name)
     .sort((a, b) => a.name.localeCompare(b.name))
 
-  const styles = list(categoriesRaw).map((category) => ({ id: category.id, name: category.category_name }))
-    .filter((category) => category.id && category.name)
+  const styles = list(categoriesRaw).map((category) => ({
+    id: canonicalIdOrNull(category.id),
+    name: category.category_name
+  })).filter((category) => category.id && category.name)
     .sort((a, b) => a.name.localeCompare(b.name))
 
   const beers = products.map((product) => ({
-    id: product.id,
+    id: canonicalIdOrNull(product.id),
     name: product.product_name,
     producerId: canonicalIdOrNull(product.producer_id),
     categoryId: canonicalIdOrNull(product.product_category_id),
