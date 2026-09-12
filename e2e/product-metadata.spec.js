@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { RATING_DISTRIBUTION_BUCKETS } from '../src/lib/completedRatingContract.js'
 import { installMockApi, product } from './mockApi.js'
 
 test.beforeEach(async ({ page }) => {
@@ -14,14 +15,10 @@ test('product details preserve a valid zero IBU value', async ({ page }) => {
       ibu: 0,
       ratingSummary: { count: 1, average: 4 },
       ratingInsights: {
-        distribution: [
-          { score: 0, count: 0 },
-          { score: 1, count: 0 },
-          { score: 2, count: 0 },
-          { score: 3, count: 0 },
-          { score: 4, count: 1 },
-          { score: 5, count: 0 }
-        ],
+        distribution: RATING_DISTRIBUTION_BUCKETS.map((bucket) => ({
+          ...bucket,
+          count: bucket.key === '3.5-4.0' ? 1 : 0
+        })),
         attributes: []
       },
       ratings: []
