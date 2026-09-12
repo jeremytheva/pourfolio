@@ -1,6 +1,7 @@
 import { COLLECTIONS } from '../../src/data/contract.js'
 import { calculateBrewDoneItDeductionScore } from '../../src/utils/brewDoneItDeductionScoring.js'
 import { dataProvider } from './dataProvider.js'
+import { listAllBrewDoneItRecords } from './brewDoneItData.js'
 import { projectBrewDoneItGame, projectBrewDoneItGuess, projectBrewDoneItRound, sanitiseBrewDoneItOutcomeInput } from './brewDoneItPolicy.js'
 
 const list = (value) => (Array.isArray(value) ? value : value ? [value] : []).filter((item) => item && typeof item === 'object')
@@ -180,7 +181,7 @@ export const submitOutcomeGuess = async (roundId, request, response, user) => {
   if (Number(round.turn_sequence || 0) >= Number(round.max_turns || 20)) throw fail('This round has no remaining formal submissions.', 409)
   await requireOutcomeReference(input)
 
-  const prior = list(await dataProvider.list(COLLECTIONS.brewDoneItGuesses, { round_id: round.id }))
+  const prior = list(await listAllBrewDoneItRecords(COLLECTIONS.brewDoneItGuesses, { round_id: round.id }))
     .filter((guess) => !guess.action_state || guess.action_state === 'committed')
   if (prior.some((guess) => sameFormalGuess(guess, input))) throw fail('This formal guess has already been submitted.', 409)
 
