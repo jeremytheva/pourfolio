@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  projectBrewDoneItDeduction,
+  projectBrewDoneItGame,
+  projectBrewDoneItGuess,
+  projectBrewDoneItRound,
+  sanitiseBrewDoneItDeductionInput,
   sanitiseBrewDoneItGuessInput,
-  sanitiseBrewDoneItQuestionInput,
-  projectBrewDoneItRound
+  sanitiseBrewDoneItQuestionInput
 } from '../brewDoneItPolicy.js'
 
 test('guesser projection never receives the secret beer before a round ends', () => {
@@ -34,6 +38,94 @@ test('secret beer is revealed to both participants after completion', () => {
     status: 'completed'
   }
   assert.equal(projectBrewDoneItRound(round, 'guesser').selected_product_id, 123)
+})
+
+test('internal invitation and creation retry fields never enter the game browser projection', () => {
+  const projected = projectBrewDoneItGame({
+    id: 5,
+    status: 'waiting',
+    invitation_digest: 'private-digest',
+    creation_idempotency_key: 'private-key',
+    creation_request_fingerprint: 'private-fingerprint',
+    join_idempotency_key: 'private-join-key',
+    terminal_idempotency_key: 'private-terminal-key'
+  })
+  assert.equal(projected.id, 5)
+  assert.equal(projected.invitation_digest, undefined)
+  assert.equal(projected.creation_idempotency_key, undefined)
+  assert.equal(projected.creation_request_fingerprint, undefined)
+  assert.equal(projected.join_idempotency_key, undefined)
+  assert.equal(projected.terminal_idempotency_key, undefined)
+})
+
+test('deduction lifecycle and retry internals never enter the browser projection', () => {
+  const projected = projectBrewDoneItDeduction({
+    id: 7,
+    round_id: 12,
+    dimension: 'style',
+    answer: 'yes',
+    reference_id: 44,
+    value_text: 'IPA',
+    created_at: '2026-09-12T03:00:00.000Z',
+    updated_at: '2026-09-12T03:01:00.000Z',
+    action_state: 'committed',
+    observed_round_version: 5,
+    committed_round_version: 5,
+    recorded_by_participant_id: 22,
+    idempotency_key: 'private-deduction-key'
+  })
+
+  assert.equal(projected.id, 7)
+  assert.equal(projected.dimension, 'style')
+  assert.equal(projected.action_state, undefined)
+  assert.equal(projected.observed_round_version, undefined)
+  assert.equal(projected.committed_round_version, undefined)
+  assert.equal(projected.recorded_by_participant_id, undefined)
+  assert.equal(projected.idempotency_key, undefined)
+})
+
+test('provider boolean-like values are normalised before browser projection', () => {
+  const game = projectBrewDoneItGame({
+    id: 1,
+    creator_history_clues_enabled: '0',
+    opponent_history_clues_enabled: '1'
+  })
+  assert.equal(game.creator_history_clues_enabled, false)
+  assert.equal(game.opponent_history_clues_enabled, true)
+
+  const round = projectBrewDoneItRound({
+    id: 2,
+    selector_participant_id: 'selector',
+    guesser_participant_id: 'guesser',
+    status: 'guessing',
+    brewery_correct: '0',
+    style_correct: '1',
+    beer_correct: 0
+  }, 'guesser')
+  assert.equal(round.brewery_correct, false)
+  assert.equal(round.style_correct, true)
+  assert.equal(round.beer_correct, false)
+
+  assert.equal(projectBrewDoneItGuess({ id: 3, is_correct: '0' }).is_correct, false)
+  assert.equal(projectBrewDoneItGuess({ id: 4, is_correct: '1' }).is_correct, true)
+})
+
+test('v3 deduction input keeps only fields appropriate to each dimension', () => {
+  assert.deepEqual(
+    sanitiseBrewDoneItDeductionInput({
+      dimension: 'collaboration',
+      answer: 'yes',
+      referenceId: 99,
+      numericValue: 5,
+      valueText: 'ignored'
+    }),
+    { dimension: 'collaboration', answer: 'yes', valueText: null, referenceId: null, numericValue: null }
+  )
+
+  assert.deepEqual(
+    sanitiseBrewDoneItDeductionInput({ dimension: 'beer_ruled_out', answer: 'yes', referenceId: 42 }),
+    { dimension: 'beer_ruled_out', answer: 'yes', valueText: null, referenceId: '42', numericValue: null }
+  )
 })
 
 test('base game guesses accept only a catalogue beer identifier', () => {

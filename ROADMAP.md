@@ -1,6 +1,6 @@
 # ROADMAP.md
 
-**Last materially reviewed:** 11 September 2026
+**Last materially reviewed:** 12 September 2026
 
 ## Current milestone
 
@@ -94,27 +94,35 @@ Source/frontend failure recovery, response-boundary, data-presentation and acces
 
 ## Brew Done It — approved contained capability
 
-Issue **#409** and ADR **0002** approve Brew Done It as a persistent, asynchronous, two-account challenge played across separate devices. The application core may be merged while contained; it is not part of the current beer-first launch milestone and must not be treated as a launch dependency.
+PR **#410** merged the persistent two-account/two-device foundation. ADR **0006**, building on ADR **0002**, now defines Brew Done It as a persistent social deduction game. PR **#461** implements the contained v3 redesign and remains **IMPLEMENTING / VALIDATION PENDING**. Brew Done It is not part of the current beer-first launch milestone and must not be treated as a launch dependency.
 
-The approved capability model is:
+The approved v3 capability model is:
 
 - one authenticated selector privately chooses a catalogue beer before sharing the challenge;
 - a second authenticated user accepts and plays from their own device;
-- the secret beer is server-protected and absent from the guesser's active-round response;
-- challenges and rounds persist across refresh, sign-out, device changes and elapsed time;
-- rounds alternate selector/guesser roles and accumulate durable head-to-head statistics;
-- guesses are exact catalogue beers and controlled questions use public catalogue facts only;
-- scoring v2 awards 10 points for a correct beer minus one per earlier question or incorrect beer guess, clamped to 0–10;
-- question/guess writes use a durable reservation/reconciliation protocol so ambiguous provider failures cannot invent or duplicate turns.
+- the secret beer and selector-only answer sheet are server-protected and absent from the guesser's active-round response;
+- challenges, deduction state and rounds persist across refresh, sign-out, device changes and elapsed time;
+- players ask natural yes/no questions; conversation itself is not a scored server action;
+- the guesser uses an accessible two-sided **Brewery / Beer & Style** deduction board with `yes` / `no` / `unknown` saved deductions;
+- current automatic narrowing uses governed producer relationships, the guesser's previous-rating relationship, style/category, ABV, IBU and collaboration;
+- state/country filtering stays unavailable until canonical brewery geography is governed and certified, and location is never inferred from free-text addresses;
+- dark/barrel-aged remain manual notes until trustworthy structured trait metadata exists;
+- the selector may see guesser-controlled aggregate rating-history clues for the hidden brewery/style/beer, never raw ratings, notes or cellar data;
+- formal outcomes are brewery, exact beer and style fallback;
+- scoring v3 awards 4 points for brewery + 6 for exact beer, or 4 + 3 for style fallback, minus one per incorrect formal submission, clamped 0–10;
+- ordinary questions and saved deductions cost no points;
+- formal-outcome writes use a durable v3 reservation/reconciliation protocol so ambiguous provider failures cannot invent or duplicate penalties/results;
+- rounds alternate selector/guesser roles and accumulate durable head-to-head brewery/exact-beer/style/point statistics.
 
-Production enablement is a separate governed phase. Until the four Brew Done It collections and their permissions are provisioned and certified, keep:
+Production enablement is a separate governed phase. Until the four v3 Brew Done It collections and their permissions are provisioned and certified, keep:
 
 - `/brew-done-it` absent from production routing/navigation;
 - `BREW_DONE_IT_POLICY_ENABLED` unset;
 - Brew Done It collections in `DEFERRED_COLLECTIONS`;
+- `brew_done_it_questions` legacy-only rather than part of new v3 play; and
 - all connected schema/data mutation subject to explicit migration approval and recovery evidence.
 
-The next Brew Done It phase is **provider migration/certification**, not additional browser enablement. Required evidence is defined in `docs/BREW_DONE_IT_READINESS.md` and `docs/nocodebackend/brew-done-it-schema-target.md`.
+The next Brew Done It phases are **exact-head validation of PR #461**, followed later by **provider migration/certification**, connected two-account/two-device/privacy/recovery evidence and a separate enablement change. Required evidence is defined in `docs/BREW_DONE_IT_READINESS.md` and `docs/nocodebackend/brew-done-it-schema-target.md`.
 
 ## Immediate dependency-correct path
 
@@ -133,11 +141,13 @@ backend-dependent #154 catalogue certification
 launch verification
 
 BREW DONE IT PATH (separate from launch)
-#409 contained application contract
+#410 persistent contained core — merged
+        ↓
+#461 deduction-board v3 implementation + exact-head validation
         ↓
 provider schema + permission migration/certification
         ↓
-connected two-account / two-device evidence
+connected two-account / two-device / privacy / recovery evidence
         ↓
 separate route/navigation enablement change
 
@@ -188,7 +198,7 @@ Unless separately approved, keep these outside the current launch milestone:
 - photo upload;
 - major framework/styling migrations unrelated to a launch blocker.
 
-Brew Done It is no longer an unapproved concept: ADR 0002 approves its contained cross-device implementation. It remains **launch-excluded and disabled** until its separate provider migration/certification and enablement gates pass.
+Brew Done It is no longer an unapproved concept: ADR 0002 approves its persistent cross-device architecture and ADR 0006 approves the deduction-board gameplay model. It remains **launch-excluded and disabled** until its separate validation, provider migration/certification and enablement gates pass.
 
 ## Continuation rule
 

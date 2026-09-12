@@ -1,187 +1,295 @@
 # Brew Done It readiness
 
-Status: **application core implemented and contained; current head awaiting deferred validation; provider migration not yet approved or deployed**  
-Decision authority: [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md)  
+Status: **v3 deduction redesign implemented in contained source; validation and provider migration pending**  
+Decision authority: [ADR 0006](DECISIONS/0006-adopt-brew-done-it-deduction-board.md)  
+Retained cross-device authority: [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md)  
 Schema target: [Brew Done It persistent schema target](nocodebackend/brew-done-it-schema-target.md)
 
 ## Purpose
 
-This document is the capability-specific readiness gate for Brew Done It. It supersedes older same-device/session-memory readiness language wherever that language conflicts with ADR 0002.
+This is the capability-specific readiness gate for Brew Done It. ADR 0006 supersedes the former controlled-question/scoring model while retaining ADR 0002's persistent two-account/two-device architecture, protected secret, invitation/resume behaviour and concurrency boundary.
 
-Brew Done It is approved as a persistent, asynchronous, two-account challenge played across separate devices. Approval of the product/application contract does **not** approve provider schema mutation or production enablement.
+Approval of source implementation does **not** approve provider mutation or production enablement.
 
-## Current state
+## Current contained source state
 
-The contained application core provides:
+The v3 source now provides:
 
-- authenticated two-player challenge ownership;
-- selector-first secret beer choice;
-- persistent series and rounds;
-- role rotation between rounds;
-- beer-only catalogue guesses;
-- controlled public-catalogue questions;
-- scoring v2 and durable head-to-head statistics;
-- viewer-specific response projection that hides `selected_product_id` from the guesser until a round is terminal;
-- resumable challenge listing across sessions/devices;
-- optimistic versioning and idempotency;
-- a durable pending/committed/discarded action ledger for recovery from ambiguous provider failures;
-- a contained beer-profile **Play Brew-Done-It** entry point that identifies the viewed beer as the intended future secret selection without adding a game route, game API call or browser-persisted game state; and
-- fail-closed server containment plus absent production route/navigation.
+- persistent two-player series and alternating secret-beer rounds;
+- selector-first beer choice and beer-profile **Play Brew-Done-It** preselection contract;
+- fail-closed secret-beer server projection;
+- asynchronous invitation/share/resume behaviour with one canonical text format, paste-to-join support and no invitation credential in the page URL;
+- persisted invitation-expiry display with stale sharing disabled after the recorded expiry timestamp;
+- an accessible two-sided **Brewery / Beer & Style** deduction board;
+- persistent `yes` / `no` / `unknown` deduction state across sessions/devices;
+- append-only deduction events so a delayed retry cannot overwrite a newer answer;
+- deduction events that begin `pending`, carry the observed round version, and become `committed` only after the same active guessing-round snapshot is verified; stale events become `discarded`;
+- automatic board-read recovery for same-version pending deductions and game/resume cleanup for pending deductions made stale by a later round version or terminal state;
+- immutable creation-time ordering so late settlement/recovery cannot make an older deduction supersede a newer one;
+- explicit brewery/beer exclusions with a persistent Set Unknown/undo path;
+- brewery candidate narrowing from the guesser's own previously-rated relationship where that relationship is fully attributable;
+- beer candidate narrowing by remaining brewery field, style, ABV, IBU and collaboration;
+- missing producer/category/ABV/IBU/collaboration/rating-attribution data preserved as unknown so it cannot silently eliminate a candidate;
+- selector history aggregates that distinguish a governed zero result from an unresolved hidden producer/style relationship;
+- state/country deduction controls deliberately unavailable until canonical brewery geography is governed and certified;
+- dark/barrel-aged notes that deliberately do **not** auto-filter until structured trait data is certified;
+- selector-only brewery/beer/style answer sheet;
+- optional guesser-controlled aggregate rating-history clues for hidden brewery/style/exact beer;
+- formal brewery, exact-beer and style-fallback submissions backed by canonical catalogue references;
+- scoring v3.0.0: brewery 4 + exact beer 6, or brewery 4 + style fallback 3, minus 1 per incorrect formal submission, clamped 0–10;
+- durable v3 formal-outcome reservation/reconciliation separated from the superseded v2 question/guess reconciler;
+- stable idempotent retries with rejection of request-key reuse for a different deduction/formal outcome;
+- challenge creation keys bound server-side to their original selected beer via a keyed request fingerprint;
+- join retries bound to the authenticated opponent and retained one-way invitation digest, with the join compare-and-set using the server-loaded current game version;
+- later-round creation retries recognized before normal stale/current-round gates and bound to their original selected beer;
+- recovery of ambiguous game/round create and join transitions by durable identity re-read;
+- exact provider-boolean normalization at the server projection and internal scoring boundaries;
+- explicit round completion and forfeit with replay safety;
+- v3 longitudinal/head-to-head outcome statistics including forfeited rounds in round counts; and
+- absent production route/navigation with `BREW_DONE_IT_POLICY_ENABLED` still unset.
 
-The provider-evidenced deployed schema does **not** currently contain the required Brew Done It collections. The feature therefore remains unreachable.
+The connected provider schema has not been migrated/certified for v3, so the feature remains unreachable.
 
-## Autonomous continuation state — 11 September 2026
+## Current implementation state — 12 September 2026
 
-Active implementation is PR **#410** on `codex/brew-done-it-cross-device`.
+The merged persistent-core baseline is PR #410. The v3 redesign is PR **#461** on `codex/brew-done-it-deduction-v3`.
 
-The earlier contained-core revision passed canonical repository validation, Browser/accessibility, Dependency Review and CodeQL. Subsequent commits added the beer-profile entry point, its product/readiness contract and the contained `initialProductId` preselection path. Those later commits have **not** inherited the earlier acceptance evidence.
+The branch is currently synchronized with `main`, including the accepted rating-event ADR 0005 and newer style-history work. Brew Done It's current gameplay authority is ADR **0006**. PR #461 remains **IMPLEMENTING / VALIDATION PENDING**. Gameplay, persistence fields, API routing and UI differ materially from the accepted PR #410 exact-head evidence, so PR #410 validation must not be reused as acceptance evidence for v3.
 
-The owner has explicitly directed that validation be deferred while the Vercel Hobby build-rate limit is exhausted. Until that limit resets:
+Until v3 validation is explicitly run:
 
-- continue source/documentation work that does not require connected execution when useful;
-- do not repeatedly trigger or rely on Vercel preview deployment attempts;
-- keep PR #410 in **VALIDATING**, not MERGE READY; and
-- do not enable the game route, navigation, provider flag or deferred collections.
-
-The next validation action after the limit resets is to freeze the then-current PR head and run canonical `npm run platform:validate`, Browser/accessibility and relevant diagnostics against that exact revision. Review any real defect, confirm containment, then reassess merge readiness. No earlier exact-head result may be substituted for that validation.
+- continue non-provider source/documentation work where useful;
+- do not enable a playable route/navigation or policy flag;
+- do not create/change provider collections; and
+- do not merge PR #461 as MERGE READY.
 
 ## Beer-profile entry-point contract
 
-The beer detail/profile page is an approved selector entry point for future Brew Done It play.
+While contained, **Play Brew-Done-It** on the beer profile remains informational and performs no game API request. Once separately enabled, it passes the viewed canonical product as a reviewable initial secret-beer selection. The selector may change the beer before creating the challenge, and server product validation remains authoritative.
 
-While the feature remains contained:
+The selected beer must never be encoded into an invitation or guesser-facing payload.
 
-- the **Play Brew-Done-It** button is visible and keyboard-operable;
-- activating it explains that Brew Done It is not enabled yet and identifies the currently viewed beer as the intended secret-beer selection;
-- activation performs no Brew Done It API request;
-- activation adds no `/brew-done-it` route dependency; and
-- activation stores no game or secret-beer state in `localStorage`, session storage or another browser persistence mechanism.
+## Invitation and asynchronous-resume contract
 
-When the separately reviewed enablement change makes the game route reachable, the same entry point must hand off the canonical current `product.id` as the selector's initial beer choice. The Brew Done It screen must treat that value only as a preselection: the user may review/change it before creating the challenge, and the server must still resolve and validate the submitted catalogue product before persisting protected round state. The beer identity must never be encoded into an invitation or guesser-facing payload.
+The challenge transport may expose only the game identifier plus the challenge credential. The canonical share/paste format remains text, not a URL containing the credential. The browser may offer clipboard/native-share affordances, but invitation credentials must not enter query strings, browser history or referrer-bearing navigation.
 
-## Merge boundary
+Waiting invitations carry a persisted `expires_at`. The client may derive an expired presentation from that timestamp and disable further sharing, but the server remains authoritative for join acceptance. A provider row that still says `waiting` after the timestamp has elapsed must not become joinable merely because its status has not yet been swept.
 
-The contained application-core PR may merge when repository validation, review and integration evidence are satisfactory because:
+Retry identity is part of this contract:
 
-- no production route or navigation item is added;
-- `BREW_DONE_IT_POLICY_ENABLED` remains unset;
-- Brew Done It collections remain deferred;
-- no provider schema/data mutation occurs; and
-- existing beer-first launch behaviour is unchanged apart from the truthful contained beer-profile entry point described above.
+- creating a challenge binds one creation idempotency key to one selected product through a server-only request fingerprint;
+- a creation replay with another selected product fails rather than recovering the wrong challenge;
+- the raw invitation code is never stored; its one-way digest may remain after join solely to prove that an idempotent join replay carries the same invitation payload;
+- a joining user is not required to know the pre-join participant-only game version; the server validates the invitation and then uses the server-loaded current version for compare-and-set;
+- later-round creation keys remain bound to the originally selected product; and
+- a later-round replay is checked before ordinary current-round/stale-version gates so a lost response or partially persisted parent transition can be recovered deterministically.
 
-A failed Vercel preview caused solely by account/build-rate quota is diagnostic rather than an application defect when the exact head independently passes the repository-owned build/browser gates and no deployment-specific defect is evidenced. It does not authorize feature enablement.
+## Governed clue-data boundary
+
+Candidate narrowing must use only governed/certified facts.
+
+Currently supported source-backed narrowing includes:
+
+- producer relationship from canonical product data where the relationship has a positive canonical identifier;
+- whether the authenticated guesser has previously rated a beer from that producer when all relevant rating-to-product-to-producer relationships are attributable;
+- product category/style;
+- ABV;
+- IBU; and
+- collaboration.
+
+Canonical catalogue relationship identifiers are normalized to positive-ID strings before entering the candidate contract. A zero/blank relationship, missing product fact or incomplete personal-rating attribution remains unknown and cannot be used as evidence for `no`. If any remaining beer has no governed style/category, all style candidates remain possible rather than being silently narrowed away.
+
+Current source does **not** treat producer free-text address/suburb identifiers as sufficient authority for state/country. Therefore state/country controls remain unavailable and geography fields in the selector sheet remain unknown until a canonical geography source is governed and certified.
+
+Dark and barrel-aged are useful social clues, but remain manual notes only until trustworthy structured trait metadata exists. Missing information must never be interpreted as `no`.
 
 ## Provider migration gate
 
-Before any Brew Done It collection is created or changed in a connected provider environment, retain an evidence package covering:
+Before a connected provider mutation, retain evidence for:
 
-1. the exact migration target and field/type/index plan;
-2. provider support for each required create/update/filter/compare-and-set behavior;
-3. backup/restore or disposable-environment recovery appropriate to the migration;
-4. permission design preventing browser/direct-user enumeration and secret-beer disclosure;
-5. cleanup procedure for disposable two-account fixtures;
-6. rollback/abort criteria; and
-7. explicit owner approval for the provider mutation.
+1. the exact v3 schema and field/index plan, including `creation_request_fingerprint`, retained `invitation_digest`, and deduction `observed_round_version`, `action_state` and `committed_round_version` fields;
+2. provider support for required create/update/filter/compare-and-set behaviour;
+3. provider uniqueness/lookup behaviour for creation, join, round-creation, deduction and formal-outcome idempotency identities;
+4. backup/restore or disposable-environment recovery;
+5. permissions preventing direct enumeration and secret disclosure;
+6. cleanup procedure for disposable test accounts/fixtures;
+7. rollback/abort criteria; and
+8. explicit owner approval for provider mutation.
 
-Do not infer support for conditional updates, unique constraints or filtered reads from source code alone.
+Do not infer provider support from application source alone.
 
-## Required provider collections
+## Required v3 Brew Done It collections
 
-The migration must provision and certify:
+The migration target is:
 
 - `brew_done_it_games`;
 - `brew_done_it_rounds`;
 - `brew_done_it_guesses`; and
-- `brew_done_it_questions`.
+- `brew_done_it_deductions`.
 
-Field and recovery semantics are defined in `docs/nocodebackend/brew-done-it-schema-target.md`.
+`brew_done_it_questions` belongs to the superseded v2 model and is not required for new v3 play.
+
+Existing governed product/producer/category/rating data may support deduction options and selector aggregates. Geography is not a v3 migration prerequisite and must remain unavailable until separately governed. Full field and recovery semantics are in the schema target.
 
 ## Connected certification
 
-After migration, use dedicated non-personal test accounts and disposable catalogue fixtures where possible. The connected certification must prove all of the following against an immutable candidate revision.
+Use dedicated non-personal test accounts and disposable fixtures where possible.
 
-### Authentication and ownership
+### Authentication, ownership and privacy
+
+Prove:
 
 - unauthenticated requests fail;
-- creator and opponent can access only their own shared series;
-- unrelated users cannot enumerate or retrieve another series, round, question or guess;
-- creator cannot join their own invitation as opponent;
-- browser-supplied participant/role/score/correctness fields are ignored or rejected;
-- waiting invitation expiry/cancellation behaves as documented.
+- only the two participants access their series/rounds;
+- unrelated users cannot enumerate another game, deduction or formal guess;
+- the creator cannot join their own invitation as opponent;
+- browser-supplied participant/correctness/score fields are ignored/rejected;
+- only the selector receives the private answer sheet;
+- active guesser raw HTTP responses contain no `selected_product_id`, answer-sheet data or equivalent secret;
+- browser game projections contain no `invitation_digest`, `creation_request_fingerprint`, or internal creation/join/terminal idempotency fields; and
+- the secret is revealed only after terminal state.
 
-### Secret projection
+### Invitation, creation and role-rotation recovery
 
-Inspect the **raw HTTP responses**, not only rendered UI:
+Prove:
 
-- selector can see their own selected beer where required;
-- guesser receives no `selected_product_id` or equivalent secret identifier while the round is active;
-- list/resume/detail endpoints all preserve the same boundary;
-- question responses expose only the allowed boolean result and public question descriptor;
-- the secret is revealed only after the round is terminal.
+1. an identical challenge-create retry returns the same series, opening round and deterministic invitation code;
+2. the same creation key with a different selected product fails with an idempotency conflict;
+3. a provider create that persists before its response is lost is recovered by the creation key/fingerprint without creating a second series or changing the selected beer;
+4. invitation text can be copied/shared and pasted into the join form without placing the credential in a URL;
+5. the persisted `expires_at` is presented consistently after creation and later resume, and the server rejects the join once that timestamp has elapsed;
+6. a valid invitation can join even when the server-loaded waiting game version is no longer zero;
+7. a lost join response retries successfully only for the same authenticated opponent, join key and invitation digest;
+8. the same join key with another invitation payload fails;
+9. a next-round retry with the same key/product recovers a lost response;
+10. a next-round retry can complete the parent `current_round_number` transition if the child round persisted first;
+11. a next-round key reused with another selected product fails; and
+12. selector/guesser role rotation remains correct after all recovery paths.
 
-### Persistent cross-device flow
+### Rating-history consent
 
-Using two authenticated browsers/devices:
+With history sharing **off**, prove selector clue responses contain no hidden-answer rating aggregates for that guesser.
+
+With sharing **on**, prove only approved aggregates are returned:
+
+- rating count;
+- distinct-beer count;
+- average weighted rating; and
+- last-rated date
+
+for the hidden brewery/style/exact beer. Raw ratings, rating notes, cellar records and unrelated account data must remain absent.
+
+A governed relationship with no matching ratings must be distinguishable from an unresolved hidden producer/style relationship. Unresolved relationships must not group unrelated unresolved catalogue records into a synthetic aggregate.
+
+A lost-response retry of the same desired history-sharing state must be replay-safe. Provider values such as `"0"` must project as false rather than JavaScript-truthy values.
+
+### Deduction board
+
+Using two authenticated devices:
 
 1. Player A selects a beer and creates a challenge.
-2. Player B accepts the challenge on a separate session/device.
-3. Both players sign out/refresh/reopen and the same series resumes.
-4. Player B asks controlled questions and submits incorrect then correct beer guesses.
-5. The round score reconciles to the documented scoring version.
-6. The next round swaps selector/guesser roles.
-7. Player B selects the next secret beer and Player A resumes from another session/device.
-8. Head-to-head totals reconcile exactly to completed round rows.
+2. Player B accepts on another device.
+3. Player B records previous-brewery-history/style/ABV/IBU/collaboration deductions and explicit brewery/beer exclusions.
+4. Player B can return an existing deduction/exclusion to `unknown` without creating a contradictory scored action.
+5. Refresh/sign-out/device change preserves the deduction board.
+6. `yes` and `no` narrow only according to certified facts; `unknown` eliminates nothing.
+7. each new deduction requires the client-known round version to match the authoritative round version before its event is created; an existing idempotent replay is recognized before this stale-version check.
+8. each new event is persisted as `pending` with `observed_round_version`, then becomes `committed` only if the same game/round/guesser snapshot is still active and unchanged.
+9. after event commit, a verification read detects a formal/terminal mutation that completed first; such an event is changed to `discarded` and never enters candidate filtering.
+10. a same-version pending event left by a lost response is reconciled by a later guesser board read.
+11. series/game-detail resume reads discard pending events that are provably stale because the round version changed or the round became terminal, while leaving same-version recoverable pending events untouched.
+12. only `committed` deduction events enter the projected board; `pending` and `discarded` rows are never clue facts.
+13. logical clue ordering uses immutable event `created_at` plus row-ID tie-breaking, not later settlement `updated_at`, so a delayed older recovery cannot revert a newer answer.
+14. duplicate physical rows caused by a provider race do not create contradictory projected state, while provider uniqueness on event idempotency identity remains required before enablement.
+15. zero/blank producer/category relationships and incomplete rating attribution remain unknown.
+16. brewery, style and beer candidate counts remain consistent with stored deductions.
+17. geography is visibly unavailable rather than inferred while no governed source exists.
+18. dark/barrel-aged can be recorded but do not auto-filter before certified trait metadata exists.
+19. Player B may submit brewery, exact-beer and style-fallback outcomes without the conversation itself becoming scored actions.
+20. reusing an idempotency key for a different deduction payload fails safely rather than replaying the wrong clue.
 
-### Concurrency and failure recovery
+### Scoring and lifecycle
 
-Inject or simulate failures at each durable boundary:
+Prove scoring v3.0.0 exactly:
 
-- after round reservation but before child creation;
+- brewery correct = 4;
+- brewery + exact beer = 10 before penalties;
+- brewery + style fallback = 7 before penalties;
+- style does not stack with exact-beer points;
+- each incorrect formal submission costs 1;
+- ordinary questions/deductions cost 0;
+- score never leaves 0–10;
+- exact beer confirms brewery;
+- provider boolean-like values are normalized before internal scoring/lifecycle decisions;
+- explicit finish persists exactly one terminal result; and
+- terminal outcomes/statistics reconcile to round rows.
+
+### Concurrency and recovery
+
+Inject failures:
+
+- after deduction-event persistence but before settlement;
+- after deduction-event commit but before the verification read/response;
+- while another formal or terminal round mutation changes the observed round version;
+- after formal-outcome reservation but before guess-child creation;
 - after child persistence but before round finalisation;
 - after round finalisation but before child commit marker;
-- during repeated identical requests;
-- during stale requests from a second device.
+- after challenge/game creation before opening-round response completion;
+- after opening-round/next-round persistence before the parent game transition completes;
+- after join game transition before the opening-round transition completes;
+- during identical retries; and
+- during stale second-device submissions.
 
-For every case prove:
+Prove:
 
-- at most one committed logical action exists;
-- no uncommitted action consumes a gameplay turn;
-- pending/discarded rows are never projected as gameplay history;
-- retries recover deterministically by idempotency key;
-- stale versions fail with a safe conflict;
-- no score is duplicated; and
-- a later valid action is not permanently blocked by a discarded recovery row.
+- a recoverable same-version pending deduction is committed on a later board read;
+- a pending deduction made stale by a later round version/terminal state is discarded on settlement or resume cleanup;
+- a delayed older deduction never overtakes a newer event merely because settlement happened later;
+- at most one committed logical formal outcome exists;
+- an empty formal reservation creates no formal turn/penalty;
+- v3 `outcome:*` reservations are reconciled only by the v3 outcome reconciler;
+- ordinary list/detail reads repair a matching formal child left `pending` after round finalisation;
+- retries recover deterministically by idempotency key and bound payload identity;
+- an idempotency key cannot be reused for a different formal reference/type, deduction payload or selected beer;
+- stale versions fail safely where the caller is expected to know a version;
+- join does not require the invited non-participant to guess a hidden current version;
+- no score/penalty duplicates; and
+- resume/game-detail/forfeit cannot accidentally execute the legacy v2 exact-beer reconciliation semantics.
+
+### Asynchronous series flow
+
+Prove create → share/paste → join → resume → deductions → formal outcomes → explicit finish → reveal → role swap → next round across different authenticated sessions/devices over elapsed time. Head-to-head brewery/exact-beer/style/point totals must reconcile after repeated rounds, including forfeited rounds in the durable round count.
 
 ### Accessibility and browser evidence
 
-Before enabling the route:
+Before route enablement:
 
-- add `/brew-done-it` to the connected browser test matrix only after the provider migration is available;
-- run automated WCAG 2.2 AA checks on challenge list, create/join, active round, completion and error/recovery states;
-- verify keyboard-only operation for beer-profile entry, beer selection, controlled questions, guesses, refresh/retry and next-round actions;
-- verify live-region/status announcements for the contained beer-profile availability message and, once enabled, join, question answer, guess result, stale conflict and completion;
-- manually inspect focus order and screen-reader labels for secret-sensitive states.
+- add the enabled route to the browser test matrix only after provider migration exists;
+- run automated WCAG 2.2 AA checks for challenge list, create/join, paste-to-join, waiting/expiry, selector answer sheet, both deduction-card sides, formal outcomes, completion and recovery states;
+- verify keyboard operation and visible focus for all deduction controls, exclusions, Set Unknown, invitation paste/share and round actions;
+- verify status/live-region announcements for paste recognition, save, formal result, stale conflict, completion and invite actions without creating noisy initial announcements; and
+- manually inspect screen-reader labels and secret-sensitive state transitions.
 
 ## Enablement gate
 
 Only a separate reviewed enablement change may:
 
-- make the existing beer-profile entry point navigate into playable Brew Done It;
-- add `/brew-done-it` to application routing;
-- add Brew Done It to navigation;
-- set or require `BREW_DONE_IT_POLICY_ENABLED=true` in a user-facing environment; or
-- promote the Brew Done It collections from deferred to deployed application contract.
+- make beer-profile **Play Brew-Done-It** navigate into play;
+- add `/brew-done-it` to application routing/navigation;
+- set/require `BREW_DONE_IT_POLICY_ENABLED=true`; or
+- promote Brew Done It collections from deferred to deployed contract.
 
-That change requires all provider, secret-projection, cross-device, concurrency/failure-recovery, accessibility and cleanup evidence above to be complete and attributable to the exact candidate.
+That change requires provider, privacy, cross-device, scoring, recovery, accessibility and cleanup evidence attributable to the exact candidate revision.
 
 ## Current blockers
 
-The contained source implementation itself is not blocked by the existing beer-first launch provider migration #165. Production Brew Done It enablement is blocked by its **own** provider migration/certification boundary:
+Brew Done It v3 enablement is blocked by its own capability boundary, not by unrelated launch work:
 
-- four collections are not provider-evidenced;
-- their permission model is not connected-certified;
-- compare-and-set/action-recovery behavior has not been proved against NoCodeBackend;
-- two-account/two-device connected evidence does not yet exist; and
+- v3 provider collections/fields/uniqueness constraints are not certified/deployed;
+- rating-history consent/privacy behaviour is not connected-certified;
+- v3 create/join/round/deduction/formal-outcome recovery has not been failure-injection tested against NoCodeBackend;
+- two-account/two-device v3 evidence does not yet exist;
+- canonical brewery geography is unavailable for geography-based narrowing; and
 - no reviewed enablement change exists.
 
-These blockers should remain scoped to Brew Done It. They must not block unrelated launch work.
+These blockers remain scoped to Brew Done It and must not block unrelated Pourfolio launch work.

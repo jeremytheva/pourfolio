@@ -1,13 +1,11 @@
 import React, { useMemo, useState } from 'react'
+import { formatBrewDoneItInvitation } from '../utils/brewDoneItInvitation.js'
 
 const actionClass = 'rounded-lg border border-amber-700 px-3 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60'
 
 export default function BrewDoneItInvitationShare({ gameId, inviteCode, disabled = false }) {
   const [status, setStatus] = useState('')
-  const challengeText = useMemo(() => {
-    if (!gameId || !inviteCode) return ''
-    return `Join my Brew Done It challenge in Pourfolio. Game ${gameId}. Challenge code: ${inviteCode}`
-  }, [gameId, inviteCode])
+  const challengeText = useMemo(() => formatBrewDoneItInvitation(gameId, inviteCode), [gameId, inviteCode])
 
   if (!challengeText) return null
 
