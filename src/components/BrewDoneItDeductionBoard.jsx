@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import BrewDoneItBeerPicker from './BrewDoneItBeerPicker.jsx'
 import { filterBrewDoneItBeers, filterBrewDoneItBreweries, filterBrewDoneItStyles } from '../utils/brewDoneItDeductionFilters.js'
+import { solvedOutcomeReferences } from '../utils/brewDoneItRoundState.js'
 
 const selectClass = 'mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500'
 const buttonClass = 'rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-60'
@@ -84,12 +85,19 @@ export default function BrewDoneItDeductionBoard({
   const beerDeductions = deductions.filter((item) => !item.dimension.startsWith('brewery_'))
   const states = useMemo(() => [...new Set((options.breweries || []).map((item) => item.stateAcronym || item.state).filter(Boolean))].sort(), [options.breweries])
   const countries = useMemo(() => [...new Set((options.breweries || []).map((item) => item.country).filter(Boolean))].sort(), [options.breweries])
+  const solvedReferences = useMemo(() => solvedOutcomeReferences(round, options.beers || []), [round, options.beers])
 
-  const filteredBreweries = useMemo(() => filterBrewDoneItBreweries(
+  const deductionFilteredBreweries = useMemo(() => filterBrewDoneItBreweries(
     options.breweries || [],
     breweryDeductions,
     { geographyAvailable }
   ), [breweryDeductions, geographyAvailable, options.breweries])
+
+  const filteredBreweries = useMemo(() => {
+    if (!solvedReferences.breweryId) return deductionFilteredBreweries
+    const solved = (options.breweries || []).find((brewery) => String(brewery.id) === solvedReferences.breweryId)
+    return solved ? [solved] : []
+  }, [deductionFilteredBreweries, options.breweries, solvedReferences.breweryId])
 
   const visibleBreweries = useMemo(() => {
     if (!breweryQuery.trim()) return filteredBreweries
@@ -101,19 +109,34 @@ export default function BrewDoneItDeductionBoard({
     [options.breweries]
   )
   const breweryIds = useMemo(() => new Set(filteredBreweries.map((brewery) => String(brewery.id))), [filteredBreweries])
-  const filteredBeers = useMemo(() => filterBrewDoneItBeers(
+  const deductionFilteredBeers = useMemo(() => filterBrewDoneItBeers(
     options.beers || [],
     beerDeductions,
     breweryIds,
     knownBreweryIds
   ), [beerDeductions, breweryIds, knownBreweryIds, options.beers])
 
-  const filteredStyles = useMemo(() => filterBrewDoneItStyles(options.styles || [], filteredBeers), [filteredBeers, options.styles])
+  const filteredBeers = useMemo(() => {
+    if (solvedReferences.productId) {
+      return (options.beers || []).filter((beer) => String(beer.id) === solvedReferences.productId)
+    }
+    return deductionFilteredBeers.filter((beer) => {
+      if (solvedReferences.breweryId && String(beer.producerId || '') !== solvedReferences.breweryId) return false
+      if (solvedReferences.styleId && String(beer.categoryId || '') !== solvedReferences.styleId) return false
+      return true
+    })
+  }, [deductionFilteredBeers, options.beers, solvedReferences.breweryId, solvedReferences.productId, solvedReferences.styleId])
+
+  const filteredStyles = useMemo(() => {
+    if (solvedReferences.styleId) return (options.styles || []).filter((style) => String(style.id) === solvedReferences.styleId)
+    return filterBrewDoneItStyles(options.styles || [], filteredBeers)
+  }, [filteredBeers, options.styles, solvedReferences.styleId])
+
   const unresolvedProducerBeerCount = useMemo(
     () => filteredBeers.filter((beer) => !beer.producerId).length,
     [filteredBeers]
   )
-  const onlyUnresolvedProducerBeersRemain = filteredBreweries.length === 0 && filteredBeers.length > 0 && unresolvedProducerBeerCount === filteredBeers.length
+  const onlyUnresolvedProducerBeersRemain = !solvedReferences.breweryId && filteredBreweries.length === 0 && filteredBeers.length > 0 && unresolvedProducerBeerCount === filteredBeers.length
   const save = (dimension, answer, values = {}) => onSaveDeduction({ dimension, answer, ...values })
   const setUnknown = (deduction) => save(deduction.dimension, 'unknown', valuesForDeduction(deduction))
   const styleName = (styleId) => (options.styles || []).find((item) => String(item.id) === String(styleId))?.name || null
@@ -184,7 +207,7 @@ export default function BrewDoneItDeductionBoard({
                         <span className="font-medium text-gray-900">{brewery.name}</span>
                         <span className="flex flex-wrap gap-2">
                           <button type="button" disabled={busy || round?.brewery_correct} onClick={() => setBreweryGuess(String(brewery.id))} className="rounded px-2 py-1 text-xs font-semibold text-amber-800 underline focus:outline-none focus:ring-2 focus:ring-amber-500">Select as guess</button>
-                          <button type="button" disabled={busy} onClick={() => save('brewery_ruled_out', 'yes', { referenceId: brewery.id })} className="rounded px-2 py-1 text-xs font-semibold text-gray-700 underline focus:outline-none focus:ring-2 focus:ring-amber-500">Rule out</button>
+                          <button type="button" disabled={busy || round?.brewery_correct} onClick={() => save('brewery_ruled_out', 'yes', { referenceId: brewery.id })} className="rounded px-2 py-1 text-xs font-semibold text-gray-700 underline focus:outline-none focus:ring-2 focus:ring-amber-500">Rule out</button>
                         </span>
                       </li>
                     ))}
@@ -198,7 +221,7 @@ export default function BrewDoneItDeductionBoard({
           <div className="rounded-xl border border-gray-200 bg-white p-5">
             <h4 className="font-semibold text-gray-900">Formal brewery guess</h4>
             <p className="mt-1 text-sm text-gray-600">Correct brewery: 4 points. Incorrect formal guesses reduce the final score by one point.</p>
-            <select value={breweryGuess} onChange={(event) => setBreweryGuess(event.target.value)} className={selectClass}><option value="">Choose brewery</option>{filteredBreweries.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select>
+            <select value={breweryGuess} onChange={(event) => setBreweryGuess(event.target.value)} disabled={round?.brewery_correct} className={selectClass}><option value="">Choose brewery</option>{filteredBreweries.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select>
             <button type="button" disabled={busy || !breweryGuess || round?.brewery_correct} onClick={() => onOutcome('brewery', breweryGuess)} className={`${buttonClass} mt-3`}>{round?.brewery_correct ? 'Brewery solved' : 'Submit brewery guess'}</button>
           </div>
         </div>
@@ -242,8 +265,8 @@ export default function BrewDoneItDeductionBoard({
             ))}
             <div className="border-t border-gray-200 pt-4">
               <p className="text-sm font-medium text-gray-800">Rule out a beer</p>
-              <div className="mt-2"><BrewDoneItBeerPicker id="brew-rule-out-beer" value={ruledOutBeer} onChange={setRuledOutBeer} disabled={busy} candidates={filteredBeers} helpText="Search only the beers still remaining in your deduction field." /></div>
-              <button type="button" disabled={busy || !ruledOutBeer} onClick={() => save('beer_ruled_out', 'yes', { referenceId: ruledOutBeer })} className={`${secondaryButtonClass} mt-3`}>Rule out beer</button>
+              <div className="mt-2"><BrewDoneItBeerPicker id="brew-rule-out-beer" value={ruledOutBeer} onChange={setRuledOutBeer} disabled={busy || round?.beer_correct} candidates={filteredBeers} helpText="Search only the beers still remaining in your deduction field." /></div>
+              <button type="button" disabled={busy || !ruledOutBeer || round?.beer_correct} onClick={() => save('beer_ruled_out', 'yes', { referenceId: ruledOutBeer })} className={`${secondaryButtonClass} mt-3`}>Rule out beer</button>
             </div>
           </div>
 
@@ -262,8 +285,8 @@ export default function BrewDoneItDeductionBoard({
                 </p>
               )}
             </div>
-            <div className="border-t border-gray-200 pt-4"><h4 className="font-semibold text-gray-900">Exact beer guess</h4><p className="mt-1 text-sm text-gray-600">Exact beer is worth 6 points and also confirms the brewery.</p><div className="mt-3"><BrewDoneItBeerPicker id="brew-outcome-beer" value={beerGuess} onChange={setBeerGuess} disabled={busy} candidates={filteredBeers} helpText="Search only the beers still remaining in your deduction field." /></div><button type="button" disabled={busy || !beerGuess || round?.beer_correct} onClick={() => onOutcome('beer', beerGuess)} className={`${buttonClass} mt-3`}>{round?.beer_correct ? 'Beer solved' : 'Submit beer guess'}</button></div>
-            <div className="border-t border-gray-200 pt-4"><h4 className="font-semibold text-gray-900">Style fallback</h4><p className="mt-1 text-sm text-gray-600">If the exact beer is not practical to solve, the correct style is worth 3 points instead.</p><select value={styleGuess} onChange={(event) => setStyleGuess(event.target.value)} className={selectClass}><option value="">Choose style</option>{filteredStyles.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select><button type="button" disabled={busy || !styleGuess || round?.style_correct || round?.beer_correct} onClick={() => onOutcome('style', styleGuess)} className={`${buttonClass} mt-3`}>{round?.style_correct ? 'Style solved' : 'Submit style guess'}</button></div>
+            <div className="border-t border-gray-200 pt-4"><h4 className="font-semibold text-gray-900">Exact beer guess</h4><p className="mt-1 text-sm text-gray-600">Exact beer is worth 6 points and also confirms the brewery.</p><div className="mt-3"><BrewDoneItBeerPicker id="brew-outcome-beer" value={beerGuess} onChange={setBeerGuess} disabled={busy || round?.beer_correct} candidates={filteredBeers} helpText="Search only the beers still remaining in your deduction field." /></div><button type="button" disabled={busy || !beerGuess || round?.beer_correct} onClick={() => onOutcome('beer', beerGuess)} className={`${buttonClass} mt-3`}>{round?.beer_correct ? 'Beer solved' : 'Submit beer guess'}</button></div>
+            <div className="border-t border-gray-200 pt-4"><h4 className="font-semibold text-gray-900">Style fallback</h4><p className="mt-1 text-sm text-gray-600">If the exact beer is not practical to solve, the correct style is worth 3 points instead.</p><select value={styleGuess} onChange={(event) => setStyleGuess(event.target.value)} disabled={round?.style_correct || round?.beer_correct} className={selectClass}><option value="">Choose style</option>{filteredStyles.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select><button type="button" disabled={busy || !styleGuess || round?.style_correct || round?.beer_correct} onClick={() => onOutcome('style', styleGuess)} className={`${buttonClass} mt-3`}>{round?.style_correct ? 'Style solved' : 'Submit style guess'}</button></div>
           </div>
         </div>
       )}
