@@ -16,6 +16,8 @@ This document defines the minimum persistent NoCodeBackend contract for the Brew
 - the selected beer is protected server state and is never projected to the active guesser.
 - selector-only answer-sheet/history aggregates are server projected and never exposed to the active guesser.
 - formal outcome submissions use durable reservation/reconciliation, optimistic versions and idempotency.
+- challenge/round creation idempotency keys remain bound to the originally selected beer and may not replay with a different secret.
+- join retries remain bound to the original one-way invitation digest; the raw invitation code is never stored.
 - repeated request keys identify one logical mutation and cannot be reused for a different deduction or formal outcome.
 - provider boolean-like values are normalized before gameplay/scoring decisions or browser projection.
 - statistics are derived from terminal rounds rather than independently mutable totals.
@@ -33,12 +35,13 @@ One row per persistent head-to-head series.
 | `opponent_participant_id` | nullable until joined | Authenticated second participant |
 | `creator_history_clues_enabled` | yes/default false | Whether creator permits aggregate own-rating clues while guessing |
 | `opponent_history_clues_enabled` | yes/default false | Whether opponent permits aggregate own-rating clues while guessing |
-| `invitation_digest` | nullable after joined | One-way digest of join credential; never return to browsers |
+| `invitation_digest` | yes from creation onward | One-way digest of join credential; retained after join only to validate idempotent join retries and never returned to browsers |
 | `status` | yes | `waiting`, `active`, `archived`, `cancelled`, or `expired` |
 | `current_round_number` | yes | Current/latest round number beginning at 1 |
 | `version` | yes | Optimistic concurrency version beginning at 0 |
 | `creation_idempotency_key` | yes | Creator-scoped unique creation key |
-| `join_idempotency_key` | nullable | Join replay key |
+| `creation_request_fingerprint` | yes | Server-only keyed fingerprint binding the creation key to its original secret product |
+| `join_idempotency_key` | nullable until joined | Join replay key bound to the retained invitation digest and opponent |
 | `terminal_idempotency_key` | nullable | Cancel/archive/expire replay key |
 | `created_at` | yes | Server timestamp |
 | `joined_at` | nullable | Server timestamp when opponent joins |
@@ -53,8 +56,29 @@ Required invariants:
 - each participant may update only their own history-clue preference;
 - setting history-clue permission to its already-persisted desired state is replay-safe;
 - history-clue permission does not expose raw ratings, rating notes, cellar records or unrelated account data;
-- invitation credentials are stored only as a digest; and
-- creation/join/terminal idempotency fields are unique at their intended scopes.
+- `creation_idempotency_key` is unique at its intended creator scope;
+- `creation_request_fingerprint` is never browser-projected and a matching creation key cannot be replayed with a different selected beer;
+- invitation credentials are stored only as a one-way digest, never as the raw code;
+- after a successful join, the digest may remain solely to prove that a repeated `join_idempotency_key` carries the same invitation payload; series status prevents the digest from authorising another participant; and
+- join/terminal idempotency fields are unique at their intended scopes.
+
+### Series creation and join replay rules
+
+Creation uses the following recovery boundary:
+
+1. derive creator-scoped `creation_idempotency_key` and a keyed `creation_request_fingerprint` from that key plus the selected product;
+2. create or recover the game row by creation key;
+3. reject the replay if the fingerprint represents a different selected product;
+4. create or recover opening round 1 and require its `selected_product_id` to match the same request; and
+5. return the deterministic invitation code only through the application response, never by storing the raw code.
+
+Join uses the following boundary:
+
+1. validate the invitation code against `invitation_digest`, expiry, waiting state and creator/opponent rules;
+2. use the **server-loaded current game version** for the join compare-and-set because the invited account cannot know a participant-only game version before joining;
+3. bind `join_idempotency_key` to the authenticated opponent and retained invitation digest;
+4. update/recover the opening round guesser transition; and
+5. on retry, require the same join key, opponent and invitation digest before returning replay success.
 
 ## `brew_done_it_rounds`
 
@@ -82,7 +106,7 @@ One row per secret-beer challenge.
 | `pending_action_started_at` | nullable | Reservation diagnostic/recovery timestamp |
 | `last_action_key` | nullable | Most recently finalised formal-outcome key |
 | `last_action_type` | nullable | Most recently finalised formal-outcome type |
-| `round_creation_idempotency_key` | nullable for opening round | Later-round replay key |
+| `round_creation_idempotency_key` | nullable for opening round | Later-round replay key, bound to that round's selected product |
 | `terminal_idempotency_key` | nullable | Finish/forfeit replay key |
 | `scoring_rules_version` | nullable until terminal | `3.0.0` for v3 terminal rounds |
 | `awarded_points` | nullable until terminal | Immutable terminal score, 0–10 |
@@ -95,6 +119,7 @@ One row per secret-beer challenge.
 Required invariants:
 
 - unique (`game_id`, `round_number`);
+- later-round `round_creation_idempotency_key` values are unique at their intended scope;
 - `selected_product_id` resolves to a real catalogue product;
 - selector and guesser are the parent-series participants and differ;
 - after the opening round, roles swap by default;
@@ -105,6 +130,10 @@ Required invariants:
 - terminal score/outcome fields become immutable once accepted;
 - provider boolean-like values such as `0`, `1`, `"0"`, and `"1"` are normalized before evaluating solved flags; and
 - active guesser projections never include `selected_product_id` or selector-only answer-sheet data.
+
+### Later-round creation replay rules
+
+A next-round retry is resolved **before** normal current-round/stale-version gates. If a round already carries the caller's `round_creation_idempotency_key`, it may replay only when its `selected_product_id` matches the requested beer. If round creation persisted but the parent game's `current_round_number` update did not, the retry may complete that parent transition only when the expected game version still permits it. If the parent update already persisted but its response was lost, the persisted round number is accepted as recovered success.
 
 ## `brew_done_it_guesses`
 
@@ -235,6 +264,7 @@ Provider/server policy must jointly ensure:
 - only the selector receives the protected answer sheet;
 - only the guesser writes deductions/formal outcomes;
 - the guesser cannot query provider data to obtain `selected_product_id` or selector-only history aggregates;
+- game responses never project `invitation_digest`, creation/join/terminal idempotency keys or `creation_request_fingerprint`;
 - users cannot enumerate other participants' Brew Done It rows; and
 - retention/deletion follows the approved policy once adopted.
 
@@ -243,20 +273,23 @@ Provider/server policy must jointly ensure:
 Before setting `BREW_DONE_IT_POLICY_ENABLED=true` in a user-facing environment:
 
 1. create/certify the four v3 collections: games, rounds, guesses and deductions;
-2. retain schema evidence for fields/types/indexes/relationships, history-sharing defaults and uniqueness of deduction/formal-outcome idempotency keys;
-3. certify the existing product/producer/category/rating relationships used for candidate narrowing and history aggregates;
-4. run disposable two-account/two-device create, join, resume, deduction, exclusion/undo, brewery guess, exact-beer guess, style fallback, explicit finish, role-swap and next-round flows;
-5. prove the active guesser's raw HTTP responses contain no secret beer or selector clue-sheet data;
-6. prove history aggregates are absent when sharing is off, contain only approved aggregates when sharing is on, distinguish governed zero results from unresolved relationships, and never group unrelated unresolved products together;
-7. prove yes/no/unknown deduction events persist, latest-event projection is deterministic and `unknown` never eliminates candidates;
-8. prove an older delayed retry returns its original deduction event without reverting a newer board answer;
-9. prove unknown producer/category/numeric/boolean/rating-attribution facts remain candidates rather than being treated as negative facts;
-10. prove geography remains unavailable rather than inferred while no governed canonical source exists;
-11. retry/stale-device/failure-injection formal outcomes and prove exactly one committed result or zero with no invented penalty;
-12. prove idempotency-key reuse for a different deduction/outcome fails rather than replaying the wrong mutation;
-13. prove dark/barrel-aged manual notes do not auto-filter before certified trait metadata exists;
-14. reconcile v3 statistics exactly to terminal round rows, including forfeited rounds in round counts;
-15. clean disposable fixtures and retain redacted evidence; and
-16. review retention/deletion, accessibility and browser evidence before route/navigation enablement.
+2. retain schema evidence for fields/types/indexes/relationships, history-sharing defaults, unique (`game_id`, `round_number`), creation/join/round/deduction/formal-outcome idempotency requirements and `creation_request_fingerprint`;
+3. prove game create retries recover ambiguous provider responses and reject the same creation key with a different selected beer;
+4. prove join retries use the server-loaded current version, retain only the one-way invitation digest and reject the same join key with a different invitation payload;
+5. prove next-round retries are recognized before ordinary stale/current-round gates, recover a partially persisted parent transition and reject the same key with a different selected beer;
+6. certify the existing product/producer/category/rating relationships used for candidate narrowing and history aggregates;
+7. run disposable two-account/two-device create, join, resume, deduction, exclusion/undo, brewery guess, exact-beer guess, style fallback, explicit finish, role-swap and next-round flows;
+8. prove the active guesser's raw HTTP responses contain no secret beer, invitation internals or selector clue-sheet data;
+9. prove history aggregates are absent when sharing is off, contain only approved aggregates when sharing is on, distinguish governed zero results from unresolved relationships, and never group unrelated unresolved products together;
+10. prove yes/no/unknown deduction events persist, latest-event projection is deterministic and `unknown` never eliminates candidates;
+11. prove an older delayed retry returns its original deduction event without reverting a newer board answer;
+12. prove unknown producer/category/numeric/boolean/rating-attribution facts remain candidates rather than being treated as negative facts;
+13. prove geography remains unavailable rather than inferred while no governed canonical source exists;
+14. retry/stale-device/failure-injection formal outcomes and prove exactly one committed result or zero with no invented penalty;
+15. prove idempotency-key reuse for a different deduction/outcome fails rather than replaying the wrong mutation;
+16. prove dark/barrel-aged manual notes do not auto-filter before certified trait metadata exists;
+17. reconcile v3 statistics exactly to terminal round rows, including forfeited rounds in round counts;
+18. clean disposable fixtures and retain redacted evidence; and
+19. review retention/deletion, accessibility and browser evidence before route/navigation enablement.
 
 Until those gates pass, Brew Done It remains in `DEFERRED_COLLECTIONS`, the playable route remains absent, and the server policy remains fail-closed.
