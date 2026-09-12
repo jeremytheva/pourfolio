@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import BrewDoneItDeductionBoard from '../components/BrewDoneItDeductionBoard.jsx'
+import BrewDoneItInvitationExpiry from '../components/BrewDoneItInvitationExpiry.jsx'
 import BrewDoneItInvitationShare from '../components/BrewDoneItInvitationShare.jsx'
 import BrewDoneItInvite from '../components/BrewDoneItInvite.jsx'
 import BrewDoneItRound from '../components/BrewDoneItRound.jsx'
@@ -25,6 +26,7 @@ import {
   setBrewDoneItHistorySharing,
   submitBrewDoneItOutcome
 } from '../services/brewDoneItService.js'
+import { isBrewDoneItInvitationExpired } from '../utils/brewDoneItInvitation.js'
 
 const requestKey = () => `brew-done-it-${crypto.randomUUID()}`
 const terminalRound = (round) => ['completed', 'forfeited'].includes(round?.status)
@@ -107,7 +109,7 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
     const latestRound = result.rounds?.at(-1) || null
     setGame(result.game)
     setRound(latestRound)
-    setInvitation(invitationCode ? { gameId: result.game.id, code: invitationCode } : null)
+    setInvitation(invitationCode ? { gameId: result.game.id, code: invitationCode, expiresAt: result.game.expires_at } : null)
     await Promise.all([loadRevealedProduct(latestRound), loadRoundWorkspace(latestRound)])
   }, [loadRevealedProduct, loadRoundWorkspace, run])
 
@@ -117,6 +119,7 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
     const latestRound = result.rounds?.at(-1) || null
     setGame(result.game)
     setRound(latestRound)
+    setInvitation((current) => current ? { ...current, expiresAt: result.game.expires_at } : current)
     await Promise.all([loadRevealedProduct(latestRound), loadRoundWorkspace(latestRound), loadSeries(), loadStats()])
   }, [game?.id, loadRevealedProduct, loadRoundWorkspace, loadSeries, loadStats, run])
 
@@ -136,7 +139,7 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
       const result = await run(() => createBrewDoneItGame(productId, key), () => 'Challenge created. Send the challenge details to the other player.')
       setGame(result.game)
       setRound(result.round)
-      setInvitation({ gameId: result.game.id, code: result.invitationCode })
+      setInvitation({ gameId: result.game.id, code: result.invitationCode, expiresAt: result.game.expires_at })
       await loadSeries()
     })
   }
@@ -229,6 +232,7 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
       : game.opponent_history_clues_enabled === true
   ) : false
   const canStartNextRound = game?.status === 'active' && terminalRound(round) && role === 'guesser'
+  const waitingInvitationExpired = game?.status === 'waiting' && isBrewDoneItInvitationExpired(game.expires_at)
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
@@ -260,9 +264,10 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
 
       {game?.status === 'waiting' && (
         <section className="rounded-xl border border-amber-200 bg-amber-50 p-6" aria-labelledby="brew-waiting-heading">
-          <h2 id="brew-waiting-heading" className="text-xl font-semibold text-amber-950">Challenge waiting for another player</h2>
-          <p className="mt-2 text-amber-950">Series {game.id} is waiting to be accepted. Your selected beer remains hidden.</p>
-          {invitation && <div className="mt-3"><p className="break-all font-mono text-sm">Game {invitation.gameId}: {invitation.code}</p><BrewDoneItInvitationShare gameId={invitation.gameId} inviteCode={invitation.code} disabled={busy} /></div>}
+          <h2 id="brew-waiting-heading" className="text-xl font-semibold text-amber-950">{waitingInvitationExpired ? 'Challenge invitation expired' : 'Challenge waiting for another player'}</h2>
+          <p className="mt-2 text-amber-950">Series {game.id} {waitingInvitationExpired ? 'can no longer be joined with this invitation.' : 'is waiting to be accepted.'} Your selected beer remains hidden.</p>
+          <BrewDoneItInvitationExpiry expiresAt={game.expires_at} />
+          {invitation && <div className="mt-3"><p className="break-all font-mono text-sm">Game {invitation.gameId}: {invitation.code}</p><BrewDoneItInvitationShare gameId={invitation.gameId} inviteCode={invitation.code} disabled={busy || waitingInvitationExpired} /></div>}
           <button type="button" className="mt-4 underline focus:outline-none focus:ring-2 focus:ring-amber-500" disabled={busy} onClick={refresh}>Refresh challenge</button>
         </section>
       )}
