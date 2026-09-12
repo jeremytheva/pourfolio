@@ -1,18 +1,13 @@
-const sameId = (left, right) => String(left) === String(right)
+import { completedRatingTotal } from '../lib/completedRatingContract.js'
 
-const ratingTotal = (rating) => {
-  const raw = rating?.total_weighted
-  if (raw === null || raw === undefined || (typeof raw === 'string' && raw.trim() === '')) return null
-  const value = Number(raw)
-  return Number.isFinite(value) && value >= 0 && value <= 5 ? value : null
-}
+const sameId = (left, right) => String(left) === String(right)
 
 export const buildUserProductRatingSummary = (payload, productId) => {
   if (!payload || typeof payload !== 'object' || !Array.isArray(payload.items)) return null
 
   const totals = payload.items
     .filter((rating) => rating && typeof rating === 'object' && sameId(rating.product_id, productId))
-    .map(ratingTotal)
+    .map((rating) => completedRatingTotal(rating.total_weighted))
     .filter((value) => value !== null)
 
   if (!totals.length) return null
