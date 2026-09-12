@@ -104,7 +104,8 @@ describe('Pourfolio Rating Formula v2', () => {
     assert.equal(adjustableDollarScore(20), 13)
     assert.equal(adjustableDollarScore(25), 14)
     assert.equal(adjustableDollarScore(37.5), 18)
-    assert.equal(calculatePPP(5, 20, 375), 156.25)
+    // Tasting Paddle row 250: a $17 / 375 mL beer with a score of 5 uses dollar score 12.
+    assert.equal(calculatePPP(5, 17, 375), 156.25)
     assert.equal(calculatePPP(4, null, 375), null)
   })
 
