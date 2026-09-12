@@ -8,18 +8,19 @@ const beers = [
   { id: 3, producerId: null, categoryId: null, abv: null, ibu: null, collaboration: null }
 ]
 
+const governedBreweryIds = new Set(['10', '20'])
+
 test('unknown beer facts survive both yes and no deductions', () => {
-  const breweryIds = new Set(['10', '20'])
   const yes = filterBrewDoneItBeers(beers, [
     { dimension: 'abv_at_least', answer: 'yes', numeric_value: 6 },
     { dimension: 'collaboration', answer: 'yes' }
-  ], breweryIds)
+  ], governedBreweryIds, governedBreweryIds)
   assert.deepEqual(yes.map((beer) => beer.id), [1, 3])
 
   const no = filterBrewDoneItBeers(beers, [
     { dimension: 'abv_at_least', answer: 'no', numeric_value: 6 },
     { dimension: 'collaboration', answer: 'no' }
-  ], breweryIds)
+  ], governedBreweryIds, governedBreweryIds)
   assert.deepEqual(no.map((beer) => beer.id), [2, 3])
 })
 
@@ -27,7 +28,7 @@ test('known contradictory beer facts are eliminated', () => {
   const result = filterBrewDoneItBeers(beers, [
     { dimension: 'style', answer: 'yes', reference_id: 100 },
     { dimension: 'ibu_at_least', answer: 'yes', numeric_value: 40 }
-  ], new Set(['10', '20']))
+  ], governedBreweryIds, governedBreweryIds)
   assert.deepEqual(result.map((beer) => beer.id), [1, 3])
 })
 
@@ -35,13 +36,18 @@ test('dark and barrel-aged notes do not automatically filter candidates', () => 
   const result = filterBrewDoneItBeers(beers, [
     { dimension: 'dark', answer: 'yes' },
     { dimension: 'barrel_aged', answer: 'no' }
-  ], new Set(['10', '20']))
+  ], governedBreweryIds, governedBreweryIds)
   assert.deepEqual(result.map((beer) => beer.id), [1, 2, 3])
 })
 
 test('missing brewery attribution remains possible after brewery narrowing', () => {
-  const result = filterBrewDoneItBeers(beers, [], new Set(['10']))
+  const result = filterBrewDoneItBeers(beers, [], new Set(['10']), governedBreweryIds)
   assert.deepEqual(result.map((beer) => beer.id), [1, 3])
+})
+
+test('a caller without the complete governed brewery set fails conservatively rather than fabricating attribution', () => {
+  const result = filterBrewDoneItBeers(beers, [], new Set(['10']))
+  assert.deepEqual(result.map((beer) => beer.id), [1, 2, 3])
 })
 
 test('zero remaining known breweries does not restore beers from ruled-out known breweries', () => {
@@ -49,7 +55,7 @@ test('zero remaining known breweries does not restore beers from ruled-out known
     beers,
     [],
     new Set(),
-    new Set(['10', '20'])
+    governedBreweryIds
   )
   assert.deepEqual(result.map((beer) => beer.id), [3])
 })
@@ -63,7 +69,7 @@ test('positive producer ids without a governed brewery row remain unknown candid
     catalogue,
     [],
     new Set(['10']),
-    new Set(['10', '20'])
+    governedBreweryIds
   )
   assert.deepEqual(result.map((beer) => beer.id), [1, 3, 4])
 })
@@ -71,7 +77,7 @@ test('positive producer ids without a governed brewery row remain unknown candid
 test('explicit beer exclusions remove only the selected candidate', () => {
   const result = filterBrewDoneItBeers(beers, [
     { dimension: 'beer_ruled_out', answer: 'yes', reference_id: 2 }
-  ], new Set(['10', '20']))
+  ], governedBreweryIds, governedBreweryIds)
   assert.deepEqual(result.map((beer) => beer.id), [1, 3])
 })
 
