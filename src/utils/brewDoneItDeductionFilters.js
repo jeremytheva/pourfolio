@@ -23,46 +23,52 @@ export const filterBrewDoneItBreweries = (breweries = [], deductions = [], { geo
     return true
   }))
 
-export const filterBrewDoneItBeers = (beers = [], deductions = [], breweryIds = new Set()) =>
-  beers.filter((beer) => {
-    // Missing producer attribution is unknown, not evidence that the beer belongs
-    // outside the remaining brewery field.
-    if (!missing(beer.producerId) && breweryIds.size && !breweryIds.has(String(beer.producerId))) return false
+export const filterBrewDoneItBeers = (
+  beers = [],
+  deductions = [],
+  breweryIds = new Set(),
+  knownBreweryIds = breweryIds
+) => beers.filter((beer) => {
+  const producerId = missing(beer.producerId) ? null : String(beer.producerId)
+  // A governed producer relationship follows the remaining brewery field even
+  // when that field reaches zero. Missing/unresolved producer relationships stay
+  // possible because Pourfolio does not have enough evidence to eliminate them.
+  if (producerId && knownBreweryIds.has(producerId) && !breweryIds.has(producerId)) return false
 
-    return deductions.every((deduction) => {
-      if (deduction.answer === 'unknown' || ['dark', 'barrel_aged'].includes(deduction.dimension)) return true
+  return deductions.every((deduction) => {
+    if (deduction.answer === 'unknown' || ['dark', 'barrel_aged'].includes(deduction.dimension)) return true
 
-      if (deduction.dimension === 'beer_ruled_out') {
-        if (deduction.answer !== 'yes') return true
-        return String(beer.id) !== String(deduction.reference_id)
-      }
-      if (deduction.dimension === 'style') {
-        if (missing(beer.categoryId)) return true
-        return deductionMatches(String(beer.categoryId) === String(deduction.reference_id), deduction.answer)
-      }
-      if (deduction.dimension === 'abv_at_least') {
-        if (missing(beer.abv)) return true
-        return deductionMatches(Number(beer.abv) >= Number(deduction.numeric_value), deduction.answer)
-      }
-      if (deduction.dimension === 'abv_below') {
-        if (missing(beer.abv)) return true
-        return deductionMatches(Number(beer.abv) < Number(deduction.numeric_value), deduction.answer)
-      }
-      if (deduction.dimension === 'ibu_at_least') {
-        if (missing(beer.ibu)) return true
-        return deductionMatches(Number(beer.ibu) >= Number(deduction.numeric_value), deduction.answer)
-      }
-      if (deduction.dimension === 'ibu_below') {
-        if (missing(beer.ibu)) return true
-        return deductionMatches(Number(beer.ibu) < Number(deduction.numeric_value), deduction.answer)
-      }
-      if (deduction.dimension === 'collaboration') {
-        if (missing(beer.collaboration)) return true
-        return deductionMatches(Boolean(beer.collaboration), deduction.answer)
-      }
-      return true
-    })
+    if (deduction.dimension === 'beer_ruled_out') {
+      if (deduction.answer !== 'yes') return true
+      return String(beer.id) !== String(deduction.reference_id)
+    }
+    if (deduction.dimension === 'style') {
+      if (missing(beer.categoryId)) return true
+      return deductionMatches(String(beer.categoryId) === String(deduction.reference_id), deduction.answer)
+    }
+    if (deduction.dimension === 'abv_at_least') {
+      if (missing(beer.abv)) return true
+      return deductionMatches(Number(beer.abv) >= Number(deduction.numeric_value), deduction.answer)
+    }
+    if (deduction.dimension === 'abv_below') {
+      if (missing(beer.abv)) return true
+      return deductionMatches(Number(beer.abv) < Number(deduction.numeric_value), deduction.answer)
+    }
+    if (deduction.dimension === 'ibu_at_least') {
+      if (missing(beer.ibu)) return true
+      return deductionMatches(Number(beer.ibu) >= Number(deduction.numeric_value), deduction.answer)
+    }
+    if (deduction.dimension === 'ibu_below') {
+      if (missing(beer.ibu)) return true
+      return deductionMatches(Number(beer.ibu) < Number(deduction.numeric_value), deduction.answer)
+    }
+    if (deduction.dimension === 'collaboration') {
+      if (missing(beer.collaboration)) return true
+      return deductionMatches(Boolean(beer.collaboration), deduction.answer)
+    }
+    return true
   })
+})
 
 export const filterBrewDoneItStyles = (styles = [], candidateBeers = []) => {
   if (candidateBeers.some((beer) => missing(beer.categoryId))) return styles
