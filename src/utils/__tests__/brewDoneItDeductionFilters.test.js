@@ -44,6 +44,30 @@ test('missing brewery attribution remains possible after brewery narrowing', () 
   assert.deepEqual(result.map((beer) => beer.id), [1, 3])
 })
 
+test('zero remaining known breweries does not restore beers from ruled-out known breweries', () => {
+  const result = filterBrewDoneItBeers(
+    beers,
+    [],
+    new Set(),
+    new Set(['10', '20'])
+  )
+  assert.deepEqual(result.map((beer) => beer.id), [3])
+})
+
+test('positive producer ids without a governed brewery row remain unknown candidates', () => {
+  const catalogue = [
+    ...beers,
+    { id: 4, producerId: 999, categoryId: 100, abv: 5.5, ibu: 30, collaboration: false }
+  ]
+  const result = filterBrewDoneItBeers(
+    catalogue,
+    [],
+    new Set(['10']),
+    new Set(['10', '20'])
+  )
+  assert.deepEqual(result.map((beer) => beer.id), [1, 3, 4])
+})
+
 test('explicit beer exclusions remove only the selected candidate', () => {
   const result = filterBrewDoneItBeers(beers, [
     { dimension: 'beer_ruled_out', answer: 'yes', reference_id: 2 }
