@@ -21,7 +21,7 @@
       "continue": true
     },
     {
-      "src": "/api/(catalog-data-proxy|cellar-data-proxy|current-data-proxy|profile-data-proxy|data-proxy)(?:\\.js)?/?",
+      "src": "/api/(bonus-attribute-data-proxy|catalog-data-proxy|cellar-data-proxy|current-data-proxy|profile-data-proxy|data-proxy)(?:\\.js)?/?",
       "dest": "/api/internal-not-found"
     },
     {
