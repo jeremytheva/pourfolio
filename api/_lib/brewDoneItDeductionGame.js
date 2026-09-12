@@ -14,6 +14,10 @@ const id = (value, label) => {
   if (!/^[1-9]\d*$/.test(text)) throw fail(`${label} is invalid.`)
   return text
 }
+const canonicalIdOrNull = (value) => {
+  const text = String(value ?? '').trim()
+  return /^[1-9]\d*$/.test(text) ? text : null
+}
 const participant = (game, userId) => [game?.creator_participant_id, game?.opponent_participant_id]
   .filter((value) => value !== null && value !== undefined)
   .some((value) => String(value) === String(userId))
@@ -81,12 +85,21 @@ const aggregate = (ratings, productsById, predicate) => {
     return product && predicate(product)
   })
   return {
+    available: true,
     ratingCount: matching.length,
     distinctBeerCount: new Set(matching.map((rating) => String(rating.product_id))).size,
     averageWeighted: average(matching),
     lastRatedAt: latestRatedAt(matching)
   }
 }
+
+const unavailableAggregate = () => ({
+  available: false,
+  ratingCount: 0,
+  distinctBeerCount: 0,
+  averageWeighted: null,
+  lastRatedAt: null
+})
 
 const sharingEnabled = (game, guesserId) => String(game.creator_participant_id) === String(guesserId)
   ? game.creator_history_clues_enabled === true || Number(game.creator_history_clues_enabled) === 1
@@ -106,8 +119,6 @@ const sameDeductionRequest = (stored, input) => {
   if ([BREW_DONE_IT_DEDUCTION_DIMENSIONS.breweryCountry, BREW_DONE_IT_DEDUCTION_DIMENSIONS.breweryState].includes(input.dimension)) {
     return String(stored.value_text ?? '') === String(input.valueText ?? '')
   }
-  // Style display labels are server-canonicalized and therefore are not part of
-  // the caller's idempotency identity; the category reference is authoritative.
   return true
 }
 
@@ -142,23 +153,19 @@ const resolveDeductionInput = async (input) => {
   if ([dimensions.breweryCountry, dimensions.breweryState].includes(input.dimension)) {
     throw fail('Brewery geography deductions are not available until canonical geography is certified.', 409)
   }
-
   if (input.dimension === dimensions.style) {
     const category = await dataProvider.get(COLLECTIONS.categories, input.referenceId)
     if (!category) throw fail('Style not found.', 404)
     return { ...input, valueText: category.category_name || null }
   }
-
   if (input.dimension === dimensions.breweryRuledOut) {
     const producer = await dataProvider.get(COLLECTIONS.producers, input.referenceId)
     if (!producer) throw fail('Brewery not found.', 404)
   }
-
   if (input.dimension === dimensions.beerRuledOut) {
     const product = await dataProvider.get(COLLECTIONS.products, input.referenceId)
     if (!product) throw fail('Beer not found.', 404)
   }
-
   return input
 }
 
@@ -181,7 +188,6 @@ const persistDeductionEvent = async (round, user, key, input) => {
     updated_at: now,
     idempotency_key: key
   }
-
   try {
     return first(await dataProvider.create(COLLECTIONS.brewDoneItDeductions, body))
   } catch (error) {
@@ -194,16 +200,16 @@ const persistDeductionEvent = async (round, user, key, input) => {
 
 export const getSelectorClues = async (roundId, response, user) => {
   const { round, game } = await roundAndGame(roundId, user)
-  if (String(round.selector_participant_id) !== String(user.id)) {
-    throw fail('Only the selector can view the secret clue sheet.', 403)
-  }
+  if (String(round.selector_participant_id) !== String(user.id)) throw fail('Only the selector can view the secret clue sheet.', 403)
 
   const product = await dataProvider.get(COLLECTIONS.products, round.selected_product_id)
   if (!product) throw fail('The selected product cannot be resolved.', 409)
 
+  const producerId = canonicalIdOrNull(product.producer_id)
+  const categoryId = canonicalIdOrNull(product.product_category_id)
   const [producer, category] = await Promise.all([
-    product.producer_id ? dataProvider.get(COLLECTIONS.producers, product.producer_id).catch(() => null) : null,
-    product.product_category_id ? dataProvider.get(COLLECTIONS.categories, product.product_category_id).catch(() => null) : null
+    producerId ? dataProvider.get(COLLECTIONS.producers, producerId).catch(() => null) : null,
+    categoryId ? dataProvider.get(COLLECTIONS.categories, categoryId).catch(() => null) : null
   ])
 
   let history = { enabled: false }
@@ -217,16 +223,19 @@ export const getSelectorClues = async (roundId, response, user) => {
     history = {
       enabled: true,
       exactBeer: aggregate(cleanRatings, productsById, (item) => String(item.id) === String(product.id)),
-      brewery: aggregate(cleanRatings, productsById, (item) => String(item.producer_id) === String(product.producer_id)),
-      style: aggregate(cleanRatings, productsById, (item) => String(item.product_category_id) === String(product.product_category_id))
+      brewery: producerId
+        ? aggregate(cleanRatings, productsById, (item) => canonicalIdOrNull(item.producer_id) === producerId)
+        : unavailableAggregate(),
+      style: categoryId
+        ? aggregate(cleanRatings, productsById, (item) => canonicalIdOrNull(item.product_category_id) === categoryId)
+        : unavailableAggregate()
     }
   }
 
   response.status(200).json({
     brewery: {
-      id: producer?.id ?? product.producer_id ?? null,
+      id: producer?.id ?? producerId,
       name: producer?.producer_name || null,
-      // Geography intentionally remains unknown until a governed canonical source exists.
       suburb: null,
       postcode: null,
       state: null,
@@ -243,13 +252,10 @@ export const getSelectorClues = async (roundId, response, user) => {
       collaboration: booleanOrNull(product.collaboration)
     },
     style: {
-      id: category?.id ?? product.product_category_id ?? null,
+      id: category?.id ?? categoryId,
       name: category?.category_name || product.declared_category || null
     },
-    traits: {
-      dark: 'unknown',
-      barrelAged: 'unknown'
-    },
+    traits: { dark: 'unknown', barrelAged: 'unknown' },
     capabilities: {
       geography: false,
       structuredDarkTrait: false,
@@ -277,7 +283,6 @@ export const recordDeduction = async (roundId, request, response, user) => {
     response.status(200).json({ deduction: projectBrewDoneItDeduction(replay), replayed: true })
     return
   }
-
   input = await resolveDeductionInput(input)
   const saved = await persistDeductionEvent(round, user, key, input)
   response.status(201).json({ deduction: projectBrewDoneItDeduction(saved) })
@@ -285,6 +290,8 @@ export const recordDeduction = async (roundId, request, response, user) => {
 
 export const __testables = {
   aggregate,
+  unavailableAggregate,
+  canonicalIdOrNull,
   sharingEnabled,
   weightedValue,
   booleanOrNull,
