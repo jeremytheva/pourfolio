@@ -1,3 +1,4 @@
+import { completedRatingTotal, RATING_DISTRIBUTION_BUCKETS } from '../lib/completedRatingContract.js'
 import { ApiError } from '../lib/nocodeBackend.js'
 import { ratingDimension } from '../lib/ratingFormulaV1.js'
 
@@ -16,7 +17,7 @@ const PRODUCER_DETAIL_KEYS = new Set(['producer', 'products'])
 const CATEGORY_KEYS = new Set(['id', 'category_name', 'parent_id'])
 const RATING_SUMMARY_KEYS = new Set(['count', 'average'])
 const RATING_INSIGHTS_KEYS = new Set(['distribution', 'attributes'])
-const RATING_BUCKET_KEYS = new Set(['score', 'count'])
+const RATING_BUCKET_KEYS = new Set(['key', 'label', 'minExclusive', 'maxInclusive', 'count'])
 const ATTRIBUTE_INSIGHT_KEYS = new Set(['attributeId', 'name', 'average', 'count'])
 const DECIMAL_NUMBER = /^(?:\d+(?:\.\d+)?|\.\d+)$/u
 
@@ -98,11 +99,14 @@ const validateCategory = (value) => {
 }
 const validateRatingInsights = (value, summary) => {
   const insights = readDataProperties(value, RATING_INSIGHTS_KEYS, ['distribution', 'attributes'])
-  if (!Array.isArray(insights.distribution) || insights.distribution.length !== 6 || !Array.isArray(insights.attributes)) invalid()
+  if (!Array.isArray(insights.distribution) || insights.distribution.length !== RATING_DISTRIBUTION_BUCKETS.length || !Array.isArray(insights.attributes)) invalid()
   const distribution = insights.distribution.map((value, index) => {
-    const bucket = readDataProperties(value, RATING_BUCKET_KEYS, ['score', 'count'])
-    if (bucket.score !== index || !Number.isSafeInteger(bucket.count) || bucket.count < 0) invalid()
-    return { score: bucket.score, count: bucket.count }
+    const bucket = readDataProperties(value, RATING_BUCKET_KEYS, ['key', 'label', 'minExclusive', 'maxInclusive', 'count'])
+    const contract = RATING_DISTRIBUTION_BUCKETS[index]
+    if (bucket.key !== contract.key || bucket.label !== contract.label ||
+      bucket.minExclusive !== contract.minExclusive || bucket.maxInclusive !== contract.maxInclusive ||
+      !Number.isSafeInteger(bucket.count) || bucket.count < 0) invalid()
+    return { ...contract, count: bucket.count }
   })
   if (distribution.reduce((sum, bucket) => sum + bucket.count, 0) !== summary.count) invalid()
   const attributes = insights.attributes.map((value) => {
@@ -147,7 +151,7 @@ const validateProduct = (value, { detail = false } = {}) => {
     if (!Number.isSafeInteger(summary.count) || summary.count < 0) invalid()
     if (summary.count === 0) {
       if (summary.average !== null) invalid()
-    } else if (typeof summary.average !== 'number' || !Number.isFinite(summary.average) || summary.average < 0 || summary.average > 5) invalid()
+    } else if (typeof summary.average !== 'number' || completedRatingTotal(summary.average) === null) invalid()
     result.ratingSummary = { count: summary.count, average: summary.average }
     result.ratingInsights = validateRatingInsights(product.ratingInsights, result.ratingSummary)
     if (Object.hasOwn(product, 'ratings') && (!Array.isArray(product.ratings) || product.ratings.length > 0)) invalid()
