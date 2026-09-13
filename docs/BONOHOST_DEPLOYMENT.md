@@ -8,31 +8,33 @@ Configure the application as follows:
 
 | Setting | Value |
 | --- | --- |
-| Node.js version | `24.x` |
+| Node.js version | `22.23.2` |
 | Application mode | `Production` |
-| Application root | `apps/pourfolio` |
+| Application root | `apps` when the Pourfolio repository files are directly inside `~/apps`; otherwise use the directory that contains `package.json` |
 | Application URL | `https://pourfolio.platformfoundry.top` |
 | Application startup file | `server/index.mjs` |
 
 BonoHost should provide `PORT`. Do not hard-code the public application port. The runtime binds to `0.0.0.0` by default and accepts an optional `HOST` override.
 
-If BonoHost does not provide Node.js 24, do not silently select another runtime. Validate the repository against the proposed runtime and update the repository runtime contract as a separate change.
+Node.js 22 is the governed deployment target. BonoHost's `22.23.2` runtime satisfies Vite 8's Node 22 minimum requirement.
 
 ## Application files
 
-Keep the Git checkout outside `public_html`:
+Keep the Git checkout outside `public_html`.
+
+For the current BonoHost configuration where **Application root = `apps`**, the repository must be checked out directly into:
 
 ```text
-/home/<account>/apps/pourfolio
+/home/<account>/apps
 ```
 
-Initial installation:
+The directory must therefore contain `package.json`, `server/`, `api/`, `src/` and the other repository files directly. It must not contain another nested `pourfolio/` directory unless the application root is changed to `apps/pourfolio`.
+
+Initial installation when `~/apps` is empty:
 
 ```bash
-mkdir -p ~/apps
 cd ~/apps
-git clone https://github.com/jeremytheva/pourfolio.git pourfolio
-cd pourfolio
+git clone https://github.com/jeremytheva/pourfolio.git .
 npm ci
 npm run build
 ```
@@ -42,7 +44,7 @@ After the build, `dist/index.html` and `dist/assets/` must exist. Start or resta
 For subsequent releases:
 
 ```bash
-cd ~/apps/pourfolio
+cd ~/apps
 git pull --ff-only origin main
 npm ci
 npm run build
@@ -62,13 +64,14 @@ NOCODEBACKEND_SECRET_KEY=<secret>
 NOCODEBACKEND_INSTANCE=<instance>
 pourfolio_KV_REST_API_URL=<redis-rest-url>
 pourfolio_KV_REST_API_TOKEN=<secret>
+NODE_ENV=production
 ```
 
 `RATE_LIMIT_KEY_SECRET` is optional. When absent, the application derives a domain-separated rate-limit key from `NOCODEBACKEND_AUTH_SECRET_KEY`.
 
 `ALLOWED_ORIGINS` should remain unset for a normal same-origin deployment. Add explicit origins only when there is an approved cross-origin requirement.
 
-## Runtime behavior
+## Runtime behaviour
 
 `server/runtime.mjs` preserves the production boundaries used by the Vercel deployment:
 
