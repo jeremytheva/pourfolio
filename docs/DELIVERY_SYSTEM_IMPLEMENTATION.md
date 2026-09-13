@@ -1,12 +1,12 @@
 # GitHub–AI delivery-system implementation status
 
-**Current-state review:** 31 August 2026
+**Current-state review:** 13 September 2026
 
 This document describes the current delivery-system implementation and supersedes historical bootstrap/governance snapshots.
 
 ## Current repository state
 
-Pourfolio is a JavaScript/JSX React 19.2 application built by Vite 8, governed on Node.js 24 through `.nvmrc` and `package.json`, and managed with npm/package-lock.
+Pourfolio is a JavaScript/JSX React 19.2 application built by Vite 8, governed on Node.js 22 through `.nvmrc` and `package.json`, and managed with npm/package-lock.
 
 The repository includes:
 
@@ -17,7 +17,7 @@ The repository includes:
 - GitHub Actions source, browser/accessibility, dependency and CodeQL diagnostics;
 - Node policy/unit tests, Playwright tests and axe accessibility checks;
 - NoCodeBackend contract/audit tooling and connected evidence workflows;
-- release checks and Vercel deployment configuration.
+- release checks, Vercel deployment configuration and a host-neutral Node runtime for BonoHost.
 
 A second root `DECISIONS/` directory is deliberately not created because `docs/DECISIONS/` is the canonical ADR authority.
 
@@ -35,7 +35,7 @@ The repository is designed so an AI agent can resume work without depending on p
 
 ## Runtime contract
 
-Node.js 24 is the governed repository/deployment runtime. It replaces Node 20 before Vercel's 1 October 2026 Node 20 build cutoff.
+Node.js 22 is the governed repository/deployment runtime. BonoHost provides Node.js 22.23.2, which satisfies Vite 8's Node 22 minimum requirement. The same major also aligns with the current Vercel project runtime setting.
 
 Runtime alignment is guarded by:
 
@@ -67,7 +67,7 @@ Repository validation does not prove provider authorisation, deployed configurat
 
 Pourfolio follows:
 
-**Draft → Implementing → Validating → Ready → Mergeable → Merged**
+**Implementing → Validating → Ready → Mergeable → Merged**
 
 `MERGE_ALLOWED` requires implementation complete, sufficient project-owned validation, no merge conflicts, material review findings resolved, and no material blocker.
 
@@ -85,24 +85,25 @@ Canonical server-side configuration names are:
 
 - `NOCODEBACKEND_AUTH_BASE_URL`
 - `NOCODEBACKEND_DATA_BASE_URL`
+- `NOCODEBACKEND_AUTH_SECRET_KEY`
 - `NOCODEBACKEND_SECRET_KEY`
 - `NOCODEBACKEND_INSTANCE`
 
-`NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE` are runtime-only values with no committed production default. Missing required runtime configuration fails closed before privileged provider access.
+The provider secrets and instance are runtime-only values with no committed production default. Missing required runtime configuration fails closed before privileged provider access.
 
 Provider authorisation, schema migration and same-state connected certification are not proved by source validation. Owner-deferred backend work remains tracked under its existing issues until explicitly resumed.
 
 ## Deployment boundary
 
-Vercel remains the deployment provider. Exact production SHA, environment configuration, runtime version and connected health/readiness must be verified as runtime evidence rather than inferred from source files. Issue #224 remains authoritative for production deployment evidence.
+Vercel remains supported. BonoHost is supported through the host-neutral `server/index.mjs` runtime and the deployment procedure in `docs/BONOHOST_DEPLOYMENT.md`. Exact production SHA, environment configuration, runtime version and connected health/readiness must be verified as runtime evidence rather than inferred from source files.
 
 ## Current delivery-system direction
 
-1. Complete the Node.js 24 integration and verify its source/runtime contract.
-2. Refresh `STATUS.md` after the integration queue so repository state reflects merged governance, frontend and configuration work.
-3. Reverify exact-SHA production/runtime evidence under #224 when deployment evidence is available.
-4. Preserve owner-deferred NoCodeBackend migration/certification work until explicitly resumed.
-5. Continue independent launch-scope work only where it does not speculate about deferred provider state.
+1. Keep the Node.js 22 runtime contract aligned across source validation and hosting.
+2. Complete BonoHost staging setup using the merged host-neutral Node runtime.
+3. Verify `/api/health`, `/api/readiness`, authentication and core data journeys on the BonoHost staging URL before any DNS cutover.
+4. Preserve the current Vercel deployment until BonoHost runtime/browser evidence is sufficient for rollback-safe migration.
+5. Preserve owner-deferred NoCodeBackend migration/certification work until explicitly resumed.
 
 ## Deliberate boundaries
 
