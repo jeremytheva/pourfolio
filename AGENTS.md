@@ -31,14 +31,14 @@ Pourfolio's launch scope is a beer-first MVP. Reachable production journeys are 
 ## Verified technology stack
 
 - **Client:** React 19.2 with a small same-origin History API router, built by Vite 8; JavaScript/JSX (ES modules).
-- **Runtime/package manager:** Node.js 24 (defined in `.nvmrc` and `package.json`) and npm with `package-lock.json`.
+- **Runtime/package manager:** Node.js 22 (defined in `.nvmrc` and `package.json`) and npm with `package-lock.json`.
 - **Styling:** Tailwind CSS 3, PostCSS, Framer Motion, and React Icons.
 - **Data and authentication:** Browser requests use same-origin endpoints in `src/lib/nocodeBackend.js`. `api/auth-proxy.js` is the authentication proxy; the server data gateways enforce application policy before NoCodeBackend access.
 - **Storage:** Canonical NoCodeBackend collections are `products`, `producers`, `categories`, `ratings`, `rating_scores`, `rating_attributes`, `bonus_attributes`, `bonus_attribute_rating_mapping`, and `cellar`. Provider schema changes require the governed migration/evidence path; do not infer deployment from source files.
 - **Testing:** Node.js built-in `node:test`/`node:assert`, plus Playwright and axe for browser/accessibility tests.
-- **Deployment:** Vercel configuration, SPA rewrites and security headers are committed in `vercel.json`; actual deployed SHA/configuration/readiness must be verified in Vercel/runtime evidence.
+- **Deployment:** Vercel remains supported through `vercel.json`; the host-neutral production entry point is `server/index.mjs` and the BonoHost runbook is `docs/BONOHOST_DEPLOYMENT.md`. Actual deployed SHA/configuration/readiness must be verified in runtime evidence.
 
-Node.js 24 is the governed runtime target. Vercel reported Node 20 as deprecated with a 1 October 2026 build cutoff, so agents must not reintroduce a Node 20 runtime pin. A runtime-major change requires project-owned validation and Vercel runtime evidence appropriate to the release claim.
+Node.js 22 is the governed runtime target. BonoHost provides Node.js 22.23.2, which satisfies Vite 8's Node 22 minimum requirement. A runtime-major change requires project-owned validation and runtime evidence appropriate to the release claim.
 
 ## Repository structure
 
@@ -50,6 +50,7 @@ Node.js 24 is the governed runtime target. Vercel reported Node 20 as deprecated
   - `hooks/` — shared React state.
   - `data/` and `utils/` — canonical contract and pure validation/calculation helpers.
 - `api/` — server-side authentication, provider adapters and data-policy handlers. Keep secrets and privileged upstream calls here.
+- `server/` — host-neutral Node.js production runtime used by BonoHost and other standard Node hosts.
 - `e2e/` — deterministic browser and accessibility tests.
 - `release-check/` — controlled connected staging release checks.
 - `scripts/` — deterministic validation/audit utilities.
@@ -60,7 +61,7 @@ Node.js 24 is the governed runtime target. Vercel reported Node 20 as deprecated
 ## Architecture and security rules
 
 - Keep route composition in `pages/`/`App.jsx`, reusable presentation in `components/`, business/data orchestration in `services/`, browser transport in `lib/`, and trusted server policy/provider access in `api/`.
-- Do not call NoCodeBackend collection or privileged auth endpoints from browser code. `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_INSTANCE` and privileged provider configuration are server-only and must never use a `VITE_` prefix or committed production values.
+- Do not call NoCodeBackend collection or privileged auth endpoints from browser code. `NOCODEBACKEND_AUTH_SECRET_KEY`, `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_INSTANCE` and privileged provider configuration are server-only and must never use a `VITE_` prefix or committed production values.
 - Treat every collection write and role-sensitive action as requiring server-side/provider permission enforcement; client route guards are not authorisation.
 - Keep validation close to the relevant domain boundary, validate untrusted API data before use, and return/display safe errors without secrets, tokens, passwords, raw request bodies or private user data.
 - Browser state belongs in React hooks. Do not persist authentication secrets, roles, privacy settings, ratings, cellar records or sensitive records in `localStorage`.
@@ -162,7 +163,7 @@ Keep focused changes reviewable and avoid unrelated refactors. Preserve supporte
 
 ## Required validation
 
-From the repository root with Node.js 24, the canonical source-validation entry point is:
+From the repository root with Node.js 22, the canonical source-validation entry point is:
 
 ```bash
 npm run platform:validate

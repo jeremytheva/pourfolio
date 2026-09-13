@@ -76,17 +76,17 @@ GitHub Actions/CI is diagnostic evidence under the current project PR policy, no
 |---|---|
 | Frontend | React 19.2 |
 | Build tooling | Vite |
-| Runtime | Node.js 24 |
+| Runtime | Node.js 22 |
 | Package manager | npm |
-| Hosting | Vercel |
+| Hosting | Vercel with BonoHost host-neutral runtime support |
 | Backend provider | NoCodeBackend |
-| Server boundary | Vercel Functions under `api/` |
-| Rate limiting | Vercel KV / Upstash-compatible Redis integration |
+| Server boundary | Same-origin handlers under `api/`, with Vercel and standard Node adapters |
+| Rate limiting | Upstash-compatible Redis integration |
 | Validation | Project-owned validation plus diagnostic GitHub Actions |
 | PR lifecycle | Normal PRs plus repository/PR lifecycle metadata and `.github/workflows/pr-lifecycle.yml` |
 | Browser routing | Small same-origin History API router |
 
-Node.js 24 is the governed repository/deployment target. It replaces Node 20 before Vercel's 1 October 2026 Node 20 build cutoff. `.nvmrc`, `package.json`, validation and deployment evidence must remain aligned.
+Node.js 22 is the governed repository/deployment target. BonoHost provides Node.js 22.23.2, which satisfies Vite 8's Node 22 minimum. `.nvmrc`, `package.json`, validation and deployment evidence must remain aligned.
 
 ## Provider configuration contract
 
@@ -94,6 +94,7 @@ The repository standardises on these server-only NoCodeBackend variables:
 
 - `NOCODEBACKEND_AUTH_BASE_URL`
 - `NOCODEBACKEND_DATA_BASE_URL`
+- `NOCODEBACKEND_AUTH_SECRET_KEY`
 - `NOCODEBACKEND_SECRET_KEY`
 - `NOCODEBACKEND_INSTANCE`
 
@@ -102,7 +103,7 @@ Canonical URL defaults where a fallback is required:
 - Data: `https://api.nocodebackend.com/`
 - Authentication: `https://app.nocodebackend.com/api/user-auth`
 
-`NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE` must be supplied by the runtime/environment and must not have repository defaults or committed production values.
+`NOCODEBACKEND_AUTH_SECRET_KEY`, `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE` must be supplied by the runtime/environment and must not have repository defaults or committed production values.
 
 Browser code must not receive the provider secret or bypass the Pourfolio same-origin server boundary.
 
@@ -136,6 +137,7 @@ For PR lifecycle facts, GitHub is authoritative for open/closed/merged state, la
 - `docs/TESTING.md` — validation strategy.
 - `docs/LAUNCH_READINESS.md` — production gate evidence.
 - `docs/RELEASE_TRACKING.md` — release evidence and phase tracking.
+- `docs/BONOHOST_DEPLOYMENT.md` — BonoHost host-neutral Node deployment runbook.
 - `docs/DECISIONS/` — accepted decision records.
 
 ## Definition of launch-ready

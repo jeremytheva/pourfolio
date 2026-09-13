@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const root = process.cwd()
-const expectedMajor = '24'
+const expectedMajor = '22'
 const expectedEngine = `${expectedMajor}.x`
 const findings = []
 
@@ -36,7 +36,7 @@ const activeGuidance = [
   'PROJECT.md',
   'AGENTS.md',
   'docs/DELIVERY_SYSTEM_IMPLEMENTATION.md',
-  'docs/TESTING.md'
+  'docs/BONOHOST_DEPLOYMENT.md'
 ]
 
 for (const relativePath of activeGuidance) {
