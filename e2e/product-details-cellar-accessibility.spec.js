@@ -71,3 +71,32 @@ test('successful cellar save is announced atomically', async ({ page }) => {
   await expect(status).toHaveAttribute('aria-atomic', 'true')
   await expect(status).toContainText('Cellar item saved.')
 })
+
+test('cellar container uses explicit common choices and a governed Other path', async ({ page }) => {
+  let submittedBody
+  await page.route('**/api/nocodebackend/cellar', async (route) => {
+    if (route.request().method() !== 'POST') return route.fallback()
+    submittedBody = route.request().postDataJSON()
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({ id: 91, ...submittedBody })
+    })
+  })
+
+  await page.goto('/products/4')
+  await page.getByRole('button', { name: 'Add to cellar' }).click()
+
+  const container = page.getByRole('combobox', { name: 'Container' })
+  await expect(container).toHaveValue('')
+  await expect(container.locator('option')).toHaveText(['Not specified', 'Can', 'Bottle', 'Growler', 'Keg', 'Other'])
+
+  await container.selectOption('other')
+  const otherContainer = page.getByRole('textbox', { name: 'Other container' })
+  await expect(otherContainer).toBeVisible()
+  await otherContainer.fill('Crowler')
+  await page.getByRole('button', { name: 'Save cellar item' }).click()
+
+  await expect.poll(() => submittedBody?.container).toBe('Crowler')
+  expect(submittedBody).not.toHaveProperty('cellarContainerMode')
+})
