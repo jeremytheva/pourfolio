@@ -14,13 +14,13 @@ Prototype social, event, venue, analytics, producer/admin, photo and non-beer mo
 
 ## Runtime
 
-- Node.js 24
+- Node.js 22
 - React 19.2
 - Vite 8
 - npm
-- NoCodeBackend through the serverless gateways in `api/`
+- NoCodeBackend through the server gateways in `api/`
 
-Node.js 24 is the governed repository/deployment target. It replaces Node 20 before Vercel's 1 October 2026 Node 20 build cutoff; `.nvmrc`, `package.json` and CI must remain aligned with this runtime contract.
+Node.js 22 is the governed repository/deployment target. BonoHost provides Node.js 22.23.2 and Vite 8 requires Node.js 22.12+ when using the Node 22 line, so the selected BonoHost runtime satisfies the application build requirement. `.nvmrc`, `package.json` and CI must remain aligned with this runtime contract.
 
 ## Local setup
 
@@ -32,7 +32,7 @@ npx vercel dev
 
 Configure the server-only variables described in `.env.example` before starting the
 application. Use `vercel dev` for authenticated local journeys because the Vite
-development server does not execute the serverless gateways in `api/`. The browser
+development server does not execute the server gateways in `api/`. The browser
 receives no provider secret and always calls same-origin
 `/api/nocodebackend/*` routes.
 
@@ -63,5 +63,6 @@ A passing source-validation run is not production certification. Provider author
 - [Testing](docs/TESTING.md)
 - [Launch readiness](docs/LAUNCH_READINESS.md)
 - [Account lifecycle readiness and acceptance contract](docs/account-lifecycle-readiness.md)
+- [BonoHost deployment](docs/BONOHOST_DEPLOYMENT.md)
 
 Production remains blocked until the external gates in `STATUS.md` and the launch-readiness checklist are completed against the connected backend and exact deployed environment.
