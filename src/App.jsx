@@ -9,6 +9,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage.jsx'))
 const HomePage = lazy(() => import('./pages/HomePage.jsx'))
 const BeerDetails = lazy(() => import('./pages/BeerDetails.jsx'))
 const AddBeerProposal = lazy(() => import('./pages/AddBeerProposal.jsx'))
+const EditBeerProposal = lazy(() => import('./pages/EditBeerProposal.jsx'))
 const BreweryProfile = lazy(() => import('./pages/BreweryProfile.jsx'))
 const Styles = lazy(() => import('./pages/Styles.jsx'))
 const StyleProfile = lazy(() => import('./pages/StyleProfile.jsx'))
@@ -65,6 +66,7 @@ function App() {
             <Route path="/styles/:styleId" element={protect(<StyleProfile />)} />
             <Route path="/taste-map" element={protect(<TasteMap />)} />
             <Route path="/products/:productId" element={protect(<BeerDetails />)} />
+            <Route path="/products/:productId/propose-edit" element={protect(<EditBeerProposal />)} />
             <Route path="/products/:productId/rate" element={protect(<RateBeer />)} />
             <Route path="/breweries/:producerId" element={protect(<BreweryProfile />)} />
             <Route path="/users/:publicProfileId" element={protect(<PublicUserProfile />)} />
