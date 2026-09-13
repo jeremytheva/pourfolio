@@ -37,6 +37,11 @@ function ProtectedRoute({ user, onLogout, children }) {
   return <MainLayout user={user} onLogout={onLogout}>{children}</MainLayout>
 }
 
+function AddBeerProposalRoute() {
+  const location = useLocation()
+  return <AddBeerProposal key={`${location.pathname}${location.search}`} />
+}
+
 function App() {
   const { user, loading, signOut } = useAuth()
   const publicDocumentPath = window.location.pathname.replace(/^\//, '')
@@ -60,7 +65,7 @@ function App() {
             <Route path="/login" element={user ? <Navigate to="/home" replace /> : <LoginPage />} />
             <Route path="/home" element={protect(<HomePage />)} />
             <Route path="/search" element={protect(<HomePage searchMode />)} />
-            <Route path="/products/propose" element={protect(<AddBeerProposal />)} />
+            <Route path="/products/propose" element={protect(<AddBeerProposalRoute />)} />
             <Route path="/places" element={protect(<Places />)} />
             <Route path="/styles" element={protect(<Styles />)} />
             <Route path="/styles/:styleId" element={protect(<StyleProfile />)} />
