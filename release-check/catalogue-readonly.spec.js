@@ -57,5 +57,6 @@ test('read-only catalogue failures and verified brewery navigation stay truthful
   await breweryLinks.first().click()
   await expect(page).toHaveURL(new RegExp(`${breweryPath}$`))
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  await expect(page.getByText(/attributed beer/i).first()).toBeVisible()
+  const breweryProducts = page.getByRole('heading', { name: 'Beer from this brewery' }).locator('xpath=..').locator('xpath=..')
+  await expect(breweryProducts.getByRole('link')).not.toHaveCount(0)
 })
