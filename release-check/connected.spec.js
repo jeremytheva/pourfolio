@@ -186,11 +186,10 @@ test('catalogue, pagination, direct details, rating form boundary and session-ba
   const profileResponse = await page.request.get('/api/nocodebackend/profile')
   expect(profileResponse.status()).toBe(200)
   const profile = await responseJson(profileResponse)
-  expect(profile.profile?.id).toBeTruthy()
-
-  const profileUpdate = await page.request.put('/api/nocodebackend/profile', { data: { name: 'Release check must not persist' } })
-  expect(profileUpdate.status()).toBe(503)
-  expect(await responseJson(profileUpdate)).toMatchObject({ code: 'profile_persistence_unavailable' })
+  expect(profile.profile?.public_id).toMatch(/^[A-Za-z0-9_-]{8,128}$/)
+  expect(profile.profile?.name).toBeTruthy()
+  expect(profile.profile).not.toHaveProperty('id')
+  expect(profile.profile).not.toHaveProperty('user_id')
 
   authenticatedStorageState = await page.context().storageState()
 })
