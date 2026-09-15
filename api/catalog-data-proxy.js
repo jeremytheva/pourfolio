@@ -158,6 +158,21 @@ const listProducts = async (request, response) => {
   })
 }
 
+const listProducers = async (request, response) => {
+  const page = Math.max(1, Number.parseInt(request.query?.page, 10) || 1)
+  const limit = Math.min(100, Math.max(1, Number.parseInt(request.query?.limit, 10) || 50))
+  const providerPage = await dataProvider.listPage(COLLECTIONS.producers, {
+    page, limit, orderBy: 'producer_name', order: 'asc'
+  })
+  response.status(200).json({
+    items: normaliseList(providerPage.items).map(projectProducer),
+    page: providerPage.page,
+    pageSize: providerPage.pageSize,
+    total: providerPage.total,
+    totalPages: providerPage.totalPages
+  })
+}
+
 const getProduct = async (id, response) => {
   const product = await dataProvider.get(COLLECTIONS.products, parsePositiveId(id, 'Product identifier'))
   if (!product) {
@@ -208,6 +223,12 @@ const providerWriteFailure = (message) => {
   return error
 }
 
+const providerCreatedId = (record, label) => {
+  const text = String(record?.id ?? '').trim()
+  if (!/^[1-9]\d*$/.test(text)) throw providerWriteFailure(`${label} did not return a record identifier.`)
+  return text
+}
+
 const resolveProducerForCreate = async (input, userId) => {
   if (input.producer_id) {
     const producer = await dataProvider.get(COLLECTIONS.producers, input.producer_id)
@@ -231,7 +252,7 @@ const resolveProducerForCreate = async (input, userId) => {
     ...(input.new_producer.address ? { address: input.new_producer.address } : {})
   }
   const created = first(await dataProvider.create(COLLECTIONS.producers, producerPayload))
-  const createdId = parsePositiveId(created?.id, 'Created producer identifier')
+  const createdId = providerCreatedId(created, 'Producer creation')
   const persisted = await dataProvider.get(COLLECTIONS.producers, createdId)
   if (!persisted || String(persisted.id ?? '') !== createdId ||
       normaliseName(persisted.producer_name) !== requestedName ||
@@ -298,7 +319,7 @@ const createProduct = async (request, response, user) => {
     product_image: input.product_image
   }
   const created = first(await dataProvider.create(COLLECTIONS.products, productPayload))
-  const createdId = parsePositiveId(created?.id, 'Created product identifier')
+  const createdId = providerCreatedId(created, 'Product creation')
   const persisted = await dataProvider.get(COLLECTIONS.products, createdId)
   if (!persisted || String(persisted.id ?? '') !== createdId ||
       String(persisted.user_id ?? '') !== String(user.id) ||
@@ -346,6 +367,7 @@ export const routeCatalogueRequest = async (request, response, user) => {
   if (resource === 'catalog' && id === 'products' && !action && request.method === 'GET') return listProducts(request, response)
   if (resource === 'catalog' && id === 'products' && !action && request.method === 'POST') return createProduct(request, response, user)
   if (resource === 'catalog' && id === 'products' && action && request.method === 'GET') return getProduct(action, response)
+  if (resource === 'catalog' && id === 'producers' && !action && request.method === 'GET') return listProducers(request, response)
   if (resource === 'catalog' && id === 'producers' && action && request.method === 'GET') return getProducer(action, response)
   if (resource === 'rating-form' && !id && request.method === 'GET') return getRatingForm(request, response, user)
   response.status(404).json({ error: 'Application data route not found.' })
@@ -390,6 +412,7 @@ export const __testables = {
   safeRelationshipList,
   isCompletedRating,
   buildRatingInsights,
+  listProducers,
   getProduct,
   getProducer,
   getRatingForm,
