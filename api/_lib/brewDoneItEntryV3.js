@@ -38,11 +38,9 @@ const routeKind = (request) => {
   return null
 }
 
-const brewDoneItBackendEnabled = (env = process.env) => {
-  if (env.BREW_DONE_IT_POLICY_ENABLED === 'true') return true
-  if (env.VERCEL_ENV === 'preview' || env.VERCEL_ENV === 'development') return true
-  return env.NODE_ENV !== 'production'
-}
+const brewDoneItBackendEnabled = (env = process.env) => String(
+  env.BREW_DONE_IT_POLICY_ENABLED ?? ''
+).trim().toLowerCase() !== 'false'
 
 const runV3Route = async (request, response, route) => {
   if (!brewDoneItBackendEnabled()) {
