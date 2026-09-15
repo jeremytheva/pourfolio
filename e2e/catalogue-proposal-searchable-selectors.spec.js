@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { RATING_DISTRIBUTION_BUCKETS } from '../src/lib/completedRatingContract.js'
 import { installMockApi, product } from './mockApi.js'
 
 const secondProduct = {
@@ -12,6 +13,11 @@ const secondProduct = {
   category: { id: 11, category_name: 'Stout' }
 }
 
+const emptyRatingInsights = {
+  distribution: RATING_DISTRIBUTION_BUCKETS.map((bucket) => ({ ...bucket, count: 0 })),
+  attributes: []
+}
+
 const createdProduct = {
   ...product,
   id: 6,
@@ -22,7 +28,7 @@ const createdProduct = {
   producer: { id: 21, producer_name: 'Other Brewing' },
   category: { id: 11, category_name: 'Stout' },
   ratingSummary: { count: 0, average: null },
-  ratingInsights: { distribution: [], attributes: [] },
+  ratingInsights: emptyRatingInsights,
   ratings: []
 }
 
