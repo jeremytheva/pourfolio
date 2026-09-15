@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { FiBookOpen, FiCompass, FiHome, FiLogOut, FiMapPin, FiPlusCircle, FiSearch, FiSettings, FiUser } from 'react-icons/fi'
+import { FiBookOpen, FiCompass, FiHome, FiLogOut, FiMapPin, FiPlusCircle, FiSearch, FiSettings, FiTarget, FiUser } from 'react-icons/fi'
 import { Link, NavLink, useLocation } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import PublicDocumentLinks from './PublicDocumentLinks.jsx'
@@ -8,6 +8,7 @@ const navigation = [
   { to: '/home', label: 'Discover', icon: FiHome },
   { to: '/styles', label: 'Styles', icon: FiBookOpen },
   { to: '/taste-map', label: 'Beer Passport', icon: FiCompass },
+  { to: '/brew-done-it', label: 'Brew Done It', icon: FiTarget },
   { to: '/places', label: 'Breweries & Venues', icon: FiMapPin },
   { to: '/search', label: 'Search', icon: FiSearch },
   { to: '/products/propose', label: 'Add Beer', icon: FiPlusCircle },
@@ -19,6 +20,7 @@ const routeLabel = (pathname) => {
   if (pathname === '/styles') return 'Beer styles'
   if (/^\/styles\/[^/]+$/.test(pathname)) return 'Beer style details'
   if (pathname === '/taste-map') return 'Taste Map and Beer Passport'
+  if (pathname === '/brew-done-it') return 'Brew Done It'
   if (pathname === '/places') return 'Breweries and venues'
   if (pathname === '/search') return 'Search'
   if (pathname === '/products/propose') return 'Add beer proposal'
@@ -92,7 +94,7 @@ function MainLayout({ children, user, onLogout }) {
             </button>
           </div>
         </div>
-        {signOutError && <div ref={signOutErrorRef} tabIndex={-1} role="alert" className="mx-auto max-w-7xl px-4 pb-3 text-sm font-medium text-red-700 outline-none sm:px-6 lg:px-8">{signOutError}</div>}
+        {signOutError && <div ref={signOutErrorRef} tabIndex={-1} role="alert" className="mx-auto max-w-7xl px-4 pb-3 text-sm font-medium text-red-700 outline-none focus:ring-2 focus:ring-red-300 sm:px-6 lg:px-8">{signOutError}</div>}
       </header>
       <main ref={mainContentRef} id="main-content" tabIndex={-1} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-400">{children}</main>
       <footer className="border-t border-gray-200 bg-white">
