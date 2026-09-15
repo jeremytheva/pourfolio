@@ -1,6 +1,6 @@
 {
   "contract_name": "pourfolio-data-contract",
-  "contract_version": "1.0.1",
+  "contract_version": "1.1.0",
   "authority": {
     "repository": "jeremytheva/pourfolio",
     "classification_document": "docs/nocodebackend/launch-schema-contract.md",
@@ -12,7 +12,7 @@
   },
   "evidence": {
     "provider_instance": "54026_rating",
-    "basis": "repository-supplied provider export plus the governed launch classification",
+    "basis": "repository-supplied provider export plus governed owner-provisioned Brew Done It v3 tables and launch classification",
     "live_introspection": false
   },
   "provider": {
@@ -163,6 +163,118 @@
         "bet_id",
         "notes"
       ]
+    },
+    "brew_done_it_games": {
+      "classification": "DEPLOYED_OPTIONAL",
+      "provider_fields": [
+        "id",
+        "user_id",
+        "creator_participant_id",
+        "opponent_participant_id",
+        "creator_history_clues_enabled",
+        "opponent_history_clues_enabled",
+        "invitation_digest",
+        "status",
+        "current_round_number",
+        "version",
+        "creation_idempotency_key",
+        "creation_request_fingerprint",
+        "join_idempotency_key",
+        "terminal_idempotency_key",
+        "created_at",
+        "joined_at",
+        "last_activity_at",
+        "expires_at",
+        "archived_at"
+      ]
+    },
+    "brew_done_it_rounds": {
+      "classification": "DEPLOYED_OPTIONAL",
+      "provider_fields": [
+        "id",
+        "user_id",
+        "game_id",
+        "round_number",
+        "selector_participant_id",
+        "guesser_participant_id",
+        "selected_product_id",
+        "status",
+        "turn_sequence",
+        "max_turns",
+        "question_count",
+        "incorrect_formal_guess_count",
+        "incorrect_guess_count",
+        "brewery_correct",
+        "beer_correct",
+        "style_correct",
+        "version",
+        "pending_action_key",
+        "pending_action_type",
+        "pending_action_started_at",
+        "last_action_key",
+        "last_action_type",
+        "round_creation_idempotency_key",
+        "terminal_idempotency_key",
+        "scoring_rules_version",
+        "awarded_points",
+        "score_breakdown",
+        "completion_reason",
+        "created_at",
+        "started_at",
+        "completed_at"
+      ],
+      "relationships": {
+        "game_id": "brew_done_it_games.id",
+        "selected_product_id": "products.id"
+      }
+    },
+    "brew_done_it_guesses": {
+      "classification": "DEPLOYED_OPTIONAL",
+      "provider_fields": [
+        "id",
+        "user_id",
+        "round_id",
+        "turn_sequence",
+        "guess_type",
+        "guessed_product_id",
+        "guessed_producer_id",
+        "guessed_category_id",
+        "guesser_participant_id",
+        "is_correct",
+        "idempotency_key",
+        "action_state",
+        "committed_round_version",
+        "created_at"
+      ],
+      "relationships": {
+        "round_id": "brew_done_it_rounds.id",
+        "guessed_product_id": "products.id",
+        "guessed_producer_id": "producers.id",
+        "guessed_category_id": "categories.id"
+      }
+    },
+    "brew_done_it_deductions": {
+      "classification": "DEPLOYED_OPTIONAL",
+      "provider_fields": [
+        "id",
+        "user_id",
+        "round_id",
+        "recorded_by_participant_id",
+        "dimension",
+        "answer",
+        "value_text",
+        "reference_id",
+        "numeric_value",
+        "idempotency_key",
+        "observed_round_version",
+        "action_state",
+        "committed_round_version",
+        "created_at",
+        "updated_at"
+      ],
+      "relationships": {
+        "round_id": "brew_done_it_rounds.id"
+      }
     },
     "product_producers": {
       "classification": "UNAVAILABLE",
