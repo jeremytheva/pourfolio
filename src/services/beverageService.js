@@ -32,6 +32,15 @@ export const beverageService = {
     return validateCatalogueProduct(await apiRequest(`/catalog/products/${identifier}`), {
       expectedProductId: identifier
     })
+  },
+
+  async createProduct(input) {
+    const payload = await apiRequest('/catalog/products', { method: 'POST', body: input })
+    const identifier = normaliseCatalogueProductId(payload?.product?.id)
+    return {
+      product: await beverageService.getProduct(identifier),
+      producerCreated: payload?.producerCreated === true
+    }
   }
 }
 

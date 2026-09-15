@@ -53,6 +53,106 @@ const positiveId = (value, label) => {
   return result
 }
 
+const catalogueValidationError = (message) => {
+  const error = new Error(message)
+  error.status = 400
+  error.code = 'CATALOGUE_INPUT_INVALID'
+  return error
+}
+
+const catalogueText = (value, { label, max = 255, required = false } = {}) => {
+  if (value === undefined || value === null) {
+    if (required) throw catalogueValidationError(`${label} is required.`)
+    return null
+  }
+  const text = String(value).trim().replace(/\s+/g, ' ')
+  if (!text) {
+    if (required) throw catalogueValidationError(`${label} is required.`)
+    return null
+  }
+  if (text.length > max) throw catalogueValidationError(`${label} must be ${max} characters or fewer.`)
+  return text
+}
+
+const catalogueId = (value, label) => {
+  try {
+    return positiveId(value, label)
+  } catch {
+    throw catalogueValidationError(`${label} is invalid.`)
+  }
+}
+
+const catalogueBoolean = (value, label) => {
+  if (value === undefined || value === null || value === false || value === 0 || value === '0') return 0
+  if (value === true || value === 1 || value === '1') return 1
+  throw catalogueValidationError(`${label} is invalid.`)
+}
+
+export const sanitiseProducerCreateInput = (input) => {
+  const body = requirePlainObject(input)
+  return {
+    producer_name: catalogueText(body.producer_name, { label: 'Producer name', required: true }),
+    ...(body.address === undefined ? {} : { address: catalogueText(body.address, { label: 'Producer address' }) })
+  }
+}
+
+export const sanitiseProductCreateInput = (input) => {
+  const body = requirePlainObject(input)
+  const existingProducerId = body.producer_id === undefined || body.producer_id === null || body.producer_id === ''
+    ? null
+    : catalogueId(body.producer_id, 'Producer identifier')
+  const newProducer = body.new_producer === undefined || body.new_producer === null
+    ? null
+    : sanitiseProducerCreateInput(body.new_producer)
+
+  if (Boolean(existingProducerId) === Boolean(newProducer)) {
+    throw catalogueValidationError('Choose one existing producer or provide one new producer.')
+  }
+
+  let abv = null
+  if (body.abv !== undefined && body.abv !== null && body.abv !== '') {
+    abv = Number(body.abv)
+    if (!Number.isFinite(abv) || abv < 0 || abv > 80) throw catalogueValidationError('ABV must be between 0 and 80.')
+    abv = Number(abv.toFixed(2))
+  }
+
+  let ibu = null
+  if (body.ibu !== undefined && body.ibu !== null && body.ibu !== '') {
+    const numericIbu = Number(body.ibu)
+    if (!Number.isFinite(numericIbu) || numericIbu < 0 || numericIbu > 10000) {
+      throw catalogueValidationError('IBU must be a number between 0 and 10000.')
+    }
+    ibu = String(numericIbu)
+  }
+
+  const productImage = catalogueText(body.product_image, { label: 'Product image', max: 255 })
+  if (productImage) {
+    let validImage = productImage.startsWith('/') && !productImage.startsWith('//')
+    if (!validImage) {
+      try {
+        const url = new URL(productImage)
+        validImage = url.protocol === 'https:' && !url.username && !url.password
+      } catch {
+        validImage = false
+      }
+    }
+    if (!validImage) throw catalogueValidationError('Product image must use HTTPS or a local application path.')
+  }
+
+  return {
+    product_name: catalogueText(body.product_name, { label: 'Product name', required: true }),
+    product_category_id: catalogueId(body.product_category_id, 'Product category identifier'),
+    producer_id: existingProducerId,
+    new_producer: newProducer,
+    abv,
+    ibu,
+    declared_category: catalogueText(body.declared_category, { label: 'Declared category' }),
+    edition: catalogueText(body.edition, { label: 'Edition' }),
+    collaboration: catalogueBoolean(body.collaboration, 'Collaboration flag'),
+    product_image: productImage
+  }
+}
+
 export const sanitiseCustomBonusAttributeInput = (input) => {
   const body = requirePlainObject(input)
   const description = String(body.description ?? '').trim().replace(/\s+/g, ' ')

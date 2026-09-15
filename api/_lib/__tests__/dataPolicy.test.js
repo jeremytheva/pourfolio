@@ -4,6 +4,8 @@ import {
   isOwnedBy,
   projectProduct,
   sanitiseCellarInput,
+  sanitiseProductCreateInput,
+  sanitiseProducerCreateInput,
   sanitiseProfileUpdates
 } from '../dataPolicy.js'
 import { CELLAR_GATED_RELATIONSHIP_FIELDS } from '../../../src/data/contract.js'
@@ -23,6 +25,86 @@ test('profile updates use an explicit editable-field allowlist', () => {
 
 test('blank profile names are rejected', () => {
   assert.throws(() => sanitiseProfileUpdates({ name: '  ' }), /name is required/)
+})
+
+test('product creation accepts a verified producer relationship and strips browser ownership fields', () => {
+  assert.deepEqual(sanitiseProductCreateInput({
+    product_name: '  Launch   Lager ',
+    product_category_id: 11,
+    producer_id: 21,
+    abv: '5.25',
+    ibu: '32',
+    declared_category: ' Lager ',
+    edition: ' 2026 ',
+    collaboration: true,
+    product_image: 'https://example.com/beer.jpg',
+    user_id: 'browser-user',
+    id: 999
+  }), {
+    product_name: 'Launch Lager',
+    product_category_id: '11',
+    producer_id: '21',
+    new_producer: null,
+    abv: 5.25,
+    ibu: '32',
+    declared_category: 'Lager',
+    edition: '2026',
+    collaboration: 1,
+    product_image: 'https://example.com/beer.jpg'
+  })
+})
+
+test('product creation accepts one new producer and does not accept a competing producer id', () => {
+  assert.deepEqual(sanitiseProductCreateInput({
+    product_name: 'New Beer',
+    product_category_id: '10',
+    new_producer: { producer_name: '  New   Brewing  ' }
+  }), {
+    product_name: 'New Beer',
+    product_category_id: '10',
+    producer_id: null,
+    new_producer: { producer_name: 'New Brewing' },
+    abv: null,
+    ibu: null,
+    declared_category: null,
+    edition: null,
+    collaboration: 0,
+    product_image: null
+  })
+
+  assert.throws(() => sanitiseProductCreateInput({
+    product_name: 'New Beer',
+    product_category_id: '10',
+    producer_id: '20',
+    new_producer: { producer_name: 'New Brewing' }
+  }), (error) => error.status === 400 && /Choose one existing producer/.test(error.message))
+
+  assert.throws(() => sanitiseProductCreateInput({
+    product_name: 'New Beer',
+    product_category_id: '10'
+  }), (error) => error.status === 400 && /Choose one existing producer/.test(error.message))
+})
+
+test('product creation enforces product-table bounds and safe image urls', () => {
+  const base = { product_name: 'Beer', product_category_id: 10, producer_id: 20 }
+  assert.throws(() => sanitiseProductCreateInput({ ...base, abv: 81 }), /ABV must be between 0 and 80/)
+  assert.throws(() => sanitiseProductCreateInput({ ...base, ibu: -1 }), /IBU must be a number/)
+  assert.throws(() => sanitiseProductCreateInput({ ...base, product_image: 'http://example.com/a.jpg' }), /must use HTTPS/)
+  assert.throws(() => sanitiseProductCreateInput({ ...base, collaboration: 'yes' }), /Collaboration flag is invalid/)
+  assert.equal(sanitiseProductCreateInput({ ...base, product_image: '/images/a.jpg' }).product_image, '/images/a.jpg')
+})
+
+test('producer creation keeps only supported producer fields', () => {
+  assert.deepEqual(sanitiseProducerCreateInput({
+    producer_name: '  Test   Brewing ',
+    address: '  1 Test Street ',
+    suburb_id: 55,
+    user_id: 'browser-user'
+  }), {
+    producer_name: 'Test Brewing',
+    address: '1 Test Street'
+  })
+  assert.throws(() => sanitiseProducerCreateInput({ producer_name: '  ' }), /Producer name is required/)
 })
 
 test('cellar ownership and server fields are stripped from browser input', () => {

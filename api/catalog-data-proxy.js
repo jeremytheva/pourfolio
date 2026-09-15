@@ -12,7 +12,8 @@ import {
   CATEGORY_FIELDS,
   PRODUCT_FIELDS,
   PRODUCER_FIELDS,
-  projectAttribute
+  projectAttribute,
+  sanitiseProductCreateInput
 } from './_lib/dataPolicy.js'
 import { pickFields } from '../src/data/contract.js'
 import {
@@ -23,10 +24,12 @@ import {
 } from './_lib/httpSecurity.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 
-const ALLOWED_METHODS = new Set(['GET'])
+const ALLOWED_METHODS = new Set(['GET', 'POST'])
 const asArray = (value) => (Array.isArray(value) ? value : value ? [value] : [])
 const normaliseList = (value) => asArray(value).filter((item) => item && typeof item === 'object')
+const first = (value) => (Array.isArray(value) ? value[0] || null : value || null)
 const indexById = (records) => new Map(records.map((record) => [String(record.id), record]))
+const normaliseName = (value) => String(value || '').trim().toLocaleLowerCase().replace(/\s+/gu, ' ')
 
 const pathSegments = (request) => {
   const raw = request.query?.path
@@ -155,6 +158,21 @@ const listProducts = async (request, response) => {
   })
 }
 
+const listProducers = async (request, response) => {
+  const page = Math.max(1, Number.parseInt(request.query?.page, 10) || 1)
+  const limit = Math.min(100, Math.max(1, Number.parseInt(request.query?.limit, 10) || 50))
+  const providerPage = await dataProvider.listPage(COLLECTIONS.producers, {
+    page, limit, orderBy: 'producer_name', order: 'asc'
+  })
+  response.status(200).json({
+    items: normaliseList(providerPage.items).map(projectProducer),
+    page: providerPage.page,
+    pageSize: providerPage.pageSize,
+    total: providerPage.total,
+    totalPages: providerPage.totalPages
+  })
+}
+
 const getProduct = async (id, response) => {
   const product = await dataProvider.get(COLLECTIONS.products, parsePositiveId(id, 'Product identifier'))
   if (!product) {
@@ -198,6 +216,131 @@ const getProducer = async (id, response) => {
   })
 }
 
+const providerWriteFailure = (message) => {
+  const error = new Error(message)
+  error.status = 502
+  error.code = 'CATALOGUE_WRITE_FAILED'
+  return error
+}
+
+const providerCreatedId = (record, label) => {
+  const text = String(record?.id ?? '').trim()
+  if (!/^[1-9]\d*$/.test(text)) throw providerWriteFailure(`${label} did not return a record identifier.`)
+  return text
+}
+
+const resolveProducerForCreate = async (input, userId) => {
+  if (input.producer_id) {
+    const producer = await dataProvider.get(COLLECTIONS.producers, input.producer_id)
+    if (!producer || String(producer.id ?? '') !== String(input.producer_id)) {
+      const error = new Error('Selected producer is not available.')
+      error.status = 400
+      error.code = 'PRODUCER_NOT_FOUND'
+      throw error
+    }
+    return { producer, created: false }
+  }
+
+  const requestedName = normaliseName(input.new_producer.producer_name)
+  const existing = normaliseList(await dataProvider.list(COLLECTIONS.producers))
+    .find((producer) => normaliseName(producer.producer_name) === requestedName)
+  if (existing) return { producer: existing, created: false }
+
+  const producerPayload = {
+    user_id: userId,
+    producer_name: input.new_producer.producer_name,
+    ...(input.new_producer.address ? { address: input.new_producer.address } : {})
+  }
+  const created = first(await dataProvider.create(COLLECTIONS.producers, producerPayload))
+  const createdId = providerCreatedId(created, 'Producer creation')
+  const persisted = await dataProvider.get(COLLECTIONS.producers, createdId)
+  if (!persisted || String(persisted.id ?? '') !== createdId ||
+      normaliseName(persisted.producer_name) !== requestedName ||
+      String(persisted.user_id ?? '') !== String(userId)) {
+    throw providerWriteFailure('The producer could not be verified after creation.')
+  }
+  return { producer: persisted, created: true }
+}
+
+const exactProductDuplicate = (products, input, producerId) => {
+  const targetName = normaliseName(input.product_name)
+  const targetEdition = normaliseName(input.edition)
+  return products.find((product) => (
+    String(product.producer_id ?? '') === String(producerId) &&
+    String(product.product_category_id ?? '') === String(input.product_category_id) &&
+    normaliseName(product.product_name) === targetName &&
+    normaliseName(product.edition) === targetEdition
+  )) || null
+}
+
+const createProduct = async (request, response, user) => {
+  let input
+  try {
+    input = sanitiseProductCreateInput(request.body)
+  } catch (error) {
+    if (!error.status) error.status = 400
+    throw error
+  }
+
+  const category = await dataProvider.get(COLLECTIONS.categories, input.product_category_id)
+  if (!category || String(category.id ?? '') !== String(input.product_category_id)) {
+    const error = new Error('Selected beer style/category is not available.')
+    error.status = 400
+    error.code = 'CATEGORY_NOT_FOUND'
+    throw error
+  }
+
+  const { producer, created: producerCreated } = await resolveProducerForCreate(input, user.id)
+  const producerId = parsePositiveId(producer.id, 'Producer identifier')
+  const producerProducts = normaliseList(await dataProvider.list(COLLECTIONS.products, { producer_id: producerId }))
+  const duplicate = exactProductDuplicate(producerProducts, input, producerId)
+  if (duplicate) {
+    const error = new Error('This beer already exists for the selected producer, style and edition.')
+    error.status = 409
+    error.code = 'PRODUCT_ALREADY_EXISTS'
+    error.payload = {
+      error: error.message,
+      code: error.code,
+      existingProductId: duplicate.id
+    }
+    throw error
+  }
+
+  const productPayload = {
+    user_id: user.id,
+    product_name: input.product_name,
+    product_category_id: input.product_category_id,
+    producer_id: producerId,
+    abv: input.abv,
+    ibu: input.ibu,
+    declared_category: input.declared_category,
+    edition: input.edition,
+    collaboration: input.collaboration,
+    product_image: input.product_image
+  }
+  const created = first(await dataProvider.create(COLLECTIONS.products, productPayload))
+  const createdId = providerCreatedId(created, 'Product creation')
+  const persisted = await dataProvider.get(COLLECTIONS.products, createdId)
+  if (!persisted || String(persisted.id ?? '') !== createdId ||
+      String(persisted.user_id ?? '') !== String(user.id) ||
+      String(persisted.producer_id ?? '') !== producerId ||
+      String(persisted.product_category_id ?? '') !== String(input.product_category_id) ||
+      normaliseName(persisted.product_name) !== normaliseName(input.product_name)) {
+    throw providerWriteFailure('The product could not be verified after creation.')
+  }
+
+  const projectedProducer = projectProducer(producer)
+  response.status(201).json({
+    product: {
+      ...pickFields(persisted, PRODUCT_FIELDS),
+      producer: projectedProducer,
+      producers: projectedProducer ? [projectedProducer] : [],
+      category: projectCategory(category)
+    },
+    producerCreated
+  })
+}
+
 const getRatingForm = async (request, response, user) => {
   const productId = parsePositiveId(request.query?.product_id, 'Product identifier')
   const product = await dataProvider.get(COLLECTIONS.products, productId)
@@ -221,10 +364,12 @@ const getRatingForm = async (request, response, user) => {
 
 export const routeCatalogueRequest = async (request, response, user) => {
   const [resource, id, action] = pathSegments(request)
-  if (resource === 'catalog' && id === 'products' && !action) return listProducts(request, response)
-  if (resource === 'catalog' && id === 'products' && action) return getProduct(action, response)
-  if (resource === 'catalog' && id === 'producers' && action) return getProducer(action, response)
-  if (resource === 'rating-form' && !id) return getRatingForm(request, response, user)
+  if (resource === 'catalog' && id === 'products' && !action && request.method === 'GET') return listProducts(request, response)
+  if (resource === 'catalog' && id === 'products' && !action && request.method === 'POST') return createProduct(request, response, user)
+  if (resource === 'catalog' && id === 'products' && action && request.method === 'GET') return getProduct(action, response)
+  if (resource === 'catalog' && id === 'producers' && !action && request.method === 'GET') return listProducers(request, response)
+  if (resource === 'catalog' && id === 'producers' && action && request.method === 'GET') return getProducer(action, response)
+  if (resource === 'rating-form' && !id && request.method === 'GET') return getRatingForm(request, response, user)
   response.status(404).json({ error: 'Application data route not found.' })
 }
 
@@ -233,12 +378,16 @@ export default async function handler(request, response) {
   response.setHeader('X-Request-Id', correlationId)
   response.setHeader('Cache-Control', 'no-store')
   if (!ALLOWED_METHODS.has(request.method)) {
-    response.setHeader('Allow', 'GET')
+    response.setHeader('Allow', 'GET, POST')
     response.status(405).json({ error: 'Method not allowed.' })
     return
   }
   if (!enforceRequestSize(request, response) || !enforceOrigin(request, response)) return
-  if (!enforceRateLimit(request, response, { key: 'data-read', limit: 240 })) return
+  const writeRequest = request.method === 'POST'
+  if (!enforceRateLimit(request, response, {
+    key: writeRequest ? 'catalog-write' : 'data-read',
+    limit: writeRequest ? 30 : 240
+  })) return
   try {
     const user = await requireSessionUser(request)
     await routeCatalogueRequest(request, response, user)
@@ -263,7 +412,11 @@ export const __testables = {
   safeRelationshipList,
   isCompletedRating,
   buildRatingInsights,
+  listProducers,
   getProduct,
   getProducer,
-  getRatingForm
+  getRatingForm,
+  resolveProducerForCreate,
+  exactProductDuplicate,
+  createProduct
 }
