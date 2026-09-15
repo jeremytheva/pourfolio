@@ -10,7 +10,11 @@ export const DEPLOYED_COLLECTIONS = Object.freeze({
   bonusAttributeCategoryMappings: 'bonus_attribute_category_mapping',
   bonusRatingMappings: 'bonus_attribute_rating_mapping',
   cellar: 'cellar',
-  profiles: 'profiles'
+  profiles: 'profiles',
+  brewDoneItGames: 'brew_done_it_games',
+  brewDoneItRounds: 'brew_done_it_rounds',
+  brewDoneItGuesses: 'brew_done_it_guesses',
+  brewDoneItDeductions: 'brew_done_it_deductions'
 })
 
 // These names describe approved target/prototype capabilities only. They are not
@@ -18,10 +22,6 @@ export const DEPLOYED_COLLECTIONS = Object.freeze({
 // depend on them until a governed migration/capability verification promotes them.
 export const DEFERRED_COLLECTIONS = Object.freeze({
   productProducers: 'product_producers',
-  brewDoneItGames: 'brew_done_it_games',
-  brewDoneItRounds: 'brew_done_it_rounds',
-  brewDoneItGuesses: 'brew_done_it_guesses',
-  brewDoneItDeductions: 'brew_done_it_deductions',
   // Legacy v2 collection retained only for backwards compatibility while the
   // contained deduction-board model is developed. New v3 gameplay does not
   // persist natural-language/conversational questions as scored actions.
