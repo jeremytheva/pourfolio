@@ -12,6 +12,20 @@ const secondProduct = {
   category: { id: 11, category_name: 'Stout' }
 }
 
+const createdProduct = {
+  ...product,
+  id: 6,
+  product_name: 'New Beer',
+  producer_id: 21,
+  product_category_id: 11,
+  edition: null,
+  producer: { id: 21, producer_name: 'Other Brewing' },
+  category: { id: 11, category_name: 'Stout' },
+  ratingSummary: { count: 0, average: null },
+  ratingInsights: { distribution: [], attributes: [] },
+  ratings: []
+}
+
 const installVerifiedRelationshipPage = async (page) => {
   await page.route('**/api/nocodebackend/catalog/products?page=1&limit=50', (route) => route.fulfill({
     status: 200,
@@ -32,18 +46,38 @@ const installDuplicateSearch = async (page) => {
   })
 }
 
+const installCreatedProductDetail = async (page, override = {}) => {
+  const productPayload = { ...createdProduct, ...override }
+  await page.route(`**/api/nocodebackend/catalog/products/${productPayload.id}`, (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify(productPayload)
+  }))
+}
+
 test.beforeEach(async ({ page }) => {
   await installMockApi(page)
   await installVerifiedRelationshipPage(page)
 })
 
-test('missing-beer proposal filters verified breweries and styles before review', async ({ page }) => {
-  await page.goto('/products/propose?name=New%20Beer')
+test('add beer links an existing verified producer and creates the product', async ({ page }) => {
+  let submittedBody
+  await installCreatedProductDetail(page)
+  await page.route('**/api/nocodebackend/catalog/products', async (route) => {
+    if (route.request().method() !== 'POST') return route.fallback()
+    submittedBody = route.request().postDataJSON()
+    return route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({ product: createdProduct, producerCreated: false })
+    })
+  })
 
-  await expect(page.getByRole('heading', { name: 'Propose a missing beer' })).toBeVisible()
+  await page.goto('/products/propose?name=New%20Beer')
+  await expect(page.getByRole('heading', { name: 'Add a beer' })).toBeVisible()
 
   const producerSearch = page.getByLabel('Search breweries')
-  const producerSelect = page.getByLabel('Brewery / producer')
+  const producerSelect = page.getByLabel('Select brewery')
   await producerSearch.fill('Other')
   await expect(page.locator('#producer-search-status')).toHaveText('1 of 2 verified breweries shown.')
   await expect(producerSelect.locator('option')).toHaveCount(2)
@@ -56,7 +90,7 @@ test('missing-beer proposal filters verified breweries and styles before review'
   await expect(styleSelect.locator('option')).toHaveCount(2)
   await styleSelect.selectOption('11')
 
-  const reviewButton = page.getByRole('button', { name: 'Review proposal' })
+  const reviewButton = page.getByRole('button', { name: 'Review beer' })
   await expect(reviewButton).toBeDisabled()
   await expect(page.getByText('No likely duplicate was found in the current search results.')).toBeVisible()
   await expect(reviewButton).toBeEnabled()
@@ -65,14 +99,59 @@ test('missing-beer proposal filters verified breweries and styles before review'
   const review = page.locator('section[aria-labelledby="review-heading"]')
   await expect(review.getByText('Other Brewing')).toBeVisible()
   await expect(review.getByText('Stout')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Submit for moderation' })).toBeDisabled()
+  await page.getByRole('button', { name: 'Add beer to catalogue' }).click()
+
+  await expect(page).toHaveURL(/\/products\/6$/)
+  expect(submittedBody.producer_id).toBe('21')
+  expect(submittedBody.product_category_id).toBe('11')
+  expect(submittedBody.product_name).toBe('New Beer')
+  expect(submittedBody).not.toHaveProperty('new_producer')
+  expect(submittedBody).not.toHaveProperty('user_id')
 })
 
-test('missing-beer proposal explains style and edition duplicate signals', async ({ page }) => {
+test('add beer can create a missing producer without exposing raw relationship ids', async ({ page }) => {
+  let submittedBody
+  await installCreatedProductDetail(page, {
+    id: 7,
+    producer_id: 31,
+    producer: { id: 31, producer_name: 'Brand New Brewing' }
+  })
+  await page.route('**/api/nocodebackend/catalog/products', async (route) => {
+    if (route.request().method() !== 'POST') return route.fallback()
+    submittedBody = route.request().postDataJSON()
+    return route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        product: { ...createdProduct, id: 7, producer_id: 31, producer: { id: 31, producer_name: 'Brand New Brewing' } },
+        producerCreated: true
+      })
+    })
+  })
+
+  await page.goto('/products/propose?name=New%20Beer')
+  await page.getByLabel('Add a brewery').check()
+  await page.getByLabel('New brewery / producer name').fill('Brand New Brewing')
+  await page.getByLabel('Beer style / category').selectOption('11')
+
+  await expect(page.getByLabel(/producer id/i)).toHaveCount(0)
+  const reviewButton = page.getByRole('button', { name: 'Review beer' })
+  await expect(reviewButton).toBeEnabled()
+  await reviewButton.click()
+  await expect(page.locator('section[aria-labelledby="review-heading"]').getByText('Brand New Brewing')).toBeVisible()
+  await page.getByRole('button', { name: 'Add beer to catalogue' }).click()
+
+  await expect(page).toHaveURL(/\/products\/7$/)
+  expect(submittedBody.new_producer).toEqual({ producer_name: 'Brand New Brewing' })
+  expect(submittedBody).not.toHaveProperty('producer_id')
+  expect(submittedBody).not.toHaveProperty('user_id')
+})
+
+test('add beer explains style and edition duplicate signals', async ({ page }) => {
   await installDuplicateSearch(page)
   await page.goto('/products/propose?name=Dark%20Matter')
 
-  await page.getByLabel('Brewery / producer').selectOption('21')
+  await page.getByLabel('Select brewery').selectOption('21')
   await page.getByLabel('Beer style / category').selectOption('11')
   await page.getByLabel('Edition / vintage').fill('2026')
 
@@ -83,5 +162,5 @@ test('missing-beer proposal explains style and edition duplicate signals', async
 
   await page.getByLabel('Edition / vintage').fill('2025')
   await expect(duplicateSection.getByText('Same brewery · same name · same style · different edition')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Review proposal' })).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'Review beer' })).toBeEnabled()
 })
