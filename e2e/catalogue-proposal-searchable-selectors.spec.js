@@ -33,6 +33,17 @@ const createdProduct = {
 }
 
 const installVerifiedRelationshipPage = async (page) => {
+  await page.route('**/api/nocodebackend/catalog/producers?page=1&limit=50', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      items: [product.producer, secondProduct.producer],
+      page: 1,
+      pageSize: 50,
+      total: 2,
+      totalPages: 1
+    })
+  }))
   await page.route('**/api/nocodebackend/catalog/products?page=1&limit=50', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
