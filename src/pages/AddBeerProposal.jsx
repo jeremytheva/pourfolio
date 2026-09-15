@@ -38,7 +38,7 @@ function AddBeerProposal() {
 
   useEffect(() => {
     let active = true
-    Promise.all([producerService.listVerifiedProducers(), styleService.listVerifiedStyles()])
+    Promise.all([producerService.listCanonicalProducers(), styleService.listVerifiedStyles()])
       .then(([producerRows, styleRows]) => {
         if (!active) return
         setProducers(producerRows)
