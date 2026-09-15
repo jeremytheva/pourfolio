@@ -15,6 +15,7 @@ const Styles = lazy(() => import('./pages/Styles.jsx'))
 const StyleProfile = lazy(() => import('./pages/StyleProfile.jsx'))
 const TasteMap = lazy(() => import('./pages/TasteMap.jsx'))
 const Places = lazy(() => import('./pages/Places.jsx'))
+const BrewDoneIt = lazy(() => import('./pages/BrewDoneIt.jsx'))
 const RateBeer = lazy(() => import('./pages/RateBeer.jsx'))
 const Cellar = lazy(() => import('./pages/Cellar.jsx'))
 const Profile = lazy(() => import('./pages/Profile.jsx'))
@@ -40,6 +41,13 @@ function ProtectedRoute({ user, onLogout, children }) {
 function AddBeerProposalRoute() {
   const location = useLocation()
   return <AddBeerProposal key={`${location.pathname}${location.search}`} />
+}
+
+function BrewDoneItRoute({ user }) {
+  const location = useLocation()
+  const candidate = String(location.state?.initialProductId ?? '').trim()
+  const initialProductId = /^[1-9]\d*$/.test(candidate) ? candidate : ''
+  return <BrewDoneIt user={user} initialProductId={initialProductId} />
 }
 
 function App() {
@@ -70,6 +78,7 @@ function App() {
             <Route path="/styles" element={protect(<Styles />)} />
             <Route path="/styles/:styleId" element={protect(<StyleProfile />)} />
             <Route path="/taste-map" element={protect(<TasteMap />)} />
+            <Route path="/brew-done-it" element={protect(<BrewDoneItRoute user={user} />)} />
             <Route path="/products/:productId" element={protect(<BeerDetails />)} />
             <Route path="/products/:productId/propose-edit" element={protect(<EditBeerProposal />)} />
             <Route path="/products/:productId/rate" element={protect(<RateBeer />)} />
