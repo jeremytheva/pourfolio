@@ -38,8 +38,14 @@ const routeKind = (request) => {
   return null
 }
 
+const brewDoneItBackendEnabled = (env = process.env) => {
+  if (env.BREW_DONE_IT_POLICY_ENABLED === 'true') return true
+  if (env.VERCEL_ENV === 'preview' || env.VERCEL_ENV === 'development') return true
+  return env.NODE_ENV !== 'production'
+}
+
 const runV3Route = async (request, response, route) => {
-  if (process.env.BREW_DONE_IT_POLICY_ENABLED !== 'true') {
+  if (!brewDoneItBackendEnabled()) {
     response.status(404).json({ error: 'Application data route not found.' })
     return
   }
@@ -95,4 +101,4 @@ export default async function brewDoneItEntryV3(request, response) {
   return runV3Route(request, response, route)
 }
 
-export const __testables = { pathParts, routeKind, runV3Route }
+export const __testables = { pathParts, routeKind, brewDoneItBackendEnabled, runV3Route }

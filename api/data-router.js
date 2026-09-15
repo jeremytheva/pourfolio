@@ -7,10 +7,12 @@ import ratingHandler from './rating-data-proxy.js'
 import brewDoneItHandler from './_lib/brewDoneItEntryV3.js'
 
 const CURRENT_SCHEMA_RESOURCES = new Set(['catalog', 'rating-form', 'ratings', 'cellar', 'bonus-attributes'])
-const DEFERRED_CAPABILITY_RESOURCES = new Set(['brew-done-it'])
-// Compatibility export for existing structural tests; Brew Done It no longer
-// enters api/data-proxy.js and is handled by its dedicated deferred gateway.
-const LEGACY_RESOURCES = DEFERRED_CAPABILITY_RESOURCES
+const BREW_CAPABILITY_RESOURCES = new Set(['brew-done-it'])
+// Compatibility exports retained for existing structural tests/importers. Brew Done It
+// now uses deployed v3 collections, while production API activation remains controlled
+// by the Brew policy gate in brewDoneItEntryV3.js.
+const DEFERRED_CAPABILITY_RESOURCES = BREW_CAPABILITY_RESOURCES
+const LEGACY_RESOURCES = BREW_CAPABILITY_RESOURCES
 
 export const pathSegments = (request) => {
   const raw = request.query?.path
@@ -29,7 +31,7 @@ const routeRequest = async (request, response) => {
   if (resource === 'ratings') return ratingHandler(request, response)
   if (resource === 'bonus-attributes') return bonusAttributeHandler(request, response)
   if (CURRENT_SCHEMA_RESOURCES.has(resource)) return currentSchemaHandler(request, response)
-  if (DEFERRED_CAPABILITY_RESOURCES.has(resource)) return brewDoneItHandler(request, response)
+  if (BREW_CAPABILITY_RESOURCES.has(resource)) return brewDoneItHandler(request, response)
 
   response.status(404).json({ error: 'Application data route not found.' })
 }
@@ -40,6 +42,7 @@ export default async function handler(request, response) {
 
 export const __testables = {
   CURRENT_SCHEMA_RESOURCES,
+  BREW_CAPABILITY_RESOURCES,
   DEFERRED_CAPABILITY_RESOURCES,
   LEGACY_RESOURCES,
   routeRequest
