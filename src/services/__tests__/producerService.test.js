@@ -57,6 +57,20 @@ test('accepts a verified producer with no linked products', () => {
   assert.deepEqual(validateCatalogueProducer({ producer, products: [] }, { expectedProducerId: 20 }), { producer, products: [] })
 })
 
+test('accepts a product attributed to the viewed brewery as a collaborator', () => {
+  const primary = { id: 21, producer_name: 'Other Brewing', address: '', suburb_id: null }
+  const collaborationProduct = {
+    ...product,
+    producer_id: 21,
+    collaboration: 1,
+    producer: primary,
+    producers: [primary, producer]
+  }
+  const result = validateCatalogueProducer({ producer, products: [collaborationProduct] }, { expectedProducerId: 20 })
+  assert.deepEqual(result.products[0].producers, [primary, producer])
+  assert.equal(result.products[0].producer.id, 21)
+})
+
 test('rejects mismatched or fabricated producer relationships', () => {
   const malformed = [
     { producer, products: [{ ...product, producer_id: 21, producer: { id: 21, producer_name: 'Other' }, producers: [{ id: 21, producer_name: 'Other' }] }] },

@@ -8,21 +8,24 @@ The detailed field/relationship rules remain in `schema-mapping.md`. This docume
 
 ## Evidence semantics
 
-The classifications below distinguish **repository-supplied provider evidence** from fresh connected introspection.
+The classifications below distinguish **repository-supplied or owner-confirmed provider evidence** from fresh connected introspection.
 
-- **DEPLOYED_REQUIRED** — evidenced by the supplied provider export/contracts and required by the active launch application boundary.
+- **DEPLOYED_REQUIRED** — evidenced by the supplied provider export/contracts or a governed owner-confirmed deployment and required by the active launch application boundary.
 - **DEPLOYED_OPTIONAL** — evidenced by the supplied provider export/contracts but nullable, enrichment-only or not required for every record/workflow.
 - **DEFERRED_TARGET** — designed/repository-documented future provider state that must not be required until migration plus connected verification is complete.
 - **UNAVAILABLE** — capability/collection not evidenced as deployed; the application must fail explicitly or use an already-approved non-persistent fallback rather than inventing persistence.
 
 These labels do **not** claim fresh live schema introspection. Connected behaviour and readiness evidence may confirm that the configured provider is reachable, but destructive schema/constraint probes remain restricted to explicitly authorised isolated staging.
 
+`product_producers` was owner-confirmed as created on 16 September 2026 with the fields `id`, `product_id`, `producer_id`, `is_primary` and `sort_order`. Connected provider smoke remains required as release evidence for application use of the new relationship path; this documentation update is not represented as live introspection.
+
 ## Launch collection classification
 
 | Collection | Classification | Launch role |
 | --- | --- | --- |
-| `products` | DEPLOYED_REQUIRED | Catalogue and product detail source. |
+| `products` | DEPLOYED_REQUIRED | Catalogue and product detail source; `producer_id` remains a transitional primary-producer compatibility mirror. |
 | `producers` | DEPLOYED_REQUIRED | Producer catalogue/enrichment. |
+| `product_producers` | DEPLOYED_REQUIRED | Authoritative one-to-many product-to-producer relationship rows, including single-producer products. |
 | `categories` | DEPLOYED_REQUIRED | Product/style taxonomy. |
 | `rating_attributes` | DEPLOYED_REQUIRED | Active structured rating definitions and weights. |
 | `bonus_attributes` | DEPLOYED_OPTIONAL | Optional bonus choices for applicable ratings. |
@@ -30,7 +33,6 @@ These labels do **not** claim fresh live schema introspection. Connected behavio
 | `rating_scores` | DEPLOYED_REQUIRED | Normalised component scores for a rating. |
 | `bonus_attribute_rating_mapping` | DEPLOYED_OPTIONAL | Normalised optional bonus selections. |
 | `cellar` | DEPLOYED_REQUIRED | Owner-private cellar CRUD. |
-| `product_producers` | UNAVAILABLE | No junction collection is present in the supplied backend export; launch uses `products.producer_id`. |
 | `profiles` | UNAVAILABLE | No deployed persistence collection is evidenced; profile read remains session-backed and update fails explicitly. |
 
 Prototype/game/account-lifecycle target collections are outside this launch classification unless separately activated by an approved delivery.
@@ -57,13 +59,34 @@ DEPLOYED_OPTIONAL catalogue relationships/metadata:
 
 The application must tolerate legitimate absence of optional catalogue enrichment. It must not rename `product_category_id` to `category_id` at the provider boundary.
 
-### `producers` and `categories`
+`products.producer_id` is retained temporarily as the compatibility mirror of the primary producer. New application writes must keep it synchronized with the primary `product_producers` row. Reads may use it only when a successful `product_producers` lookup returns no relationship rows for that product. A relationship-provider failure must not be interpreted as an empty relationship set.
 
-The collections themselves are DEPLOYED_REQUIRED for the launch catalogue. Service validators may require stable identifiers on returned rows while treating non-key descriptive/enrichment fields according to the detailed schema mapping and observed response contracts.
+`products.collaboration` is also transitional. New application writes derive it from relationship count: one producer is not a collaboration and two or more producers are a collaboration. Relationship rows are authoritative when present.
 
-The deployed producer relationship is `products.producer_id -> producers.id`. The supplied backend export contains no `product_producers` junction table, so launch code must not query one. Response compatibility may expose both a singular `producer` and a `producers` array, but the array can contain only the single producer evidenced by `producer_id`.
+### `producers` and `product_producers`
 
-Collaboration attribution must never use a sentinel producer ID such as `0`. A zero or missing `producer_id` remains unresolved rather than being converted into fabricated producer data. A future multi-producer relationship requires governed provider migration and verification before the launch path can depend on it.
+The `producers` collection is DEPLOYED_REQUIRED for the launch catalogue. Service validators may require stable identifiers on returned rows while treating non-key descriptive/enrichment fields according to the detailed schema mapping and observed response contracts.
+
+The authoritative product/producer relationship for new writes is:
+
+- `product_producers.product_id -> products.id`
+- `product_producers.producer_id -> producers.id`
+
+The deployed relationship fields are:
+
+- `id`
+- `product_id`
+- `producer_id`
+- `is_primary`
+- `sort_order`
+
+Application writes use the relationship table for both ordinary single-producer products and collaborations. The first producer is written with `is_primary = 1` and `sort_order = 1`; additional producers use `is_primary = 0` and increasing `sort_order`. The `(product_id, producer_id)` uniqueness rule prevents duplicate producer attribution.
+
+During migration, historical products may not yet have relationship rows. In that case only, `products.producer_id` remains the approved fallback and is projected as the single producer. New Add Beer writes create the relationship rows and also mirror the primary producer into `products.producer_id`.
+
+Collaboration attribution must never use a sentinel producer ID such as `0`. A zero or missing relationship remains unresolved rather than being converted into fabricated producer data.
+
+Pourfolio Feeder does not gain write authority to `product_producers` merely because the collection is deployed. Its external-writer policy remains deny until a separately certified ingestion contract authorises those writes.
 
 ## Rating read/write contract
 
@@ -184,7 +207,7 @@ Until `schema-mapping.md` is reconciled, any persistent-profile rows or required
 
 ## Provider/certification boundary
 
-This classification permits application alignment from supplied provider exports without pretending that repository evidence is fresh live schema introspection.
+This classification permits application alignment from supplied provider exports and governed owner-confirmed schema changes without pretending that repository evidence is fresh live schema introspection.
 
 Before advancing a DEFERRED_TARGET capability, record as applicable:
 
