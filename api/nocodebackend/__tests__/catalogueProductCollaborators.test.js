@@ -117,3 +117,22 @@ test('product hydration falls back to products.producer_id when relationship row
   assert.equal(result.producer.id, 20)
   assert.deepEqual(result.producers.map((producer) => producer.id), [20])
 })
+
+test('product hydration fails closed when the authoritative relationship read fails', async () => {
+  const providerError = Object.assign(new Error('provider unavailable'), { status: 503, code: 'PROVIDER_ERROR' })
+  dataProvider.list = async (collection) => {
+    if (collection === COLLECTIONS.productProducers) throw providerError
+    return []
+  }
+
+  await assert.rejects(
+    __testables.hydrateProducts([{
+      id: 51,
+      product_name: 'Legacy Looking Beer',
+      product_category_id: 10,
+      producer_id: 20,
+      collaboration: 0
+    }]),
+    (error) => error === providerError
+  )
+})
