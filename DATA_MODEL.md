@@ -12,7 +12,7 @@ The launch code must use deployed schema facts rather than proposed target field
 
 ## Launch contract classification
 
-Use `docs/nocodebackend/launch-schema-contract.md` when deciding whether an application service may require a provider field. Repository-supplied provider exports may establish the current structural contract without being described as fresh live introspection.
+Use `docs/nocodebackend/launch-schema-contract.md` when deciding whether an application service may require a provider field. Repository-supplied provider exports and governed owner-confirmed provider changes may establish the current structural contract without being described as fresh live introspection.
 
 - **DEPLOYED_REQUIRED** fields/collections may be required by the active launch boundary.
 - **DEPLOYED_OPTIONAL** fields must remain nullable/enrichment-only where the contract allows absence.
@@ -25,7 +25,8 @@ The durable rating idempotency/concurrency fields tracked by #165 remain DEFERRE
 
 ```mermaid
 erDiagram
-    PRODUCERS ||--o{ PRODUCTS : produces
+    PRODUCTS ||--|{ PRODUCT_PRODUCERS : attributed_to
+    PRODUCERS ||--o{ PRODUCT_PRODUCERS : participates_in
     CATEGORIES ||--o{ PRODUCTS : classifies
     PRODUCTS ||--o{ RATINGS : receives
     PRODUCTS ||--o{ CELLAR : stored_as
@@ -42,6 +43,7 @@ Launch paths use:
 
 - `products`
 - `producers`
+- `product_producers`
 - `categories`
 - `ratings`
 - `rating_scores`
@@ -52,7 +54,7 @@ Launch paths use:
 
 Legacy names such as `beverages_pf2025`, `ratings_pf2025`, `cellar_items_pf2025` and `beverage_id` are not canonical launch identifiers.
 
-The supplied backend export does not contain a `product_producers` junction table. Active launch catalogue projection therefore uses `products.producer_id` only. Multi-producer collaboration support remains a schema/data remediation concern until a governed backend relationship is deployed and verified.
+The `product_producers` relationship table was owner-confirmed as deployed on 16 September 2026. It is authoritative for product-to-producer attribution for both single-producer products and collaborations. `products.producer_id` remains temporarily as a compatibility mirror of the primary producer while historical data is backfilled and dependent code is migrated.
 
 ## Ownership
 
@@ -64,9 +66,12 @@ The browser must not authoritatively write:
 - provider secrets;
 - roles;
 - authoritative rating totals;
-- provider workflow metadata.
+- provider workflow metadata;
+- `product_producers.product_id`;
+- `product_producers.is_primary`;
+- `product_producers.sort_order`.
 
-Authenticated owner identity comes from the server-side session.
+Authenticated owner identity and relationship metadata come from the server-side application boundary.
 
 ## Products
 
@@ -74,20 +79,44 @@ Authenticated owner identity comes from the server-side session.
 
 Important relationships:
 
-- `producer_id` → `producers`
 - `product_category_id` → `categories`
+- `product_producers.product_id` → `products.id`
+- `product_producers.producer_id` → `producers.id`
+- transitional `products.producer_id` → primary `producers.id`
 
 Launch behaviour depends on stable product identity. Product routes, provider responses and browser projections must agree on the requested product identifier.
 
-Current data work includes reconciliation of orphaned producer/category references and deterministic browse ordering before catalogue certification.
+For new application writes, `products.producer_id` must mirror the producer represented by the primary `product_producers` row. It is a migration fallback, not a second independent source of producer attribution.
+
+Current data work includes reconciliation of orphaned producer/category references, historical `product_producers` backfill and deterministic browse ordering before catalogue certification.
 
 ## Producers and collaborations
 
-A product may require attribution to more than one producer for collaboration beers.
+A product has one or more producer relationships in `product_producers`.
 
-A sentinel producer ID such as `0` must not be used to represent collaboration. Collaboration needs an explicit relationship capable of preserving all participating breweries.
+Canonical fields are:
 
-The supplied backend export does not currently provide that relationship. Launch code must not query or fabricate a `product_producers` collection; records with missing or zero `producer_id` remain unresolved until backend catalogue data/schema remediation supplies valid attribution.
+- `id`;
+- `product_id`;
+- `producer_id`;
+- `is_primary`;
+- `sort_order`.
+
+The application relationship contract is:
+
+- every new product receives at least one relationship row;
+- exactly one relationship is primary for a product;
+- the primary row uses `sort_order = 1`;
+- additional collaborators use increasing sort order;
+- the same `(product_id, producer_id)` pair cannot occur more than once;
+- one producer means a normal product;
+- two or more producers means a collaboration.
+
+A sentinel producer ID such as `0` must never represent collaboration. Missing relationship data remains unresolved rather than being converted into fabricated producer data.
+
+During the migration period, reads first query `product_producers`. Only when that lookup succeeds and returns zero rows may the application fall back to `products.producer_id`. A relationship-table read failure must fail closed rather than silently using legacy data and hiding collaborators.
+
+New Add Beer writes persist all producer relationships and also keep `products.producer_id` synchronized with the primary producer. Once historical backfill, production read evidence and dependent-service migration are complete, the legacy producer column can be removed in a separate governed schema migration. The `collaboration` column can likewise be retired after all consumers derive collaboration status from relationship count.
 
 ## Categories
 
