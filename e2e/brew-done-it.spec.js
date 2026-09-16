@@ -40,8 +40,10 @@ test('product page opens Brew Done It with the viewed beer preselected without l
   await expect(page).toHaveURL(/\/brew-done-it$/)
   await expect(page.getByRole('heading', { name: 'Brew Done It', level: 1 })).toBeVisible()
   await expect(page.getByText('The beer opened from its profile is preselected. Review or change it before creating the challenge.')).toBeVisible()
-  await expect(page.getByLabel('Beer to guess')).toHaveValue('4')
-  await expect(page.getByLabel('Beer to guess')).toContainText('Ace — Rocky Ridge Brewing')
+
+  const beerSelect = page.locator('#brew-done-it-create-beer-select')
+  await expect(beerSelect).toHaveValue('4')
+  await expect(beerSelect).toContainText('Ace — Rocky Ridge Brewing')
 
   expect(await page.evaluate(() => window.location.search)).toBe('')
   expect(await page.evaluate(() => window.history.state?.initialProductId)).toBe('4')
