@@ -22,7 +22,7 @@
     },
     {
       "src": "/api/(bonus-attribute-data-proxy|catalog-data-proxy|cellar-data-proxy|current-data-proxy|profile-data-proxy|data-proxy)(?:\\.js)?/?",
-      "dest": "/api/internal-not-found"
+      "dest": "/api/data-router?path=__internal-not-found__"
     },
     {
       "src": "/api/nocodebackend/auth/(.*)",
