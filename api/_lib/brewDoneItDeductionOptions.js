@@ -19,7 +19,7 @@ const canonicalIdOrNull = (value) => {
   const text = String(value ?? '').trim()
   return /^[1-9]\d*$/.test(text) ? text : null
 }
-const completedRating = (rating) => rating?.submission_state === 'complete' && completedRatingTotal(rating?.total_weighted) !== null
+const completedRating = (rating) => completedRatingTotal(rating?.total_weighted) !== null
 
 const ratedProducerKnowledge = (ratings, productsById) => {
   const producerIds = new Set()
@@ -47,7 +47,7 @@ export const getDeductionOptions = async (response, user) => {
     listAllBrewDoneItRecords(COLLECTIONS.producers),
     listAllBrewDoneItRecords(COLLECTIONS.categories),
     listAllBrewDoneItRecords(COLLECTIONS.products),
-    listAllBrewDoneItRecords(COLLECTIONS.ratings, { user_id: user.id, submission_state: 'complete' })
+    listAllBrewDoneItRecords(COLLECTIONS.ratings, { user_id: user.id })
   ])
 
   const producers = list(producersRaw)
