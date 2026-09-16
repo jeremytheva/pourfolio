@@ -76,6 +76,9 @@ const safeRelationshipList = async (collection, filters) => {
   }
 }
 
+const requiredRelationshipList = async (collection, filters) =>
+  normaliseList(await dataProvider.list(collection, filters))
+
 const relationshipSort = (left, right) => {
   const primaryDifference = Number(Boolean(Number(right.is_primary))) - Number(Boolean(Number(left.is_primary)))
   if (primaryDifference) return primaryDifference
@@ -90,7 +93,7 @@ const hydrateProducts = async (products) => {
     .map((product) => String(product.id ?? ''))
     .filter((id) => /^[1-9]\d*$/.test(id))
   const relationships = productIds.length
-    ? await safeRelationshipList(COLLECTIONS.productProducers, { 'product_id[in]': productIds.join(',') })
+    ? await requiredRelationshipList(COLLECTIONS.productProducers, { 'product_id[in]': productIds.join(',') })
     : []
   const relationshipsByProduct = new Map()
   for (const relationship of relationships) {
@@ -257,7 +260,7 @@ const getProducer = async (id, response) => {
   }
 
   const [relationships, legacyProducts] = await Promise.all([
-    safeRelationshipList(COLLECTIONS.productProducers, { producer_id: producerId }),
+    requiredRelationshipList(COLLECTIONS.productProducers, { producer_id: producerId }),
     safeRelationshipList(COLLECTIONS.products, { producer_id: producerId })
   ])
   const relationshipProductIds = [...new Set(relationships
@@ -532,6 +535,7 @@ export default async function handler(request, response) {
 export const __testables = {
   hydrateProducts,
   safeRelationshipList,
+  requiredRelationshipList,
   isCompletedRating,
   buildRatingInsights,
   listProducers,
