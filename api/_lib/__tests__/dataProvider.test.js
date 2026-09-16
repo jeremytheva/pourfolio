@@ -46,6 +46,48 @@ test('list matches Swagger read route, instance query and bearer headers', async
   })
 })
 
+test('ratings exact-filter reads retry unfiltered after a provider 5xx and preserve filter semantics locally', async () => {
+  const urls = []
+  global.fetch = async (url) => {
+    urls.push(String(url))
+    if (urls.length === 1) return response({ error: 'provider failed' }, { status: 500 })
+    return response({ status: 'success', data: [
+      { id: 1, user_id: 'owner', rating_id: 17 },
+      { id: 2, user_id: 'other', rating_id: 17 },
+      { id: 3, user_id: 'owner', rating_id: 18 }
+    ] })
+  }
+
+  assert.deepEqual(await dataProvider.list('ratings', { user_id: 'owner', rating_id: 17 }), [
+    { id: 1, user_id: 'owner', rating_id: 17 }
+  ])
+  assert.deepEqual(urls, [
+    `https://api.nocodebackend.com/read/ratings?Instance=${TEST_INSTANCE}&user_id=owner&rating_id=17`,
+    `https://api.nocodebackend.com/read/ratings?Instance=${TEST_INSTANCE}`
+  ])
+})
+
+test('ratings compatibility fallback does not bypass auth failures, non-ratings failures, or operator filters', async () => {
+  let calls = 0
+  global.fetch = async () => {
+    calls += 1
+    return response({ error: 'failed' }, { status: 500 })
+  }
+  await assert.rejects(dataProvider.list('products', { user_id: 'owner' }), { status: 500, code: 'PROVIDER_ERROR' })
+  await assert.rejects(dataProvider.list('ratings', { 'id[in]': '1,2' }), { status: 500, code: 'PROVIDER_ERROR' })
+  assert.equal(calls, 2)
+
+  global.fetch = async () => {
+    calls += 1
+    return response({ error: 'forbidden' }, { status: 403 })
+  }
+  await assert.rejects(dataProvider.list('ratings', { user_id: 'owner' }), {
+    status: 403,
+    code: 'DATA_PROVIDER_FORBIDDEN'
+  })
+  assert.equal(calls, 3)
+})
+
 test('hardcoded data fallback is api.nocodebackend.com', () => {
   assert.equal(__testables.DEFAULT_DATA_BASE_URL, 'https://api.nocodebackend.com/')
   assert.equal(__testables.resolveDataBaseUrl(undefined), 'https://api.nocodebackend.com')
