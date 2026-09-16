@@ -15,6 +15,10 @@ import {
   projectAttribute,
   sanitiseProductCreateInput
 } from './_lib/dataPolicy.js'
+import {
+  buildProductProducerRows,
+  sanitiseProductProducerInputs
+} from './_lib/productProducerRelationships.js'
 import { pickFields } from '../src/data/contract.js'
 import {
   enforceOrigin,
@@ -72,29 +76,75 @@ const safeRelationshipList = async (collection, filters) => {
   }
 }
 
+const relationshipSort = (left, right) => {
+  const primaryDifference = Number(Boolean(Number(right.is_primary))) - Number(Boolean(Number(left.is_primary)))
+  if (primaryDifference) return primaryDifference
+  const leftOrder = Number.isFinite(Number(left.sort_order)) ? Number(left.sort_order) : Number.MAX_SAFE_INTEGER
+  const rightOrder = Number.isFinite(Number(right.sort_order)) ? Number(right.sort_order) : Number.MAX_SAFE_INTEGER
+  return leftOrder - rightOrder || Number(left.id || 0) - Number(right.id || 0)
+}
+
 const hydrateProducts = async (products) => {
   if (!products.length) return []
+  const productIds = products
+    .map((product) => String(product.id ?? ''))
+    .filter((id) => /^[1-9]\d*$/.test(id))
+  const relationships = productIds.length
+    ? await safeRelationshipList(COLLECTIONS.productProducers, { 'product_id[in]': productIds.join(',') })
+    : []
+  const relationshipsByProduct = new Map()
+  for (const relationship of relationships) {
+    const productId = String(relationship.product_id ?? '')
+    const producerId = String(relationship.producer_id ?? '')
+    if (!productIds.includes(productId) || !/^[1-9]\d*$/.test(producerId)) continue
+    const rows = relationshipsByProduct.get(productId) || []
+    rows.push(relationship)
+    relationshipsByProduct.set(productId, rows)
+  }
+
   const producerIds = new Set()
   const categoryIds = new Set()
   for (const product of products) {
-    if (product.producer_id && String(product.producer_id) !== '0') producerIds.add(String(product.producer_id))
+    const relationshipRows = relationshipsByProduct.get(String(product.id)) || []
+    if (relationshipRows.length) {
+      relationshipRows.forEach((relationship) => producerIds.add(String(relationship.producer_id)))
+    } else if (product.producer_id && String(product.producer_id) !== '0') {
+      producerIds.add(String(product.producer_id))
+    }
     if (product.product_category_id) categoryIds.add(String(product.product_category_id))
   }
+
   const [producers, categories] = await Promise.all([
     producerIds.size ? safeRelationshipList(COLLECTIONS.producers, { 'id[in]': [...producerIds].join(',') }) : [],
     categoryIds.size ? safeRelationshipList(COLLECTIONS.categories, { 'id[in]': [...categoryIds].join(',') }) : []
   ])
   const producersById = indexById(producers)
   const categoriesById = indexById(categories)
+
   return products.map((product) => {
-    const primary = product.producer_id && String(product.producer_id) !== '0'
-      ? producersById.get(String(product.producer_id)) || null
-      : null
-    const projectedProducer = projectProducer(primary)
+    const relationshipRows = [...(relationshipsByProduct.get(String(product.id)) || [])].sort(relationshipSort)
+    const projectedProducers = relationshipRows
+      .map((relationship) => projectProducer(producersById.get(String(relationship.producer_id))))
+      .filter(Boolean)
+    const uniqueProducers = [...new Map(projectedProducers.map((producer) => [String(producer.id), producer])).values()]
+
+    let primary = uniqueProducers[0] || null
+    if (relationshipRows.length) {
+      const explicitPrimary = relationshipRows.find((relationship) => Number(relationship.is_primary) === 1)
+      const compatibilityPrimary = relationshipRows.find((relationship) => String(relationship.producer_id) === String(product.producer_id ?? ''))
+      const primaryId = String((explicitPrimary || compatibilityPrimary || relationshipRows[0])?.producer_id ?? '')
+      primary = projectProducer(producersById.get(primaryId)) || primary
+    } else if (product.producer_id && String(product.producer_id) !== '0') {
+      primary = projectProducer(producersById.get(String(product.producer_id)))
+      if (primary && !uniqueProducers.length) uniqueProducers.push(primary)
+    }
+
+    const projected = pickFields(product, PRODUCT_FIELDS)
+    if (relationshipRows.length) projected.collaboration = uniqueProducers.length > 1 ? 1 : 0
     return {
-      ...pickFields(product, PRODUCT_FIELDS),
-      producer: projectedProducer,
-      producers: projectedProducer ? [projectedProducer] : [],
+      ...projected,
+      producer: primary,
+      producers: uniqueProducers,
       category: projectCategory(categoriesById.get(String(product.product_category_id)))
     }
   })
@@ -206,13 +256,25 @@ const getProducer = async (id, response) => {
     return
   }
 
-  const relatedProducts = await safeRelationshipList(COLLECTIONS.products, { producer_id: producerId })
-  const exactProducts = relatedProducts.filter((product) => String(product.producer_id ?? '') === producerId)
-  const products = await hydrateProducts(exactProducts)
+  const [relationships, legacyProducts] = await Promise.all([
+    safeRelationshipList(COLLECTIONS.productProducers, { producer_id: producerId }),
+    safeRelationshipList(COLLECTIONS.products, { producer_id: producerId })
+  ])
+  const relationshipProductIds = [...new Set(relationships
+    .map((relationship) => String(relationship.product_id ?? ''))
+    .filter((productId) => /^[1-9]\d*$/.test(productId)))]
+  const relationshipProducts = relationshipProductIds.length
+    ? await safeRelationshipList(COLLECTIONS.products, { 'id[in]': relationshipProductIds.join(',') })
+    : []
+  const combined = new Map()
+  for (const product of [...legacyProducts, ...relationshipProducts]) {
+    if (product?.id !== undefined) combined.set(String(product.id), product)
+  }
+  const products = await hydrateProducts([...combined.values()])
 
   response.status(200).json({
     producer: projectProducer(producer),
-    products: products.filter((product) => product.producer && String(product.producer.id) === producerId)
+    products: products.filter((product) => product.producers.some((item) => String(item.id) === producerId))
   })
 }
 
@@ -229,10 +291,10 @@ const providerCreatedId = (record, label) => {
   return text
 }
 
-const resolveProducerForCreate = async (input, userId) => {
-  if (input.producer_id) {
-    const producer = await dataProvider.get(COLLECTIONS.producers, input.producer_id)
-    if (!producer || String(producer.id ?? '') !== String(input.producer_id)) {
+const resolveProducerSelection = async (selection, userId) => {
+  if (selection.producer_id) {
+    const producer = await dataProvider.get(COLLECTIONS.producers, selection.producer_id)
+    if (!producer || String(producer.id ?? '') !== String(selection.producer_id)) {
       const error = new Error('Selected producer is not available.')
       error.status = 400
       error.code = 'PRODUCER_NOT_FOUND'
@@ -241,15 +303,15 @@ const resolveProducerForCreate = async (input, userId) => {
     return { producer, created: false }
   }
 
-  const requestedName = normaliseName(input.new_producer.producer_name)
+  const requestedName = normaliseName(selection.new_producer.producer_name)
   const existing = normaliseList(await dataProvider.list(COLLECTIONS.producers))
     .find((producer) => normaliseName(producer.producer_name) === requestedName)
   if (existing) return { producer: existing, created: false }
 
   const producerPayload = {
     user_id: userId,
-    producer_name: input.new_producer.producer_name,
-    ...(input.new_producer.address ? { address: input.new_producer.address } : {})
+    producer_name: selection.new_producer.producer_name,
+    ...(selection.new_producer.address ? { address: selection.new_producer.address } : {})
   }
   const created = first(await dataProvider.create(COLLECTIONS.producers, producerPayload))
   const createdId = providerCreatedId(created, 'Producer creation')
@@ -262,6 +324,11 @@ const resolveProducerForCreate = async (input, userId) => {
   return { producer: persisted, created: true }
 }
 
+const resolveProducerForCreate = async (input, userId) => resolveProducerSelection({
+  producer_id: input.producer_id,
+  new_producer: input.new_producer
+}, userId)
+
 const exactProductDuplicate = (products, input, producerId) => {
   const targetName = normaliseName(input.product_name)
   const targetEdition = normaliseName(input.edition)
@@ -273,10 +340,50 @@ const exactProductDuplicate = (products, input, producerId) => {
   )) || null
 }
 
+const verifyProductProducerRows = (rows, productId, producerIds) => {
+  const expected = buildProductProducerRows(productId, producerIds)
+  const actual = rows
+    .filter((row) => String(row.product_id ?? '') === String(productId))
+    .map((row) => ({
+      product_id: String(row.product_id),
+      producer_id: String(row.producer_id),
+      is_primary: Number(row.is_primary) === 1 ? 1 : 0,
+      sort_order: Number(row.sort_order)
+    }))
+    .sort((left, right) => left.sort_order - right.sort_order)
+  return actual.length === expected.length && expected.every((row, index) => (
+    actual[index]?.product_id === row.product_id &&
+    actual[index]?.producer_id === row.producer_id &&
+    actual[index]?.is_primary === row.is_primary &&
+    actual[index]?.sort_order === row.sort_order
+  ))
+}
+
+const persistProductProducerRows = async (productId, producerIds) => {
+  const rows = buildProductProducerRows(productId, producerIds)
+  try {
+    for (const row of rows) await dataProvider.create(COLLECTIONS.productProducers, row)
+    const persisted = normaliseList(await dataProvider.list(COLLECTIONS.productProducers, { product_id: String(productId) }))
+    if (!verifyProductProducerRows(persisted, productId, producerIds)) {
+      throw providerWriteFailure('Product producer relationships could not be verified after creation.')
+    }
+  } catch (error) {
+    const persisted = await safeRelationshipList(COLLECTIONS.productProducers, { product_id: String(productId) })
+    await Promise.allSettled(persisted
+      .filter((row) => row.id !== undefined)
+      .map((row) => dataProvider.remove(COLLECTIONS.productProducers, row.id)))
+    await Promise.allSettled([dataProvider.remove(COLLECTIONS.products, productId)])
+    if (error?.code === 'CATALOGUE_WRITE_FAILED') throw error
+    throw providerWriteFailure('Product producer relationships could not be created.')
+  }
+}
+
 const createProduct = async (request, response, user) => {
   let input
+  let relationshipInputs
   try {
     input = sanitiseProductCreateInput(request.body)
+    relationshipInputs = sanitiseProductProducerInputs(request.body, input)
   } catch (error) {
     if (!error.status) error.status = 400
     throw error
@@ -290,12 +397,30 @@ const createProduct = async (request, response, user) => {
     throw error
   }
 
-  const { producer, created: producerCreated } = await resolveProducerForCreate(input, user.id)
-  const producerId = parsePositiveId(producer.id, 'Producer identifier')
-  const producerProducts = normaliseList(await dataProvider.list(COLLECTIONS.products, { producer_id: producerId }))
-  const duplicate = exactProductDuplicate(producerProducts, input, producerId)
+  const requestedProducers = relationshipInputs || [{
+    producer_id: input.producer_id,
+    new_producer: input.new_producer
+  }]
+  const resolvedProducers = []
+  let producersCreated = 0
+  for (const selection of requestedProducers) {
+    const resolved = await resolveProducerSelection(selection, user.id)
+    const producerId = parsePositiveId(resolved.producer.id, 'Producer identifier')
+    if (resolvedProducers.some((entry) => entry.id === producerId)) {
+      const error = new Error('The same producer cannot be linked to a product more than once.')
+      error.status = 400
+      error.code = 'DUPLICATE_PRODUCT_PRODUCER'
+      throw error
+    }
+    resolvedProducers.push({ id: producerId, producer: resolved.producer })
+    if (resolved.created) producersCreated += 1
+  }
+
+  const primaryProducer = resolvedProducers[0]
+  const producerProducts = normaliseList(await dataProvider.list(COLLECTIONS.products, { producer_id: primaryProducer.id }))
+  const duplicate = exactProductDuplicate(producerProducts, input, primaryProducer.id)
   if (duplicate) {
-    const error = new Error('This beer already exists for the selected producer, style and edition.')
+    const error = new Error('This beer already exists for the selected primary producer, style and edition.')
     error.status = 409
     error.code = 'PRODUCT_ALREADY_EXISTS'
     error.payload = {
@@ -310,12 +435,12 @@ const createProduct = async (request, response, user) => {
     user_id: user.id,
     product_name: input.product_name,
     product_category_id: input.product_category_id,
-    producer_id: producerId,
+    producer_id: primaryProducer.id,
     abv: input.abv,
     ibu: input.ibu,
     declared_category: input.declared_category,
     edition: input.edition,
-    collaboration: input.collaboration,
+    collaboration: relationshipInputs ? (resolvedProducers.length > 1 ? 1 : 0) : input.collaboration,
     product_image: input.product_image
   }
   const created = first(await dataProvider.create(COLLECTIONS.products, productPayload))
@@ -323,21 +448,18 @@ const createProduct = async (request, response, user) => {
   const persisted = await dataProvider.get(COLLECTIONS.products, createdId)
   if (!persisted || String(persisted.id ?? '') !== createdId ||
       String(persisted.user_id ?? '') !== String(user.id) ||
-      String(persisted.producer_id ?? '') !== producerId ||
+      String(persisted.producer_id ?? '') !== primaryProducer.id ||
       String(persisted.product_category_id ?? '') !== String(input.product_category_id) ||
       normaliseName(persisted.product_name) !== normaliseName(input.product_name)) {
     throw providerWriteFailure('The product could not be verified after creation.')
   }
 
-  const projectedProducer = projectProducer(producer)
+  if (relationshipInputs) await persistProductProducerRows(createdId, resolvedProducers.map((entry) => entry.id))
+  const [hydrated] = await hydrateProducts([persisted])
   response.status(201).json({
-    product: {
-      ...pickFields(persisted, PRODUCT_FIELDS),
-      producer: projectedProducer,
-      producers: projectedProducer ? [projectedProducer] : [],
-      category: projectCategory(category)
-    },
-    producerCreated
+    product: hydrated,
+    producerCreated: producersCreated > 0,
+    producersCreated
   })
 }
 
@@ -417,6 +539,9 @@ export const __testables = {
   getProducer,
   getRatingForm,
   resolveProducerForCreate,
+  resolveProducerSelection,
   exactProductDuplicate,
+  verifyProductProducerRows,
+  persistProductProducerRows,
   createProduct
 }
