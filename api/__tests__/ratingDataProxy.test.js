@@ -95,12 +95,20 @@ const durableProvider = () => {
         return listState(collection, filters)
       },
       create: async (collection, body) => {
-        const uniqueField = collection === COLLECTIONS.ratings ? 'submission_key' : 'uniqueness_key'
-        if ((state[collection] || []).some((item) => item[uniqueField] === body[uniqueField])) {
-          throw Object.assign(new Error('conflict'), { status: 409 })
-        }
+        const duplicate = collection === COLLECTIONS.ratings
+          ? (state[collection] || []).some((item) => item.submission_key === body.submission_key)
+          : collection === COLLECTIONS.ratingScores
+            ? (state[collection] || []).some((item) => String(item.rating_id) === String(body.rating_id) && String(item.attribute_id) === String(body.attribute_id))
+            : (state[collection] || []).some((item) => String(item.rating_id) === String(body.rating_id) && String(item.bonus_attribute_id) === String(body.bonus_attribute_id))
+        if (duplicate) throw Object.assign(new Error('conflict'), { status: 409, code: 'UNIQUE_CONFLICT' })
         const record = { id: nextId++, ...body }
         state[collection].push(record)
+        return record
+      },
+      update: async (collection, id, body) => {
+        const record = state[collection].find((item) => String(item.id) === String(id))
+        if (!record) throw Object.assign(new Error('not found'), { status: 404 })
+        Object.assign(record, body)
         return record
       },
       compareAndSet: async (collection, id, expectedVersion, body) => {
@@ -158,7 +166,10 @@ test('submitRating ignores browser totals and Bonus, persists server-derived fiv
     assert.equal(Object.hasOwn(ratingWrite, 'score_out_of_100'), false)
     assert.equal(provider.state[COLLECTIONS.ratingScores].length, 8)
     assert.ok(provider.state[COLLECTIONS.ratingScores].every((score) => String(score.rating_id) === String(ratingWrite.id)))
+    assert.ok(provider.state[COLLECTIONS.ratingScores].every((score) => !Object.hasOwn(score, 'uniqueness_key')))
     assert.equal(provider.state[COLLECTIONS.bonusRatingMappings].length, 3)
+    assert.ok(provider.state[COLLECTIONS.bonusRatingMappings].every((mapping) => String(mapping.rating_id) === String(ratingWrite.id)))
+    assert.ok(provider.state[COLLECTIONS.bonusRatingMappings].every((mapping) => Object.hasOwn(mapping, 'bonus_attribute_id') && !Object.hasOwn(mapping, 'bonus_attributes_id') && !Object.hasOwn(mapping, 'uniqueness_key')))
 
     const retryResponse = responseHarness()
     await submitMaximum(retryResponse)
