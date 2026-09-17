@@ -4,7 +4,7 @@ import { __testables } from '../brewDoneItDeductionOptions.js'
 
 const { booleanOrNull, canonicalIdOrNull, completedRating, numericOrNull, ratedProducerKnowledge } = __testables
 
-const completeRating = (productId, total = 4.2) => ({ product_id: productId, total_weighted: total })
+const completeRating = (productId, total = 4.2) => ({ product_id: productId, submission_state: 'complete', total_weighted: total })
 
 test('missing numeric catalogue values remain unknown rather than zero', () => {
   assert.equal(numericOrNull(null), null)
@@ -33,14 +33,16 @@ test('catalogue relationship identifiers normalize to positive-id strings', () =
   assert.equal(canonicalIdOrNull('12'), '12')
 })
 
-test('ratings with canonical /5 totals count as familiarity in the deployed schema', () => {
+test('only durable complete ratings with canonical /5 totals count as familiarity', () => {
   assert.equal(completedRating(completeRating(1, 5)), true)
   assert.equal(completedRating(completeRating(1, 0)), false)
   assert.equal(completedRating(completeRating(1, 5.1)), false)
   assert.equal(completedRating(completeRating(1, 4.2)), true)
+  assert.equal(completedRating({ ...completeRating(1), submission_state: 'pending' }), false)
+  assert.equal(completedRating({ ...completeRating(1), submission_state: 'failed' }), false)
 })
 
-test('previous-rating brewery knowledge is incomplete when a rated beer lacks governed producer attribution', () => {
+test('previous-rating brewery knowledge is incomplete when a completed rated beer lacks governed producer attribution', () => {
   const products = new Map([
     ['1', { id: 1, producer_id: 10 }],
     ['2', { id: 2, producer_id: 0 }]
@@ -49,7 +51,8 @@ test('previous-rating brewery knowledge is incomplete when a rated beer lacks go
     completeRating(1),
     completeRating(2),
     completeRating(999),
-    { product_id: 2, total_weighted: 6 }
+    { product_id: 1, submission_state: 'pending', total_weighted: 4.9 },
+    { product_id: 2, submission_state: 'complete', total_weighted: 6 }
   ], products)
 
   assert.deepEqual([...result.producerIds], ['10'])
@@ -64,7 +67,7 @@ test('previous-rating brewery knowledge is complete when every accepted rating h
   const result = ratedProducerKnowledge([
     completeRating(1),
     completeRating(2, 5),
-    { product_id: 999, total_weighted: 6 }
+    { product_id: 999, submission_state: 'failed', total_weighted: 4 }
   ], products)
   assert.deepEqual([...result.producerIds], ['10', '20'])
   assert.equal(result.complete, true)
