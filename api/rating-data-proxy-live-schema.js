@@ -2,26 +2,25 @@ import crypto from 'node:crypto'
 import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../src/data/contract.js'
 import { bonusScoreFromPoints, selectedBonusPointTotal } from '../src/lib/bonusAttributes.js'
 import { completedRatingTotal } from '../src/lib/completedRatingContract.js'
-import { buildAdvancedScore, canonicalRatingKey } from '../src/lib/ratingFormulaV1.js'
+import { canonicalRatingKey } from '../src/lib/ratingFormulaV1.js'
 import { calculateRatingTotals } from '../src/utils/ratingSubmission.js'
 import { requireSessionUser } from './_lib/authSession.js'
 import { loadBonusCatalogue } from './_lib/bonusAttributeCatalogue.js'
 import { dataProvider } from './_lib/dataProvider.js'
 import { isOwnedBy, projectRating } from './_lib/dataPolicy.js'
 import { enforceOrigin, enforceRateLimit, enforceRequestSize, safeErrorMessage } from './_lib/httpSecurity.js'
-import { buildStyleScoreIndex, styleScaledScoreForRating } from './_lib/styleScaledScore.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 
 const ALLOWED_METHODS = new Set(['GET', 'POST', 'DELETE'])
 const asArray = (value) => (Array.isArray(value) ? value : value ? [value] : [])
 const records = (value) => asArray(value).filter((item) => item && typeof item === 'object')
 const first = (value) => (Array.isArray(value) ? value[0] || null : value || null)
-const isCompletedRating = (rating) => completedRatingTotal(rating?.total_weighted) !== null
+const completeRating = (rating) => rating?.submission_state === 'complete' && completedRatingTotal(rating?.total_weighted) !== null
+const providerDateTime = () => new Date().toISOString().slice(0, 19).replace('T', ' ')
 
 const pathSegments = (request) => {
   const raw = request.query?.path
-  if (Array.isArray(raw)) return raw.map(String)
-  return String(raw || '').split('/').filter(Boolean)
+  return (Array.isArray(raw) ? raw : String(raw || '').split('/')).map(String).filter(Boolean)
 }
 
 const positiveId = (value, label = 'Record identifier') => {
@@ -32,12 +31,6 @@ const positiveId = (value, label = 'Record identifier') => {
     throw error
   }
   return text
-}
-
-const canonicalPositiveId = (value) => {
-  const text = String(value ?? '').trim()
-  const number = Number(text)
-  return Number.isSafeInteger(number) && number > 0 && String(number) === text ? text : null
 }
 
 const validateBonusIds = (requested, available) => {
@@ -59,8 +52,7 @@ const scoresWithDerivedBonus = (submittedScores, attributes, bonusScore) => {
     throw error
   }
   const bonusId = String(bonusAttribute.id)
-  const scores = asArray(submittedScores)
-    .filter((score) => String(score?.attributeId ?? score?.attribute_id ?? '') !== bonusId)
+  const scores = asArray(submittedScores).filter((score) => String(score?.attributeId ?? score?.attribute_id ?? '') !== bonusId)
   scores.push({ attributeId: bonusAttribute.id, score: bonusScore })
   return scores
 }
@@ -78,70 +70,50 @@ const ownedCellarForRating = async (body, userId, productId) => {
   return cellar
 }
 
-const loadExactRecords = async (collection, ids) => {
-  const requested = new Set([...ids].map(canonicalPositiveId).filter(Boolean))
-  if (!requested.size) return []
-  return records(await dataProvider.list(collection, { 'id[in]': [...requested].join(',') }))
-    .filter((record) => requested.has(canonicalPositiveId(record?.id)))
+const submissionId = (body) => {
+  const supplied = String(body.submissionId ?? body.submission_id ?? '').trim()
+  return supplied || crypto.randomUUID()
 }
 
-const scorePopulations = async () => {
-  const ratingRows = records(await dataProvider.list(COLLECTIONS.ratings)).filter(isCompletedRating)
-  const overall = Object.freeze(ratingRows
-    .map((rating) => completedRatingTotal(rating.total_weighted))
-    .filter((score) => score !== null))
-  const productIds = new Set(ratingRows.map((rating) => canonicalPositiveId(rating.product_id)).filter(Boolean))
-  const productRows = await loadExactRecords(COLLECTIONS.products, productIds)
-  const categoryIds = new Set(productRows.map((product) => canonicalPositiveId(product.product_category_id)).filter(Boolean))
-  const categoryRows = await loadExactRecords(COLLECTIONS.categories, categoryIds)
-  return Object.freeze({
-    overall,
-    styleIndex: buildStyleScoreIndex({ ratings: ratingRows, products: productRows, categories: categoryRows })
-  })
-}
+const fingerprintFor = ({ productId, cellarId, totals, bonusIds }) => crypto.createHash('sha256').update(JSON.stringify({
+  productId: String(productId), cellarId: cellarId ?? null, scores: totals.scores, weights: totals.weights, bonusIds: [...bonusIds].sort()
+})).digest('hex')
 
-const advancedFor = (rating, populations, cellar = null) => ({
-  ...buildAdvancedScore({
-    score: completedRatingTotal(rating.total_weighted),
-    population: populations?.overall || [],
-    retailPrice: cellar?.retail_price,
-    purchasePrice: cellar?.purchase_price,
-    volumeMl: cellar?.mls
-  }),
-  ...styleScaledScoreForRating(rating, populations?.styleIndex)
-})
+const findBySubmissionKey = async (userId, key) => records(await dataProvider.list(COLLECTIONS.ratings, {
+  user_id: userId, submission_key: key
+})).find((rating) => isOwnedBy(rating, userId) && rating.submission_key === key) || null
 
-const exactNamedRelationship = (record, id, nameField) => {
-  if (!record || String(record.id ?? '') !== String(id ?? '')) return null
-  const name = String(record[nameField] ?? '').trim()
-  return name ? { id: record.id, [nameField]: name } : null
-}
-
-const productProjection = async (productId) => {
-  const product = await dataProvider.get(COLLECTIONS.products, productId)
-  if (!product || String(product.id ?? '') !== String(productId)) return null
-  const [producerRecord, categoryRecord] = await Promise.all([
-    product.producer_id && String(product.producer_id) !== '0' ? dataProvider.get(COLLECTIONS.producers, product.producer_id) : null,
-    product.product_category_id ? dataProvider.get(COLLECTIONS.categories, product.product_category_id) : null
+const childRows = async (ratingId, userId) => {
+  const [scores, bonuses] = await Promise.all([
+    dataProvider.list(COLLECTIONS.ratingScores, { rating_id: ratingId, user_id: userId }),
+    dataProvider.list(COLLECTIONS.bonusRatingMappings, { rating_id: ratingId, user_id: userId })
   ])
   return {
-    id: product.id,
-    product_name: String(product.product_name || '').trim(),
-    product_category_id: product.product_category_id ?? null,
-    producer_id: product.producer_id ?? null,
-    producer: exactNamedRelationship(producerRecord, product.producer_id, 'producer_name'),
-    category: exactNamedRelationship(categoryRecord, product.product_category_id, 'category_name')
+    scores: records(scores).filter((row) => isOwnedBy(row, userId) && String(row.rating_id) === String(ratingId)),
+    bonuses: records(bonuses).filter((row) => isOwnedBy(row, userId) && String(row.rating_id) === String(ratingId))
   }
 }
 
-const providerDateTime = () => new Date().toISOString().slice(0, 19).replace('T', ' ')
-
-const removeIfPresent = async (collection, id) => {
-  if (!id) return
-  try { await dataProvider.remove(collection, id) } catch (error) { if (error?.status !== 404) throw error }
+const transition = async (rating, state, extra = {}) => {
+  const version = Number.isSafeInteger(Number(rating.submission_version)) ? Number(rating.submission_version) : 0
+  await dataProvider.update(COLLECTIONS.ratings, rating.id, { ...extra, submission_state: state, submission_version: version + 1 })
+  const persisted = await dataProvider.get(COLLECTIONS.ratings, rating.id)
+  if (!persisted || persisted.submission_state !== state) throw new Error('Rating workflow state was not durably updated.')
+  return persisted
 }
 
-const submitRating = async (request, response, user, correlationId) => {
+const reconcileExpectedChildren = async (rating, userId) => {
+  const children = await childRows(rating.id, userId)
+  const expectedScores = Number(rating.expected_score_count)
+  const expectedBonuses = Number(rating.expected_bonus_count ?? 0)
+  return {
+    complete: Number.isSafeInteger(expectedScores) && expectedScores > 0 && children.scores.length === expectedScores &&
+      Number.isSafeInteger(expectedBonuses) && expectedBonuses >= 0 && children.bonuses.length === expectedBonuses,
+    ...children
+  }
+}
+
+const submitRating = async (request, response, user) => {
   const body = request.body && typeof request.body === 'object' && !Array.isArray(request.body) ? request.body : {}
   const productId = positiveId(body.productId ?? body.product_id, 'Product identifier')
   const [product, attributes, bonusCatalogue] = await Promise.all([
@@ -149,132 +121,130 @@ const submitRating = async (request, response, user, correlationId) => {
     dataProvider.list(COLLECTIONS.ratingAttributes),
     loadBonusCatalogue(user.id)
   ])
-  if (!product || String(product.id ?? '') !== productId) {
-    response.status(404).json({ error: 'Product not found.' })
-    return
-  }
+  if (!product || String(product.id ?? '') !== productId) return response.status(404).json({ error: 'Product not found.' })
 
   const requestedBonusIds = validateBonusIds(body.bonusAttributeIds, bonusCatalogue.bonusAttributes)
   const bonusPointTotal = selectedBonusPointTotal(bonusCatalogue.bonusAttributes, requestedBonusIds)
   const bonusScore = bonusScoreFromPoints(bonusPointTotal)
-  const totals = calculateRatingTotals(
-    scoresWithDerivedBonus(body.scores, attributes, bonusScore), records(attributes), body.weights
-  )
+  const totals = calculateRatingTotals(scoresWithDerivedBonus(body.scores, attributes, bonusScore), records(attributes), body.weights)
   const cellar = await ownedCellarForRating(body, user.id, productId)
-  const ratingPayload = {
-    user_id: user.id,
-    product_id: product.id,
-    cellar_id: cellar?.id ?? null,
-    date_rated: providerDateTime(),
-    total_unweighted: totals.total_unweighted,
-    total_weighted: totals.total_weighted
+  const sid = submissionId(body)
+  const key = `${user.id}:${sid}`
+  const fingerprint = fingerprintFor({ productId, cellarId: cellar?.id ?? null, totals, bonusIds: requestedBonusIds })
+  let rating = await findBySubmissionKey(user.id, key)
+  let duplicate = Boolean(rating)
+
+  if (rating && rating.submission_fingerprint !== fingerprint) {
+    const error = new Error('The submission identifier is already used by different rating data.')
+    error.status = 409
+    throw error
+  }
+  if (rating?.submission_state === 'complete') {
+    return response.status(200).json({ rating: projectRating(rating), scoreCount: Number(rating.expected_score_count), bonusCount: Number(rating.expected_bonus_count ?? 0), duplicate: true })
   }
 
-  let rating = null
-  const createdScores = []
-  const createdBonuses = []
   try {
-    const created = first(await dataProvider.create(COLLECTIONS.ratings, ratingPayload))
-    if (!created?.id) throw new Error('The rating service did not return a rating identifier.')
-    rating = { ...ratingPayload, ...created }
-
-    for (const score of totals.scores) {
-      const child = first(await dataProvider.create(COLLECTIONS.ratingScores, {
+    if (!rating) {
+      rating = first(await dataProvider.create(COLLECTIONS.ratings, {
         user_id: user.id,
-        attribute_id: score.attribute_id,
-        rating_id: rating.id,
-        attribute_score: score.attribute_score
+        product_id: product.id,
+        cellar_id: cellar?.id ?? null,
+        date_rated: providerDateTime(),
+        total_unweighted: totals.total_unweighted,
+        total_weighted: totals.total_weighted,
+        submission_key: key,
+        submission_fingerprint: fingerprint,
+        submission_state: 'pending',
+        submission_version: 0,
+        expected_score_count: totals.scores.length,
+        expected_bonus_count: requestedBonusIds.length,
+        deleted_at: null
       }))
-      if (!child?.id) throw new Error('The rating service did not return a score identifier.')
-      createdScores.push(child.id)
+      if (!rating?.id) throw new Error('The rating service did not return a rating identifier.')
     }
 
-    for (const bonusId of requestedBonusIds) {
-      const child = first(await dataProvider.create(COLLECTIONS.bonusRatingMappings, {
-        user_id: user.id,
-        rating_id: rating.id,
-        bonus_attributes_id: bonusId
-      }))
-      if (!child?.id) throw new Error('The rating service did not return a bonus mapping identifier.')
-      createdBonuses.push(child.id)
+    let existing = await childRows(rating.id, user.id)
+    if (!existing.scores.length && !existing.bonuses.length) {
+      for (const score of totals.scores) {
+        await dataProvider.create(COLLECTIONS.ratingScores, {
+          user_id: user.id, attribute_id: score.attribute_id, rating_id: rating.id, attribute_score: score.attribute_score
+        })
+      }
+      for (const bonusId of requestedBonusIds) {
+        await dataProvider.create(COLLECTIONS.bonusRatingMappings, {
+          user_id: user.id, rating_id: rating.id, bonus_attributes_id: bonusId
+        })
+      }
     }
 
-    const populations = await scorePopulations()
-    response.status(201).json({
-      rating: { ...projectRating(rating), advanced_scores: advancedFor(rating, populations, cellar) },
-      scoreCount: totals.scores.length,
-      bonusCount: requestedBonusIds.length,
-      bonusPointTotal,
-      bonusScore,
-      duplicate: false
+    const check = await reconcileExpectedChildren(rating, user.id)
+    if (!check.complete) throw new Error('Rating child records did not reconcile with the expected submission.')
+    rating = await transition(rating, 'complete')
+    response.status(duplicate ? 200 : 201).json({
+      rating: projectRating(rating), scoreCount: totals.scores.length, bonusCount: requestedBonusIds.length,
+      bonusPointTotal, bonusScore, duplicate
     })
   } catch (error) {
-    let cleanupFailed = false
-    try {
-      for (const id of createdBonuses.reverse()) await removeIfPresent(COLLECTIONS.bonusRatingMappings, id)
-      for (const id of createdScores.reverse()) await removeIfPresent(COLLECTIONS.ratingScores, id)
-      if (rating?.id) await removeIfPresent(COLLECTIONS.ratings, rating.id)
-    } catch { cleanupFailed = true }
-    writeTelemetryError(runtimeTelemetry({
-      route_template: '/api/nocodebackend/ratings/:action',
-      method: 'POST',
-      status_class: '5xx',
-      event_name: cleanupFailed ? 'rating_cleanup_failure' : 'rating_submission_failure',
-      correlation_id: correlationId
-    }))
-    if (error.status && error.status < 500) throw error
-    const workflowError = new Error('Rating submission failed and can be retried.')
-    workflowError.status = 502
-    throw workflowError
+    if (rating?.id && rating.submission_state !== 'complete') {
+      try { await transition(rating, 'failed') } catch { /* preserve original failure */ }
+    }
+    throw error
   }
 }
 
+const reconcileHistorical = async (response, user) => {
+  const pending = records(await dataProvider.list(COLLECTIONS.ratings, { user_id: user.id, submission_state: 'pending' }))
+    .filter((rating) => isOwnedBy(rating, user.id))
+  let completed = 0
+  let skipped = 0
+  for (const rating of pending) {
+    if (rating.submission_key || completedRatingTotal(rating.total_weighted) === null) { skipped += 1; continue }
+    const children = await childRows(rating.id, user.id)
+    if (!children.scores.length) { skipped += 1; continue }
+    const key = `legacy:${user.id}:${rating.id}`
+    const fingerprint = crypto.createHash('sha256').update(JSON.stringify({ legacyRatingId: String(rating.id), userId: String(user.id) })).digest('hex')
+    await transition(rating, 'complete', {
+      submission_key: key,
+      submission_fingerprint: fingerprint,
+      expected_score_count: children.scores.length,
+      expected_bonus_count: children.bonuses.length
+    })
+    completed += 1
+  }
+  response.status(200).json({ examined: pending.length, completed, skipped })
+}
+
 const listUserRatings = async (response, user) => {
-  const ownerRatings = records(await dataProvider.list(COLLECTIONS.ratings, { user_id: user.id }))
-    .filter((rating) => isOwnedBy(rating, user.id) && isCompletedRating(rating))
-  const [populations, cellarRows] = await Promise.all([
-    scorePopulations(),
-    dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }).then(records)
-  ])
-  const cellarById = new Map(cellarRows.filter((item) => isOwnedBy(item, user.id)).map((item) => [String(item.id), item]))
-  const productIds = [...new Set(ownerRatings.map((rating) => String(rating.product_id || '')).filter((id) => /^[1-9]\d*$/.test(id)))]
-  const products = await Promise.all(productIds.map(async (id) => [id, await productProjection(id)]))
-  const productsById = new Map(products)
-  response.status(200).json({
-    items: ownerRatings.map((rating) => ({
-      ...projectRating(rating),
-      advanced_scores: advancedFor(rating, populations, cellarById.get(String(rating.cellar_id)) || null),
-      product: productsById.get(String(rating.product_id)) || null
-    })).sort((left, right) => String(right.date_rated || '').localeCompare(String(left.date_rated || '')))
-  })
+  const ownerRatings = records(await dataProvider.list(COLLECTIONS.ratings, { user_id: user.id, submission_state: 'complete' }))
+    .filter((rating) => isOwnedBy(rating, user.id) && completeRating(rating))
+  response.status(200).json({ items: ownerRatings.map(projectRating).sort((a, b) => String(b.date_rated || '').localeCompare(String(a.date_rated || ''))) })
+}
+
+const removeIfPresent = async (collection, id) => {
+  if (!id) return
+  try { await dataProvider.remove(collection, id) } catch (error) { if (error?.status !== 404) throw error }
 }
 
 const deleteRating = async (id, response, user) => {
   const ratingId = positiveId(id, 'Rating identifier')
-  const rating = await dataProvider.get(COLLECTIONS.ratings, ratingId)
-  if (!rating) {
-    response.status(404).json({ error: 'Rating not found.' })
-    return
+  let rating = await dataProvider.get(COLLECTIONS.ratings, ratingId)
+  if (!rating) return response.status(404).json({ error: 'Rating not found.' })
+  if (!isOwnedBy(rating, user.id)) return response.status(403).json({ error: 'You are not authorised to delete this rating.' })
+  rating = await transition(rating, 'deleting')
+  const children = await childRows(ratingId, user.id)
+  for (const row of [...children.scores, ...children.bonuses]) {
+    const collection = children.scores.includes(row) ? COLLECTIONS.ratingScores : COLLECTIONS.bonusRatingMappings
+    await removeIfPresent(collection, row.id)
   }
-  if (!isOwnedBy(rating, user.id)) {
-    response.status(403).json({ error: 'You are not authorised to delete this rating.' })
-    return
-  }
-  for (const collection of [COLLECTIONS.ratingScores, COLLECTIONS.bonusRatingMappings]) {
-    const children = records(await dataProvider.list(collection, { rating_id: ratingId, user_id: user.id }))
-    for (const listedChild of children) {
-      const child = await dataProvider.get(collection, listedChild.id)
-      if (isOwnedBy(child, user.id) && String(child.rating_id) === ratingId) await removeIfPresent(collection, child.id)
-    }
-  }
-  await removeIfPresent(COLLECTIONS.ratings, ratingId)
+  await transition(rating, 'deleted', { deleted_at: providerDateTime() })
   response.status(204).end()
 }
 
-export const routeRatingRequest = async (request, response, user, correlationId) => {
+export const routeRatingRequest = async (request, response, user) => {
   const [resource, id, action] = pathSegments(request)
   if (resource !== 'ratings') return response.status(404).json({ error: 'Application data route not found.' })
-  if (request.method === 'POST' && (id === 'submit' || id === 'reconcile')) return submitRating(request, response, user, correlationId)
+  if (request.method === 'POST' && id === 'submit') return submitRating(request, response, user)
+  if (request.method === 'POST' && id === 'reconcile') return reconcileHistorical(response, user)
   if (request.method === 'GET' && id === 'mine') return listUserRatings(response, user)
   if (request.method === 'DELETE' && id && !action) return deleteRating(id, response, user)
   response.status(404).json({ error: 'Application data route not found.' })
@@ -286,32 +256,18 @@ export default async function handler(request, response) {
   response.setHeader('Cache-Control', 'no-store')
   if (!ALLOWED_METHODS.has(request.method)) {
     response.setHeader('Allow', [...ALLOWED_METHODS].join(', '))
-    response.status(405).json({ error: 'Method not allowed.' })
-    return
+    return response.status(405).json({ error: 'Method not allowed.' })
   }
   if (!enforceRequestSize(request, response) || !enforceOrigin(request, response)) return
-  if (!enforceRateLimit(request, response, {
-    key: request.method === 'GET' ? 'data-read' : 'data-write',
-    limit: request.method === 'GET' ? 240 : 60
-  })) return
+  if (!enforceRateLimit(request, response, { key: request.method === 'GET' ? 'data-read' : 'data-write', limit: request.method === 'GET' ? 240 : 60 })) return
   try {
     const user = await requireSessionUser(request)
-    await routeRatingRequest(request, response, user, correlationId)
+    await routeRatingRequest(request, response, user)
   } catch (error) {
     const status = Number(error.status) >= 400 && Number(error.status) < 600 ? Number(error.status) : 500
-    if (status >= 500) writeTelemetryError(runtimeTelemetry({
-      route_template: '/api/nocodebackend/ratings/:action',
-      method: request.method,
-      status_class: `${Math.floor(status / 100)}xx`,
-      event_name: error.name === 'AbortError' ? 'provider_timeout' : 'gateway_failure',
-      correlation_id: correlationId
-    }))
-    response.status(status).json(error.payload || {
-      error: status < 500 && error.message ? error.message : safeErrorMessage(status),
-      code: error.code,
-      requestId: correlationId
-    })
+    if (status >= 500) writeTelemetryError(runtimeTelemetry({ route_template: '/api/nocodebackend/ratings/:action', method: request.method, status_class: `${Math.floor(status / 100)}xx`, event_name: 'gateway_failure', correlation_id: correlationId }))
+    response.status(status).json(error.payload || { error: status < 500 && error.message ? error.message : safeErrorMessage(status), code: error.code, requestId: correlationId })
   }
 }
 
-export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, isCompletedRating, scoresWithDerivedBonus }
+export const __testables = { submitRating, reconcileHistorical, listUserRatings, deleteRating, reconcileExpectedChildren, completeRating, scoresWithDerivedBonus }
