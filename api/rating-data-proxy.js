@@ -142,23 +142,26 @@ const findSubmission = async (userId, submissionId) => {
     .find((rating) => isOwnedBy(rating, userId) && rating.submission_key === key) || null
 }
 
-const validateSubmissionChildren = async (rating, userId, expectedScores, expectedBonusIds, key) => {
+const validateSubmissionChildren = async (rating, userId, expectedScores, expectedBonusIds) => {
   const [scoreRows, bonusRows] = await Promise.all([
     dataProvider.list(COLLECTIONS.ratingScores, { rating_id: rating.id, user_id: userId }),
     dataProvider.list(COLLECTIONS.bonusRatingMappings, { rating_id: rating.id, user_id: userId })
   ])
-  const ownedScores = records(scoreRows).filter((item) => isOwnedBy(item, userId))
-  const ownedBonuses = records(bonusRows).filter((item) => isOwnedBy(item, userId))
-  const expectedScoreKeys = new Set(expectedScores.map((score) => scoreKey(key, score.attribute_id)))
-  const expectedBonusKeys = new Set(expectedBonusIds.map((id) => bonusKey(key, id)))
-  const expectedScoresByKey = new Map(expectedScores.map((score) => [scoreKey(key, score.attribute_id), score]))
+  const ownedScores = records(scoreRows).filter((item) => isOwnedBy(item, userId) && String(item.rating_id) === String(rating.id))
+  const ownedBonuses = records(bonusRows).filter((item) => isOwnedBy(item, userId) && String(item.rating_id) === String(rating.id))
+  const expectedScoresByAttribute = new Map(expectedScores.map((score) => [String(score.attribute_id), score]))
+  const expectedBonusIdsSet = new Set(expectedBonusIds.map(String))
+  const scoreAttributes = new Set(ownedScores.map((item) => String(item.attribute_id)))
+  const bonusIds = new Set(ownedBonuses.map((item) => String(item.bonus_attribute_id)))
   return {
-    complete: ownedScores.length === expectedScoreKeys.size && ownedBonuses.length === expectedBonusKeys.size && ownedScores.every((item) => {
-      const expected = expectedScoresByKey.get(item.uniqueness_key)
-      return expected && String(item.rating_id) === String(rating.id) && String(item.attribute_id) === String(expected.attribute_id) && String(item.attribute_score) === String(expected.attribute_score)
-    }) && ownedBonuses.every((item) => expectedBonusKeys.has(item.uniqueness_key) && String(item.rating_id) === String(rating.id) && item.uniqueness_key === bonusKey(key, item.bonus_attributes_id)),
-    scoreKeys: new Set(ownedScores.map((item) => item.uniqueness_key)),
-    bonusKeys: new Set(ownedBonuses.map((item) => item.uniqueness_key))
+    complete: ownedScores.length === expectedScoresByAttribute.size && ownedBonuses.length === expectedBonusIdsSet.size &&
+      ownedScores.every((item) => {
+        const expected = expectedScoresByAttribute.get(String(item.attribute_id))
+        return expected && String(item.attribute_score) === String(expected.attribute_score)
+      }) &&
+      ownedBonuses.every((item) => expectedBonusIdsSet.has(String(item.bonus_attribute_id))),
+    scoreAttributes,
+    bonusIds
   }
 }
 
@@ -170,7 +173,7 @@ const transitionRating = async (rating, userId, fingerprint, fromStates, toState
   if (!fromStates.has(persisted.submission_state)) throw new Error('The rating workflow state cannot make that transition.')
   const version = Number(persisted.submission_version)
   if (!Number.isSafeInteger(version) || version < 0) throw new Error('The rating workflow version is invalid.')
-  await dataProvider.compareAndSet(COLLECTIONS.ratings, persisted.id, version, { submission_state: toState, submission_version: version + 1 })
+  await dataProvider.update(COLLECTIONS.ratings, persisted.id, { submission_state: toState, submission_version: version + 1 })
   const transitioned = await dataProvider.get(COLLECTIONS.ratings, persisted.id)
   if (!ratingIdentityMatches(transitioned, userId, fingerprint) || transitioned.submission_state !== toState || Number(transitioned.submission_version) !== version + 1) throw new Error('Rating workflow state was not durably updated.')
   return transitioned
@@ -228,14 +231,13 @@ const submitRating = async (request, response, user, correlationId) => {
     }
     const existingChildren = await validateSubmissionChildren(rating, user.id, totals.scores, requestedBonusIds, key)
     for (const score of totals.scores) {
-      const uniquenessKey = scoreKey(key, score.attribute_id)
-      if (existingChildren.scoreKeys.has(uniquenessKey)) continue
-      await createChildIdempotently(COLLECTIONS.ratingScores, { user_id: user.id, attribute_id: score.attribute_id, rating_id: rating.id, attribute_score: score.attribute_score, uniqueness_key: uniquenessKey }, async () => records(await dataProvider.list(COLLECTIONS.ratingScores, { user_id: user.id, uniqueness_key: uniquenessKey }))[0])
+      const attributeId = String(score.attribute_id)
+      if (existingChildren.scoreAttributes.has(attributeId)) continue
+      await createChildIdempotently(COLLECTIONS.ratingScores, { user_id: user.id, attribute_id: score.attribute_id, rating_id: rating.id, attribute_score: score.attribute_score }, async () => records(await dataProvider.list(COLLECTIONS.ratingScores, { user_id: user.id, rating_id: rating.id, attribute_id: score.attribute_id }))[0])
     }
     for (const bonusId of requestedBonusIds) {
-      const uniquenessKey = bonusKey(key, bonusId)
-      if (existingChildren.bonusKeys.has(uniquenessKey)) continue
-      await createChildIdempotently(COLLECTIONS.bonusRatingMappings, { user_id: user.id, rating_id: rating.id, bonus_attributes_id: bonusId, uniqueness_key: uniquenessKey }, async () => records(await dataProvider.list(COLLECTIONS.bonusRatingMappings, { user_id: user.id, uniqueness_key: uniquenessKey }))[0])
+      if (existingChildren.bonusIds.has(String(bonusId))) continue
+      await createChildIdempotently(COLLECTIONS.bonusRatingMappings, { user_id: user.id, rating_id: rating.id, bonus_attribute_id: bonusId }, async () => records(await dataProvider.list(COLLECTIONS.bonusRatingMappings, { user_id: user.id, rating_id: rating.id, bonus_attribute_id: bonusId }))[0])
     }
     const completed = await validateSubmissionChildren(rating, user.id, totals.scores, requestedBonusIds, key)
     if (!completed.complete) throw new Error('Rating children remain incomplete after reconciliation.')
