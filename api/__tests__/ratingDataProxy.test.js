@@ -147,13 +147,17 @@ test('submitRating ignores browser totals and Bonus, persists server-derived fiv
     assert.equal(firstResponse.body.duplicate, false)
 
     const ratingWrite = provider.state[COLLECTIONS.ratings][0]
+    assert.equal(ratingWrite.id, 100)
     assert.equal(ratingWrite.total_weighted, 5)
     assert.equal(ratingWrite.total_unweighted, 5)
     assert.equal(ratingWrite.submission_state, 'complete')
-    assert.equal(ratingWrite.rating_id, 1700000000000001)
+    assert.equal(Object.hasOwn(ratingWrite, 'rating_id'), false)
+    assert.equal(typeof ratingWrite.submission_key, 'string')
+    assert.ok(ratingWrite.submission_key.length > 0)
     assert.equal(Object.hasOwn(ratingWrite, 'weights'), false)
     assert.equal(Object.hasOwn(ratingWrite, 'score_out_of_100'), false)
     assert.equal(provider.state[COLLECTIONS.ratingScores].length, 8)
+    assert.ok(provider.state[COLLECTIONS.ratingScores].every((score) => String(score.rating_id) === String(ratingWrite.id)))
     assert.equal(provider.state[COLLECTIONS.bonusRatingMappings].length, 3)
 
     const retryResponse = responseHarness()
