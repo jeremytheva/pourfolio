@@ -98,19 +98,77 @@ const transition = async (rating, state, extra = {}) => {
   const version = Number.isSafeInteger(Number(rating.submission_version)) ? Number(rating.submission_version) : 0
   await dataProvider.update(COLLECTIONS.ratings, rating.id, { ...extra, submission_state: state, submission_version: version + 1 })
   const persisted = await dataProvider.get(COLLECTIONS.ratings, rating.id)
-  if (!persisted || persisted.submission_state !== state) throw new Error('Rating workflow state was not durably updated.')
+  if (!persisted || persisted.submission_state !== state || Number(persisted.submission_version) !== version + 1) {
+    throw new Error('Rating workflow state was not durably updated.')
+  }
   return persisted
 }
 
-const reconcileExpectedChildren = async (rating, userId) => {
+const reconcileExpectedChildren = async (rating, userId, expectedScoreRows = null, expectedBonusIds = null) => {
   const children = await childRows(rating.id, userId)
   const expectedScores = Number(rating.expected_score_count)
   const expectedBonuses = Number(rating.expected_bonus_count ?? 0)
+  let structurallyValid = true
+
+  if (expectedScoreRows) {
+    const expectedByAttribute = new Map(expectedScoreRows.map((score) => [String(score.attribute_id), String(score.attribute_score)]))
+    structurallyValid = children.scores.every((row) => expectedByAttribute.get(String(row.attribute_id)) === String(row.attribute_score)) &&
+      new Set(children.scores.map((row) => String(row.attribute_id))).size === children.scores.length
+  }
+  if (structurallyValid && expectedBonusIds) {
+    const expectedBonusSet = new Set(expectedBonusIds.map(String))
+    structurallyValid = children.bonuses.every((row) => expectedBonusSet.has(String(row.bonus_attribute_id))) &&
+      new Set(children.bonuses.map((row) => String(row.bonus_attribute_id))).size === children.bonuses.length
+  }
+
   return {
-    complete: Number.isSafeInteger(expectedScores) && expectedScores > 0 && children.scores.length === expectedScores &&
+    complete: structurallyValid && Number.isSafeInteger(expectedScores) && expectedScores > 0 && children.scores.length === expectedScores &&
       Number.isSafeInteger(expectedBonuses) && expectedBonuses >= 0 && children.bonuses.length === expectedBonuses,
     ...children
   }
+}
+
+const ensureScoreChildren = async (rating, userId, expectedScores) => {
+  let children = await childRows(rating.id, userId)
+  for (const score of expectedScores) {
+    const matching = children.scores.filter((row) => String(row.attribute_id) === String(score.attribute_id))
+    if (matching.length > 1 || (matching[0] && String(matching[0].attribute_score) !== String(score.attribute_score))) {
+      const error = new Error('Persisted rating scores conflict with this submission.')
+      error.status = 409
+      throw error
+    }
+    if (!matching.length) {
+      await dataProvider.create(COLLECTIONS.ratingScores, {
+        user_id: userId,
+        attribute_id: score.attribute_id,
+        rating_id: rating.id,
+        attribute_score: score.attribute_score
+      })
+      children = await childRows(rating.id, userId)
+    }
+  }
+  return children
+}
+
+const ensureBonusChildren = async (rating, userId, expectedBonusIds) => {
+  let children = await childRows(rating.id, userId)
+  for (const bonusId of expectedBonusIds) {
+    const matching = children.bonuses.filter((row) => String(row.bonus_attribute_id) === String(bonusId))
+    if (matching.length > 1) {
+      const error = new Error('Persisted bonus attributes conflict with this submission.')
+      error.status = 409
+      throw error
+    }
+    if (!matching.length) {
+      await dataProvider.create(COLLECTIONS.bonusRatingMappings, {
+        user_id: userId,
+        rating_id: rating.id,
+        bonus_attribute_id: bonusId
+      })
+      children = await childRows(rating.id, userId)
+    }
+  }
+  return children
 }
 
 const submitRating = async (request, response, user) => {
@@ -163,21 +221,10 @@ const submitRating = async (request, response, user) => {
       if (!rating?.id) throw new Error('The rating service did not return a rating identifier.')
     }
 
-    let existing = await childRows(rating.id, user.id)
-    if (!existing.scores.length && !existing.bonuses.length) {
-      for (const score of totals.scores) {
-        await dataProvider.create(COLLECTIONS.ratingScores, {
-          user_id: user.id, attribute_id: score.attribute_id, rating_id: rating.id, attribute_score: score.attribute_score
-        })
-      }
-      for (const bonusId of requestedBonusIds) {
-        await dataProvider.create(COLLECTIONS.bonusRatingMappings, {
-          user_id: user.id, rating_id: rating.id, bonus_attributes_id: bonusId
-        })
-      }
-    }
+    await ensureScoreChildren(rating, user.id, totals.scores)
+    await ensureBonusChildren(rating, user.id, requestedBonusIds)
 
-    const check = await reconcileExpectedChildren(rating, user.id)
+    const check = await reconcileExpectedChildren(rating, user.id, totals.scores, requestedBonusIds)
     if (!check.complete) throw new Error('Rating child records did not reconcile with the expected submission.')
     rating = await transition(rating, 'complete')
     response.status(duplicate ? 200 : 201).json({
@@ -270,4 +317,4 @@ export default async function handler(request, response) {
   }
 }
 
-export const __testables = { submitRating, reconcileHistorical, listUserRatings, deleteRating, reconcileExpectedChildren, completeRating, scoresWithDerivedBonus }
+export const __testables = { submitRating, reconcileHistorical, listUserRatings, deleteRating, reconcileExpectedChildren, completeRating, scoresWithDerivedBonus, ensureScoreChildren, ensureBonusChildren }
