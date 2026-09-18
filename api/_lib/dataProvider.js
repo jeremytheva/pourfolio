@@ -109,6 +109,15 @@ const buildProviderHeaders = ({ secret, body }) => ({
   ...(body === undefined ? {} : { 'content-type': 'application/json' })
 })
 
+const safeRequestShape = (body) => {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return undefined
+  return Object.keys(body).sort().map((key) => {
+    const value = body[key]
+    const type = value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value
+    return `${key}:${type}`
+  }).join(',')
+}
+
 const providerRequest = async (path, { method = 'GET', body, filters, preserveEnvelope = false } = {}) => {
   const { baseUrl, secret, instance } = getConfiguration()
   let upstream
@@ -148,6 +157,7 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
       : payload?.success === false ? 'success_false'
         : payload?.status === 'error' ? 'status_error'
           : 'http_status'
+    error.providerRequestShape = safeRequestShape(body)
     throw error
   }
 
