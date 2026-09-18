@@ -203,7 +203,6 @@ const submitRating = async (request, response, user, correlationId) => {
   const body = request.body && typeof request.body === 'object' && !Array.isArray(request.body) ? request.body : {}
   const productId = positiveId(body.productId ?? body.product_id, 'Product identifier')
   const submissionId = submissionIdentifier(body)
-  let workflowStage = 'find_existing_submission'
   const [product, attributes, bonusCatalogue] = await atStage('load_rating_dependencies', () => Promise.all([dataProvider.get(COLLECTIONS.products, productId), dataProvider.list(COLLECTIONS.ratingAttributes), loadBonusCatalogue(user.id)]))
   if (!product || String(product.id ?? '') !== productId) { response.status(404).json({ error: 'Product not found.' }); return }
   const requestedBonusIds = validateBonusIds(body.bonusAttributeIds, bonusCatalogue.bonusAttributes)
@@ -215,7 +214,7 @@ const submitRating = async (request, response, user, correlationId) => {
   const cellarId = cellar?.id ?? null
   const key = submissionKey(user.id, submissionId)
   const fingerprint = submissionFingerprint(productId, cellarId, totals, requestedBonusIds)
-  workflowStage = 'find_existing_submission'
+  let workflowStage = 'find_existing_submission'
   let rating = await findSubmission(user.id, submissionId)
   let duplicate = Boolean(rating)
   if (rating && rating.submission_fingerprint !== fingerprint) { const error = new Error('The submission identifier is already used by different rating data.'); error.status = 409; throw error }
