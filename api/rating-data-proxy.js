@@ -196,19 +196,22 @@ const submissionResponse = async ({ response, status, rating, totals, requestedB
 }
 
 const submitRating = async (request, response, user, correlationId) => {
+  const atStage = async (stage, operation) => {
+    try { return await operation() }
+    catch (error) { error.workflowStage = stage; throw error }
+  }
   const body = request.body && typeof request.body === 'object' && !Array.isArray(request.body) ? request.body : {}
   const productId = positiveId(body.productId ?? body.product_id, 'Product identifier')
   const submissionId = submissionIdentifier(body)
-  let workflowStage = 'load_rating_dependencies'
-  const [product, attributes, bonusCatalogue] = await Promise.all([dataProvider.get(COLLECTIONS.products, productId), dataProvider.list(COLLECTIONS.ratingAttributes), loadBonusCatalogue(user.id)])
+  let workflowStage = 'find_existing_submission'
+  const [product, attributes, bonusCatalogue] = await atStage('load_rating_dependencies', () => Promise.all([dataProvider.get(COLLECTIONS.products, productId), dataProvider.list(COLLECTIONS.ratingAttributes), loadBonusCatalogue(user.id)]))
   if (!product || String(product.id ?? '') !== productId) { response.status(404).json({ error: 'Product not found.' }); return }
   const requestedBonusIds = validateBonusIds(body.bonusAttributeIds, bonusCatalogue.bonusAttributes)
   const bonusPointTotal = selectedBonusPointTotal(bonusCatalogue.bonusAttributes, requestedBonusIds)
   const bonusScore = bonusScoreFromPoints(bonusPointTotal)
   const derivedScores = scoresWithDerivedBonus(body.scores, attributes, bonusScore)
   const totals = calculateRatingTotals(derivedScores, records(attributes), body.weights)
-  workflowStage = 'validate_cellar'
-  const cellar = await ownedCellarForRating(body, user.id, productId)
+  const cellar = await atStage('validate_cellar', () => ownedCellarForRating(body, user.id, productId))
   const cellarId = cellar?.id ?? null
   const key = submissionKey(user.id, submissionId)
   const fingerprint = submissionFingerprint(productId, cellarId, totals, requestedBonusIds)
@@ -340,7 +343,7 @@ export default async function handler(request, response) {
   try { const user = await requireSessionUser(request); await routeRatingRequest(request, response, user, correlationId) }
   catch (error) {
     const status = Number(error.status) >= 400 && Number(error.status) < 600 ? Number(error.status) : 500
-    if (status >= 500) writeTelemetryError(runtimeTelemetry({ route_template: '/api/nocodebackend/ratings/:action', method: request.method, status_class: `${Math.floor(status / 100)}xx`, event_name: error.name === 'AbortError' ? 'provider_timeout' : 'gateway_failure', correlation_id: correlationId }))
+    if (status >= 500) writeTelemetryError(runtimeTelemetry({ route_template: '/api/nocodebackend/ratings/:action', method: request.method, status_class: `${Math.floor(status / 100)}xx`, event_name: error.name === 'AbortError' ? 'provider_timeout' : 'gateway_failure', correlation_id: correlationId, workflow_stage: error.workflowStage, error_name: error?.name || 'Error', error_code: error?.code || error?.status || 'unknown' }))
     response.status(status).json(error.payload || { error: status < 500 && error.message ? error.message : safeErrorMessage(status), code: error.code, requestId: correlationId })
   }
 }
