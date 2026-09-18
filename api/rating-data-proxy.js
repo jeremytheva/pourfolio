@@ -132,8 +132,6 @@ const productProjection = async (productId) => {
 }
 
 const submissionKey = (userId, submissionId) => `${userId}:${submissionId}`
-const scoreKey = (key, attributeId) => `${key}:score:${attributeId}`
-const bonusKey = (key, bonusId) => `${key}:bonus:${bonusId}`
 const submissionFingerprint = (productId, cellarId, totals, bonusIds) => crypto.createHash('sha256').update(JSON.stringify({ productId: String(productId), cellarId, scores: totals.scores, weights: totals.weights, bonusIds: [...bonusIds].sort() })).digest('hex')
 
 const findSubmission = async (userId, submissionId) => {
@@ -151,8 +149,11 @@ const validateSubmissionChildren = async (rating, userId, expectedScores, expect
   const ownedBonuses = records(bonusRows).filter((item) => isOwnedBy(item, userId) && String(item.rating_id) === String(rating.id))
   const expectedScoresByAttribute = new Map(expectedScores.map((score) => [String(score.attribute_id), score]))
   const expectedBonusIdsSet = new Set(expectedBonusIds.map(String))
-  const scoreAttributes = new Set(ownedScores.map((item) => String(item.attribute_id)))
-  const bonusIds = new Set(ownedBonuses.map((item) => String(item.bonus_attribute_id)))
+  const matchingScoreAttributes = new Set(ownedScores.filter((item) => {
+    const expected = expectedScoresByAttribute.get(String(item.attribute_id))
+    return expected && Number.isFinite(Number(item.attribute_score)) && Number(item.attribute_score) === Number(expected.attribute_score)
+  }).map((item) => String(item.attribute_id)))
+  const matchingBonusIds = new Set(ownedBonuses.filter((item) => expectedBonusIdsSet.has(String(item.bonus_attribute_id))).map((item) => String(item.bonus_attribute_id)))
   return {
     complete: ownedScores.length === expectedScoresByAttribute.size && ownedBonuses.length === expectedBonusIdsSet.size &&
       ownedScores.every((item) => {
@@ -160,8 +161,8 @@ const validateSubmissionChildren = async (rating, userId, expectedScores, expect
         return expected && Number.isFinite(Number(item.attribute_score)) && Number(item.attribute_score) === Number(expected.attribute_score)
       }) &&
       ownedBonuses.every((item) => expectedBonusIdsSet.has(String(item.bonus_attribute_id))),
-    scoreAttributes,
-    bonusIds
+    scoreAttributes: matchingScoreAttributes,
+    bonusIds: matchingBonusIds
   }
 }
 
@@ -179,12 +180,16 @@ const transitionRating = async (rating, userId, fingerprint, fromStates, toState
   return transitioned
 }
 
+const childFieldMatches = (field, actual, expected) => field === 'attribute_score'
+  ? Number.isFinite(Number(actual)) && Number(actual) === Number(expected)
+  : String(actual ?? '') === String(expected ?? '')
+
 const createChildIdempotently = async (collection, payload, loadExisting) => {
   try { const created = first(await dataProvider.create(collection, payload)); if (!created?.id) throw new Error('The rating service did not return a child identifier.') }
   catch (error) {
     if (!dataProvider.isUniqueConflict(error)) throw error
     const existing = await loadExisting()
-    const matchesExpected = existing && Object.entries(payload).every(([field, value]) => String(existing[field] ?? '') === String(value ?? ''))
+    const matchesExpected = existing && Object.entries(payload).every(([field, value]) => childFieldMatches(field, existing[field], value))
     if (!matchesExpected || !isOwnedBy(existing, payload.user_id)) throw error
   }
 }
@@ -269,7 +274,8 @@ const submitRating = async (request, response, user, correlationId) => {
         await transitionRating(rating, user.id, fingerprint, new Set(['pending']), 'failed')
       } catch { stateUpdateFailed = true }
     }
-    writeTelemetryError(runtimeTelemetry({ route_template: '/api/nocodebackend/ratings/:action', method: 'POST', status_class: '5xx', event_name: stateUpdateFailed ? 'rating_reconciliation_state_update_failure' : 'rating_reconciliation_failure', correlation_id: correlationId, workflow_stage: workflowStage, error_name: error?.name || 'Error', error_code: error?.code || error?.status || 'unknown' }))
+    const diagnosticEvents = { create_rating_parent: 'rating_parent_create_failure', load_existing_children: 'rating_child_read_failure', create_score_child: 'rating_score_create_failure', create_bonus_child: 'rating_bonus_create_failure', reconcile_children: 'rating_child_mismatch', mark_complete: 'rating_state_transition_failure', build_response: 'rating_response_build_failure' }
+    writeTelemetryError(runtimeTelemetry({ route_template: '/api/nocodebackend/ratings/:action', method: 'POST', status_class: '5xx', event_name: stateUpdateFailed ? 'rating_reconciliation_state_update_failure' : diagnosticEvents[workflowStage] || 'rating_reconciliation_failure', correlation_id: correlationId }))
     if (error.status && error.status < 500) throw error
     const workflowError = new Error('Rating submission is incomplete and can be retried safely.'); workflowError.status = 502; throw workflowError
   }
