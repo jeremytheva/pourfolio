@@ -232,11 +232,13 @@ const submitRating = async (request, response, user, correlationId) => {
     if (!rating) {
       try {
         workflowStage = 'create_rating_parent'
-        rating = first(await dataProvider.create(COLLECTIONS.ratings, {
+        const parentPayload = {
           user_id: user.id, submission_key: key, submission_fingerprint: fingerprint, submission_state: 'pending', submission_version: 0,
-          expected_score_count: totals.scores.length, expected_bonus_count: requestedBonusIds.length, product_id: product.id, cellar_id: cellarId,
-          date_rated: new Date().toISOString(), total_unweighted: totals.total_unweighted, total_weighted: totals.total_weighted
-        }))
+          expected_score_count: totals.scores.length, expected_bonus_count: requestedBonusIds.length, product_id: product.id,
+          date_rated: new Date().toISOString(), total_unweighted: totals.total_unweighted, total_weighted: totals.total_weighted,
+          ...(cellarId === null ? {} : { cellar_id: cellarId })
+        }
+        rating = first(await dataProvider.create(COLLECTIONS.ratings, parentPayload))
         if (!rating?.id) throw new Error('The rating service did not return a rating identifier.')
         workflowStage = 'hydrate_rating_parent'
         rating = await dataProvider.get(COLLECTIONS.ratings, rating.id)
