@@ -196,9 +196,11 @@ const submissionResponse = async ({ response, status, rating, totals, requestedB
 }
 
 const submitRating = async (request, response, user, correlationId) => {
+  let workflowStage = 'validate_request'
   const body = request.body && typeof request.body === 'object' && !Array.isArray(request.body) ? request.body : {}
   const productId = positiveId(body.productId ?? body.product_id, 'Product identifier')
   const submissionId = submissionIdentifier(body)
+  workflowStage = 'load_rating_dependencies'
   const [product, attributes, bonusCatalogue] = await Promise.all([dataProvider.get(COLLECTIONS.products, productId), dataProvider.list(COLLECTIONS.ratingAttributes), loadBonusCatalogue(user.id)])
   if (!product || String(product.id ?? '') !== productId) { response.status(404).json({ error: 'Product not found.' }); return }
   const requestedBonusIds = validateBonusIds(body.bonusAttributeIds, bonusCatalogue.bonusAttributes)
@@ -206,16 +208,19 @@ const submitRating = async (request, response, user, correlationId) => {
   const bonusScore = bonusScoreFromPoints(bonusPointTotal)
   const derivedScores = scoresWithDerivedBonus(body.scores, attributes, bonusScore)
   const totals = calculateRatingTotals(derivedScores, records(attributes), body.weights)
+  workflowStage = 'validate_cellar'
   const cellar = await ownedCellarForRating(body, user.id, productId)
   const cellarId = cellar?.id ?? null
   const key = submissionKey(user.id, submissionId)
   const fingerprint = submissionFingerprint(productId, cellarId, totals, requestedBonusIds)
+  workflowStage = 'find_existing_submission'
   let rating = await findSubmission(user.id, submissionId)
   let duplicate = Boolean(rating)
   if (rating && rating.submission_fingerprint !== fingerprint) { const error = new Error('The submission identifier is already used by different rating data.'); error.status = 409; throw error }
   try {
     if (!rating) {
       try {
+        workflowStage = 'create_rating_parent'
         rating = first(await dataProvider.create(COLLECTIONS.ratings, {
           user_id: user.id, submission_key: key, submission_fingerprint: fingerprint, submission_state: 'pending', submission_version: 0,
           expected_score_count: totals.scores.length, expected_bonus_count: requestedBonusIds.length, product_id: product.id, cellar_id: cellarId,
@@ -229,19 +234,25 @@ const submitRating = async (request, response, user, correlationId) => {
       if (!rating?.id) throw new Error('The rating service did not return a rating identifier.')
       if (!ratingIdentityMatches(rating, user.id, fingerprint)) { const conflict = new Error('The submission identifier is already used by different rating data.'); conflict.status = 409; throw conflict }
     }
+    workflowStage = 'load_existing_children'
     const existingChildren = await validateSubmissionChildren(rating, user.id, totals.scores, requestedBonusIds, key)
     for (const score of totals.scores) {
       const attributeId = String(score.attribute_id)
       if (existingChildren.scoreAttributes.has(attributeId)) continue
+      workflowStage = 'create_score_child'
       await createChildIdempotently(COLLECTIONS.ratingScores, { user_id: user.id, attribute_id: score.attribute_id, rating_id: rating.id, attribute_score: score.attribute_score }, async () => records(await dataProvider.list(COLLECTIONS.ratingScores, { user_id: user.id, rating_id: rating.id, attribute_id: score.attribute_id }))[0])
     }
     for (const bonusId of requestedBonusIds) {
       if (existingChildren.bonusIds.has(String(bonusId))) continue
+      workflowStage = 'create_bonus_child'
       await createChildIdempotently(COLLECTIONS.bonusRatingMappings, { user_id: user.id, rating_id: rating.id, bonus_attribute_id: bonusId }, async () => records(await dataProvider.list(COLLECTIONS.bonusRatingMappings, { user_id: user.id, rating_id: rating.id, bonus_attribute_id: bonusId }))[0])
     }
+    workflowStage = 'reconcile_children'
     const completed = await validateSubmissionChildren(rating, user.id, totals.scores, requestedBonusIds, key)
     if (!completed.complete) throw new Error('Rating children remain incomplete after reconciliation.')
+    workflowStage = 'mark_complete'
     rating = await transitionRating(rating, user.id, fingerprint, new Set(['pending', 'failed']), 'complete')
+    workflowStage = 'build_response'
     await submissionResponse({ response, status: duplicate ? 200 : 201, rating, totals, requestedBonusIds, bonusPointTotal, bonusScore, duplicate, cellar })
   } catch (error) {
     let stateUpdateFailed = false
@@ -255,7 +266,7 @@ const submitRating = async (request, response, user, correlationId) => {
         await transitionRating(rating, user.id, fingerprint, new Set(['pending']), 'failed')
       } catch { stateUpdateFailed = true }
     }
-    writeTelemetryError(runtimeTelemetry({ route_template: '/api/nocodebackend/ratings/:action', method: 'POST', status_class: '5xx', event_name: stateUpdateFailed ? 'rating_reconciliation_state_update_failure' : 'rating_reconciliation_failure', correlation_id: correlationId }))
+    writeTelemetryError(runtimeTelemetry({ route_template: '/api/nocodebackend/ratings/:action', method: 'POST', status_class: '5xx', event_name: stateUpdateFailed ? 'rating_reconciliation_state_update_failure' : 'rating_reconciliation_failure', correlation_id: correlationId, workflow_stage: workflowStage, error_name: error?.name || 'Error', error_code: error?.code || error?.status || 'unknown' }))
     if (error.status && error.status < 500) throw error
     const workflowError = new Error('Rating submission is incomplete and can be retried safely.'); workflowError.status = 502; throw workflowError
   }
