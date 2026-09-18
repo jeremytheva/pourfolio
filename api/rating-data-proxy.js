@@ -300,7 +300,7 @@ const deleteRating = async (id, response, user) => {
   if (rating.submission_state !== 'deleting') {
     const version = Number(rating.submission_version)
     if (!Number.isSafeInteger(version) || version < 0) throw new Error('The rating workflow version is invalid.')
-    try { await dataProvider.compareAndSet(COLLECTIONS.ratings, ratingId, version, { submission_state: 'deleting', submission_version: version + 1 }) } catch (error) { if (error?.code !== 'VERSION_CONFLICT') throw error }
+    await dataProvider.update(COLLECTIONS.ratings, ratingId, { submission_state: 'deleting', submission_version: version + 1 })
     rating = await dataProvider.get(COLLECTIONS.ratings, ratingId)
     if (!isOwnedBy(rating, user.id)) { const error = new Error('The rating ownership changed during deletion.'); error.status = 409; throw error }
     if (rating.submission_state === 'deleted') { response.status(204).end(); return }
@@ -324,8 +324,9 @@ const deleteRating = async (id, response, user) => {
   if (persisted.submission_state !== 'deleted') {
     const version = Number(persisted.submission_version)
     if (persisted.submission_state !== 'deleting' || !Number.isSafeInteger(version) || version < 0) throw new Error('The rating deletion workflow state is invalid.')
-    try { await dataProvider.compareAndSet(COLLECTIONS.ratings, ratingId, version, { submission_state: 'deleted', submission_version: version + 1, deleted_at: new Date().toISOString() }) }
-    catch (error) { if (error?.code !== 'VERSION_CONFLICT') throw error; const reconciled = await dataProvider.get(COLLECTIONS.ratings, ratingId); if (!isOwnedBy(reconciled, user.id) || reconciled.submission_state !== 'deleted') throw error }
+    await dataProvider.update(COLLECTIONS.ratings, ratingId, { submission_state: 'deleted', submission_version: version + 1, deleted_at: new Date().toISOString() })
+    const reconciled = await dataProvider.get(COLLECTIONS.ratings, ratingId)
+    if (!isOwnedBy(reconciled, user.id) || reconciled.submission_state !== 'deleted' || Number(reconciled.submission_version) !== version + 1) throw new Error('Rating deletion state was not durably updated.')
   }
   response.status(204).end()
 }
