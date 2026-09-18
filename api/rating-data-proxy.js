@@ -196,10 +196,10 @@ const submissionResponse = async ({ response, status, rating, totals, requestedB
 }
 
 const submitRating = async (request, response, user, correlationId) => {
-  let workflowStage = 'find_existing_submission'
   const body = request.body && typeof request.body === 'object' && !Array.isArray(request.body) ? request.body : {}
   const productId = positiveId(body.productId ?? body.product_id, 'Product identifier')
   const submissionId = submissionIdentifier(body)
+  let workflowStage = 'load_rating_dependencies'
   const [product, attributes, bonusCatalogue] = await Promise.all([dataProvider.get(COLLECTIONS.products, productId), dataProvider.list(COLLECTIONS.ratingAttributes), loadBonusCatalogue(user.id)])
   if (!product || String(product.id ?? '') !== productId) { response.status(404).json({ error: 'Product not found.' }); return }
   const requestedBonusIds = validateBonusIds(body.bonusAttributeIds, bonusCatalogue.bonusAttributes)
@@ -207,6 +207,7 @@ const submitRating = async (request, response, user, correlationId) => {
   const bonusScore = bonusScoreFromPoints(bonusPointTotal)
   const derivedScores = scoresWithDerivedBonus(body.scores, attributes, bonusScore)
   const totals = calculateRatingTotals(derivedScores, records(attributes), body.weights)
+  workflowStage = 'validate_cellar'
   const cellar = await ownedCellarForRating(body, user.id, productId)
   const cellarId = cellar?.id ?? null
   const key = submissionKey(user.id, submissionId)
