@@ -142,6 +142,12 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
     const error = new Error(safeErrorMessage(upstream.status))
     error.status = upstream.status >= 400 && upstream.status < 600 ? upstream.status : 502
     error.code = getProviderErrorCode(error.status, filters)
+    error.providerStatus = upstream.status
+    error.providerOperation = String(path).split('/').slice(0, 2).join('/')
+    error.providerErrorKind = payload?.error ? 'error_field'
+      : payload?.success === false ? 'success_false'
+        : payload?.status === 'error' ? 'status_error'
+          : 'http_status'
     throw error
   }
 
