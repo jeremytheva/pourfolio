@@ -326,3 +326,32 @@ test('valid partial-dimension tasting completes with only elected score rows plu
     )
   })
 })
+
+
+test('historical reconciliation is dry-run by default and rejects structurally incomplete ratings', async () => {
+  const updates = []
+  await withProviderMocks({
+    list: async (collection) => {
+      if (collection === COLLECTIONS.ratings) return [
+        { id: 10, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 },
+        { id: 11, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 }
+      ]
+      if (collection === COLLECTIONS.ratingScores) {
+        return [{ id: 20, user_id: 'user-1', rating_id: 10, attribute_id: 5, attribute_score: '6.00' }]
+      }
+      if (collection === COLLECTIONS.bonusRatingMappings) return []
+      return []
+    },
+    update: async (...args) => { updates.push(args) }
+  }, async () => {
+    const response = responseHarness()
+    await __testables.reconcileHistoricalRatings({ body: {} }, response, { id: 'user-1' })
+    assert.equal(response.statusCode, 200)
+    assert.equal(response.body.dryRun, true)
+    assert.equal(response.body.examined, 2)
+    assert.equal(response.body.eligible, 1)
+    assert.equal(response.body.items.find((item) => item.ratingId === 10).structurallyValid, true)
+    assert.equal(response.body.items.find((item) => item.ratingId === 11).structurallyValid, false)
+    assert.equal(updates.length, 0)
+  })
+})
