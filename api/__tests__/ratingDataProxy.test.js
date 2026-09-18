@@ -355,3 +355,25 @@ test('historical reconciliation is dry-run by default and rejects structurally i
     assert.equal(updates.length, 0)
   })
 })
+
+
+test('parent create acknowledgement is hydrated before child persistence', async () => {
+  const provider = durableProvider()
+  const baseCreate = provider.mocks.create
+  provider.mocks.create = async (collection, body) => {
+    const created = await baseCreate(collection, body)
+    if (collection === COLLECTIONS.ratings) {
+      return { status: 'success', message: 'Record created successfully', id: created.id }
+    }
+    return created
+  }
+
+  await withProviderMocks(provider.mocks, async () => {
+    const response = responseHarness()
+    await submitMaximum(response)
+    assert.equal(response.statusCode, 201)
+    assert.equal(provider.state[COLLECTIONS.ratings][0].submission_state, 'complete')
+    assert.equal(provider.state[COLLECTIONS.ratingScores].length, 8)
+    assert.equal(provider.state[COLLECTIONS.bonusRatingMappings].length, 3)
+  })
+})
