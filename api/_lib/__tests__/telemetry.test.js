@@ -15,21 +15,24 @@ test('telemetry uses the documented field allowlist only', () => {
   assert.deepEqual(SAFE_TELEMETRY_FIELDS, [
     'environment', 'route_template', 'method', 'status_class', 'duration_ms',
     'event_name', 'deployment', 'commit', 'region', 'correlation_id',
-    'provider_status', 'provider_operation', 'provider_error_kind'
+    'provider_status', 'provider_operation', 'provider_error_kind',
+    'provider_request_shape'
   ])
   const serialised = JSON.stringify(createTelemetryEvent({
     environment: 'production', route_template: '/api/nocodebackend/:resource', method: 'POST',
     status_class: '5xx', duration_ms: 123.6, event_name: 'gateway_failure',
     deployment: 'candidate.example.test', commit: 'abc123', region: 'syd1',
     correlation_id: 'sentinel-correlation-id', provider_status: '400',
-    provider_operation: 'create/ratings', provider_error_kind: 'http_status', ...SENTINELS
+    provider_operation: 'create/ratings', provider_error_kind: 'http_status',
+    provider_request_shape: 'product_id:number,user_id:string', ...SENTINELS
   }))
   assert.deepEqual(JSON.parse(serialised), {
     environment: 'production', route_template: '/api/nocodebackend/:resource', method: 'POST',
     status_class: '5xx', duration_ms: 124, event_name: 'gateway_failure',
     deployment: 'candidate.example.test', commit: 'abc123', region: 'syd1',
     correlation_id: 'sentinel-correlation-id', provider_status: '400',
-    provider_operation: 'create/ratings', provider_error_kind: 'http_status'
+    provider_operation: 'create/ratings', provider_error_kind: 'http_status',
+    provider_request_shape: 'product_id:number,user_id:string'
   })
   for (const sentinel of Object.values(SENTINELS)) assert.equal(serialised.includes(sentinel), false)
 })
