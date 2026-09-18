@@ -157,7 +157,7 @@ const validateSubmissionChildren = async (rating, userId, expectedScores, expect
     complete: ownedScores.length === expectedScoresByAttribute.size && ownedBonuses.length === expectedBonusIdsSet.size &&
       ownedScores.every((item) => {
         const expected = expectedScoresByAttribute.get(String(item.attribute_id))
-        return expected && String(item.attribute_score) === String(expected.attribute_score)
+        return expected && Number.isFinite(Number(item.attribute_score)) && Number(item.attribute_score) === Number(expected.attribute_score)
       }) &&
       ownedBonuses.every((item) => expectedBonusIdsSet.has(String(item.bonus_attribute_id))),
     scoreAttributes,
