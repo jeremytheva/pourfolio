@@ -227,6 +227,8 @@ const submitRating = async (request, response, user, correlationId) => {
           expected_score_count: totals.scores.length, expected_bonus_count: requestedBonusIds.length, product_id: product.id, cellar_id: cellarId,
           date_rated: new Date().toISOString(), total_unweighted: totals.total_unweighted, total_weighted: totals.total_weighted
         }))
+        if (!rating?.id) throw new Error('The rating service did not return a rating identifier.')
+        rating = await dataProvider.get(COLLECTIONS.ratings, rating.id)
       } catch (error) {
         rating = await findSubmission(user.id, submissionId)
         if (!rating || (!dataProvider.isUniqueConflict(error) && error?.name !== 'TimeoutError')) throw error
