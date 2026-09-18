@@ -254,3 +254,44 @@ test('product projection refuses mismatched producer/category identities', async
     assert.equal(projection.producer_id, 20)
   })
 })
+
+
+test('reconciliation accepts provider DECIMAL formatting and only skips matching score children', async () => {
+  await withProviderMocks({
+    list: async (collection) => {
+      if (collection === COLLECTIONS.ratingScores) {
+        return [{ id: 1, user_id: 'user-1', rating_id: 100, attribute_id: 5, attribute_score: '6.00' }]
+      }
+      if (collection === COLLECTIONS.bonusRatingMappings) return []
+      return []
+    }
+  }, async () => {
+    const result = await __testables.validateSubmissionChildren(
+      { id: 100 },
+      'user-1',
+      [{ attribute_id: 5, attribute_score: 6 }],
+      []
+    )
+    assert.equal(result.complete, true)
+    assert.equal(result.scoreAttributes.has('5'), true)
+  })
+
+  await withProviderMocks({
+    list: async (collection) => {
+      if (collection === COLLECTIONS.ratingScores) {
+        return [{ id: 1, user_id: 'user-1', rating_id: 100, attribute_id: 5, attribute_score: '5.00' }]
+      }
+      if (collection === COLLECTIONS.bonusRatingMappings) return []
+      return []
+    }
+  }, async () => {
+    const result = await __testables.validateSubmissionChildren(
+      { id: 100 },
+      'user-1',
+      [{ attribute_id: 5, attribute_score: 6 }],
+      []
+    )
+    assert.equal(result.complete, false)
+    assert.equal(result.scoreAttributes.has('5'), false)
+  })
+})
