@@ -377,3 +377,45 @@ test('parent create acknowledgement is hydrated before child persistence', async
     assert.equal(provider.state[COLLECTIONS.bonusRatingMappings].length, 3)
   })
 })
+
+
+test('historical reconciliation apply updates only structurally valid ratings and verifies persistence', async () => {
+  const ratings = [
+    { id: 10, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 },
+    { id: 11, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 }
+  ]
+  const updates = []
+  await withProviderMocks({
+    list: async (collection) => {
+      if (collection === COLLECTIONS.ratings) return ratings
+      if (collection === COLLECTIONS.ratingScores) {
+        return [{ id: 20, user_id: 'user-1', rating_id: 10, attribute_id: 5, attribute_score: '6.00' }]
+      }
+      if (collection === COLLECTIONS.bonusRatingMappings) return []
+      return []
+    },
+    get: async (collection, id) => collection === COLLECTIONS.ratings
+      ? ratings.find((rating) => String(rating.id) === String(id)) || null
+      : null,
+    update: async (collection, id, body) => {
+      assert.equal(collection, COLLECTIONS.ratings)
+      const rating = ratings.find((item) => String(item.id) === String(id))
+      Object.assign(rating, body)
+      updates.push({ id, body })
+      return rating
+    }
+  }, async () => {
+    const response = responseHarness()
+    await __testables.reconcileHistoricalRatings({ body: { apply: true } }, response, { id: 'user-1' })
+    assert.equal(response.statusCode, 200)
+    assert.equal(response.body.dryRun, false)
+    assert.equal(response.body.eligible, 1)
+    assert.equal(updates.length, 1)
+    assert.equal(updates[0].id, 10)
+    assert.equal(ratings[0].submission_state, 'complete')
+    assert.equal(ratings[0].expected_score_count, 1)
+    assert.equal(ratings[0].expected_bonus_count, 0)
+    assert.equal(ratings[0].submission_version, 1)
+    assert.equal(ratings[1].submission_state, 'pending')
+  })
+})
