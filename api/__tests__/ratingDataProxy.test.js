@@ -295,3 +295,34 @@ test('reconciliation accepts provider DECIMAL formatting and only skips matching
     assert.equal(result.scoreAttributes.has('5'), false)
   })
 })
+
+
+test('valid partial-dimension tasting completes with only elected score rows plus server Bonus', async () => {
+  const provider = durableProvider()
+  await withProviderMocks(provider.mocks, async () => {
+    const response = responseHarness()
+    await __testables.submitRating({
+      body: {
+        productId: 4,
+        submissionId: 1700000000000002,
+        scores: [
+          { attributeId: 4, score: 6 },
+          { attributeId: 5, score: 6 },
+          { attributeId: 6, score: 6 }
+        ],
+        weights: { appearance: 0, aroma: 0, mouthfeel: 0.3, flavour: 0.3, follow: 0.3, bonus: 0.1 },
+        bonusAttributeIds: []
+      }
+    }, response, { id: 'user-1' }, 'partial-request')
+
+    assert.equal(response.statusCode, 201)
+    const rating = provider.state[COLLECTIONS.ratings][0]
+    assert.equal(rating.submission_state, 'complete')
+    assert.equal(rating.expected_score_count, 4)
+    assert.equal(provider.state[COLLECTIONS.ratingScores].length, 4)
+    assert.deepEqual(
+      new Set(provider.state[COLLECTIONS.ratingScores].map((score) => Number(score.attribute_id))),
+      new Set([4, 5, 6, 7])
+    )
+  })
+})
