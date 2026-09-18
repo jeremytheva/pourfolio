@@ -288,10 +288,7 @@ const submitRating = async (request, response, user, correlationId) => {
       method: 'POST',
       status_class: '5xx',
       event_name: stateUpdateFailed ? 'rating_reconciliation_state_update_failure' : diagnosticEvents[workflowStage] || 'rating_reconciliation_failure',
-      correlation_id: correlationId,
-      provider_status: Number.isInteger(error?.providerStatus) ? error.providerStatus : undefined,
-      provider_path: error?.providerPath,
-      provider_error_keys: Array.isArray(error?.providerErrorShape?.keys) ? error.providerErrorShape.keys.join(',') : undefined
+      correlation_id: correlationId
     }))
     if (error.status && error.status < 500) throw error
     const workflowError = new Error('Rating submission is incomplete and can be retried safely.'); workflowError.status = 502; throw workflowError
