@@ -148,12 +148,32 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
   return preserveEnvelope ? payload : normalisePayload(payload)
 }
 
+const asList = (payload) => Array.isArray(payload) ? payload : payload ? [payload] : []
+
+const isExactFilterSet = (filters) => Object.keys(filters).every((key) => !key.includes('['))
+
+const locallyMatchesExactFilters = (record, filters) => Object.entries(filters).every(([key, value]) =>
+  value === undefined || value === null || value === '' || String(record?.[key] ?? '') === String(value)
+)
+
+const canRetryRatingsReadLocally = (collection, filters, error) =>
+  collection === 'ratings' && Object.keys(filters).length > 0 && isExactFilterSet(filters) &&
+  error?.code === 'PROVIDER_ERROR' && Number(error?.status) >= 500
+
+const listWithRatingsCompatibility = async (collection, filters = {}) => {
+  try {
+    return asList(await providerRequest(`read/${collection}`, { filters }))
+  } catch (error) {
+    if (!canRetryRatingsReadLocally(collection, filters, error)) throw error
+    const unfiltered = asList(await providerRequest(`read/${collection}`))
+    return unfiltered.filter((record) => locallyMatchesExactFilters(record, filters))
+  }
+}
+
 export const dataProvider = {
   isUniqueConflict(error) { return error?.code === 'UNIQUE_CONFLICT' },
   async list(collection, filters = {}) {
-    const payload = await providerRequest(`read/${collection}`, { filters })
-    if (Array.isArray(payload)) return payload
-    return payload ? [payload] : []
+    return listWithRatingsCompatibility(collection, filters)
   },
   async listPage(collection, { search, page, limit, orderBy, order = 'asc', filters = {} }) {
     const searchFilter = search && collection === 'products' ? { 'product_name[like]': search } : {}
@@ -187,5 +207,8 @@ export const __testables = {
   buildProviderHeaders,
   getProviderErrorCode,
   getConfiguration,
+  isExactFilterSet,
+  locallyMatchesExactFilters,
+  canRetryRatingsReadLocally,
   DEFAULT_DATA_BASE_URL: CANONICAL_DATA_BASE_URL
 }
