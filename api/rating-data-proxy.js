@@ -238,6 +238,7 @@ const submitRating = async (request, response, user, correlationId) => {
           date_rated: new Date().toISOString(), total_unweighted: totals.total_unweighted, total_weighted: totals.total_weighted
         }))
         if (!rating?.id) throw new Error('The rating service did not return a rating identifier.')
+        workflowStage = 'hydrate_rating_parent'
         rating = await dataProvider.get(COLLECTIONS.ratings, rating.id)
       } catch (error) {
         rating = await findSubmission(user.id, submissionId)
@@ -279,7 +280,7 @@ const submitRating = async (request, response, user, correlationId) => {
         await transitionRating(rating, user.id, fingerprint, new Set(['pending']), 'failed')
       } catch { stateUpdateFailed = true }
     }
-    const diagnosticEvents = { create_rating_parent: 'rating_parent_create_failure', load_existing_children: 'rating_child_read_failure', create_score_child: 'rating_score_create_failure', create_bonus_child: 'rating_bonus_create_failure', reconcile_children: 'rating_child_mismatch', mark_complete: 'rating_state_transition_failure', build_response: 'rating_response_build_failure' }
+    const diagnosticEvents = { create_rating_parent: 'rating_parent_create_failure', hydrate_rating_parent: 'rating_parent_hydrate_failure', load_existing_children: 'rating_child_read_failure', create_score_child: 'rating_score_create_failure', create_bonus_child: 'rating_bonus_create_failure', reconcile_children: 'rating_child_mismatch', mark_complete: 'rating_state_transition_failure', build_response: 'rating_response_build_failure' }
     writeTelemetryError(runtimeTelemetry({ route_template: '/api/nocodebackend/ratings/:action', method: 'POST', status_class: '5xx', event_name: stateUpdateFailed ? 'rating_reconciliation_state_update_failure' : diagnosticEvents[workflowStage] || 'rating_reconciliation_failure', correlation_id: correlationId }))
     if (error.status && error.status < 500) throw error
     const workflowError = new Error('Rating submission is incomplete and can be retried safely.'); workflowError.status = 502; throw workflowError
