@@ -3,7 +3,7 @@ import bonusAttributeHandler from './bonus-attribute-data-proxy.js'
 import cellarHandler from './cellar-data-proxy.js'
 import currentSchemaHandler from './current-data-proxy.js'
 import profileHandler from './profile-data-proxy.js'
-import ratingHandler from './rating-data-proxy-live-schema.js'
+import ratingHandler from './rating-data-proxy.js'
 import brewDoneItHandler from './_lib/brewDoneItEntryV3.js'
 
 const CURRENT_SCHEMA_RESOURCES = new Set(['catalog', 'rating-form', 'ratings', 'cellar', 'bonus-attributes'])
