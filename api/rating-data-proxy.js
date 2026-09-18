@@ -286,6 +286,79 @@ const submitRating = async (request, response, user, correlationId) => {
   }
 }
 
+const historicalReconciliationPlan = async (user) => {
+  const ownerRatings = records(await dataProvider.list(COLLECTIONS.ratings, { user_id: user.id }))
+    .filter((rating) => isOwnedBy(rating, user.id) && rating.submission_state !== 'deleted')
+  const items = []
+  for (const rating of ownerRatings) {
+    const [scores, bonuses] = await Promise.all([
+      dataProvider.list(COLLECTIONS.ratingScores, { rating_id: rating.id, user_id: user.id }).then(records),
+      dataProvider.list(COLLECTIONS.bonusRatingMappings, { rating_id: rating.id, user_id: user.id }).then(records)
+    ])
+    const ownedScores = scores.filter((item) => isOwnedBy(item, user.id) && String(item.rating_id) === String(rating.id))
+    const ownedBonuses = bonuses.filter((item) => isOwnedBy(item, user.id) && String(item.rating_id) === String(rating.id))
+    const scoreAttributeIds = ownedScores.map((item) => canonicalPositiveId(item.attribute_id)).filter(Boolean)
+    const uniqueScoreAttributes = new Set(scoreAttributeIds)
+    const validScores = ownedScores.length > 0 && scoreAttributeIds.length === ownedScores.length &&
+      uniqueScoreAttributes.size === ownedScores.length &&
+      ownedScores.every((item) => Number.isFinite(Number(item.attribute_score)))
+    const bonusAttributeIds = ownedBonuses.map((item) => canonicalPositiveId(item.bonus_attribute_id)).filter(Boolean)
+    const validBonuses = bonusAttributeIds.length === ownedBonuses.length && new Set(bonusAttributeIds).size === ownedBonuses.length
+    const structurallyValid = validScores && validBonuses
+    const legacyKey = `legacy:${user.id}:${rating.id}`
+    const legacyFingerprint = crypto.createHash('sha256').update(JSON.stringify({
+      ratingId: String(rating.id),
+      productId: String(rating.product_id ?? ''),
+      scoreAttributes: [...uniqueScoreAttributes].sort(),
+      bonusAttributes: [...bonusAttributeIds].sort()
+    })).digest('hex')
+    items.push({
+      ratingId: rating.id,
+      currentState: rating.submission_state ?? null,
+      structurallyValid,
+      scoreCount: ownedScores.length,
+      bonusCount: ownedBonuses.length,
+      proposed: structurallyValid ? {
+        submission_key: legacyKey,
+        submission_fingerprint: legacyFingerprint,
+        submission_state: 'complete',
+        expected_score_count: ownedScores.length,
+        expected_bonus_count: ownedBonuses.length
+      } : null
+    })
+  }
+  return items
+}
+
+const reconcileHistoricalRatings = async (request, response, user) => {
+  const dryRun = request.body?.apply !== true
+  const items = await historicalReconciliationPlan(user)
+  if (!dryRun) {
+    for (const item of items) {
+      if (!item.structurallyValid || !item.proposed) continue
+      const persisted = await dataProvider.get(COLLECTIONS.ratings, item.ratingId)
+      if (!isOwnedBy(persisted, user.id) || persisted.submission_state === 'deleted') continue
+      const version = Number(persisted.submission_version)
+      await dataProvider.update(COLLECTIONS.ratings, item.ratingId, {
+        ...item.proposed,
+        submission_version: Number.isSafeInteger(version) && version >= 0 ? version + 1 : 1
+      })
+      const verified = await dataProvider.get(COLLECTIONS.ratings, item.ratingId)
+      if (!isOwnedBy(verified, user.id) || verified.submission_state !== 'complete' ||
+          Number(verified.expected_score_count) !== item.scoreCount ||
+          Number(verified.expected_bonus_count) !== item.bonusCount) {
+        throw new Error('Historical rating reconciliation was not durably verified.')
+      }
+    }
+  }
+  response.status(200).json({
+    dryRun,
+    examined: items.length,
+    eligible: items.filter((item) => item.structurallyValid).length,
+    items
+  })
+}
+
 const listUserRatings = async (response, user) => {
   const ownerRatings = records(await dataProvider.list(COLLECTIONS.ratings, { user_id: user.id, submission_state: 'complete' })).filter((rating) => isOwnedBy(rating, user.id) && isCompletedRating(rating))
   const [populations, cellarRows] = await Promise.all([scorePopulations(), dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }).then(records)])
@@ -340,7 +413,7 @@ export const routeRatingRequest = async (request, response, user, correlationId)
   const [resource, id, action] = pathSegments(request)
   if (resource !== 'ratings') { response.status(404).json({ error: 'Application data route not found.' }); return }
   if (request.method === 'POST' && id === 'submit') return submitRating(request, response, user, correlationId)
-  if (request.method === 'POST' && id === 'reconcile') return submitRating(request, response, user, correlationId)
+  if (request.method === 'POST' && id === 'reconcile') return reconcileHistoricalRatings(request, response, user)
   if (request.method === 'GET' && id === 'mine') return listUserRatings(response, user)
   if (request.method === 'DELETE' && id && !action) return deleteRating(id, response, user)
   response.status(404).json({ error: 'Application data route not found.' })
@@ -361,4 +434,4 @@ export default async function handler(request, response) {
   }
 }
 
-export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, transitionRating, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus }
+export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, transitionRating, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalReconciliationPlan, reconcileHistoricalRatings }
