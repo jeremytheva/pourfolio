@@ -419,3 +419,22 @@ test('historical reconciliation apply updates only structurally valid ratings an
     assert.equal(ratings[1].submission_state, 'pending')
   })
 })
+
+
+test('rating parent create omits an absent cellar relationship instead of sending null', async () => {
+  const provider = durableProvider()
+  const baseCreate = provider.mocks.create
+  let parentPayload
+  provider.mocks.create = async (collection, body) => {
+    if (collection === COLLECTIONS.ratings) parentPayload = body
+    return baseCreate(collection, body)
+  }
+
+  await withProviderMocks(provider.mocks, async () => {
+    const response = responseHarness()
+    await submitMaximum(response)
+    assert.equal(response.statusCode, 201)
+    assert.ok(parentPayload)
+    assert.equal(Object.hasOwn(parentPayload, 'cellar_id'), false)
+  })
+})
