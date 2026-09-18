@@ -1,7 +1,6 @@
 const TELEMETRY_FIELDS = new Set([
   'environment', 'route_template', 'method', 'status_class', 'duration_ms',
-  'event_name', 'deployment', 'commit', 'region', 'correlation_id',
-  'workflow_stage', 'error_name', 'error_code'
+  'event_name', 'deployment', 'commit', 'region', 'correlation_id'
 ])
 
 const textValue = (value, maximumLength = 128) => {
