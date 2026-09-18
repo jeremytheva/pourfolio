@@ -196,8 +196,13 @@ const createChildIdempotently = async (collection, payload, loadExisting) => {
 
 const submissionResponse = async ({ response, status, rating, totals, requestedBonusIds, bonusPointTotal, bonusScore, duplicate, cellar }) => {
   const saved = { ...rating, ...totals }
-  const populations = await scorePopulations()
-  response.status(status).json({ rating: { ...projectRating(saved), advanced_scores: advancedFor(saved, populations, cellar) }, scoreCount: totals.scores.length, bonusCount: requestedBonusIds.length, bonusPointTotal, bonusScore, duplicate })
+  let advancedScores = null
+  try {
+    advancedScores = advancedFor(saved, await scorePopulations(), cellar)
+  } catch {
+    // Persistence is authoritative. Population analytics can be recomputed on a later read.
+  }
+  response.status(status).json({ rating: { ...projectRating(saved), advanced_scores: advancedScores }, scoreCount: totals.scores.length, bonusCount: requestedBonusIds.length, bonusPointTotal, bonusScore, duplicate })
 }
 
 const submitRating = async (request, response, user, correlationId) => {
