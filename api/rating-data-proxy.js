@@ -283,7 +283,16 @@ const submitRating = async (request, response, user, correlationId) => {
       } catch { stateUpdateFailed = true }
     }
     const diagnosticEvents = { create_rating_parent: 'rating_parent_create_failure', hydrate_rating_parent: 'rating_parent_hydrate_failure', load_existing_children: 'rating_child_read_failure', create_score_child: 'rating_score_create_failure', create_bonus_child: 'rating_bonus_create_failure', reconcile_children: 'rating_child_mismatch', mark_complete: 'rating_state_transition_failure', build_response: 'rating_response_build_failure' }
-    writeTelemetryError(runtimeTelemetry({ route_template: '/api/nocodebackend/ratings/:action', method: 'POST', status_class: '5xx', event_name: stateUpdateFailed ? 'rating_reconciliation_state_update_failure' : diagnosticEvents[workflowStage] || 'rating_reconciliation_failure', correlation_id: correlationId }))
+    writeTelemetryError(runtimeTelemetry({
+      route_template: '/api/nocodebackend/ratings/:action',
+      method: 'POST',
+      status_class: '5xx',
+      event_name: stateUpdateFailed ? 'rating_reconciliation_state_update_failure' : diagnosticEvents[workflowStage] || 'rating_reconciliation_failure',
+      correlation_id: correlationId,
+      provider_status: Number.isInteger(error?.providerStatus) ? error.providerStatus : undefined,
+      provider_path: error?.providerPath,
+      provider_error_keys: Array.isArray(error?.providerErrorShape?.keys) ? error.providerErrorShape.keys.join(',') : undefined
+    }))
     if (error.status && error.status < 500) throw error
     const workflowError = new Error('Rating submission is incomplete and can be retried safely.'); workflowError.status = 502; throw workflowError
   }
