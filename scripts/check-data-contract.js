@@ -33,8 +33,15 @@ const requiredProductFields = new Set([
   'product_image'
 ])
 
+const requiredProductProducerFields = new Set([
+  'id',
+  'product_id',
+  'producer_id',
+  'is_primary',
+  'sort_order'
+])
+
 const expectedUnavailable = [
-  'product_producers',
   'profiles',
   'catalogue_source_records',
   'product_images',
@@ -44,7 +51,7 @@ const expectedUnavailable = [
   'product_image_reconciliation_audit'
 ]
 
-const feederTargetCollections = [
+const feederDeniedCollections = [
   'product_producers',
   'catalogue_source_records',
   'product_images',
@@ -104,6 +111,22 @@ if (!fs.existsSync(contractPath)) {
       }
     }
 
+    const productProducers = contract.collections?.product_producers
+    if (!productProducers || productProducers.classification !== 'DEPLOYED_REQUIRED') {
+      add('DATA_CONTRACT_PRODUCT_PRODUCERS_CLASSIFICATION_INVALID')
+    } else {
+      const actualFields = new Set(productProducers.provider_fields ?? [])
+      for (const field of requiredProductProducerFields) {
+        if (!actualFields.has(field)) add('DATA_CONTRACT_PRODUCT_PRODUCER_FIELD_MISSING', { field })
+      }
+      if (productProducers.relationships?.product_id !== 'products.id') {
+        add('DATA_CONTRACT_PRODUCT_PRODUCER_PRODUCT_RELATIONSHIP_INVALID')
+      }
+      if (productProducers.relationships?.producer_id !== 'producers.id') {
+        add('DATA_CONTRACT_PRODUCT_PRODUCER_PRODUCER_RELATIONSHIP_INVALID')
+      }
+    }
+
     for (const collection of expectedUnavailable) {
       if (contract.collections?.[collection]?.classification !== 'UNAVAILABLE') {
         add('DATA_CONTRACT_UNAVAILABLE_COLLECTION_INVALID', { collection })
@@ -123,10 +146,10 @@ if (!fs.existsSync(contractPath)) {
           add('DATA_CONTRACT_FEEDER_PROTECTED_FIELD_WRITABLE', { field })
         }
       }
-      for (const collection of feederTargetCollections) {
+      for (const collection of feederDeniedCollections) {
         const policy = writer.collections?.[collection]
         if (!policy || (policy.operations ?? []).length !== 0 || (policy.writable_fields ?? []).length !== 0) {
-          add('DATA_CONTRACT_FEEDER_UNAVAILABLE_WRITE_ENABLED', { collection })
+          add('DATA_CONTRACT_FEEDER_DENIED_WRITE_ENABLED', { collection })
         }
       }
     }

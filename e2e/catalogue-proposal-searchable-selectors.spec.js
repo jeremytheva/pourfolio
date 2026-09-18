@@ -120,6 +120,8 @@ test('add beer links an existing verified producer and creates the product', asy
 
   await expect(page).toHaveURL(/\/products\/6$/)
   expect(submittedBody.producer_id).toBe('21')
+  expect(submittedBody.producers).toEqual([{ producer_id: '21' }])
+  expect(submittedBody.collaboration).toBe(false)
   expect(submittedBody.product_category_id).toBe('11')
   expect(submittedBody.product_name).toBe('New Beer')
   expect(submittedBody).not.toHaveProperty('new_producer')
@@ -147,7 +149,7 @@ test('add beer can create a missing producer without exposing raw relationship i
   })
 
   await page.goto('/products/propose?name=New%20Beer')
-  await page.getByLabel('Add a brewery').check()
+  await page.getByLabel('Add a brewery').first().check()
   await page.getByLabel('New brewery / producer name').fill('Brand New Brewing')
   await page.getByLabel('Beer style / category').selectOption('11')
 
@@ -160,7 +162,59 @@ test('add beer can create a missing producer without exposing raw relationship i
 
   await expect(page).toHaveURL(/\/products\/7$/)
   expect(submittedBody.new_producer).toEqual({ producer_name: 'Brand New Brewing' })
+  expect(submittedBody.producers).toEqual([{ new_producer: { producer_name: 'Brand New Brewing' } }])
   expect(submittedBody).not.toHaveProperty('producer_id')
+  expect(submittedBody).not.toHaveProperty('user_id')
+})
+
+test('add beer supports multiple producers and derives collaboration state', async ({ page }) => {
+  let submittedBody
+  await installCreatedProductDetail(page, {
+    id: 8,
+    producer_id: 20,
+    collaboration: 1,
+    producer: product.producer,
+    producers: [product.producer, secondProduct.producer]
+  })
+  await page.route('**/api/nocodebackend/catalog/products', async (route) => {
+    if (route.request().method() !== 'POST') return route.fallback()
+    submittedBody = route.request().postDataJSON()
+    return route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        product: {
+          ...createdProduct,
+          id: 8,
+          producer_id: 20,
+          collaboration: 1,
+          producer: product.producer,
+          producers: [product.producer, secondProduct.producer]
+        },
+        producerCreated: false,
+        producersCreated: 0
+      })
+    })
+  })
+
+  await page.goto('/products/propose?name=New%20Beer')
+  await page.getByLabel('Select brewery').selectOption('20')
+  await page.getByRole('button', { name: 'Add collaborating brewery' }).click()
+  await page.getByLabel('Collaborating brewery 2 existing producer').selectOption('21')
+  await page.getByLabel('Beer style / category').selectOption('11')
+
+  await expect(page.getByText('2 producers will be linked. This beer will be recorded as a collaboration.')).toBeVisible()
+  await page.getByRole('button', { name: 'Review beer' }).click()
+  const review = page.locator('section[aria-labelledby="review-heading"]')
+  await expect(review.getByText('Rocky Ridge Brewing')).toBeVisible()
+  await expect(review.getByText('Other Brewing')).toBeVisible()
+  await expect(review.getByText('Yes')).toBeVisible()
+  await page.getByRole('button', { name: 'Add beer to catalogue' }).click()
+
+  await expect(page).toHaveURL(/\/products\/8$/)
+  expect(submittedBody.producer_id).toBe('20')
+  expect(submittedBody.producers).toEqual([{ producer_id: '20' }, { producer_id: '21' }])
+  expect(submittedBody.collaboration).toBe(true)
   expect(submittedBody).not.toHaveProperty('user_id')
 })
 
@@ -175,9 +229,9 @@ test('add beer explains style and edition duplicate signals', async ({ page }) =
   const duplicateSection = page.locator('section[aria-labelledby="duplicate-heading"]')
   await expect(duplicateSection.getByText('1 possible duplicate found. Compare the signals below before continuing.')).toBeVisible()
   await expect(duplicateSection.getByRole('link', { name: 'Dark Matter' })).toBeVisible()
-  await expect(duplicateSection.getByText('Same brewery · same name · same style · same edition')).toBeVisible()
+  await expect(duplicateSection.getByText('Same primary brewery · same name · same style · same edition')).toBeVisible()
 
   await page.getByLabel('Edition / vintage').fill('2025')
-  await expect(duplicateSection.getByText('Same brewery · same name · same style · different edition')).toBeVisible()
+  await expect(duplicateSection.getByText('Same primary brewery · same name · same style · different edition')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Review beer' })).toBeEnabled()
 })
