@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { FiAlertTriangle, FiCheck, FiRotateCcw, FiSettings } from 'react-icons/fi'
 import SafeIcon from '../common/SafeIcon.jsx'
 import { getSettings, resetSettings, saveSettings, validateWeights } from '../utils/settingsManager.js'
+import { FIXED_BONUS_WEIGHT, rebalanceFixedBonusWeights } from '../lib/ratingFormulaV1.js'
 
 const ATTRIBUTE_LABELS = Object.freeze({
   appearance: 'Appearance',
@@ -26,11 +27,8 @@ function Settings() {
   }, [status])
 
   const setWeight = (key, value) => {
-    const number = Number(value)
-    setWeights((current) => ({
-      ...current,
-      [key]: Number.isFinite(number) ? Math.max(0, Math.min(1, number)) : 0
-    }))
+    if (key === 'bonus') return
+    setWeights((current) => rebalanceFixedBonusWeights(current, key, value))
   }
 
   const save = () => {
@@ -78,22 +76,29 @@ function Settings() {
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Score weighting</h2>
           <p className="mt-2 text-sm text-gray-600">
-            The six scored attributes must total 1.00. A weight of 0 removes that attribute from your weighted score and makes it optional when you rate a beer.
+            Bonus is fixed at 10%. The other five scored attributes share the remaining 90%. Moving one slider automatically adjusts the other non-zero weights proportionally. A weight of 0 stays at 0 until you change that attribute yourself.
           </p>
 
           <div className="mt-6 space-y-4">
-            {Object.entries(ATTRIBUTE_LABELS).map(([key, label]) => (
-              <div key={key} className="rounded-xl border border-gray-200 p-4 sm:flex sm:items-center sm:gap-5">
-                <div className="min-w-40 flex-1">
-                  <label htmlFor={`weight-${key}`} className="font-medium text-gray-900">{label}</label>
-                  <p className="mt-1 text-xs text-gray-500">{weights[key] === 0 ? 'Optional — excluded from your score' : `${Math.round(weights[key] * 100)}% of your score`}</p>
+            {Object.entries(ATTRIBUTE_LABELS).map(([key, label]) => {
+              const fixed = key === 'bonus'
+              return (
+                <div key={key} className="rounded-xl border border-gray-200 p-4 sm:flex sm:items-center sm:gap-5">
+                  <div className="min-w-40 flex-1">
+                    <label htmlFor={fixed ? undefined : `weight-${key}`} className="font-medium text-gray-900">{label}</label>
+                    <p className="mt-1 text-xs text-gray-500">{fixed ? 'Fixed at 10% of your score' : weights[key] === 0 ? 'Optional — excluded from your score' : `${(weights[key] * 100).toFixed(1).replace('.0', '')}% of your score`}</p>
+                  </div>
+                  {fixed ? (
+                    <div className="mt-3 min-w-20 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-center text-sm font-semibold text-gray-700 sm:mt-0">{FIXED_BONUS_WEIGHT.toFixed(2)}</div>
+                  ) : (
+                    <div className="mt-3 flex items-center gap-3 sm:mt-0">
+                      <input id={`weight-${key}`} type="range" min="0" max="0.9" step="0.01" value={weights[key]} onChange={(event) => setWeight(key, event.target.value)} className="w-36 accent-amber-700" aria-valuetext={`${(weights[key] * 100).toFixed(1)} percent`} />
+                      <input aria-label={`${label} weight`} type="number" min="0" max="0.9" step="0.01" value={Number(weights[key].toFixed(4))} onChange={(event) => setWeight(key, event.target.value)} className="w-20 rounded-lg border border-gray-300 px-2 py-2 text-center text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
+                    </div>
+                  )}
                 </div>
-                <div className="mt-3 flex items-center gap-3 sm:mt-0">
-                  <input id={`weight-${key}`} type="range" min="0" max="1" step="0.05" value={weights[key]} onChange={(event) => setWeight(key, event.target.value)} className="w-36 accent-amber-700" aria-valuetext={`${Math.round(weights[key] * 100)} percent`} />
-                  <input aria-label={`${label} weight`} type="number" min="0" max="1" step="0.05" value={weights[key]} onChange={(event) => setWeight(key, event.target.value)} className="w-20 rounded-lg border border-gray-300 px-2 py-2 text-center text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           <div className={`mt-5 rounded-lg border p-4 ${validation.isValid ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`} role="status" aria-live="polite">
