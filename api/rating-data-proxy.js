@@ -205,11 +205,13 @@ const submissionResponse = async ({ response, status, rating, totals, requestedB
   response.status(status).json({ rating: { ...projectRating(saved), advanced_scores: advancedScores }, scoreCount: totals.scores.length, bonusCount: requestedBonusIds.length, bonusPointTotal, bonusScore, duplicate })
 }
 
+const providerDateTime = (date = new Date()) => date.toISOString().slice(0, 19).replace('T', ' ')
+
 const runAutomaticRatingCreateDiagnostic = async ({ user, product, cellarId }) => {
   const values = [
     ['user_id', user.id],
     ['product_id', product.id],
-    ['date_rated', new Date().toISOString()],
+    ['date_rated', providerDateTime()],
     ['total_unweighted', 1],
     ['total_weighted', 1],
     ['submission_key', `diagnostic:${user.id}:${crypto.randomUUID()}`],
@@ -272,7 +274,7 @@ const submitRating = async (request, response, user, correlationId) => {
         const parentPayload = {
           user_id: user.id, submission_key: key, submission_fingerprint: fingerprint, submission_state: 'pending', submission_version: 0,
           expected_score_count: totals.scores.length, expected_bonus_count: requestedBonusIds.length, product_id: product.id,
-          date_rated: new Date().toISOString(), total_unweighted: totals.total_unweighted, total_weighted: totals.total_weighted,
+          date_rated: providerDateTime(), total_unweighted: totals.total_unweighted, total_weighted: totals.total_weighted,
           ...(cellarId === null ? {} : { cellar_id: cellarId })
         }
         rating = first(await dataProvider.create(COLLECTIONS.ratings, parentPayload))
@@ -446,7 +448,7 @@ const diagnosticRatingCreate = async (request, response, user) => {
   const values = [
     ['user_id', user.id],
     ['product_id', product.id],
-    ['date_rated', new Date().toISOString()],
+    ['date_rated', providerDateTime()],
     ['total_unweighted', 1],
     ['total_weighted', 1],
     ['submission_key', `diagnostic:${user.id}:${crypto.randomUUID()}`],
