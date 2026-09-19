@@ -177,15 +177,14 @@ const RATING_STATE_VERIFY_DELAYS_MS = [0, 25, 75, 150]
 const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))
 
 const verifyRatingState = async (ratingId, userId, fingerprint, state, version) => {
-  let last = null
   for (const delay of RATING_STATE_VERIFY_DELAYS_MS) {
     if (delay) await wait(delay)
-    last = await dataProvider.get(COLLECTIONS.ratings, ratingId)
-    if (!ratingIdentityMatches(last, userId, fingerprint)) {
-      if (last) { const error = new Error('The persisted rating no longer matches this submission.'); error.status = 409; throw error }
+    const current = await dataProvider.get(COLLECTIONS.ratings, ratingId)
+    if (!ratingIdentityMatches(current, userId, fingerprint)) {
+      if (current) { const error = new Error('The persisted rating no longer matches this submission.'); error.status = 409; throw error }
       continue
     }
-    if (last.submission_state === state && Number(last.submission_version) === version) return last
+    if (current.submission_state === state && Number(current.submission_version) === version) return current
   }
   throw new Error('Rating workflow state was not durably updated.')
 }
