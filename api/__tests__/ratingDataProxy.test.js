@@ -443,14 +443,53 @@ test('valid partial-dimension tasting completes with only elected score rows plu
 })
 
 
+test('historical reconciliation owner discovery consumes every provider page', async () => {
+  const ratings = Array.from({ length: 101 }, (_, index) => ({
+    id: index + 1,
+    user_id: 'user-1',
+    product_id: 4,
+    submission_state: 'pending',
+    submission_version: 0
+  }))
+  const pages = []
+
+  await withProviderMocks({
+    listPage: async (collection, options) => {
+      assert.equal(collection, COLLECTIONS.ratings)
+      assert.deepEqual(options.filters, { user_id: 'user-1' })
+      pages.push(options.page)
+      const start = (options.page - 1) * 100
+      const items = ratings.slice(start, start + 100)
+      return {
+        items,
+        page: options.page,
+        pageSize: 100,
+        total: ratings.length,
+        totalPages: 2
+      }
+    }
+  }, async () => {
+    const discovered = await __testables.historicalOwnerRatings('user-1')
+    assert.equal(discovered.length, 101)
+    assert.deepEqual(discovered.map(({ id }) => id), ratings.map(({ id }) => id))
+    assert.deepEqual(pages, [1, 2])
+  })
+})
+
+
 test('historical reconciliation is dry-run by default and rejects structurally incomplete ratings', async () => {
   const updates = []
+  const ratings = [
+    { id: 10, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 },
+    { id: 11, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 }
+  ]
   await withProviderMocks({
+    listPage: async (collection, options) => {
+      assert.equal(collection, COLLECTIONS.ratings)
+      assert.deepEqual(options.filters, { user_id: 'user-1' })
+      return { items: ratings, page: 1, pageSize: 100, total: ratings.length, totalPages: 1 }
+    },
     list: async (collection) => {
-      if (collection === COLLECTIONS.ratings) return [
-        { id: 10, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 },
-        { id: 11, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 }
-      ]
       if (collection === COLLECTIONS.ratingScores) {
         return [{ id: 20, user_id: 'user-1', rating_id: 10, attribute_id: 5, attribute_score: '6.00' }]
       }
@@ -495,8 +534,12 @@ test('historical reconciliation never promotes or rewrites modern workflow submi
   ]
   const updates = []
   await withProviderMocks({
+    listPage: async (collection, options) => {
+      assert.equal(collection, COLLECTIONS.ratings)
+      assert.deepEqual(options.filters, { user_id: 'user-1' })
+      return { items: ratings, page: 1, pageSize: 100, total: ratings.length, totalPages: 1 }
+    },
     list: async (collection, filters) => {
-      if (collection === COLLECTIONS.ratings) return ratings
       if (collection === COLLECTIONS.ratingScores) {
         return [{ id: 30, user_id: 'user-1', rating_id: filters.rating_id, attribute_id: 5, attribute_score: '6.00' }]
       }
@@ -566,8 +609,12 @@ test('historical reconciliation apply updates only structurally valid ratings an
   ]
   const updates = []
   await withProviderMocks({
+    listPage: async (collection, options) => {
+      assert.equal(collection, COLLECTIONS.ratings)
+      assert.deepEqual(options.filters, { user_id: 'user-1' })
+      return { items: ratings, page: 1, pageSize: 100, total: ratings.length, totalPages: 1 }
+    },
     list: async (collection) => {
-      if (collection === COLLECTIONS.ratings) return ratings
       if (collection === COLLECTIONS.ratingScores) {
         return [{ id: 20, user_id: 'user-1', rating_id: 10, attribute_id: 5, attribute_score: '6.00' }]
       }
