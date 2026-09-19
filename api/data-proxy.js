@@ -1,4 +1,5 @@
 import crypto from 'node:crypto'
+import { completedRatingTotal } from '../src/lib/completedRatingContract.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 import { COLLECTIONS } from '../src/data/contract.js'
 import { calculateRatingTotals } from '../src/utils/ratingSubmission.js'
@@ -74,7 +75,7 @@ const invalidProviderResponse = () => {
 }
 
 const normaliseList = (value) => asArray(value).filter((item) => item && typeof item === 'object')
-const isCompletedRating = (rating) => rating?.submission_state === 'complete'
+const isCompletedRating = (rating) => rating?.submission_state === 'complete' && completedRatingTotal(rating?.total_weighted) !== null
 
 const findProfile = async (userId) => {
   const candidates = normaliseList(await dataProvider.list(COLLECTIONS.profiles, { user_id: userId }))
@@ -162,11 +163,8 @@ const getProduct = async (productId, response) => {
     fields: 'total_weighted,submission_state'
   })).filter(isCompletedRating)
   const validTotals = ratings
-    .map((rating) => {
-      const total = rating.total_weighted
-      return total === null || (typeof total === 'string' && !total.trim()) ? Number.NaN : Number(total)
-    })
-    .filter(Number.isFinite)
+    .map((rating) => completedRatingTotal(rating.total_weighted))
+    .filter((total) => total !== null)
 
   response.status(200).json({
     ...hydrated,
