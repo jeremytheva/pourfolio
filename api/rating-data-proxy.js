@@ -439,10 +439,10 @@ const submitRating = async (request, response, user, correlationId) => {
 const HISTORICAL_RATING_PAGE_SIZE = 100
 const HISTORICAL_RATING_MAX_PAGES = 1000
 
-const historicalOwnerRatings = async (userId) => {
-  const ownerRatings = []
+const historicalOwnerRecords = async (collection, userId) => {
+  const ownerRecords = []
   for (let page = 1; page <= HISTORICAL_RATING_MAX_PAGES; page += 1) {
-    const payload = await dataProvider.listPage(COLLECTIONS.ratings, {
+    const payload = await dataProvider.listPage(collection, {
       page,
       limit: HISTORICAL_RATING_PAGE_SIZE,
       orderBy: 'id',
@@ -450,26 +450,42 @@ const historicalOwnerRatings = async (userId) => {
       filters: { user_id: userId }
     })
     const pageItems = records(payload.items)
-    ownerRatings.push(...pageItems.filter((rating) => isOwnedBy(rating, userId)))
+    ownerRecords.push(...pageItems.filter((record) => isOwnedBy(record, userId)))
 
     if (payload.totalPages === 0 || page >= payload.totalPages || pageItems.length < HISTORICAL_RATING_PAGE_SIZE) {
-      return ownerRatings
+      return ownerRecords
     }
   }
   throw new Error('Historical rating reconciliation exceeded the safe pagination limit.')
 }
 
+const groupHistoricalChildren = (children) => {
+  const grouped = new Map()
+  for (const child of children) {
+    const ratingId = String(child.rating_id ?? '')
+    if (!ratingId) continue
+    if (!grouped.has(ratingId)) grouped.set(ratingId, [])
+    grouped.get(ratingId).push(child)
+  }
+  return grouped
+}
+
 const historicalReconciliationPlan = async (user) => {
-  const ownerRatings = (await historicalOwnerRatings(user.id))
-    .filter((rating) => rating.submission_state !== 'deleted')
+  const [allRatings, allScores, allBonuses] = await Promise.all([
+    historicalOwnerRecords(COLLECTIONS.ratings, user.id),
+    historicalOwnerRecords(COLLECTIONS.ratingScores, user.id),
+    historicalOwnerRecords(COLLECTIONS.bonusRatingMappings, user.id)
+  ])
+  const ownerRatings = allRatings.filter((rating) => rating.submission_state !== 'deleted')
+  const scoresByRating = groupHistoricalChildren(allScores)
+  const bonusesByRating = groupHistoricalChildren(allBonuses)
   const items = []
+
   for (const rating of ownerRatings) {
-    const [scores, bonuses] = await Promise.all([
-      dataProvider.list(COLLECTIONS.ratingScores, { rating_id: rating.id, user_id: user.id }).then(records),
-      dataProvider.list(COLLECTIONS.bonusRatingMappings, { rating_id: rating.id, user_id: user.id }).then(records)
-    ])
-    const ownedScores = scores.filter((item) => isOwnedBy(item, user.id) && String(item.rating_id) === String(rating.id))
-    const ownedBonuses = bonuses.filter((item) => isOwnedBy(item, user.id) && String(item.rating_id) === String(rating.id))
+    const ownedScores = (scoresByRating.get(String(rating.id)) || [])
+      .filter((item) => String(item.rating_id) === String(rating.id))
+    const ownedBonuses = (bonusesByRating.get(String(rating.id)) || [])
+      .filter((item) => String(item.rating_id) === String(rating.id))
     const scoreAttributeIds = ownedScores.map((item) => canonicalPositiveId(item.attribute_id)).filter(Boolean)
     const uniqueScoreAttributes = new Set(scoreAttributeIds)
     const validScores = ownedScores.length > 0 && scoreAttributeIds.length === ownedScores.length &&
@@ -700,4 +716,4 @@ export default async function handler(request, response) {
   }
 }
 
-export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, summariseSubmissionChildren, transitionRating, verifyRatingState, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalOwnerRatings, historicalReconciliationPlan, reconcileHistoricalRatings, diagnosticRatingCreate }
+export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, summariseSubmissionChildren, transitionRating, verifyRatingState, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalOwnerRecords, historicalReconciliationPlan, reconcileHistoricalRatings, diagnosticRatingCreate }
