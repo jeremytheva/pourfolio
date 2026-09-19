@@ -46,6 +46,47 @@ test('list matches Swagger read route, instance query and bearer headers', async
   })
 })
 
+test('rating child list recovers when combined exact filters silently return no rows', async () => {
+  const urls = []
+  global.fetch = async (url) => {
+    const requested = String(url)
+    urls.push(requested)
+    if (requested.includes('&rating_id=42&user_id=owner')) return response({ data: [] })
+    if (requested.includes('&rating_id=42')) {
+      return response({ data: [
+        { id: 7, rating_id: 42, user_id: 'owner', attribute_id: 5 },
+        { id: 8, rating_id: 42, user_id: 'other', attribute_id: 6 }
+      ] })
+    }
+    return response({ data: [] })
+  }
+
+  assert.deepEqual(
+    await dataProvider.list('rating_scores', { rating_id: 42, user_id: 'owner' }),
+    [{ id: 7, rating_id: 42, user_id: 'owner', attribute_id: 5 }]
+  )
+  assert.equal(urls.length, 2)
+})
+
+test('rating child list can recover from a silently empty rating-scoped read using local exact matching', async () => {
+  const urls = []
+  global.fetch = async (url) => {
+    const requested = String(url)
+    urls.push(requested)
+    if (requested.includes('&rating_id=42')) return response({ data: [] })
+    return response({ data: [
+      { id: 7, rating_id: 42, user_id: 'owner', bonus_attribute_id: 3 },
+      { id: 8, rating_id: 41, user_id: 'owner', bonus_attribute_id: 4 }
+    ] })
+  }
+
+  assert.deepEqual(
+    await dataProvider.list('bonus_attribute_rating_mapping', { rating_id: 42, user_id: 'owner' }),
+    [{ id: 7, rating_id: 42, user_id: 'owner', bonus_attribute_id: 3 }]
+  )
+  assert.equal(urls.length, 3)
+})
+
 test('hardcoded data fallback is api.nocodebackend.com', () => {
   assert.equal(__testables.DEFAULT_DATA_BASE_URL, 'https://api.nocodebackend.com/')
   assert.equal(__testables.resolveDataBaseUrl(undefined), 'https://api.nocodebackend.com')
