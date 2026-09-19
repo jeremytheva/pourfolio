@@ -95,12 +95,20 @@ const durableProvider = () => {
         return listState(collection, filters)
       },
       create: async (collection, body) => {
-        const uniqueField = collection === COLLECTIONS.ratings ? 'submission_key' : 'uniqueness_key'
-        if ((state[collection] || []).some((item) => item[uniqueField] === body[uniqueField])) {
-          throw Object.assign(new Error('conflict'), { status: 409 })
-        }
+        const duplicate = collection === COLLECTIONS.ratings
+          ? (state[collection] || []).some((item) => item.submission_key === body.submission_key)
+          : collection === COLLECTIONS.ratingScores
+            ? (state[collection] || []).some((item) => String(item.rating_id) === String(body.rating_id) && String(item.attribute_id) === String(body.attribute_id))
+            : (state[collection] || []).some((item) => String(item.rating_id) === String(body.rating_id) && String(item.bonus_attribute_id) === String(body.bonus_attribute_id))
+        if (duplicate) throw Object.assign(new Error('conflict'), { status: 409, code: 'UNIQUE_CONFLICT' })
         const record = { id: nextId++, ...body }
         state[collection].push(record)
+        return record
+      },
+      update: async (collection, id, body) => {
+        const record = state[collection].find((item) => String(item.id) === String(id))
+        if (!record) throw Object.assign(new Error('not found'), { status: 404 })
+        Object.assign(record, body)
         return record
       },
       compareAndSet: async (collection, id, expectedVersion, body) => {
@@ -147,14 +155,21 @@ test('submitRating ignores browser totals and Bonus, persists server-derived fiv
     assert.equal(firstResponse.body.duplicate, false)
 
     const ratingWrite = provider.state[COLLECTIONS.ratings][0]
+    assert.equal(ratingWrite.id, 100)
     assert.equal(ratingWrite.total_weighted, 5)
     assert.equal(ratingWrite.total_unweighted, 5)
     assert.equal(ratingWrite.submission_state, 'complete')
-    assert.equal(ratingWrite.rating_id, 1700000000000001)
+    assert.equal(Object.hasOwn(ratingWrite, 'rating_id'), false)
+    assert.equal(typeof ratingWrite.submission_key, 'string')
+    assert.ok(ratingWrite.submission_key.length > 0)
     assert.equal(Object.hasOwn(ratingWrite, 'weights'), false)
     assert.equal(Object.hasOwn(ratingWrite, 'score_out_of_100'), false)
     assert.equal(provider.state[COLLECTIONS.ratingScores].length, 8)
+    assert.ok(provider.state[COLLECTIONS.ratingScores].every((score) => String(score.rating_id) === String(ratingWrite.id)))
+    assert.ok(provider.state[COLLECTIONS.ratingScores].every((score) => !Object.hasOwn(score, 'uniqueness_key')))
     assert.equal(provider.state[COLLECTIONS.bonusRatingMappings].length, 3)
+    assert.ok(provider.state[COLLECTIONS.bonusRatingMappings].every((mapping) => String(mapping.rating_id) === String(ratingWrite.id)))
+    assert.ok(provider.state[COLLECTIONS.bonusRatingMappings].every((mapping) => Object.hasOwn(mapping, 'bonus_attribute_id') && !Object.hasOwn(mapping, 'bonus_attributes_id') && !Object.hasOwn(mapping, 'uniqueness_key')))
 
     const retryResponse = responseHarness()
     await submitMaximum(retryResponse)
@@ -237,5 +252,254 @@ test('product projection refuses mismatched producer/category identities', async
     assert.equal(projection.category, null)
     assert.equal(projection.product_category_id, 10)
     assert.equal(projection.producer_id, 20)
+  })
+})
+
+
+test('reconciliation accepts provider DECIMAL formatting and only skips matching score children', async () => {
+  await withProviderMocks({
+    list: async (collection) => {
+      if (collection === COLLECTIONS.ratingScores) {
+        return [{ id: 1, user_id: 'user-1', rating_id: 100, attribute_id: 5, attribute_score: '6.00' }]
+      }
+      if (collection === COLLECTIONS.bonusRatingMappings) return []
+      return []
+    }
+  }, async () => {
+    const result = await __testables.validateSubmissionChildren(
+      { id: 100 },
+      'user-1',
+      [{ attribute_id: 5, attribute_score: 6 }],
+      []
+    )
+    assert.equal(result.complete, true)
+    assert.equal(result.scoreAttributes.has('5'), true)
+  })
+
+  await withProviderMocks({
+    list: async (collection) => {
+      if (collection === COLLECTIONS.ratingScores) {
+        return [{ id: 1, user_id: 'user-1', rating_id: 100, attribute_id: 5, attribute_score: '5.00' }]
+      }
+      if (collection === COLLECTIONS.bonusRatingMappings) return []
+      return []
+    }
+  }, async () => {
+    const result = await __testables.validateSubmissionChildren(
+      { id: 100 },
+      'user-1',
+      [{ attribute_id: 5, attribute_score: 6 }],
+      []
+    )
+    assert.equal(result.complete, false)
+    assert.equal(result.scoreAttributes.has('5'), false)
+  })
+})
+
+
+test('valid partial-dimension tasting completes with only elected score rows plus server Bonus', async () => {
+  const provider = durableProvider()
+  await withProviderMocks(provider.mocks, async () => {
+    const response = responseHarness()
+    await __testables.submitRating({
+      body: {
+        productId: 4,
+        submissionId: 1700000000000002,
+        scores: [
+          { attributeId: 4, score: 6 },
+          { attributeId: 5, score: 6 },
+          { attributeId: 6, score: 6 }
+        ],
+        weights: { appearance: 0, aroma: 0, mouthfeel: 0.3, flavour: 0.3, follow: 0.3, bonus: 0.1 },
+        bonusAttributeIds: []
+      }
+    }, response, { id: 'user-1' }, 'partial-request')
+
+    assert.equal(response.statusCode, 201)
+    const rating = provider.state[COLLECTIONS.ratings][0]
+    assert.equal(rating.submission_state, 'complete')
+    assert.equal(rating.expected_score_count, 4)
+    assert.equal(provider.state[COLLECTIONS.ratingScores].length, 4)
+    assert.deepEqual(
+      new Set(provider.state[COLLECTIONS.ratingScores].map((score) => Number(score.attribute_id))),
+      new Set([4, 5, 6, 7])
+    )
+  })
+})
+
+
+test('historical reconciliation is dry-run by default and rejects structurally incomplete ratings', async () => {
+  const updates = []
+  await withProviderMocks({
+    list: async (collection) => {
+      if (collection === COLLECTIONS.ratings) return [
+        { id: 10, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 },
+        { id: 11, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 }
+      ]
+      if (collection === COLLECTIONS.ratingScores) {
+        return [{ id: 20, user_id: 'user-1', rating_id: 10, attribute_id: 5, attribute_score: '6.00' }]
+      }
+      if (collection === COLLECTIONS.bonusRatingMappings) return []
+      return []
+    },
+    update: async (...args) => { updates.push(args) }
+  }, async () => {
+    const response = responseHarness()
+    await __testables.reconcileHistoricalRatings({ body: {} }, response, { id: 'user-1' })
+    assert.equal(response.statusCode, 200)
+    assert.equal(response.body.dryRun, true)
+    assert.equal(response.body.examined, 2)
+    assert.equal(response.body.eligible, 1)
+    assert.equal(response.body.items.find((item) => item.ratingId === 10).structurallyValid, true)
+    assert.equal(response.body.items.find((item) => item.ratingId === 11).structurallyValid, false)
+    assert.equal(updates.length, 0)
+  })
+})
+
+
+test('historical reconciliation never promotes or rewrites modern workflow submissions', async () => {
+  const ratings = [
+    {
+      id: 12,
+      user_id: 'user-1',
+      product_id: 4,
+      submission_state: 'failed',
+      submission_version: 1,
+      submission_key: 'user-1:1700000000000012',
+      submission_fingerprint: 'modern-failed'
+    },
+    {
+      id: 13,
+      user_id: 'user-1',
+      product_id: 4,
+      submission_state: 'complete',
+      submission_version: 1,
+      submission_key: 'user-1:1700000000000013',
+      submission_fingerprint: 'modern-complete'
+    }
+  ]
+  const updates = []
+  await withProviderMocks({
+    list: async (collection, filters) => {
+      if (collection === COLLECTIONS.ratings) return ratings
+      if (collection === COLLECTIONS.ratingScores) {
+        return [{ id: 30, user_id: 'user-1', rating_id: filters.rating_id, attribute_id: 5, attribute_score: '6.00' }]
+      }
+      if (collection === COLLECTIONS.bonusRatingMappings) return []
+      return []
+    },
+    update: async (...args) => { updates.push(args) }
+  }, async () => {
+    const response = responseHarness()
+    await __testables.reconcileHistoricalRatings({ body: { apply: true } }, response, { id: 'user-1' })
+    assert.equal(response.statusCode, 200)
+    assert.equal(response.body.eligible, 0)
+    assert.equal(response.body.items.every((item) => item.legacyCandidate === false), true)
+    assert.equal(response.body.items.every((item) => item.structurallyValid === false), true)
+    assert.equal(updates.length, 0)
+    assert.equal(ratings[0].submission_state, 'failed')
+    assert.equal(ratings[1].submission_key, 'user-1:1700000000000013')
+  })
+})
+
+test('diagnostic rating creation route is unavailable outside Vercel Preview', async () => {
+  const previous = process.env.VERCEL_ENV
+  process.env.VERCEL_ENV = 'production'
+  try {
+    const response = responseHarness()
+    await __testables.routeRatingRequest(
+      { method: 'POST', query: { path: ['ratings', 'create-diagnostic'] }, body: {} },
+      response,
+      { id: 'user-1' },
+      'diagnostic-production'
+    )
+    assert.equal(response.statusCode, 404)
+    assert.deepEqual(response.body, { error: 'Application data route not found.' })
+  } finally {
+    if (previous === undefined) delete process.env.VERCEL_ENV
+    else process.env.VERCEL_ENV = previous
+  }
+})
+
+
+test('parent create acknowledgement is hydrated before child persistence', async () => {
+  const provider = durableProvider()
+  const baseCreate = provider.mocks.create
+  provider.mocks.create = async (collection, body) => {
+    const created = await baseCreate(collection, body)
+    if (collection === COLLECTIONS.ratings) {
+      return { status: 'success', message: 'Record created successfully', id: created.id }
+    }
+    return created
+  }
+
+  await withProviderMocks(provider.mocks, async () => {
+    const response = responseHarness()
+    await submitMaximum(response)
+    assert.equal(response.statusCode, 201)
+    assert.equal(provider.state[COLLECTIONS.ratings][0].submission_state, 'complete')
+    assert.equal(provider.state[COLLECTIONS.ratingScores].length, 8)
+    assert.equal(provider.state[COLLECTIONS.bonusRatingMappings].length, 3)
+  })
+})
+
+
+test('historical reconciliation apply updates only structurally valid ratings and verifies persistence', async () => {
+  const ratings = [
+    { id: 10, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 },
+    { id: 11, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 }
+  ]
+  const updates = []
+  await withProviderMocks({
+    list: async (collection) => {
+      if (collection === COLLECTIONS.ratings) return ratings
+      if (collection === COLLECTIONS.ratingScores) {
+        return [{ id: 20, user_id: 'user-1', rating_id: 10, attribute_id: 5, attribute_score: '6.00' }]
+      }
+      if (collection === COLLECTIONS.bonusRatingMappings) return []
+      return []
+    },
+    get: async (collection, id) => collection === COLLECTIONS.ratings
+      ? ratings.find((rating) => String(rating.id) === String(id)) || null
+      : null,
+    update: async (collection, id, body) => {
+      assert.equal(collection, COLLECTIONS.ratings)
+      const rating = ratings.find((item) => String(item.id) === String(id))
+      Object.assign(rating, body)
+      updates.push({ id, body })
+      return rating
+    }
+  }, async () => {
+    const response = responseHarness()
+    await __testables.reconcileHistoricalRatings({ body: { apply: true } }, response, { id: 'user-1' })
+    assert.equal(response.statusCode, 200)
+    assert.equal(response.body.dryRun, false)
+    assert.equal(response.body.eligible, 1)
+    assert.equal(updates.length, 1)
+    assert.equal(updates[0].id, 10)
+    assert.equal(ratings[0].submission_state, 'complete')
+    assert.equal(ratings[0].expected_score_count, 1)
+    assert.equal(ratings[0].expected_bonus_count, 0)
+    assert.equal(ratings[0].submission_version, 1)
+    assert.equal(ratings[1].submission_state, 'pending')
+  })
+})
+
+
+test('rating parent create omits an absent cellar relationship instead of sending null', async () => {
+  const provider = durableProvider()
+  const baseCreate = provider.mocks.create
+  let parentPayload
+  provider.mocks.create = async (collection, body) => {
+    if (collection === COLLECTIONS.ratings) parentPayload = body
+    return baseCreate(collection, body)
+  }
+
+  await withProviderMocks(provider.mocks, async () => {
+    const response = responseHarness()
+    await submitMaximum(response)
+    assert.equal(response.statusCode, 201)
+    assert.ok(parentPayload)
+    assert.equal(Object.hasOwn(parentPayload, 'cellar_id'), false)
   })
 })

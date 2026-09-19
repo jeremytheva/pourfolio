@@ -36,12 +36,6 @@ const ratedProducerKnowledge = (ratings, productsById) => {
   return { producerIds, complete }
 }
 
-/**
- * Return only deduction options backed by the currently governed catalogue.
- * Producer geography is deliberately unavailable until Pourfolio has a certified
- * canonical geography source; producer.address/suburb_id must not be parsed or
- * inferred into state/country guesses.
- */
 export const getDeductionOptions = async (response, user) => {
   const [producersRaw, categoriesRaw, productsRaw, ratingsRaw] = await Promise.all([
     listAllBrewDoneItRecords(COLLECTIONS.producers),
@@ -67,14 +61,12 @@ export const getDeductionOptions = async (response, user) => {
       country: null,
       previouslyRated: definitelyRated ? true : ratingKnowledge.complete ? false : null
     }
-  }).filter((producer) => producer.id && producer.name)
-    .sort((a, b) => a.name.localeCompare(b.name))
+  }).filter((producer) => producer.id && producer.name).sort((a, b) => a.name.localeCompare(b.name))
 
   const styles = list(categoriesRaw).map((category) => ({
     id: canonicalIdOrNull(category.id),
     name: category.category_name
-  })).filter((category) => category.id && category.name)
-    .sort((a, b) => a.name.localeCompare(b.name))
+  })).filter((category) => category.id && category.name).sort((a, b) => a.name.localeCompare(b.name))
 
   const beers = products.map((product) => {
     const producerId = canonicalIdOrNull(product.producer_id)
