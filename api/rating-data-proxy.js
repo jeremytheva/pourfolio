@@ -310,13 +310,21 @@ const submitRating = async (request, response, user, correlationId) => {
         const matchedScoreIds = [...completed.scoreAttributes].sort()
         const expectedBonusIds = requestedBonusIds.map(String).sort()
         const matchedBonusIds = [...completed.bonusIds].sort()
+        const [diagnosticScores, diagnosticBonuses] = await Promise.all([
+          dataProvider.list(COLLECTIONS.ratingScores, { rating_id: rating.id, user_id: user.id }),
+          dataProvider.list(COLLECTIONS.bonusRatingMappings, { rating_id: rating.id, user_id: user.id })
+        ])
         console.error('[rating-reconciliation-diagnostic]', JSON.stringify({
           correlation_id: correlationId,
           expected_score_count: expectedScoreIds.length,
+          returned_score_count: records(diagnosticScores).length,
           matched_score_count: matchedScoreIds.length,
+          returned_score_attribute_ids: records(diagnosticScores).map((item) => String(item?.attribute_id ?? '')).sort(),
           missing_score_attribute_ids: expectedScoreIds.filter((id) => !completed.scoreAttributes.has(id)),
           expected_bonus_count: expectedBonusIds.length,
+          returned_bonus_count: records(diagnosticBonuses).length,
           matched_bonus_count: matchedBonusIds.length,
+          returned_bonus_attribute_ids: records(diagnosticBonuses).map((item) => String(item?.bonus_attribute_id ?? '')).sort(),
           missing_bonus_attribute_ids: expectedBonusIds.filter((id) => !completed.bonusIds.has(id))
         }))
       }
