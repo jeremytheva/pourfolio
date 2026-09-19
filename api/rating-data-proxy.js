@@ -184,13 +184,24 @@ const childFieldMatches = (field, actual, expected) => field === 'attribute_scor
   ? Number.isFinite(Number(actual)) && Number(actual) === Number(expected)
   : String(actual ?? '') === String(expected ?? '')
 
+const childMatchesExpected = (child, payload) =>
+  child && isOwnedBy(child, payload.user_id) &&
+  Object.entries(payload).every(([field, value]) => childFieldMatches(field, child[field], value))
+
 const createChildIdempotently = async (collection, payload, loadExisting) => {
-  try { const created = first(await dataProvider.create(collection, payload)); if (!created?.id) throw new Error('The rating service did not return a child identifier.') }
-  catch (error) {
+  try {
+    const created = first(await dataProvider.create(collection, payload))
+    if (!created?.id) throw new Error('The rating service did not return a child identifier.')
+    const persisted = await dataProvider.get(collection, created.id)
+    if (!childMatchesExpected(persisted, payload)) {
+      throw new Error('The persisted rating child could not be verified after creation.')
+    }
+    return persisted
+  } catch (error) {
     if (!dataProvider.isUniqueConflict(error)) throw error
     const existing = await loadExisting()
-    const matchesExpected = existing && Object.entries(payload).every(([field, value]) => childFieldMatches(field, existing[field], value))
-    if (!matchesExpected || !isOwnedBy(existing, payload.user_id)) throw error
+    if (!childMatchesExpected(existing, payload)) throw error
+    return existing
   }
 }
 
@@ -401,7 +412,9 @@ const historicalReconciliationPlan = async (user) => {
       ownedScores.every((item) => Number.isFinite(Number(item.attribute_score)))
     const bonusAttributeIds = ownedBonuses.map((item) => canonicalPositiveId(item.bonus_attribute_id)).filter(Boolean)
     const validBonuses = bonusAttributeIds.length === ownedBonuses.length && new Set(bonusAttributeIds).size === ownedBonuses.length
-    const structurallyValid = validScores && validBonuses
+    const legacyCandidate = !String(rating.submission_key ?? '').trim() &&
+      !String(rating.submission_fingerprint ?? '').trim()
+    const structurallyValid = legacyCandidate && validScores && validBonuses
     const legacyKey = `legacy:${user.id}:${rating.id}`
     const legacyFingerprint = crypto.createHash('sha256').update(JSON.stringify({
       ratingId: String(rating.id),
@@ -412,6 +425,7 @@ const historicalReconciliationPlan = async (user) => {
     items.push({
       ratingId: rating.id,
       currentState: rating.submission_state ?? null,
+      legacyCandidate,
       structurallyValid,
       scoreCount: ownedScores.length,
       bonusCount: ownedBonuses.length,
@@ -594,7 +608,13 @@ export const routeRatingRequest = async (request, response, user, correlationId)
   if (resource !== 'ratings') { response.status(404).json({ error: 'Application data route not found.' }); return }
   if (request.method === 'POST' && id === 'submit') return submitRating(request, response, user, correlationId)
   if (request.method === 'POST' && id === 'reconcile') return reconcileHistoricalRatings(request, response, user)
-  if (request.method === 'POST' && id === 'create-diagnostic') return diagnosticRatingCreate(request, response, user)
+  if (request.method === 'POST' && id === 'create-diagnostic') {
+    if (process.env.VERCEL_ENV !== 'preview') {
+      response.status(404).json({ error: 'Application data route not found.' })
+      return
+    }
+    return diagnosticRatingCreate(request, response, user)
+  }
   if (request.method === 'GET' && id === 'mine') return listUserRatings(response, user)
   if (request.method === 'DELETE' && id && !action) return deleteRating(id, response, user)
   response.status(404).json({ error: 'Application data route not found.' })
