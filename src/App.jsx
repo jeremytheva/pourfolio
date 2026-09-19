@@ -47,7 +47,7 @@ function BrewDoneItRoute({ user }) {
   const location = useLocation()
   const candidate = String(location.state?.initialProductId ?? '').trim()
   const initialProductId = /^[1-9]\d*$/.test(candidate) ? candidate : ''
-  return <BrewDoneIt user={user} initialProductId={initialProductId} />
+  return <BrewDoneIt key={initialProductId || 'brew-done-it'} user={user} initialProductId={initialProductId} />
 }
 
 function App() {

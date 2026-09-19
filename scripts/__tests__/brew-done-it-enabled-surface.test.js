@@ -8,7 +8,7 @@ test('Brew Done It is exposed as an authenticated application route', () => {
   const app = read('src/App.jsx')
   assert.match(app, /lazy\(\(\) => import\('\.\/pages\/BrewDoneIt\.jsx'\)\)/)
   assert.match(app, /<Route path="\/brew-done-it" element=\{protect\(<BrewDoneItRoute user=\{user\} \/>\)\} \/>/)
-  assert.match(app, /<BrewDoneIt user=\{user\} initialProductId=\{initialProductId\} \/>/)
+  assert.match(app, /<BrewDoneIt(?: key=\{initialProductId \|\| 'brew-done-it'\})? user=\{user\} initialProductId=\{initialProductId\} \/>/)
 })
 
 test('Brew Done It appears in authenticated primary navigation', () => {
