@@ -304,7 +304,24 @@ const submitRating = async (request, response, user, correlationId) => {
     }
     workflowStage = 'reconcile_children'
     const completed = await validateSubmissionChildren(rating, user.id, totals.scores, requestedBonusIds, key)
-    if (!completed.complete) throw new Error('Rating children remain incomplete after reconciliation.')
+    if (!completed.complete) {
+      if (process.env.VERCEL_ENV === 'preview') {
+        const expectedScoreIds = totals.scores.map((score) => String(score.attribute_id)).sort()
+        const matchedScoreIds = [...completed.scoreAttributes].sort()
+        const expectedBonusIds = requestedBonusIds.map(String).sort()
+        const matchedBonusIds = [...completed.bonusIds].sort()
+        console.error('[rating-reconciliation-diagnostic]', JSON.stringify({
+          correlation_id: correlationId,
+          expected_score_count: expectedScoreIds.length,
+          matched_score_count: matchedScoreIds.length,
+          missing_score_attribute_ids: expectedScoreIds.filter((id) => !completed.scoreAttributes.has(id)),
+          expected_bonus_count: expectedBonusIds.length,
+          matched_bonus_count: matchedBonusIds.length,
+          missing_bonus_attribute_ids: expectedBonusIds.filter((id) => !completed.bonusIds.has(id))
+        }))
+      }
+      throw new Error('Rating children remain incomplete after reconciliation.')
+    }
     workflowStage = 'mark_complete'
     rating = await transitionRating(rating, user.id, fingerprint, new Set(['pending', 'failed']), 'complete')
     workflowStage = 'build_response'
