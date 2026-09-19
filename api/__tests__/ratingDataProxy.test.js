@@ -225,6 +225,40 @@ test('completed duplicate replay does not depend on child collection rediscovery
   })
 })
 
+test('rating state transition accepts an exact provider update acknowledgement without a stale follow-up read', async () => {
+  const persisted = {
+    id: 100,
+    user_id: 'user-1',
+    submission_fingerprint: 'fingerprint',
+    submission_state: 'pending',
+    submission_version: 0
+  }
+  let reads = 0
+
+  await withProviderMocks({
+    get: async () => {
+      reads += 1
+      return { ...persisted }
+    },
+    update: async () => ({
+      id: 100,
+      submission_state: 'complete',
+      submission_version: 1
+    })
+  }, async () => {
+    const result = await __testables.transitionRating(
+      persisted,
+      'user-1',
+      'fingerprint',
+      new Set(['pending']),
+      'complete'
+    )
+    assert.equal(result.submission_state, 'complete')
+    assert.equal(result.submission_version, 1)
+    assert.equal(reads, 1)
+  })
+})
+
 test('rating state transition tolerates a stale first read after provider update', async () => {
   const persisted = {
     id: 100,
@@ -245,7 +279,7 @@ test('rating state transition tolerates a stale first read after provider update
     },
     update: async () => {
       updated = true
-      return { ...persisted, submission_state: 'complete', submission_version: 1 }
+      return { id: persisted.id, status: 'success' }
     }
   }, async () => {
     const result = await __testables.transitionRating(
