@@ -382,6 +382,95 @@ const listUserRatings = async (response, user) => {
   response.status(200).json({ items: ownerRatings.map((rating) => ({ ...projectRating(rating), advanced_scores: advancedFor(rating, populations, cellarById.get(String(rating.cellar_id)) || null), product: productsById.get(String(rating.product_id)) || null })).sort((left, right) => String(right.date_rated || '').localeCompare(String(left.date_rated || ''))) })
 }
 
+const diagnosticRatingCreate = async (request, response, user) => {
+  if (process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production' && !process.env.VERCEL_ENV) {
+    const error = new Error('Rating create diagnostics are unavailable in production.')
+    error.status = 404
+    throw error
+  }
+
+  const stage = Number(request.body?.stage)
+  if (!Number.isSafeInteger(stage) || stage < 1 || stage > 12) {
+    const error = new Error('Diagnostic stage must be an integer from 1 to 12.')
+    error.status = 400
+    throw error
+  }
+
+  const productId = positiveId(request.body?.productId ?? request.body?.product_id, 'Product identifier')
+  const product = await dataProvider.get(COLLECTIONS.products, productId)
+  if (!product?.id) {
+    const error = new Error('Product not found.')
+    error.status = 404
+    throw error
+  }
+
+  const cellarId = request.body?.cellarId ?? request.body?.cellar_id
+  const fingerprint = crypto.createHash('sha256').update(`diagnostic:${user.id}:${product.id}:${stage}`).digest('hex')
+  const values = [
+    ['user_id', user.id],
+    ['product_id', product.id],
+    ['date_rated', new Date().toISOString()],
+    ['total_unweighted', 1],
+    ['total_weighted', 1],
+    ['submission_key', `diagnostic:${user.id}:${crypto.randomUUID()}`],
+    ['submission_fingerprint', fingerprint],
+    ['submission_state', 'pending'],
+    ['submission_version', 0],
+    ['expected_score_count', 1],
+    ['expected_bonus_count', 0]
+  ]
+  if (stage === 12) {
+    if (cellarId === undefined || cellarId === null || cellarId === '') {
+      const error = new Error('Stage 12 requires a cellar identifier.')
+      error.status = 400
+      throw error
+    }
+    const cellar = await dataProvider.get(COLLECTIONS.cellar, positiveId(cellarId, 'Cellar identifier'))
+    if (!isOwnedBy(cellar, user.id) || String(cellar.product_id) !== String(product.id)) {
+      const error = new Error('The cellar record is not available for this diagnostic.')
+      error.status = 403
+      throw error
+    }
+    values.push(['cellar_id', cellar.id])
+  }
+
+  const payload = Object.fromEntries(values.slice(0, Math.min(stage, 11)))
+  if (stage === 12) payload.cellar_id = values[11][1]
+
+  let created
+  try {
+    created = first(await dataProvider.create(COLLECTIONS.ratings, payload))
+  } catch (error) {
+    response.status(200).json({
+      stage, outcome: 'create_failed',
+      provider_status: error?.providerStatus ?? error?.status ?? null,
+      provider_error_kind: error?.providerErrorKind ?? null,
+      provider_request_shape: error?.providerRequestShape ?? null
+    })
+    return
+  }
+
+  if (!created?.id) throw new Error('Diagnostic rating create did not return an identifier.')
+  const createdId = created.id
+  const persisted = await dataProvider.get(COLLECTIONS.ratings, createdId)
+  if (!isOwnedBy(persisted, user.id)) throw new Error('Diagnostic rating create could not be verified.')
+
+  try {
+    await dataProvider.remove(COLLECTIONS.ratings, createdId)
+  } catch (error) {
+    error.message = 'Diagnostic rating cleanup failed; stop staged testing.'
+    throw error
+  }
+  const afterDelete = await dataProvider.get(COLLECTIONS.ratings, createdId)
+  if (afterDelete) throw new Error('Diagnostic rating cleanup could not be verified; stop staged testing.')
+
+  response.status(200).json({
+    stage, outcome: 'success_cleaned',
+    fields: Object.keys(payload),
+    next_stage: stage < 12 ? stage + 1 : null
+  })
+}
+
 const deleteRating = async (id, response, user) => {
   const ratingId = positiveId(id, 'Rating identifier')
   let rating = await dataProvider.get(COLLECTIONS.ratings, ratingId)
@@ -427,6 +516,7 @@ export const routeRatingRequest = async (request, response, user, correlationId)
   if (resource !== 'ratings') { response.status(404).json({ error: 'Application data route not found.' }); return }
   if (request.method === 'POST' && id === 'submit') return submitRating(request, response, user, correlationId)
   if (request.method === 'POST' && id === 'reconcile') return reconcileHistoricalRatings(request, response, user)
+  if (request.method === 'POST' && id === 'create-diagnostic') return diagnosticRatingCreate(request, response, user)
   if (request.method === 'GET' && id === 'mine') return listUserRatings(response, user)
   if (request.method === 'DELETE' && id && !action) return deleteRating(id, response, user)
   response.status(404).json({ error: 'Application data route not found.' })
@@ -447,4 +537,4 @@ export default async function handler(request, response) {
   }
 }
 
-export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, transitionRating, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalReconciliationPlan, reconcileHistoricalRatings }
+export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, transitionRating, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalReconciliationPlan, reconcileHistoricalRatings, diagnosticRatingCreate }
