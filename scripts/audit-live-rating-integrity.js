@@ -7,6 +7,30 @@ import { __testables as catalogue } from '../api/data-proxy.js'
 
 const MAX_PAGES = 1000
 const PAGE_SIZE = 100
+const READ_RETRY_DELAYS_MS = [0, 250, 750]
+
+const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))
+
+const readStage = async (stage, operation) => {
+  let lastError
+  for (const delay of READ_RETRY_DELAYS_MS) {
+    if (delay) await sleep(delay)
+    try {
+      return await operation()
+    } catch (error) {
+      lastError = error
+      const status = Number(error?.providerStatus ?? error?.status)
+      const transient = error?.code === 'PROVIDER_ERROR' || status === 429 || status >= 500
+      if (!transient) break
+    }
+  }
+
+  const error = new Error(`Read-only rating audit failed during ${stage}.`)
+  error.auditStage = stage
+  error.providerStatus = Number(lastError?.providerStatus ?? lastError?.status) || null
+  error.providerCode = lastError?.code || null
+  throw error
+}
 
 const requireReadOnlyMode = () => {
   if (process.env.RUN_LIVE_RATING_INTEGRITY !== '1') {
@@ -77,7 +101,7 @@ const main = async () => {
   requireReadOnlyMode()
   disableMutations()
 
-  const ratings = await listAll(COLLECTIONS.ratings)
+  const ratings = await readStage('ratings_inventory', () => listAll(COLLECTIONS.ratings))
   const userIds = [...new Set(ratings.map((rating) => String(rating.user_id || '').trim()).filter(Boolean))].sort()
   const completed = ratings.filter((rating) =>
     rating.submission_state === 'complete' && completedRatingTotal(rating.total_weighted) !== null
@@ -98,15 +122,15 @@ const main = async () => {
   let examinedByPlans = 0
 
   for (const userId of userIds) {
-    const first = await ratingWorkflow.historicalReconciliationPlan({ id: userId })
-    const second = await ratingWorkflow.historicalReconciliationPlan({ id: userId })
+    const first = await readStage('historical_plan_first_pass', () => ratingWorkflow.historicalReconciliationPlan({ id: userId }))
+    const second = await readStage('historical_plan_second_pass', () => ratingWorkflow.historicalReconciliationPlan({ id: userId }))
     assert.deepEqual(stablePlan(second), stablePlan(first), 'historical reconciliation dry-run must be idempotent')
 
     examinedByPlans += first.length
     legacyEligible += first.filter((item) => item.structurallyValid).length
 
     const response = responseHarness()
-    await ratingWorkflow.listUserRatings(response, { id: userId })
+    await readStage('personal_history_projection', () => ratingWorkflow.listUserRatings(response, { id: userId }))
     assert.equal(response.statusCode, 200, 'personal completed-rating projection must succeed')
 
     const actualIds = (response.body?.items || []).map(({ id }) => String(id)).sort()
@@ -130,7 +154,7 @@ const main = async () => {
       .filter((value) => value !== null)
 
     const response = responseHarness()
-    await catalogue.getProduct(productId, response)
+    await readStage('product_aggregate_projection', () => catalogue.getProduct(productId, response))
     assert.equal(response.statusCode, 200, 'product aggregate projection must succeed')
     assert.deepEqual(response.body?.ratingSummary, {
       count: expectedTotals.length,
@@ -161,7 +185,10 @@ main().catch((error) => {
   process.stderr.write(`${JSON.stringify({
     status: 'BLOCKED',
     mode: 'read-only',
-    error: error?.message || 'Connected rating integrity audit failed.'
+    error: error?.message || 'Connected rating integrity audit failed.',
+    stage: error?.auditStage || null,
+    providerStatus: error?.providerStatus ?? null,
+    providerCode: error?.providerCode || null
   })}\n`)
   process.exitCode = 1
 })
