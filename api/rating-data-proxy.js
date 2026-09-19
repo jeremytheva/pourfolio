@@ -196,7 +196,11 @@ const transitionRating = async (rating, userId, fingerprint, fromStates, toState
   if (!fromStates.has(persisted.submission_state)) throw new Error('The rating workflow state cannot make that transition.')
   const version = Number(persisted.submission_version)
   if (!Number.isSafeInteger(version) || version < 0) throw new Error('The rating workflow version is invalid.')
-  await dataProvider.update(COLLECTIONS.ratings, persisted.id, { submission_state: toState, submission_version: version + 1 })
+  const updateResult = first(await dataProvider.update(COLLECTIONS.ratings, persisted.id, { submission_state: toState, submission_version: version + 1 }))
+  if (updateResult && String(updateResult.id ?? persisted.id) === String(persisted.id) &&
+      updateResult.submission_state === toState && Number(updateResult.submission_version) === version + 1) {
+    return { ...persisted, ...updateResult }
+  }
   try {
     return await verifyRatingState(persisted.id, userId, fingerprint, toState, version + 1)
   } catch (error) {
