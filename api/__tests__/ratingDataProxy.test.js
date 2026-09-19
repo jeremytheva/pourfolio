@@ -357,6 +357,71 @@ test('historical reconciliation is dry-run by default and rejects structurally i
 })
 
 
+test('historical reconciliation never promotes or rewrites modern workflow submissions', async () => {
+  const ratings = [
+    {
+      id: 12,
+      user_id: 'user-1',
+      product_id: 4,
+      submission_state: 'failed',
+      submission_version: 1,
+      submission_key: 'user-1:1700000000000012',
+      submission_fingerprint: 'modern-failed'
+    },
+    {
+      id: 13,
+      user_id: 'user-1',
+      product_id: 4,
+      submission_state: 'complete',
+      submission_version: 1,
+      submission_key: 'user-1:1700000000000013',
+      submission_fingerprint: 'modern-complete'
+    }
+  ]
+  const updates = []
+  await withProviderMocks({
+    list: async (collection, filters) => {
+      if (collection === COLLECTIONS.ratings) return ratings
+      if (collection === COLLECTIONS.ratingScores) {
+        return [{ id: 30, user_id: 'user-1', rating_id: filters.rating_id, attribute_id: 5, attribute_score: '6.00' }]
+      }
+      if (collection === COLLECTIONS.bonusRatingMappings) return []
+      return []
+    },
+    update: async (...args) => { updates.push(args) }
+  }, async () => {
+    const response = responseHarness()
+    await __testables.reconcileHistoricalRatings({ body: { apply: true } }, response, { id: 'user-1' })
+    assert.equal(response.statusCode, 200)
+    assert.equal(response.body.eligible, 0)
+    assert.equal(response.body.items.every((item) => item.legacyCandidate === false), true)
+    assert.equal(response.body.items.every((item) => item.structurallyValid === false), true)
+    assert.equal(updates.length, 0)
+    assert.equal(ratings[0].submission_state, 'failed')
+    assert.equal(ratings[1].submission_key, 'user-1:1700000000000013')
+  })
+})
+
+test('diagnostic rating creation route is unavailable outside Vercel Preview', async () => {
+  const previous = process.env.VERCEL_ENV
+  process.env.VERCEL_ENV = 'production'
+  try {
+    const response = responseHarness()
+    await __testables.routeRatingRequest(
+      { method: 'POST', query: { path: ['ratings', 'create-diagnostic'] }, body: {} },
+      response,
+      { id: 'user-1' },
+      'diagnostic-production'
+    )
+    assert.equal(response.statusCode, 404)
+    assert.deepEqual(response.body, { error: 'Application data route not found.' })
+  } finally {
+    if (previous === undefined) delete process.env.VERCEL_ENV
+    else process.env.VERCEL_ENV = previous
+  }
+})
+
+
 test('parent create acknowledgement is hydrated before child persistence', async () => {
   const provider = durableProvider()
   const baseCreate = provider.mocks.create
