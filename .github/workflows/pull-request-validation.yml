@@ -20,8 +20,6 @@ on:
 
 permissions:
   contents: read
-  issues: read
-  pull-requests: read
 
 concurrency:
   group: validation-${{ github.workflow }}-${{ github.ref }}
@@ -92,9 +90,7 @@ jobs:
     if: github.event_name == 'push' && contains(github.event.head_commit.message, '[connected-rating]')
     environment: staging-release
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      RELEASE_SHA: ${{ github.sha }}
+    timeout-minutes: 15
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -105,50 +101,22 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Discover stable Vercel PR preview
-        id: preview
+      - name: Run read-only live rating integrity audit
         env:
-          GH_TOKEN: ${{ github.token }}
+          RUN_LIVE_RATING_INTEGRITY: "1"
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
         shell: bash
         run: |
-          set -euo pipefail
-          pr_number="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REF_NAME" --state open --json number --jq '.[0].number')"
-          test -n "$pr_number"
-          preview_url="$(
-            gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$pr_number/comments?per_page=100" \
-              --jq '.[] | select(.user.login == "vercel[bot]") | .body' |
-            grep -oE 'https://[a-z0-9-]+\.vercel\.app' |
-            tail -n 1
-          )"
-          test -n "$preview_url"
-          echo "url=$preview_url" >> "$GITHUB_OUTPUT"
-      - name: Verify exact Vercel release target
-        env:
-          RELEASE_BASE_URL: ${{ steps.preview.outputs.url }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          for attempt in 1 2 3; do
-            node scripts/verify-release-target.js && exit 0
-            if [ "$attempt" -lt 3 ]; then sleep 20; fi
-          done
-          exit 1
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-      - name: Run non-destructive connected rating acceptance
-        env:
-          RELEASE_BASE_URL: ${{ steps.preview.outputs.url }}
-          RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
-          RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
-        run: npx playwright test --config=playwright.release.config.js --grep "rating reconciliation dry-run is idempotent and completed aggregates are coherent"
-      - name: Retain connected rating evidence
+          mkdir -p artifacts/rating-integrity
+          node scripts/audit-live-rating-integrity.js | tee artifacts/rating-integrity/summary.json
+      - name: Retain redacted rating integrity evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: connected-rating-${{ github.sha }}
-          path: |
-            playwright-report/release-check/
-            test-results/release-check/
-          if-no-files-found: ignore
+          path: artifacts/rating-integrity/
+          if-no-files-found: error
           retention-days: 30
 
