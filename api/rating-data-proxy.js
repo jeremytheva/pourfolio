@@ -327,14 +327,26 @@ const submitRating = async (request, response, user, correlationId) => {
           if (reconciled.complete) { await submissionResponse({ response, status: 200, rating: persisted, totals, requestedBonusIds, bonusPointTotal, bonusScore, duplicate: true, cellar }); return }
         }
         await transitionRating(rating, user.id, fingerprint, new Set(['pending']), 'failed')
-      } catch { stateUpdateFailed = true }
+      } catch (stateError) {
+        stateUpdateFailed = true
+        if (process.env.VERCEL_ENV === 'preview') {
+          console.error('[rating-workflow-diagnostic]', JSON.stringify({
+            correlation_id: correlationId,
+            failed_stage: workflowStage,
+            recovery_stage: 'mark_failed',
+            recovery_provider_status: stateError?.providerStatus ?? stateError?.status ?? null,
+            recovery_provider_operation: stateError?.providerOperation ?? null,
+            recovery_provider_error_kind: stateError?.providerErrorKind ?? null
+          }))
+        }
+      }
     }
     const diagnosticEvents = { create_rating_parent: 'rating_parent_create_failure', hydrate_rating_parent: 'rating_parent_hydrate_failure', load_existing_children: 'rating_child_read_failure', create_score_child: 'rating_score_create_failure', create_bonus_child: 'rating_bonus_create_failure', reconcile_children: 'rating_child_mismatch', mark_complete: 'rating_state_transition_failure', build_response: 'rating_response_build_failure' }
     writeTelemetryError(runtimeTelemetry({
       route_template: '/api/nocodebackend/ratings/:action',
       method: 'POST',
       status_class: '5xx',
-      event_name: stateUpdateFailed ? 'rating_reconciliation_state_update_failure' : diagnosticEvents[workflowStage] || 'rating_reconciliation_failure',
+      event_name: diagnosticEvents[workflowStage] || (stateUpdateFailed ? 'rating_reconciliation_state_update_failure' : 'rating_reconciliation_failure'),
       correlation_id: correlationId,
       provider_status: Number.isInteger(error?.providerStatus) ? String(error.providerStatus) : undefined,
       provider_operation: error?.providerOperation,
