@@ -436,9 +436,32 @@ const submitRating = async (request, response, user, correlationId) => {
   }
 }
 
+const HISTORICAL_RATING_PAGE_SIZE = 100
+const HISTORICAL_RATING_MAX_PAGES = 1000
+
+const historicalOwnerRatings = async (userId) => {
+  const ownerRatings = []
+  for (let page = 1; page <= HISTORICAL_RATING_MAX_PAGES; page += 1) {
+    const payload = await dataProvider.listPage(COLLECTIONS.ratings, {
+      page,
+      limit: HISTORICAL_RATING_PAGE_SIZE,
+      orderBy: 'id',
+      order: 'asc',
+      filters: { user_id: userId }
+    })
+    const pageItems = records(payload.items)
+    ownerRatings.push(...pageItems.filter((rating) => isOwnedBy(rating, userId)))
+
+    if (payload.totalPages === 0 || page >= payload.totalPages || pageItems.length < HISTORICAL_RATING_PAGE_SIZE) {
+      return ownerRatings
+    }
+  }
+  throw new Error('Historical rating reconciliation exceeded the safe pagination limit.')
+}
+
 const historicalReconciliationPlan = async (user) => {
-  const ownerRatings = records(await dataProvider.list(COLLECTIONS.ratings, { user_id: user.id }))
-    .filter((rating) => isOwnedBy(rating, user.id) && rating.submission_state !== 'deleted')
+  const ownerRatings = (await historicalOwnerRatings(user.id))
+    .filter((rating) => rating.submission_state !== 'deleted')
   const items = []
   for (const rating of ownerRatings) {
     const [scores, bonuses] = await Promise.all([
@@ -677,4 +700,4 @@ export default async function handler(request, response) {
   }
 }
 
-export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, summariseSubmissionChildren, transitionRating, verifyRatingState, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalReconciliationPlan, reconcileHistoricalRatings, diagnosticRatingCreate }
+export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, summariseSubmissionChildren, transitionRating, verifyRatingState, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalOwnerRatings, historicalReconciliationPlan, reconcileHistoricalRatings, diagnosticRatingCreate }
