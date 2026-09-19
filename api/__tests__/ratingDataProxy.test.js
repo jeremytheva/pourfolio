@@ -181,6 +181,87 @@ test('submitRating ignores browser totals and Bonus, persists server-derived fiv
   })
 })
 
+test('fresh submission completes from individually verified children when child collection reads stay empty', async () => {
+  const provider = durableProvider()
+  const baseList = provider.mocks.list
+  provider.mocks.list = async (collection, filters = {}) => {
+    if (collection === COLLECTIONS.ratingScores || collection === COLLECTIONS.bonusRatingMappings) return []
+    return baseList(collection, filters)
+  }
+
+  await withProviderMocks(provider.mocks, async () => {
+    const response = responseHarness()
+    await submitMaximum(response)
+
+    assert.equal(response.statusCode, 201)
+    assert.equal(response.body.duplicate, false)
+    assert.equal(provider.state[COLLECTIONS.ratings][0].submission_state, 'complete')
+    assert.equal(provider.state[COLLECTIONS.ratingScores].length, 8)
+    assert.equal(provider.state[COLLECTIONS.bonusRatingMappings].length, 3)
+  })
+})
+
+test('completed duplicate replay does not depend on child collection rediscovery', async () => {
+  const provider = durableProvider()
+
+  await withProviderMocks(provider.mocks, async () => {
+    const firstResponse = responseHarness()
+    await submitMaximum(firstResponse)
+    assert.equal(firstResponse.statusCode, 201)
+
+    const baseList = provider.mocks.list
+    dataProvider.list = async (collection, filters = {}) => {
+      if (collection === COLLECTIONS.ratingScores || collection === COLLECTIONS.bonusRatingMappings) return []
+      return baseList(collection, filters)
+    }
+
+    const retryResponse = responseHarness()
+    await submitMaximum(retryResponse)
+
+    assert.equal(retryResponse.statusCode, 200)
+    assert.equal(retryResponse.body.duplicate, true)
+    assert.equal(provider.state[COLLECTIONS.ratingScores].length, 8)
+    assert.equal(provider.state[COLLECTIONS.bonusRatingMappings].length, 3)
+  })
+})
+
+test('rating state transition tolerates a stale first read after provider update', async () => {
+  const persisted = {
+    id: 100,
+    user_id: 'user-1',
+    submission_fingerprint: 'fingerprint',
+    submission_state: 'pending',
+    submission_version: 0
+  }
+  let updated = false
+  let postUpdateReads = 0
+
+  await withProviderMocks({
+    get: async () => {
+      if (!updated) return { ...persisted }
+      postUpdateReads += 1
+      if (postUpdateReads === 1) return { ...persisted }
+      return { ...persisted, submission_state: 'complete', submission_version: 1 }
+    },
+    update: async () => {
+      updated = true
+      return { ...persisted, submission_state: 'complete', submission_version: 1 }
+    }
+  }, async () => {
+    const result = await __testables.transitionRating(
+      persisted,
+      'user-1',
+      'fingerprint',
+      new Set(['pending']),
+      'complete'
+    )
+    assert.equal(result.submission_state, 'complete')
+    assert.equal(result.submission_version, 1)
+    assert.equal(postUpdateReads, 2)
+  })
+})
+
+
 test('a submission id cannot be replayed with different personalised weights', async () => {
   const provider = durableProvider()
 
