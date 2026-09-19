@@ -205,6 +205,43 @@ const submissionResponse = async ({ response, status, rating, totals, requestedB
   response.status(status).json({ rating: { ...projectRating(saved), advanced_scores: advancedScores }, scoreCount: totals.scores.length, bonusCount: requestedBonusIds.length, bonusPointTotal, bonusScore, duplicate })
 }
 
+const runAutomaticRatingCreateDiagnostic = async ({ user, product, cellarId }) => {
+  const values = [
+    ['user_id', user.id],
+    ['product_id', product.id],
+    ['date_rated', new Date().toISOString()],
+    ['total_unweighted', 1],
+    ['total_weighted', 1],
+    ['submission_key', `diagnostic:${user.id}:${crypto.randomUUID()}`],
+    ['submission_fingerprint', crypto.createHash('sha256').update(`diagnostic:${user.id}:${product.id}`).digest('hex')],
+    ['submission_state', 'pending'],
+    ['submission_version', 0],
+    ['expected_score_count', 1],
+    ['expected_bonus_count', 0],
+    ...(cellarId === null ? [] : [['cellar_id', cellarId]])
+  ]
+  const stages = []
+  for (let index = 0; index < values.length; index += 1) {
+    const payload = Object.fromEntries(values.slice(0, index + 1))
+    let created
+    try {
+      created = first(await dataProvider.create(COLLECTIONS.ratings, payload))
+    } catch (error) {
+      stages.push({ stage: index + 1, added_field: values[index][0], outcome: 'failed', provider_status: error?.providerStatus ?? error?.status ?? null })
+      continue
+    }
+    if (!created?.id) {
+      stages.push({ stage: index + 1, added_field: values[index][0], outcome: 'missing_id' })
+      continue
+    }
+    await dataProvider.remove(COLLECTIONS.ratings, created.id)
+    const remaining = await dataProvider.get(COLLECTIONS.ratings, created.id)
+    if (remaining) throw new Error('Automatic rating diagnostic cleanup could not be verified.')
+    stages.push({ stage: index + 1, added_field: values[index][0], outcome: 'passed' })
+  }
+  return stages
+}
+
 const submitRating = async (request, response, user, correlationId) => {
   const atStage = async (stage, operation) => {
     try { return await operation() }
@@ -271,6 +308,14 @@ const submitRating = async (request, response, user, correlationId) => {
     workflowStage = 'build_response'
     await submissionResponse({ response, status: duplicate ? 200 : 201, rating, totals, requestedBonusIds, bonusPointTotal, bonusScore, duplicate, cellar })
   } catch (error) {
+    if (workflowStage === 'create_rating_parent' && process.env.VERCEL_ENV === 'preview') {
+      try {
+        const stages = await runAutomaticRatingCreateDiagnostic({ user, product, cellarId })
+        console.error('[rating-create-diagnostic]', JSON.stringify({ correlation_id: correlationId, stages }))
+      } catch (diagnosticError) {
+        console.error('[rating-create-diagnostic]', JSON.stringify({ correlation_id: correlationId, outcome: 'diagnostic_failed', error_name: diagnosticError?.name || 'Error' }))
+      }
+    }
     let stateUpdateFailed = false
     if (rating?.id) {
       try {
