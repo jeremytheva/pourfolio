@@ -389,13 +389,6 @@ const diagnosticRatingCreate = async (request, response, user) => {
     throw error
   }
 
-  const stage = Number(request.body?.stage)
-  if (!Number.isSafeInteger(stage) || stage < 1 || stage > 12) {
-    const error = new Error('Diagnostic stage must be an integer from 1 to 12.')
-    error.status = 400
-    throw error
-  }
-
   const productId = positiveId(request.body?.productId ?? request.body?.product_id, 'Product identifier')
   const product = await dataProvider.get(COLLECTIONS.products, productId)
   if (!product?.id) {
@@ -405,7 +398,6 @@ const diagnosticRatingCreate = async (request, response, user) => {
   }
 
   const cellarId = request.body?.cellarId ?? request.body?.cellar_id
-  const fingerprint = crypto.createHash('sha256').update(`diagnostic:${user.id}:${product.id}:${stage}`).digest('hex')
   const values = [
     ['user_id', user.id],
     ['product_id', product.id],
@@ -413,18 +405,14 @@ const diagnosticRatingCreate = async (request, response, user) => {
     ['total_unweighted', 1],
     ['total_weighted', 1],
     ['submission_key', `diagnostic:${user.id}:${crypto.randomUUID()}`],
-    ['submission_fingerprint', fingerprint],
+    ['submission_fingerprint', crypto.createHash('sha256').update(`diagnostic:${user.id}:${product.id}`).digest('hex')],
     ['submission_state', 'pending'],
     ['submission_version', 0],
     ['expected_score_count', 1],
     ['expected_bonus_count', 0]
   ]
-  if (stage === 12) {
-    if (cellarId === undefined || cellarId === null || cellarId === '') {
-      const error = new Error('Stage 12 requires a cellar identifier.')
-      error.status = 400
-      throw error
-    }
+
+  if (cellarId !== undefined && cellarId !== null && cellarId !== '') {
     const cellar = await dataProvider.get(COLLECTIONS.cellar, positiveId(cellarId, 'Cellar identifier'))
     if (!isOwnedBy(cellar, user.id) || String(cellar.product_id) !== String(product.id)) {
       const error = new Error('The cellar record is not available for this diagnostic.')
@@ -434,40 +422,46 @@ const diagnosticRatingCreate = async (request, response, user) => {
     values.push(['cellar_id', cellar.id])
   }
 
-  const payload = Object.fromEntries(values.slice(0, Math.min(stage, 11)))
-  if (stage === 12) payload.cellar_id = values[11][1]
+  const results = []
+  for (let index = 0; index < values.length; index += 1) {
+    const stage = index + 1
+    const payload = Object.fromEntries(values.slice(0, stage))
+    let created
+    try {
+      created = first(await dataProvider.create(COLLECTIONS.ratings, payload))
+    } catch (error) {
+      results.push({
+        stage,
+        added_field: values[index][0],
+        outcome: 'create_failed',
+        provider_status: error?.providerStatus ?? error?.status ?? null,
+        provider_error_kind: error?.providerErrorKind ?? null,
+        provider_request_shape: error?.providerRequestShape ?? null
+      })
+      continue
+    }
 
-  let created
-  try {
-    created = first(await dataProvider.create(COLLECTIONS.ratings, payload))
-  } catch (error) {
-    response.status(200).json({
-      stage, outcome: 'create_failed',
-      provider_status: error?.providerStatus ?? error?.status ?? null,
-      provider_error_kind: error?.providerErrorKind ?? null,
-      provider_request_shape: error?.providerRequestShape ?? null
-    })
-    return
-  }
+    if (!created?.id) throw new Error('Diagnostic rating create did not return an identifier.')
+    const createdId = created.id
+    const persisted = await dataProvider.get(COLLECTIONS.ratings, createdId)
+    if (!isOwnedBy(persisted, user.id)) throw new Error('Diagnostic rating create could not be verified.')
 
-  if (!created?.id) throw new Error('Diagnostic rating create did not return an identifier.')
-  const createdId = created.id
-  const persisted = await dataProvider.get(COLLECTIONS.ratings, createdId)
-  if (!isOwnedBy(persisted, user.id)) throw new Error('Diagnostic rating create could not be verified.')
-
-  try {
     await dataProvider.remove(COLLECTIONS.ratings, createdId)
-  } catch (error) {
-    error.message = 'Diagnostic rating cleanup failed; stop staged testing.'
-    throw error
+    const afterDelete = await dataProvider.get(COLLECTIONS.ratings, createdId)
+    if (afterDelete) throw new Error('Diagnostic rating cleanup could not be verified; stop staged testing.')
+
+    results.push({ stage, added_field: values[index][0], outcome: 'success_cleaned' })
   }
-  const afterDelete = await dataProvider.get(COLLECTIONS.ratings, createdId)
-  if (afterDelete) throw new Error('Diagnostic rating cleanup could not be verified; stop staged testing.')
+
+  const firstSuccess = results.findIndex((item) => item.outcome === 'success_cleaned')
+  const firstRegression = firstSuccess < 0
+    ? null
+    : results.slice(firstSuccess + 1).find((item) => item.outcome === 'create_failed') || null
 
   response.status(200).json({
-    stage, outcome: 'success_cleaned',
-    fields: Object.keys(payload),
-    next_stage: stage < 12 ? stage + 1 : null
+    outcome: firstRegression ? 'regression_found' : firstSuccess < 0 ? 'no_valid_payload_found' : 'completed',
+    first_failing_field: firstRegression?.added_field || null,
+    stages: results
   })
 }
 
