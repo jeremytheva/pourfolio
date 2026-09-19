@@ -70,11 +70,11 @@ test('product details return the aggregate for one rating only', async () => {
     cellar_id: 'cellar-id',
     date_rated: '2026-07-28',
     submission_state: 'complete',
-    total_weighted: 6.25,
+    total_weighted: 4.25,
     scores: [1, 7]
   }])
 
-  assert.deepEqual(product.ratingSummary, { count: 1, average: 6.25 })
+  assert.deepEqual(product.ratingSummary, { count: 1, average: 4.25 })
   assert.equal(JSON.stringify(product).includes('rating-record-id'), false)
   assert.equal(JSON.stringify(product).includes('submission-id'), false)
   assert.equal(JSON.stringify(product).includes('cellar-id'), false)
@@ -86,6 +86,7 @@ test('product details return the aggregate for one rating only', async () => {
 test('product details average multiple finite totals and ignore untrusted non-finite totals', async () => {
   const product = await getProductWithRatings([
     { submission_state: 'complete', total_weighted: 3.111 },
+    { submission_state: 'complete', total_weighted: 4.222 },
     { submission_state: 'complete', total_weighted: 6.222 },
     { submission_state: 'complete', total_weighted: 'not-a-number' },
     { submission_state: 'complete', total_weighted: Number.POSITIVE_INFINITY },
@@ -94,7 +95,7 @@ test('product details average multiple finite totals and ignore untrusted non-fi
     { submission_state: 'failed', total_weighted: 1 }
   ])
 
-  assert.deepEqual(product.ratingSummary, { count: 2, average: 4.67 })
+  assert.deepEqual(product.ratingSummary, { count: 2, average: 3.67 })
   assert.deepEqual(Object.keys(product).filter((key) => /rating|cellar|score|date/i.test(key)), ['ratingSummary', 'ratings'])
 })
 
