@@ -173,7 +173,7 @@ const validateSubmissionChildren = async (rating, userId, expectedScores, expect
 }
 
 const ratingIdentityMatches = (rating, userId, fingerprint) => isOwnedBy(rating, userId) && rating?.submission_fingerprint === fingerprint
-const RATING_STATE_VERIFY_DELAYS_MS = [0, 25, 75, 150]
+const RATING_STATE_VERIFY_DELAYS_MS = [0, 100, 250, 500, 1000]
 const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))
 
 const verifyRatingState = async (ratingId, userId, fingerprint, state, version) => {
@@ -197,7 +197,13 @@ const transitionRating = async (rating, userId, fingerprint, fromStates, toState
   const version = Number(persisted.submission_version)
   if (!Number.isSafeInteger(version) || version < 0) throw new Error('The rating workflow version is invalid.')
   await dataProvider.update(COLLECTIONS.ratings, persisted.id, { submission_state: toState, submission_version: version + 1 })
-  return verifyRatingState(persisted.id, userId, fingerprint, toState, version + 1)
+  try {
+    return await verifyRatingState(persisted.id, userId, fingerprint, toState, version + 1)
+  } catch (error) {
+    error.stateTransitionAcknowledged = true
+    error.targetState = toState
+    throw error
+  }
 }
 
 const childFieldMatches = (field, actual, expected) => field === 'attribute_score'
@@ -392,7 +398,9 @@ const submitRating = async (request, response, user, correlationId) => {
           const reconciled = await validateSubmissionChildren(persisted, user.id, totals.scores, requestedBonusIds, key)
           if (reconciled.complete) { await submissionResponse({ response, status: 200, rating: persisted, totals, requestedBonusIds, bonusPointTotal, bonusScore, duplicate: true, cellar }); return }
         }
-        await transitionRating(rating, user.id, fingerprint, new Set(['pending']), 'failed')
+        if (!(workflowStage === 'mark_complete' && error?.stateTransitionAcknowledged)) {
+          await transitionRating(rating, user.id, fingerprint, new Set(['pending']), 'failed')
+        }
       } catch (stateError) {
         stateUpdateFailed = true
         if (process.env.VERCEL_ENV === 'preview') {
