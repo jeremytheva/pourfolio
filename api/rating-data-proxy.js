@@ -140,11 +140,7 @@ const findSubmission = async (userId, submissionId) => {
     .find((rating) => isOwnedBy(rating, userId) && rating.submission_key === key) || null
 }
 
-const validateSubmissionChildren = async (rating, userId, expectedScores, expectedBonusIds) => {
-  const [scoreRows, bonusRows] = await Promise.all([
-    dataProvider.list(COLLECTIONS.ratingScores, { rating_id: rating.id, user_id: userId }),
-    dataProvider.list(COLLECTIONS.bonusRatingMappings, { rating_id: rating.id, user_id: userId })
-  ])
+const summariseSubmissionChildren = (rating, userId, expectedScores, expectedBonusIds, scoreRows, bonusRows) => {
   const ownedScores = records(scoreRows).filter((item) => isOwnedBy(item, userId) && String(item.rating_id) === String(rating.id))
   const ownedBonuses = records(bonusRows).filter((item) => isOwnedBy(item, userId) && String(item.rating_id) === String(rating.id))
   const expectedScoresByAttribute = new Map(expectedScores.map((score) => [String(score.attribute_id), score]))
@@ -162,11 +158,38 @@ const validateSubmissionChildren = async (rating, userId, expectedScores, expect
       }) &&
       ownedBonuses.every((item) => expectedBonusIdsSet.has(String(item.bonus_attribute_id))),
     scoreAttributes: matchingScoreAttributes,
-    bonusIds: matchingBonusIds
+    bonusIds: matchingBonusIds,
+    scores: ownedScores,
+    bonuses: ownedBonuses
   }
 }
 
+const validateSubmissionChildren = async (rating, userId, expectedScores, expectedBonusIds) => {
+  const [scoreRows, bonusRows] = await Promise.all([
+    dataProvider.list(COLLECTIONS.ratingScores, { rating_id: rating.id, user_id: userId }),
+    dataProvider.list(COLLECTIONS.bonusRatingMappings, { rating_id: rating.id, user_id: userId })
+  ])
+  return summariseSubmissionChildren(rating, userId, expectedScores, expectedBonusIds, scoreRows, bonusRows)
+}
+
 const ratingIdentityMatches = (rating, userId, fingerprint) => isOwnedBy(rating, userId) && rating?.submission_fingerprint === fingerprint
+const RATING_STATE_VERIFY_DELAYS_MS = [0, 25, 75, 150]
+const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))
+
+const verifyRatingState = async (ratingId, userId, fingerprint, state, version) => {
+  let last = null
+  for (const delay of RATING_STATE_VERIFY_DELAYS_MS) {
+    if (delay) await wait(delay)
+    last = await dataProvider.get(COLLECTIONS.ratings, ratingId)
+    if (!ratingIdentityMatches(last, userId, fingerprint)) {
+      if (last) { const error = new Error('The persisted rating no longer matches this submission.'); error.status = 409; throw error }
+      continue
+    }
+    if (last.submission_state === state && Number(last.submission_version) === version) return last
+  }
+  throw new Error('Rating workflow state was not durably updated.')
+}
+
 const transitionRating = async (rating, userId, fingerprint, fromStates, toState) => {
   const persisted = await dataProvider.get(COLLECTIONS.ratings, rating.id)
   if (!ratingIdentityMatches(persisted, userId, fingerprint)) { const error = new Error('The persisted rating no longer matches this submission.'); error.status = 409; throw error }
@@ -175,9 +198,7 @@ const transitionRating = async (rating, userId, fingerprint, fromStates, toState
   const version = Number(persisted.submission_version)
   if (!Number.isSafeInteger(version) || version < 0) throw new Error('The rating workflow version is invalid.')
   await dataProvider.update(COLLECTIONS.ratings, persisted.id, { submission_state: toState, submission_version: version + 1 })
-  const transitioned = await dataProvider.get(COLLECTIONS.ratings, persisted.id)
-  if (!ratingIdentityMatches(transitioned, userId, fingerprint) || transitioned.submission_state !== toState || Number(transitioned.submission_version) !== version + 1) throw new Error('Rating workflow state was not durably updated.')
-  return transitioned
+  return verifyRatingState(persisted.id, userId, fingerprint, toState, version + 1)
 }
 
 const childFieldMatches = (field, actual, expected) => field === 'attribute_score'
@@ -300,21 +321,31 @@ const submitRating = async (request, response, user, correlationId) => {
       if (!rating?.id) throw new Error('The rating service did not return a rating identifier.')
       if (!ratingIdentityMatches(rating, user.id, fingerprint)) { const conflict = new Error('The submission identifier is already used by different rating data.'); conflict.status = 409; throw conflict }
     }
+    if (duplicate && isCompletedRating(rating)) {
+      workflowStage = 'build_response'
+      await submissionResponse({ response, status: 200, rating, totals, requestedBonusIds, bonusPointTotal, bonusScore, duplicate: true, cellar })
+      return
+    }
+
     workflowStage = 'load_existing_children'
-    const existingChildren = await validateSubmissionChildren(rating, user.id, totals.scores, requestedBonusIds, key)
+    const existingChildren = await validateSubmissionChildren(rating, user.id, totals.scores, requestedBonusIds)
+    const verifiedScores = [...existingChildren.scores]
+    const verifiedBonuses = [...existingChildren.bonuses]
     for (const score of totals.scores) {
       const attributeId = String(score.attribute_id)
       if (existingChildren.scoreAttributes.has(attributeId)) continue
       workflowStage = 'create_score_child'
-      await createChildIdempotently(COLLECTIONS.ratingScores, { user_id: user.id, attribute_id: score.attribute_id, rating_id: rating.id, attribute_score: score.attribute_score }, async () => records(await dataProvider.list(COLLECTIONS.ratingScores, { user_id: user.id, rating_id: rating.id, attribute_id: score.attribute_id }))[0])
+      const persistedChild = await createChildIdempotently(COLLECTIONS.ratingScores, { user_id: user.id, attribute_id: score.attribute_id, rating_id: rating.id, attribute_score: score.attribute_score }, async () => records(await dataProvider.list(COLLECTIONS.ratingScores, { user_id: user.id, rating_id: rating.id, attribute_id: score.attribute_id }))[0])
+      verifiedScores.push(persistedChild)
     }
     for (const bonusId of requestedBonusIds) {
       if (existingChildren.bonusIds.has(String(bonusId))) continue
       workflowStage = 'create_bonus_child'
-      await createChildIdempotently(COLLECTIONS.bonusRatingMappings, { user_id: user.id, rating_id: rating.id, bonus_attribute_id: bonusId }, async () => records(await dataProvider.list(COLLECTIONS.bonusRatingMappings, { user_id: user.id, rating_id: rating.id, bonus_attribute_id: bonusId }))[0])
+      const persistedChild = await createChildIdempotently(COLLECTIONS.bonusRatingMappings, { user_id: user.id, rating_id: rating.id, bonus_attribute_id: bonusId }, async () => records(await dataProvider.list(COLLECTIONS.bonusRatingMappings, { user_id: user.id, rating_id: rating.id, bonus_attribute_id: bonusId }))[0])
+      verifiedBonuses.push(persistedChild)
     }
     workflowStage = 'reconcile_children'
-    const completed = await validateSubmissionChildren(rating, user.id, totals.scores, requestedBonusIds, key)
+    const completed = summariseSubmissionChildren(rating, user.id, totals.scores, requestedBonusIds, verifiedScores, verifiedBonuses)
     if (!completed.complete) {
       if (process.env.VERCEL_ENV === 'preview') {
         const expectedScoreIds = totals.scores.map((score) => String(score.attribute_id)).sort()
@@ -635,4 +666,4 @@ export default async function handler(request, response) {
   }
 }
 
-export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, transitionRating, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalReconciliationPlan, reconcileHistoricalRatings, diagnosticRatingCreate }
+export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, summariseSubmissionChildren, transitionRating, verifyRatingState, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalReconciliationPlan, reconcileHistoricalRatings, diagnosticRatingCreate }
