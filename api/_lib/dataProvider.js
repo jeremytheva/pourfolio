@@ -184,20 +184,11 @@ const canRecoverEmptyExactRead = (collection, filters = {}) =>
   filters.rating_id !== null &&
   filters.rating_id !== ''
 
-const recoverExactChildRead = async (collection, filters, initialError = null) => {
-  let lastError = initialError
-  try {
-    const rows = asList(await providerRequest(`read/${collection}`, {
-      filters: { rating_id: filters.rating_id, page: 1, limit: 100 }
-    }))
-    return rows.filter((record) => locallyMatchesExactFilters(record, filters))
-  } catch (error) {
-    if (error?.code !== 'PROVIDER_ERROR' || Number(error?.status) < 500) throw error
-    lastError = error
-  }
-
-  if (lastError) throw lastError
-  return []
+const recoverExactChildRead = async (collection, filters) => {
+  const rows = asList(await providerRequest(`read/${collection}`, {
+    filters: { rating_id: filters.rating_id, page: 1, limit: 100 }
+  }))
+  return rows.filter((record) => locallyMatchesExactFilters(record, filters))
 }
 
 const listWithExactChildRecovery = async (collection, filters = {}) => {
@@ -207,7 +198,7 @@ const listWithExactChildRecovery = async (collection, filters = {}) => {
   } catch (error) {
     if (!canRecoverEmptyExactRead(collection, filters) ||
         error?.code !== 'PROVIDER_ERROR' || Number(error?.status) < 500) throw error
-    return recoverExactChildRead(collection, filters, error)
+    return recoverExactChildRead(collection, filters)
   }
 
   if (primary.length || !canRecoverEmptyExactRead(collection, filters)) return primary
