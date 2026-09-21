@@ -27,7 +27,30 @@ const product = {
   producers: [producer],
   category: { id: 10, category_name: 'Pale Ale', parent_id: null }
 }
-const detail = { producer, products: [product] }
+const emptyPersonalStats = {
+  ratingCount: 0,
+  ratedBeerCount: 0,
+  averageWeighted: null,
+  averageUnweighted: null,
+  unweightedRatingCount: 0,
+  topBeers: []
+}
+const emptyCommunityStats = {
+  catalogueBeerCount: 1,
+  ratingCount: 0,
+  ratedBeerCount: 0,
+  averageWeighted: null,
+  averageUnweighted: null,
+  unweightedRatingCount: 0,
+  attributes: [],
+  topBeers: []
+}
+const detail = {
+  producer,
+  products: [product],
+  communityStats: emptyCommunityStats,
+  personalStats: emptyPersonalStats
+}
 
 const isSafeCatalogueError = (error) => {
   assert.equal(error instanceof ApiError, true)
@@ -54,8 +77,14 @@ test('validates and freezes verified producer detail', () => {
   assert.equal(Object.isFrozen(result.products[0]), true)
 })
 
-test('accepts a verified producer with no linked products', () => {
-  assert.deepEqual(validateCatalogueProducer({ producer, products: [] }, { expectedProducerId: 20 }), { producer, products: [] })
+test('accepts a verified producer with no linked products and truthful empty statistics', () => {
+  const payload = {
+    producer,
+    products: [],
+    communityStats: { ...emptyCommunityStats, catalogueBeerCount: 0 },
+    personalStats: emptyPersonalStats
+  }
+  assert.deepEqual(validateCatalogueProducer(payload, { expectedProducerId: 20 }), payload)
 })
 
 test('accepts a product attributed to the viewed brewery as a collaborator', () => {
@@ -67,22 +96,72 @@ test('accepts a product attributed to the viewed brewery as a collaborator', () 
     producer: primary,
     producers: [primary, producer]
   }
-  const result = validateCatalogueProducer({ producer, products: [collaborationProduct] }, { expectedProducerId: 20 })
+  const result = validateCatalogueProducer({
+    producer,
+    products: [collaborationProduct],
+    communityStats: emptyCommunityStats,
+    personalStats: emptyPersonalStats
+  }, { expectedProducerId: 20 })
   assert.deepEqual(result.products[0].producers, [primary, producer])
   assert.equal(result.products[0].producer.id, 21)
 })
 
-test('rejects mismatched or fabricated producer relationships', () => {
+test('rejects mismatched, fabricated or inconsistent producer profile aggregates', () => {
   const malformed = [
-    { producer, products: [{ ...product, producer_id: 21, producer: { id: 21, producer_name: 'Other' }, producers: [{ id: 21, producer_name: 'Other' }] }] },
-    { producer, products: [{ ...product, producer: null, producers: [] }] },
-    { producer, products: [{ ...product, producer_id: 20, producer: { id: 21, producer_name: 'Other' } }] },
-    { producer, products: [product, { ...product }] },
-    { producer: { ...producer, website: 'https://invented.example' }, products: [] },
-    { producer, products: [], privateProviderValue: true }
+    { ...detail, products: [{ ...product, producer_id: 21, producer: { id: 21, producer_name: 'Other' }, producers: [{ id: 21, producer_name: 'Other' }] }] },
+    { ...detail, products: [{ ...product, producer: null, producers: [] }] },
+    { ...detail, products: [{ ...product, producer_id: 20, producer: { id: 21, producer_name: 'Other' } }] },
+    { ...detail, products: [product, { ...product }], communityStats: { ...emptyCommunityStats, catalogueBeerCount: 2 } },
+    { ...detail, producer: { ...producer, website: 'https://invented.example' } },
+    { ...detail, privateProviderValue: true },
+    { ...detail, communityStats: { ...emptyCommunityStats, catalogueBeerCount: 2 } },
+    { ...detail, communityStats: { ...emptyCommunityStats, ratingCount: 1, averageWeighted: null } },
+    { ...detail, personalStats: { ...emptyPersonalStats, ratingCount: 1, averageWeighted: 4, ratedBeerCount: 1, topBeers: [{ productId: 4, productName: 'Wrong name', averageWeighted: 4, ratingCount: 1 }] } }
   ]
   for (const payload of malformed) assert.throws(() => validateCatalogueProducer(payload), isSafeCatalogueError)
   assert.throws(() => validateCatalogueProducer(detail, { expectedProducerId: 21 }), isSafeCatalogueError)
+})
+
+test('validates privacy-safe producer aggregates including core attributes and top beers', () => {
+  const payload = {
+    producer,
+    products: [product],
+    communityStats: {
+      catalogueBeerCount: 1,
+      ratingCount: 3,
+      ratedBeerCount: 1,
+      averageWeighted: 4.2,
+      averageUnweighted: 4.1,
+      unweightedRatingCount: 2,
+      attributes: [
+        { attributeId: 3, name: 'Aroma', average: 5.5, count: 2 },
+        { attributeId: 7, name: 'Bonus', average: 1.25, count: 2 }
+      ],
+      topBeers: [{ productId: 4, productName: 'Ace', averageWeighted: 4.2, ratingCount: 3 }]
+    },
+    personalStats: {
+      ratingCount: 1,
+      ratedBeerCount: 1,
+      averageWeighted: 4.5,
+      averageUnweighted: 4.4,
+      unweightedRatingCount: 1,
+      topBeers: [{ productId: 4, productName: 'Ace', averageWeighted: 4.5, ratingCount: 1 }]
+    }
+  }
+
+  const result = validateCatalogueProducer(structuredClone(payload), { expectedProducerId: 20 })
+  assert.deepEqual(result, payload)
+  assert.equal(Object.isFrozen(result.communityStats), true)
+  assert.equal(Object.isFrozen(result.personalStats), true)
+  assert.equal(Object.isFrozen(result.communityStats.attributes), true)
+
+  assert.throws(() => validateCatalogueProducer({
+    ...payload,
+    communityStats: {
+      ...payload.communityStats,
+      attributes: [{ attributeId: 8, name: 'Design', average: 5, count: 1 }]
+    }
+  }), isSafeCatalogueError)
 })
 
 test('normalises only canonical positive producer IDs', () => {
@@ -108,7 +187,7 @@ test('producer service uses the same-origin catalogue route and enforces respons
     assert.deepEqual(requests, ['/api/nocodebackend/catalog/producers/20'])
 
     globalThis.fetch = async () => new Response(JSON.stringify({
-      producer,
+      ...detail,
       products: [{ ...product, producer_id: 21 }]
     }), { status: 200, headers: { 'content-type': 'application/json' } })
     await assert.rejects(producerService.getProducer(20), isSafeCatalogueError)
