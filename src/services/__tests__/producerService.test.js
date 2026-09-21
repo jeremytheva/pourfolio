@@ -117,40 +117,68 @@ test('producer service uses the same-origin catalogue route and enforces respons
   }
 })
 
-test('verified brewery index includes only exact product relationships and counts attributed beers', () => {
-  const otherProducer = { id: 30, producer_name: 'Alpha Brewing', address: 'Main Street', suburb_id: null }
-  const result = __testables.verifiedProducerIndexFromProducts([
-    product,
-    { ...product, id: 5, product_name: 'Bravo' },
-    { ...product, id: 6, product_name: 'Charlie', producer_id: 30, producer: otherProducer, producers: [otherProducer] },
-    { ...product, id: 7, product_name: 'Unattributed', producer_id: null, producer: null, producers: [] }
-  ])
+test('verified brewery page uses the producer discovery route and validates product counts', async () => {
+  const previousWindow = globalThis.window
+  const previousFetch = globalThis.fetch
+  const requests = []
+  globalThis.window = { setTimeout, clearTimeout }
+  globalThis.fetch = async (url) => {
+    requests.push(String(url))
+    return new Response(JSON.stringify({
+      items: [{ producer, productCount: 2 }],
+      page: 1,
+      pageSize: 24,
+      total: 1,
+      totalPages: 1
+    }), { status: 200, headers: { 'content-type': 'application/json' } })
+  }
 
-  assert.deepEqual(result, [
-    { producer: otherProducer, productCount: 1 },
-    { producer, productCount: 2 }
-  ])
-  assert.equal(Object.isFrozen(result), true)
-  assert.equal(Object.isFrozen(result[0]), true)
+  try {
+    assert.deepEqual(await producerService.listVerifiedProducerPage({
+      search: 'Rocky',
+      page: 1,
+      limit: 24
+    }), {
+      items: [{ producer, productCount: 2 }],
+      page: 1,
+      pageSize: 24,
+      total: 1,
+      totalPages: 1
+    })
+    assert.deepEqual(requests, [
+      '/api/nocodebackend/catalog/producers?page=1&limit=24&hasProducts=true&q=Rocky'
+    ])
+  } finally {
+    globalThis.window = previousWindow
+    globalThis.fetch = previousFetch
+  }
 })
 
-test('verified brewery discovery traverses every validated catalogue page', async () => {
+test('verified brewery discovery traverses producer pages rather than product catalogue pages', async () => {
   const previousWindow = globalThis.window
   const previousFetch = globalThis.fetch
   const requests = []
   globalThis.window = { setTimeout, clearTimeout }
 
-  const makeProduct = (id) => ({
-    ...product,
-    id,
-    product_name: `Beer ${id}`
+  const makeRow = (id) => ({
+    producer: {
+      id,
+      producer_name: `Brewery ${String(id).padStart(3, '0')}`,
+      address: '',
+      suburb_id: null
+    },
+    productCount: 1
   })
-  const firstPage = Array.from({ length: __testables.VERIFIED_PRODUCER_PAGE_SIZE }, (_, index) => makeProduct(index + 1))
-  const secondPage = [makeProduct(__testables.VERIFIED_PRODUCER_PAGE_SIZE + 1)]
+  const firstPage = Array.from(
+    { length: __testables.VERIFIED_PRODUCER_PAGE_SIZE },
+    (_, index) => makeRow(index + 1)
+  )
+  const secondPage = [makeRow(__testables.VERIFIED_PRODUCER_PAGE_SIZE + 1)]
 
   globalThis.fetch = async (url) => {
     requests.push(String(url))
-    const page = Number(new URL(String(url), 'https://example.test').searchParams.get('page'))
+    const requestUrl = new URL(String(url), 'https://example.test')
+    const page = Number(requestUrl.searchParams.get('page'))
     const items = page === 1 ? firstPage : secondPage
     return new Response(JSON.stringify({
       items,
@@ -162,13 +190,13 @@ test('verified brewery discovery traverses every validated catalogue page', asyn
   }
 
   try {
-    assert.deepEqual(await producerService.listVerifiedProducers(), [
-      { producer, productCount: __testables.VERIFIED_PRODUCER_PAGE_SIZE + 1 }
-    ])
+    const result = await producerService.listVerifiedProducers()
+    assert.equal(result.length, __testables.VERIFIED_PRODUCER_PAGE_SIZE + 1)
     assert.deepEqual(requests, [
-      `/api/nocodebackend/catalog/products?page=1&limit=${__testables.VERIFIED_PRODUCER_PAGE_SIZE}`,
-      `/api/nocodebackend/catalog/products?page=2&limit=${__testables.VERIFIED_PRODUCER_PAGE_SIZE}`
+      `/api/nocodebackend/catalog/producers?page=1&limit=${__testables.VERIFIED_PRODUCER_PAGE_SIZE}&hasProducts=true`,
+      `/api/nocodebackend/catalog/producers?page=2&limit=${__testables.VERIFIED_PRODUCER_PAGE_SIZE}&hasProducts=true`
     ])
+    assert.equal(requests.some((url) => url.includes('/catalog/products')), false)
   } finally {
     globalThis.window = previousWindow
     globalThis.fetch = previousFetch
