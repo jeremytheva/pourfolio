@@ -284,6 +284,48 @@ const producerAttributionCounts = async (producerIds) => {
   return new Map([...counts.entries()].map(([producerId, productIds]) => [producerId, productIds.size]))
 }
 
+const PRODUCER_RANKING_MIN_RATINGS = 3
+const PRODUCER_RANKING_MIN_RATED_BEERS = 2
+
+const buildProducerRankingRows = async (producers) => {
+  const rows = []
+  for (const producer of producers) {
+    const products = await loadProducerProducts(producer.id)
+    if (!products.length) continue
+    const ratings = await readProducerRatings(products.map((product) => product.id))
+    const totals = averageCompletedTotals(ratings.map((rating) => rating.total_weighted))
+    const ratedBeerCount = new Set(ratings.map((rating) => String(rating.product_id ?? '')).filter((id) => /^[1-9]\d*$/.test(id))).size
+    if (totals.count < PRODUCER_RANKING_MIN_RATINGS || ratedBeerCount < PRODUCER_RANKING_MIN_RATED_BEERS) continue
+    rows.push({
+      producer,
+      averageWeighted: totals.average,
+      ratingCount: totals.count,
+      ratedBeerCount,
+      catalogueBeerCount: products.length
+    })
+  }
+  return rows.sort((left, right) =>
+    right.averageWeighted - left.averageWeighted ||
+    right.ratingCount - left.ratingCount ||
+    right.ratedBeerCount - left.ratedBeerCount ||
+    left.producer.producer_name.localeCompare(right.producer.producer_name) ||
+    Number(left.producer.id) - Number(right.producer.id)
+  )
+}
+
+const listProducerRankings = async (request, response) => {
+  const page = Math.max(1, Number.parseInt(request.query?.page, 10) || 1)
+  const limit = Math.min(100, Math.max(1, Number.parseInt(request.query?.limit, 10) || 24))
+  const producers = (await readAllProviderRows(COLLECTIONS.producers, { orderBy: 'producer_name', order: 'asc' }))
+    .map(projectProducer)
+  const ranked = await buildProducerRankingRows(producers)
+  response.status(200).json({
+    ...paginateProducerRows(ranked, page, limit),
+    minimumRatings: PRODUCER_RANKING_MIN_RATINGS,
+    minimumRatedBeers: PRODUCER_RANKING_MIN_RATED_BEERS
+  })
+}
+
 const paginateProducerRows = (rows, page, limit) => {
   const total = rows.length
   const totalPages = total === 0 ? 0 : Math.ceil(total / limit)
@@ -823,6 +865,7 @@ export const routeCatalogueRequest = async (request, response, user) => {
   if (resource === 'catalog' && id === 'products' && !action && request.method === 'POST') return createProduct(request, response, user)
   if (resource === 'catalog' && id === 'products' && action && request.method === 'GET') return getProduct(action, response)
   if (resource === 'catalog' && id === 'producers' && !action && request.method === 'GET') return listProducers(request, response)
+  if (resource === 'catalog' && id === 'producers' && action === 'rankings' && request.method === 'GET') return listProducerRankings(request, response)
   if (resource === 'catalog' && id === 'producers' && action && request.method === 'GET') return getProducer(action, response, user)
   if (resource === 'rating-form' && !id && request.method === 'GET') return getRatingForm(request, response, user)
   response.status(404).json({ error: 'Application data route not found.' })
@@ -872,6 +915,8 @@ export const __testables = {
   readAllProviderRows,
   producerMatchesSearch,
   producerAttributionCounts,
+  buildProducerRankingRows,
+  listProducerRankings,
   paginateProducerRows,
   getProduct,
   loadProducerProducts,
