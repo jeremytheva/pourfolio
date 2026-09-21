@@ -61,9 +61,14 @@ test('product create verifies an existing producer and writes the session owner'
     }
     return null
   }
-  dataProvider.list = async (collection, filters) => {
-    assert.equal(collection, COLLECTIONS.products)
-    assert.deepEqual(filters, { producer_id: '20' })
+  dataProvider.list = async (collection, filters = {}) => {
+    if (collection === COLLECTIONS.products) {
+      assert.deepEqual(filters, { producer_id: '20' })
+      return []
+    }
+    if (collection === COLLECTIONS.productProducers) return []
+    if (collection === COLLECTIONS.producers && filters['id[in]']) return [producer]
+    if (collection === COLLECTIONS.categories && filters['id[in]']) return [category]
     return []
   }
   dataProvider.create = async (collection, payload) => {

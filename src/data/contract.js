@@ -1,6 +1,7 @@
 export const DEPLOYED_COLLECTIONS = Object.freeze({
   products: 'products',
   producers: 'producers',
+  productProducers: 'product_producers',
   categories: 'categories',
   ratings: 'ratings',
   ratingScores: 'rating_scores',
@@ -21,7 +22,6 @@ export const DEPLOYED_COLLECTIONS = Object.freeze({
 // part of the provider-evidenced launch schema and active launch routes must not
 // depend on them until a governed migration/capability verification promotes them.
 export const DEFERRED_COLLECTIONS = Object.freeze({
-  productProducers: 'product_producers',
   // Legacy v2 collection retained only for backwards compatibility while the
   // contained deduction-board model is developed. New v3 gameplay does not
   // persist natural-language/conversational questions as scored actions.
