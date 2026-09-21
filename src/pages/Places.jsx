@@ -195,6 +195,7 @@ function Places() {
               )}
             </div>
           ) : (
+          <>
           <div className="mt-5">
             <label htmlFor="brewery-search" className="block text-sm font-semibold text-gray-800">Search verified breweries</label>
             <input
