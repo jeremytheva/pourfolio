@@ -51,7 +51,7 @@ test('/home exposes labelled search status and a named product-results region', 
   await expect(page.locator('#catalogue-search-status')).toHaveAttribute('role', 'status')
   await expect(page.locator('#catalogue-search-status')).toHaveAttribute('aria-atomic', 'true')
   await expect(page.getByRole('heading', { name: 'Product results' })).toBeAttached()
-  await expect(page.locator('section[aria-labelledby="search-results-heading"]')).toHaveAttribute('aria-busy', 'false')
+  await expect(page.locator('section[aria-labelledby="product-results-heading"]')).toHaveAttribute('aria-busy', 'false')
   await expect(page.getByText('1 product in catalogue')).toBeVisible()
 })
 
@@ -59,12 +59,19 @@ test('/search announces an empty result without moving keyboard focus from the q
   await installMockApi(page)
   await page.route('**/api/nocodebackend/catalog/products?**', async (route) => {
     const url = new URL(route.request().url())
-    if (url.searchParams.get('q') !== 'no-match') return route.fallback()
+    const pageSize = Number(url.searchParams.get('limit') || 24)
+    const noMatch = url.searchParams.get('q') === 'no-match'
 
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ items: [], page: 1, pageSize: 24, total: 0, totalPages: 0 })
+      body: JSON.stringify({
+        items: noMatch ? [] : [product],
+        page: 1,
+        pageSize,
+        total: noMatch ? 0 : 1,
+        totalPages: noMatch ? 0 : 1
+      })
     })
   })
 
