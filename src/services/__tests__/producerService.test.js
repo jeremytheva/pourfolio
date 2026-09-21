@@ -3,6 +3,7 @@ import test from 'node:test'
 
 import { ApiError } from '../../lib/nocodeBackend.js'
 import { validateCatalogueProducer, CATALOGUE_RESPONSE_ERROR } from '../catalogueResponse.js'
+import { PRODUCER_PAGE_RESPONSE_ERROR } from '../producerPageResponse.js'
 import {
   producerService,
   normaliseCatalogueProducerId,
@@ -197,6 +198,35 @@ test('verified brewery discovery traverses producer pages rather than product ca
       `/api/nocodebackend/catalog/producers?page=2&limit=${__testables.VERIFIED_PRODUCER_PAGE_SIZE}&hasProducts=true`
     ])
     assert.equal(requests.some((url) => url.includes('/catalog/products')), false)
+  } finally {
+    globalThis.window = previousWindow
+    globalThis.fetch = previousFetch
+  }
+})
+
+
+test('verified brewery page rejects malformed server product counts', async () => {
+  const previousWindow = globalThis.window
+  const previousFetch = globalThis.fetch
+  globalThis.window = { setTimeout, clearTimeout }
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    items: [{ producer, productCount: 0 }],
+    page: 1,
+    pageSize: 24,
+    total: 1,
+    totalPages: 1
+  }), { status: 200, headers: { 'content-type': 'application/json' } })
+
+  try {
+    await assert.rejects(
+      producerService.listVerifiedProducerPage({ page: 1, limit: 24 }),
+      (error) => {
+        assert.equal(error instanceof ApiError, true)
+        assert.equal(error.code, PRODUCER_PAGE_RESPONSE_ERROR.code)
+        assert.equal(error.message, PRODUCER_PAGE_RESPONSE_ERROR.message)
+        return true
+      }
+    )
   } finally {
     globalThis.window = previousWindow
     globalThis.fetch = previousFetch
