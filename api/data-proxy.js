@@ -1172,6 +1172,7 @@ export const __testables = {
   routeRequest,
   findProfile,
   getProduct,
+  productRatingSummary,
   getProfile,
   updateProfile,
   updateCellar,
