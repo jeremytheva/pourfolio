@@ -132,7 +132,32 @@ export const installMockApi = async (page) => {
     contentType: 'application/json',
     body: JSON.stringify({
       producer: { id: 20, producer_name: 'Rocky Ridge Brewing', address: '', suburb_id: 9567 },
-      products: [product]
+      products: [product],
+      communityStats: {
+        catalogueBeerCount: 1,
+        ratingCount: 3,
+        ratedBeerCount: 1,
+        averageWeighted: 4.2,
+        averageUnweighted: 4.1,
+        unweightedRatingCount: 2,
+        attributes: [
+          { attributeId: 2, name: 'Appearance', average: 5.2, count: 3 },
+          { attributeId: 3, name: 'Aroma', average: 5.5, count: 3 },
+          { attributeId: 4, name: 'Mouthfeel', average: 5.4, count: 3 },
+          { attributeId: 5, name: 'Flavour', average: 5.8, count: 3 },
+          { attributeId: 6, name: 'Follow', average: 5.3, count: 3 },
+          { attributeId: 7, name: 'Bonus', average: 1.2, count: 3 }
+        ],
+        topBeers: [{ productId: 4, productName: 'Ace', averageWeighted: 4.2, ratingCount: 3 }]
+      },
+      personalStats: {
+        ratingCount: 1,
+        ratedBeerCount: 1,
+        averageWeighted: 4.5,
+        averageUnweighted: 4.4,
+        unweightedRatingCount: 1,
+        topBeers: [{ productId: 4, productName: 'Ace', averageWeighted: 4.5, ratingCount: 1 }]
+      }
     })
   }))
 
