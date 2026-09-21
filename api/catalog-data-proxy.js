@@ -211,19 +211,135 @@ const listProducts = async (request, response) => {
   })
 }
 
+const readAllProviderRows = async (collection, { filters = {}, orderBy = 'id', order = 'asc', limit = 100 } = {}) => {
+  const rows = []
+  let page = 1
+  while (true) {
+    const providerPage = await dataProvider.listPage(collection, { page, limit, orderBy, order, filters })
+    rows.push(...normaliseList(providerPage.items))
+    if (page >= providerPage.totalPages) break
+    page += 1
+  }
+  return rows
+}
+
+const chunk = (values, size = 75) => {
+  const groups = []
+  for (let index = 0; index < values.length; index += size) groups.push(values.slice(index, index + size))
+  return groups
+}
+
+const producerMatchesSearch = (producer, search) => {
+  if (!search) return true
+  const needle = normaliseName(search)
+  return [producer?.producer_name, producer?.address]
+    .filter((value) => typeof value === 'string' && value.trim())
+    .some((value) => normaliseName(value).includes(needle))
+}
+
+const producerAttributionCounts = async (producerIds) => {
+  const ids = [...new Set(producerIds.map(String).filter((id) => /^[1-9]\d*$/.test(id)))]
+  const counts = new Map(ids.map((id) => [id, new Set()]))
+  if (!ids.length) return new Map()
+
+  for (const producerChunk of chunk(ids)) {
+    const producerFilter = { 'producer_id[in]': producerChunk.join(',') }
+    const [canonicalRows, legacyProducts] = await Promise.all([
+      readAllProviderRows(COLLECTIONS.productProducers, { filters: producerFilter }),
+      readAllProviderRows(COLLECTIONS.products, { filters: producerFilter })
+    ])
+
+    const canonicalProductIds = new Set()
+    for (const relationship of canonicalRows) {
+      const producerId = String(relationship.producer_id ?? '')
+      const productId = String(relationship.product_id ?? '')
+      if (!counts.has(producerId) || !/^[1-9]\d*$/.test(productId)) continue
+      counts.get(producerId).add(productId)
+      canonicalProductIds.add(productId)
+    }
+
+    const legacyProductIds = legacyProducts
+      .map((product) => String(product.id ?? ''))
+      .filter((id) => /^[1-9]\d*$/.test(id))
+    const relationshipProductIds = new Set()
+    for (const productChunk of chunk(legacyProductIds)) {
+      const rows = await readAllProviderRows(COLLECTIONS.productProducers, {
+        filters: { 'product_id[in]': productChunk.join(',') }
+      })
+      rows.forEach((relationship) => {
+        const productId = String(relationship.product_id ?? '')
+        if (/^[1-9]\d*$/.test(productId)) relationshipProductIds.add(productId)
+      })
+    }
+
+    for (const product of legacyProducts) {
+      const productId = String(product.id ?? '')
+      const producerId = String(product.producer_id ?? '')
+      if (!counts.has(producerId) || !/^[1-9]\d*$/.test(productId)) continue
+      if (canonicalProductIds.has(productId) || relationshipProductIds.has(productId)) continue
+      counts.get(producerId).add(productId)
+    }
+  }
+
+  return new Map([...counts.entries()].map(([producerId, productIds]) => [producerId, productIds.size]))
+}
+
+const paginateProducerRows = (rows, page, limit) => {
+  const total = rows.length
+  const totalPages = total === 0 ? 0 : Math.ceil(total / limit)
+  if (page > Math.max(1, totalPages)) {
+    const error = new Error('Producer page is out of range.')
+    error.status = 400
+    throw error
+  }
+  const start = (page - 1) * limit
+  return {
+    items: rows.slice(start, start + limit),
+    page,
+    pageSize: limit,
+    total,
+    totalPages
+  }
+}
+
 const listProducers = async (request, response) => {
+  const search = parseCatalogueSearch(request.query?.q)
   const page = Math.max(1, Number.parseInt(request.query?.page, 10) || 1)
   const limit = Math.min(100, Math.max(1, Number.parseInt(request.query?.limit, 10) || 50))
-  const providerPage = await dataProvider.listPage(COLLECTIONS.producers, {
-    page, limit, orderBy: 'producer_name', order: 'asc'
-  })
-  response.status(200).json({
-    items: normaliseList(providerPage.items).map(projectProducer),
-    page: providerPage.page,
-    pageSize: providerPage.pageSize,
-    total: providerPage.total,
-    totalPages: providerPage.totalPages
-  })
+  const hasProducts = ['1', 'true'].includes(String(request.query?.hasProducts ?? '').trim().toLocaleLowerCase())
+
+  if (!search && !hasProducts) {
+    const providerPage = await dataProvider.listPage(COLLECTIONS.producers, {
+      page, limit, orderBy: 'producer_name', order: 'asc'
+    })
+    response.status(200).json({
+      items: normaliseList(providerPage.items).map(projectProducer),
+      page: providerPage.page,
+      pageSize: providerPage.pageSize,
+      total: providerPage.total,
+      totalPages: providerPage.totalPages
+    })
+    return
+  }
+
+  const producers = (await readAllProviderRows(COLLECTIONS.producers, {
+    orderBy: 'producer_name',
+    order: 'asc'
+  }))
+    .map(projectProducer)
+    .filter((producer) => producerMatchesSearch(producer, search))
+    .sort((left, right) => left.producer_name.localeCompare(right.producer_name) || Number(left.id) - Number(right.id))
+
+  if (!hasProducts) {
+    response.status(200).json(paginateProducerRows(producers, page, limit))
+    return
+  }
+
+  const counts = await producerAttributionCounts(producers.map((producer) => producer.id))
+  const verified = producers
+    .map((producer) => ({ producer, productCount: counts.get(String(producer.id)) || 0 }))
+    .filter(({ productCount }) => productCount > 0)
+  response.status(200).json(paginateProducerRows(verified, page, limit))
 }
 
 const getProduct = async (id, response) => {
@@ -539,6 +655,10 @@ export const __testables = {
   isCompletedRating,
   buildRatingInsights,
   listProducers,
+  readAllProviderRows,
+  producerMatchesSearch,
+  producerAttributionCounts,
+  paginateProducerRows,
   getProduct,
   getProducer,
   getRatingForm,
