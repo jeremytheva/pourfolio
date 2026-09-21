@@ -153,10 +153,11 @@ const main = async () => {
       .map((rating) => completedRatingTotal(rating.total_weighted))
       .filter((value) => value !== null)
 
-    const response = responseHarness()
-    await readStage('product_aggregate_projection', () => catalogue.getProduct(productId, response))
-    assert.equal(response.statusCode, 200, 'product aggregate projection must succeed')
-    assert.deepEqual(response.body?.ratingSummary, {
+    const actualSummary = await readStage(
+      'product_aggregate_projection',
+      () => catalogue.productRatingSummary(productId)
+    )
+    assert.deepEqual(actualSummary, {
       count: expectedTotals.length,
       average: roundedAverage(expectedTotals)
     }, 'product community aggregate must equal the complete 0-5 rating population')
