@@ -91,6 +91,7 @@ const stablePlan = (items) => (items || []).map((item) => ({
   currentState: item.currentState ?? null,
   legacyCandidate: Boolean(item.legacyCandidate),
   structurallyValid: Boolean(item.structurallyValid),
+  validTotal: Boolean(item.validTotal),
   scoreCount: Number(item.scoreCount),
   bonusCount: Number(item.bonusCount),
   proposed: item.proposed || null
