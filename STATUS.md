@@ -81,6 +81,24 @@ Exact implementation head `b3cc45d3c1c3e710873cff68bb5857a25434926d` passed cano
 
 Lifecycle: **READY / MERGEABLE**, subject to the final docs-only head revalidation after recording this evidence.
 
+## Server-authoritative brewery discovery — #512
+
+Issue **#512 — Add scalable server-side brewery discovery and search** is active Phase 3 hardening after PR **#498** established the authoritative multi-producer relationship contract.
+
+Branch `feature/server-brewery-discovery` currently:
+- replaces browser-side full-product-catalogue traversal for brewery discovery with `GET /api/nocodebackend/catalog/producers?...&hasProducts=true`;
+- derives attributed beer counts on the server from authoritative `product_producers` rows plus legacy `products.producer_id` only where a product has no junction rows;
+- includes collaboration attribution without double-counting and excludes unresolved/fabricated relationships;
+- supports server-side brewery name and verified-address search, deterministic ordering and paginated results;
+- validates producer discovery pages strictly before render, including positive server-derived product counts;
+- updates both global search and `/places` to consume the same producer-discovery authority;
+- adds debounced brewery search, pagination, retry/error handling and focus restoration in `/places`;
+- removes the temporary browser-side brewery directory cache while retaining the separate short-lived style directory cache.
+
+No provider schema/data mutation is introduced by #512. The implementation consumes the relationship contract already merged in PR #498.
+
+Lifecycle: **VALIDATING**. Canonical repository, browser/accessibility, security and deployment evidence remain to be confirmed on the exact PR head.
+
 ## Production provider certification completed — #225, #381 and #382
 
 Issue **#225** is **COMPLETE**. Production can read the generated NoCodeBackend data API through the server-only application gateway and the provider credential remains outside repository/browser output.
