@@ -367,7 +367,179 @@ const getProduct = async (id, response) => {
   })
 }
 
-const getProducer = async (id, response) => {
+const loadProducerProducts = async (producerId) => {
+  const [relationships, legacyProducts] = await Promise.all([
+    readAllProviderRows(COLLECTIONS.productProducers, { filters: { producer_id: producerId } }),
+    readAllProviderRows(COLLECTIONS.products, {
+      filters: { producer_id: producerId },
+      orderBy: 'product_name',
+      order: 'asc'
+    })
+  ])
+
+  const relationshipProductIds = [...new Set(relationships
+    .map((relationship) => String(relationship.product_id ?? ''))
+    .filter((productId) => /^[1-9]\d*$/.test(productId)))]
+
+  const relationshipProducts = []
+  for (const productIds of chunk(relationshipProductIds)) {
+    relationshipProducts.push(...await readAllProviderRows(COLLECTIONS.products, {
+      filters: { 'id[in]': productIds.join(',') },
+      orderBy: 'product_name',
+      order: 'asc'
+    }))
+  }
+
+  const combined = new Map()
+  for (const product of [...legacyProducts, ...relationshipProducts]) {
+    const productId = String(product?.id ?? '')
+    if (/^[1-9]\d*$/.test(productId)) combined.set(productId, product)
+  }
+
+  const hydrated = await hydrateProducts([...combined.values()])
+  return hydrated
+    .filter((product) => product.producers.some((item) => String(item.id) === String(producerId)))
+    .sort((left, right) => left.product_name.localeCompare(right.product_name) || Number(left.id) - Number(right.id))
+}
+
+const readProducerRatings = async (productIds) => {
+  const ratingsById = new Map()
+  for (const productChunk of chunk(productIds)) {
+    const rows = await readAllProviderRows(COLLECTIONS.ratings, {
+      filters: {
+        'product_id[in]': productChunk.join(','),
+        submission_state: 'complete'
+      }
+    })
+    for (const rating of rows) {
+      const ratingId = String(rating?.id ?? '')
+      if (!/^[1-9]\d*$/.test(ratingId) || !isCompletedRating(rating)) continue
+      ratingsById.set(ratingId, rating)
+    }
+  }
+  return [...ratingsById.values()]
+}
+
+const averageCompletedTotals = (values) => {
+  const totals = values.map(completedRatingTotal).filter((value) => value !== null)
+  return {
+    count: totals.length,
+    average: totals.length
+      ? Number((totals.reduce((sum, value) => sum + value, 0) / totals.length).toFixed(2))
+      : null
+  }
+}
+
+const topRatedProducerProducts = (ratings, products, limit = 3) => {
+  const productsById = new Map(products.map((product) => [String(product.id), product]))
+  const aggregates = new Map()
+
+  for (const rating of ratings) {
+    const productId = String(rating.product_id ?? '')
+    const product = productsById.get(productId)
+    const weighted = completedRatingTotal(rating.total_weighted)
+    if (!product || weighted === null) continue
+    const current = aggregates.get(productId) || { sum: 0, count: 0, product }
+    current.sum += weighted
+    current.count += 1
+    aggregates.set(productId, current)
+  }
+
+  return [...aggregates.entries()]
+    .map(([productId, aggregate]) => ({
+      productId,
+      productName: aggregate.product.product_name,
+      averageWeighted: Number((aggregate.sum / aggregate.count).toFixed(2)),
+      ratingCount: aggregate.count
+    }))
+    .sort((left, right) =>
+      right.averageWeighted - left.averageWeighted ||
+      right.ratingCount - left.ratingCount ||
+      left.productName.localeCompare(right.productName) ||
+      Number(left.productId) - Number(right.productId))
+    .slice(0, limit)
+}
+
+const buildCoreAttributeStats = async (ratings) => {
+  const ratingIds = ratings
+    .map((rating) => String(rating.id ?? ''))
+    .filter((id) => /^[1-9]\d*$/.test(id))
+  if (!ratingIds.length) return []
+
+  const [attributes, scoreRows] = await Promise.all([
+    safeRelationshipList(COLLECTIONS.ratingAttributes),
+    Promise.all(chunk(ratingIds).map((ratingChunk) =>
+      readAllProviderRows(COLLECTIONS.ratingScores, {
+        filters: { 'rating_id[in]': ratingChunk.join(',') }
+      })))
+      .then((groups) => groups.flat())
+  ])
+
+  const attributesById = new Map(attributes
+    .map((attribute) => [String(attribute.id ?? ''), attribute])
+    .filter(([id, attribute]) => /^[1-9]\d*$/.test(id) && ratingDimension(attribute.attribute_name)?.scored === true))
+
+  const acceptedRatingIds = new Set(ratingIds)
+  const scoreByRatingAttribute = new Map()
+  for (const score of scoreRows) {
+    const ratingId = String(score.rating_id ?? '')
+    const attributeId = String(score.attribute_id ?? '')
+    const attribute = attributesById.get(attributeId)
+    const dimension = ratingDimension(attribute?.attribute_name)
+    const value = Number(score.attribute_score)
+    const min = dimension?.min ?? 1
+    if (!acceptedRatingIds.has(ratingId) || !dimension?.scored ||
+        !Number.isFinite(value) || value < min || value > dimension.max) continue
+
+    const key = `${ratingId}:${attributeId}`
+    const existing = scoreByRatingAttribute.get(key)
+    if (!existing || Number(score.id || 0) > Number(existing.id || 0)) scoreByRatingAttribute.set(key, score)
+  }
+
+  const aggregates = new Map()
+  for (const score of scoreByRatingAttribute.values()) {
+    const attributeId = String(score.attribute_id)
+    const current = aggregates.get(attributeId) || { sum: 0, count: 0 }
+    current.sum += Number(score.attribute_score)
+    current.count += 1
+    aggregates.set(attributeId, current)
+  }
+
+  return [...aggregates.entries()]
+    .map(([attributeId, aggregate]) => ({
+      attributeId,
+      name: String(attributesById.get(attributeId).attribute_name).trim(),
+      average: Number((aggregate.sum / aggregate.count).toFixed(2)),
+      count: aggregate.count
+    }))
+    .sort((left, right) => {
+      const leftDimension = ratingDimension(left.name)
+      const rightDimension = ratingDimension(right.name)
+      const order = ['appearance', 'aroma', 'mouthfeel', 'flavour', 'follow', 'bonus']
+      return order.indexOf(leftDimension.key) - order.indexOf(rightDimension.key)
+    })
+}
+
+const buildProducerRatingStats = async ({ ratings, products, includeAttributes = false, includeCatalogueCount = false }) => {
+  const productIds = new Set(products.map((product) => String(product.id)))
+  const accepted = ratings.filter((rating) =>
+    productIds.has(String(rating.product_id ?? '')) && isCompletedRating(rating))
+  const weighted = averageCompletedTotals(accepted.map((rating) => rating.total_weighted))
+  const unweighted = averageCompletedTotals(accepted.map((rating) => rating.total_unweighted))
+  const result = {
+    ratingCount: weighted.count,
+    ratedBeerCount: new Set(accepted.map((rating) => String(rating.product_id))).size,
+    averageWeighted: weighted.average,
+    averageUnweighted: unweighted.average,
+    unweightedRatingCount: unweighted.count,
+    topBeers: topRatedProducerProducts(accepted, products)
+  }
+  if (includeCatalogueCount) result.catalogueBeerCount = products.length
+  if (includeAttributes) result.attributes = await buildCoreAttributeStats(accepted)
+  return result
+}
+
+const getProducer = async (id, response, user) => {
   const producerId = parsePositiveId(id, 'Producer identifier')
   const producer = await dataProvider.get(COLLECTIONS.producers, producerId)
   if (!producer) {
@@ -375,25 +547,29 @@ const getProducer = async (id, response) => {
     return
   }
 
-  const [relationships, legacyProducts] = await Promise.all([
-    requiredRelationshipList(COLLECTIONS.productProducers, { producer_id: producerId }),
-    safeRelationshipList(COLLECTIONS.products, { producer_id: producerId })
+  const products = await loadProducerProducts(producerId)
+  const productIds = products.map((product) => String(product.id))
+  const communityRatings = productIds.length ? await readProducerRatings(productIds) : []
+  const personalRatings = communityRatings.filter((rating) => String(rating.user_id ?? '') === String(user.id))
+
+  const [communityStats, personalStats] = await Promise.all([
+    buildProducerRatingStats({
+      ratings: communityRatings,
+      products,
+      includeAttributes: true,
+      includeCatalogueCount: true
+    }),
+    buildProducerRatingStats({
+      ratings: personalRatings,
+      products
+    })
   ])
-  const relationshipProductIds = [...new Set(relationships
-    .map((relationship) => String(relationship.product_id ?? ''))
-    .filter((productId) => /^[1-9]\d*$/.test(productId)))]
-  const relationshipProducts = relationshipProductIds.length
-    ? await safeRelationshipList(COLLECTIONS.products, { 'id[in]': relationshipProductIds.join(',') })
-    : []
-  const combined = new Map()
-  for (const product of [...legacyProducts, ...relationshipProducts]) {
-    if (product?.id !== undefined) combined.set(String(product.id), product)
-  }
-  const products = await hydrateProducts([...combined.values()])
 
   response.status(200).json({
     producer: projectProducer(producer),
-    products: products.filter((product) => product.producers.some((item) => String(item.id) === producerId))
+    products,
+    communityStats,
+    personalStats
   })
 }
 
@@ -609,7 +785,7 @@ export const routeCatalogueRequest = async (request, response, user) => {
   if (resource === 'catalog' && id === 'products' && !action && request.method === 'POST') return createProduct(request, response, user)
   if (resource === 'catalog' && id === 'products' && action && request.method === 'GET') return getProduct(action, response)
   if (resource === 'catalog' && id === 'producers' && !action && request.method === 'GET') return listProducers(request, response)
-  if (resource === 'catalog' && id === 'producers' && action && request.method === 'GET') return getProducer(action, response)
+  if (resource === 'catalog' && id === 'producers' && action && request.method === 'GET') return getProducer(action, response, user)
   if (resource === 'rating-form' && !id && request.method === 'GET') return getRatingForm(request, response, user)
   response.status(404).json({ error: 'Application data route not found.' })
 }
@@ -660,6 +836,12 @@ export const __testables = {
   producerAttributionCounts,
   paginateProducerRows,
   getProduct,
+  loadProducerProducts,
+  readProducerRatings,
+  averageCompletedTotals,
+  topRatedProducerProducts,
+  buildCoreAttributeStats,
+  buildProducerRatingStats,
   getProducer,
   getRatingForm,
   resolveProducerForCreate,
