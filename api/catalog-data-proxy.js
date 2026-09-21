@@ -588,21 +588,26 @@ const getProducer = async (id, response, user) => {
     products,
     communityStats,
     personalStats,
-    productStats: products.map((product) => {
-      const community = buildProducerProductStats(communityRatings, [product])[0]
-      const personal = buildProducerProductStats(personalRatings, [product])[0]
-      return {
-        productId: String(product.id),
-        community: {
-          ratingCount: community.ratingCount,
-          averageWeighted: community.averageWeighted
-        },
-        personal: {
-          ratingCount: personal.ratingCount,
-          averageWeighted: personal.averageWeighted
+    productStats: (() => {
+      const communityByProduct = new Map(buildProducerProductStats(communityRatings, products).map((item) => [item.productId, item]))
+      const personalByProduct = new Map(buildProducerProductStats(personalRatings, products).map((item) => [item.productId, item]))
+      return products.map((product) => {
+        const productId = String(product.id)
+        const community = communityByProduct.get(productId)
+        const personal = personalByProduct.get(productId)
+        return {
+          productId,
+          community: {
+            ratingCount: community.ratingCount,
+            averageWeighted: community.averageWeighted
+          },
+          personal: {
+            ratingCount: personal.ratingCount,
+            averageWeighted: personal.averageWeighted
+          }
         }
-      }
-    })
+      })
+    })()
   })
 }
 
