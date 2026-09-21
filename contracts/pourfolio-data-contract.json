@@ -1,6 +1,6 @@
 {
   "contract_name": "pourfolio-data-contract",
-  "contract_version": "1.1.0",
+  "contract_version": "1.2.0",
   "authority": {
     "repository": "jeremytheva/pourfolio",
     "classification_document": "docs/nocodebackend/launch-schema-contract.md",
@@ -12,7 +12,7 @@
   },
   "evidence": {
     "provider_instance": "54026_rating",
-    "basis": "repository-supplied provider export plus governed owner-provisioned Brew Done It v3 table contract; connected Brew table smoke remains pending",
+    "basis": "repository-supplied provider export plus governed owner-confirmed product_producers deployment and owner-provisioned Brew Done It v3 table contract; connected provider smoke remains pending",
     "live_introspection": false
   },
   "provider": {
@@ -65,6 +65,10 @@
       "relationships": {
         "product_category_id": "categories.id",
         "producer_id": "producers.id"
+      },
+      "semantic_notes": {
+        "producer_id": "Transitional compatibility mirror of the primary product_producers relationship. New catalogue reads prefer product_producers and fall back to this field only when no relationship rows exist.",
+        "collaboration": "Transitional compatibility field. New catalogue writes derive collaboration state from the number of product_producers relationships."
       }
     },
     "producers": {
@@ -76,6 +80,32 @@
         "address",
         "suburb_id"
       ]
+    },
+    "product_producers": {
+      "classification": "DEPLOYED_REQUIRED",
+      "provider_fields": [
+        "id",
+        "product_id",
+        "producer_id",
+        "is_primary",
+        "sort_order"
+      ],
+      "required_fields": [
+        "id",
+        "product_id",
+        "producer_id",
+        "is_primary",
+        "sort_order"
+      ],
+      "relationships": {
+        "product_id": "products.id",
+        "producer_id": "producers.id"
+      },
+      "semantic_notes": {
+        "authority": "Authoritative product-to-producer relationship collection for both single-producer and collaborative products.",
+        "is_primary": "Exactly one relationship should be primary for a product under the application write contract.",
+        "sort_order": "Stable producer display order; primary producer is written at sort_order 1."
+      }
     },
     "categories": {
       "classification": "DEPLOYED_REQUIRED",
@@ -276,10 +306,6 @@
         "round_id": "brew_done_it_rounds.id"
       }
     },
-    "product_producers": {
-      "classification": "UNAVAILABLE",
-      "provider_fields": []
-    },
     "profiles": {
       "classification": "UNAVAILABLE",
       "provider_fields": []
@@ -372,7 +398,7 @@
         "product_producers": {
           "operations": [],
           "writable_fields": [],
-          "reason": "Launch producer attribution remains products.producer_id until a governed migration is deployed and certified."
+          "reason": "The relationship collection is deployed for Pourfolio application-governed catalogue writes. Feeder writes remain denied pending a separately certified ingestion contract."
         }
       }
     }
