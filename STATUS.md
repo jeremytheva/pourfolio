@@ -97,7 +97,9 @@ Branch `feature/server-brewery-discovery` currently:
 
 No provider schema/data mutation is introduced by #512. The implementation consumes the relationship contract already merged in PR #498.
 
-Lifecycle: **VALIDATING**. Canonical repository, browser/accessibility, security and deployment evidence remain to be confirmed on the exact PR head.
+Exact implementation head `ed8698dae5777bd7a564acccca5e4679d67d4d8d` passed canonical `npm run platform:validate`, all **113** browser/accessibility tests, Dependency Review and CodeQL. Vercel deployment reported success, the branch was zero commits behind `main`, PR #513 was mergeable and there were zero unresolved review threads at the readiness audit.
+
+Lifecycle: **READY / MERGEABLE**, subject to final docs-only head revalidation after recording this evidence.
 
 ## Production provider certification completed — #225, #381 and #382
 
