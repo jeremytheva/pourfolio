@@ -314,6 +314,20 @@ Exact implementation head `8dc8c0dd54fa896f8dd695ccf9c46c216503fc92` passed cano
 
 Live provider mapping reconciliation has **not** been run by this source change. Provider data mutation still requires an immediately preceding dry-run, exact expected mutation count, explicit confirmation and post-write verification.
 
+## Targeted unreachable prototype cleanup — #518
+
+Issue **#518** continues the evidence-based cleanup tracked by #429.
+
+This slice removes seven page entry modules that are absent from the active `src/App.jsx` route graph:
+- legacy mock Chat and Drinking Buddies pages;
+- localStorage/sample-data Events and Event Details pages;
+- fabricated/localStorage Venues and Venue Management pages;
+- the hard-coded multi-beverage Style Guide page superseded by the canonical beer-only style surfaces.
+
+The deletion does not add routes, alter provider schema/data, change the #399 venue boundary, remove contained Brew Done It work or implement future social/event/business capabilities.
+
+Lifecycle: **VALIDATING**. Canonical repository, browser/accessibility, security and deployment evidence remain to be confirmed on the exact PR head.
+
 ## Next dependency-correct work
 
 1. Progress #165 only up to the provider/irreversible migration boundary; evidence the required schema/constraint semantics, safe backfill and backup/restore mechanism without mutating provider data.
