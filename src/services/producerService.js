@@ -1,5 +1,5 @@
 import { ApiError, apiRequest } from '../lib/nocodeBackend.js'
-import { validateCataloguePage, validateCatalogueProducer } from './catalogueResponse.js'
+import { validateCatalogueProducer } from './catalogueResponse.js'
 import { validateCatalogueProducerPage } from './producerPageResponse.js'
 
 const INVALID_PRODUCER_ID_MESSAGE = 'Producer identifier is invalid.'
@@ -14,25 +14,6 @@ export const normaliseCatalogueProducerId = (value) => {
     throw new ApiError(INVALID_PRODUCER_ID_MESSAGE, { status: 400, code: INVALID_PRODUCER_ID_CODE })
   }
   return identifier
-}
-
-const verifiedProducerIndexFromProducts = (products) => {
-  const producers = new Map()
-  for (const product of products) {
-    if (!product.producer || product.producer_id === null || product.producer_id === undefined) continue
-    if (String(product.producer.id) !== String(product.producer_id)) continue
-    const key = String(product.producer.id)
-    const current = producers.get(key)
-    if (current) {
-      producers.set(key, Object.freeze({ ...current, productCount: current.productCount + 1 }))
-      continue
-    }
-    producers.set(key, Object.freeze({ producer: product.producer, productCount: 1 }))
-  }
-  return Object.freeze([...producers.values()].sort((left, right) => {
-    const byName = left.producer.producer_name.localeCompare(right.producer.producer_name)
-    return byName || Number(left.producer.id) - Number(right.producer.id)
-  }))
 }
 
 const canonicalProducerRows = (producers) => Object.freeze(producers
@@ -65,19 +46,33 @@ export const producerService = {
     return canonicalProducerRows(producers)
   },
 
-  async listVerifiedProducers() {
-    const products = []
+  async listVerifiedProducerPage({ search = '', page = 1, limit = VERIFIED_PRODUCER_PAGE_SIZE } = {}) {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+      hasProducts: 'true'
+    })
+    if (String(search).trim()) params.set('q', String(search).trim())
+    return validateCatalogueProducerPage(
+      await apiRequest(`/catalog/producers?${params}`),
+      { expectedPage: page, expectedPageSize: limit, includeProductCount: true }
+    )
+  },
+
+  async listVerifiedProducers({ search = '' } = {}) {
+    const producers = []
     let page = 1
     while (true) {
-      const catalogue = validateCataloguePage(
-        await apiRequest(`/catalog/products?page=${page}&limit=${VERIFIED_PRODUCER_PAGE_SIZE}`),
-        { expectedPage: page, expectedPageSize: VERIFIED_PRODUCER_PAGE_SIZE }
-      )
-      products.push(...catalogue.items)
+      const catalogue = await producerService.listVerifiedProducerPage({
+        search,
+        page,
+        limit: VERIFIED_PRODUCER_PAGE_SIZE
+      })
+      producers.push(...catalogue.items)
       if (page >= catalogue.totalPages) break
       page += 1
     }
-    return verifiedProducerIndexFromProducts(products)
+    return Object.freeze(producers)
   }
 }
 
@@ -87,7 +82,6 @@ export const CATALOGUE_PRODUCER_ID_ERROR = Object.freeze({
 })
 
 export const __testables = {
-  verifiedProducerIndexFromProducts,
   canonicalProducerRows,
   VERIFIED_PRODUCER_PAGE_SIZE
 }
