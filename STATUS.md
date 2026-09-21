@@ -96,7 +96,9 @@ Branch `feature/brewery-beer-browsing` currently:
 
 No provider schema/data mutation is introduced by #516.
 
-Lifecycle: **VALIDATING**. Canonical repository, browser/accessibility, security and deployment evidence remain to be confirmed on the exact PR head.
+Exact implementation head `f996bf99bda50fee4991944bc3dcf54f81b8cf11` passed canonical `npm run platform:validate`, all **117** browser/accessibility tests, Dependency Review and CodeQL. Vercel deployment reported success, the branch was zero commits behind `main`, PR #517 was mergeable and there were zero unresolved review threads. The separate PR-lifecycle label synchroniser received GitHub `403 Resource not accessible by integration`; this is repository automation permission evidence rather than an implementation acceptance failure.
+
+Lifecycle: **READY / MERGEABLE**, subject to final docs-only head revalidation after recording this evidence.
 
 ## Brewery profile statistics — #514
 
