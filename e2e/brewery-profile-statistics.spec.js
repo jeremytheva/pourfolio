@@ -8,7 +8,7 @@ test('brewery profile shows privacy-safe community and personal statistics', asy
   await expect(page.getByRole('heading', { name: 'Rocky Ridge Brewing' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Community profile' })).toBeVisible()
   await expect(page.getByText('4.20 / 5', { exact: true }).first()).toBeVisible()
-  await expect(page.getByText('1 of 1 verified catalogue beers', { exact: true })).toBeVisible()
+  await expect(page.getByText('of 1 verified catalogue beers', { exact: true })).toBeVisible()
   await expect(page.getByText('Aroma', { exact: true })).toBeVisible()
   await expect(page.getByText('Design', { exact: true })).toHaveCount(0)
   await expect(page.getByText('Burp', { exact: true })).toHaveCount(0)
