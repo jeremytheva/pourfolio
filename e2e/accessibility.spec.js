@@ -46,40 +46,47 @@ test('/home exposes labelled search status and a named product-results region', 
   await installMockApi(page)
   await page.goto('/home')
 
-  const search = page.getByRole('searchbox', { name: 'Search products, producers or styles' })
-  await expect(search).toHaveAttribute('aria-describedby', 'product-search-status')
-  await expect(page.locator('#product-search-status')).toHaveAttribute('role', 'status')
-  await expect(page.locator('#product-search-status')).toHaveAttribute('aria-atomic', 'true')
+  const search = page.getByRole('searchbox', { name: 'Search beers, breweries or styles' })
+  await expect(search).toHaveAttribute('aria-describedby', 'catalogue-search-status')
+  await expect(page.locator('#catalogue-search-status')).toHaveAttribute('role', 'status')
+  await expect(page.locator('#catalogue-search-status')).toHaveAttribute('aria-atomic', 'true')
   await expect(page.getByRole('heading', { name: 'Product results' })).toBeAttached()
   await expect(page.locator('section[aria-labelledby="product-results-heading"]')).toHaveAttribute('aria-busy', 'false')
-  await expect(page.getByText('1 product found')).toBeVisible()
+  await expect(page.getByText('1 product in catalogue')).toBeVisible()
 })
 
 test('/search announces an empty result without moving keyboard focus from the query', async ({ page }) => {
   await installMockApi(page)
   await page.route('**/api/nocodebackend/catalog/products?**', async (route) => {
     const url = new URL(route.request().url())
-    if (url.searchParams.get('q') !== 'no-match') return route.fallback()
+    const pageSize = Number(url.searchParams.get('limit') || 24)
+    const noMatch = url.searchParams.get('q') === 'no-match'
 
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ items: [], page: 1, pageSize: 24, total: 0, totalPages: 0 })
+      body: JSON.stringify({
+        items: noMatch ? [] : [product],
+        page: 1,
+        pageSize,
+        total: noMatch ? 0 : 1,
+        totalPages: noMatch ? 0 : 1
+      })
     })
   })
 
   await page.goto('/search')
-  const search = page.getByRole('searchbox', { name: 'Search products, producers or styles' })
+  const search = page.getByRole('searchbox', { name: 'Search beers, breweries or styles' })
   await expect(search).toBeFocused()
 
   await search.fill('no-match')
 
-  const searchStatus = page.locator('#product-search-status')
-  await expect(searchStatus).toHaveText('0 products found')
+  const searchStatus = page.locator('#catalogue-search-status')
+  await expect(searchStatus).toHaveText('0 beers, 0 breweries, 0 styles')
   await expect(search).toBeFocused()
-  await expect(page.getByRole('heading', { name: 'No matching products' })).toBeVisible()
-  await expect(page.getByText('Try a shorter product, producer or style name.')).toBeVisible()
-  await expect(page.locator('section[aria-labelledby="product-results-heading"]')).toHaveAttribute('aria-busy', 'false')
+  await expect(page.getByRole('heading', { name: 'No matches found' })).toBeVisible()
+  await expect(page.getByText('Try a shorter beer, brewery or style name.')).toBeVisible()
+  await expect(page.locator('section[aria-labelledby="search-results-heading"]')).toHaveAttribute('aria-busy', 'false')
   await expect(page.getByRole('link', { name: /Ace/ })).toHaveCount(0)
 })
 
@@ -111,7 +118,7 @@ test('/home pagination moves focus to the named results region and exposes curre
   })
 
   await page.goto('/home')
-  await expect(page.getByText('25 products found')).toBeVisible()
+  await expect(page.getByText('25 products in catalogue')).toBeVisible()
   await expect(page.getByText('Page 1 of 2')).toHaveAttribute('aria-current', 'page')
 
   await page.getByRole('button', { name: 'Next product page, page 2' }).click()

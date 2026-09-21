@@ -19,7 +19,7 @@ test('app shell announces SPA navigation, preserves current-page semantics and r
   await expect(page.getByRole('status').filter({ hasText: 'Search' })).toHaveText('Search')
   await expect(page.getByRole('link', { name: 'Search' })).toHaveAttribute('aria-current', 'page')
   await expect(page.getByRole('link', { name: 'Discover' })).not.toHaveAttribute('aria-current', 'page')
-  await expect(page.locator('#product-search')).toBeFocused()
+  await expect(page.locator('#catalogue-search')).toBeFocused()
 
   await page.getByRole('link', { name: 'Discover' }).click()
   await expect(page).toHaveURL(/\/home$/)
