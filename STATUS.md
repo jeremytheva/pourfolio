@@ -81,6 +81,23 @@ Exact implementation head `b3cc45d3c1c3e710873cff68bb5857a25434926d` passed cano
 
 Lifecycle: **READY / MERGEABLE**, subject to the final docs-only head revalidation after recording this evidence.
 
+## Brewery beer browsing — #516
+
+Issue **#516 — Add brewery beer search, filters and deterministic sorting** is active after the producer-profile statistics work in #514 / PR #515.
+
+Branch `feature/brewery-beer-browsing` currently:
+- extends the existing producer detail projection with per-product community and owner-scoped aggregate rating context only;
+- adds brewery-local beer-name search, canonical category filtering, rated-state filtering and deterministic sorting;
+- supports name, ABV, community score, community rating-count and personal-score sorts with missing values kept distinct from zero;
+- shows community score/count and the authenticated user's score on brewery beer cards where available;
+- provides reset, result-count and no-match states;
+- preserves the #514 privacy boundary: no raw rating rows, community identities, notes, dates, cellar data or purchase prices enter the response;
+- remains profile-local and does not introduce the cross-catalogue ranking semantics planned in #441.
+
+No provider schema/data mutation is introduced by #516.
+
+Lifecycle: **VALIDATING**. Canonical repository, browser/accessibility, security and deployment evidence remain to be confirmed on the exact PR head.
+
 ## Brewery profile statistics — #514
 
 Issue **#514 — Add privacy-safe brewery profile statistics and personal history** is active after the scalable producer discovery work in #512 / PR #513.
