@@ -62,11 +62,11 @@ Do not reopen provider routing or frontend/backend URL changes without new contr
 
 When #165 cannot progress because the provider-supported migration/backfill/backup/restore mechanism or explicit migration approval is unavailable, continue independent launch-scoped reliability, accessibility, security and product-hardening work that does not mutate provider schema/data, fabricate catalogue relationships or bypass certification boundaries.
 
-## Independent global entity search — #510
+## Independent global entity search — #510 / PR #511
 
-Issue **#510 — Unify global search across beers, breweries and styles** is active independent Phase 3 hardening while #165 remains blocked at its irreversible provider boundary.
+Issue **#510 — Unify global search across beers, breweries and styles** is implemented in normal PR **#511** as independent Phase 3 hardening while #165 remains blocked at its irreversible provider boundary.
 
-Branch `feature/global-entity-search` currently:
+The implementation:
 - preserves normal unfiltered product browse/pagination when the query is empty;
 - uses the existing validated product search for beer matches;
 - derives brewery matches only from the verified producer-discovery service and links directly to stable brewery routes;
@@ -77,7 +77,9 @@ Branch `feature/global-entity-search` currently:
 
 This slice intentionally does **not** implement Phase B server-side producer pagination/search, producer statistics, rankings, provider mutation or new producer relationship semantics. Open PR #498 remains the producer-attribution authority; #510 consumes the producer service boundary instead of competing with it.
 
-Lifecycle: **IMPLEMENTING**. Canonical repository and browser/accessibility validation are not yet claimed for the branch.
+Exact implementation head `b3cc45d3c1c3e710873cff68bb5857a25434926d` passed canonical `npm run platform:validate`, all **111** browser/accessibility tests, Dependency Review and CodeQL. Vercel deployment reported success, the branch was zero commits behind `main`, the PR was mergeable and there were zero unresolved review threads at the readiness audit.
+
+Lifecycle: **READY / MERGEABLE**, subject to the final docs-only head revalidation after recording this evidence.
 
 ## Production provider certification completed — #225, #381 and #382
 
