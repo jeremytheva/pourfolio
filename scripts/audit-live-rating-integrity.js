@@ -18,10 +18,13 @@ const readStage = async (stage, operation) => {
     try {
       return await operation()
     } catch (error) {
-      lastError = error
       const status = Number(error?.providerStatus ?? error?.status)
       const transient = error?.code === 'PROVIDER_ERROR' || status === 429 || status >= 500
-      if (!transient) break
+      if (!transient) {
+        error.auditStage = error.auditStage || stage
+        throw error
+      }
+      lastError = error
     }
   }
 
