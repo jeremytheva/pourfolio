@@ -62,6 +62,29 @@ Do not reopen provider routing or frontend/backend URL changes without new contr
 
 When #165 cannot progress because the provider-supported migration/backfill/backup/restore mechanism or explicit migration approval is unavailable, continue independent launch-scoped reliability, accessibility, security and product-hardening work that does not mutate provider schema/data, fabricate catalogue relationships or bypass certification boundaries.
 
+## Producer Stage E — #520
+
+Issue **#520 — Implement Producer Stage E brewery rankings and capability boundaries** is the provider-safe Stage E slice.
+
+Implemented on `feature/producer-stage-e-rankings`:
+- server-authoritative brewery rankings from canonical producer/product attribution and completed valid weighted ratings;
+- qualification threshold of at least **3** completed ratings across at least **2** distinct rated beers;
+- deterministic ordering by average weighted score, rating count, rated-beer breadth, producer name and producer ID;
+- aggregate-only ranking projection with catalogue/rating breadth context;
+- a distinct Rankings view alongside the existing brewery Directory;
+- explicit UI wording that brewery rankings describe attributed product ratings, not service/staff/venue/business quality;
+- honest unavailable boundaries for geography, lifecycle and managed-business dimensions rather than inferred data.
+
+Stage E remains partially dependency-gated:
+- geography needs verified producer geography;
+- lifecycle/rename/acquisition filtering remains behind #444;
+- business-managed profiles remain governed by #437;
+- venue attribution/service semantics remain behind #399/#437.
+
+No provider schema/data mutation is introduced by #520.
+
+Lifecycle: **VALIDATING**. Canonical repository, browser/accessibility, security and deployment evidence remain to be confirmed on the exact PR head.
+
 ## Independent global entity search — #510 / PR #511
 
 Issue **#510 — Unify global search across beers, breweries and styles** is implemented in normal PR **#511** as independent Phase 3 hardening while #165 remains blocked at its irreversible provider boundary.
