@@ -18,19 +18,62 @@ const reachAllBonusAttributes = async (page) => {
   await expect(page.getByRole('heading', { name: 'All bonus attributes', level: 2 })).toBeFocused()
 }
 
-test('All bonus attributes supports search and explicit category reveal controls', async ({ page }) => {
+test('rating-card bonus attributes are directly visible and support scoped keyword search', async ({ page }) => {
+  await page.goto('/products/4/rate')
+  await page.getByRole('button', { name: 'Skip this attribute' }).click()
+  await page.getByRole('button', { name: 'Appearance: 4 out of 7' }).click()
+
+  await expect(page.getByRole('heading', { name: 'Aroma', level: 2 })).toBeVisible()
+  await expect(page.getByRole('checkbox', { name: /Aroma pop/ })).toBeVisible()
+  await expect(page.getByRole('checkbox', { name: /Resin layers/ })).toBeVisible()
+
+  const search = page.getByRole('searchbox', { name: 'Search Aroma bonus attributes' })
+  await search.fill('RESIN!!!')
+  await expect(page.getByRole('checkbox', { name: /Resin layers/ })).toBeVisible()
+  await expect(page.getByRole('checkbox', { name: /Aroma pop/ })).toHaveCount(0)
+
+  await search.fill('finish')
+  await expect(page.getByText('No aroma bonus attributes match this search.')).toBeVisible()
+  await expect(page.getByRole('checkbox', { name: /Long finish/ })).toHaveCount(0)
+})
+
+test('multi-category bonus selection persists across rating tabs and contributes once', async ({ page }) => {
+  await page.goto('/products/4/rate')
+  await page.getByRole('button', { name: 'Skip this attribute' }).click()
+  await page.getByRole('button', { name: 'Appearance: 4 out of 7' }).click()
+
+  const resinOnAroma = page.getByRole('checkbox', { name: /Resin layers/ })
+  await resinOnAroma.check()
+  await page.getByRole('button', { name: 'Aroma: 4 out of 7' }).click()
+  await page.getByRole('button', { name: 'Mouthfeel: 4 out of 7' }).click()
+  await page.getByRole('button', { name: 'Flavour: 4 out of 7' }).click()
+
+  await expect(page.getByRole('heading', { name: 'Follow', level: 2 })).toBeVisible()
+  await expect(page.getByRole('checkbox', { name: /Resin layers/ })).toBeChecked()
+  await page.getByRole('button', { name: 'Follow: 4 out of 7' }).click()
+  await page.getByRole('button', { name: 'Skip this attribute' }).click()
+
+  await expect(page.getByText('0.40', { exact: true })).toBeVisible()
+})
+
+test('All bonus attributes keeps Overall visible and other categories collapsed until opened or searched', async ({ page }) => {
   await reachAllBonusAttributes(page)
+
+  await expect(page.getByRole('heading', { name: 'Overall attributes', level: 3 })).toBeVisible()
+  await expect(page.getByRole('checkbox', { name: /Style wow/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Other attributes', level: 3 })).toBeVisible()
+  await expect(page.getByRole('checkbox', { name: /Aroma pop/ })).toHaveCount(0)
+  await expect(page.getByRole('checkbox', { name: /Long finish/ })).toHaveCount(0)
 
   await page.getByRole('button', { name: 'Show all categories' }).click()
   await expect(page.getByRole('checkbox', { name: /Aroma pop/ })).toBeVisible()
   await expect(page.getByRole('checkbox', { name: /Long finish/ })).toBeVisible()
-  await expect(page.getByRole('checkbox', { name: /Style wow/ })).toBeVisible()
 
-  await page.getByRole('button', { name: 'Hide all categories' }).click()
+  await page.getByRole('button', { name: 'Hide other categories' }).click()
   await expect(page.getByRole('checkbox', { name: /Aroma pop/ })).toHaveCount(0)
 
   const search = page.getByRole('searchbox', { name: 'Search bonus attributes' })
-  await search.fill('finish')
+  await search.fill('LONG!!! finish')
   await expect(page.getByRole('checkbox', { name: /Long finish/ })).toBeVisible()
   await expect(page.getByRole('checkbox', { name: /Aroma pop/ })).toHaveCount(0)
 })
