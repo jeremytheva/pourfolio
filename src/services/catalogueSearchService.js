@@ -4,7 +4,6 @@ import { styleService } from './styleService.js'
 
 const DIRECTORY_CACHE_TTL_MS = 60_000
 
-const producerDirectoryCache = { value: null, expiresAt: 0, pending: null }
 const styleDirectoryCache = { value: null, expiresAt: 0, pending: null }
 
 const normaliseSearchText = (value) => String(value ?? '')
@@ -30,24 +29,10 @@ const readCachedDirectory = async (cache, loader) => {
   return cache.pending
 }
 
-const loadVerifiedBreweries = () => readCachedDirectory(
-  producerDirectoryCache,
-  () => producerService.listVerifiedProducers()
-)
-
 const loadVerifiedStyles = () => readCachedDirectory(
   styleDirectoryCache,
   () => styleService.listVerifiedStyles()
 )
-
-export const filterVerifiedBreweries = (breweries, query) => {
-  const needle = normaliseSearchText(query)
-  if (!needle) return []
-  return breweries.filter(({ producer }) => normaliseSearchText([
-    producer?.producer_name,
-    producer?.address
-  ].filter(Boolean).join(' ')).includes(needle))
-}
 
 export const filterVerifiedStyles = (styles, query) => {
   const needle = normaliseSearchText(query)
@@ -62,6 +47,7 @@ export const catalogueSearchService = {
       return {
         products: await beverageService.getProducts({ page, limit }),
         breweries: [],
+        breweryTotal: 0,
         styles: [],
         availability: Object.freeze({ beers: true, breweries: true, styles: true })
       }
@@ -69,15 +55,14 @@ export const catalogueSearchService = {
 
     const [productsResult, breweriesResult, stylesResult] = await Promise.allSettled([
       beverageService.getProducts({ search, page, limit }),
-      loadVerifiedBreweries(),
+      producerService.listVerifiedProducerPage({ search, page: 1, limit }),
       loadVerifiedStyles()
     ])
 
     return {
       products: productsResult.status === 'fulfilled' ? productsResult.value : null,
-      breweries: breweriesResult.status === 'fulfilled'
-        ? filterVerifiedBreweries(breweriesResult.value, search)
-        : [],
+      breweries: breweriesResult.status === 'fulfilled' ? breweriesResult.value.items : [],
+      breweryTotal: breweriesResult.status === 'fulfilled' ? breweriesResult.value.total : 0,
       styles: stylesResult.status === 'fulfilled'
         ? filterVerifiedStyles(stylesResult.value, search)
         : [],

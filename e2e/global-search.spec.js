@@ -40,8 +40,12 @@ const installGlobalSearchMockApi = async (page, { failBeerSearch = false } = {})
   })
 }
 
-test('global search links a brewery match directly to the verified brewery route', async ({ page }) => {
+test('global search links a brewery match through the server producer discovery route', async ({ page }) => {
   await installGlobalSearchMockApi(page)
+  const producerRequests = []
+  page.on('request', (request) => {
+    if (request.url().includes('/api/nocodebackend/catalog/producers?')) producerRequests.push(request.url())
+  })
   await page.goto('/search')
 
   const search = page.getByRole('searchbox', { name: 'Search beers, breweries or styles' })
@@ -51,6 +55,11 @@ test('global search links a brewery match directly to the verified brewery route
   const breweryLink = page.getByRole('link', { name: /Rocky Ridge Brewing/ })
   await expect(breweryLink).toHaveAttribute('href', '/breweries/20')
   await expect(page.getByText('0 beers, 1 brewery, 0 styles', { exact: true })).toBeVisible()
+  await expect.poll(() => producerRequests.some((url) => {
+    const requestUrl = new URL(url)
+    return requestUrl.searchParams.get('hasProducts') === 'true' &&
+      requestUrl.searchParams.get('q') === 'Rocky Ridge'
+  })).toBe(true)
 })
 
 test('global search links a style match directly to the verified style route', async ({ page }) => {

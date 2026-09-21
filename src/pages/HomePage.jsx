@@ -16,7 +16,7 @@ function HomePage({ searchMode = false }) {
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [page, setPage] = useState(1)
   const [result, setResult] = useState(EMPTY_RESULT)
-  const [entityResults, setEntityResults] = useState({ breweries: [], styles: [] })
+  const [entityResults, setEntityResults] = useState({ breweries: [], breweryTotal: 0, styles: [] })
   const [availability, setAvailability] = useState(FULL_AVAILABILITY)
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
@@ -67,6 +67,7 @@ function HomePage({ searchMode = false }) {
           : EMPTY_RESULT)
         setEntityResults({
           breweries: payload.breweries,
+          breweryTotal: payload.breweryTotal,
           styles: payload.styles
         })
         setAvailability(payload.availability)
@@ -75,7 +76,7 @@ function HomePage({ searchMode = false }) {
       .catch((requestError) => {
         if (!active) return
         focusResultsAfterRetry.current = false
-        setEntityResults({ breweries: [], styles: [] })
+        setEntityResults({ breweries: [], breweryTotal: 0, styles: [] })
         setAvailability(FULL_AVAILABILITY)
         setError(requestError.message || (debouncedQuery
           ? 'Search results could not be loaded.'
@@ -109,7 +110,7 @@ function HomePage({ searchMode = false }) {
     ? [
         availability.beers ? formatCount(result.total, 'beer') : 'Beer results unavailable',
         availability.breweries
-          ? formatCount(entityResults.breweries.length, 'brewery', 'breweries')
+          ? formatCount(entityResults.breweryTotal, 'brewery', 'breweries')
           : 'Brewery results unavailable',
         availability.styles ? formatCount(entityResults.styles.length, 'style') : 'Style results unavailable'
       ].join(', ')
@@ -126,7 +127,7 @@ function HomePage({ searchMode = false }) {
   const allSearchSourcesAvailable = Object.values(availability).every(Boolean)
   const hasSearchResults = Boolean(
     (availability.beers && result.total > 0) ||
-    (availability.breweries && entityResults.breweries.length > 0) ||
+    (availability.breweries && entityResults.breweryTotal > 0) ||
     (availability.styles && entityResults.styles.length > 0)
   )
 
@@ -267,7 +268,7 @@ function HomePage({ searchMode = false }) {
               <section aria-labelledby="brewery-search-results-heading">
                 <div className="mb-4 flex items-baseline justify-between gap-4">
                   <h3 id="brewery-search-results-heading" className="text-2xl font-semibold text-gray-900">Breweries</h3>
-                  <p className="text-sm text-gray-600">{formatCount(entityResults.breweries.length, 'match', 'matches')}</p>
+                  <p className="text-sm text-gray-600">{formatCount(entityResults.breweryTotal, 'match', 'matches')}</p>
                 </div>
                 <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {entityResults.breweries.map(({ producer, productCount }) => (
