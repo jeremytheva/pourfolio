@@ -38,7 +38,7 @@ const getProductWithRatings = async (ratings) => {
       filters: { product_id: '42' }
     })
     return {
-      items: ratings,
+      items: ratings.map((rating) => ({ product_id: '42', ...rating })),
       page: 1,
       pageSize: 100,
       total: ratings.length,
