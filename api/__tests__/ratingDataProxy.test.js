@@ -480,8 +480,8 @@ test('historical reconciliation owner discovery consumes every provider page', a
 test('historical reconciliation is dry-run by default and rejects structurally incomplete ratings', async () => {
   const updates = []
   const ratings = [
-    { id: 10, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 },
-    { id: 11, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 }
+    { id: 10, user_id: 'user-1', product_id: 4, total_weighted: 4, submission_state: 'pending', submission_version: 0 },
+    { id: 11, user_id: 'user-1', product_id: 4, total_weighted: 4, submission_state: 'pending', submission_version: 0 }
   ]
   await withProviderMocks({
     listPage: async (collection, options) => {
@@ -601,8 +601,8 @@ test('parent create acknowledgement is hydrated before child persistence', async
 
 test('historical reconciliation apply updates only structurally valid ratings and verifies persistence', async () => {
   const ratings = [
-    { id: 10, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 },
-    { id: 11, user_id: 'user-1', product_id: 4, submission_state: 'pending', submission_version: 0 }
+    { id: 10, user_id: 'user-1', product_id: 4, total_weighted: 4, submission_state: 'pending', submission_version: 0 },
+    { id: 11, user_id: 'user-1', product_id: 4, total_weighted: 4, submission_state: 'pending', submission_version: 0 }
   ]
   const updates = []
   await withProviderMocks({
