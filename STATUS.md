@@ -62,6 +62,23 @@ Do not reopen provider routing or frontend/backend URL changes without new contr
 
 When #165 cannot progress because the provider-supported migration/backfill/backup/restore mechanism or explicit migration approval is unavailable, continue independent launch-scoped reliability, accessibility, security and product-hardening work that does not mutate provider schema/data, fabricate catalogue relationships or bypass certification boundaries.
 
+## Independent global entity search — #510
+
+Issue **#510 — Unify global search across beers, breweries and styles** is active independent Phase 3 hardening while #165 remains blocked at its irreversible provider boundary.
+
+Branch `feature/global-entity-search` currently:
+- preserves normal unfiltered product browse/pagination when the query is empty;
+- uses the existing validated product search for beer matches;
+- derives brewery matches only from the verified producer-discovery service and links directly to stable brewery routes;
+- derives style matches only from the verified Style Explorer service and links directly to stable style routes;
+- keeps partial verified results available when one result type fails, while clearly labelling the unavailable result type;
+- removes the unreachable fabricated/mock `src/pages/Search.jsx` implementation;
+- adds focused unit and Playwright coverage for beer, brewery, style, partial-failure and no-match behaviour.
+
+This slice intentionally does **not** implement Phase B server-side producer pagination/search, producer statistics, rankings, provider mutation or new producer relationship semantics. Open PR #498 remains the producer-attribution authority; #510 consumes the producer service boundary instead of competing with it.
+
+Lifecycle: **IMPLEMENTING**. Canonical repository and browser/accessibility validation are not yet claimed for the branch.
+
 ## Production provider certification completed — #225, #381 and #382
 
 Issue **#225** is **COMPLETE**. Production can read the generated NoCodeBackend data API through the server-only application gateway and the provider credential remains outside repository/browser output.
