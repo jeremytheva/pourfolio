@@ -5,6 +5,8 @@ const INVALID_CODE = 'invalid_producer_catalogue_response'
 const PAGE_KEYS = new Set(['items', 'page', 'pageSize', 'total', 'totalPages'])
 const PRODUCER_KEYS = new Set(['id', 'producer_name', 'address', 'suburb_id'])
 const DISCOVERY_ROW_KEYS = new Set(['producer', 'productCount'])
+const RANKING_PAGE_KEYS = new Set(['items', 'page', 'pageSize', 'total', 'totalPages', 'minimumRatings', 'minimumRatedBeers'])
+const RANKING_ROW_KEYS = new Set(['producer', 'averageWeighted', 'ratingCount', 'ratedBeerCount', 'catalogueBeerCount'])
 
 const invalid = () => {
   throw new ApiError(INVALID_MESSAGE, { status: 502, code: INVALID_CODE })
@@ -63,6 +65,48 @@ const discoveryRow = (value) => {
   return Object.freeze({
     producer: producer(data.producer),
     productCount: data.productCount
+  })
+}
+
+const rankingRow = (value) => {
+  const data = plainData(value, RANKING_ROW_KEYS, ['producer', 'averageWeighted', 'ratingCount', 'ratedBeerCount', 'catalogueBeerCount'])
+  if (typeof data.averageWeighted !== 'number' || !Number.isFinite(data.averageWeighted) || data.averageWeighted <= 0 || data.averageWeighted > 5) invalid()
+  for (const key of ['ratingCount', 'ratedBeerCount', 'catalogueBeerCount']) {
+    if (!Number.isSafeInteger(data[key]) || data[key] < 1) invalid()
+  }
+  if (data.ratedBeerCount > data.catalogueBeerCount || data.ratedBeerCount > data.ratingCount) invalid()
+  return Object.freeze({
+    producer: producer(data.producer),
+    averageWeighted: data.averageWeighted,
+    ratingCount: data.ratingCount,
+    ratedBeerCount: data.ratedBeerCount,
+    catalogueBeerCount: data.catalogueBeerCount
+  })
+}
+
+export const validateProducerRankingPage = (payload, { expectedPage, expectedPageSize } = {}) => {
+  const page = plainData(payload, RANKING_PAGE_KEYS, ['items', 'page', 'pageSize', 'total', 'totalPages', 'minimumRatings', 'minimumRatedBeers'])
+  if (!Array.isArray(page.items)) invalid()
+  for (const value of [page.page, page.pageSize, page.total, page.totalPages, page.minimumRatings, page.minimumRatedBeers]) {
+    if (!Number.isSafeInteger(value)) invalid()
+  }
+  if (page.page < 1 || page.pageSize < 1 || page.pageSize > 100 || page.total < 0 || page.totalPages < 0 || page.minimumRatings < 1 || page.minimumRatedBeers < 1) invalid()
+  if ((expectedPage !== undefined && page.page !== expectedPage) || (expectedPageSize !== undefined && page.pageSize !== expectedPageSize)) invalid()
+  const expectedTotalPages = page.total === 0 ? 0 : Math.ceil(page.total / page.pageSize)
+  if (page.totalPages !== expectedTotalPages || page.page > Math.max(1, page.totalPages)) invalid()
+  const expectedItems = page.total === 0 ? 0 : page.page < page.totalPages ? page.pageSize : page.total - (page.pageSize * (page.totalPages - 1))
+  if (page.items.length !== expectedItems) invalid()
+  const items = page.items.map(rankingRow)
+  if (new Set(items.map((item) => String(item.producer.id))).size !== items.length) invalid()
+  if (items.some((item) => item.ratingCount < page.minimumRatings || item.ratedBeerCount < page.minimumRatedBeers)) invalid()
+  return Object.freeze({
+    items: Object.freeze(items),
+    page: page.page,
+    pageSize: page.pageSize,
+    total: page.total,
+    totalPages: page.totalPages,
+    minimumRatings: page.minimumRatings,
+    minimumRatedBeers: page.minimumRatedBeers
   })
 }
 
