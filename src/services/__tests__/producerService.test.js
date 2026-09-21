@@ -45,11 +45,17 @@ const emptyCommunityStats = {
   attributes: [],
   topBeers: []
 }
+const emptyProductStats = [{
+  productId: 4,
+  community: { ratingCount: 0, averageWeighted: null },
+  personal: { ratingCount: 0, averageWeighted: null }
+}]
 const detail = {
   producer,
   products: [product],
   communityStats: emptyCommunityStats,
-  personalStats: emptyPersonalStats
+  personalStats: emptyPersonalStats,
+  productStats: emptyProductStats
 }
 
 const isSafeCatalogueError = (error) => {
@@ -82,7 +88,8 @@ test('accepts a verified producer with no linked products and truthful empty sta
     producer,
     products: [],
     communityStats: { ...emptyCommunityStats, catalogueBeerCount: 0 },
-    personalStats: emptyPersonalStats
+    personalStats: emptyPersonalStats,
+    productStats: []
   }
   assert.deepEqual(validateCatalogueProducer(payload, { expectedProducerId: 20 }), payload)
 })
@@ -100,7 +107,8 @@ test('accepts a product attributed to the viewed brewery as a collaborator', () 
     producer,
     products: [collaborationProduct],
     communityStats: emptyCommunityStats,
-    personalStats: emptyPersonalStats
+    personalStats: emptyPersonalStats,
+    productStats: emptyProductStats
   }, { expectedProducerId: 20 })
   assert.deepEqual(result.products[0].producers, [primary, producer])
   assert.equal(result.products[0].producer.id, 21)
@@ -146,7 +154,12 @@ test('validates privacy-safe producer aggregates including core attributes and t
       averageUnweighted: 4.4,
       unweightedRatingCount: 1,
       topBeers: [{ productId: 4, productName: 'Ace', averageWeighted: 4.5, ratingCount: 1 }]
-    }
+    },
+    productStats: [{
+      productId: 4,
+      community: { ratingCount: 3, averageWeighted: 4.2 },
+      personal: { ratingCount: 1, averageWeighted: 4.5 }
+    }]
   }
 
   const result = validateCatalogueProducer(structuredClone(payload), { expectedProducerId: 20 })

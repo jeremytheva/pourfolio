@@ -44,6 +44,10 @@ function BreweryProfile() {
   const [error, setError] = useState('')
   const [errorCode, setErrorCode] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
+  const [beerSearch, setBeerSearch] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [ratedFilter, setRatedFilter] = useState('all')
+  const [sortBy, setSortBy] = useState('name')
   const errorRef = useRef(null)
 
   useEffect(() => {
@@ -97,7 +101,59 @@ function BreweryProfile() {
     )
   }
 
-  const { producer, products, communityStats, personalStats } = detail
+  const { producer, products, communityStats, personalStats, productStats } = detail
+  const productStatsById = new Map(productStats.map((item) => [String(item.productId), item]))
+  const categories = [...new Set(products
+    .map((product) => product.declared_category || product.category?.category_name || '')
+    .filter(Boolean))]
+    .sort((left, right) => left.localeCompare(right))
+  const visibleProducts = products
+    .filter((product) => {
+      const nameMatch = product.product_name.toLocaleLowerCase().includes(beerSearch.trim().toLocaleLowerCase())
+      const category = product.declared_category || product.category?.category_name || ''
+      const categoryMatch = categoryFilter === 'all' || category === categoryFilter
+      const stats = productStatsById.get(String(product.id))
+      const communityRated = (stats?.community.ratingCount || 0) > 0
+      const personallyRated = (stats?.personal.ratingCount || 0) > 0
+      const ratedMatch = ratedFilter === 'all' ||
+        (ratedFilter === 'community-rated' && communityRated) ||
+        (ratedFilter === 'community-unrated' && !communityRated) ||
+        (ratedFilter === 'mine-rated' && personallyRated) ||
+        (ratedFilter === 'mine-unrated' && !personallyRated)
+      return nameMatch && categoryMatch && ratedMatch
+    })
+    .sort((left, right) => {
+      const leftStats = productStatsById.get(String(left.id))
+      const rightStats = productStatsById.get(String(right.id))
+      const finalTie = Number(left.id) - Number(right.id)
+      if (sortBy === 'abv') {
+        const leftAbv = left.abv === null || left.abv === undefined ? null : Number(left.abv)
+        const rightAbv = right.abv === null || right.abv === undefined ? null : Number(right.abv)
+        if (leftAbv === null && rightAbv !== null) return 1
+        if (rightAbv === null && leftAbv !== null) return -1
+        if (leftAbv !== rightAbv) return (rightAbv ?? 0) - (leftAbv ?? 0)
+      }
+      if (sortBy === 'community-score') {
+        const leftScore = leftStats?.community.averageWeighted ?? null
+        const rightScore = rightStats?.community.averageWeighted ?? null
+        if (leftScore === null && rightScore !== null) return 1
+        if (rightScore === null && leftScore !== null) return -1
+        if (leftScore !== rightScore) return (rightScore ?? 0) - (leftScore ?? 0)
+      }
+      if (sortBy === 'community-count') {
+        const countDifference = (rightStats?.community.ratingCount || 0) - (leftStats?.community.ratingCount || 0)
+        if (countDifference) return countDifference
+      }
+      if (sortBy === 'my-score') {
+        const leftScore = leftStats?.personal.averageWeighted ?? null
+        const rightScore = rightStats?.personal.averageWeighted ?? null
+        if (leftScore === null && rightScore !== null) return 1
+        if (rightScore === null && leftScore !== null) return -1
+        if (leftScore !== rightScore) return (rightScore ?? 0) - (leftScore ?? 0)
+      }
+      const byName = left.product_name.localeCompare(right.product_name)
+      return byName || finalTie
+    })
   const address = typeof producer.address === 'string' ? producer.address.trim() : ''
 
   return (
@@ -170,20 +226,68 @@ function BreweryProfile() {
             No beer is currently linked to this brewery in the verified catalogue.
           </div>
         ) : (
-          <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => {
-              const category = product.declared_category || product.category?.category_name || 'Beer'
-              return (
-                <li key={product.id}>
-                  <Link to={`/products/${product.id}`} className="block h-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-amber-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">{category}</p>
-                    <h3 className="mt-2 text-lg font-semibold text-gray-900">{product.product_name}</h3>
-                    {(product.abv !== null && product.abv !== undefined) && <p className="mt-2 text-sm text-gray-600">{product.abv}% ABV</p>}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
+          <>
+            <div className="mt-5 grid gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 md:grid-cols-2 lg:grid-cols-4" aria-label="Filter brewery beers">
+              <label className="text-sm font-medium text-gray-700">
+                Search beers
+                <input value={beerSearch} onChange={(event) => setBeerSearch(event.target.value)} type="search" className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2" placeholder="Beer name" />
+              </label>
+              <label className="text-sm font-medium text-gray-700">
+                Category
+                <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2">
+                  <option value="all">All categories</option>
+                  {categories.map((category) => <option key={category} value={category}>{category}</option>)}
+                </select>
+              </label>
+              <label className="text-sm font-medium text-gray-700">
+                Rated state
+                <select value={ratedFilter} onChange={(event) => setRatedFilter(event.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2">
+                  <option value="all">All beers</option>
+                  <option value="community-rated">Community rated</option>
+                  <option value="community-unrated">Not community rated</option>
+                  <option value="mine-rated">Rated by me</option>
+                  <option value="mine-unrated">Not rated by me</option>
+                </select>
+              </label>
+              <label className="text-sm font-medium text-gray-700">
+                Sort
+                <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2">
+                  <option value="name">Name A–Z</option>
+                  <option value="community-score">Community score</option>
+                  <option value="community-count">Most rated</option>
+                  <option value="my-score">My score</option>
+                  <option value="abv">ABV high–low</option>
+                </select>
+              </label>
+              <div className="md:col-span-2 lg:col-span-4 flex items-center justify-between gap-3">
+                <p role="status" aria-live="polite" className="text-sm text-gray-600">{visibleProducts.length} of {products.length} {products.length === 1 ? 'beer' : 'beers'} shown</p>
+                <button type="button" onClick={() => { setBeerSearch(''); setCategoryFilter('all'); setRatedFilter('all'); setSortBy('name') }} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">Reset filters</button>
+              </div>
+            </div>
+            {visibleProducts.length === 0 ? (
+              <div className="mt-4 rounded-xl border border-gray-200 bg-white p-6 text-gray-600">No beers match the selected filters.</div>
+            ) : (
+              <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {visibleProducts.map((product) => {
+                  const category = product.declared_category || product.category?.category_name || 'Beer'
+                  const stats = productStatsById.get(String(product.id))
+                  return (
+                    <li key={product.id}>
+                      <Link to={`/products/${product.id}`} className="block h-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-amber-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">{category}</p>
+                        <h3 className="mt-2 text-lg font-semibold text-gray-900">{product.product_name}</h3>
+                        {(product.abv !== null && product.abv !== undefined) && <p className="mt-2 text-sm text-gray-600">{product.abv}% ABV</p>}
+                        <div className="mt-3 border-t border-gray-100 pt-3 text-xs text-gray-600">
+                          <p>{stats?.community.averageWeighted === null ? 'No community score' : `Community ${stats.community.averageWeighted.toFixed(2)} / 5 · ${stats.community.ratingCount} ${stats.community.ratingCount === 1 ? 'rating' : 'ratings'}`}</p>
+                          {stats?.personal.averageWeighted !== null && <p className="mt-1 font-medium text-gray-800">Your score {stats.personal.averageWeighted.toFixed(2)} / 5</p>}
+                        </div>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </>
         )}
       </section>
     </div>

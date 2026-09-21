@@ -134,6 +134,21 @@ test('producer profile returns aggregate community statistics and owner-scoped p
     unweightedRatingCount: 1,
     topBeers: [{ productId: '101', productName: 'Together Ale', averageWeighted: 4.5, ratingCount: 1 }]
   })
+  assert.deepEqual(
+    [...result.body.productStats].sort((left, right) => Number(left.productId) - Number(right.productId)),
+    [
+      {
+        productId: '101',
+        community: { ratingCount: 2, averageWeighted: 4.25 },
+        personal: { ratingCount: 1, averageWeighted: 4.5 }
+      },
+      {
+        productId: '102',
+        community: { ratingCount: 1, averageWeighted: 3.5 },
+        personal: { ratingCount: 0, averageWeighted: null }
+      }
+    ]
+  )
 
   assert.equal(JSON.stringify(result.body).includes('"user_id"'), false)
   assert.equal(JSON.stringify(result.body).includes('"rating_id"'), false)

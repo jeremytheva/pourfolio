@@ -520,6 +520,24 @@ const buildCoreAttributeStats = async (ratings) => {
     })
 }
 
+const buildProducerProductStats = (ratings, products) => {
+  const accepted = ratings.filter(isCompletedRating)
+  const byProduct = new Map(products.map((product) => [String(product.id), []]))
+  for (const rating of accepted) {
+    const productRatings = byProduct.get(String(rating.product_id ?? ''))
+    if (productRatings) productRatings.push(rating)
+  }
+  return products.map((product) => {
+    const productRatings = byProduct.get(String(product.id)) || []
+    const weighted = averageCompletedTotals(productRatings.map((rating) => rating.total_weighted))
+    return {
+      productId: String(product.id),
+      ratingCount: weighted.count,
+      averageWeighted: weighted.average
+    }
+  })
+}
+
 const buildProducerRatingStats = async ({ ratings, products, includeAttributes = false, includeCatalogueCount = false }) => {
   const productIds = new Set(products.map((product) => String(product.id)))
   const accepted = ratings.filter((rating) =>
@@ -569,7 +587,27 @@ const getProducer = async (id, response, user) => {
     producer: projectProducer(producer),
     products,
     communityStats,
-    personalStats
+    personalStats,
+    productStats: (() => {
+      const communityByProduct = new Map(buildProducerProductStats(communityRatings, products).map((item) => [item.productId, item]))
+      const personalByProduct = new Map(buildProducerProductStats(personalRatings, products).map((item) => [item.productId, item]))
+      return products.map((product) => {
+        const productId = String(product.id)
+        const community = communityByProduct.get(productId)
+        const personal = personalByProduct.get(productId)
+        return {
+          productId,
+          community: {
+            ratingCount: community.ratingCount,
+            averageWeighted: community.averageWeighted
+          },
+          personal: {
+            ratingCount: personal.ratingCount,
+            averageWeighted: personal.averageWeighted
+          }
+        }
+      })
+    })()
   })
 }
 
@@ -842,6 +880,7 @@ export const __testables = {
   topRatedProducerProducts,
   buildCoreAttributeStats,
   buildProducerRatingStats,
+  buildProducerProductStats,
   getProducer,
   getRatingForm,
   resolveProducerForCreate,

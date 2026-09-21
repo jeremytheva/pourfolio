@@ -157,7 +157,12 @@ export const installMockApi = async (page) => {
         averageUnweighted: 4.4,
         unweightedRatingCount: 1,
         topBeers: [{ productId: 4, productName: 'Ace', averageWeighted: 4.5, ratingCount: 1 }]
-      }
+      },
+      productStats: [{
+        productId: 4,
+        community: { ratingCount: 3, averageWeighted: 4.2 },
+        personal: { ratingCount: 1, averageWeighted: 4.5 }
+      }]
     })
   }))
 
