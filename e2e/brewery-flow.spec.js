@@ -17,7 +17,7 @@ test('verified product producer links to its brewery and back to the same produc
   await expect(page.getByRole('heading', { name: 'Beer from this brewery', level: 2 })).toBeVisible()
   await expect(page.getByText('1 product', { exact: true })).toBeVisible()
 
-  const productLink = page.getByRole('link', { name: /Ace/ })
+  const productLink = page.getByRole('heading', { name: 'Beer from this brewery', level: 2 }).locator('..').locator('..').getByRole('link', { name: /Ace/ })
   await expect(productLink).toHaveAttribute('href', '/products/4')
   await productLink.click()
   await expect(page).toHaveURL(/\/products\/4$/)
@@ -27,7 +27,7 @@ test('brewery page renders only verified producer fields and products', async ({
   await page.goto('/breweries/20')
 
   await expect(page.getByRole('heading', { name: 'Rocky Ridge Brewing', level: 1 })).toBeVisible()
-  await expect(page.getByText('Ace', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Beer from this brewery', level: 2 }).locator('..').locator('..').getByRole('heading', { name: 'Ace', level: 3 })).toBeVisible()
   await expect(page.getByText(/Brewery X|Napa Valley|Distillery|Taproom|Claim|Suggest Updates/i)).toHaveCount(0)
 })
 

@@ -81,6 +81,27 @@ Exact implementation head `b3cc45d3c1c3e710873cff68bb5857a25434926d` passed cano
 
 Lifecycle: **READY / MERGEABLE**, subject to the final docs-only head revalidation after recording this evidence.
 
+## Brewery profile statistics — #514
+
+Issue **#514 — Add privacy-safe brewery profile statistics and personal history** is active after the scalable producer discovery work in #512 / PR #513.
+
+Branch `feature/brewery-profile-statistics` currently:
+- expands the existing producer-detail gateway response rather than adding a parallel analytics endpoint;
+- computes community statistics only from canonical completed ratings for products exactly attributed to the producer;
+- preserves multi-producer collaboration attribution and legacy fallback semantics from PR #498;
+- exposes aggregate weighted/unweighted scores, rated-beer breadth, core scored attribute averages and deterministic highest-average beers;
+- excludes Design and Burp from the core scored attribute profile;
+- exposes only the authenticated user's own aggregate brewery history as the personal section;
+- does not return raw community rating rows, user IDs, rating IDs, dates, notes, cellar data or purchase prices;
+- strictly validates aggregate counts, averages, attributes and top-beer references before browser render;
+- upgrades `/breweries/:producerId` with community summary, core attribute profile, personal history and a return path to `/places`.
+
+No provider schema/data mutation is introduced by #514.
+
+Exact implementation head `687910afea5c148eb7f7e39f6c7bcf188814598b` passed canonical `npm run platform:validate`, all **115** browser/accessibility tests and CodeQL. Vercel deployment reported success, the branch was zero commits behind `main`, PR #515 was mergeable and there were zero unresolved review threads at the readiness audit.
+
+Lifecycle: **READY / MERGEABLE**, subject to final docs-only head revalidation after recording this evidence.
+
 ## Server-authoritative brewery discovery — #512
 
 Issue **#512 — Add scalable server-side brewery discovery and search** is active Phase 3 hardening after PR **#498** established the authoritative multi-producer relationship contract.
