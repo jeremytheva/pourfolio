@@ -19,6 +19,10 @@ function Places() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
   const [reloadKey, setReloadKey] = useState(0)
+  const [breweryView, setBreweryView] = useState('directory')
+  const [rankingPage, setRankingPage] = useState(EMPTY_BREWERY_PAGE)
+  const [rankingStatus, setRankingStatus] = useState('idle')
+  const [rankingError, setRankingError] = useState('')
   const tabRefs = useRef({})
   const errorRef = useRef(null)
   const resultsHeadingRef = useRef(null)
@@ -57,6 +61,25 @@ function Places() {
 
     return () => { active = false }
   }, [debouncedSearch, page, reloadKey])
+
+  useEffect(() => {
+    if (activeTab !== 'breweries' || breweryView !== 'rankings' || rankingStatus !== 'idle') return
+    let active = true
+    setRankingStatus('loading')
+    setRankingError('')
+    producerService.listProducerRankingPage({ page: 1, limit: BREWERY_PAGE_SIZE })
+      .then((payload) => {
+        if (!active) return
+        setRankingPage(payload)
+        setRankingStatus('ready')
+      })
+      .catch((error) => {
+        if (!active) return
+        setRankingError(error.message || 'Brewery rankings could not be loaded.')
+        setRankingStatus('error')
+      })
+    return () => { active = false }
+  }, [activeTab, breweryView, rankingStatus])
 
   useEffect(() => {
     if (breweryStatus === 'error') errorRef.current?.focus()
@@ -140,6 +163,38 @@ function Places() {
             Brewery profiles appear only when current catalogue products carry a verified producer relationship.
           </p>
 
+          <div className="mt-5 flex flex-wrap gap-2" aria-label="Brewery view">
+            <button type="button" onClick={() => setBreweryView('directory')} aria-pressed={breweryView === 'directory'} className={`rounded-lg border px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 ${breweryView === 'directory' ? 'border-amber-600 bg-amber-50 text-amber-900' : 'border-gray-300 text-gray-700'}`}>Directory</button>
+            <button type="button" onClick={() => setBreweryView('rankings')} aria-pressed={breweryView === 'rankings'} className={`rounded-lg border px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 ${breweryView === 'rankings' ? 'border-amber-600 bg-amber-50 text-amber-900' : 'border-gray-300 text-gray-700'}`}>Rankings</button>
+          </div>
+
+          {breweryView === 'rankings' ? (
+            <div className="mt-5" aria-labelledby="brewery-rankings-heading">
+              <h3 id="brewery-rankings-heading" className="text-lg font-semibold text-gray-900">Brewery rankings</h3>
+              <p className="mt-1 max-w-3xl text-sm text-gray-600">Based only on completed product ratings for beers attributed to each brewery. This does not rate brewery service, staff, venue experience or business quality.</p>
+              {rankingStatus === 'loading' && <p className="mt-4 text-sm text-gray-600" role="status">Loading brewery rankings…</p>}
+              {rankingStatus === 'error' && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4" role="alert"><p className="font-semibold text-red-900">Brewery rankings could not be loaded.</p><p className="mt-1 text-sm text-red-900">{rankingError}</p><button type="button" onClick={() => setRankingStatus('idle')} className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-900">Try again</button></div>}
+              {rankingStatus === 'ready' && (
+                <>
+                  <p className="mt-3 text-sm text-gray-600">Qualification: at least {rankingPage.minimumRatings} completed ratings across at least {rankingPage.minimumRatedBeers} distinct rated beers.</p>
+                  {rankingPage.items.length === 0 ? <p className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">No breweries currently meet the ranking sample threshold.</p> : (
+                    <ol className="mt-4 space-y-3">
+                      {rankingPage.items.map((item, index) => (
+                        <li key={item.producer.id}>
+                          <Link to={`/breweries/${item.producer.id}`} className="flex items-center gap-4 rounded-lg border border-gray-200 p-4 hover:border-amber-300 hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2">
+                            <span className="w-8 text-center text-lg font-bold text-amber-800" aria-label={`Rank ${index + 1}`}>{index + 1}</span>
+                            <span className="min-w-0 flex-1"><span className="block font-semibold text-gray-900">{item.producer.producer_name}</span><span className="mt-1 block text-sm text-gray-600">{item.ratingCount} ratings · {item.ratedBeerCount} rated beers · {item.catalogueBeerCount} catalogue beers</span></span>
+                            <span className="text-right font-semibold text-gray-900">{item.averageWeighted.toFixed(2)} / 5</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                  <div className="mt-5 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700"><strong>Unavailable dimensions:</strong> geography requires verified producer geography; lifecycle filters require #444; managed business profiles require #437. Pourfolio does not infer these fields.</div>
+                </>
+              )}
+            </div>
+          ) : (
           <div className="mt-5">
             <label htmlFor="brewery-search" className="block text-sm font-semibold text-gray-800">Search verified breweries</label>
             <input
@@ -231,6 +286,7 @@ function Places() {
               )}
             </>
           )}
+          </>)}
         </section>
       ) : (
         <section
