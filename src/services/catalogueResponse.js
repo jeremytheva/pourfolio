@@ -13,7 +13,9 @@ const PRODUCT_KEYS = new Set([
 ])
 const DETAIL_KEYS = new Set([...PRODUCT_KEYS, 'ratingSummary', 'ratingInsights', 'ratings'])
 const PRODUCER_KEYS = new Set(['id', 'producer_name', 'address', 'suburb_id'])
-const PRODUCER_DETAIL_KEYS = new Set(['producer', 'products', 'communityStats', 'personalStats'])
+const PRODUCER_DETAIL_KEYS = new Set(['producer', 'products', 'communityStats', 'personalStats', 'productStats'])
+const PRODUCER_PRODUCT_STATS_KEYS = new Set(['productId', 'community', 'personal'])
+const PRODUCER_PRODUCT_AGGREGATE_KEYS = new Set(['ratingCount', 'averageWeighted'])
 const COMMUNITY_PRODUCER_STATS_KEYS = new Set([
   'catalogueBeerCount', 'ratingCount', 'ratedBeerCount', 'averageWeighted',
   'averageUnweighted', 'unweightedRatingCount', 'attributes', 'topBeers'
@@ -183,6 +185,32 @@ const validateProducerTopBeers = (values, statsRatingCount, productsById) => {
   return topBeers
 }
 
+const validateProducerProductAggregate = (value) => {
+  const aggregate = readDataProperties(value, PRODUCER_PRODUCT_AGGREGATE_KEYS, ['ratingCount', 'averageWeighted'])
+  if (!Number.isSafeInteger(aggregate.ratingCount) || aggregate.ratingCount < 0) invalid()
+  return {
+    ratingCount: aggregate.ratingCount,
+    averageWeighted: validateAggregateAverage(aggregate.averageWeighted, aggregate.ratingCount)
+  }
+}
+
+const validateProducerProductStats = (values, products) => {
+  if (!Array.isArray(values) || values.length !== products.length) invalid()
+  const productsById = new Map(products.map((product) => [String(product.id), product]))
+  const result = values.map((value) => {
+    const stats = readDataProperties(value, PRODUCER_PRODUCT_STATS_KEYS, ['productId', 'community', 'personal'])
+    const productId = validateStableId(stats.productId)
+    if (!productsById.has(String(productId))) invalid()
+    const community = validateProducerProductAggregate(stats.community)
+    const personal = validateProducerProductAggregate(stats.personal)
+    if (personal.ratingCount > community.ratingCount) invalid()
+    return { productId, community, personal }
+  })
+  const ids = new Set(result.map((item) => String(item.productId)))
+  if (ids.size !== products.length) invalid()
+  return result
+}
+
 const validateProducerStats = (value, { community, products }) => {
   const keys = community ? COMMUNITY_PRODUCER_STATS_KEYS : PERSONAL_PRODUCER_STATS_KEYS
   const required = community
@@ -281,7 +309,7 @@ export const validateCatalogueProduct = (payload, { expectedProductId } = {}) =>
   return product
 })
 export const validateCatalogueProducer = (payload, { expectedProducerId } = {}) => validate(() => {
-  const detail = readDataProperties(payload, PRODUCER_DETAIL_KEYS, ['producer', 'products', 'communityStats', 'personalStats'])
+  const detail = readDataProperties(payload, PRODUCER_DETAIL_KEYS, ['producer', 'products', 'communityStats', 'personalStats', 'productStats'])
   const producer = validateProducer(detail.producer)
   if (!producer || (expectedProducerId !== undefined && !sameId(producer.id, validateStableId(expectedProducerId)))) invalid()
   if (!Array.isArray(detail.products)) invalid()
@@ -296,8 +324,9 @@ export const validateCatalogueProducer = (payload, { expectedProducerId } = {}) 
   }
   const communityStats = validateProducerStats(detail.communityStats, { community: true, products })
   const personalStats = validateProducerStats(detail.personalStats, { community: false, products })
+  const productStats = validateProducerProductStats(detail.productStats, products)
   if (communityStats.ratedBeerCount > communityStats.catalogueBeerCount ||
       personalStats.ratingCount > communityStats.ratingCount) invalid()
-  return { producer, products, communityStats, personalStats }
+  return { producer, products, communityStats, personalStats, productStats }
 })
 export const CATALOGUE_RESPONSE_ERROR = Object.freeze({ message: INVALID_CATALOGUE_MESSAGE, code: INVALID_CATALOGUE_CODE })
