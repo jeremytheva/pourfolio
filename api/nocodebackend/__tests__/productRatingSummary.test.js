@@ -28,15 +28,24 @@ const getProductWithRatings = async (ratings) => {
     assert.equal(collection, COLLECTIONS.products)
     return { id, product_name: 'Aggregate Ale', producer_id: 7, product_category_id: 8 }
   }
-  dataProvider.list = async (collection, filters = {}) => {
-    if (collection === COLLECTIONS.ratings) {
-      assert.deepEqual(filters, {
-        product_id: '42',
-        submission_state: 'complete',
-        fields: 'total_weighted,submission_state'
-      })
-      return ratings
+  dataProvider.listPage = async (collection, options) => {
+    assert.equal(collection, COLLECTIONS.ratings)
+    assert.deepEqual(options, {
+      page: 1,
+      limit: 100,
+      orderBy: 'id',
+      order: 'asc',
+      filters: { product_id: '42' }
+    })
+    return {
+      items: ratings,
+      page: 1,
+      pageSize: 100,
+      total: ratings.length,
+      totalPages: ratings.length ? 1 : 0
     }
+  }
+  dataProvider.list = async (collection) => {
     if (collection === COLLECTIONS.producers) return [{ id: 7, producer_name: 'Test Brewery' }]
     if (collection === COLLECTIONS.categories) return [{ id: 8, category_name: 'Test Beer' }]
     assert.fail(`Unexpected collection: ${collection}`)
@@ -131,7 +140,8 @@ test('product details fail closed when a provider returns a different product id
     assert.equal(id, '42')
     return { id: 43, product_name: 'Wrong product' }
   }
-  dataProvider.list = async () => assert.fail('a mismatched product must not hydrate or load ratings')
+  dataProvider.list = async () => assert.fail('a mismatched product must not hydrate relationships')
+  dataProvider.listPage = async () => assert.fail('a mismatched product must not load ratings')
   const response = createResponse()
 
   await assert.rejects(__testables.getProduct('42', response), (error) => {
