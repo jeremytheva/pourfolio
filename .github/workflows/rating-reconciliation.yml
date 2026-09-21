@@ -1,0 +1,165 @@
+name: Controlled live rating reconciliation
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Exact merged main commit SHA containing the reconciliation implementation
+        required: true
+        type: string
+      confirmation:
+        description: Type APPLY LIVE RATING RECONCILIATION
+        required: true
+        type: string
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: live-rating-reconciliation
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.number == 503 &&
+       github.event.comment.body == '/apply-rating-reconciliation' &&
+       github.event.comment.user.login == github.repository_owner &&
+       !github.event.issue.pull_request)
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+      NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+      NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+      RUN_LIVE_RATING_RECONCILIATION: "1"
+      RUN_LIVE_RATING_INTEGRITY: "1"
+      LIVE_RATING_RECONCILIATION_CONFIRMATION: APPLY LIVE RATING RECONCILIATION
+
+    steps:
+      - name: Validate destructive execution request
+        shell: bash
+        env:
+          REQUESTED_RELEASE_SHA: ${{ inputs.release_sha || '' }}
+          REQUESTED_CONFIRMATION: ${{ inputs.confirmation || '' }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            [[ "$REQUESTED_RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+            test "$REQUESTED_CONFIRMATION" = "$LIVE_RATING_RECONCILIATION_CONFIRMATION"
+          else
+            test "${{ github.event.issue.number }}" = "503"
+            test "${{ github.event.comment.body }}" = "/apply-rating-reconciliation"
+            test "${{ github.event.comment.user.login }}" = "${{ github.repository_owner }}"
+          fi
+
+      - name: Check out exact reconciliation release
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_sha || 'main' }}
+
+      - name: Confirm checked-out release
+        id: release
+        shell: bash
+        env:
+          REQUESTED_RELEASE_SHA: ${{ inputs.release_sha || '' }}
+        run: |
+          set -euo pipefail
+          release_sha="$(git rev-parse HEAD)"
+          [[ "$release_sha" =~ ^[0-9a-f]{40}$ ]]
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            test "$release_sha" = "$REQUESTED_RELEASE_SHA"
+          fi
+          echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate exact release
+        run: npm run platform:validate
+
+      - name: Prepare evidence directory
+        run: mkdir -p artifacts/rating-reconciliation
+
+      - name: Independent read-only integrity preflight
+        run: npm run audit:rating:live-integrity | tee artifacts/rating-reconciliation/integrity-before.json
+
+      - name: Build immediate reconciliation preflight
+        id: preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run reconcile:rating:live | tail -n 1 | tee artifacts/rating-reconciliation/preflight.json
+          eligible="$(jq -r '.eligible' artifacts/rating-reconciliation/preflight.json)"
+          [[ "$eligible" =~ ^[0-9]+$ ]]
+          echo "eligible=$eligible" >> "$GITHUB_OUTPUT"
+
+      - name: Apply eligible legacy rating reconciliation
+        env:
+          EXPECTED_LIVE_RATING_ELIGIBLE: ${{ steps.preflight.outputs.eligible }}
+        run: npm run reconcile:rating:live -- --apply | tail -n 1 | tee artifacts/rating-reconciliation/apply.json
+
+      - name: Verify reconciliation is idempotent
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run reconcile:rating:live | tail -n 1 | tee artifacts/rating-reconciliation/postflight.json
+          test "$(jq -r '.eligible' artifacts/rating-reconciliation/postflight.json)" = "0"
+
+      - name: Independent read-only integrity postflight
+        run: npm run audit:rating:live-integrity | tee artifacts/rating-reconciliation/integrity-after.json
+
+      - name: Write redacted summary
+        if: always()
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          node - <<'NODE' > artifacts/rating-reconciliation/summary.md
+          const fs = require('fs')
+          const read = (name) => {
+            try { return JSON.parse(fs.readFileSync(`artifacts/rating-reconciliation/${name}.json`, 'utf8').trim().split('\n').at(-1)) }
+            catch { return null }
+          }
+          const pre = read('preflight')
+          const apply = read('apply')
+          const post = read('postflight')
+          const before = read('integrity-before')
+          const after = read('integrity-after')
+          console.log('## Controlled live rating reconciliation')
+          console.log('')
+          console.log(`- Release: ${process.env.RELEASE_SHA || 'unavailable'}`)
+          console.log(`- Preflight eligible: ${pre?.eligible ?? 'unavailable'}`)
+          console.log(`- Applied: ${apply?.applied ?? 'unavailable'}`)
+          console.log(`- Remaining eligible: ${post?.eligible ?? 'unavailable'}`)
+          console.log(`- Integrity before: ${before?.status ?? 'unavailable'}`)
+          console.log(`- Integrity after: ${after?.status ?? 'unavailable'}`)
+          console.log('')
+          console.log('No rating identifiers, user identifiers, emails, row bodies, credentials or provider secrets are included in this summary.')
+          NODE
+
+      - name: Retain redacted reconciliation evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: live-rating-reconciliation-${{ steps.release.outputs.sha || github.run_id }}
+          path: artifacts/rating-reconciliation/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Post sanitized result to issue 503
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 503 --body-file artifacts/rating-reconciliation/summary.md
