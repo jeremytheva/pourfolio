@@ -102,8 +102,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run read-only live rating integrity audit
-        env:
+        env: &live-rating-read-environment
           RUN_LIVE_RATING_INTEGRITY: "1"
+          RUN_LIVE_RATING_RECONCILIATION: "1"
           NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
           NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
@@ -111,6 +112,10 @@ jobs:
         run: |
           mkdir -p artifacts/rating-integrity
           node scripts/audit-live-rating-integrity.js | tee artifacts/rating-integrity/summary.json
+      - name: Run live reconciliation dry-run
+        env: *live-rating-read-environment
+        shell: bash
+        run: npm run reconcile:rating:live | tee artifacts/rating-integrity/reconciliation-preflight.json
       - name: Retain redacted rating integrity evidence
         if: always()
         uses: actions/upload-artifact@v7

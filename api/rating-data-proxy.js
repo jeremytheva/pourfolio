@@ -495,7 +495,8 @@ const historicalReconciliationPlan = async (user) => {
     const validBonuses = bonusAttributeIds.length === ownedBonuses.length && new Set(bonusAttributeIds).size === ownedBonuses.length
     const legacyCandidate = !String(rating.submission_key ?? '').trim() &&
       !String(rating.submission_fingerprint ?? '').trim()
-    const structurallyValid = legacyCandidate && validScores && validBonuses
+    const validTotal = completedRatingTotal(rating.total_weighted) !== null
+    const structurallyValid = legacyCandidate && validScores && validBonuses && validTotal
     const legacyKey = `legacy:${user.id}:${rating.id}`
     const legacyFingerprint = crypto.createHash('sha256').update(JSON.stringify({
       ratingId: String(rating.id),
@@ -508,6 +509,7 @@ const historicalReconciliationPlan = async (user) => {
       currentState: rating.submission_state ?? null,
       legacyCandidate,
       structurallyValid,
+      validTotal,
       scoreCount: ownedScores.length,
       bonusCount: ownedBonuses.length,
       proposed: structurallyValid ? {
