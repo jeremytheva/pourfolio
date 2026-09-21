@@ -98,7 +98,9 @@ Branch `feature/brewery-profile-statistics` currently:
 
 No provider schema/data mutation is introduced by #514.
 
-Lifecycle: **VALIDATING**. Canonical repository, browser/accessibility, security and deployment evidence remain to be confirmed on the exact PR head.
+Exact implementation head `687910afea5c148eb7f7e39f6c7bcf188814598b` passed canonical `npm run platform:validate`, all **115** browser/accessibility tests and CodeQL. Vercel deployment reported success, the branch was zero commits behind `main`, PR #515 was mergeable and there were zero unresolved review threads at the readiness audit.
+
+Lifecycle: **READY / MERGEABLE**, subject to final docs-only head revalidation after recording this evidence.
 
 ## Server-authoritative brewery discovery — #512
 
