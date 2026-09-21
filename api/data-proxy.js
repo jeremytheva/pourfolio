@@ -1,4 +1,5 @@
 import crypto from 'node:crypto'
+import { completedRatingTotal } from '../src/lib/completedRatingContract.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 import { COLLECTIONS } from '../src/data/contract.js'
 import { calculateRatingTotals } from '../src/utils/ratingSubmission.js'
@@ -74,7 +75,7 @@ const invalidProviderResponse = () => {
 }
 
 const normaliseList = (value) => asArray(value).filter((item) => item && typeof item === 'object')
-const isCompletedRating = (rating) => rating?.submission_state === 'complete'
+const isCompletedRating = (rating) => rating?.submission_state === 'complete' && completedRatingTotal(rating?.total_weighted) !== null
 
 const findProfile = async (userId) => {
   const candidates = normaliseList(await dataProvider.list(COLLECTIONS.profiles, { user_id: userId }))
@@ -146,6 +147,41 @@ const listProducts = async (request, response) => {
   })
 }
 
+const PRODUCT_RATING_PAGE_SIZE = 100
+const PRODUCT_RATING_MAX_PAGES = 1000
+
+const productRatingSummary = async (productId) => {
+  const requestedProductId = parseCatalogueProductId(productId)
+  const totals = []
+
+  for (let page = 1; page <= PRODUCT_RATING_MAX_PAGES; page += 1) {
+    const payload = await dataProvider.listPage(COLLECTIONS.ratings, {
+      page,
+      limit: PRODUCT_RATING_PAGE_SIZE,
+      orderBy: 'id',
+      order: 'asc',
+      filters: { product_id: requestedProductId }
+    })
+    const pageRatings = normaliseList(payload.items)
+      .filter((rating) => String(rating.product_id) === requestedProductId && isCompletedRating(rating))
+
+    totals.push(...pageRatings
+      .map((rating) => completedRatingTotal(rating.total_weighted))
+      .filter((total) => total !== null))
+
+    if (payload.totalPages === 0 || page >= payload.totalPages || payload.items.length < PRODUCT_RATING_PAGE_SIZE) {
+      return {
+        count: totals.length,
+        average: totals.length
+          ? Number((totals.reduce((sum, value) => sum + value, 0) / totals.length).toFixed(2))
+          : null
+      }
+    }
+  }
+
+  throw invalidProviderResponse()
+}
+
 const getProduct = async (productId, response) => {
   const requestedProductId = parseCatalogueProductId(productId)
   const product = await dataProvider.get(COLLECTIONS.products, requestedProductId)
@@ -155,27 +191,14 @@ const getProduct = async (productId, response) => {
   }
   if (String(product.id) !== requestedProductId) throw invalidProviderResponse()
 
-  const [hydrated] = await hydrateProducts([product])
-  const ratings = normaliseList(await dataProvider.list(COLLECTIONS.ratings, {
-    product_id: product.id,
-    submission_state: 'complete',
-    fields: 'total_weighted,submission_state'
-  })).filter(isCompletedRating)
-  const validTotals = ratings
-    .map((rating) => {
-      const total = rating.total_weighted
-      return total === null || (typeof total === 'string' && !total.trim()) ? Number.NaN : Number(total)
-    })
-    .filter(Number.isFinite)
+  const [hydrated, ratingSummary] = await Promise.all([
+    hydrateProducts([product]).then(([record]) => record),
+    productRatingSummary(requestedProductId)
+  ])
 
   response.status(200).json({
     ...hydrated,
-    ratingSummary: {
-      count: validTotals.length,
-      average: validTotals.length
-        ? Number((validTotals.reduce((sum, value) => sum + value, 0) / validTotals.length).toFixed(2))
-        : null
-    },
+    ratingSummary,
     // Launch catalogue details expose aggregates, not individual rating records.
     ratings: []
   })
@@ -1149,6 +1172,7 @@ export const __testables = {
   routeRequest,
   findProfile,
   getProduct,
+  productRatingSummary,
   getProfile,
   updateProfile,
   updateCellar,

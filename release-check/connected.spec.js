@@ -194,6 +194,81 @@ test('catalogue, pagination, direct details, rating form boundary and session-ba
   authenticatedStorageState = await page.context().storageState()
 })
 
+test('rating reconciliation dry-run is idempotent and completed aggregates are coherent', async ({ page }) => {
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
+
+  const before = await responseJson(await page.request.get('/api/nocodebackend/ratings/mine'))
+  const beforeItems = Array.isArray(before.items) ? before.items : []
+  const beforeIds = beforeItems.map(({ id }) => String(id)).sort()
+  expect(new Set(beforeIds).size).toBe(beforeIds.length)
+
+  const dryRunRequest = () => page.request.post('/api/nocodebackend/ratings/reconcile', {
+    data: { apply: false }
+  })
+
+  const firstResponse = await dryRunRequest()
+  expect(firstResponse.status()).toBe(200)
+  const first = await responseJson(firstResponse)
+  expect(first.dryRun).toBe(true)
+  expect(first.examined).toBeGreaterThanOrEqual(beforeItems.length)
+  expect(first.eligible).toBeGreaterThanOrEqual(0)
+  expect(Array.isArray(first.items)).toBe(true)
+
+  const secondResponse = await dryRunRequest()
+  expect(secondResponse.status()).toBe(200)
+  const second = await responseJson(secondResponse)
+
+  const stablePlan = (payload) => ({
+    dryRun: payload.dryRun,
+    examined: payload.examined,
+    eligible: payload.eligible,
+    items: (payload.items || []).map((item) => ({
+      ratingId: String(item.ratingId),
+      currentState: item.currentState,
+      legacyCandidate: item.legacyCandidate,
+      structurallyValid: item.structurallyValid,
+      scoreCount: item.scoreCount,
+      bonusCount: item.bonusCount,
+      proposed: item.proposed
+    })).sort((left, right) => left.ratingId.localeCompare(right.ratingId))
+  })
+  expect(stablePlan(second)).toEqual(stablePlan(first))
+
+  const planById = new Map(first.items.map((item) => [String(item.ratingId), item]))
+  for (const rating of beforeItems) {
+    expect(planById.has(String(rating.id))).toBe(true)
+    expect(planById.get(String(rating.id)).currentState).toBe('complete')
+    const total = Number(rating.total_weighted)
+    expect(Number.isFinite(total) && total > 0 && total <= 5).toBe(true)
+  }
+
+  for (const item of first.items) {
+    if (item.currentState === 'pending' || item.currentState === 'failed') {
+      expect(beforeIds).not.toContain(String(item.ratingId))
+    }
+  }
+
+  const byProduct = new Map()
+  for (const rating of beforeItems) {
+    const productId = String(rating.product_id)
+    byProduct.set(productId, (byProduct.get(productId) || 0) + 1)
+  }
+
+  for (const [productId, personalCompletedCount] of byProduct) {
+    const productResponse = await page.request.get(`/api/nocodebackend/catalog/products/${encodeURIComponent(productId)}`)
+    expect(productResponse.status()).toBe(200)
+    const product = await responseJson(productResponse)
+    expect(product.ratingSummary?.count).toBeGreaterThanOrEqual(personalCompletedCount)
+    if (product.ratingSummary.count > 0) {
+      const average = Number(product.ratingSummary.average)
+      expect(Number.isFinite(average) && average > 0 && average <= 5).toBe(true)
+    }
+  }
+
+  const after = await responseJson(await page.request.get('/api/nocodebackend/ratings/mine'))
+  expect((after.items || []).map(({ id }) => String(id)).sort()).toEqual(beforeIds)
+})
+
 test('Breweries & Venues is keyboard operable and preserves the verified-data boundary', async ({ page }) => {
   await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
   await page.goto('/places')

@@ -1,12 +1,16 @@
 export const POURFOLIO_RATING_FORMULA_VERSION = 'v2'
 
+export const FIXED_BONUS_WEIGHT = 0.10
+export const ADJUSTABLE_RATING_WEIGHT_TOTAL = 1 - FIXED_BONUS_WEIGHT
+export const ADJUSTABLE_RATING_WEIGHT_KEYS = Object.freeze(['appearance', 'aroma', 'mouthfeel', 'flavour', 'follow'])
+
 export const DEFAULT_RATING_WEIGHTS = Object.freeze({
   appearance: 0.10,
   aroma: 0.10,
   mouthfeel: 0.20,
   flavour: 0.25,
   follow: 0.25,
-  bonus: 0.10
+  bonus: FIXED_BONUS_WEIGHT
 })
 
 export const RATING_DIMENSIONS = Object.freeze([
@@ -67,6 +71,69 @@ export function sanitiseRatingWeights(weights = DEFAULT_RATING_WEIGHTS) {
   if (Object.values(result).every((weight) => weight === 0)) {
     throw new Error('At least one rating attribute must have a positive weight.')
   }
+  return result
+}
+
+const roundWeight = (value) => Number(value.toFixed(8))
+
+export function normaliseFixedBonusWeights(weights = DEFAULT_RATING_WEIGHTS) {
+  const source = weights && typeof weights === 'object' && !Array.isArray(weights) ? weights : {}
+  const main = ADJUSTABLE_RATING_WEIGHT_KEYS.map((key) => {
+    const value = Number(source[key] ?? DEFAULT_RATING_WEIGHTS[key])
+    return Number.isFinite(value) && value > 0 ? value : 0
+  })
+  const total = main.reduce((sum, value) => sum + value, 0)
+  const base = total > 0
+    ? main
+    : ADJUSTABLE_RATING_WEIGHT_KEYS.map((key) => DEFAULT_RATING_WEIGHTS[key])
+  const baseTotal = base.reduce((sum, value) => sum + value, 0)
+  const result = {}
+  let assigned = 0
+
+  ADJUSTABLE_RATING_WEIGHT_KEYS.forEach((key, index) => {
+    const value = index === ADJUSTABLE_RATING_WEIGHT_KEYS.length - 1
+      ? ADJUSTABLE_RATING_WEIGHT_TOTAL - assigned
+      : roundWeight(ADJUSTABLE_RATING_WEIGHT_TOTAL * base[index] / baseTotal)
+    result[key] = Math.max(0, roundWeight(value))
+    assigned += result[key]
+  })
+
+  result.bonus = FIXED_BONUS_WEIGHT
+  return result
+}
+
+export function rebalanceFixedBonusWeights(weights, changedKey, changedValue) {
+  if (!ADJUSTABLE_RATING_WEIGHT_KEYS.includes(changedKey)) return normaliseFixedBonusWeights(weights)
+
+  const current = normaliseFixedBonusWeights(weights)
+  const requested = Number(changedValue)
+  const changed = Number.isFinite(requested)
+    ? Math.max(0, Math.min(ADJUSTABLE_RATING_WEIGHT_TOTAL, requested))
+    : 0
+  const otherKeys = ADJUSTABLE_RATING_WEIGHT_KEYS.filter((key) => key !== changedKey && current[key] > 0)
+
+  if (!otherKeys.length) {
+    const result = Object.fromEntries(ADJUSTABLE_RATING_WEIGHT_KEYS.map((key) => [key, key === changedKey ? ADJUSTABLE_RATING_WEIGHT_TOTAL : 0]))
+    return { ...result, bonus: FIXED_BONUS_WEIGHT }
+  }
+
+  const remaining = ADJUSTABLE_RATING_WEIGHT_TOTAL - changed
+  const otherTotal = otherKeys.reduce((sum, key) => sum + current[key], 0)
+  const result = { ...current, [changedKey]: roundWeight(changed) }
+  let assigned = 0
+
+  otherKeys.forEach((key, index) => {
+    const value = index === otherKeys.length - 1
+      ? remaining - assigned
+      : roundWeight(remaining * current[key] / otherTotal)
+    result[key] = Math.max(0, roundWeight(value))
+    assigned += result[key]
+  })
+
+  for (const key of ADJUSTABLE_RATING_WEIGHT_KEYS) {
+    if (key !== changedKey && !otherKeys.includes(key)) result[key] = 0
+  }
+  result.bonus = FIXED_BONUS_WEIGHT
   return result
 }
 

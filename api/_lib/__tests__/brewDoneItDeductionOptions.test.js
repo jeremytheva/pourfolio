@@ -37,6 +37,7 @@ test('only durable complete ratings with canonical /5 totals count as familiarit
   assert.equal(completedRating(completeRating(1, 5)), true)
   assert.equal(completedRating(completeRating(1, 0)), false)
   assert.equal(completedRating(completeRating(1, 5.1)), false)
+  assert.equal(completedRating(completeRating(1, 4.2)), true)
   assert.equal(completedRating({ ...completeRating(1), submission_state: 'pending' }), false)
   assert.equal(completedRating({ ...completeRating(1), submission_state: 'failed' }), false)
 })

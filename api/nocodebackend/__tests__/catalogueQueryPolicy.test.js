@@ -42,9 +42,9 @@ test('rating history keeps its owner filter and deduplicates product relationshi
   dataProvider.list = async (collection, filters) => {
     calls.push({ collection, filters })
     return collection === COLLECTIONS.ratings ? [
-      { id: 1, user_id: 'owner', product_id: 7, submission_state: 'complete' },
-      { id: 2, user_id: 'owner', product_id: 7, submission_state: 'complete' },
-      { id: 3, user_id: 'intruder', product_id: 99, submission_state: 'complete' }
+      { id: 1, user_id: 'owner', product_id: 7, submission_state: 'complete', total_weighted: 4.1 },
+      { id: 2, user_id: 'owner', product_id: 7, submission_state: 'complete', total_weighted: 4.2 },
+      { id: 3, user_id: 'intruder', product_id: 99, submission_state: 'complete', total_weighted: 4.3 }
     ] : []
   }
   dataProvider.get = async (collection, id) => {

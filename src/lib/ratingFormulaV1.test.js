@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import {
+  ADJUSTABLE_RATING_WEIGHT_TOTAL,
   DEFAULT_RATING_WEIGHTS,
+  FIXED_BONUS_WEIGHT,
   POURFOLIO_RATING_FORMULA_VERSION,
   RATING_DIMENSIONS,
   adjustableDollarScore,
@@ -10,8 +12,10 @@ import {
   calculateScaledScore,
   canonicalRatingKey,
   formatRatingTotal,
+  normaliseFixedBonusWeights,
   normalisePriceTo375,
   normaliseRatingDimension,
+  rebalanceFixedBonusWeights,
   sanitiseRatingWeights,
   scoreOutOf100
 } from './ratingFormulaV1.js'
@@ -73,6 +77,47 @@ describe('Pourfolio Rating Formula v2', () => {
     })
     closeTo(totals.weighted, 5 * ((0.75 * 1) + (0.25 * (1 / 7))))
     assert.equal(totals.standard, null)
+  })
+
+  it('fixes Bonus at 10% and keeps the adjustable rating pool at 90%', () => {
+    assert.equal(FIXED_BONUS_WEIGHT, 0.1)
+    assert.equal(ADJUSTABLE_RATING_WEIGHT_TOTAL, 0.9)
+    assert.deepEqual(normaliseFixedBonusWeights(DEFAULT_RATING_WEIGHTS), DEFAULT_RATING_WEIGHTS)
+  })
+
+  it('redistributes a changed weight proportionally across the other active attributes', () => {
+    const adjusted = rebalanceFixedBonusWeights(DEFAULT_RATING_WEIGHTS, 'appearance', 0)
+    closeTo(adjusted.appearance, 0)
+    closeTo(adjusted.aroma, 0.1125)
+    closeTo(adjusted.mouthfeel, 0.225)
+    closeTo(adjusted.flavour, 0.28125)
+    closeTo(adjusted.follow, 0.28125)
+    closeTo(adjusted.bonus, 0.1)
+    closeTo(Object.values(adjusted).reduce((sum, weight) => sum + weight, 0), 1)
+  })
+
+  it('leaves existing zero-weight attributes at zero while rebalancing active attributes', () => {
+    const adjusted = rebalanceFixedBonusWeights({
+      appearance: 0,
+      aroma: 0,
+      mouthfeel: 0.3,
+      flavour: 0.3,
+      follow: 0.3,
+      bonus: 0.1
+    }, 'mouthfeel', 0.45)
+
+    closeTo(adjusted.appearance, 0)
+    closeTo(adjusted.aroma, 0)
+    closeTo(adjusted.mouthfeel, 0.45)
+    closeTo(adjusted.flavour, 0.225)
+    closeTo(adjusted.follow, 0.225)
+    closeTo(adjusted.bonus, 0.1)
+  })
+
+  it('does not allow Bonus to be reweighted through proportional controls', () => {
+    const adjusted = rebalanceFixedBonusWeights(DEFAULT_RATING_WEIGHTS, 'bonus', 0.5)
+    closeTo(adjusted.bonus, 0.1)
+    closeTo(Object.values(adjusted).reduce((sum, weight) => sum + weight, 0), 1)
   })
 
   it('requires at least one positive valid personalised weight', () => {

@@ -46,6 +46,44 @@ test('list matches Swagger read route, instance query and bearer headers', async
   })
 })
 
+test('rating child list retries a silent-empty exact read with bounded rating-scoped pagination', async () => {
+  const urls = []
+  global.fetch = async (url) => {
+    const requested = String(url)
+    urls.push(requested)
+    if (requested.includes('&rating_id=42&user_id=owner')) return response({ data: [] })
+    if (requested.includes('&rating_id=42&page=1&limit=100')) {
+      return response({ data: [
+        { id: 7, rating_id: 42, user_id: 'owner', attribute_id: 5 },
+        { id: 8, rating_id: 42, user_id: 'other', attribute_id: 6 }
+      ] })
+    }
+    return response({ data: [] })
+  }
+
+  assert.deepEqual(
+    await dataProvider.list('rating_scores', { rating_id: 42, user_id: 'owner' }),
+    [{ id: 7, rating_id: 42, user_id: 'owner', attribute_id: 5 }]
+  )
+  assert.equal(urls.length, 2)
+  assert.equal(urls.some((url) => !url.includes('rating_id=42')), false)
+})
+
+test('rating child recovery remains empty when bounded rating-scoped pagination returns no rows', async () => {
+  const urls = []
+  global.fetch = async (url) => {
+    urls.push(String(url))
+    return response({ data: [] })
+  }
+
+  assert.deepEqual(
+    await dataProvider.list('bonus_attribute_rating_mapping', { rating_id: 42, user_id: 'owner' }),
+    []
+  )
+  assert.equal(urls.length, 2)
+  assert.equal(urls.every((url) => url.includes('rating_id=42')), true)
+})
+
 test('hardcoded data fallback is api.nocodebackend.com', () => {
   assert.equal(__testables.DEFAULT_DATA_BASE_URL, 'https://api.nocodebackend.com/')
   assert.equal(__testables.resolveDataBaseUrl(undefined), 'https://api.nocodebackend.com')

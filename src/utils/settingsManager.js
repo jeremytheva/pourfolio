@@ -1,5 +1,5 @@
 import { beverageTypes } from './beverageTypes'
-import { DEFAULT_RATING_WEIGHTS, sanitiseRatingWeights } from '../lib/ratingFormulaV1.js'
+import { DEFAULT_RATING_WEIGHTS, normaliseFixedBonusWeights, sanitiseRatingWeights } from '../lib/ratingFormulaV1.js'
 
 const SETTINGS_KEY = 'brewBudsSettings'
 const ADMIN_UPDATES_KEY = 'brewBudsAdminUpdates'
@@ -47,7 +47,9 @@ export const getSettings = (beverageType = 'beer') => {
     return {
       ...defaults,
       ...settings,
-      ratingWeights: { ...defaults.ratingWeights, ...(settings.ratingWeights || {}) }
+      ratingWeights: beverageType === 'beer'
+        ? normaliseFixedBonusWeights({ ...defaults.ratingWeights, ...(settings.ratingWeights || {}) })
+        : { ...defaults.ratingWeights, ...(settings.ratingWeights || {}) }
     }
   } catch (error) {
     console.error('Error loading settings:', error)
@@ -58,7 +60,7 @@ export const getSettings = (beverageType = 'beer') => {
 export const saveSettings = (settings, beverageType = 'beer') => {
   try {
     const next = { ...settings, settingsVersion: SETTINGS_VERSION }
-    if (beverageType === 'beer') next.ratingWeights = sanitiseRatingWeights(next.ratingWeights)
+    if (beverageType === 'beer') next.ratingWeights = sanitiseRatingWeights(normaliseFixedBonusWeights(next.ratingWeights))
     localStorage.setItem(`${SETTINGS_KEY}_${beverageType}`, JSON.stringify(next))
     return true
   } catch (error) {
