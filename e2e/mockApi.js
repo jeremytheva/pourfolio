@@ -126,6 +126,7 @@ export const installMockApi = async (page) => {
 
   await page.route('**/api/nocodebackend/catalog/producers?**', (route) => {
     const requestUrl = new URL(route.request().url())
+    if (requestUrl.pathname.endsWith('/catalog/producers/rankings')) return route.fallback()
     const pageSize = Number(requestUrl.searchParams.get('limit') || 50)
     const search = requestUrl.searchParams.get('q')?.trim().toLocaleLowerCase() || ''
     const hasProducts = requestUrl.searchParams.get('hasProducts') === 'true'
