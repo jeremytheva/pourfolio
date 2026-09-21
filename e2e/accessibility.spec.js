@@ -86,7 +86,7 @@ test('/search announces an empty result without moving keyboard focus from the q
   await expect(search).toBeFocused()
   await expect(page.getByRole('heading', { name: 'No matches found' })).toBeVisible()
   await expect(page.getByText('Try a shorter beer, brewery or style name.')).toBeVisible()
-  await expect(page.locator('section[aria-labelledby="product-results-heading"]')).toHaveAttribute('aria-busy', 'false')
+  await expect(page.locator('section[aria-labelledby="search-results-heading"]')).toHaveAttribute('aria-busy', 'false')
   await expect(page.getByRole('link', { name: /Ace/ })).toHaveCount(0)
 })
 
