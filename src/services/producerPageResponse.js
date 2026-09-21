@@ -4,6 +4,7 @@ const INVALID_MESSAGE = 'The server returned invalid producer catalogue data. Pl
 const INVALID_CODE = 'invalid_producer_catalogue_response'
 const PAGE_KEYS = new Set(['items', 'page', 'pageSize', 'total', 'totalPages'])
 const PRODUCER_KEYS = new Set(['id', 'producer_name', 'address', 'suburb_id'])
+const DISCOVERY_ROW_KEYS = new Set(['producer', 'productCount'])
 
 const invalid = () => {
   throw new ApiError(INVALID_MESSAGE, { status: 502, code: INVALID_CODE })
@@ -56,7 +57,16 @@ const producer = (value) => {
   return Object.freeze(result)
 }
 
-export const validateCatalogueProducerPage = (payload, { expectedPage, expectedPageSize } = {}) => {
+const discoveryRow = (value) => {
+  const data = plainData(value, DISCOVERY_ROW_KEYS, ['producer', 'productCount'])
+  if (!Number.isSafeInteger(data.productCount) || data.productCount < 1) invalid()
+  return Object.freeze({
+    producer: producer(data.producer),
+    productCount: data.productCount
+  })
+}
+
+export const validateCatalogueProducerPage = (payload, { expectedPage, expectedPageSize, includeProductCount = false } = {}) => {
   const page = plainData(payload, PAGE_KEYS, ['items', 'page', 'pageSize', 'total', 'totalPages'])
   if (!Array.isArray(page.items)) invalid()
   for (const value of [page.page, page.pageSize, page.total, page.totalPages]) {
@@ -74,8 +84,8 @@ export const validateCatalogueProducerPage = (payload, { expectedPage, expectedP
       : page.total - (page.pageSize * (page.totalPages - 1))
   if (page.items.length !== expectedItems) invalid()
 
-  const items = page.items.map(producer)
-  const ids = new Set(items.map((item) => String(item.id)))
+  const items = includeProductCount ? page.items.map(discoveryRow) : page.items.map(producer)
+  const ids = new Set(items.map((item) => String(includeProductCount ? item.producer.id : item.id)))
   if (ids.size !== items.length) invalid()
   return Object.freeze({
     items: Object.freeze(items),
