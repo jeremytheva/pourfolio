@@ -100,6 +100,33 @@ export const installMockApi = async (page) => {
     })
   }))
 
+  await page.route('**/api/nocodebackend/catalog/producers?**', (route) => {
+    const requestUrl = new URL(route.request().url())
+    const pageSize = Number(requestUrl.searchParams.get('limit') || 50)
+    const search = requestUrl.searchParams.get('q')?.trim().toLocaleLowerCase() || ''
+    const hasProducts = requestUrl.searchParams.get('hasProducts') === 'true'
+    const producer = { id: 20, producer_name: 'Rocky Ridge Brewing', address: '', suburb_id: 9567 }
+    const matches = !search || [producer.producer_name, producer.address]
+      .join(' ')
+      .toLocaleLowerCase()
+      .includes(search)
+    const items = matches
+      ? hasProducts ? [{ producer, productCount: 1 }] : [producer]
+      : []
+
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items,
+        page: 1,
+        pageSize,
+        total: items.length,
+        totalPages: items.length ? 1 : 0
+      })
+    })
+  })
+
   await page.route('**/api/nocodebackend/catalog/producers/20', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
