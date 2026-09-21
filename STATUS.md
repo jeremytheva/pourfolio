@@ -218,6 +218,23 @@ Do not run rating create/delete, cellar CRUD certification, provider schema muta
 
 The same rule applies to Brew Done It provider schema creation: merged source and a source-auditor do not authorize a provider mutation. No Brew Done It collection should be provisioned or enabled until the completed provider-evidence manifest passes `npm run audit:brew-provider-evidence -- --manifest <path>`, the underlying evidence is genuine, and explicit provider-mutation approval plus independent review are recorded.
 
+## Independent bonus-attribute refinement — #507
+
+Issue **#507** is implementing a focused follow-up to the merged provider-backed bonus workflow from #447 / PR #472.
+
+Current branch: `feature/bonus-attribute-search-overall`.
+
+Implemented source scope:
+
+- rating-dimension bonus descriptors are directly visible and have dimension-scoped keyword search;
+- the final bonus browser keeps Overall attributes visible and groups other categories below as collapsed disclosures;
+- search is case/punctuation insensitive and multi-word token based;
+- shared/multi-category selections remain keyed by bonus-attribute ID and contribute only once;
+- `data/bonus_attribute_category_plan.csv` records the reviewed category plan for the 82 supplied canonical descriptors without becoming a frontend fallback;
+- `scripts/reconcile-bonus-attribute-categories.js` provides dry-run-first, additive, confirmation-gated provider reconciliation for missing canonical categories/mappings.
+
+Live provider mapping reconciliation has **not** been run by this source change. Provider data mutation still requires an immediately preceding dry-run, exact expected mutation count, explicit confirmation and post-write verification.
+
 ## Next dependency-correct work
 
 1. Progress #165 only up to the provider/irreversible migration boundary; evidence the required schema/constraint semantics, safe backfill and backup/restore mechanism without mutating provider data.
