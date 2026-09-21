@@ -469,7 +469,7 @@ test('historical reconciliation owner discovery consumes every provider page', a
       }
     }
   }, async () => {
-    const discovered = await __testables.historicalOwnerRatings('user-1')
+    const discovered = await __testables.historicalOwnerRecords(COLLECTIONS.ratings, 'user-1')
     assert.equal(discovered.length, 101)
     assert.deepEqual(discovered.map(({ id }) => id), ratings.map(({ id }) => id))
     assert.deepEqual(pages, [1, 2])
@@ -485,16 +485,13 @@ test('historical reconciliation is dry-run by default and rejects structurally i
   ]
   await withProviderMocks({
     listPage: async (collection, options) => {
-      assert.equal(collection, COLLECTIONS.ratings)
       assert.deepEqual(options.filters, { user_id: 'user-1' })
-      return { items: ratings, page: 1, pageSize: 100, total: ratings.length, totalPages: 1 }
-    },
-    list: async (collection) => {
-      if (collection === COLLECTIONS.ratingScores) {
-        return [{ id: 20, user_id: 'user-1', rating_id: 10, attribute_id: 5, attribute_score: '6.00' }]
-      }
-      if (collection === COLLECTIONS.bonusRatingMappings) return []
-      return []
+      const items = collection === COLLECTIONS.ratings
+        ? ratings
+        : collection === COLLECTIONS.ratingScores
+          ? [{ id: 20, user_id: 'user-1', rating_id: 10, attribute_id: 5, attribute_score: '6.00' }]
+          : collection === COLLECTIONS.bonusRatingMappings ? [] : assert.fail(`Unexpected collection: ${collection}`)
+      return { items, page: 1, pageSize: 100, total: items.length, totalPages: items.length ? 1 : 0 }
     },
     update: async (...args) => { updates.push(args) }
   }, async () => {
@@ -535,16 +532,16 @@ test('historical reconciliation never promotes or rewrites modern workflow submi
   const updates = []
   await withProviderMocks({
     listPage: async (collection, options) => {
-      assert.equal(collection, COLLECTIONS.ratings)
       assert.deepEqual(options.filters, { user_id: 'user-1' })
-      return { items: ratings, page: 1, pageSize: 100, total: ratings.length, totalPages: 1 }
-    },
-    list: async (collection, filters) => {
-      if (collection === COLLECTIONS.ratingScores) {
-        return [{ id: 30, user_id: 'user-1', rating_id: filters.rating_id, attribute_id: 5, attribute_score: '6.00' }]
-      }
-      if (collection === COLLECTIONS.bonusRatingMappings) return []
-      return []
+      const items = collection === COLLECTIONS.ratings
+        ? ratings
+        : collection === COLLECTIONS.ratingScores
+          ? [
+              { id: 30, user_id: 'user-1', rating_id: 12, attribute_id: 5, attribute_score: '6.00' },
+              { id: 31, user_id: 'user-1', rating_id: 13, attribute_id: 5, attribute_score: '6.00' }
+            ]
+          : collection === COLLECTIONS.bonusRatingMappings ? [] : assert.fail(`Unexpected collection: ${collection}`)
+      return { items, page: 1, pageSize: 100, total: items.length, totalPages: items.length ? 1 : 0 }
     },
     update: async (...args) => { updates.push(args) }
   }, async () => {
@@ -610,16 +607,13 @@ test('historical reconciliation apply updates only structurally valid ratings an
   const updates = []
   await withProviderMocks({
     listPage: async (collection, options) => {
-      assert.equal(collection, COLLECTIONS.ratings)
       assert.deepEqual(options.filters, { user_id: 'user-1' })
-      return { items: ratings, page: 1, pageSize: 100, total: ratings.length, totalPages: 1 }
-    },
-    list: async (collection) => {
-      if (collection === COLLECTIONS.ratingScores) {
-        return [{ id: 20, user_id: 'user-1', rating_id: 10, attribute_id: 5, attribute_score: '6.00' }]
-      }
-      if (collection === COLLECTIONS.bonusRatingMappings) return []
-      return []
+      const items = collection === COLLECTIONS.ratings
+        ? ratings
+        : collection === COLLECTIONS.ratingScores
+          ? [{ id: 20, user_id: 'user-1', rating_id: 10, attribute_id: 5, attribute_score: '6.00' }]
+          : collection === COLLECTIONS.bonusRatingMappings ? [] : assert.fail(`Unexpected collection: ${collection}`)
+      return { items, page: 1, pageSize: 100, total: items.length, totalPages: items.length ? 1 : 0 }
     },
     get: async (collection, id) => collection === COLLECTIONS.ratings
       ? ratings.find((rating) => String(rating.id) === String(id)) || null
