@@ -15,6 +15,20 @@ export const normaliseBonusCategoryKey = (value) => String(value ?? '')
   .toLowerCase()
   .replace(/[^a-z0-9]/g, '')
 
+export const normaliseBonusSearchText = (value) => String(value ?? '')
+  .normalize('NFKC')
+  .toLocaleLowerCase()
+  .replace(/[^a-z0-9]+/g, ' ')
+  .trim()
+  .replace(/\s+/g, ' ')
+
+export const matchesBonusSearch = (query, ...values) => {
+  const tokens = normaliseBonusSearchText(query).split(' ').filter(Boolean)
+  if (!tokens.length) return true
+  const searchable = normaliseBonusSearchText(values.filter(Boolean).join(' '))
+  return tokens.every((token) => searchable.includes(token))
+}
+
 export const normaliseBonusPointValue = (value, { fallback = BONUS_ATTRIBUTE_DEFAULT_POINT_VALUE } = {}) => {
   const number = finiteNumber(value)
   if (number === null) return fallback
