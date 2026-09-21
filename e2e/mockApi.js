@@ -42,7 +42,8 @@ const ratingInsights = {
 const bonusAttributes = [
   { id: 10, description: 'Aroma pop', point_value: 0.8, effective_point_value: 0.8, category_keys: ['aroma'] },
   { id: 11, description: 'Long finish', point_value: 0.8, effective_point_value: 0.8, category_keys: ['follow'] },
-  { id: 12, description: 'Style wow', point_value: 0.5, effective_point_value: 0.5, category_keys: ['overall'] }
+  { id: 12, description: 'Style wow', point_value: 0.5, effective_point_value: 0.5, category_keys: ['overall'] },
+  { id: 13, description: 'Resin layers', point_value: 0.4, effective_point_value: 0.4, category_keys: ['aroma', 'follow'] }
 ]
 const bonusCategories = [
   { key: 'aroma', name: 'Aroma' },
@@ -55,7 +56,7 @@ export const installMockApi = async (page) => {
   let brewGame = null
   let guessCount = 0
   let staleOnce = true
-  let nextBonusId = 13
+  let nextBonusId = 14
   const json = (route, body, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
 
   await page.route('**/api/nocodebackend/auth/get-session', (route) => route.fulfill({
