@@ -196,8 +196,10 @@ export const validateCatalogueProducer = (payload, { expectedProducerId } = {}) 
   const identifiers = new Set(products.map((product) => String(product.id)))
   if (identifiers.size !== products.length) invalid()
   for (const product of products) {
-    if (product.producer_id === null || product.producer_id === undefined || !sameId(product.producer_id, producer.id)) invalid()
-    if (!product.producer || !sameId(product.producer.id, producer.id)) invalid()
+    const attributedProducers = Array.isArray(product.producers)
+      ? product.producers
+      : product.producer ? [product.producer] : []
+    if (!attributedProducers.some((attributedProducer) => sameId(attributedProducer.id, producer.id))) invalid()
   }
   return { producer, products }
 })
