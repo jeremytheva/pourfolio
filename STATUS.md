@@ -34,8 +34,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "051e2711a4ff812b9e5f705b1856334fffc4ebad"
-last_updated: "2026-09-23T03:55:00+10:00"
+last_verified_commit: "95f46ef340016c13fb6e23bba4b145426ec6687d"
+last_updated: "2026-09-23T05:58:00+10:00"
 ---
 
 # STATUS.md
@@ -73,7 +73,9 @@ The producer/search programme through the provider-safe portion of Stage E is me
 - **PR #527** — architecture reconciliation;
 - **PR #529** — roadmap reconciliation;
 - **PR #531** — provider-boundary evidence reconciliation;
-- **PR #533 and PR #536** — fail-closed tasting-sharing authorization and share-safe tasting projection policy.
+- **PR #533, #534 and #536** — fail-closed tasting-sharing authorization, owner visibility controls and share-safe tasting projection policy;
+- **PR #537** — autonomous continuation status reconciliation;
+- **PR #538** — fail-closed Drinking Buddy request/block management policy, exact-head validated and merged at `95f46ef`.
 
 PRs **#532** and **#535** were not merged. Exact-head validation proved `api/current-data-proxy.js` is still imported by `api/data-router.js` and tests, so deletion-only cleanup is invalid. Any future #429 cleanup of this path must migrate those dependencies first and pass canonical validation.
 
