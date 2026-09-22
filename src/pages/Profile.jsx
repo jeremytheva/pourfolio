@@ -2,31 +2,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FiExternalLink, FiStar, FiTrash2, FiUser } from 'react-icons/fi'
 import { Link } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
+import AdvancedRatingScores from '../components/AdvancedRatingScores.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { profileService } from '../services/profileService.js'
 import { ratingService } from '../services/ratingService.js'
 import { formatDate } from '../utils/dateFormatting.js'
-
-const AdvancedScores = ({ scores }) => {
-  if (!scores) return null
-  const styleSampleSize = Number(scores.style_sample_size)
-  const hasStyleSample = Number.isSafeInteger(styleSampleSize) && styleSampleSize > 0
-  return (
-    <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-gray-600 sm:grid-cols-3 xl:grid-cols-5">
-      <div><dt>Score / 100</dt><dd className="font-semibold text-gray-900">{scores.score_out_of_100 ?? '—'}</dd></div>
-      <div><dt>Overall Scaled Score</dt><dd className="font-semibold text-gray-900">{scores.scaled_score ?? '—'}</dd></div>
-      <div>
-        <dt>Style Scaled Score</dt>
-        <dd className="font-semibold text-gray-900">
-          {scores.style_scaled_score ?? '—'}
-          {hasStyleSample && <span className="ml-1 font-normal text-gray-500">({styleSampleSize} style {styleSampleSize === 1 ? 'rating' : 'ratings'})</span>}
-        </dd>
-      </div>
-      <div><dt>Retail PPP</dt><dd className="font-semibold text-gray-900">{scores.retail_ppp ?? '—'}</dd></div>
-      <div><dt>Purchased PPP</dt><dd className="font-semibold text-gray-900">{scores.purchased_ppp ?? '—'}</dd></div>
-    </dl>
-  )
-}
 
 function Profile() {
   const { user } = useAuth()
@@ -210,7 +190,7 @@ function Profile() {
           {ratingsStatus === 'ready' && ratings.length === 0 && <div className="py-10 text-center"><SafeIcon icon={FiStar} className="mx-auto mb-3 h-9 w-9 text-gray-300" /><p className="font-medium text-gray-800">No ratings yet</p><Link to="/home" className="mt-2 inline-block text-sm font-medium text-amber-700 hover:underline">Browse products</Link></div>}
           {ratingsStatus === 'ready' && ratings.length > 0 && <ul className="mt-5 divide-y divide-gray-200" aria-label="Rating history">{ratings.map((rating) => {
             const isDeleting = deletingRatingId === rating.id
-            return <li key={rating.id} className="py-5" aria-busy={isDeleting ? 'true' : undefined}><div className="flex items-start justify-between gap-4"><div><Link ref={(node) => { if (node) ratingLinkRefs.current.set(rating.id, node); else ratingLinkRefs.current.delete(rating.id) }} to={`/products/${rating.product_id}`} className="font-semibold text-gray-900 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">{rating.product?.product_name || `Product ${rating.product_id}`}</Link><p className="mt-1 text-sm text-gray-600">{rating.product?.producer?.producer_name || 'Producer not recorded'}</p><p className="mt-1 text-xs text-gray-500">{formatDate(rating.date_rated)}</p></div><div className="flex items-center gap-3"><span className="whitespace-nowrap text-lg font-semibold text-amber-800">{rating.total_weighted} / 5</span><button type="button" onClick={() => deleteRating(rating)} disabled={isDeleting} className="rounded-lg p-2 text-red-700 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2" aria-label={`${isDeleting ? 'Deleting rating for' : 'Delete rating for'} ${rating.product?.product_name || 'product'}`}><SafeIcon icon={FiTrash2} className="h-4 w-4" /></button></div></div><AdvancedScores scores={rating.advanced_scores} /></li>
+            return <li key={rating.id} className="py-5" aria-busy={isDeleting ? 'true' : undefined}><div className="flex items-start justify-between gap-4"><div><Link ref={(node) => { if (node) ratingLinkRefs.current.set(rating.id, node); else ratingLinkRefs.current.delete(rating.id) }} to={`/products/${rating.product_id}`} className="font-semibold text-gray-900 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">{rating.product?.product_name || `Product ${rating.product_id}`}</Link><p className="mt-1 text-sm text-gray-600">{rating.product?.producer?.producer_name || 'Producer not recorded'}</p><p className="mt-1 text-xs text-gray-500">{formatDate(rating.date_rated)}</p></div><div className="flex items-center gap-3"><span className="whitespace-nowrap text-lg font-semibold text-amber-800">{rating.total_weighted} / 5</span><button type="button" onClick={() => deleteRating(rating)} disabled={isDeleting} className="rounded-lg p-2 text-red-700 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2" aria-label={`${isDeleting ? 'Deleting rating for' : 'Delete rating for'} ${rating.product?.product_name || 'product'}`}><SafeIcon icon={FiTrash2} className="h-4 w-4" /></button></div></div><AdvancedRatingScores scores={rating.advanced_scores} className="mt-3" /></li>
           })}</ul>}
         </section>
       </div>

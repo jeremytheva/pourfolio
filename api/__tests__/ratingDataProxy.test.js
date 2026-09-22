@@ -314,14 +314,18 @@ test('a submission id cannot be replayed with different personalised weights', a
 })
 
 test('owner history preserves exact category metadata, derives private PPP and hides incomplete ratings', async () => {
+  const ownerRatings = [
+    { id: 99, user_id: 'user-1', product_id: 4, cellar_id: 55, date_rated: '2026-09-11T00:00:00.000Z', total_unweighted: 4, total_weighted: 4, submission_state: 'complete' },
+    { id: 101, user_id: 'user-1', product_id: 4, cellar_id: 55, date_rated: '2026-09-12T00:00:00.000Z', total_unweighted: 5, total_weighted: 5, submission_state: 'pending' }
+  ]
   await withProviderMocks({
+    listPage: async (collection, { page, limit, filters = {} }) => {
+      assert.equal(collection, COLLECTIONS.ratings)
+      const items = ownerRatings.filter((item) =>
+        Object.entries(filters).every(([key, value]) => String(item[key]) === String(value)))
+      return { items, page, pageSize: limit, total: items.length, totalPages: items.length ? 1 : 0 }
+    },
     list: async (collection, filters = {}) => {
-      if (collection === COLLECTIONS.ratings && filters.user_id === 'user-1') {
-        return [
-          { id: 99, user_id: 'user-1', product_id: 4, cellar_id: 55, date_rated: '2026-09-11T00:00:00.000Z', total_unweighted: 4, total_weighted: 4, submission_state: 'complete' },
-          { id: 101, user_id: 'user-1', product_id: 4, cellar_id: 55, date_rated: '2026-09-12T00:00:00.000Z', total_unweighted: 5, total_weighted: 5, submission_state: 'pending' }
-        ]
-      }
       if (collection === COLLECTIONS.ratings) return [
         { id: 99, total_weighted: 4, submission_state: 'complete' },
         { id: 100, total_weighted: 5, submission_state: 'complete' },

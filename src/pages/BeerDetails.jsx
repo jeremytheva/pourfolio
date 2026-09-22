@@ -3,6 +3,7 @@ import { FiArrowLeft, FiEdit3, FiPackage, FiRefreshCw, FiStar, FiX } from 'react
 import { Link, useParams } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import ProductRatingInsights from '../components/ProductRatingInsights.jsx'
+import ProductTastingHistory from '../components/ProductTastingHistory.jsx'
 import { beverageService } from '../services/beverageService.js'
 import { cellarService } from '../services/cellarService.js'
 import { ratingService } from '../services/ratingService.js'
@@ -33,6 +34,10 @@ function BeerDetails() {
   const [errorCode, setErrorCode] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
   const [userRatingSummary, setUserRatingSummary] = useState(null)
+  const [userRatings, setUserRatings] = useState([])
+  const [userRatingsStatus, setUserRatingsStatus] = useState('idle')
+  const [userRatingsError, setUserRatingsError] = useState('')
+  const [ratingHistoryReloadKey, setRatingHistoryReloadKey] = useState(0)
   const [showCellarForm, setShowCellarForm] = useState(false)
   const [cellarForm, setCellarForm] = useState(createInitialCellarForm)
   const [cellarContainerMode, setCellarContainerMode] = useState('')
@@ -69,18 +74,35 @@ function BeerDetails() {
   useEffect(() => {
     let active = true
     setUserRatingSummary(null)
-    if (authLoading || !user) return () => { active = false }
+    setUserRatings([])
+    setUserRatingsError('')
 
-    ratingService.getUserRatings()
+    if (authLoading || !user) {
+      setUserRatingsStatus('idle')
+      return () => { active = false }
+    }
+
+    setUserRatingsStatus('loading')
+    ratingService.getUserRatings(productId)
       .then((payload) => {
-        if (active) setUserRatingSummary(buildUserProductRatingSummary(payload, productId))
+        if (!active) return
+        const items = Array.isArray(payload?.items)
+          ? payload.items.filter((rating) => String(rating?.product_id ?? '') === String(productId))
+          : []
+        setUserRatings(items)
+        setUserRatingSummary(buildUserProductRatingSummary({ items }, productId))
+        setUserRatingsStatus('ready')
       })
-      .catch(() => {
-        if (active) setUserRatingSummary(null)
+      .catch((requestError) => {
+        if (!active) return
+        setUserRatingSummary(null)
+        setUserRatings([])
+        setUserRatingsError(requestError.message || 'Your tasting history could not be loaded.')
+        setUserRatingsStatus('error')
       })
 
     return () => { active = false }
-  }, [authLoading, productId, user])
+  }, [authLoading, productId, ratingHistoryReloadKey, user])
 
   useEffect(() => {
     if (status === 'error') loadErrorRef.current?.focus()
@@ -133,6 +155,10 @@ function BeerDetails() {
     setReloadKey((value) => value + 1)
   }
 
+  const retryUserRatingHistory = () => {
+    setRatingHistoryReloadKey((value) => value + 1)
+  }
+
   const addToCellar = async (event) => {
     event.preventDefault()
     setCellarStatus('saving')
@@ -168,6 +194,7 @@ function BeerDetails() {
         <div className="mt-8 flex flex-wrap gap-3"><Link to={`/products/${product.id}/rate`} className="inline-flex items-center rounded-lg bg-amber-700 px-5 py-3 font-medium text-white hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2"><SafeIcon icon={FiStar} className="mr-2 h-5 w-5" />Rate this beer</Link><Link to="/brew-done-it" state={{ initialProductId: String(product.id) }} className="inline-flex items-center rounded-lg border border-amber-300 bg-amber-50 px-5 py-3 font-medium text-amber-900 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">Play Brew-Done-It</Link><button type="button" onClick={toggleCellarForm} disabled={cellarSaving} className="inline-flex items-center rounded-lg border border-gray-300 px-5 py-3 font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-wait disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2" aria-expanded={showCellarForm} aria-controls="cellar-add-section"><SafeIcon icon={showCellarForm ? FiX : FiPackage} className="mr-2 h-5 w-5" />{showCellarForm ? 'Close cellar form' : 'Add to cellar'}</button><Link to={`/products/${product.id}/propose-edit`} className="inline-flex items-center rounded-lg border border-gray-300 px-5 py-3 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2"><SafeIcon icon={FiEdit3} className="mr-2 h-5 w-5" />Suggest correction</Link></div></div></div></article>
       {showCellarForm && <section id="cellar-add-section" className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="cellar-form-heading"><h2 id="cellar-form-heading" className="text-2xl font-semibold text-gray-900">Add {product.product_name} to your cellar</h2><p className="mt-1 text-sm text-gray-600">Sharing series and edition links are optional and remain empty unless explicitly selected in a future supported workflow.</p>{cellarStatus === 'saved' && <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3 text-green-800" role="status" aria-live="polite" aria-atomic="true">Cellar item saved.</div>}{cellarError && <div ref={cellarErrorRef} tabIndex={-1} className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-red-800 outline-none focus:ring-2 focus:ring-red-300" role="alert">{cellarError}</div>}<form onSubmit={addToCellar} aria-busy={cellarSaving ? 'true' : 'false'} className="mt-6 grid gap-5 sm:grid-cols-2"><label className="text-sm font-medium text-gray-700">Quantity<input autoFocus type="number" min="0" max="10000" required value={cellarForm.quantity} onChange={updateCellarField('quantity')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" /></label><label className="text-sm font-medium text-gray-700">Container volume (mL)<input type="number" min="0" max="100000" value={cellarForm.mls} onChange={updateCellarField('mls')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" /></label><label className="text-sm font-medium text-gray-700">Container<select value={cellarContainerMode} onChange={updateCellarContainerMode} className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"><option value="">Not specified</option>{CELLAR_CONTAINER_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}<option value="other">Other</option></select></label>{cellarContainerMode === 'other' && <label className="text-sm font-medium text-gray-700">Other container<input required value={cellarForm.container} onChange={updateCellarField('container')} maxLength={255} placeholder="Enter container type" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" /></label>}<label className="text-sm font-medium text-gray-700">Date received<input type="date" value={cellarForm.date_received} onChange={updateCellarField('date_received')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" /></label><label className="text-sm font-medium text-gray-700">Purchase price<input type="number" min="0" step="0.01" value={cellarForm.purchase_price} onChange={updateCellarField('purchase_price')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" /></label><label className="text-sm font-medium text-gray-700">Retail price<input type="number" min="0" step="0.01" value={cellarForm.retail_price} onChange={updateCellarField('retail_price')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" /></label><label className="flex items-center gap-3 text-sm font-medium text-gray-700 sm:col-span-2"><input type="checkbox" checked={cellarForm.gift} onChange={updateCellarGift} className="h-4 w-4 rounded border-gray-300 text-amber-700 focus:ring-amber-500" />Gift</label>{cellarForm.gift && <label className="text-sm font-medium text-gray-700 sm:col-span-2">Gift from<input value={cellarForm.gift_from} onChange={updateCellarField('gift_from')} maxLength={255} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" /></label>}<label className="text-sm font-medium text-gray-700 sm:col-span-2">Notes<textarea value={cellarForm.notes} onChange={updateCellarField('notes')} maxLength={255} rows={3} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" /></label><button type="submit" disabled={cellarSaving} aria-busy={cellarSaving ? 'true' : undefined} className="rounded-lg bg-amber-700 px-5 py-3 font-medium text-white hover:bg-amber-800 disabled:cursor-wait disabled:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 sm:col-span-2">{cellarSaving ? 'Saving…' : 'Save cellar item'}</button></form></section>}
       <ProductRatingInsights summary={product.ratingSummary} insights={product.ratingInsights} userSummary={userRatingSummary} />
+      <ProductTastingHistory ratings={userRatings} status={userRatingsStatus} error={userRatingsError} onRetry={retryUserRatingHistory} />
     </div>
   )
 }
