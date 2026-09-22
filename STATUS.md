@@ -4,12 +4,12 @@ portfolio_state: ACTIVE
 phase: "Phase 3 — Beer discovery dependable"
 stage: "Rating idempotency provider migration"
 gate: Integration
-execution_state: PARTIALLY_BLOCKED
+execution_state: BLOCKED
 current_work:
   objective: "Progress #165 only to the irreversible provider boundary while continuing dependency-independent launch work."
   issue: 165
-  pr: null
-  branch: null
+  pr: 528
+  branch: docs/reconcile-status-20260922
 next_actions:
   - "Obtain provider-supported migration, uniqueness, backup/restore and safe-backfill evidence for #165 before any provider mutation."
   - "Keep /ratings/reconcile unavailable until the #165 migration is deployed and verified."
@@ -23,22 +23,38 @@ requires_owner_decision: true
 owner_decision:
   question: "Approve the #165 provider migration only after a concrete provider-supported migration, backup/restore and cleanup-safe backfill plan is evidenced."
   recommendation: "Keep #165 blocked at the irreversible provider boundary until the evidence and explicit migration approval requirements are satisfied."
-last_updated: "2026-09-22T14:56:00+10:00"
+validation:
+  governance: PASS
+  lint: PASS
+  typecheck: NOT_APPLICABLE
+  tests: PASS
+  build: PASS
+  ci: PENDING
+  runtime: VERIFIED
+last_verified_commit: "ced8a440ad374daeb1a873c1f417c3acbbb4106c"
+last_updated: "2026-09-22T15:59:00+10:00"
 ---
 
 # STATUS.md
 
 Last materially reviewed: 22 September 2026
 
-## Current execution state
+## AI execution gate
 
-Pourfolio is **not globally blocked**. The connected rating-idempotency path is blocked at the irreversible provider boundary in **#165**, while independent launch hardening may continue.
+**Current gate:** Integration / rating idempotency provider migration.  
+**Execution state:** **BLOCKED only for the #165 provider-mutation path**. Pourfolio is not globally blocked; independent launch work continues.
 
 The dependency-correct launch sequence is:
 
 `#165 rating durability → #144 canonical backend certification → backend-dependent #154 catalogue certification → launch verification`
 
-Independent work may continue on **#449** and targeted **#429** cleanup when it does not require provider mutation, fabricated catalogue decisions or weakened certification gates.
+## Autonomous continuation support
+
+Continue the highest-priority dependency-correct work that can safely be completed autonomously. The repository is authoritative for current work and blockers; chat history remains supporting context only.
+
+When #165 cannot progress because provider-supported migration/backfill/backup/restore evidence or explicit migration approval is unavailable, continue independent launch-scoped work such as #449 and targeted #429 cleanup where it does not mutate provider schema/data, fabricate catalogue relationships or weaken certification gates.
+
+Do not reopen provider routing or frontend/backend URL changes without new contradictory runtime evidence. Do not enable `/ratings/reconcile` before the #165 migration is deployed and verified.
 
 ## Recently integrated
 
@@ -68,7 +84,13 @@ Until migration evidence is sufficient:
 
 Provider documentation reviewed to date establishes that tables can be modified, required columns on populated tables need defaults, unique fields are supported, and snapshots/cloning are advertised. It does **not** yet establish the exact restore/recovery, composite-uniqueness and safe-backfill procedure needed to authorize the live migration. This boundary is recorded on #165.
 
-## Subsequent launch priorities
+## Next dependency-correct work
+
+1. Finish exact-head validation of PR #528 and merge it if clean.
+2. Reconcile `ROADMAP.md` and release-readiness material with the merged application state.
+3. Progress #165 only through reversible evidence gathering; do not mutate the provider without the governed evidence and approval.
+4. After #165 is deployed and verified, complete #144 canonical backend/provider certification and backend-dependent #154 catalogue certification.
+5. While #165 is blocked, continue provider-independent #449 work and targeted #429 cleanup.
 
 ### #144 — canonical backend certification
 
