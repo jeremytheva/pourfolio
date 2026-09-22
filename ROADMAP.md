@@ -1,320 +1,188 @@
 # ROADMAP.md
 
-**Last materially reviewed:** 12 September 2026
+**Last materially reviewed:** 22 September 2026
 
 ## Current milestone
 
 **Launch readiness — beer-first Pourfolio**
 
-The launch milestone remains to move the implemented beer-first scope through the remaining data-integrity, backend-certification and final release evidence without making Brew Done It a launch dependency.
-
-The project is **not globally blocked**. Independent source/frontend work may continue whenever it does not depend on provider schema mutation or connected certification.
+The launch milestone is to move the implemented beer-first product through the remaining rating-integrity, backend-certification, catalogue-certification and final release evidence. The project is **not globally blocked**: work that does not depend on irreversible provider mutation or unavailable connected evidence should continue.
 
 ## Integrated foundation
 
-The following work is already integrated and must not be recreated or treated as pending:
+Do not recreate or treat the following as pending:
 
-- autonomous continuation and project-managed PR lifecycle;
-- launch-flow recovery/accessibility hardening;
-- NoCodeBackend runtime-instance externalisation;
-- Node.js 24 migration and production-runtime verification;
-- release/deployment provenance reconciliation;
-- least-privilege lifecycle workflow hardening;
-- ChatGPT-triggerable NoCodeBackend certification harness;
-- production generated-data authorization and credential rotation under #225/#381/#382.
-
-Completed work such as #224, #225, #249 and #281 must not remain in the active blocker chain.
+- autonomous continuation and normal-PR lifecycle governance;
+- hardened same-origin NoCodeBackend auth/data gateway and server-authoritative ownership;
+- launch-flow recovery, response-boundary and accessibility hardening;
+- runtime-instance externalisation and host-neutral Node deployment support;
+- deployment provenance and credential-rotation work;
+- generated-data authorization and production provider-read certification under #225/#381/#382;
+- unified beer/brewery/style search;
+- multi-producer attribution;
+- server-authoritative brewery discovery;
+- privacy-safe brewery community/personal statistics;
+- brewery beer search/filter/sort;
+- Producer Stage E brewery rankings and explicit capability boundaries;
+- contained Brew Done It v3 source implementation from PR #461.
 
 ## Phase 0 — Governed delivery
 
-**Outcome:** repository and release governance are sufficient for evidence-based autonomous delivery.
+Issue **#143** remains non-blocking governance work. Before final release, configure or intentionally disposition repository protections, verify least-privilege automation/deployment access where supported, and keep documented governance aligned with actual GitHub enforcement.
 
-Issue #143 remains open for practical repository/ruleset hardening, but under current project policy it is **non-blocking governance work** rather than a blanket merge or implementation gate.
-
-Remaining, to be completed before final release where practical:
-
-- configure or intentionally disposition branch/ruleset protections;
-- document bypass/force-push/deletion behaviour;
-- verify least-privilege Actions, deployment-environment and connected-app access where supported;
-- keep repository documentation aligned with actual remote enforcement.
-
-**Sequencing:** proceed independently of ordinary implementation. Re-activate as a release-governance task near final launch.
+GitHub Actions are supporting diagnostic evidence. Empty/non-substantive Platform Validation and GitHub Draft state are not independent acceptance gates.
 
 ## Phase 1 — Canonical backend contract
 
-**Outcome:** NoCodeBackend integration, rating integrity, imported data and recovery behaviour are certified against connected evidence.
+### #165 — rating idempotency/schema
 
-### Active dependency
+This is the current irreversible provider boundary.
 
-1. **#165 — rating idempotency/schema**
-   - current irreversible provider boundary;
-   - application-side contract is implemented;
-   - provider-supported migration/backfill plus backup/restore evidence and explicit approval are required before mutation;
-   - does not block unrelated source/frontend work.
+Application-side durability/reconciliation contracts exist, but provider mutation must not proceed until there is evidence for:
 
-### Subsequent dependency-gated work
+1. provider-supported schema migration/backfill mechanics for populated collections;
+2. the required uniqueness guarantees;
+3. a concrete backup/snapshot and restore procedure;
+4. verification of a restored state before production mutation;
+5. safe abort/rollback and cleanup steps; and
+6. explicit approval for the irreversible provider change.
 
-2. **#144 — canonical backend certification**
-   - proceed after provider/schema prerequisites are available;
-   - remaining work is primarily connected same-state provider/import/recovery evidence and approvals.
+Until then, `/ratings/reconcile` remains unavailable and no application assumption may be represented as deployed provider capability.
 
-**Exit condition:** connected provider, schema, import, retry/reconciliation and recovery evidence are sufficient against an exact candidate state.
+### #144 — canonical backend certification
+
+Proceed after the #165 provider prerequisites are satisfied. Certify the exact provider state, permissions, imports, retry/reconciliation behaviour, failure handling and recovery evidence against an exact candidate revision.
 
 ## Phase 2 — Identity lifecycle
 
-**Outcome:** account export and deletion operate as safe server-owned workflows.
-
-Current state: **PARTIAL / future-phase work**.
-
-Preserve the existing source foundations. Do not make this a current Phase 3 blocker unless a task directly depends on account-lifecycle completion.
-
-Future work includes recent-authentication proof, consistent provider snapshot semantics, durable orchestration/write fencing, provider-backed deletion, authentication identity deletion, final absence proof, retention/legal policy decisions and connected accessible UI verification.
+Account export/deletion foundations remain **partial future-phase work**. Preserve the existing server-side foundations. Do not make identity-lifecycle completion a current Phase 3 blocker unless a task directly depends on it.
 
 ## Phase 3 — Dependable beer discovery
 
-**Outcome:** users can reliably browse, search and open the canonical beer catalogue against reconciled production-equivalent data.
+The source/frontend discovery experience is substantially integrated, including unified search, brewery discovery/profiles/statistics, brewery-local beer browsing, style discovery and brewery rankings.
 
-Source/frontend failure recovery, response-boundary, data-presentation and accessibility hardening is substantially integrated.
+### #154 — catalogue certification
 
-### Work that may continue now
+After the applicable backend/provider prerequisites are available, complete connected catalogue reconciliation and production-equivalent evidence. Required completion evidence includes trustworthy product/producer/style relationships, provider-failure behaviour, exact-candidate browser/accessibility evidence and resolution of historical import/reconciliation decisions that affect the launch catalogue.
 
-- independent frontend/source corrections;
-- truthful-data-presentation fixes;
-- accessibility/interaction improvements;
-- regression coverage that does not require provider mutation or connected certification.
+### #449 — user beer add/edit and cellar alignment
 
-### Completion-only dependencies
+Continue provider-independent portions while #165 is blocked. The workflow must remain proposal/governance based where canonical catalogue mutation is not yet authorized. Do not permit arbitrary client-authoritative producer/style relationships or fabricate catalogue identity.
 
-- rating/provider migration under #165;
-- connected catalogue reconciliation/provider evidence;
-- backend-dependent portions of #154;
-- production-equivalent browser and accessibility evidence against a recorded release state.
+### #429 — targeted cleanup
 
-**#154 remains the current Phase 3 outcome, not a blanket blocker on every Phase 3 task.**
+Continue evidence-based removal of unreachable prototype/source paths in small reviewable slices. Do not perform broad deletion where reachability or future governed use is uncertain.
 
-## Brew Done It — approved contained capability
+## Producer programme status
 
-PR **#410** merged the persistent two-account/two-device foundation. ADR **0006**, building on ADR **0002**, now defines Brew Done It as a persistent social deduction game. PR **#461** implements the contained v3 redesign and remains **IMPLEMENTING / VALIDATION PENDING**. Brew Done It is not part of the current beer-first launch milestone and must not be treated as a launch dependency.
+The producer implementation through the current Stage E safe boundary is integrated:
 
-The approved v3 capability model is:
+- **A — Unified producer/search experience:** complete.
+- **B — Scalable server-side brewery discovery:** complete after #498 established multi-producer attribution.
+- **C — Producer profile community + personal statistics:** complete.
+- **D — Producer beer search/filter/sort:** complete.
+- **E — Geography/lifecycle/business enhancements:** current-schema brewery ranking/capability-boundary slice complete; canonical geography, historical lifecycle and business ownership remain dependency-driven future work under #444/#399/#437.
 
-- one authenticated selector privately chooses a catalogue beer before sharing the challenge;
-- a second authenticated user accepts and plays from their own device;
-- the secret beer and selector-only answer sheet are server-protected and absent from the guesser's active-round response;
-- challenges, deduction state and rounds persist across refresh, sign-out, device changes and elapsed time;
-- players ask natural yes/no questions; conversation itself is not a scored server action;
-- the guesser uses an accessible two-sided **Brewery / Beer & Style** deduction board with `yes` / `no` / `unknown` saved deductions;
-- current automatic narrowing uses governed producer relationships, the guesser's previous-rating relationship, style/category, ABV, IBU and collaboration;
-- state/country filtering stays unavailable until canonical brewery geography is governed and certified, and location is never inferred from free-text addresses;
-- dark/barrel-aged remain manual notes until trustworthy structured trait metadata exists;
-- the selector may see guesser-controlled aggregate rating-history clues for the hidden brewery/style/beer, never raw ratings, notes or cellar data;
-- formal outcomes are brewery, exact beer and style fallback;
-- scoring v3 awards 4 points for brewery + 6 for exact beer, or 4 + 3 for style fallback, minus one per incorrect formal submission, clamped 0–10;
-- ordinary questions and saved deductions cost no points;
-- formal-outcome writes use a durable v3 reservation/reconciliation protocol so ambiguous provider failures cannot invent or duplicate penalties/results;
-- rounds alternate selector/guesser roles and accumulate durable head-to-head brewery/exact-beer/style/point statistics.
+Do not infer geography from free-text producer addresses or present product-derived brewery aggregates as service/business-quality ratings.
 
-Production enablement is a separate governed phase. Until the four v3 Brew Done It collections and their permissions are provisioned and certified, keep:
+## Brew Done It — approved, contained and launch-excluded
 
-- `/brew-done-it` absent from production routing/navigation;
-- `BREW_DONE_IT_POLICY_ENABLED` unset;
-- Brew Done It collections in `DEFERRED_COLLECTIONS`;
-- `brew_done_it_questions` legacy-only rather than part of new v3 play; and
-- all connected schema/data mutation subject to explicit migration approval and recovery evidence.
+PR **#410** established the persistent two-account/two-device foundation. ADR **0006**, building on ADR **0002**, defines the persistent social deduction model. PR **#461** merged the contained v3 redesign at merge commit `d555bf493931d8700d6a41fd5ff4fd36736b4025`; its exact accepted head `da0dbc1ab627e6cbea219923466c99a52ce28326` passed canonical `npm run platform:validate`, browser/accessibility, Dependency Review and CodeQL with zero unresolved review threads.
 
-The next Brew Done It phases are **exact-head validation of PR #461**, followed later by **provider migration/certification**, connected two-account/two-device/privacy/recovery evidence and a separate enablement change. Required evidence is defined in `docs/BREW_DONE_IT_READINESS.md` and `docs/nocodebackend/brew-done-it-schema-target.md`.
+That merge does **not** authorize production enablement. Until the required provider collections/permissions and connected privacy/recovery evidence are certified:
+
+- keep `/brew-done-it` out of production navigation/enablement;
+- keep `BREW_DONE_IT_POLICY_ENABLED` unset in normal deployments;
+- keep Brew Done It provider collections deferred;
+- treat `brew_done_it_questions` as legacy-only for v3 play; and
+- require explicit migration approval/recovery evidence for provider mutation.
+
+The next Brew Done It work is provider schema/permission certification, connected two-account/two-device privacy/recovery evidence, then a separate enablement change. It is not a beer-first launch dependency.
 
 ## Immediate dependency-correct path
 
 ```text
-INDEPENDENT SOURCE / FRONTEND WORK
-        ↓
-Continue whenever safe and launch-scoped
-
 CONNECTED PROVIDER PATH
-#165 rating idempotency/schema capability
+#165 rating idempotency/schema evidence + approved migration
         ↓
 #144 canonical backend/provider certification
         ↓
-backend-dependent #154 catalogue certification
+#154 catalogue certification
         ↓
-launch verification
+exact-candidate launch verification
 
-BREW DONE IT PATH (separate from launch)
-#410 persistent contained core — merged
-        ↓
-#461 deduction-board v3 implementation + exact-head validation
-        ↓
-provider schema + permission migration/certification
-        ↓
-connected two-account / two-device / privacy / recovery evidence
-        ↓
-separate route/navigation enablement change
+INDEPENDENT LAUNCH WORK
+#449 safe provider-independent workflow work
+#429 targeted unreachable-code cleanup
+reliability / accessibility / truthful-data fixes
 
-INDEPENDENT GOVERNANCE PATH
+BREW DONE IT (SEPARATE)
+#410 persistent core — merged
+        ↓
+#461 v3 deduction implementation — merged and source-validated
+        ↓
+provider schema + permission certification
+        ↓
+connected privacy / two-device / recovery evidence
+        ↓
+separate production enablement
+
+GOVERNANCE (NON-BLOCKING UNTIL RELEASE)
 #143 practical GitHub/ruleset hardening
-        ↓
-complete before final release where practical
 ```
-
-## Explicitly removed from the active blocker chain
-
-- #224 — deployment provenance: complete;
-- #225 — generated-data authorization: complete;
-- #249 — Node 24 migration: complete;
-- #281 — staging certification setup: closed;
-- GitHub Actions/CI status as a platform status;
-- empty/non-substantive Platform Validation;
-- ChatGPT/GitHub Draft → Ready connector failure.
-
-A real implementation, security, data-integrity or runtime defect remains a blocker regardless of how it was discovered.
 
 ## Launch release gate
 
 When the connected provider path is sufficiently complete:
 
-1. identify the exact release candidate SHA;
-2. run appropriate project-owned validation and inspect relevant diagnostics;
-3. verify actual repository governance state against the then-current release policy;
+1. identify the exact release-candidate SHA;
+2. run canonical project-owned validation and inspect material diagnostics;
+3. verify actual repository governance against the release policy;
 4. verify production environment configuration without exposing secrets;
-5. verify exact deployed SHA and runtime;
-6. verify provider readiness and critical authentication/catalogue/owner-scoped flows;
+5. verify exact deployed SHA/runtime;
+6. verify provider readiness and critical auth/catalogue/owner-scoped flows;
 7. capture connected accessibility and failure-recovery evidence;
-8. record accepted limitations, if any;
-9. mark launch complete only when the relevant evidence is sufficient.
+8. record accepted limitations; and
+9. mark launch complete only when the required evidence is sufficient.
 
-GitHub CI status alone and empty Platform Validation are not release authorization mechanisms.
+## Approved post-launch expansion
 
-## Deferred / launch-excluded capabilities
-
-Unless separately approved, keep these outside the current launch milestone:
-
-- non-beer rating modes;
-- chat and Drinking Buddies;
-- events and persistent venue rating attribution;
-- analytics;
-- producer/platform administration;
-- social cellar sharing;
-- photo upload;
-- major framework/styling migrations unrelated to a launch blocker.
-
-Brew Done It is no longer an unapproved concept: ADR 0002 approves its persistent cross-device architecture and ADR 0006 approves the deduction-board gameplay model. It remains **launch-excluded and disabled** until its separate validation, provider migration/certification and enablement gates pass.
-
-## Continuation rule
-
-Use dependency-scoped blocking. Keep blockers only where they protect work that actually depends on them. Postpone future-phase/release-only evidence until it becomes relevant, remove completed/stale blockers, and continue independent implementation without waiting for unrelated external administration.
-
-## Approved post-launch product expansion
-
-Issue **#433** is the original authoritative tracker for the Untappd-informed Pourfolio expansion. The RateBeer review is incorporated into the same plan rather than creating a parallel roadmap. This entire expansion remains separately approved for post-launch planning and does **not** expand or block the current beer-first launch milestone.
-
-The combined product direction is:
-
-```text
-discover → save → taste → analyse → compare → explore → find → follow → return
-```
-
-The Untappd-derived loop contributes low-friction capture, discovery, availability and retention. The RateBeer-derived additions contribute fair style-relative comparison, rankings, analytical exploration, style reference depth and historical catalogue preservation. Pourfolio remains differentiated by structured attribute scoring, personalised weights, Overall/Style Scaled Scores, Retail/Purchased PPP, personal taste analytics and an explainable personal Match Score.
+Issue **#433** remains the umbrella for the approved Untappd/RateBeer-informed expansion. It does not expand or block the beer-first launch.
 
 ### Phase 4 — Personal beer intelligence (#434)
 
-Implement, in dependency order:
+Dependency direction:
 
-- **#438** rating-event semantics for **Quick Rate**, **Full Tasting** and repeat tastings;
-- low-friction Quick Rate without fabricating structured attribute scores;
-- repeat-tasting history and comparison;
-- optional attribute-level Full Tasting notes so users can record why individual dimensions received their scores;
-- **#444 historical product/brewery lifecycle** so active, seasonal, retired/historical products, vintages/editions and renamed/closed/acquired breweries preserve stable historical identity for ratings and cellar records;
-- **#440 Style Scaled Score** alongside the existing Overall Scaled Score, using verified canonical style identity and the same governed tie-aware percentile principles;
-- Want to Try, Favourites, Rebuy and other owner lists without duplicating Cellar;
-- private Taste Profile analytics using both Overall and Style Scaled Score context where valid;
-- **#441 Pourfolio Rankings and advanced discovery** by verified style, producer, geography, time period and metric, with deterministic ties, explicit minimum samples, advanced filters and curated seasonal/top-list presets;
-- **#442 Taste Map / Beer Passport** showing private exploration across verified countries/regions, breweries and styles, with accessible non-map equivalents;
-- **#443 Beer Style Explorer** pages that keep governed style reference facts separate from community aggregates and combine style information, rankings, personal history and discovery;
-- explainable 0–100 Pourfolio Match Score plus similar-beer suggestions that state why a recommendation is similar, using documented style/brewery/attribute-profile signals rather than opaque ML;
-- unauthenticated read-only guest browsing through public catalogue/product/brewery/style/ranking projections;
-- Year in Pourfolio recap including privacy-safe exploration, style and value insights;
-- data portability through the existing Phase 2 export authority.
+```text
+rating-event semantics / repeat tasting (#438 / #468)
+        ↓
+historical product / vintage / brewery identity (#444)
+        ↓
+Style Scaled Score (#440)
+        ↓
+lists / Taste Profile / personal intelligence
+        ↓
+rankings and advanced discovery (#441)
+        ↓
+Taste Map (#442) / Style Explorer (#443)
+        ↓
+explainable Match Score / similar beers / recap
+```
+
+Preserve stable historical identities. Quick Rate must not fabricate structured attribute scores. Recommendations must be explainable rather than opaque. Geography-dependent features must wait for governed canonical geography.
 
 ### Phase 5 — Availability and return loop (#435)
 
-After **#399** establishes authoritative venue data:
-
-- define verified venue-to-product offerings/menus with freshness metadata;
-- implement **Find This Beer** from verified offering data rather than old ratings;
-- add follows for beers, breweries and venues;
-- add an in-app updates/notification model and user controls;
-- later layer additional delivery channels without changing the core event/subscription contract.
-
-Historical identity from #444 must remain separate from current availability: a retired beer may remain fully visible in history while correctly reporting no current verified availability.
+After **#399** establishes authoritative venue data, add verified venue-to-product offerings with freshness metadata, Find This Beer, follows and controlled update notifications. Never infer current availability from old ratings/check-ins.
 
 ### Phase 6 — Social and exploration engagement (#436)
 
-After an explicit privacy/visibility model exists:
+After an explicit privacy/visibility model exists, add opt-in activity, lightweight contextual interaction, exploration-focused achievements and expertise indicators based on breadth/qualifying tasting detail rather than drinking volume. Direct messaging and conventional standalone forums remain excluded unless separately approved.
 
-- add an opt-in activity feed;
-- add lightweight reactions/comments and Save to Want to Try;
-- add exploration-focused achievements that reward breadth rather than drinking volume or speed;
-- add expertise indicators based on breadth and qualifying detailed tasting history within styles/regions/breweries, never raw consumption leaderboards;
-- add brewery/venue events after verified business ownership exists.
+### Phase 7 — Brewery, venue and catalogue stewardship (#437)
 
-Direct messaging remains excluded unless separately approved. Conventional standalone forums are also not planned at this stage; discussion should remain attached to relevant feed/product/event contexts unless a later product decision changes this.
+After venue/business identity is governed, add claim/verification, factual profile/menu/event maintenance, privacy-safe business analytics and moderated catalogue correction/missing-beer proposals. Businesses must never edit, suppress or rewrite consumer ratings or personal tasting history.
 
-### Phase 7 — Brewery, venue and catalogue stewardship ecosystem (#437)
+## Continuation rule
 
-After venue/business identity is governed:
-
-- add brewery/venue claim and verification;
-- allow verified businesses to maintain factual profile/menu/event data;
-- add live menus using the Phase 5 offering contract;
-- add privacy-safe aggregate brewery/venue analytics;
-- add a moderated community/business **catalogue correction and missing-beer submission** workflow where submissions are proposals, not direct mutations, and accepted corrections preserve stable identifiers/history from #444;
-- evaluate a separate **Beer Venue Experience** rating after #399/product-derived Venue Score are stable; if approved, keep it explicitly separate and limited to beer-relevant dimensions such as selection, freshness/quality, beer service/knowledge and value;
-- add POS/menu adapters only after the native menu contract is stable.
-
-Businesses must never be able to edit, suppress or rewrite consumer ratings or personal tasting history. The current Venue Score remains product-derived and must not imply service, staff, food or ambience quality. Any future Beer Venue Experience score must have a separate label, dimensions and aggregate contract and must never be merged into the product-derived Venue Score.
-
-### Expansion sequencing
-
-```text
-#428 advanced scoring
-        ↓
-#438 rating-event decision
-        ↓
-#444 historical identity / vintage compatibility audit
-        ↓
-#440 Style Scaled Score
-        ↓
-#434 Quick Rate / repeat tastings / lists / Taste Profile
-        ↓
-#441 rankings + advanced discovery
-        ↓
-#442 Taste Map / #443 Style Explorer
-        ↓
-Match Score / similar beers / recap
-
-#399 verified venue foundation
-        ↓
-#435 offerings / Find This Beer / follows / updates
-        ↓
-#437 verified business menus / catalogue stewardship / analytics
-
-privacy/visibility decision
-        ↓
-#436 social feed / exploration achievements / expertise indicators / events
-```
-
-### Explicit product exclusions and boundaries
-
-- no direct messaging unless separately approved;
-- no conventional standalone forum in the current roadmap;
-- no gamification or leaderboards based on drinking speed or raw alcohol volume;
-- no business modification/suppression of consumer ratings;
-- no inference of current venue availability from stale ratings/check-ins;
-- no opaque ML recommendation model in Match Score V1;
-- no direct community mutation of canonical catalogue data;
-- no deletion/reuse of historical product identities referenced by rating or cellar history;
-- no conflation of product-derived Venue Score with a future Beer Venue Experience rating;
-- no RateBeer-derived feature becomes a blocker for the existing beer-first launch without a separate explicit scope decision.
-
-All expansion work remains subject to the repository's normal non-draft PR policy, focused issue-to-PR sizing, server-side authority, provider migration/recovery controls, privacy boundaries and applicable browser/accessibility evidence.
+Use dependency-scoped blocking. Keep a blocker only where the next action actually depends on it. When provider mutation, connected certification or owner approval is unavailable, record the boundary and continue the highest-priority unaffected launch work. Do not weaken schema, privacy, integrity or release gates to manufacture progress.
