@@ -459,6 +459,44 @@ const historicalOwnerRecords = async (collection, userId) => {
   throw new Error('Historical rating reconciliation exceeded the safe pagination limit.')
 }
 
+const OWNER_HISTORY_PAGE_SIZE = 100
+const OWNER_HISTORY_MAX_PAGES = 1000
+
+const ownerCompletedRatings = async (userId, productId = null) => {
+  const ownerRatings = []
+  const filters = {
+    user_id: userId,
+    submission_state: 'complete',
+    ...(productId ? { product_id: productId } : {})
+  }
+
+  for (let page = 1; page <= OWNER_HISTORY_MAX_PAGES; page += 1) {
+    const payload = await dataProvider.listPage(COLLECTIONS.ratings, {
+      page,
+      limit: OWNER_HISTORY_PAGE_SIZE,
+      orderBy: 'id',
+      order: 'asc',
+      filters
+    })
+    const pageItems = records(payload.items)
+    ownerRatings.push(...pageItems.filter((rating) =>
+      isOwnedBy(rating, userId) &&
+      isCompletedRating(rating) &&
+      (!productId || String(rating.product_id) === String(productId))
+    ))
+
+    if (payload.totalPages === 0 || page >= payload.totalPages || pageItems.length < OWNER_HISTORY_PAGE_SIZE) {
+      return ownerRatings.sort((left, right) => {
+        const dateOrder = String(right.date_rated || '').localeCompare(String(left.date_rated || ''))
+        if (dateOrder !== 0) return dateOrder
+        return Number(right.id || 0) - Number(left.id || 0)
+      })
+    }
+  }
+
+  throw new Error('Owner rating history exceeded the safe pagination limit.')
+}
+
 const groupHistoricalChildren = (children) => {
   const grouped = new Map()
   for (const child of children) {
@@ -553,14 +591,18 @@ const reconcileHistoricalRatings = async (request, response, user) => {
   })
 }
 
-const listUserRatings = async (response, user) => {
-  const ownerRatings = records(await dataProvider.list(COLLECTIONS.ratings, { user_id: user.id, submission_state: 'complete' })).filter((rating) => isOwnedBy(rating, user.id) && isCompletedRating(rating))
+const listUserRatings = async (response, user, request = {}) => {
+  const requestedProductId = request.query?.product_id
+  const productId = requestedProductId === undefined || requestedProductId === null || requestedProductId === ''
+    ? null
+    : positiveId(requestedProductId, 'Product identifier')
+  const ownerRatings = await ownerCompletedRatings(user.id, productId)
   const [populations, cellarRows] = await Promise.all([scorePopulations(), dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }).then(records)])
   const cellarById = new Map(cellarRows.filter((item) => isOwnedBy(item, user.id)).map((item) => [String(item.id), item]))
   const productIds = [...new Set(ownerRatings.map((rating) => String(rating.product_id || '')).filter((id) => /^[1-9]\d*$/.test(id)))]
   const products = await Promise.all(productIds.map(async (id) => [id, await productProjection(id)]))
   const productsById = new Map(products)
-  response.status(200).json({ items: ownerRatings.map((rating) => ({ ...projectRating(rating), advanced_scores: advancedFor(rating, populations, cellarById.get(String(rating.cellar_id)) || null), product: productsById.get(String(rating.product_id)) || null })).sort((left, right) => String(right.date_rated || '').localeCompare(String(left.date_rated || ''))) })
+  response.status(200).json({ items: ownerRatings.map((rating) => ({ ...projectRating(rating), advanced_scores: advancedFor(rating, populations, cellarById.get(String(rating.cellar_id)) || null), product: productsById.get(String(rating.product_id)) || null })) })
 }
 
 const diagnosticRatingCreate = async (request, response, user) => {
@@ -698,7 +740,7 @@ export const routeRatingRequest = async (request, response, user, correlationId)
     }
     return diagnosticRatingCreate(request, response, user)
   }
-  if (request.method === 'GET' && id === 'mine') return listUserRatings(response, user)
+  if (request.method === 'GET' && id === 'mine') return listUserRatings(response, user, request)
   if (request.method === 'DELETE' && id && !action) return deleteRating(id, response, user)
   response.status(404).json({ error: 'Application data route not found.' })
 }
@@ -718,4 +760,4 @@ export default async function handler(request, response) {
   }
 }
 
-export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, summariseSubmissionChildren, transitionRating, verifyRatingState, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalOwnerRecords, historicalReconciliationPlan, reconcileHistoricalRatings, diagnosticRatingCreate }
+export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, summariseSubmissionChildren, transitionRating, verifyRatingState, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalOwnerRecords, ownerCompletedRatings, historicalReconciliationPlan, reconcileHistoricalRatings, diagnosticRatingCreate }
