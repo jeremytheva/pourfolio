@@ -88,3 +88,21 @@ test('quick rate uses its own display score and incomplete projection data fails
   assert.equal(projectSharedTasting({ ...base, product: { ...base.product, public_id: null } }), null);
   assert.equal(projectSharedTasting({ ...base, event: { ...base.event, total_weighted: null } }), null);
 });
+
+test('unsupported, missing and migration-only event types fail closed', () => {
+  for (const eventType of [undefined, null, '', 'migration_only', 'deleted', 'future_event']) {
+    assert.equal(projectSharedTasting({
+      ...base,
+      event: { ...base.event, event_type: eventType },
+    }), null, String(eventType));
+  }
+});
+
+test('blank avatar metadata is omitted rather than projected as null', () => {
+  const projected = projectSharedTasting({
+    ...base,
+    profile: { ...base.profile, avatar_url: '   ' },
+  });
+  assert.ok(projected);
+  assert.equal(Object.hasOwn(projected.profile, 'avatarUrl'), false);
+});
