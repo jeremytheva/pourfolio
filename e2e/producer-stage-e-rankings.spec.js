@@ -3,6 +3,29 @@ import { installMockApi } from './mockApi.js'
 
 test('brewery rankings show qualified aggregate product-rating results and boundaries', async ({ page }) => {
   await installMockApi(page)
+  await page.route('**/api/nocodebackend/catalog/producers/rankings?**', (route) => {
+    const requestUrl = new URL(route.request().url())
+    const pageSize = Number(requestUrl.searchParams.get('limit') || 24)
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items: [{
+          producer: { id: 20, producer_name: 'Rocky Ridge Brewing', address: '', suburb_id: 9567 },
+          averageWeighted: 4.2,
+          ratingCount: 5,
+          ratedBeerCount: 2,
+          catalogueBeerCount: 3
+        }],
+        page: 1,
+        pageSize,
+        total: 1,
+        totalPages: 1,
+        minimumRatings: 3,
+        minimumRatedBeers: 2
+      })
+    })
+  })
   await page.goto('/places')
 
   await page.getByRole('button', { name: 'Rankings' }).click()
