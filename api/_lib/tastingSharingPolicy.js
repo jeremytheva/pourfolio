@@ -49,21 +49,9 @@ export function canOwnerSetTastingVisibility({
   const actor = normalizeUserId(actorUserId);
   const owner = normalizeUserId(ownerUserId);
 
-  if (!actor || !owner || actor !== owner) {
-    return false;
-  }
-
-  if (typeof requestedVisibility !== 'string' || !visibilitySet.has(requestedVisibility)) {
-    return false;
-  }
-
-  // Public is deliberately unavailable until a separately governed public
-  // surface exists. Private and Drinking Buddy visibility can be represented
-  // safely before persistence is activated.
-  if (requestedVisibility === 'public') {
-    return publicSurfaceEnabled === true;
-  }
-
+  if (!actor || !owner || actor !== owner) return false;
+  if (typeof requestedVisibility !== 'string' || !visibilitySet.has(requestedVisibility)) return false;
+  if (requestedVisibility === 'public') return publicSurfaceEnabled === true;
   return true;
 }
 
@@ -71,13 +59,40 @@ export function canonicalBuddyPair(firstUserId, secondUserId) {
   const first = normalizeUserId(firstUserId);
   const second = normalizeUserId(secondUserId);
 
-  if (!first || !second || first === second) {
-    return null;
-  }
+  if (!first || !second || first === second) return null;
 
   return first.localeCompare(second) <= 0
     ? { userLowId: first, userHighId: second }
     : { userLowId: second, userHighId: first };
+}
+
+export function canCreateBuddyRequest({
+  actorUserId,
+  recipientUserId,
+  existingRelationshipState = null,
+  actorBlockedRecipient = false,
+  recipientBlockedActor = false,
+} = {}) {
+  const actor = normalizeUserId(actorUserId);
+  const recipient = normalizeUserId(recipientUserId);
+  if (!actor || !recipient || actor === recipient) return false;
+  if (actorBlockedRecipient || recipientBlockedActor) return false;
+
+  const existing = normalizeRelationshipState(existingRelationshipState);
+  return existing === null || existing === 'declined' || existing === 'cancelled' || existing === 'removed';
+}
+
+export function canManageBuddyBlock({ actorUserId, targetUserId } = {}) {
+  return canonicalBuddyPair(actorUserId, targetUserId) !== null;
+}
+
+export function effectiveBuddyRelationshipState({
+  relationshipState = null,
+  actorBlockedRecipient = false,
+  recipientBlockedActor = false,
+} = {}) {
+  if (actorBlockedRecipient || recipientBlockedActor) return null;
+  return normalizeRelationshipState(relationshipState);
 }
 
 export function canReadSharedTasting({
@@ -92,28 +107,15 @@ export function canReadSharedTasting({
   const viewer = normalizeUserId(viewerUserId);
   const owner = normalizeUserId(ownerUserId);
 
-  if (!viewer || !owner) {
-    return false;
-  }
-
-  if (viewer === owner) {
-    return true;
-  }
-
-  if (viewerBlockedOwner || ownerBlockedViewer) {
-    return false;
-  }
+  if (!viewer || !owner) return false;
+  if (viewer === owner) return true;
+  if (viewerBlockedOwner || ownerBlockedViewer) return false;
 
   const effectiveVisibility = normalizeTastingVisibility(visibility);
-
   if (effectiveVisibility === 'drinking_buddies') {
     return normalizeRelationshipState(relationshipState) === 'accepted';
   }
-
-  if (effectiveVisibility === 'public') {
-    return publicSurfaceEnabled === true;
-  }
-
+  if (effectiveVisibility === 'public') return publicSurfaceEnabled === true;
   return false;
 }
 
@@ -130,21 +132,12 @@ export function canTransitionBuddyRelationship({
   const requester = normalizeUserId(requesterUserId);
   const recipient = normalizeUserId(recipientUserId);
 
-  if (!currentState || !actor || !requester || !recipient || requester === recipient) {
-    return false;
-  }
-
-  if (blocked) {
-    return false;
-  }
+  if (!currentState || !actor || !requester || !recipient || requester === recipient) return false;
+  if (blocked) return false;
 
   if (currentState === 'pending') {
-    if (action === 'accept' || action === 'decline') {
-      return actor === recipient;
-    }
-    if (action === 'cancel') {
-      return actor === requester;
-    }
+    if (action === 'accept' || action === 'decline') return actor === recipient;
+    if (action === 'cancel') return actor === requester;
   }
 
   if (currentState === 'accepted' && action === 'remove') {
@@ -155,10 +148,7 @@ export function canTransitionBuddyRelationship({
 }
 
 function normalizeUserId(value) {
-  if (typeof value !== 'string') {
-    return null;
-  }
-
+  if (typeof value !== 'string') return null;
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : null;
 }
