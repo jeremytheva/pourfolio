@@ -3,7 +3,7 @@ import { installMockApi } from './mockApi.js'
 
 test('brewery rankings show qualified aggregate product-rating results and boundaries', async ({ page }) => {
   await installMockApi(page)
-  await page.route('**/api/nocodebackend/catalog/producers/rankings?**', (route) => {
+  await page.route(/\/api\/nocodebackend\/catalog\/producers\/rankings(?:\?|$)/u, (route) => {
     const requestUrl = new URL(route.request().url())
     const pageSize = Number(requestUrl.searchParams.get('limit') || 24)
     return route.fulfill({
