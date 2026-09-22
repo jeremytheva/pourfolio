@@ -1,6 +1,6 @@
 import { ApiError, apiRequest } from '../lib/nocodeBackend.js'
 import { validateCatalogueProducer } from './catalogueResponse.js'
-import { validateCatalogueProducerPage } from './producerPageResponse.js'
+import { validateCatalogueProducerPage, validateProducerRankingPage } from './producerPageResponse.js'
 
 const INVALID_PRODUCER_ID_MESSAGE = 'Producer identifier is invalid.'
 const INVALID_PRODUCER_ID_CODE = 'invalid_producer_identifier'
@@ -56,6 +56,13 @@ export const producerService = {
     return validateCatalogueProducerPage(
       await apiRequest(`/catalog/producers?${params}`),
       { expectedPage: page, expectedPageSize: limit, includeProductCount: true }
+    )
+  },
+
+  async listProducerRankingPage({ page = 1, limit = 24 } = {}) {
+    return validateProducerRankingPage(
+      await apiRequest(`/catalog/producers/rankings?page=${page}&limit=${limit}`),
+      { expectedPage: page, expectedPageSize: limit }
     )
   },
 
