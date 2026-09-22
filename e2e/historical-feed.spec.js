@@ -62,8 +62,8 @@ test('Historical Feed is private, filterable and paginated with focus restoratio
   await expect(page.getByRole('list', { name: 'Historical tasting events' })).toContainText('4.5 / 5')
 
   await page.getByRole('searchbox', { name: 'Search beer or brewery' }).fill('Rocky Ridge')
-  await page.getByLabel('From').fill('2025-01-01')
-  await page.getByLabel('To').fill('2026-12-31')
+  await page.getByLabel('From date', { exact: true }).fill('2025-01-01')
+  await page.getByLabel('To date', { exact: true }).fill('2026-12-31')
   await page.getByRole('button', { name: 'Apply filters' }).click()
 
   await expect.poll(() => requests.at(-1)).toEqual({
