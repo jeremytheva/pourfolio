@@ -195,3 +195,63 @@ test('Historical Feed paginates after owner-safe search filtering', async () => 
   assert.equal(result.body.items[0].event_type, 'full_tasting')
   assert.equal(result.body.items[0].product.producer.producer_name, 'Rocky Ridge Brewing')
 })
+
+
+test('unfiltered Historical Feed enriches only the requested response page', async () => {
+  const ownerRows = [
+    { id: 1, user_id: user.id, product_id: 4, submission_state: 'complete', total_weighted: 4.1, date_rated: '2025-01-01T00:00:00.000Z' },
+    { id: 2, user_id: user.id, product_id: 5, submission_state: 'complete', total_weighted: 4.2, date_rated: '2026-01-01T00:00:00.000Z' },
+    { id: 3, user_id: user.id, product_id: 6, submission_state: 'complete', total_weighted: 4.3, date_rated: '2026-09-01T00:00:00.000Z' }
+  ]
+  const products = [
+    { id: 4, product_name: 'Old Beer', producer_id: 20, product_category_id: 10 },
+    { id: 5, product_name: 'Middle Beer', producer_id: 21, product_category_id: 11 },
+    { id: 6, product_name: 'New Beer', producer_id: 22, product_category_id: 12 }
+  ]
+  const producers = [
+    { id: 20, producer_name: 'Old Brewery' },
+    { id: 21, producer_name: 'Middle Brewery' },
+    { id: 22, producer_name: 'New Brewery' }
+  ]
+  const categories = [
+    { id: 10, category_name: 'Old Style' },
+    { id: 11, category_name: 'Middle Style' },
+    { id: 12, category_name: 'New Style' }
+  ]
+  let productGetCount = 0
+
+  dataProvider.listPage = async (collection, options) => ({
+    items: ownerRows.filter((item) =>
+      Object.entries(options.filters || {}).every(([key, value]) => String(item[key]) === String(value))),
+    page: 1,
+    pageSize: options.limit,
+    total: ownerRows.length,
+    totalPages: 1
+  })
+  dataProvider.list = async (collection) => {
+    if (collection === COLLECTIONS.ratings) return ownerRows
+    if (collection === COLLECTIONS.cellar) return []
+    if (collection === COLLECTIONS.products) return products
+    if (collection === COLLECTIONS.categories) return categories
+    return []
+  }
+  dataProvider.get = async (collection, id) => {
+    if (collection === COLLECTIONS.products) {
+      productGetCount += 1
+      return products.find((item) => String(item.id) === String(id)) || null
+    }
+    if (collection === COLLECTIONS.producers) return producers.find((item) => String(item.id) === String(id)) || null
+    if (collection === COLLECTIONS.categories) return categories.find((item) => String(item.id) === String(id)) || null
+    return null
+  }
+
+  const result = response()
+  await __testables.listUserHistory(result, user, { query: { page: '2', limit: '1' } })
+
+  assert.equal(result.statusCode, 200)
+  assert.equal(result.body.total, 3)
+  assert.equal(result.body.totalPages, 3)
+  assert.equal(result.body.items.length, 1)
+  assert.equal(result.body.items[0].id, 2)
+  assert.equal(productGetCount, 1)
+})
