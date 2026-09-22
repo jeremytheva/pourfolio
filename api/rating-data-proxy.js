@@ -647,19 +647,25 @@ const parseHistoryDate = (value, label) => {
   return text
 }
 
+const parseHistoryPositiveInteger = (value, fallback, label, maximum = Number.MAX_SAFE_INTEGER) => {
+  const text = String(value ?? fallback).trim()
+  if (!/^[1-9]\d*$/.test(text)) {
+    const error = new Error(`${label} is invalid.`)
+    error.status = 400
+    throw error
+  }
+  const number = Number(text)
+  if (!Number.isSafeInteger(number) || number > maximum) {
+    const error = new Error(`${label} is invalid.`)
+    error.status = 400
+    throw error
+  }
+  return number
+}
+
 const parseHistoryQuery = (request = {}) => {
-  const page = Number.parseInt(String(request.query?.page ?? '1'), 10)
-  const limit = Number.parseInt(String(request.query?.limit ?? '20'), 10)
-  if (!Number.isSafeInteger(page) || page < 1) {
-    const error = new Error('History page is invalid.')
-    error.status = 400
-    throw error
-  }
-  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 50) {
-    const error = new Error('History page size is invalid.')
-    error.status = 400
-    throw error
-  }
+  const page = parseHistoryPositiveInteger(request.query?.page, '1', 'History page')
+  const limit = parseHistoryPositiveInteger(request.query?.limit, '20', 'History page size', 50)
   const q = parseHistoryText(request.query?.q)
   const from = parseHistoryDate(request.query?.from, 'History start')
   const to = parseHistoryDate(request.query?.to, 'History end')
