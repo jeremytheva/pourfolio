@@ -330,9 +330,9 @@ Lifecycle: **VALIDATING**. Canonical repository, browser/accessibility, security
 
 ## Product tasting history — #522
 
-Issue **#522 — Add owner tasting history API and product-page timeline** is active as an approved post-launch Phase 4 slice that does not depend on provider schema mutation.
+Issue **#522 — Add owner tasting history API and product-page timeline** is complete and merged through PR **#523** at `627e9fee6e9acb1c98e323045729363f565fd053`.
 
-The feature branch `feature/product-tasting-history` currently:
+The merged implementation:
 - makes completed owner rating history pagination-safe and supports exact server-side `product_id` filtering;
 - keeps ownership session-derived and excludes non-complete rating workflow states;
 - adds an owner-private **Your tasting history** timeline to product pages with date, weighted score and existing advanced-score projections;
@@ -344,7 +344,26 @@ No provider schema/data mutation, social sharing, Drinking Buddy relationship or
 
 Exact implementation head `71ea62e227fa6b12ded9dd95ed223e3b526eb525` passed canonical `npm run platform:validate` with **663 tests / 654 passed / 9 skipped / 0 failed**, all **119** browser/accessibility tests, Dependency Review and CodeQL. Vercel preview deployment reported success, the branch was zero commits behind `main`, PR #523 was mergeable and there were zero unresolved review threads at the readiness audit.
 
-Lifecycle: **READY / MERGEABLE**, subject to final docs-only head revalidation after recording this evidence.
+Lifecycle: **MERGED**.
+
+## Private Historical Feed — #524
+
+Issue **#524 — Add private personal Historical Feed** is active as the next Phase 4 history slice after #522.
+
+Branch `feature/personal-historical-feed` currently:
+- adds authenticated owner-only `GET /ratings/history` over the canonical completed tasting-event history;
+- keeps history as a projection over canonical ratings rather than creating a duplicate feed table;
+- supports server-side beer/brewery search, inclusive date filtering and bounded response pagination;
+- preserves repeat tastings as separate events with deterministic newest-first ordering;
+- adds the signed-in `/history` Historical Feed route and primary History navigation;
+- displays product/brewery identity, tasting date, weighted score and existing owner-safe advanced scores;
+- provides accessible loading, empty, failure/retry, filter and pagination behavior;
+- keeps Drinking Buddy/social visibility, Quick Rate activation and public individual rating exposure out of scope;
+- adds focused API, browser and accessibility coverage.
+
+No provider schema/data mutation is introduced.
+
+Lifecycle: **VALIDATING**. Canonical repository, browser/accessibility, security and deployment evidence remain to be confirmed on the exact PR head.
 
 ## Next dependency-correct work
 
