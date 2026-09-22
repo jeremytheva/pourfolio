@@ -88,3 +88,110 @@ test('product-filtered owner history rejects invalid product identifiers before 
   )
   assert.equal(providerCalled, false)
 })
+
+
+test('Historical Feed query validation is strict and date ranges are ordered', () => {
+  assert.deepEqual(
+    __testables.parseHistoryQuery({ query: { page: '2', limit: '25', q: '  Rocky Ridge  ', from: '2025-01-01', to: '2026-09-22' } }),
+    { page: 2, limit: 25, q: 'Rocky Ridge', from: '2025-01-01', to: '2026-09-22' }
+  )
+
+  assert.throws(
+    () => __testables.parseHistoryQuery({ query: { page: '2x' } }),
+    (error) => error?.status === 400 && /History page is invalid/.test(error.message)
+  )
+  assert.throws(
+    () => __testables.parseHistoryQuery({ query: { limit: '51' } }),
+    (error) => error?.status === 400 && /History page size is invalid/.test(error.message)
+  )
+  assert.throws(
+    () => __testables.parseHistoryQuery({ query: { from: '2026-09-23', to: '2026-09-22' } }),
+    (error) => error?.status === 400 && /start date must not be after/.test(error.message)
+  )
+  assert.throws(
+    () => __testables.parseHistoryQuery({ query: { from: '2026-02-30' } }),
+    (error) => error?.status === 400 && /start date is invalid/.test(error.message)
+  )
+})
+
+test('Historical Feed filters only owner projection fields and preserves repeat events', () => {
+  const items = [
+    {
+      id: 3,
+      date_rated: '2026-09-21T00:00:00.000Z',
+      product: { product_name: 'Ace', producer: { producer_name: 'Rocky Ridge Brewing' } }
+    },
+    {
+      id: 2,
+      date_rated: '2026-06-10T00:00:00.000Z',
+      product: { product_name: 'Ace', producer: { producer_name: 'Rocky Ridge Brewing' } }
+    },
+    {
+      id: 1,
+      date_rated: '2024-01-01T00:00:00.000Z',
+      product: { product_name: 'Other', producer: { producer_name: 'Elsewhere Brewing' } }
+    }
+  ]
+
+  const filtered = __testables.filterOwnerHistory(items, {
+    q: 'ridge',
+    from: '2025-01-01',
+    to: '2026-12-31'
+  })
+
+  assert.deepEqual(filtered.map((item) => item.id), [3, 2])
+})
+
+test('Historical Feed paginates after owner-safe search filtering', async () => {
+  const ownerRows = [
+    { id: 1, user_id: user.id, product_id: 4, submission_state: 'complete', total_weighted: 4.1, date_rated: '2025-06-18T00:00:00.000Z' },
+    { id: 2, user_id: user.id, product_id: 5, submission_state: 'complete', total_weighted: 3.7, date_rated: '2026-01-05T00:00:00.000Z' },
+    { id: 3, user_id: user.id, product_id: 4, submission_state: 'complete', total_weighted: 4.5, date_rated: '2026-09-21T00:00:00.000Z' }
+  ]
+  const products = [
+    { id: 4, product_name: 'Ace', producer_id: 20, product_category_id: 10 },
+    { id: 5, product_name: 'Other Beer', producer_id: 21, product_category_id: 11 }
+  ]
+  const producers = [
+    { id: 20, producer_name: 'Rocky Ridge Brewing' },
+    { id: 21, producer_name: 'Elsewhere Brewing' }
+  ]
+  const categories = [
+    { id: 10, category_name: 'Pale Ale' },
+    { id: 11, category_name: 'Lager' }
+  ]
+
+  dataProvider.listPage = async (collection, options) => {
+    assert.equal(collection, COLLECTIONS.ratings)
+    const filtered = ownerRows.filter((item) =>
+      Object.entries(options.filters || {}).every(([key, value]) => String(item[key]) === String(value)))
+    return { items: filtered, page: 1, pageSize: options.limit, total: filtered.length, totalPages: filtered.length ? 1 : 0 }
+  }
+  dataProvider.list = async (collection) => {
+    if (collection === COLLECTIONS.ratings) return ownerRows
+    if (collection === COLLECTIONS.cellar) return []
+    if (collection === COLLECTIONS.products) return products
+    if (collection === COLLECTIONS.categories) return categories
+    return []
+  }
+  dataProvider.get = async (collection, id) => {
+    if (collection === COLLECTIONS.products) return products.find((item) => String(item.id) === String(id)) || null
+    if (collection === COLLECTIONS.producers) return producers.find((item) => String(item.id) === String(id)) || null
+    if (collection === COLLECTIONS.categories) return categories.find((item) => String(item.id) === String(id)) || null
+    return null
+  }
+
+  const result = response()
+  await __testables.listUserHistory(result, user, {
+    query: { page: '2', limit: '1', q: 'Rocky Ridge', from: '2025-01-01', to: '2026-12-31' }
+  })
+
+  assert.equal(result.statusCode, 200)
+  assert.equal(result.body.total, 2)
+  assert.equal(result.body.totalPages, 2)
+  assert.equal(result.body.page, 2)
+  assert.equal(result.body.items.length, 1)
+  assert.equal(result.body.items[0].id, 1)
+  assert.equal(result.body.items[0].event_type, 'full_tasting')
+  assert.equal(result.body.items[0].product.producer.producer_name, 'Rocky Ridge Brewing')
+})
