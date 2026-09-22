@@ -26,88 +26,42 @@ The production architecture is:
 
 Direct browser-to-NoCodeBackend access is not the supported production integration pattern.
 
-The browser may request an operation, but the server owns:
-
-- provider credentials;
-- immutable authenticated identity;
-- owner selection;
-- role / permission authority;
-- field allowlists;
-- rating total derivation;
-- validation and normalisation;
-- provider error mapping;
-- rate limiting;
-- correlation IDs;
-- response projection.
+The browser may request an operation, but the server owns provider credentials, authenticated identity, ownership and permissions, field allowlists, rating-total derivation, validation/normalisation, provider error mapping, rate limiting, correlation IDs and response projection.
 
 ## Frontend
 
-The launch app is a React single-page application built with Vite.
+The application is a React single-page application built with Vite. `src/App.jsx` is authoritative for currently reachable browser routes.
 
-Reachable launch routes are limited to the supported beer-first product:
+Current authenticated routes include:
 
-- `/login`
-- `/home`
-- `/search`
-- `/products/:productId`
-- `/products/:productId/rate`
-- `/cellar`
-- `/profile`
+- `/home` and `/search`;
+- `/products/:productId`, `/products/:productId/rate`, `/products/propose`, and `/products/:productId/propose-edit`;
+- `/places` and `/breweries/:producerId`;
+- `/styles` and `/styles/:styleId`;
+- `/taste-map`;
+- `/cellar`, `/history`, `/profile`, `/settings`, and `/users/:publicProfileId`.
 
-Prototype modules must not become launch routes merely because their source remains in the repository.
+`/login` is the unauthenticated entry route. Public document routes are generated from `src/data/publicDocuments.js`.
+
+`/brew-done-it` is present in source routing but remains a separately governed, fail-closed capability: production usability depends on its server-side policy/provider-certification boundary and it must not be represented as launch-ready merely because a browser route exists.
+
+Reachability and launch readiness are separate concepts. Prototype source that is not routed must not be represented as an available product capability, while routed capabilities that are policy-disabled or dependency-gated must be documented as such.
 
 ## Browser response boundary
 
-Successful provider/gateway JSON is not trusted merely because HTTP status is 200.
-
-Catalogue and product responses are validated before entering render state for:
-
-- envelope shape;
-- pagination coherence;
-- stable positive identifiers;
-- unique page identities;
-- primitive render-safe fields;
-- producer/category relationship consistency;
-- aggregate-only rating summaries;
-- requested-route identity matching.
-
-Malformed successful responses must enter ordinary recoverable error states rather than partially render or crash.
+Successful provider/gateway JSON is not trusted merely because HTTP status is 200. Catalogue, producer, style and product responses are validated for envelope/pagination coherence, stable identities, render-safe fields, relationship consistency, aggregate-only projections and requested-route identity. Malformed successful responses enter recoverable error states rather than partially rendering.
 
 ## Authentication boundary
 
-`api/auth-proxy.js` is the application authentication gateway.
+`api/auth-proxy.js` is the application authentication gateway. It owns the action/method allowlist, server-only provider credential injection, session cookie forwarding, unsafe-origin validation, request-size controls, upstream timeout/error handling, cookie rewriting, safe error projection, provider discovery and authentication rate limiting.
 
-Responsibilities include:
-
-- fixed action/method allowlist;
-- server-only provider secret injection;
-- session cookie forwarding;
-- unsafe-origin validation;
-- request-size controls;
-- upstream timeout/error handling;
-- cookie rewriting for the Pourfolio deployment;
-- safe error projection;
-- provider discovery;
-- authentication rate limiting.
-
-Provider discovery is authoritative. A provider failure must produce an unavailable/deployment state rather than silently pretending password authentication is available.
-
-Successful password sign-in, sign-up or OTP verification must resolve a stable user. If the provider returns an acknowledgement without session identity, the client must perform one `/get-session` fallback and treat a missing/malformed session as failure.
+Provider discovery is authoritative. Provider failure must produce an unavailable/deployment state rather than silently pretending password authentication is available. Successful password sign-in, sign-up or OTP verification must resolve a stable user; acknowledgement without identity requires the governed session fallback and a missing/malformed session is failure.
 
 ## Data boundary
 
-`api/data-router.js` is the canonical application data dispatcher. Launch resources are delegated to schema-aware handlers. Approved-but-deferred Brew Done It traffic is isolated in `api/_lib/brewDoneItGateway.js` and remains fail-closed unless its server-only policy flag is deliberately enabled after provider certification.
+`api/data-router.js` is the canonical application data dispatcher. Launch resources are delegated to schema-aware handlers. Approved-but-separately-governed Brew Done It traffic is isolated in `api/_lib/brewDoneItGateway.js` and remains fail-closed unless its server-only policy flag is deliberately enabled after provider certification.
 
-The data layer:
-
-- verifies a session on every private data request;
-- derives owner identity server-side;
-- strips browser-supplied identity, role, secret and authoritative total fields;
-- allowlists collections and operations;
-- verifies ownership before update/delete;
-- validates relationship integrity;
-- returns public or owner-specific projections only;
-- assigns safe correlation IDs.
+The data layer verifies private-session identity, derives ownership server-side, strips browser-supplied authority fields, allowlists collections/operations, verifies ownership and relationships, projects only permitted public/owner data and assigns safe correlation IDs.
 
 ## NoCodeBackend configuration
 
@@ -115,99 +69,33 @@ Standard server variables:
 
 - `NOCODEBACKEND_AUTH_BASE_URL`
 - `NOCODEBACKEND_DATA_BASE_URL`
+- `NOCODEBACKEND_AUTH_SECRET_KEY`
 - `NOCODEBACKEND_SECRET_KEY`
 - `NOCODEBACKEND_INSTANCE`
 
-Canonical values where defaults are required:
-
-- auth base: `https://app.nocodebackend.com/api/user-auth`
-- data base: `https://api.nocodebackend.com/`
-- instance: `54026_rating`
-
-Any legacy `NCB*` variable name should be treated as deprecated unless a documented compatibility layer explicitly requires it.
+Canonical URL defaults where required are `https://app.nocodebackend.com/api/user-auth` for authentication and `https://api.nocodebackend.com/` for data. Provider credentials and instance identifiers are runtime-owned and must not be committed or exposed to browser code. Legacy `NCB*` names are deprecated unless a documented compatibility boundary explicitly requires them.
 
 ## Rate limiting
 
-Sensitive authentication paths use a shared Redis-compatible store provisioned through Vercel.
-
-Requirements:
-
-- no raw email/password/OTP/token/request-body storage;
-- account/client dimensions are normalised and HMACed;
-- separate policy buckets for sign-in, sign-up, OTP and general operations;
-- missing configuration is distinguishable from provider/store outage;
-- production fails closed when shared rate limiting is unavailable.
+Sensitive authentication paths use a shared Redis-compatible store. No raw credentials/tokens/request bodies are stored in rate-limit keys; account/client dimensions are normalised and HMACed; policy buckets are operation-specific; missing configuration is distinguishable from provider/store outage; production fails closed when required shared limiting is unavailable.
 
 ## Rating write integrity
 
-A rating is a coordinated write across:
+A rating is a coordinated write across `ratings`, `rating_scores` and optional `bonus_attribute_rating_mapping` rows. The durable target uses an idempotent submission contract so retries cannot create duplicate logical ratings or partial child graphs.
 
-- `ratings`;
-- `rating_scores`;
-- optional `bonus_attribute_rating_mapping`.
-
-The durable target uses an idempotent submission contract so retries cannot create duplicate logical ratings or partial child graphs.
-
-The currently deployed schema must not be assumed to support the full target until the required fields and provider semantics are verified. Reconciliation routes must remain disabled or fail safely when the durability contract is not actually deployed.
+The currently deployed schema must not be assumed to support the full target until #165's required fields, uniqueness semantics, migration/backfill procedure and recovery evidence are verified. `/ratings/reconcile` must remain unavailable until that durability contract is actually deployed and certified.
 
 ## Account lifecycle
 
-The repository contains pure server-side source foundations for:
-
-- portable export manifest projection;
-- deterministic export artifact creation;
-- account-deletion discovery planning;
-- count-only deletion reconciliation;
-- exact deletion confirmation text validation.
-
-These are not currently an executable whole-account lifecycle.
-
-Missing approval / implementation includes:
-
-- recent-authentication evidence;
-- consistent multi-collection provider snapshot semantics;
-- durable server-side job orchestration;
-- write fencing;
-- provider-backed delete execution;
-- authentication identity deletion;
-- final absence proof;
-- retention / legal policy;
-- accessible UI and connected evidence.
+The repository contains server-side foundations for export and deletion planning, but these do not yet constitute an executable whole-account lifecycle. Recent-authentication evidence, consistent provider snapshots, durable orchestration/write fencing, provider-backed deletion, authentication-identity deletion, final absence proof, retention/legal policy and connected accessible UI evidence remain future work.
 
 ## Brew Done It containment
 
-Current state:
-
-- no launch route;
-- no launch navigation item;
-- `BREW_DONE_IT_POLICY_ENABLED` remains unset in normal deployments;
-- persistent provider collections remain deferred/not provider-certified.
-
-Accepted future state under [ADR 0002](docs/DECISIONS/0002-approve-brew-done-it-cross-device.md):
-
-- two authenticated Pourfolio users on separate devices;
-- a persistent two-player series containing repeated beer-challenge rounds;
-- the selector chooses a catalogue beer before the challenge is shared;
-- the guesser never receives the secret beer identity while the round is active;
-- controlled public-catalogue yes/no questions and exact beer guesses;
-- server-derived 0–10 round scoring;
-- durable round history and head-to-head statistics across sessions;
-- selector/guesser roles swap for each subsequent round by default;
-- optimistic versioning and idempotency protect asynchronous play.
-
-`api/_lib/brewDoneItGateway.js` contains the approved application boundary, while the older implementation in `api/data-proxy.js` remains legacy/quarantined source. The new capability may merge while disabled, but route/navigation and the policy flag must not be enabled until the schema and connected two-device evidence satisfy the migration gate in `docs/nocodebackend/brew-done-it-schema-target.md`.
+The persistent two-account/two-device architecture and deduction-board model are approved in ADRs 0002 and 0006, but provider schema/permissions and connected privacy/recovery evidence remain separate enablement gates. `api/_lib/brewDoneItGateway.js` is the governed application boundary. The capability must remain fail-closed until its provider-certification requirements are satisfied.
 
 ## Deployment
 
-Vercel provides:
-
-- SPA direct-route handling;
-- serverless API functions;
-- production environment variables;
-- security headers;
-- immutable hashed-asset caching.
-
-`/api/health` is a configuration/liveness signal only and must not be represented as complete upstream readiness proof.
+Vercel provides SPA direct-route handling, serverless API functions, production environment variables, security headers and immutable hashed-asset caching. BonoHost is also supported through the host-neutral Node runtime path. `/api/health` is configuration/liveness evidence only and must not be represented as complete upstream readiness proof.
 
 ## Architectural non-negotiables
 
@@ -216,7 +104,7 @@ Vercel provides:
 - No client-side-only authorisation.
 - No unsupported collection proxy.
 - No fake success.
-- No provider payload accepted without projection / validation.
+- No provider payload accepted without projection/validation.
 - No schema assumption treated as deployed fact without evidence.
 - No destructive lifecycle exposed before its end-to-end security and recovery contract exists.
 - No Brew Done It secret beer in an active-round response to the guesser.
