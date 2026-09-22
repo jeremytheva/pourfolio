@@ -326,7 +326,9 @@ This slice removes seven page entry modules that are absent from the active `src
 
 The deletion does not add routes, alter provider schema/data, change the #399 venue boundary, remove contained Brew Done It work or implement future social/event/business capabilities.
 
-Lifecycle: **VALIDATING**. Canonical repository, browser/accessibility, security and deployment evidence remain to be confirmed on the exact PR head.
+Exact implementation head `35052a1db074045cb2aad185244e399de7ee87d4` passed canonical `npm run platform:validate` with **667 tests / 658 passed / 9 skipped / 0 failed**, all **122** browser/accessibility tests, Dependency Review and CodeQL. Vercel preview deployment reported success, PR #525 was mergeable and there were zero unresolved review threads at the readiness audit.
+
+Lifecycle: **READY / MERGEABLE**, subject to final docs-only head revalidation after recording this evidence.
 
 ## Product tasting history — #522
 
