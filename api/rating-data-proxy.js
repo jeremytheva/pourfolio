@@ -591,8 +591,8 @@ const reconcileHistoricalRatings = async (request, response, user) => {
   })
 }
 
-const buildOwnerRatingItems = async (user, productId = null) => {
-  const ownerRatings = await ownerCompletedRatings(user.id, productId)
+const projectOwnerRatingItems = async (user, ownerRatings) => {
+  if (!ownerRatings.length) return []
   const [populations, cellarRows] = await Promise.all([
     scorePopulations(),
     dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }).then(records)
@@ -608,6 +608,9 @@ const buildOwnerRatingItems = async (user, productId = null) => {
     product: productsById.get(String(rating.product_id)) || null
   }))
 }
+
+const buildOwnerRatingItems = async (user, productId = null) =>
+  projectOwnerRatingItems(user, await ownerCompletedRatings(user.id, productId))
 
 const listUserRatings = async (response, user, request = {}) => {
   const requestedProductId = request.query?.product_id
@@ -677,12 +680,16 @@ const parseHistoryQuery = (request = {}) => {
   return { page, limit, q, from, to }
 }
 
+const filterOwnerHistoryDates = (items, { from, to }) => items.filter((item) => {
+  const eventDate = String(item.date_rated ?? '').slice(0, 10)
+  if (from && (!/^\d{4}-\d{2}-\d{2}$/.test(eventDate) || eventDate < from)) return false
+  if (to && (!/^\d{4}-\d{2}-\d{2}$/.test(eventDate) || eventDate > to)) return false
+  return true
+})
+
 const filterOwnerHistory = (items, { q, from, to }) => {
   const search = q.toLocaleLowerCase()
-  return items.filter((item) => {
-    const eventDate = String(item.date_rated ?? '').slice(0, 10)
-    if (from && (!/^\d{4}-\d{2}-\d{2}$/.test(eventDate) || eventDate < from)) return false
-    if (to && (!/^\d{4}-\d{2}-\d{2}$/.test(eventDate) || eventDate > to)) return false
+  return filterOwnerHistoryDates(items, { from, to }).filter((item) => {
     if (!search) return true
     const product = item.product || {}
     return [
@@ -694,10 +701,27 @@ const filterOwnerHistory = (items, { q, from, to }) => {
 
 const listUserHistory = async (response, user, request = {}) => {
   const query = parseHistoryQuery(request)
-  const filtered = filterOwnerHistory(await buildOwnerRatingItems(user), query)
+  const datedRatings = filterOwnerHistoryDates(await ownerCompletedRatings(user.id), query)
+  const start = (query.page - 1) * query.limit
+
+  if (!query.q) {
+    const total = datedRatings.length
+    const totalPages = total ? Math.ceil(total / query.limit) : 0
+    const pageRatings = datedRatings.slice(start, start + query.limit)
+    response.status(200).json({
+      items: await projectOwnerRatingItems(user, pageRatings),
+      page: query.page,
+      pageSize: query.limit,
+      total,
+      totalPages
+    })
+    return
+  }
+
+  const searchable = await projectOwnerRatingItems(user, datedRatings)
+  const filtered = filterOwnerHistory(searchable, { ...query, from: null, to: null })
   const total = filtered.length
   const totalPages = total ? Math.ceil(total / query.limit) : 0
-  const start = (query.page - 1) * query.limit
   response.status(200).json({
     items: filtered.slice(start, start + query.limit),
     page: query.page,
@@ -863,4 +887,4 @@ export default async function handler(request, response) {
   }
 }
 
-export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, summariseSubmissionChildren, transitionRating, verifyRatingState, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalOwnerRecords, ownerCompletedRatings, buildOwnerRatingItems, parseHistoryQuery, filterOwnerHistory, listUserHistory, historicalReconciliationPlan, reconcileHistoricalRatings, diagnosticRatingCreate }
+export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, summariseSubmissionChildren, transitionRating, verifyRatingState, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalOwnerRecords, ownerCompletedRatings, projectOwnerRatingItems, buildOwnerRatingItems, parseHistoryQuery, filterOwnerHistoryDates, filterOwnerHistory, listUserHistory, historicalReconciliationPlan, reconcileHistoricalRatings, diagnosticRatingCreate }
