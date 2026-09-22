@@ -328,6 +328,22 @@ The deletion does not add routes, alter provider schema/data, change the #399 ve
 
 Lifecycle: **VALIDATING**. Canonical repository, browser/accessibility, security and deployment evidence remain to be confirmed on the exact PR head.
 
+## Product tasting history — #522
+
+Issue **#522 — Add owner tasting history API and product-page timeline** is active as an approved post-launch Phase 4 slice that does not depend on provider schema mutation.
+
+The feature branch `feature/product-tasting-history` currently:
+- makes completed owner rating history pagination-safe and supports exact server-side `product_id` filtering;
+- keeps ownership session-derived and excludes non-complete rating workflow states;
+- adds an owner-private **Your tasting history** timeline to product pages with date, weighted score and existing advanced-score projections;
+- preserves the public/community aggregate-only product contract and does not expose individual community rating rows;
+- reuses the existing advanced-score presentation between Profile and product history;
+- adds focused server and browser regression coverage.
+
+No provider schema/data mutation, social sharing, Drinking Buddy relationship or public-history expansion is introduced.
+
+Lifecycle: **VALIDATING**. Canonical `npm run platform:validate` and applicable browser/accessibility evidence remain to be confirmed on the exact branch head.
+
 ## Next dependency-correct work
 
 1. Progress #165 only up to the provider/irreversible migration boundary; evidence the required schema/constraint semantics, safe backfill and backup/restore mechanism without mutating provider data.
