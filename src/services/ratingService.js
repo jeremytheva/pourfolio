@@ -24,8 +24,10 @@ export const ratingService = {
     })
   },
 
-  getUserRatings() {
-    return apiRequest('/ratings/mine')
+  getUserRatings(productId = null) {
+    if (productId === null || productId === undefined || productId === '') return apiRequest('/ratings/mine')
+    const params = new URLSearchParams({ product_id: String(productId) })
+    return apiRequest(`/ratings/mine?${params}`)
   },
 
   deleteRating(ratingId) {
