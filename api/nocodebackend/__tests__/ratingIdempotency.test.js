@@ -50,6 +50,18 @@ const installMemoryProvider = ({ cellar, failCreate, failGet, failList, failUpda
     if (collection === COLLECTIONS.bonusAttributes) return [{ id: 7 }]
     return (records[collection] || []).filter((item) => Object.entries(filters).every(([key, value]) => String(item[key]) === String(value)))
   }
+  dataProvider.listPage = async (collection, { page, limit, orderBy = 'id', order = 'asc', filters = {} }) => {
+    if (await failList?.(collection, filters, records)) throw Object.assign(new Error('list failure'), { status: 502 })
+    const filtered = (records[collection] || []).filter((item) =>
+      Object.entries(filters).every(([key, value]) => String(item[key]) === String(value)))
+    filtered.sort((left, right) => {
+      const comparison = Number(left[orderBy] || 0) - Number(right[orderBy] || 0)
+      return order === 'desc' ? -comparison : comparison
+    })
+    const total = filtered.length
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit)
+    return { items: filtered.slice((page - 1) * limit, page * limit), page, pageSize: limit, total, totalPages }
+  }
   dataProvider.create = async (collection, value) => {
     if (await failCreate?.(collection, value, records)) throw Object.assign(new Error('upstream failure'), { status: 502 })
     const uniqueField = collection === COLLECTIONS.ratings ? 'submission_key' : 'uniqueness_key'
