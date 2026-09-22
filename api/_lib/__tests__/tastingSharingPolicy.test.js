@@ -3,9 +3,11 @@ import test from 'node:test';
 
 import {
   canonicalBuddyPair,
+  canOwnerSetTastingVisibility,
   canReadSharedTasting,
   canTransitionBuddyRelationship,
   normalizeTastingVisibility,
+  resolveVisibilityForNewTasting,
 } from '../tastingSharingPolicy.js';
 
 test('missing and unknown tasting visibility fail closed to private', () => {
@@ -13,6 +15,43 @@ test('missing and unknown tasting visibility fail closed to private', () => {
   assert.equal(normalizeTastingVisibility(null), 'private');
   assert.equal(normalizeTastingVisibility('friends'), 'private');
   assert.equal(normalizeTastingVisibility('public'), 'public');
+});
+
+test('new tastings use an explicit event override before the account default', () => {
+  assert.equal(resolveVisibilityForNewTasting({
+    eventVisibility: 'private',
+    accountDefaultVisibility: 'drinking_buddies',
+  }), 'private');
+  assert.equal(resolveVisibilityForNewTasting({
+    accountDefaultVisibility: 'drinking_buddies',
+  }), 'drinking_buddies');
+});
+
+test('missing or invalid new-tasting defaults fail closed without changing old events', () => {
+  assert.equal(resolveVisibilityForNewTasting(), 'private');
+  assert.equal(resolveVisibilityForNewTasting({ accountDefaultVisibility: 'friends' }), 'private');
+  assert.equal(resolveVisibilityForNewTasting({ eventVisibility: 'friends', accountDefaultVisibility: 'public' }), 'public');
+});
+
+test('only the owner can set tasting visibility and public remains separately gated', () => {
+  assert.equal(canOwnerSetTastingVisibility({
+    actorUserId: 'owner', ownerUserId: 'owner', requestedVisibility: 'private',
+  }), true);
+  assert.equal(canOwnerSetTastingVisibility({
+    actorUserId: 'owner', ownerUserId: 'owner', requestedVisibility: 'drinking_buddies',
+  }), true);
+  assert.equal(canOwnerSetTastingVisibility({
+    actorUserId: 'other', ownerUserId: 'owner', requestedVisibility: 'private',
+  }), false);
+  assert.equal(canOwnerSetTastingVisibility({
+    actorUserId: 'owner', ownerUserId: 'owner', requestedVisibility: 'friends',
+  }), false);
+  assert.equal(canOwnerSetTastingVisibility({
+    actorUserId: 'owner', ownerUserId: 'owner', requestedVisibility: 'public',
+  }), false);
+  assert.equal(canOwnerSetTastingVisibility({
+    actorUserId: 'owner', ownerUserId: 'owner', requestedVisibility: 'public', publicSurfaceEnabled: true,
+  }), true);
 });
 
 test('owner access is independent of social visibility', () => {
