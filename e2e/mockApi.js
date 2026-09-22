@@ -206,7 +206,7 @@ export const installMockApi = async (page) => {
     body: JSON.stringify({ rating, scoreCount: 6, bonusCount: 0, bonusPointTotal: 0, bonusScore: 0, duplicate: false })
   }))
 
-  await page.route('**/api/nocodebackend/ratings/mine', (route) => route.fulfill({
+  await page.route('**/api/nocodebackend/ratings/mine**', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({ items: [{ ...rating, product }] })
