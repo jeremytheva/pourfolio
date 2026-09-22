@@ -35,11 +35,17 @@ export function projectSharedTasting({
     publicSurfaceEnabled,
   })) return null;
 
-  const eventType = ALLOWED_EVENT_TYPES.has(event.event_type) ? event.event_type : 'full_tasting';
+  // ADR 0007 permits only explicitly supported canonical tasting event types.
+  // Unknown, legacy, migration-only or future event types must not be coerced into
+  // a shareable full tasting because that can bypass later event-specific policy.
+  if (!ALLOWED_EVENT_TYPES.has(event.event_type)) return null;
+
+  const eventType = event.event_type;
   const displayScore = cleanScore(eventType === 'quick_rate' ? event.quick_rate_score : event.total_weighted);
   const eventTimestamp = cleanText(event.date_rated);
   const profilePublicId = cleanText(profile.public_id);
   const profileDisplayName = cleanText(profile.display_name);
+  const profileAvatarUrl = cleanText(profile.avatar_url);
   const productPublicId = cleanText(product.public_id);
   const productName = cleanText(product.product_name);
   const producerPublicId = cleanText(producer.public_id);
@@ -52,7 +58,7 @@ export function projectSharedTasting({
     profile: {
       publicId: profilePublicId,
       displayName: profileDisplayName,
-      ...(profile.avatar_url ? { avatarUrl: cleanText(profile.avatar_url) } : {}),
+      ...(profileAvatarUrl ? { avatarUrl: profileAvatarUrl } : {}),
     },
     product: { publicId: productPublicId, name: productName },
     producer: { publicId: producerPublicId, name: producerName },
