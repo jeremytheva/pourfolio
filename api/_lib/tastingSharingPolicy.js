@@ -27,6 +27,46 @@ export function normalizeRelationshipState(value) {
     : null;
 }
 
+// Account defaults are future-facing only. Missing/legacy/invalid defaults fail
+// closed and never retroactively change an existing tasting event.
+export function resolveVisibilityForNewTasting({
+  eventVisibility,
+  accountDefaultVisibility,
+} = {}) {
+  if (typeof eventVisibility === 'string' && visibilitySet.has(eventVisibility)) {
+    return eventVisibility;
+  }
+
+  return normalizeTastingVisibility(accountDefaultVisibility);
+}
+
+export function canOwnerSetTastingVisibility({
+  actorUserId,
+  ownerUserId,
+  requestedVisibility,
+  publicSurfaceEnabled = false,
+} = {}) {
+  const actor = normalizeUserId(actorUserId);
+  const owner = normalizeUserId(ownerUserId);
+
+  if (!actor || !owner || actor !== owner) {
+    return false;
+  }
+
+  if (typeof requestedVisibility !== 'string' || !visibilitySet.has(requestedVisibility)) {
+    return false;
+  }
+
+  // Public is deliberately unavailable until a separately governed public
+  // surface exists. Private and Drinking Buddy visibility can be represented
+  // safely before persistence is activated.
+  if (requestedVisibility === 'public') {
+    return publicSurfaceEnabled === true;
+  }
+
+  return true;
+}
+
 export function canonicalBuddyPair(firstUserId, secondUserId) {
   const first = normalizeUserId(firstUserId);
   const second = normalizeUserId(secondUserId);
