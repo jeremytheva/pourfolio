@@ -29,6 +29,13 @@ export const ratingService = {
     const params = new URLSearchParams({ product_id: String(productId) })
     return apiRequest(`/ratings/mine?${params}`)
   },
+  getHistory({ page = 1, limit = 20, q = '', from = '', to = '' } = {}) {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) })
+    if (q.trim()) params.set('q', q.trim())
+    if (from) params.set('from', from)
+    if (to) params.set('to', to)
+    return apiRequest(`/ratings/history?${params}`)
+  },
 
   deleteRating(ratingId) {
     return apiRequest(`/ratings/${encodeURIComponent(ratingId)}`, { method: 'DELETE' })

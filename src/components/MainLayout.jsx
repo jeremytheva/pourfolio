@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { FiBookOpen, FiCompass, FiHome, FiLogOut, FiMapPin, FiPlusCircle, FiSearch, FiSettings, FiTarget, FiUser } from 'react-icons/fi'
+import { FiBookOpen, FiClock, FiCompass, FiHome, FiLogOut, FiMapPin, FiPlusCircle, FiSearch, FiSettings, FiTarget, FiUser } from 'react-icons/fi'
 import { Link, NavLink, useLocation } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import PublicDocumentLinks from './PublicDocumentLinks.jsx'
@@ -12,6 +12,7 @@ const navigation = [
   { to: '/places', label: 'Breweries & Venues', icon: FiMapPin },
   { to: '/search', label: 'Search', icon: FiSearch },
   { to: '/products/propose', label: 'Add Beer', icon: FiPlusCircle },
+  { to: '/history', label: 'History', icon: FiClock },
   { to: '/cellar', label: 'Cellar', icon: FiUser }
 ]
 
@@ -25,6 +26,7 @@ const routeLabel = (pathname) => {
   if (pathname === '/search') return 'Search'
   if (pathname === '/products/propose') return 'Add beer proposal'
   if (pathname === '/cellar') return 'Cellar'
+  if (pathname === '/history') return 'Historical Feed'
   if (pathname === '/profile') return 'Profile and rating history'
   if (pathname === '/settings') return 'Rating settings'
   if (/^\/products\/[^/]+\/rate$/.test(pathname)) return 'Rate beer'

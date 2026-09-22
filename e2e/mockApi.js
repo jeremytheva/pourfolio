@@ -206,6 +206,30 @@ export const installMockApi = async (page) => {
     body: JSON.stringify({ rating, scoreCount: 6, bonusCount: 0, bonusPointTotal: 0, bonusScore: 0, duplicate: false })
   }))
 
+  await page.route('**/api/nocodebackend/ratings/history?**', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      items: [{
+        ...rating,
+        event_type: 'full_tasting',
+        product,
+        advanced_scores: {
+          score_out_of_100: 80,
+          scaled_score: 50,
+          style_scaled_score: 64,
+          style_sample_size: 12,
+          retail_ppp: null,
+          purchased_ppp: null
+        }
+      }],
+      page: 1,
+      pageSize: 20,
+      total: 1,
+      totalPages: 1
+    })
+  }))
+
   await page.route('**/api/nocodebackend/ratings/mine**', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
