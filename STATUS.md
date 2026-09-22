@@ -342,7 +342,9 @@ The feature branch `feature/product-tasting-history` currently:
 
 No provider schema/data mutation, social sharing, Drinking Buddy relationship or public-history expansion is introduced.
 
-Lifecycle: **VALIDATING**. Canonical `npm run platform:validate` and applicable browser/accessibility evidence remain to be confirmed on the exact branch head.
+Exact implementation head `71ea62e227fa6b12ded9dd95ed223e3b526eb525` passed canonical `npm run platform:validate` with **663 tests / 654 passed / 9 skipped / 0 failed**, all **119** browser/accessibility tests, Dependency Review and CodeQL. Vercel preview deployment reported success, the branch was zero commits behind `main`, PR #523 was mergeable and there were zero unresolved review threads at the readiness audit.
+
+Lifecycle: **READY / MERGEABLE**, subject to final docs-only head revalidation after recording this evidence.
 
 ## Next dependency-correct work
 
