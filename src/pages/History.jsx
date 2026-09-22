@@ -108,11 +108,11 @@ function History() {
             </span>
           </label>
           <label className="block text-sm font-medium text-gray-700">
-            From
+            From date
             <input type="date" value={draft.from} onChange={(event) => setDraft((value) => ({ ...value, from: event.target.value }))} className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
           </label>
           <label className="block text-sm font-medium text-gray-700">
-            To
+            To date
             <input type="date" value={draft.to} onChange={(event) => setDraft((value) => ({ ...value, to: event.target.value }))} className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
           </label>
         </div>
