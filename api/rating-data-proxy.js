@@ -591,18 +591,114 @@ const reconcileHistoricalRatings = async (request, response, user) => {
   })
 }
 
+const buildOwnerRatingItems = async (user, productId = null) => {
+  const ownerRatings = await ownerCompletedRatings(user.id, productId)
+  const [populations, cellarRows] = await Promise.all([
+    scorePopulations(),
+    dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }).then(records)
+  ])
+  const cellarById = new Map(cellarRows.filter((item) => isOwnedBy(item, user.id)).map((item) => [String(item.id), item]))
+  const productIds = [...new Set(ownerRatings.map((rating) => String(rating.product_id || '')).filter((id) => /^[1-9]\d*$/.test(id)))]
+  const products = await Promise.all(productIds.map(async (id) => [id, await productProjection(id)]))
+  const productsById = new Map(products)
+  return ownerRatings.map((rating) => ({
+    ...projectRating(rating),
+    event_type: 'full_tasting',
+    advanced_scores: advancedFor(rating, populations, cellarById.get(String(rating.cellar_id)) || null),
+    product: productsById.get(String(rating.product_id)) || null
+  }))
+}
+
 const listUserRatings = async (response, user, request = {}) => {
   const requestedProductId = request.query?.product_id
   const productId = requestedProductId === undefined || requestedProductId === null || requestedProductId === ''
     ? null
     : positiveId(requestedProductId, 'Product identifier')
-  const ownerRatings = await ownerCompletedRatings(user.id, productId)
-  const [populations, cellarRows] = await Promise.all([scorePopulations(), dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }).then(records)])
-  const cellarById = new Map(cellarRows.filter((item) => isOwnedBy(item, user.id)).map((item) => [String(item.id), item]))
-  const productIds = [...new Set(ownerRatings.map((rating) => String(rating.product_id || '')).filter((id) => /^[1-9]\d*$/.test(id)))]
-  const products = await Promise.all(productIds.map(async (id) => [id, await productProjection(id)]))
-  const productsById = new Map(products)
-  response.status(200).json({ items: ownerRatings.map((rating) => ({ ...projectRating(rating), advanced_scores: advancedFor(rating, populations, cellarById.get(String(rating.cellar_id)) || null), product: productsById.get(String(rating.product_id)) || null })) })
+  response.status(200).json({ items: await buildOwnerRatingItems(user, productId) })
+}
+
+const parseHistoryText = (value) => {
+  const text = String(value ?? '').trim()
+  if (text.length > 100 || [...text].some((character) => {
+    const codePoint = character.codePointAt(0)
+    return codePoint < 32 || codePoint === 127
+  })) {
+    const error = new Error('History search is invalid.')
+    error.status = 400
+    throw error
+  }
+  return text
+}
+
+const parseHistoryDate = (value, label) => {
+  const text = String(value ?? '').trim()
+  if (!text) return null
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    const error = new Error(`${label} date is invalid.`)
+    error.status = 400
+    throw error
+  }
+  const timestamp = Date.parse(`${text}T00:00:00.000Z`)
+  if (!Number.isFinite(timestamp) || new Date(timestamp).toISOString().slice(0, 10) !== text) {
+    const error = new Error(`${label} date is invalid.`)
+    error.status = 400
+    throw error
+  }
+  return text
+}
+
+const parseHistoryQuery = (request = {}) => {
+  const page = Number.parseInt(String(request.query?.page ?? '1'), 10)
+  const limit = Number.parseInt(String(request.query?.limit ?? '20'), 10)
+  if (!Number.isSafeInteger(page) || page < 1) {
+    const error = new Error('History page is invalid.')
+    error.status = 400
+    throw error
+  }
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 50) {
+    const error = new Error('History page size is invalid.')
+    error.status = 400
+    throw error
+  }
+  const q = parseHistoryText(request.query?.q)
+  const from = parseHistoryDate(request.query?.from, 'History start')
+  const to = parseHistoryDate(request.query?.to, 'History end')
+  if (from && to && from > to) {
+    const error = new Error('History start date must not be after the end date.')
+    error.status = 400
+    throw error
+  }
+  return { page, limit, q, from, to }
+}
+
+const filterOwnerHistory = (items, { q, from, to }) => {
+  const search = q.toLocaleLowerCase()
+  return items.filter((item) => {
+    const eventDate = String(item.date_rated ?? '').slice(0, 10)
+    if (from && (!/^\d{4}-\d{2}-\d{2}$/.test(eventDate) || eventDate < from)) return false
+    if (to && (!/^\d{4}-\d{2}-\d{2}$/.test(eventDate) || eventDate > to)) return false
+    if (!search) return true
+    const product = item.product || {}
+    return [
+      product.product_name,
+      product.producer?.producer_name
+    ].some((value) => String(value ?? '').toLocaleLowerCase().includes(search))
+  })
+}
+
+const listUserHistory = async (response, user, request = {}) => {
+  const query = parseHistoryQuery(request)
+  const filtered = filterOwnerHistory(await buildOwnerRatingItems(user), query)
+  const total = filtered.length
+  const totalPages = total ? Math.ceil(total / query.limit) : 0
+  const start = (query.page - 1) * query.limit
+  response.status(200).json({
+    items: filtered.slice(start, start + query.limit),
+    page: query.page,
+    pageSize: query.limit,
+    total,
+    totalPages
+  })
 }
 
 const diagnosticRatingCreate = async (request, response, user) => {
@@ -741,6 +837,7 @@ export const routeRatingRequest = async (request, response, user, correlationId)
     return diagnosticRatingCreate(request, response, user)
   }
   if (request.method === 'GET' && id === 'mine') return listUserRatings(response, user, request)
+  if (request.method === 'GET' && id === 'history') return listUserHistory(response, user, request)
   if (request.method === 'DELETE' && id && !action) return deleteRating(id, response, user)
   response.status(404).json({ error: 'Application data route not found.' })
 }
@@ -760,4 +857,4 @@ export default async function handler(request, response) {
   }
 }
 
-export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, summariseSubmissionChildren, transitionRating, verifyRatingState, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalOwnerRecords, ownerCompletedRatings, historicalReconciliationPlan, reconcileHistoricalRatings, diagnosticRatingCreate }
+export const __testables = { routeRatingRequest, submitRating, listUserRatings, deleteRating, advancedFor, productProjection, scorePopulations, populationScores, findSubmission, validateSubmissionChildren, summariseSubmissionChildren, transitionRating, verifyRatingState, submissionFingerprint, isCompletedRating, scoresWithDerivedBonus, historicalOwnerRecords, ownerCompletedRatings, buildOwnerRatingItems, parseHistoryQuery, filterOwnerHistory, listUserHistory, historicalReconciliationPlan, reconcileHistoricalRatings, diagnosticRatingCreate }
