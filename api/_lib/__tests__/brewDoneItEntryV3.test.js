@@ -17,12 +17,13 @@ test('v3 still owns deduction routes and leaves unrelated legacy game actions to
   assert.equal(route('POST', ['brew-done-it', 'games', '12', 'archive']), null)
 })
 
-test('Brew backend is enabled by default for testing and supports an explicit false kill switch', () => {
-  assert.equal(brewDoneItBackendEnabled({}), true)
-  assert.equal(brewDoneItBackendEnabled({ NODE_ENV: 'development' }), true)
-  assert.equal(brewDoneItBackendEnabled({ NODE_ENV: 'production', VERCEL_ENV: 'preview' }), true)
-  assert.equal(brewDoneItBackendEnabled({ NODE_ENV: 'production', VERCEL_ENV: 'production' }), true)
+test('Brew backend fails closed unless the policy flag is explicitly true', () => {
+  assert.equal(brewDoneItBackendEnabled({}), false)
+  assert.equal(brewDoneItBackendEnabled({ NODE_ENV: 'development' }), false)
+  assert.equal(brewDoneItBackendEnabled({ NODE_ENV: 'production', VERCEL_ENV: 'preview' }), false)
+  assert.equal(brewDoneItBackendEnabled({ NODE_ENV: 'production', VERCEL_ENV: 'production' }), false)
   assert.equal(brewDoneItBackendEnabled({ BREW_DONE_IT_POLICY_ENABLED: 'true' }), true)
+  assert.equal(brewDoneItBackendEnabled({ BREW_DONE_IT_POLICY_ENABLED: ' TRUE ' }), true)
   assert.equal(brewDoneItBackendEnabled({ BREW_DONE_IT_POLICY_ENABLED: 'false' }), false)
-  assert.equal(brewDoneItBackendEnabled({ BREW_DONE_IT_POLICY_ENABLED: ' FALSE ' }), false)
+  assert.equal(brewDoneItBackendEnabled({ BREW_DONE_IT_POLICY_ENABLED: '1' }), false)
 })
