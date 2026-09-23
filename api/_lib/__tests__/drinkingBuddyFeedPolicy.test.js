@@ -39,6 +39,35 @@ test('current visibility, relationship and either-direction block are rechecked 
   assert.deepEqual(projectDrinkingBuddyFeed({ viewerUserId: 'viewer', feedEnabled: true, candidates: denied }), []);
 });
 
+test('revoking event visibility removes an already-projectable tasting on the next read', () => {
+  const shared = candidate();
+  assert.equal(projectDrinkingBuddyFeed({ viewerUserId: 'viewer', feedEnabled: true, candidates: [shared] }).length, 1);
+
+  const revoked = {
+    ...shared,
+    event: { ...shared.event, visibility: 'private' },
+  };
+  assert.deepEqual(projectDrinkingBuddyFeed({ viewerUserId: 'viewer', feedEnabled: true, candidates: [revoked] }), []);
+});
+
+test('relationship removal or either-direction block revokes an already-projectable tasting on the next read', () => {
+  const shared = candidate();
+  assert.equal(projectDrinkingBuddyFeed({ viewerUserId: 'viewer', feedEnabled: true, candidates: [shared] }).length, 1);
+
+  for (const revoked of [
+    { ...shared, relationshipState: 'removed' },
+    { ...shared, viewerBlockedOwner: true },
+    { ...shared, ownerBlockedViewer: true },
+  ]) {
+    assert.deepEqual(projectDrinkingBuddyFeed({ viewerUserId: 'viewer', feedEnabled: true, candidates: [revoked] }), []);
+  }
+});
+
+test('unblocking alone does not restore sharing without a current accepted relationship', () => {
+  const removed = candidate({ relationshipState: 'removed', viewerBlockedOwner: false, ownerBlockedViewer: false });
+  assert.deepEqual(projectDrinkingBuddyFeed({ viewerUserId: 'viewer', feedEnabled: true, candidates: [removed] }), []);
+});
+
 test('feed keeps only the share-safe projection and never leaks private rating context', () => {
   const feed = projectDrinkingBuddyFeed({ viewerUserId: 'viewer', feedEnabled: true, candidates: [candidate()] });
   assert.equal(feed.length, 1);
