@@ -1,6 +1,7 @@
 const normalise = (value) => String(value || '').trim().toLocaleLowerCase().replace(/\s+/gu, ' ')
 
 const candidateForProposal = (product, proposal, excludeProductId) => {
+  if (!product || typeof product !== 'object' || !proposal || typeof proposal !== 'object') return null
   if (excludeProductId !== null && excludeProductId !== undefined && String(product.id) === String(excludeProductId)) return null
 
   const proposedProducerId = String(proposal.producer_id || '').trim()
@@ -23,11 +24,15 @@ const candidateForProposal = (product, proposal, excludeProductId) => {
   return Object.freeze({ product, exactName, styleMatch, editionMatch, editionConflict, strength })
 }
 
-export const buildCatalogueDuplicateCandidates = (products, proposal, { excludeProductId = null } = {}) => Object.freeze(
-  products
-    .map((product) => candidateForProposal(product, proposal, excludeProductId))
-    .filter(Boolean)
-    .sort((left, right) => right.strength - left.strength || String(left.product.product_name).localeCompare(String(right.product.product_name)))
-)
+export const buildCatalogueDuplicateCandidates = (products, proposal, { excludeProductId = null } = {}) => {
+  if (!Array.isArray(products) || !proposal || typeof proposal !== 'object') return Object.freeze([])
+
+  return Object.freeze(
+    products
+      .map((product) => candidateForProposal(product, proposal, excludeProductId))
+      .filter(Boolean)
+      .sort((left, right) => right.strength - left.strength || String(left.product.product_name).localeCompare(String(right.product.product_name)))
+  )
+}
 
 export const __testables = { candidateForProposal, normalise }
