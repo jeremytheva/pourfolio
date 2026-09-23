@@ -36,8 +36,8 @@ const requireContractEnvironment = () => {
   assert.match(String(productId), /^[1-9]\d*$/)
 }
 
-const gamePayload = () => {
-  const creationKey = `${userId}:${runId}:game`
+const gamePayload = (suffix) => {
+  const creationKey = `${userId}:${runId}:game:${suffix}`
   return {
     user_id: userId,
     creator_participant_id: userId,
@@ -119,7 +119,7 @@ test.after(async () => {
 
 contractTest('formal outcomes allow multiple child rows for one round', async () => {
   requireContractEnvironment()
-  const game = remember('brew_done_it_games', await dataProvider.create('brew_done_it_games', gamePayload()))
+  const game = remember('brew_done_it_games', await dataProvider.create('brew_done_it_games', gamePayload('guesses')))
   const round = remember('brew_done_it_rounds', await dataProvider.create('brew_done_it_rounds', roundPayload(game)))
   const firstGuess = remember('brew_done_it_guesses', await dataProvider.create('brew_done_it_guesses', guessPayload(round, 1, 'one')))
   const secondGuess = remember('brew_done_it_guesses', await dataProvider.create('brew_done_it_guesses', guessPayload(round, 2, 'two')))
@@ -131,7 +131,7 @@ contractTest('formal outcomes allow multiple child rows for one round', async ()
 
 contractTest('deduction history allows multiple events from one guesser in one round', async () => {
   requireContractEnvironment()
-  const game = remember('brew_done_it_games', await dataProvider.create('brew_done_it_games', gamePayload()))
+  const game = remember('brew_done_it_games', await dataProvider.create('brew_done_it_games', gamePayload('deductions')))
   const round = remember('brew_done_it_rounds', await dataProvider.create('brew_done_it_rounds', roundPayload(game)))
   const firstDeduction = remember('brew_done_it_deductions', await dataProvider.create('brew_done_it_deductions', deductionPayload(round, 'yes', 'one')))
   const secondDeduction = remember('brew_done_it_deductions', await dataProvider.create('brew_done_it_deductions', deductionPayload(round, 'unknown', 'two')))
