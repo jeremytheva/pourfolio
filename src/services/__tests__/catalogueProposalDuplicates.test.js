@@ -54,6 +54,12 @@ test('products without a canonical producer are never duplicate candidates', () 
   assert.equal(candidates.some(({ product }) => product.id === 5), false)
 })
 
+test('malformed proposal inputs fail closed instead of throwing', () => {
+  assert.deepEqual(buildCatalogueDuplicateCandidates(products, null), [])
+  assert.deepEqual(buildCatalogueDuplicateCandidates(null, { product_name: 'Hazy Pale', producer_id: 10 }), [])
+  assert.deepEqual(buildCatalogueDuplicateCandidates([null, ...products], { product_name: 'Hazy Pale', producer_id: 10 }).map(({ product }) => product.id), [1, 4, 2])
+})
+
 test('exact name, style and edition signals rank the strongest candidate first', () => {
   const [candidate] = buildCatalogueDuplicateCandidates(products, {
     product_name: ' hazy pale ',
