@@ -34,26 +34,26 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "a74cf49793f4f7205e36693401e49b20ee937d75"
-last_updated: "2026-09-23T20:57:48+10:00"
+last_verified_commit: "eea788e2a5c7969dd71e8aee8f21a82f02c1a87c"
+last_updated: "2026-09-24T05:59:13+10:00"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 23 September 2026
+Last materially reviewed: 24 September 2026
 
 ## AI execution gate
 
 **Current gate:** Integration / rating idempotency provider migration.  
 **Execution state:** **BLOCKED only for the #165 provider-mutation path**. Pourfolio is not globally blocked; independent launch work continues.
 
-The dependency-correct launch sequence is:
+The dependency-correct launch sequence remains:
 
 `#165 rating durability → #144 canonical backend certification → backend-dependent #154 catalogue certification → launch verification`
 
 ## Autonomous continuation support
 
-Continue the highest-priority dependency-correct work that can safely be completed autonomously. The repository is authoritative for current work and blockers; chat history remains supporting context only.
+Continue the highest-priority dependency-correct work that can safely be completed autonomously. The repository is authoritative for current work and blockers; chat history is supporting context only.
 
 When #165 cannot progress because provider-supported migration/backfill/backup/restore evidence or explicit migration approval is unavailable, continue independent launch-scoped work such as #449 and targeted #429 cleanup where it does not mutate provider schema/data, fabricate catalogue relationships or weaken certification gates.
 
@@ -61,31 +61,21 @@ Do not reopen provider routing or frontend/backend URL changes without new contr
 
 ## Recently integrated
 
-The producer/search programme through the provider-safe portion of Stage E is merged and must not be treated as active PR work:
+The producer/search programme through the provider-safe portion of Stage E is merged. Recent launch/governance work includes:
 
-- **#510 / PR #511** — unified global search across beers, breweries and styles;
-- **#498** — authoritative multi-producer product attribution;
-- **#512 / PR #513** — scalable server-authoritative brewery discovery/search;
-- **#514 / PR #515** — privacy-safe brewery community and personal statistics;
-- **#516 / PR #517** — brewery-local beer search, filters and deterministic sorting;
-- **#520 / PR #521** — server-authoritative brewery rankings and explicit Stage E capability boundaries;
+- **#498, #510–#517, #520–#521** — authoritative producer attribution, unified search, scalable brewery discovery, privacy-safe producer statistics, brewery-local discovery and provider-safe Stage E boundaries;
 - **PR #519** — first unreachable prototype-page cleanup slice;
-- **PR #527** — architecture reconciliation;
-- **PR #529** — roadmap reconciliation;
-- **PR #531** — provider-boundary evidence reconciliation;
-- **PR #533, #534 and #536** — fail-closed tasting-sharing authorization, owner visibility controls and share-safe tasting projection policy;
-- **PR #537** — autonomous continuation status reconciliation;
-- **PR #538** — fail-closed Drinking Buddy request/block management policy;
-- **PR #541** — fail-closed shared-tasting event-type validation;
-- **PR #542** — Drinking Buddy feed revocation regression evidence proving visibility, relationship and block changes fail closed;
-- **PR #543** — autonomous continuation status reconciliation through the Drinking Buddy hardening work;
-- **PR #544** — provider-independent #449 duplicate-proposal regression evidence covering canonical producer scoping, deterministic normalization, style/edition ranking, edition conflicts and edit self-exclusion;
-- **PR #545** — autonomous continuation status reconciliation through PR #544;
-- **PR #546** — provider-independent #449 duplicate matching now fails closed when either the proposal or candidate lacks canonical producer identity; exact-head validated and merged at `a74cf49`.
+- **PR #527, #529, #531** — architecture, roadmap and provider-boundary reconciliation;
+- **PR #533, #534, #536, #538, #541, #542** — fail-closed tasting-sharing and Drinking Buddy authorization/revocation hardening;
+- **PR #537, #543, #545, #547** — autonomous continuation/status reconciliation slices;
+- **PR #544** — #449 duplicate-proposal regression evidence for canonical producer scoping, deterministic normalization, style/edition ranking, edition conflicts and edit self-exclusion;
+- **PR #546** — #449 duplicate matching fails closed when proposal or candidate lacks canonical producer identity;
+- **PR #548** — #449 duplicate matching fails closed for malformed proposal inputs and safely ignores malformed candidate rows;
+- **PR #551 and #552** — Brew Done It provider/cardinality certification hardening. Brew Done It remains launch-excluded and does not alter the Pourfolio launch dependency order.
 
 PRs **#532** and **#535** were not merged. Exact-head validation proved `api/current-data-proxy.js` is still imported by `api/data-router.js` and tests, so deletion-only cleanup is invalid. Any future #429 cleanup of this path must migrate those dependencies first and pass canonical validation.
 
-Producer Stage E remains intentionally incomplete where canonical data is not yet available: verified geography, historical lifecycle/rename/acquisition semantics, managed-business profiles and venue attribution remain dependency-gated by **#444**, **#437** and **#399** rather than inferred from free text or fabricated relationships.
+Producer Stage E remains intentionally incomplete where canonical data is unavailable: verified geography, historical lifecycle/rename/acquisition semantics, managed-business profiles and venue attribution remain dependency-gated by **#444**, **#437** and **#399** rather than inferred from free text or fabricated relationships.
 
 ## Current P1 — #165 rating idempotency migration
 
@@ -98,18 +88,18 @@ Until migration evidence is sufficient:
 - proposed schema must remain distinguished from deployed schema;
 - no schema mutation, uniqueness change or existing-row backfill may occur without provider-supported migration mechanics, backup/restore evidence, safe cleanup/backfill procedure and explicit approval.
 
-Provider documentation reviewed to date establishes that tables can be modified, required columns on populated tables need defaults, unique fields are supported, and snapshots/cloning are advertised. It does **not** yet establish the exact restore/recovery, composite-uniqueness and safe-backfill procedure needed to authorize the live migration. This boundary is recorded on #165.
+Provider evidence reviewed to date establishes that tables can be modified, required columns on populated tables need defaults, unique fields are supported, and snapshots/cloning are advertised. It does not establish the exact restore/recovery, composite-uniqueness and safe-backfill procedure needed to authorize the live migration. This is the irreversible boundary for #165.
 
 ## Next dependency-correct work
 
 1. Progress #165 only through reversible evidence gathering; do not mutate the provider without governed evidence and approval.
 2. After #165 is deployed and verified, complete #144 canonical backend/provider certification and backend-dependent #154 catalogue certification.
 3. While #165 is blocked, continue provider-independent #449 work and targeted #429 cleanup.
-4. For #429, do not retry deletion-only removal of `current-data-proxy.js`; migrate its remaining router/test dependencies first or choose another evidence-backed cleanup slice.
+4. For #429, do not retry deletion-only removal of `current-data-proxy.js`; migrate remaining router/test dependencies first or choose another evidence-backed cleanup slice.
 
 ### #144 — canonical backend certification
 
-Proceed after #165 prerequisites are deployed and verified. Re-certify the exact candidate against connected authentication, authorization, ownership, provider failure, rating retry/reconciliation, cellar and recovery behaviour. Existing #225/#381/#382 provider-access evidence remains useful baseline evidence but does not substitute for post-migration certification.
+Proceed after #165 prerequisites are deployed and verified. Re-certify the exact candidate against connected authentication, authorization, ownership, provider failure, rating retry/reconciliation, cellar and recovery behaviour. Existing #225/#381/#382 provider-access evidence is baseline evidence, not a substitute for post-migration certification.
 
 ### #154 — dependable catalogue certification
 
@@ -117,7 +107,7 @@ The browser/server catalogue boundary and discovery UX are substantially impleme
 
 ### #449 — user beer add/edit and cellar alignment
 
-Continue provider-independent contract/UI hardening where safe. The primitive cellar `gift` / conditional `gift_from` slice is already integrated. Duplicate proposal evidence preserves canonical producer scope, distinguishes edition conflicts, and now fails closed when canonical producer identity is missing on either side. Relationship-backed cellar fields remain withheld until verified lookup/ownership APIs exist. Catalogue changes must preserve canonical producer/style relationships and use governed proposal/moderation semantics rather than arbitrary direct mutation.
+Continue provider-independent contract/UI hardening where safe. The primitive cellar `gift` / conditional `gift_from` slice is integrated. Duplicate proposal evidence preserves canonical producer scope, distinguishes edition conflicts, handles malformed inputs fail closed, and requires canonical producer identity on both proposal and candidate. Relationship-backed cellar fields remain withheld until verified lookup/ownership APIs exist. Catalogue changes must preserve canonical producer/style relationships and use governed proposal/moderation semantics rather than arbitrary direct mutation.
 
 ### #429 — targeted cleanup
 
@@ -133,7 +123,7 @@ Provider secrets remain server-only. Do not reopen auth/data base-URL routing wi
 
 ## Brew Done It
 
-Brew Done It remains a separate, launch-excluded capability. Its source foundations and v3 deduction work are merged, but provider migration/certification and production enablement remain separately governed. It must not become a dependency of the beer-first launch.
+Brew Done It remains a separate, launch-excluded capability. Its source foundations, deduction work and provider/cardinality certification hardening are merged, but provider migration/certification and production enablement remain separately governed. It must not become a dependency of the beer-first launch.
 
 ## Continuation rule
 
