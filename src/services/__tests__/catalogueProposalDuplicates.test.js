@@ -26,6 +26,34 @@ test('duplicate candidates require the same canonical producer', () => {
   assert.equal(candidates.some(({ product }) => product.id === 3), false)
 })
 
+test('duplicate matching fails closed when the proposal has no canonical producer', () => {
+  const candidates = buildCatalogueDuplicateCandidates([
+    ...products,
+    { id: 5, product_name: 'Hazy Pale', producer_id: null, product_category_id: 20, edition: '2026' }
+  ], {
+    product_name: 'Hazy Pale',
+    producer_id: null,
+    product_category_id: 20,
+    edition: '2026'
+  })
+
+  assert.deepEqual(candidates, [])
+})
+
+test('products without a canonical producer are never duplicate candidates', () => {
+  const candidates = buildCatalogueDuplicateCandidates([
+    ...products,
+    { id: 5, product_name: 'Hazy Pale', producer_id: null, product_category_id: 20, edition: '2026' }
+  ], {
+    product_name: 'Hazy Pale',
+    producer_id: 10,
+    product_category_id: 20,
+    edition: '2026'
+  })
+
+  assert.equal(candidates.some(({ product }) => product.id === 5), false)
+})
+
 test('exact name, style and edition signals rank the strongest candidate first', () => {
   const [candidate] = buildCatalogueDuplicateCandidates(products, {
     product_name: ' hazy pale ',
