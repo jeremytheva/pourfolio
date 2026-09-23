@@ -34,8 +34,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "4369089ab730620b4f60b1facfe37711470511c5"
-last_updated: "2026-09-23T12:00:00+10:00"
+last_verified_commit: "d7eb0cb6b74e0b23ba7e27d5fe2802d96103aa3d"
+last_updated: "2026-09-23T16:56:58+10:00"
 ---
 
 # STATUS.md
@@ -77,7 +77,9 @@ The producer/search programme through the provider-safe portion of Stage E is me
 - **PR #537** — autonomous continuation status reconciliation;
 - **PR #538** — fail-closed Drinking Buddy request/block management policy;
 - **PR #541** — fail-closed shared-tasting event-type validation;
-- **PR #542** — Drinking Buddy feed revocation regression evidence proving visibility, relationship and block changes fail closed; exact-head validated and merged at `4369089`.
+- **PR #542** — Drinking Buddy feed revocation regression evidence proving visibility, relationship and block changes fail closed;
+- **PR #543** — autonomous continuation status reconciliation through the Drinking Buddy hardening work;
+- **PR #544** — provider-independent #449 duplicate-proposal regression evidence covering canonical producer scoping, deterministic normalization, style/edition ranking, edition conflicts and edit self-exclusion; exact-head validated and merged at `d7eb0cb`.
 
 PRs **#532** and **#535** were not merged. Exact-head validation proved `api/current-data-proxy.js` is still imported by `api/data-router.js` and tests, so deletion-only cleanup is invalid. Any future #429 cleanup of this path must migrate those dependencies first and pass canonical validation.
 
@@ -113,7 +115,7 @@ The browser/server catalogue boundary and discovery UX are substantially impleme
 
 ### #449 — user beer add/edit and cellar alignment
 
-Continue provider-independent contract/UI hardening where safe. The primitive cellar `gift` / conditional `gift_from` slice is already integrated. Relationship-backed cellar fields remain withheld until verified lookup/ownership APIs exist. Catalogue changes must preserve canonical producer/style relationships and use governed proposal/moderation semantics rather than arbitrary direct mutation.
+Continue provider-independent contract/UI hardening where safe. The primitive cellar `gift` / conditional `gift_from` slice is already integrated. Duplicate proposal evidence now preserves canonical producer scope and distinguishes edition conflicts. Relationship-backed cellar fields remain withheld until verified lookup/ownership APIs exist. Catalogue changes must preserve canonical producer/style relationships and use governed proposal/moderation semantics rather than arbitrary direct mutation.
 
 ### #429 — targeted cleanup
 
