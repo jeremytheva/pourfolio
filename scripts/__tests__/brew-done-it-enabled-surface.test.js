@@ -17,8 +17,9 @@ test('Brew Done It appears in authenticated primary navigation', () => {
   assert.match(layout, /pathname === '\/brew-done-it'/)
 })
 
-test('Brew Done It production backend defaults on but retains an explicit false kill switch', () => {
+test('Brew Done It backend requires explicit policy enablement', () => {
   const gateway = read('api/_lib/brewDoneItEntryV3.js')
   assert.match(gateway, /BREW_DONE_IT_POLICY_ENABLED/)
-  assert.match(gateway, /toLowerCase\(\) !== 'false'/)
+  assert.match(gateway, /toLowerCase\(\) === 'true'/)
+  assert.doesNotMatch(gateway, /toLowerCase\(\) !== 'false'/)
 })
