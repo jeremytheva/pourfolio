@@ -23,7 +23,6 @@ const ROUND_FIELDS = Object.freeze([
   'status',
   'turn_sequence',
   'max_turns',
-  'question_count',
   'incorrect_guess_count',
   'incorrect_formal_guess_count',
   'brewery_correct',
