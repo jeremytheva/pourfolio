@@ -3,12 +3,15 @@ const normalise = (value) => String(value || '').trim().toLocaleLowerCase().repl
 const candidateForProposal = (product, proposal, excludeProductId) => {
   if (excludeProductId !== null && excludeProductId !== undefined && String(product.id) === String(excludeProductId)) return null
 
-  const sameProducer = String(product.producer_id || '') === String(proposal.producer_id || '')
+  const proposedProducerId = String(proposal.producer_id || '').trim()
+  const candidateProducerId = String(product.producer_id || '').trim()
+  if (!proposedProducerId || !candidateProducerId || candidateProducerId !== proposedProducerId) return null
+
   const proposedName = normalise(proposal.product_name)
   const candidateName = normalise(product.product_name)
   const exactName = Boolean(proposedName) && candidateName === proposedName
   const similarName = Boolean(proposedName) && (candidateName.includes(proposedName) || proposedName.includes(candidateName))
-  if (!sameProducer || (!exactName && !similarName)) return null
+  if (!exactName && !similarName) return null
 
   const styleMatch = Boolean(proposal.product_category_id) && String(product.product_category_id || '') === String(proposal.product_category_id)
   const proposedEdition = normalise(proposal.edition)
