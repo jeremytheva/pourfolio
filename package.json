@@ -3,9 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "engines": {
-    "node": "22.x"
-  },
+  "engines": { "node": "22.x" },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -40,6 +38,7 @@
     "audit:rating:live-integrity": "node scripts/audit-live-rating-integrity.js",
     "reconcile:rating:live": "node scripts/apply-live-rating-reconciliation.js",
     "audit:brew-provider-evidence": "node scripts/audit-brew-done-it-provider-evidence.js",
+    "check:brew-release-readiness": "node scripts/check-brew-done-it-release-readiness.js",
     "check:bundle": "node scripts/check-bundle-size.js",
     "check:brew-containment": "node scripts/check-brew-done-it-containment.js",
     "check:release-security": "node scripts/check-browser-release-security.js",
