@@ -17,6 +17,7 @@
     "test:e2e": "playwright test",
     "test:provider-smoke": "RUN_NOCODEBACKEND_PROVIDER_SMOKE=1 node --test api/_lib/__tests__/providerSmoke.connected.test.js",
     "test:provider-contract": "RUN_NOCODEBACKEND_PROVIDER_CONTRACT=1 node --test api/_lib/__tests__/providerContract.connected.test.js",
+    "test:brew-provider-contract": "RUN_BREW_DONE_IT_PROVIDER_CONTRACT=1 node --test api/_lib/__tests__/brewDoneItCreate.connected.test.js api/_lib/__tests__/brewDoneItChildCardinality.connected.test.js",
     "test:provider-connection": "node scripts/run-nocodebackend-connection-certification.js",
     "check:provider-contract-transcript": "node scripts/check-provider-contract-transcript.js",
     "check:package-lock": "node scripts/check-package-lock-contract.js",
@@ -57,7 +58,6 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^10.0.0",
-    "@playwright/test": "^1.63.0",
     "@vitejs/plugin-react": "^6.1.1",
     "autoprefixer": "^10.5.6",
     "eslint": "^10.10.0",
