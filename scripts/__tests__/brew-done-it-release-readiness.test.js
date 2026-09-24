@@ -41,12 +41,14 @@ test('every connected evidence category is independently fail-closed', () => {
   }
 })
 
-test('candidate revision must be pinned', () => {
-  const manifest = base()
-  manifest.candidateRevision = 'PENDING'
-  const result = run(manifest)
-  assert.notEqual(result.status, 0)
-  assert.match(result.stderr, /candidate revision is not pinned/)
+test('candidate revision must be an exact full commit SHA', () => {
+  for (const revision of ['PENDING', 'abc1234', 'A'.repeat(40), 'g'.repeat(40), `${'a'.repeat(40)}extra`]) {
+    const manifest = base()
+    manifest.candidateRevision = revision
+    const result = run(manifest)
+    assert.notEqual(result.status, 0, `${revision} unexpectedly passed`)
+    assert.match(result.stderr, /candidate revision must be a full lowercase 40-character commit SHA/)
+  }
 })
 
 test('provider mutation and enablement approvals are separate mandatory gates', () => {
