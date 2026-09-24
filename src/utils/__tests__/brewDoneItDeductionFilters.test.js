@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { filterBrewDoneItBeers, filterBrewDoneItBreweries, filterBrewDoneItStyles } from '../brewDoneItDeductionFilters.js'
+import { filterBrewDoneItBeers, filterBrewDoneItBreweries, filterBrewDoneItStyles, summarizeBrewDoneItCandidates } from '../brewDoneItDeductionFilters.js'
 
 const beers = [
   { id: 1, producerId: 10, categoryId: 100, abv: 6.5, ibu: 50, collaboration: true },
@@ -51,33 +51,18 @@ test('a caller without the complete governed brewery set fails conservatively ra
 })
 
 test('zero remaining known breweries does not restore beers from ruled-out known breweries', () => {
-  const result = filterBrewDoneItBeers(
-    beers,
-    [],
-    new Set(),
-    governedBreweryIds
-  )
+  const result = filterBrewDoneItBeers(beers, [], new Set(), governedBreweryIds)
   assert.deepEqual(result.map((beer) => beer.id), [3])
 })
 
 test('positive producer ids without a governed brewery row remain unknown candidates', () => {
-  const catalogue = [
-    ...beers,
-    { id: 4, producerId: 999, categoryId: 100, abv: 5.5, ibu: 30, collaboration: false }
-  ]
-  const result = filterBrewDoneItBeers(
-    catalogue,
-    [],
-    new Set(['10']),
-    governedBreweryIds
-  )
+  const catalogue = [...beers, { id: 4, producerId: 999, categoryId: 100, abv: 5.5, ibu: 30, collaboration: false }]
+  const result = filterBrewDoneItBeers(catalogue, [], new Set(['10']), governedBreweryIds)
   assert.deepEqual(result.map((beer) => beer.id), [1, 3, 4])
 })
 
 test('explicit beer exclusions remove only the selected candidate', () => {
-  const result = filterBrewDoneItBeers(beers, [
-    { dimension: 'beer_ruled_out', answer: 'yes', reference_id: 2 }
-  ], governedBreweryIds, governedBreweryIds)
+  const result = filterBrewDoneItBeers(beers, [{ dimension: 'beer_ruled_out', answer: 'yes', reference_id: 2 }], governedBreweryIds, governedBreweryIds)
   assert.deepEqual(result.map((beer) => beer.id), [1, 3])
 })
 
@@ -93,35 +78,41 @@ test('styles narrow only when every remaining beer has a known category', () => 
 })
 
 test('unavailable geography does not eliminate breweries', () => {
-  const breweries = [
-    { id: 10, state: null, country: null, previouslyRated: true },
-    { id: 20, state: null, country: null, previouslyRated: false }
-  ]
-  const result = filterBrewDoneItBreweries(breweries, [
-    { dimension: 'brewery_state', answer: 'yes', value_text: 'NSW' }
-  ], { geographyAvailable: false })
+  const breweries = [{ id: 10, state: null, country: null, previouslyRated: true }, { id: 20, state: null, country: null, previouslyRated: false }]
+  const result = filterBrewDoneItBreweries(breweries, [{ dimension: 'brewery_state', answer: 'yes', value_text: 'NSW' }], { geographyAvailable: false })
   assert.equal(result.length, 2)
 })
 
 test('previously-rated brewery relationship narrows known brewery candidates but preserves unknown ones', () => {
-  const breweries = [
-    { id: 10, previouslyRated: true },
-    { id: 20, previouslyRated: false },
-    { id: 30, previouslyRated: null }
-  ]
-  const result = filterBrewDoneItBreweries(breweries, [
-    { dimension: 'brewery_previously_rated', answer: 'no' }
-  ])
+  const breweries = [{ id: 10, previouslyRated: true }, { id: 20, previouslyRated: false }, { id: 30, previouslyRated: null }]
+  const result = filterBrewDoneItBreweries(breweries, [{ dimension: 'brewery_previously_rated', answer: 'no' }])
   assert.deepEqual(result.map((brewery) => brewery.id), [20, 30])
 })
 
 test('explicit brewery exclusions remove only the selected candidate', () => {
-  const breweries = [
-    { id: 10, previouslyRated: true },
-    { id: 20, previouslyRated: false }
-  ]
-  const result = filterBrewDoneItBreweries(breweries, [
-    { dimension: 'brewery_ruled_out', answer: 'yes', reference_id: 10 }
-  ])
+  const breweries = [{ id: 10, previouslyRated: true }, { id: 20, previouslyRated: false }]
+  const result = filterBrewDoneItBreweries(breweries, [{ dimension: 'brewery_ruled_out', answer: 'yes', reference_id: 10 }])
   assert.deepEqual(result.map((brewery) => brewery.id), [20])
+})
+
+test('candidate intelligence recommends an exact beer only when one candidate remains', () => {
+  const summary = summarizeBrewDoneItCandidates({ breweries: [{ id: 10 }], beers: [beers[0]], styles: [{ id: 100 }] })
+  assert.equal(summary.exactBeerReady, true)
+  assert.match(summary.recommendation, /exact-beer guess/i)
+})
+
+test('candidate intelligence does not claim a governed brewery while unresolved producer attribution remains', () => {
+  const summary = summarizeBrewDoneItCandidates({ breweries: [{ id: 10 }], beers: [beers[0], beers[2]], styles: [{ id: 100 }] })
+  assert.equal(summary.breweryReady, false)
+  assert.equal(summary.unresolvedProducerCount, 1)
+  assert.match(summary.recommendation, /keep narrowing/i)
+})
+
+test('candidate intelligence exposes governed style fallback only without unresolved style attribution', () => {
+  const governed = summarizeBrewDoneItCandidates({ breweries: [], beers: [beers[0], { ...beers[0], id: 4 }], styles: [{ id: 100 }] })
+  assert.equal(governed.styleReady, true)
+  assert.match(governed.recommendation, /style fallback/i)
+
+  const unresolved = summarizeBrewDoneItCandidates({ breweries: [], beers: [beers[0], beers[2]], styles: [{ id: 100 }] })
+  assert.equal(unresolved.styleReady, false)
 })
