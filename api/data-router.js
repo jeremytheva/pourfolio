@@ -1,7 +1,6 @@
 import catalogueHandler from './catalog-data-proxy.js'
 import bonusAttributeHandler from './bonus-attribute-data-proxy.js'
 import cellarHandler from './cellar-data-proxy.js'
-import currentSchemaHandler from './current-data-proxy.js'
 import profileHandler from './profile-data-proxy.js'
 import ratingHandler from './rating-data-proxy.js'
 import brewDoneItHandler from './_lib/brewDoneItEntryV3.js'
@@ -30,7 +29,6 @@ const routeRequest = async (request, response) => {
   if (resource === 'profile' || resource === 'profiles') return profileHandler(request, response)
   if (resource === 'ratings') return ratingHandler(request, response)
   if (resource === 'bonus-attributes') return bonusAttributeHandler(request, response)
-  if (CURRENT_SCHEMA_RESOURCES.has(resource)) return currentSchemaHandler(request, response)
   if (BREW_CAPABILITY_RESOURCES.has(resource)) return brewDoneItHandler(request, response)
 
   response.status(404).json({ error: 'Application data route not found.' })
