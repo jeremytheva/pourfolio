@@ -26,6 +26,7 @@ import {
   setBrewDoneItHistorySharing,
   submitBrewDoneItOutcome
 } from '../services/brewDoneItService.js'
+import { getBrewDoneItActionError } from '../utils/brewDoneItActionError.js'
 import { isBrewDoneItInvitationExpired } from '../utils/brewDoneItInvitation.js'
 import { mergeProjectedRoundGuess } from '../utils/brewDoneItRoundState.js'
 
@@ -47,29 +48,25 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [announcement, setAnnouncement] = useState('')
+  const [canRetryAction, setCanRetryAction] = useState(false)
   const lastAction = useRef(null)
   const role = roleFor(round, user)
 
   const run = useCallback(async (action, successMessage) => {
     setBusy(true)
     setError('')
+    setAnnouncement('')
     try {
       const result = await action()
       if (successMessage) setAnnouncement(successMessage(result))
+      setCanRetryAction(false)
+      lastAction.current = null
       return result
     } catch (caught) {
-      const expired = /expired/i.test(caught.message || '')
-      const stale = caught.code === 'VERSION_CONFLICT'
-      const safeBusinessError = caught.status >= 400 && caught.status < 500 && caught.message
-      setError(expired
-        ? 'This challenge has expired. Create or join another challenge.'
-        : stale
-          ? 'The challenge changed before your action was accepted. Refresh before trying again.'
-          : caught.status === 0
-            ? 'Brew Done It could not be reached. Check your connection and retry.'
-            : safeBusinessError
-              ? caught.message
-              : 'That action could not be completed. Refresh the series and try again.')
+      const actionError = getBrewDoneItActionError(caught)
+      setError(actionError.message)
+      setCanRetryAction(actionError.retryable)
+      if (!actionError.retryable) lastAction.current = null
       throw caught
     } finally {
       setBusy(false)
@@ -224,6 +221,8 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
     setDeductions([])
     setSelectorClues(null)
     setError('')
+    setCanRetryAction(false)
+    lastAction.current = null
     await loadSeries().catch(() => undefined)
   }
 
@@ -248,7 +247,7 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
         <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-4 text-red-950">
           <p>{error}</p>
           <div className="mt-3 flex flex-wrap gap-3">
-            <button type="button" className="rounded-md bg-red-800 px-3 py-2 font-semibold text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2" onClick={() => lastAction.current?.()}>Retry action</button>
+            {canRetryAction && lastAction.current && <button type="button" className="rounded-md bg-red-800 px-3 py-2 font-semibold text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2" onClick={() => lastAction.current?.()}>Retry action</button>}
             {game && <button type="button" className="rounded-md border border-red-800 px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2" onClick={refresh}>Refresh series</button>}
             <button type="button" className="rounded-md px-3 py-2 underline focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2" onClick={returnToChallenges}>Return to challenges</button>
           </div>
