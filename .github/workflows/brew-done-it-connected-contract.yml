@@ -1,0 +1,58 @@
+name: Brew Done It connected contract
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Full commit SHA deployed to the isolated staging provider
+        required: true
+        type: string
+      destructive_confirmation:
+        description: Type isolated-staging-brew-done-it-contract
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: brew-done-it-connected-contract-${{ inputs.release_sha }}
+  cancel-in-progress: false
+
+jobs:
+  brew-done-it-connected-contract:
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Validate destructive execution request
+        shell: bash
+        run: |
+          [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$DESTRUCTIVE_CONFIRMATION" = "isolated-staging-brew-done-it-contract"
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          DESTRUCTIVE_CONFIRMATION: ${{ inputs.destructive_confirmation }}
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.release_sha }}
+      - name: Confirm checked-out release candidate
+        run: test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Run Brew Done It isolated provider probes
+        run: npm run test:brew-provider-contract
+        env:
+          RUN_BREW_DONE_IT_PROVIDER_CONTRACT: "1"
+          BREW_DONE_IT_CONTRACT_ENVIRONMENT: isolated-staging
+          BREW_DONE_IT_CONTRACT_ALLOW_DESTRUCTIVE: "1"
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          BREW_DONE_IT_CONTRACT_USER_ID: ${{ secrets.BREW_DONE_IT_CONTRACT_USER_ID }}
+          BREW_DONE_IT_CONTRACT_PRODUCT_ID: ${{ secrets.BREW_DONE_IT_CONTRACT_PRODUCT_ID }}
