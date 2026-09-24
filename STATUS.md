@@ -34,8 +34,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "80d6ca825a5940f49fda13d3f5bd2d00ca516e8f"
-last_updated: "2026-09-24T19:59:07+10:00"
+last_verified_commit: "ff1673a6bb182f16e708936b555524f76206a309"
+last_updated: "2026-09-24T22:58:07+10:00"
 ---
 
 # STATUS.md
@@ -67,11 +67,11 @@ The producer/search programme through the provider-safe portion of Stage E is me
 - **PR #519** — first unreachable prototype-page cleanup slice;
 - **PR #527, #529, #531** — architecture, roadmap and provider-boundary reconciliation;
 - **PR #533, #534, #536, #538, #541, #542** — fail-closed tasting-sharing and Drinking Buddy authorization/revocation hardening;
-- **PR #537, #543, #545, #547, #553, #556** — autonomous continuation/status reconciliation slices;
+- **PR #537, #543, #545, #547, #553, #556, #563** — autonomous continuation/status reconciliation slices;
 - **PR #544, #546, #548** — #449 duplicate-proposal regression evidence, canonical producer scoping and fail-closed malformed-input handling;
 - **PR #551, #552 and #554** — Brew Done It provider/cardinality and deployed-contract hardening, including removal of obsolete v3 `question_count` writes;
 - **PR #555** — isolated, manual, SHA-pinned Brew Done It connected-provider probe workflow;
-- **PR #557–#562** — Brew Done It retry, role/presentation, deduction and release-certification hardening, including fail-closed release readiness tests. These changes remain launch-excluded and do not authorize provider mutation or production enablement.
+- **PR #557–#562 and #564** — Brew Done It retry, role/presentation, deduction and release-certification hardening, including fail-closed release readiness tests and exact full-commit candidate revision enforcement. These changes remain launch-excluded and do not authorize provider mutation or production enablement.
 
 Brew Done It remains launch-excluded and does not alter the Pourfolio launch dependency order.
 
@@ -125,7 +125,7 @@ Provider secrets remain server-only. Do not reopen auth/data base-URL routing wi
 
 ## Brew Done It
 
-Brew Done It remains a separate, launch-excluded capability. Its source foundations, deduction work, provider/cardinality hardening, deployed-contract cleanup, manual connected-provider probe infrastructure and fail-closed release-certification tests are merged through PR #562. Provider migration/certification and production enablement remain separately governed. It must not become a dependency of the beer-first launch.
+Brew Done It remains a separate, launch-excluded capability. Its source foundations, deduction work, provider/cardinality hardening, deployed-contract cleanup, manual connected-provider probe infrastructure and fail-closed release-certification tests are merged through PR #564. Provider migration/certification and production enablement remain separately governed. It must not become a dependency of the beer-first launch.
 
 ## Continuation rule
 
