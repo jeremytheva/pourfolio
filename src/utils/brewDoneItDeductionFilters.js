@@ -76,4 +76,29 @@ export const filterBrewDoneItStyles = (styles = [], candidateBeers = []) => {
   return styles.filter((style) => styleIds.has(String(style.id)))
 }
 
+export const summarizeBrewDoneItCandidates = ({ breweries = [], beers = [], styles = [] } = {}) => {
+  const unresolvedProducerCount = beers.filter((beer) => missing(beer.producerId)).length
+  const unresolvedStyleCount = beers.filter((beer) => missing(beer.categoryId)).length
+  const exactBeerReady = beers.length === 1
+  const breweryReady = breweries.length === 1 && unresolvedProducerCount === 0
+  const styleReady = styles.length === 1 && unresolvedStyleCount === 0
+
+  let recommendation = 'Keep narrowing the candidate field before making a formal guess.'
+  if (exactBeerReady) recommendation = 'One beer candidate remains. Consider an exact-beer guess when the evidence fits.'
+  else if (breweryReady) recommendation = 'One governed brewery remains. Consider confirming the brewery before narrowing the beer.'
+  else if (styleReady) recommendation = 'One governed style remains. The style fallback is available if the exact beer cannot be identified.'
+
+  return {
+    breweryCount: breweries.length,
+    beerCount: beers.length,
+    styleCount: styles.length,
+    unresolvedProducerCount,
+    unresolvedStyleCount,
+    exactBeerReady,
+    breweryReady,
+    styleReady,
+    recommendation
+  }
+}
+
 export const __testables = { deductionMatches, missing }
