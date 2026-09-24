@@ -121,7 +121,10 @@ export const createGameV3 = async (request, response, user) => {
   try {
     const round = await ensureInitialRound(game, productId, game.created_at || now)
     response.status(201).json({ game: projectBrewDoneItGame(game), round: projectBrewDoneItRound(round, user.id), invitationCode })
-  } catch (error) { try { await dataProvider.remove(COLLECTIONS.brewDoneItGames, game.id) } catch {} throw error }
+  } catch (error) {
+    try { await dataProvider.remove(COLLECTIONS.brewDoneItGames, game.id) } catch { /* cleanup is best-effort */ }
+    throw error
+  }
 }
 export const joinGameV3 = async (gameId, request, response, user) => {
   const { idempotencyKey } = mutation(request)
