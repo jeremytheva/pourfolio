@@ -35,7 +35,7 @@ test('invitation code is deterministic while stored digest does not equal the ra
   assert.notEqual(invitationDigest(code), code)
 }))
 
-test('v3 opening and next rounds initialize deduction outcome state explicitly', () => {
+test('v3 opening and next rounds initialize deduction outcome state without legacy question counters', () => {
   const game = { id: 7, creator_participant_id: 10, opponent_participant_id: 20 }
   const opening = initialRoundBody(game, '33', '2026-09-12T00:00:00.000Z')
   assert.equal(opening.selected_product_id, '33')
@@ -43,6 +43,7 @@ test('v3 opening and next rounds initialize deduction outcome state explicitly',
   assert.equal(opening.style_correct, false)
   assert.equal(opening.beer_correct, false)
   assert.equal(opening.incorrect_formal_guess_count, 0)
+  assert.equal(Object.hasOwn(opening, 'question_count'), false)
 
   const next = nextRoundBody({
     game,
@@ -56,6 +57,7 @@ test('v3 opening and next rounds initialize deduction outcome state explicitly',
   assert.equal(next.guesser_participant_id, 10)
   assert.equal(next.selected_product_id, '44')
   assert.equal(next.round_creation_idempotency_key, '20:brew-done-it-1234567890abcdef')
+  assert.equal(Object.hasOwn(next, 'question_count'), false)
 })
 
 test('persisted next round remains safely adoptable after unrelated game version changes', () => {
