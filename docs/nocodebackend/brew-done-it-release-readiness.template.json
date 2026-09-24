@@ -1,0 +1,14 @@
+{
+  "contract": "pourfolio.brew-done-it-release-readiness.v1",
+  "candidateRevision": "PENDING",
+  "evidence": {
+    "providerContract": { "status": "PENDING", "reference": "PENDING" },
+    "twoAccountFlow": { "status": "PENDING", "reference": "PENDING" },
+    "privacy": { "status": "PENDING", "reference": "PENDING" },
+    "recovery": { "status": "PENDING", "reference": "PENDING" },
+    "accessibility": { "status": "PENDING", "reference": "PENDING" },
+    "cleanup": { "status": "PENDING", "reference": "PENDING" }
+  },
+  "providerMutationApproved": false,
+  "enablementApproved": false
+}
