@@ -34,8 +34,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "eea788e2a5c7969dd71e8aee8f21a82f02c1a87c"
-last_updated: "2026-09-24T05:59:13+10:00"
+last_verified_commit: "9a9c2bb488e64516a92e83fb40325b0a9112aec6"
+last_updated: "2026-09-24T12:59:23+10:00"
 ---
 
 # STATUS.md
@@ -67,11 +67,14 @@ The producer/search programme through the provider-safe portion of Stage E is me
 - **PR #519** — first unreachable prototype-page cleanup slice;
 - **PR #527, #529, #531** — architecture, roadmap and provider-boundary reconciliation;
 - **PR #533, #534, #536, #538, #541, #542** — fail-closed tasting-sharing and Drinking Buddy authorization/revocation hardening;
-- **PR #537, #543, #545, #547** — autonomous continuation/status reconciliation slices;
+- **PR #537, #543, #545, #547, #553** — autonomous continuation/status reconciliation slices;
 - **PR #544** — #449 duplicate-proposal regression evidence for canonical producer scoping, deterministic normalization, style/edition ranking, edition conflicts and edit self-exclusion;
 - **PR #546** — #449 duplicate matching fails closed when proposal or candidate lacks canonical producer identity;
 - **PR #548** — #449 duplicate matching fails closed for malformed proposal inputs and safely ignores malformed candidate rows;
-- **PR #551 and #552** — Brew Done It provider/cardinality certification hardening. Brew Done It remains launch-excluded and does not alter the Pourfolio launch dependency order.
+- **PR #551, #552 and #554** — Brew Done It provider/cardinality and deployed-contract hardening, including removal of obsolete v3 `question_count` writes;
+- **PR #555** — isolated, manual, SHA-pinned Brew Done It connected-provider probe workflow. Connected execution remains separately gated on isolated staging fixtures and does not mutate provider schema.
+
+Brew Done It remains launch-excluded and does not alter the Pourfolio launch dependency order.
 
 PRs **#532** and **#535** were not merged. Exact-head validation proved `api/current-data-proxy.js` is still imported by `api/data-router.js` and tests, so deletion-only cleanup is invalid. Any future #429 cleanup of this path must migrate those dependencies first and pass canonical validation.
 
@@ -123,7 +126,7 @@ Provider secrets remain server-only. Do not reopen auth/data base-URL routing wi
 
 ## Brew Done It
 
-Brew Done It remains a separate, launch-excluded capability. Its source foundations, deduction work and provider/cardinality certification hardening are merged, but provider migration/certification and production enablement remain separately governed. It must not become a dependency of the beer-first launch.
+Brew Done It remains a separate, launch-excluded capability. Its source foundations, deduction work, provider/cardinality hardening, deployed-contract cleanup and manual connected-provider probe infrastructure are merged. Provider migration/certification and production enablement remain separately governed. It must not become a dependency of the beer-first launch.
 
 ## Continuation rule
 
