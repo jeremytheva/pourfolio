@@ -40,7 +40,7 @@ last_updated: "2026-09-24T22:58:07+10:00"
 
 # STATUS.md
 
-Last materially reviewed: 24 September 2026
+Last materially reviewed: 25 September 2026
 
 ## AI execution gate
 
@@ -58,6 +58,10 @@ Continue the highest-priority dependency-correct work that can safely be complet
 When #165 cannot progress because provider-supported migration/backfill/backup/restore evidence or explicit migration approval is unavailable, continue independent launch-scoped work such as #449 and targeted #429 cleanup where it does not mutate provider schema/data, fabricate catalogue relationships or weaken certification gates.
 
 Do not reopen provider routing or frontend/backend URL changes without new contradictory runtime evidence. Do not enable `/ratings/reconcile` before the #165 migration is deployed and verified.
+
+### Owner-facing response standard adopted
+
+Routine ChatGPT/Codex implementation, continuation, review, merge, deployment and status responses now use the concise `Done / Next / You` structure defined in `AGENTS.md`. Detailed implementation state, validation evidence, blockers, deferred work and technical history remain in repository/GitHub sources. `Blocked`, `Problem` and `Decision needed` are added only when materially necessary.
 
 ## Recently integrated
 
