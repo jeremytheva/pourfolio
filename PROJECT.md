@@ -120,12 +120,14 @@ Use the following project source hierarchy, while applying the inherited master 
 7. prior chat/context;
 8. inference.
 
+Routine ChatGPT/Codex responses are an operational summary only, not a project-state store. Detailed implementation state and evidence must remain in the repository/GitHub hierarchy above, with `STATUS.md` as the primary continuity/status document.
+
 For PR lifecycle facts, GitHub is authoritative for open/closed/merged state, latest head, review conversations and conflicts. Repository/PR metadata is authoritative for the project's Implementing/Validating/Ready/Mergeable lifecycle state. GitHub Draft is exceptional and must not be used as the routine lifecycle mechanism. Hosted checks are diagnostic evidence unless the project policy explicitly makes a particular underlying result material to the change. Conflicts must be investigated rather than silently reconciled.
 
 ## Canonical repository documents
 
 - `PROJECT.md` — durable project purpose, scope, inheritance and operating context.
-- `STATUS.md` — current implementation, execution gate, active PR/lifecycle state and blocker state.
+- `STATUS.md` — primary continuity/status document for current implementation, completed/active/next work, execution gate, active PR/lifecycle state, validation evidence, blockers, deferred work and owner actions.
 - `PR_LIFECYCLE_STANDARD.md` — adopted repository PR progression and merge-governance contract.
 - `ARCHITECTURE.md` — concise current architecture summary.
 - `DATA_MODEL.md` — concise current domain/data summary.
