@@ -2,7 +2,7 @@
 
 > Canonical project standard for project-managed pull-request progression, validation, merge governance and exceptional closure
 
-**Version 1.2 • September 2026**  
+**Version 1.3 • September 2026**  
 **Status: Project source**  
 **Parent framework:** `AI_FIRST_PLATFORM_DEVELOPMENT_FRAMEWORK.md`  
 **Operating companion:** `AI_PLATFORM_DEVELOPMENT_STANDARD.md`  
@@ -185,6 +185,8 @@ Lifecycle automation may manage lifecycle labels, blocker labels, branch cleanup
 Automation must not require GitHub Draft → Ready transitions for ordinary autonomous work. Draft/readiness transitions should only be automated when a PR was intentionally created as Draft under the exceptional rule in section 4.
 
 ## 17. Status integration
+
+`STATUS.md` remains the primary continuity record. Owner-facing PR updates follow the concise `Done / Next / You` standard in `AGENTS.md`; detailed validation, review and lifecycle evidence remains in the PR and repository rather than being repeated in chat.
 
 Recommended `STATUS.md` fields:
 
