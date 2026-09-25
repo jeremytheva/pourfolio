@@ -91,6 +91,8 @@ Do not stop merely because one task, commit or pull-request subtask has finished
 3. determine the next dependency-correct task from current repository/GitHub evidence;
 4. continue when it can be performed safely.
 
+If the highest-priority item is blocked but other useful work is dependency-safe, record the blocker and automatically continue the next valid unblocked item. Ask the product owner to choose the next task only when repository priority/dependency evidence is genuinely insufficient.
+
 The same continuation loop applies after review fixes, diagnostic-CI repairs, documentation corrections and routine PR lifecycle transitions.
 
 ## Valid stop and escalation conditions
@@ -103,9 +105,11 @@ Stop and require product-owner involvement only when one of these conditions is 
 - conflicting requirements cannot be resolved from repository evidence;
 - a security, privacy or legal decision requires owner authority;
 - an external dependency prevents further dependency-correct work;
+- external account configuration, billing/subscription action or unavailable third-party approval is required;
+- physical/manual verification cannot be performed with available project tooling;
 - no actionable work remains.
 
-Minor implementation choices, refactoring decisions, regression repairs, documentation maintenance, test fixes and routine PR-state transitions should not normally be escalated.
+Minor implementation choices, refactoring decisions, regression repairs, documentation maintenance, test fixes, issue management, dependency sequencing, routine architecture choices and routine PR-state transitions should not normally be escalated.
 
 ## Change protocol
 
@@ -207,15 +211,42 @@ Never claim validation passed unless it was actually run or externally verified.
 
 Do not populate PASS/VERIFIED states without evidence. Use `NOT_RUN`, `PENDING`, `UNVERIFIED` or `NOT_APPLICABLE` truthfully.
 
-## Reporting
+## Owner-facing response standard
 
-Keep handoff and chat summaries concise. Report:
+Repository/GitHub evidence is the detailed source of truth. Keep implementation history, validation detail, PR evidence, blocker analysis, deferred work and technical decisions in the appropriate issue, PR, `STATUS.md` or other governed repository document rather than repeating them in routine ChatGPT/Codex responses.
 
-- what changed;
-- validation evidence;
-- current phase/stage/gate/execution state;
-- genuine blockers requiring intervention;
-- the next dependency-correct work.
+For routine implementation, continuation, review, merge, deployment and status work, the final owner-facing response should normally contain only:
+
+```text
+Done
+- <1–3 material completed outcomes>
+
+Next
+- <single best next action or work item>
+
+You
+- Nothing required.
+```
+
+The `You` section is mandatory. When owner intervention is necessary, replace `Nothing required.` with one specific action or one specific information request. Use `Provide: <specific information>` when information is required. Do not use vague prompts such as “check the configuration” or ask the owner to choose work when repository priority/dependency evidence is sufficient.
+
+`Done` includes material outcomes only, such as a PR created/merged, bug fixed, validation completed, deployment completed, issue/phase completed or blocker removed. Usually use 1–3 bullets. Do not list every file edited, command run, internal reasoning step, routine refactor or PR metadata transition.
+
+`Next` states the single best dependency-correct next action. If that item is non-critically blocked, automatically continue the next valid unblocked work and keep the blocker in durable project state.
+
+Add an extra section only when it materially changes owner action or understanding:
+
+- `Blocked` — a genuine blocker prevents the stated work;
+- `Problem` — implementation/validation/deployment exposed a meaningful failure or defect;
+- `Decision needed` — repository conventions cannot safely resolve a materially different product/business choice.
+
+Keep these extra sections concise. Do not routinely add executive summaries, validation tables, file-by-file lists, command logs, acceptance matrices, future-work catalogues or repeated background unless requested.
+
+When all required validation passes, summarise it as a material outcome rather than enumerating commands, for example: `Implementation and required validation completed.` If validation fails, report only the meaningful failure in `Problem`; retain detailed command output in repository/PR evidence.
+
+For normal PR progression, prefer concise outcome reporting such as `PR #123 implemented, validated and merged.` Do not reproduce the PR lifecycle history unless requested. For a project-status request, return the current material outcome(s), one next action and the mandatory `You` section; do not produce a full project report unless explicitly requested.
+
+The concise chat format does not reduce engineering discipline or evidence requirements. `STATUS.md` remains the primary durable continuity/status document, and detailed evidence remains in repository/GitHub sources.
 
 Do not require the product owner to reconstruct technical state manually from commit history, CI logs or prior chats.
 
