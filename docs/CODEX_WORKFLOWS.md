@@ -18,9 +18,12 @@ After each task:
 - validate it;
 - update durable project state;
 - determine the next dependency-correct task;
-- continue while it can be completed safely.
+- if that item is blocked, move to the next valid unblocked item when useful work remains;
+- continue while work can be completed safely.
 
 Stop only for a defined AGENTS.md escalation condition.
+
+For the owner-facing response, use the concise `Done / Next / You` standard in `AGENTS.md`. Keep detailed implementation, validation and PR evidence in the repository/GitHub sources rather than repeating it in chat.
 ```
 
 ## Implement an issue
@@ -52,7 +55,8 @@ After implementation:
 - treat GitHub Actions as supporting diagnostic evidence and fix any real defect they expose without making hosted CI itself a duplicate acceptance gate;
 - cross Ready → Mergeable when canonical `npm run platform:validate`, applicable browser/runtime/deployment evidence, mergeability and material review-thread state are satisfactory for the change;
 - merge and clean up the source branch when the Mergeable condition is satisfied and no separate documented approval condition applies;
-- continue downstream Release/Completion work after merge rather than treating Merged as Complete.
+- continue downstream Release/Completion work after merge rather than treating Merged as Complete;
+- return the owner-facing result using the concise `Done / Next / You` standard in `AGENTS.md`, adding `Blocked`, `Problem` or `Decision needed` only when materially necessary.
 ```
 
 ## Fix failed checks
