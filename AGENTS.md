@@ -211,7 +211,9 @@ Never claim validation passed unless it was actually run or externally verified.
 
 Do not populate PASS/VERIFIED states without evidence. Use `NOT_RUN`, `PENDING`, `UNVERIFIED` or `NOT_APPLICABLE` truthfully.
 
-## Owner-facing response standard
+## Reporting
+
+### Owner-facing response standard
 
 Repository/GitHub evidence is the detailed source of truth. Keep implementation history, validation detail, PR evidence, blocker analysis, deferred work and technical decisions in the appropriate issue, PR, `STATUS.md` or other governed repository document rather than repeating them in routine ChatGPT/Codex responses.
 
