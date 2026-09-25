@@ -33,6 +33,8 @@ The repository is designed so an AI agent can resume work without depending on p
 
 `Continue`, `Next` or an equivalent scheduled supervisory instruction means continuing the highest-priority dependency-correct actionable work until a real escalation condition is reached. Finishing one task is not itself a stop condition.
 
+Routine owner-facing chat now follows the concise `Done / Next / You` contract in `AGENTS.md`. Detailed implementation, validation and PR evidence remains in `STATUS.md`, linked issues and pull requests.
+
 ## Runtime contract
 
 Node.js 22 is the governed repository/deployment runtime. BonoHost provides Node.js 22.23.2, which satisfies Vite 8's Node 22 minimum requirement. The same major also aligns with the current Vercel project runtime setting.

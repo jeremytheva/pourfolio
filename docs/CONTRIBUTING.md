@@ -17,7 +17,7 @@ Before meaningful implementation, confirm the current Project Entry/Change conte
 9. Open a PR using the template and link the governing issue where applicable.
 10. Resolve CI and review findings without weakening checks or widening scope.
 11. Audit acceptance criteria and record only evidence actually produced by the current code/provider/deployment state.
-12. Merge only after required checks and reviews pass.
+12. Merge only after the project-owned merge conditions are satisfied: required validation/evidence is sufficient, material review findings are resolved, there is no merge conflict and no material blocker. Hosted CI status is diagnostic; any real defect it reveals must still be fixed.
 13. Do not treat merge as deployment, verification or completion when later gates remain.
 
 ## Definition of Done
