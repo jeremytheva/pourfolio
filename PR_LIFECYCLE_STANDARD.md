@@ -83,7 +83,9 @@ While the PR remains open, the project should automatically manage ordinary engi
 
 GitHub-hosted CI may run and should be inspected when useful, but it is non-blocking as a platform status signal.
 
-`npm run platform:validate` is the canonical source-validation entry point for this repository. Its substantive findings are project-owned evidence. Do not confuse the GitHub Actions wrapper/conclusion with the underlying validation result.
+`npm run platform:validate` is the canonical source-validation entry point for this repository. Its substantive findings are project-owned evidence. Do not confuse the GitHub Actions wrapper/conclusion with the underlying validation result. An empty or zero-step Platform Validation wrapper contributes no validation evidence, but does not by itself mean the application failed validation.
+
+If the preferred executor is unavailable, use the repository validation hierarchy: canonical repository executor → trusted alternate executor → exact-commit deployment/build executing equivalent required commands → VALIDATION WAITING. Never record an unexecuted check as PASS.
 
 Do not weaken meaningful project-owned validation merely to make a PR appear complete.
 
@@ -140,9 +142,16 @@ Auto-merge may be used where it does not reintroduce obsolete mandatory-status-c
 
 Use `CLOSED WITHOUT MERGE` only for intentional exclusion. Do not close a required but failing PR merely to clear the queue.
 
-## 11. Blocker handling
+## 11. Work-in-progress and blocker handling
 
-Keep blocked required work open. Identify the exact blocker, classify it, continue safe independent work where possible, record material blocker state and escalate only when it crosses the product-owner boundary.
+Default integration limits are:
+
+- maximum ordinary open implementation PRs: **3**;
+- maximum dependent PR stack depth: **2**.
+
+Before creating another implementation PR, inspect current GitHub state. If either limit is exceeded, stop extending implementation, validate/reconcile existing work, merge eligible work, update `STATUS.md`, and only then resume new implementation. A deep dependent stack is not justified merely because each slice can be coded independently.
+
+Keep blocked required work open. Identify the exact blocker, classify it, continue safe independent work where possible, record material blocker state and escalate only when it crosses the product-owner boundary. If validation capacity is unavailable, retain explicit validation debt and do not grow overlapping PR WIP beyond safe integration capacity.
 
 A non-functional GitHub Actions job is not, by itself, a material blocker. A connector failure that affects an avoidable ceremony step must be designed around where repository policy can safely remove that dependency.
 
@@ -152,7 +161,7 @@ Do not normally ask whether a normal implementation PR should stay open, CI shou
 
 Do not use Draft as a mechanism that creates an owner-only transition for ordinary autonomous work.
 
-Escalate genuine decisions involving product scope/behaviour, domain rules, destructive/irreversible change, privacy/security posture, cost/provider commitment, material provider compromise, release timing with business consequence, material architecture uncertainty, conflicting requirements or unclear abandonment/supersession intent.
+Escalate genuine decisions involving product scope/behaviour, domain rules, destructive/irreversible change (including production database/provider migrations), privacy/security posture, cost/provider commitment, material provider compromise, release timing with business consequence, material architecture uncertainty, conflicting requirements or unclear abandonment/supersession intent.
 
 ## 13. Repository enforcement baseline
 
