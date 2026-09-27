@@ -55,7 +55,11 @@ No intentional project deviation currently overrides the master security or data
 
 Autonomous project work uses normal, non-draft pull requests by default. Lifecycle state is recorded in repository/PR metadata rather than GitHub's draft flag. GitHub Draft is used only when a change genuinely should not be reviewable/mergeable yet or substantial intended implementation is deliberately incomplete. This project-specific policy prevents ordinary autonomous continuation from depending on a Draft → Ready transition.
 
-GitHub Actions/CI is diagnostic evidence under the current project PR policy, not an automatic merge prerequisite. A failing check that exposes a real implementation, security, data-integrity or release defect remains actionable. Issue #143 tracks repository governance hardening and is not a blanket blocker on otherwise mergeable work.
+GitHub Actions/CI is diagnostic evidence under the current project PR policy, not an automatic merge prerequisite. A failing check that exposes a real implementation, security, data-integrity or release defect remains actionable. An empty/zero-step Platform Validation wrapper is treated as unavailable evidence rather than an application failure. Issue #143 tracks repository governance hardening and is not a blanket blocker on otherwise mergeable work.
+
+Portfolio importance and execution capacity are distinct. This repository uses the portfolio states `PLANNED`, `READY`, `ACTIVE`, `VALIDATING`, `BLOCKED`, `MAINTENANCE`, and `COMPLETE` where relevant, plus an execution slot of `BUILDING`, `INTEGRATING`, `VERIFYING`, `WAITING`, or `NONE`. Only work actively consuming delivery capacity should occupy BUILDING or INTEGRATING.
+
+Default WIP limits are three ordinary open implementation PRs and a dependent PR stack depth of two. Exceeding either limit shifts work to integration/reconciliation until the queue is back within limits.
 
 ## Product principles
 
@@ -68,6 +72,8 @@ GitHub Actions/CI is diagnostic evidence under the current project PR policy, no
 - Treat provider integration as a controlled adapter boundary rather than direct browser-to-provider access.
 - Prefer root-cause corrections over local workarounds.
 - Keep each implementation issue focused enough to produce one reviewable pull request.
+- Prefer integration throughput over accumulating overlapping implementation; respect the repository WIP/stack limits unless an explicit exception is recorded.
+- Reuse template patterns before introducing shared runtime packages across projects.
 - Keep required failing work open for remediation; close without merge only when work is intentionally excluded, superseded, duplicated or cancelled.
 
 ## Technology
@@ -130,7 +136,10 @@ For PR lifecycle facts, GitHub is authoritative for open/closed/merged state, la
 - `STATUS.md` — primary continuity/status document for current implementation, completed/active/next work, execution gate, active PR/lifecycle state, validation evidence, blockers, deferred work and owner actions.
 - `PR_LIFECYCLE_STANDARD.md` — adopted repository PR progression and merge-governance contract.
 - `ARCHITECTURE.md` — concise current architecture summary.
-- `DATA_MODEL.md` — concise current domain/data summary.
+- `DATA_MODEL.md` — concise current domain/data authority and provider/schema source mapping.
+- `contracts/pourfolio-data-contract.json` — machine-readable NoCodeBackend-facing collection/field/classification contract.
+- `docs/nocodebackend/launch-schema-contract.md` and `docs/nocodebackend/schema-mapping.md` — provider deployment classification and detailed provider mapping.
+- `exports/schema.sql` — reference/target SQL artefact only; it is not evidence of deployed NoCodeBackend state.
 - `ROADMAP.md` — intended phase/milestone direction and dependencies.
 - `SYSTEM_MAP.md` — compact implementation relationship map for whole-system analysis.
 - `docs/ARCHITECTURE.md` — detailed technical architecture.
