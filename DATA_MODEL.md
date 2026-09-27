@@ -4,6 +4,22 @@
 
 This is the project-level data model summary. The detailed repository contract in `docs/DATA_MODEL.md` and `docs/nocodebackend/schema-mapping.md` remains authoritative for field-level implementation. `docs/nocodebackend/launch-schema-contract.md` is the concise launch classification that distinguishes deployed-required, deployed-optional, deferred-target and unavailable fields/capabilities.
 
+## Data and provider authority
+
+Pourfolio uses NoCodeBackend rather than a repository-executed SQL migration engine. The project therefore maps the master database pattern onto the existing stronger provider-specific sources instead of creating a duplicate `database/` authority:
+
+- `DATA_MODEL.md` — concise application/domain authority;
+- `docs/DATA_MODEL.md` — detailed domain/data contract;
+- `contracts/pourfolio-data-contract.json` — machine-readable provider collection/field/classification contract;
+- `docs/nocodebackend/launch-schema-contract.md` — concise deployed/optional/deferred/unavailable classification;
+- `docs/nocodebackend/schema-mapping.md` — detailed provider mapping, relationships and target requirements;
+- `docs/nocodebackend/*migration*` and evidence-gate records — controlled provider transitions;
+- `exports/schema.sql` — target/reference SQL-shaped artefact used by structural audit tooling; it is **not** proof of deployed NoCodeBackend state and is not an executable migration authority.
+
+The physical/provider representation must not silently become the application domain model. Changes to data requirements must update the domain contract, provider representation/classification, migration evidence where needed, validation, and `STATUS.md` when material.
+
+Do not create fictional SQL merely to satisfy a conventional database folder template. If a future provider exposes a genuinely executable migration/schema mechanism, adopt it through an explicit architecture decision and preserve historical migration evidence.
+
 ## Provider instance
 
 **NoCodeBackend instance:** `54026_rating`
