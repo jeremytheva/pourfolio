@@ -29,10 +29,10 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "f419f7024f23ab00125b2ad7f2c1bfa2bf63478f"
+  observed_main_commit: "f58e7eca6ca3de0a63e964f001002e40fe61e2bf"
   current_candidate_commit: null
-  latest_validated_commit: "3f792e1c10c347d77cbcbbada8480b757f54d4f9"
-  latest_deployed_commit: "f419f7024f23ab00125b2ad7f2c1bfa2bf63478f"
+  latest_validated_commit: "7d1cb762ae07a54bde4c336cadb31a067c3053e4"
+  latest_deployed_commit: "f58e7eca6ca3de0a63e964f001002e40fe61e2bf"
   latest_runtime_verified_commit: "cb5b3a996d7ea1c17babe0945830b9717e488dfa"
   latest_browser_verified_commit: "3f792e1c10c347d77cbcbbada8480b757f54d4f9"
 validation:
@@ -43,7 +43,7 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "3f792e1c10c347d77cbcbbada8480b757f54d4f9"
+last_verified_commit: "7d1cb762ae07a54bde4c336cadb31a067c3053e4"
 last_updated: "2026-09-28T08:58:00+10:00"
 ---
 
@@ -75,8 +75,8 @@ Do not reopen provider routing or frontend/backend URL changes without new contr
 - Dependent PR stack depth: **0 / 2**.
 - No open PR requires integration before new bounded work begins.
 - GitHub retains a large historical branch inventory from prior autonomous work. Those branches are not active WIP because they have no open PRs; clean them incrementally where safe rather than treating them as active implementation.
-- The latest source/browser validation evidence is tied to PR #570 head `3f792e1c10c347d77cbcbbada8480b757f54d4f9`.
-- Current observed `main` is `f419f7024f23ab00125b2ad7f2c1bfa2bf63478f`, with a successful Vercel deployment status. This deployment evidence does not imply runtime/browser verification for that exact commit.
+- The latest canonical source-validation evidence is tied to PR #574 head `7d1cb762ae07a54bde4c336cadb31a067c3053e4`; the retained browser-verification field remains on the latest completed browser-evidence commit until newer browser evidence completes.
+- The reconciliation baseline `main` commit is `f58e7eca6ca3de0a63e964f001002e40fe61e2bf`, with a successful Vercel deployment status. `observed_main_commit` is a reconciliation baseline, not a self-referential claim that `STATUS.md` can contain the SHA of the commit that contains itself. This deployment evidence does not imply runtime/browser verification for that exact commit.
 - Latest retained runtime verification remains `cb5b3a996d7ea1c17babe0945830b9717e488dfa`.
 
 Evidence stages remain distinct: validation PASS is not deployment, deployment is not runtime verification, provider configuration is not provider certification, and mocked/source tests are not persisted-provider evidence.
@@ -102,7 +102,8 @@ The producer/search programme through the provider-safe portion of Stage E is me
 - **PR #551, #552 and #554** — Brew Done It provider/cardinality and deployed-contract hardening, including removal of obsolete v3 `question_count` writes;
 - **PR #555** — isolated, manual, SHA-pinned Brew Done It connected-provider probe workflow;
 - **PR #557–#562 and #564** — Brew Done It retry, role/presentation, deduction and release-certification hardening, including fail-closed release readiness tests and exact full-commit candidate revision enforcement. These changes remain launch-excluded and do not authorize provider mutation or production enablement;
-- **PR #566–#570** — live-router legacy-proxy detachment, status/concise-reporting reconciliation and validated dependency maintenance through the current main baseline.
+- **PR #566–#570** — live-router legacy-proxy detachment, status/concise-reporting reconciliation and validated dependency maintenance;
+- **PR #574** — latest master development standards adopted, including WIP limits, validation fallback, provider/schema authority, migration-package governance and connected status-drift checking.
 
 Brew Done It remains launch-excluded and does not alter the Pourfolio launch dependency order.
 
