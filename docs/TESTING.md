@@ -2,7 +2,7 @@
 
 ## Local release gate
 
-Use Node.js 24 and run:
+Use the governed Node.js 22 runtime and run:
 
 ```bash
 npm ci
@@ -12,7 +12,22 @@ npm run test:e2e
 ```
 
 `platform:validate` is the canonical source-validation entry point and delegates
-to `validate`. The validation pipeline runs:
+to `validate`.
+
+### Validation execution hierarchy
+
+Use the strongest available execution path in this order:
+
+A. canonical repository executor  
+B. trusted alternate execution environment  
+C. exact-commit deployment/build that executes equivalent required commands  
+D. **VALIDATION WAITING**
+
+Never represent an unexecuted check as PASS. An empty or zero-step Platform Validation job is unavailable/no evidence, not an application failure. A substantive failure from any executed required check remains actionable.
+
+When validation is waiting, retain the debt explicitly and avoid growing overlapping implementation WIP beyond the repository limits. Independent work may continue only when it does not materially increase integration risk.
+
+The validation pipeline runs:
 
 1. package-lock contract validation;
 2. project-document/autonomous-handoff governance validation;

@@ -1,31 +1,40 @@
 ---
 project: Pourfolio
 portfolio_state: ACTIVE
+execution_slot: NONE
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Rating idempotency provider migration"
+stage: "Dependency-scoped launch integration"
 gate: Integration
-execution_state: BLOCKED
+execution_state: READY
 current_work:
-  objective: "Progress #165 only to the irreversible provider boundary while continuing dependency-independent launch work."
-  issue: 165
+  objective: "Resume the highest-priority unblocked launch work while #165 remains at the irreversible provider-migration boundary."
+  issue: 429
   pr: null
   branch: null
 next_actions:
-  - "Obtain provider-supported migration, uniqueness, backup/restore and safe-backfill evidence for #165 before any provider mutation."
-  - "Keep /ratings/reconcile unavailable until the #165 migration is deployed and verified."
-  - "After #165, complete #144 backend/provider certification and backend-dependent #154 catalogue certification."
-  - "Continue provider-independent #449 work and targeted #429 cleanup; the live router dependency is removed, but do not delete current-data-proxy.js until remaining direct test/import dependencies are migrated."
+  - "Continue #429 by migrating the remaining direct test/import dependencies from current-data-proxy.js, then remove it only when canonical validation proves it unreachable."
+  - "Keep #165 at the irreversible provider boundary until its migration approval package is complete; do not enable /ratings/reconcile."
+  - "After #165 is deployed and verified, complete #144 backend/provider certification and backend-dependent #154 catalogue certification."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
-    detail: "Durable idempotency requires irreversible provider schema/constraint and existing-data migration work. Provider-supported migration/backfill plus backup/restore evidence and explicit approval are required before mutation."
-  - scope: current_data_proxy_cleanup
-    issue: 429
-    detail: "PR #566 removed current-data-proxy.js from the live api/data-router.js dependency. Remaining direct test/import dependencies still prevent deletion; migrate those dependencies before removing the legacy module."
-requires_owner_decision: true
+    detail: "Durable idempotency requires irreversible provider schema/constraint and existing-data migration work. Provider-supported migration/backfill plus backup/restore evidence and the governed approval package are required before mutation."
+requires_owner_decision: false
 owner_decision:
-  question: "Approve the #165 provider migration only after a concrete provider-supported migration, backup/restore and cleanup-safe backfill plan is evidenced."
-  recommendation: "Keep #165 blocked at the irreversible provider boundary until the evidence and explicit migration approval requirements are satisfied."
+  question: null
+  recommendation: "Do not request #165 migration approval until the evidence package is complete enough to present the exact irreversible operation and recovery path."
+wip:
+  open_implementation_prs: 0
+  dependent_stack_depth: 0
+  max_open_implementation_prs: 3
+  max_dependent_stack_depth: 2
+evidence:
+  observed_main_commit: "f419f7024f23ab00125b2ad7f2c1bfa2bf63478f"
+  current_candidate_commit: null
+  latest_validated_commit: "3f792e1c10c347d77cbcbbada8480b757f54d4f9"
+  latest_deployed_commit: "f419f7024f23ab00125b2ad7f2c1bfa2bf63478f"
+  latest_runtime_verified_commit: "cb5b3a996d7ea1c17babe0945830b9717e488dfa"
+  latest_browser_verified_commit: "3f792e1c10c347d77cbcbbada8480b757f54d4f9"
 validation:
   governance: PASS
   lint: PASS
@@ -34,18 +43,19 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "cb5b3a996d7ea1c17babe0945830b9717e488dfa"
-last_updated: "2026-09-26T21:27:00+10:00"
+last_verified_commit: "3f792e1c10c347d77cbcbbada8480b757f54d4f9"
+last_updated: "2026-09-28T08:58:00+10:00"
 ---
+
 
 # STATUS.md
 
-Last materially reviewed: 26 September 2026
+Last materially reviewed: 28 September 2026
 
 ## AI execution gate
 
-**Current gate:** Integration / rating idempotency provider migration.  
-**Execution state:** **BLOCKED only for the #165 provider-mutation path**. Pourfolio is not globally blocked; independent launch work continues.
+**Current gate:** Integration.  
+**Execution state:** **READY** for dependency-safe launch work. The #165 provider-mutation path remains blocked as a scoped dependency, not a project-wide execution state. No implementation PR is currently open, so the execution slot is **NONE** until the next bounded work item starts.
 
 The dependency-correct launch sequence remains:
 
@@ -58,6 +68,22 @@ Continue the highest-priority dependency-correct work that can safely be complet
 When #165 cannot progress because provider-supported migration/backfill/backup/restore evidence or explicit migration approval is unavailable, continue independent launch-scoped work such as #449 and targeted #429 cleanup where it does not mutate provider schema/data, fabricate catalogue relationships or weaken certification gates.
 
 Do not reopen provider routing or frontend/backend URL changes without new contradictory runtime evidence. Do not enable `/ratings/reconcile` before the #165 migration is deployed and verified.
+
+### Portfolio, WIP and evidence state
+
+- Open ordinary implementation PRs: **0 / 3**.
+- Dependent PR stack depth: **0 / 2**.
+- No open PR requires integration before new bounded work begins.
+- GitHub retains a large historical branch inventory from prior autonomous work. Those branches are not active WIP because they have no open PRs; clean them incrementally where safe rather than treating them as active implementation.
+- The latest source/browser validation evidence is tied to PR #570 head `3f792e1c10c347d77cbcbbada8480b757f54d4f9`.
+- Current observed `main` is `f419f7024f23ab00125b2ad7f2c1bfa2bf63478f`, with a successful Vercel deployment status. This deployment evidence does not imply runtime/browser verification for that exact commit.
+- Latest retained runtime verification remains `cb5b3a996d7ea1c17babe0945830b9717e488dfa`.
+
+Evidence stages remain distinct: validation PASS is not deployment, deployment is not runtime verification, provider configuration is not provider certification, and mocked/source tests are not persisted-provider evidence.
+
+### Latest master-standard adoption
+
+The repository now applies the portfolio/WIP controls, productive-work threshold, validation fallback hierarchy, template-pattern reuse rule, NoCodeBackend schema-authority mapping, provider certification states and migration approval-package requirement defined in the current repository guidance. The existing NoCodeBackend contract/evidence system is retained rather than duplicated under a new `database/` authority.
 
 ### Owner-facing response standard adopted
 
@@ -75,7 +101,8 @@ The producer/search programme through the provider-safe portion of Stage E is me
 - **PR #544, #546, #548** — #449 duplicate-proposal regression evidence, canonical producer scoping and fail-closed malformed-input handling;
 - **PR #551, #552 and #554** — Brew Done It provider/cardinality and deployed-contract hardening, including removal of obsolete v3 `question_count` writes;
 - **PR #555** — isolated, manual, SHA-pinned Brew Done It connected-provider probe workflow;
-- **PR #557–#562 and #564** — Brew Done It retry, role/presentation, deduction and release-certification hardening, including fail-closed release readiness tests and exact full-commit candidate revision enforcement. These changes remain launch-excluded and do not authorize provider mutation or production enablement.
+- **PR #557–#562 and #564** — Brew Done It retry, role/presentation, deduction and release-certification hardening, including fail-closed release readiness tests and exact full-commit candidate revision enforcement. These changes remain launch-excluded and do not authorize provider mutation or production enablement;
+- **PR #566–#570** — live-router legacy-proxy detachment, status/concise-reporting reconciliation and validated dependency maintenance through the current main baseline.
 
 Brew Done It remains launch-excluded and does not alter the Pourfolio launch dependency order.
 
@@ -98,10 +125,10 @@ Provider evidence reviewed to date establishes that tables can be modified, requ
 
 ## Next dependency-correct work
 
-1. Progress #165 only through reversible evidence gathering; do not mutate the provider without governed evidence and approval.
-2. After #165 is deployed and verified, complete #144 canonical backend/provider certification and backend-dependent #154 catalogue certification.
-3. While #165 is blocked, continue provider-independent #449 work and targeted #429 cleanup.
-4. For #429, the live router dependency is removed by PR #566; migrate the remaining direct test/import dependencies before deleting `current-data-proxy.js`, or choose another evidence-backed cleanup slice.
+1. Continue #429 by migrating the remaining direct test/import dependencies from `current-data-proxy.js`; delete the legacy module only after canonical validation proves it unreachable.
+2. Keep #165 limited to reversible migration-package evidence gathering; do not mutate the provider or enable reconciliation before governed evidence and explicit approval are ready.
+3. After #165 is deployed and verified, complete #144 canonical backend/provider certification and backend-dependent #154 catalogue certification.
+4. Continue #449 only where the slice is provider-independent, bounded and does not create overlapping WIP.
 
 ### #144 — canonical backend certification
 

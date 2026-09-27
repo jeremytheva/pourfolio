@@ -32,8 +32,11 @@ const requiredAgentSections = [
   '## Required project-entry sequence',
   '## Whole-system rule',
   '## Autonomous continuation semantics',
+  '## Work-in-progress and productive-work control',
   '## Valid stop and escalation conditions',
   '## Pull-request lifecycle',
+  '## Template and pattern reuse',
+  '## Data, provider and migration governance',
   '## Required validation',
   '## State maintenance',
   '## Reporting'
@@ -96,6 +99,11 @@ if (fs.existsSync(agentsPath)) {
     'Do not stop merely because one task, commit or pull-request subtask has finished.',
     'Implementing → Validating → Ready → Mergeable → Merged',
     'GitHub Draft reserved for exceptional incomplete/non-reviewable work',
+    'maximum ordinary open implementation PRs: **3**',
+    'maximum dependent PR stack depth: **2**',
+    'VALIDATION WAITING',
+    'Reuse the **pattern before sharing runtime implementation**',
+    'exports/schema.sql',
     'Chat history is supporting context only.'
   ]
   for (const marker of requiredAgentSemantics) {
@@ -120,7 +128,8 @@ if (fs.existsSync(statusPath)) {
       const frontMatter = status.slice(4, endIndex)
       const requiredPatterns = [
         ['project', /^project:\s*\S.+$/m],
-        ['portfolio_state', /^portfolio_state:\s*(ACTIVE|PAUSED|COMPLETE)$/m],
+        ['portfolio_state', /^portfolio_state:\s*(PLANNED|READY|ACTIVE|VALIDATING|BLOCKED|MAINTENANCE|COMPLETE)$/m],
+        ['execution_slot', /^execution_slot:\s*(BUILDING|INTEGRATING|VERIFYING|WAITING|NONE)$/m],
         ['phase', /^phase:\s*.+$/m],
         ['stage', /^stage:\s*.+$/m],
         ['gate', /^gate:\s*(Project Entry|Change|Integration|Release|Completion)$/m],
@@ -134,6 +143,18 @@ if (fs.existsSync(statusPath)) {
         ['blockers', /^blockers:\s*(\[\])?$/m],
         ['requires_owner_decision', /^requires_owner_decision:\s*(true|false)$/m],
         ['owner_decision', /^owner_decision:\s*$/m],
+        ['wip', /^wip:\s*$/m],
+        ['wip.open_implementation_prs', /^\s{2}open_implementation_prs:\s*\d+$/m],
+        ['wip.dependent_stack_depth', /^\s{2}dependent_stack_depth:\s*\d+$/m],
+        ['wip.max_open_implementation_prs', /^\s{2}max_open_implementation_prs:\s*3$/m],
+        ['wip.max_dependent_stack_depth', /^\s{2}max_dependent_stack_depth:\s*2$/m],
+        ['evidence', /^evidence:\s*$/m],
+        ['evidence.observed_main_commit', /^\s{2}observed_main_commit:\s*(null|"?[0-9a-f]{40}"?)$/m],
+        ['evidence.current_candidate_commit', /^\s{2}current_candidate_commit:\s*(null|"?[0-9a-f]{40}"?)$/m],
+        ['evidence.latest_validated_commit', /^\s{2}latest_validated_commit:\s*(null|"?[0-9a-f]{40}"?)$/m],
+        ['evidence.latest_deployed_commit', /^\s{2}latest_deployed_commit:\s*(null|"?[0-9a-f]{40}"?)$/m],
+        ['evidence.latest_runtime_verified_commit', /^\s{2}latest_runtime_verified_commit:\s*(null|"?[0-9a-f]{40}"?)$/m],
+        ['evidence.latest_browser_verified_commit', /^\s{2}latest_browser_verified_commit:\s*(null|"?[0-9a-f]{40}"?)$/m],
         ['validation', /^validation:\s*$/m],
         ['validation.governance', /^\s{2}governance:\s*(PASS|FAIL|NOT_RUN|NOT_APPLICABLE)$/m],
         ['validation.lint', /^\s{2}lint:\s*(PASS|FAIL|NOT_RUN|NOT_APPLICABLE)$/m],
@@ -152,6 +173,15 @@ if (fs.existsSync(statusPath)) {
 
       if (!/^next_actions:\s*\n(?: {2}- .+(?:\n|$))+/m.test(frontMatter)) {
         findings.push({ code: 'STATUS_NEXT_ACTIONS_EMPTY' })
+      }
+
+      const openImplementationPrs = Number(/^\s{2}open_implementation_prs:\s*(\d+)$/m.exec(frontMatter)?.[1])
+      const dependentStackDepth = Number(/^\s{2}dependent_stack_depth:\s*(\d+)$/m.exec(frontMatter)?.[1])
+      if (Number.isFinite(openImplementationPrs) && openImplementationPrs > 3) {
+        findings.push({ code: 'STATUS_WIP_LIMIT_EXCEEDED', openImplementationPrs, maximum: 3 })
+      }
+      if (Number.isFinite(dependentStackDepth) && dependentStackDepth > 2) {
+        findings.push({ code: 'STATUS_DEPENDENT_STACK_LIMIT_EXCEEDED', dependentStackDepth, maximum: 2 })
       }
     }
   }

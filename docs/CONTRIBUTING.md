@@ -13,8 +13,8 @@ Before meaningful implementation, confirm the current Project Entry/Change conte
 5. Implement the smallest complete dependency-correct change and integrate all relevant layers.
 6. Add or update relevant tests and project documentation.
 7. Run the canonical source-validation entry point: `npm run platform:validate`.
-8. For browser-facing changes, run the relevant Playwright coverage locally where practical; hosted Browser/accessibility remains required.
-9. Open a PR using the template and link the governing issue where applicable.
+8. For browser-facing changes, obtain the relevant Playwright/browser-accessibility evidence through the strongest available validation executor. Hosted Browser/accessibility is one supported execution path, not a duplicate mandatory acceptance system.
+9. Before opening another implementation PR, confirm ordinary implementation WIP is at or below 3 open PRs and dependent stack depth is at or below 2; otherwise integrate existing work first. Then open a normal non-draft PR using the template and link the governing issue where applicable.
 10. Resolve CI and review findings without weakening checks or widening scope.
 11. Audit acceptance criteria and record only evidence actually produced by the current code/provider/deployment state.
 12. Merge only after the project-owned merge conditions are satisfied: required validation/evidence is sufficient, material review findings are resolved, there is no merge conflict and no material blocker. Hosted CI status is diagnostic; any real defect it reveals must still be fixed.

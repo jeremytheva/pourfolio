@@ -10,16 +10,18 @@ Inspect this repository's authoritative state and continue the highest-priority 
 Before editing:
 1. Read AGENTS.md, PROJECT.md and STATUS.md.
 2. Review relevant roadmap, architecture, data, security, testing and accepted decision records.
-3. Inspect current repository state, open PRs (including intentional drafts) and their latest-head evidence.
+3. Inspect current repository state, open PRs (including intentional drafts), dependent stack depth and their latest-head evidence.
 4. Inspect relevant issues/tasks and partially implemented work.
 5. Reuse or repair existing work rather than creating a competing branch/PR.
+6. If ordinary implementation WIP exceeds 3 open PRs or dependent stack depth exceeds 2, integrate/validate existing work before creating more implementation.
 
 After each task:
 - validate it;
 - update durable project state;
 - determine the next dependency-correct task;
 - if that item is blocked, move to the next valid unblocked item when useful work remains;
-- continue while work can be completed safely.
+- do not invent speculative work solely to remain active;
+- continue while justified work can be completed safely.
 
 Stop only for a defined AGENTS.md escalation condition.
 
@@ -43,7 +45,7 @@ Implementation requirements:
 - Address root causes and whole-system integration effects.
 - Add or update tests.
 - Handle relevant failure states and edge cases.
-- Run the canonical validation command and any task-specific connected validation.
+- Run the canonical validation command and any task-specific connected validation. If the preferred executor is unavailable, use the documented validation fallback hierarchy and record VALIDATION WAITING rather than fabricating a pass.
 - Update durable documentation/state where behaviour or execution state changes.
 - Link the pull request with `Closes #[issue-number]` when the issue should close on merge.
 - Create a normal non-draft PR by default once there is an initial coherent change to publish.

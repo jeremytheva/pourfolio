@@ -95,13 +95,28 @@ If the highest-priority item is blocked but other useful work is dependency-safe
 
 The same continuation loop applies after review fixes, diagnostic-CI repairs, documentation corrections and routine PR lifecycle transitions.
 
+## Work-in-progress and productive-work control
+
+Autonomous delivery must not produce implementation faster than the repository can validate and integrate it.
+
+Default limits, unless a documented project-specific exception exists:
+
+- maximum ordinary open implementation PRs: **3**;
+- maximum dependent PR stack depth: **2**.
+
+Before opening another implementation PR, inspect live GitHub state. If either limit is exceeded, stop creating overlapping implementation, validate and reconcile the existing work, merge eligible PRs, update `STATUS.md`, then resume implementation. Integration throughput is part of delivery capacity.
+
+Dependency-scoped blockers do not consume the whole project when independent work remains. Conversely, autonomous continuation does not justify inventing work indefinitely. New implementation should normally be grounded in at least one of: roadmap/phase requirements, an accepted issue, a known defect, failed validation, a material review finding, security/data requirements, documented technical debt, dependency-correct release work, or an accepted product requirement.
+
+If no such productive work exists, move the project to the appropriate READY, WAITING/BLOCKED, MAINTENANCE or COMPLETE state rather than manufacturing speculative micro-refactors or endless hardening tasks.
+
 ## Valid stop and escalation conditions
 
 Stop and require product-owner involvement only when one of these conditions is real and blocks further dependency-correct work:
 
 - a genuine product or business decision is required;
 - required credentials, provider capability or external access are unavailable;
-- an irreversible or destructive operation requires approval;
+- an irreversible or destructive operation requires approval, including a production database/provider migration;
 - conflicting requirements cannot be resolved from repository evidence;
 - a security, privacy or legal decision requires owner authority;
 - an external dependency prevents further dependency-correct work;
@@ -165,6 +180,35 @@ Lifecycle rules:
 
 Keep focused changes reviewable and avoid unrelated refactors. Preserve supported behaviour unless intentionally changing it. Never commit secrets, weaken tests, disable linting, bypass permission checks or fabricate provider/deployment evidence. Do not remove PARTIAL/PLANNED/LEGACY code until its role and exit condition are understood.
 
+## Template and pattern reuse
+
+This repository may consume reusable master templates for repository guidance, GitHub workflow patterns, validation, database/provider governance, features and decisions. Reuse the **pattern before sharing runtime implementation**.
+
+Do not create a shared package or common runtime abstraction merely because another project contains similar code. Prefer stable contracts, copied/adapted templates and project-local implementations until the behaviour is demonstrably stable across projects. When a project-specific implementation is already stronger than a generic template, retain it and document the mapping rather than replacing it with a weaker duplicate.
+
+## Data, provider and migration governance
+
+For Pourfolio:
+
+- `DATA_MODEL.md` is the concise application/domain authority;
+- `docs/DATA_MODEL.md` provides the detailed domain/data contract;
+- `contracts/pourfolio-data-contract.json` is the machine-readable provider-facing contract/classification;
+- `docs/nocodebackend/launch-schema-contract.md` and `docs/nocodebackend/schema-mapping.md` are the verified/deferred provider representation and detailed mapping;
+- `docs/nocodebackend/` migration/evidence records govern controlled provider transitions;
+- `exports/schema.sql` is a **target/reference schema artefact**, not proof of the deployed NoCodeBackend schema and not an executable migration authority unless a future provider mechanism explicitly makes it so.
+
+Do not create fictional SQL and call it provider authority. Application code, domain documentation, provider contract evidence and deployed provider state must not silently diverge.
+
+Distinguish capability states:
+
+- **IMPLEMENTED** — source/application logic exists;
+- **PROVIDER VERIFIED** — required provider capability/state is evidenced in the relevant environment;
+- **APPLICATION VERIFIED** — the application behaviour is proven against that provider capability/state.
+
+Provider certification should cover the relevant subset of configuration, authentication, server-only credentials, CRUD, ownership/isolation, filtering, pagination, error semantics, idempotency, uniqueness, optimistic concurrency, transaction/atomic behaviour, schema contract, migration capability, backup/snapshot and restore/recovery. Generic provider documentation is not sufficient evidence when application safety depends on the capability.
+
+Before any irreversible or production-impacting provider/schema change, assemble a migration approval package covering the change, affected resources, existing-data scope, current/proposed schema, constraints, backup/snapshot evidence, restore/recovery evidence, backfill algorithm, duplicate/conflict handling, dry run where possible, rollback/safe-forward path, post-migration verification, exact irreversible operation and required owner approval. Perform all reversible preparation before escalating. For #165, the existing rating migration evidence gate and runbook are the project-specific package and should be extended rather than duplicated.
+
 ## Required validation
 
 From the repository root with Node.js 22, the canonical source-validation entry point is:
@@ -182,7 +226,16 @@ npm run test:e2e
 
 `platform:validate` composes the repository's package-lock/documentation/runtime/environment governance guards, lint, unit/policy tests, production dependency audit, production build, bundle containment/budget and release-security checks. It does **not** prove provider authorisation, deployed configuration, exact deployed SHA, migrations or connected production behaviour.
 
-GitHub Actions runs remain useful diagnostic evidence. Do not weaken, delete or ignore a real defect merely because hosted CI is not itself a mandatory merge gate.
+GitHub Actions runs remain useful diagnostic evidence. Do not weaken, delete or ignore a real defect merely because hosted CI is not itself a mandatory merge gate. An empty or zero-step Platform Validation wrapper is **no validation evidence**, but it is not by itself an application validation failure.
+
+When the preferred validation environment is unavailable, use this order:
+
+1. canonical repository executor;
+2. trusted alternate execution environment;
+3. exact-commit deployment/build that executes equivalent required commands;
+4. mark **VALIDATION WAITING**.
+
+Never convert an unexecuted check into PASS. When validation capacity is unavailable, retain explicit validation debt and avoid creating an unlimited queue of overlapping PRs; continue only independent work that does not materially increase integration risk.
 
 There is no TypeScript configuration or separate typecheck command; `typecheck` is therefore genuinely `NOT_APPLICABLE` unless a type-checking step is introduced later.
 
@@ -203,13 +256,16 @@ Never claim validation passed unless it was actually run or externally verified.
 - current concrete objective and active issue/PR/branch;
 - completed work and known partial work;
 - highest-priority next actions;
-- actual validation state and last verified commit where known;
+- actual validation state and exact evidence commits where known, including validated, deployed, runtime-verified and browser-verified commits without implying one from another;
+- current WIP/open-PR and dependent-stack state when it affects continuation;
 - blockers and whether owner intervention is genuinely required;
 - owner decisions that remain open;
 - technical debt discovered;
 - deployment/provider state when it affects the next action.
 
 Do not populate PASS/VERIFIED states without evidence. Use `NOT_RUN`, `PENDING`, `UNVERIFIED` or `NOT_APPLICABLE` truthfully.
+
+When authenticated GitHub access is available, `npm run check:status-github` provides a lightweight live drift check for active PR/branch state, WIP counts, dependent stack depth and the observed-main baseline. It is a connected reconciliation aid, not part of the offline canonical validation gate; if GitHub access is unavailable it reports WAITING rather than fabricating PASS.
 
 ## Reporting
 
