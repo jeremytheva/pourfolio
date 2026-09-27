@@ -265,6 +265,8 @@ Never claim validation passed unless it was actually run or externally verified.
 
 Do not populate PASS/VERIFIED states without evidence. Use `NOT_RUN`, `PENDING`, `UNVERIFIED` or `NOT_APPLICABLE` truthfully.
 
+When authenticated GitHub access is available, `npm run check:status-github` provides a lightweight live drift check for active PR/branch state, WIP counts, dependent stack depth and the observed-main baseline. It is a connected reconciliation aid, not part of the offline canonical validation gate; if GitHub access is unavailable it reports WAITING rather than fabricating PASS.
+
 ## Reporting
 
 ### Owner-facing response standard
