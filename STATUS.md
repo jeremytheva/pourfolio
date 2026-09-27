@@ -14,14 +14,11 @@ next_actions:
   - "Obtain provider-supported migration, uniqueness, backup/restore and safe-backfill evidence for #165 before any provider mutation."
   - "Keep /ratings/reconcile unavailable until the #165 migration is deployed and verified."
   - "After #165, complete #144 backend/provider certification and backend-dependent #154 catalogue certification."
-  - "Continue provider-independent #449 work and targeted #429 cleanup; the live router dependency is removed, but do not delete current-data-proxy.js until remaining direct test/import dependencies are migrated."
+  - "Continue provider-independent #449 work and targeted #429 cleanup; default-branch evidence shows the legacy current-data-proxy dependency is already cleared, so use fresh reachability evidence for any further cleanup."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
     detail: "Durable idempotency requires irreversible provider schema/constraint and existing-data migration work. Provider-supported migration/backfill plus backup/restore evidence and explicit approval are required before mutation."
-  - scope: current_data_proxy_cleanup
-    issue: 429
-    detail: "PR #566 removed current-data-proxy.js from the live api/data-router.js dependency. Remaining direct test/import dependencies still prevent deletion; migrate those dependencies before removing the legacy module."
 requires_owner_decision: true
 owner_decision:
   question: "Approve the #165 provider migration only after a concrete provider-supported migration, backup/restore and cleanup-safe backfill plan is evidenced."
@@ -79,7 +76,7 @@ The producer/search programme through the provider-safe portion of Stage E is me
 
 Brew Done It remains launch-excluded and does not alter the Pourfolio launch dependency order.
 
-PRs **#532** and **#535** were not merged because deletion-only cleanup failed canonical validation while `api/data-router.js` and tests still imported `current-data-proxy.js`. **PR #566** subsequently removed the live router import/fallback after exact-head validation proved the canonical handlers cover those resources. The legacy module remains because direct test/import dependencies still need migration before deletion.
+PRs **#532** and **#535** were not merged because deletion-only cleanup failed canonical validation while `api/data-router.js` and tests still imported `current-data-proxy.js`. **PR #566** subsequently removed the live router import/fallback after exact-head validation proved the canonical handlers cover those resources. Fresh default-branch evidence now finds no `current-data-proxy` references, so that historical dependency is cleared; further #429 work must be selected from a fresh reachability audit rather than preserving this obsolete blocker.
 
 Producer Stage E remains intentionally incomplete where canonical data is unavailable: verified geography, historical lifecycle/rename/acquisition semantics, managed-business profiles and venue attribution remain dependency-gated by **#444**, **#437** and **#399** rather than inferred from free text or fabricated relationships.
 
@@ -101,7 +98,7 @@ Provider evidence reviewed to date establishes that tables can be modified, requ
 1. Progress #165 only through reversible evidence gathering; do not mutate the provider without governed evidence and approval.
 2. After #165 is deployed and verified, complete #144 canonical backend/provider certification and backend-dependent #154 catalogue certification.
 3. While #165 is blocked, continue provider-independent #449 work and targeted #429 cleanup.
-4. For #429, the live router dependency is removed by PR #566; migrate the remaining direct test/import dependencies before deleting `current-data-proxy.js`, or choose another evidence-backed cleanup slice.
+4. For #429, the legacy `current-data-proxy` dependency is cleared on current `main`; continue only with another evidence-backed reachability cleanup slice.
 
 ### #144 — canonical backend certification
 
@@ -117,7 +114,7 @@ Continue provider-independent contract/UI hardening where safe. The primitive ce
 
 ### #429 — targeted cleanup
 
-Continue evidence-based removal of unreachable prototype code after the merged #519 slice. Do not use broad deletion where reachability or future governed capability is uncertain. `current-data-proxy.js` is no longer a live router dependency after PR #566, but it is not yet removable because direct test/import dependencies remain.
+Continue evidence-based removal of unreachable prototype code after the merged #519 slice. Do not use broad deletion where reachability or future governed capability is uncertain. The historical `current-data-proxy` dependency is cleared on current `main`; choose any further deletion only from fresh reachability evidence.
 
 ## Production/provider baseline
 
