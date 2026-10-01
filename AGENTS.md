@@ -61,7 +61,7 @@ Node.js 22 is the governed runtime target. BonoHost provides Node.js 22.23.2, wh
 ## Architecture and security rules
 
 - Keep route composition in `pages/`/`App.jsx`, reusable presentation in `components/`, business/data orchestration in `services/`, browser transport in `lib/`, and trusted server policy/provider access in `api/`.
-- Do not call NoCodeBackend collection or privileged auth endpoints from browser code. `NOCODEBACKEND_AUTH_SECRET_KEY`, `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_INSTANCE` and privileged provider configuration are server-only and must never use a `VITE_` prefix or committed production values.
+- Do not call NoCodeBackend collection or privileged auth endpoints from browser code. `NOCODEBACKEND_AUTH_SECRET_KEY`, `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_INSTANCE`, `NOCODEBACKEND_USER_EMAIL`, `NOCODEBACKEND_USER_SECRET_KEY`, `NOCODEBACKEND_ADMIN_EMAIL`, `NOCODEBACKEND_ADMIN_SECRET_KEY` and privileged provider configuration are server-only and must never use a `VITE_` prefix or committed production values.
 - Treat every collection write and role-sensitive action as requiring server-side/provider permission enforcement; client route guards are not authorisation.
 - Keep validation close to the relevant domain boundary, validate untrusted API data before use, and return/display safe errors without secrets, tokens, passwords, raw request bodies or private user data.
 - Browser state belongs in React hooks. Do not persist authentication secrets, roles, privacy settings, ratings, cellar records or sensitive records in `localStorage`.
