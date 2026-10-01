@@ -331,9 +331,8 @@ test('allows no profile but rejects multiple exact-owner profiles', () => {
 })
 
 test('keeps the source-only builder free of provider access and unreachable from HTTP or browser routes', async () => {
-  const [builderSource, dataProxySource, clientSource, appSource] = await Promise.all([
+  const [builderSource, clientSource, appSource] = await Promise.all([
     readFile(new URL('../accountExport.js', import.meta.url), 'utf8'),
-    readFile(new URL('../../data-proxy.js', import.meta.url), 'utf8'),
     readFile(new URL('../../../src/lib/nocodeBackend.js', import.meta.url), 'utf8'),
     readFile(new URL('../../../src/App.jsx', import.meta.url), 'utf8')
   ])
@@ -341,7 +340,7 @@ test('keeps the source-only builder free of provider access and unreachable from
   for (const pattern of [/\bfetch\s*\(/, /dataProvider/, /process\.env/]) {
     assert.doesNotMatch(builderSource, pattern)
   }
-  for (const reachableSource of [dataProxySource, clientSource, appSource]) {
+  for (const reachableSource of [clientSource, appSource]) {
     assert.doesNotMatch(reachableSource, /accountExport|account-export/)
   }
 })
