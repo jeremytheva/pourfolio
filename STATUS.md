@@ -3,22 +3,26 @@ project: Pourfolio
 portfolio_state: ACTIVE
 execution_slot: NONE
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Dependency-scoped launch integration"
+stage: "Connected credential certification and dependency-scoped launch integration"
 gate: Integration
 execution_state: READY
 current_work:
-  objective: "Resume the highest-priority unblocked launch work while #165 remains at the irreversible provider-migration boundary."
-  issue: 429
+  objective: "Retain #577 protected user/admin certification as a connected-evidence task while continuing unblocked launch work."
+  issue: 577
   pr: null
   branch: null
 next_actions:
-  - "Continue #429 by migrating the remaining direct test/import dependencies from current-data-proxy.js, then remove it only when canonical validation proves it unreachable."
+  - "Run the protected #577 Vercel Preview POST certification when an authenticated POST-capable execution path is available; retain only the sanitized capability result."
+  - "Do not use NOCODEBACKEND_USER_SECRET_KEY or NOCODEBACKEND_ADMIN_SECRET_KEY as email-login passwords; account-session and owner-isolation evidence require a supported password/OTP/JWT credential."
+  - "Continue #429 as the highest-priority unaffected implementation work while #577 connected evidence and #165 migration evidence remain scoped dependencies."
   - "Keep #165 at the irreversible provider boundary until its migration approval package is complete; do not enable /ratings/reconcile."
-  - "After #165 is deployed and verified, complete #144 backend/provider certification and backend-dependent #154 catalogue certification."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
     detail: "Durable idempotency requires irreversible provider schema/constraint and existing-data migration work. Provider-supported migration/backfill plus backup/restore evidence and the governed approval package are required before mutation."
+  - scope: user_admin_connected_session_certification
+    issue: 577
+    detail: "The read-only Secret-Key preflight is implemented and deployed, but current Secret Keys are database API credentials rather than login passwords. Protected POST execution plus supported password/OTP/JWT account credentials are still required for session and owner-isolation evidence."
 requires_owner_decision: false
 owner_decision:
   question: null
@@ -29,12 +33,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "f58e7eca6ca3de0a63e964f001002e40fe61e2bf"
+  observed_main_commit: "25e7e79d870de07dfd328302dd6500fe6b706be8"
   current_candidate_commit: null
-  latest_validated_commit: "7d1cb762ae07a54bde4c336cadb31a067c3053e4"
-  latest_deployed_commit: "f58e7eca6ca3de0a63e964f001002e40fe61e2bf"
+  latest_validated_commit: "507061d532fd135640128f9ec71a1374e1bc25c8"
+  latest_deployed_commit: "25e7e79d870de07dfd328302dd6500fe6b706be8"
   latest_runtime_verified_commit: "cb5b3a996d7ea1c17babe0945830b9717e488dfa"
-  latest_browser_verified_commit: "3f792e1c10c347d77cbcbbada8480b757f54d4f9"
+  latest_browser_verified_commit: "507061d532fd135640128f9ec71a1374e1bc25c8"
 validation:
   governance: PASS
   lint: PASS
@@ -43,14 +47,14 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "7d1cb762ae07a54bde4c336cadb31a067c3053e4"
-last_updated: "2026-09-28T08:58:00+10:00"
+last_verified_commit: "507061d532fd135640128f9ec71a1374e1bc25c8"
+last_updated: "2026-10-01T23:15:00+10:00"
 ---
 
 
 # STATUS.md
 
-Last materially reviewed: 28 September 2026
+Last materially reviewed: 1 October 2026
 
 ## AI execution gate
 
@@ -75,8 +79,8 @@ Do not reopen provider routing or frontend/backend URL changes without new contr
 - Dependent PR stack depth: **0 / 2**.
 - No open PR requires integration before new bounded work begins.
 - GitHub retains a large historical branch inventory from prior autonomous work. Those branches are not active WIP because they have no open PRs; clean them incrementally where safe rather than treating them as active implementation.
-- The latest canonical source-validation evidence is tied to PR #574 head `7d1cb762ae07a54bde4c336cadb31a067c3053e4`; the retained browser-verification field remains on the latest completed browser-evidence commit until newer browser evidence completes.
-- The reconciliation baseline `main` commit is `f58e7eca6ca3de0a63e964f001002e40fe61e2bf`, with a successful Vercel deployment status. `observed_main_commit` is a reconciliation baseline, not a self-referential claim that `STATUS.md` can contain the SHA of the commit that contains itself. This deployment evidence does not imply runtime/browser verification for that exact commit.
+- The latest canonical source and browser evidence is tied to PR #578 head `507061d532fd135640128f9ec71a1374e1bc25c8`, which passed platform validation, Browser/accessibility, Dependency Review and CodeQL.
+- The reconciliation baseline `main` commit is `25e7e79d870de07dfd328302dd6500fe6b706be8` (PR #578), with Vercel production deployment `dpl_4LzNNQ1rZYDxmySb3zfLobuNG2Dn` READY. `observed_main_commit` is a reconciliation baseline, not a self-referential claim that `STATUS.md` can contain the SHA of the commit that contains itself. Deployment evidence does not imply the protected #577 POST probe has run.
 - Latest retained runtime verification remains `cb5b3a996d7ea1c17babe0945830b9717e488dfa`.
 
 Evidence stages remain distinct: validation PASS is not deployment, deployment is not runtime verification, provider configuration is not provider certification, and mocked/source tests are not persisted-provider evidence.
@@ -103,7 +107,7 @@ The producer/search programme through the provider-safe portion of Stage E is me
 - **PR #555** — isolated, manual, SHA-pinned Brew Done It connected-provider probe workflow;
 - **PR #557–#562 and #564** — Brew Done It retry, role/presentation, deduction and release-certification hardening, including fail-closed release readiness tests and exact full-commit candidate revision enforcement. These changes remain launch-excluded and do not authorize provider mutation or production enablement;
 - **PR #566–#570** — live-router legacy-proxy detachment, status/concise-reporting reconciliation and validated dependency maintenance;
-- **PR #574** — latest master development standards adopted, including WIP limits, validation fallback, provider/schema authority, migration-package governance and connected status-drift checking.
+- **PR #574** — latest master development standards adopted, including WIP limits, validation fallback, provider/schema authority, migration-package governance and connected status-drift checking;\n- **PR #578** — protected user/admin Secret-Key certification added with preview-only read-only probes, redaction controls and explicit separation from account-session credentials and #165.
 
 Brew Done It remains launch-excluded and does not alter the Pourfolio launch dependency order.
 
