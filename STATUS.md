@@ -33,12 +33,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "25e7e79d870de07dfd328302dd6500fe6b706be8"
+  observed_main_commit: "aadb06387c53dc95798e624ac6eeaf93dca0a482"
   current_candidate_commit: null
-  latest_validated_commit: "507061d532fd135640128f9ec71a1374e1bc25c8"
-  latest_deployed_commit: "25e7e79d870de07dfd328302dd6500fe6b706be8"
+  latest_validated_commit: "b4dff551d71a996a753811b764b0113084850255"
+  latest_deployed_commit: "aadb06387c53dc95798e624ac6eeaf93dca0a482"
   latest_runtime_verified_commit: "cb5b3a996d7ea1c17babe0945830b9717e488dfa"
-  latest_browser_verified_commit: "507061d532fd135640128f9ec71a1374e1bc25c8"
+  latest_browser_verified_commit: "b4dff551d71a996a753811b764b0113084850255"
 validation:
   governance: PASS
   lint: PASS
@@ -47,8 +47,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "507061d532fd135640128f9ec71a1374e1bc25c8"
-last_updated: "2026-10-01T23:15:00+10:00"
+last_verified_commit: "b4dff551d71a996a753811b764b0113084850255"
+last_updated: "2026-10-01T23:35:00+10:00"
 ---
 
 
@@ -79,8 +79,8 @@ Do not reopen provider routing or frontend/backend URL changes without new contr
 - Dependent PR stack depth: **0 / 2**.
 - No open PR requires integration before new bounded work begins.
 - GitHub retains a large historical branch inventory from prior autonomous work. Those branches are not active WIP because they have no open PRs; clean them incrementally where safe rather than treating them as active implementation.
-- The latest canonical source and browser evidence is tied to PR #578 head `507061d532fd135640128f9ec71a1374e1bc25c8`, which passed platform validation, Browser/accessibility, Dependency Review and CodeQL.
-- The reconciliation baseline `main` commit is `25e7e79d870de07dfd328302dd6500fe6b706be8` (PR #578), with Vercel production deployment `dpl_4LzNNQ1rZYDxmySb3zfLobuNG2Dn` READY. `observed_main_commit` is a reconciliation baseline, not a self-referential claim that `STATUS.md` can contain the SHA of the commit that contains itself. Deployment evidence does not imply the protected #577 POST probe has run.
+- The latest canonical source and browser evidence is tied to PR #580 head `b4dff551d71a996a753811b764b0113084850255`, which passed platform validation, Browser/accessibility, Dependency Review and CodeQL.
+- The reconciliation baseline `main` commit is `aadb06387c53dc95798e624ac6eeaf93dca0a482` (PR #580), with Vercel production deployment `dpl_GCKo6fDz8SxRsQTSSLRBaXeVYx9M` READY. `observed_main_commit` is a reconciliation baseline, not a self-referential claim that `STATUS.md` can contain the SHA of the commit that contains itself. Deployment evidence does not imply the protected #577 POST probe has run.
 - Latest retained runtime verification remains `cb5b3a996d7ea1c17babe0945830b9717e488dfa`.
 
 Evidence stages remain distinct: validation PASS is not deployment, deployment is not runtime verification, provider configuration is not provider certification, and mocked/source tests are not persisted-provider evidence.
