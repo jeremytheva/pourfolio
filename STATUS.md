@@ -33,12 +33,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "aadb06387c53dc95798e624ac6eeaf93dca0a482"
+  observed_main_commit: "eba163b851a623272e5c853ec113af0f07833b92"
   current_candidate_commit: null
-  latest_validated_commit: "b4dff551d71a996a753811b764b0113084850255"
-  latest_deployed_commit: "aadb06387c53dc95798e624ac6eeaf93dca0a482"
+  latest_validated_commit: "5d43352df196da0c26e6b4cadee5c4c4d16f8827"
+  latest_deployed_commit: "eba163b851a623272e5c853ec113af0f07833b92"
   latest_runtime_verified_commit: "cb5b3a996d7ea1c17babe0945830b9717e488dfa"
-  latest_browser_verified_commit: "b4dff551d71a996a753811b764b0113084850255"
+  latest_browser_verified_commit: "5d43352df196da0c26e6b4cadee5c4c4d16f8827"
 validation:
   governance: PASS
   lint: PASS
@@ -47,8 +47,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "b4dff551d71a996a753811b764b0113084850255"
-last_updated: "2026-10-01T23:35:00+10:00"
+last_verified_commit: "5d43352df196da0c26e6b4cadee5c4c4d16f8827"
+last_updated: "2026-10-01T23:50:14+10:00"
 ---
 
 
@@ -79,8 +79,8 @@ Do not reopen provider routing or frontend/backend URL changes without new contr
 - Dependent PR stack depth: **0 / 2**.
 - No open PR requires integration before new bounded work begins.
 - GitHub retains a large historical branch inventory from prior autonomous work. Those branches are not active WIP because they have no open PRs; clean them incrementally where safe rather than treating them as active implementation.
-- The latest canonical source and browser evidence is tied to PR #580 head `b4dff551d71a996a753811b764b0113084850255`, which passed platform validation, Browser/accessibility, Dependency Review and CodeQL.
-- The reconciliation baseline `main` commit is `aadb06387c53dc95798e624ac6eeaf93dca0a482` (PR #580), with Vercel production deployment `dpl_GCKo6fDz8SxRsQTSSLRBaXeVYx9M` READY. `observed_main_commit` is a reconciliation baseline, not a self-referential claim that `STATUS.md` can contain the SHA of the commit that contains itself. Deployment evidence does not imply the protected #577 POST probe has run.
+- The latest canonical source and browser evidence is tied to PR #582 head `5d43352df196da0c26e6b4cadee5c4c4d16f8827`, which passed platform validation, Browser/accessibility, Dependency Review and CodeQL.
+- The reconciliation baseline `main` commit is `eba163b851a623272e5c853ec113af0f07833b92` (PR #582), with Vercel production deployment `dpl_HW7jfoVseyyAumgZM5nLBN9SMKdV` READY. `observed_main_commit` is a reconciliation baseline, not a self-referential claim that `STATUS.md` can contain the SHA of the commit that contains itself. Deployment evidence does not imply the protected #577 POST probe has run.
 - Latest retained runtime verification remains `cb5b3a996d7ea1c17babe0945830b9717e488dfa`.
 
 Evidence stages remain distinct: validation PASS is not deployment, deployment is not runtime verification, provider configuration is not provider certification, and mocked/source tests are not persisted-provider evidence.
@@ -106,7 +106,7 @@ The producer/search programme through the provider-safe portion of Stage E is me
 - **PR #551, #552 and #554** — Brew Done It provider/cardinality and deployed-contract hardening, including removal of obsolete v3 `question_count` writes;
 - **PR #555** — isolated, manual, SHA-pinned Brew Done It connected-provider probe workflow;
 - **PR #557–#562 and #564** — Brew Done It retry, role/presentation, deduction and release-certification hardening, including fail-closed release readiness tests and exact full-commit candidate revision enforcement. These changes remain launch-excluded and do not authorize provider mutation or production enablement;
-- **PR #566–#570** — live-router legacy-proxy detachment, status/concise-reporting reconciliation and validated dependency maintenance;\n- **PR #580** — final `current-data-proxy.js` dependency removed together with its superseded plural bonus-field test; canonical rating routing remains authoritative;
+- **PR #566–#570** — live-router legacy-proxy detachment, status/concise-reporting reconciliation and validated dependency maintenance;\n- **PR #580** — final `current-data-proxy.js` dependency removed together with its superseded plural bonus-field test; canonical rating routing remains authoritative;\n- **PR #582** — obsolete monolithic `api/data-proxy.js` removed after stale tests were retargeted to canonical specialised handlers or removed where superseded; direct URL containment remains intact;
 - **PR #574** — latest master development standards adopted, including WIP limits, validation fallback, provider/schema authority, migration-package governance and connected status-drift checking;\n- **PR #578** — protected user/admin Secret-Key certification added with preview-only read-only probes, redaction controls and explicit separation from account-session credentials and #165.
 
 Brew Done It remains launch-excluded and does not alter the Pourfolio launch dependency order.
