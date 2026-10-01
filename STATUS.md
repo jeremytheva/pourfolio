@@ -106,7 +106,7 @@ The producer/search programme through the provider-safe portion of Stage E is me
 - **PR #551, #552 and #554** — Brew Done It provider/cardinality and deployed-contract hardening, including removal of obsolete v3 `question_count` writes;
 - **PR #555** — isolated, manual, SHA-pinned Brew Done It connected-provider probe workflow;
 - **PR #557–#562 and #564** — Brew Done It retry, role/presentation, deduction and release-certification hardening, including fail-closed release readiness tests and exact full-commit candidate revision enforcement. These changes remain launch-excluded and do not authorize provider mutation or production enablement;
-- **PR #566–#570** — live-router legacy-proxy detachment, status/concise-reporting reconciliation and validated dependency maintenance;
+- **PR #566–#570** — live-router legacy-proxy detachment, status/concise-reporting reconciliation and validated dependency maintenance;\n- **PR #580** — final `current-data-proxy.js` dependency removed together with its superseded plural bonus-field test; canonical rating routing remains authoritative;
 - **PR #574** — latest master development standards adopted, including WIP limits, validation fallback, provider/schema authority, migration-package governance and connected status-drift checking;\n- **PR #578** — protected user/admin Secret-Key certification added with preview-only read-only probes, redaction controls and explicit separation from account-session credentials and #165.
 
 Brew Done It remains launch-excluded and does not alter the Pourfolio launch dependency order.
@@ -149,7 +149,7 @@ Continue provider-independent contract/UI hardening where safe. The primitive ce
 
 ### #429 — targeted cleanup
 
-Continue evidence-based removal of unreachable prototype code after the merged #519 slice. Do not use broad deletion where reachability or future governed capability is uncertain. `current-data-proxy.js` is no longer a live router dependency after PR #566, but it is not yet removable because direct test/import dependencies remain.
+Continue evidence-based removal of unreachable prototype code after the merged #519 slice. Do not use broad deletion where reachability or future governed capability is uncertain. `current-data-proxy.js` and its final contradictory legacy-only test have now been removed after the canonical rating handler and tests proved the active contract. Continue #429 only with further evidence-based dead-code findings.
 
 ## Production/provider baseline
 
