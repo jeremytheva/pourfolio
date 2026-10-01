@@ -32,13 +32,25 @@ const inspect = (filePath) => {
       'NOCODEBACKEND_DATA_BASE_URL',
       'NOCODEBACKEND_AUTH_SECRET_KEY',
       'NOCODEBACKEND_SECRET_KEY',
-      'NOCODEBACKEND_INSTANCE'
+      'NOCODEBACKEND_INSTANCE',
+      'NOCODEBACKEND_USER_EMAIL',
+      'NOCODEBACKEND_USER_SECRET_KEY',
+      'NOCODEBACKEND_ADMIN_EMAIL',
+      'NOCODEBACKEND_ADMIN_SECRET_KEY'
     ]) {
       if (!content.includes(variable)) violations.push(`${relative}: missing ${variable}`)
     }
     if (!content.includes(`NOCODEBACKEND_DATA_BASE_URL=${requiredDataUrl}`)) violations.push(`${relative}: missing canonical data URL ${requiredDataUrl}`)
     if (!content.includes(`NOCODEBACKEND_AUTH_BASE_URL=${requiredAuthUrl}`)) violations.push(`${relative}: missing canonical auth URL ${requiredAuthUrl}`)
-    for (const runtimeOnlyVariable of ['NOCODEBACKEND_AUTH_SECRET_KEY', 'NOCODEBACKEND_SECRET_KEY', 'NOCODEBACKEND_INSTANCE']) {
+    for (const runtimeOnlyVariable of [
+      'NOCODEBACKEND_AUTH_SECRET_KEY',
+      'NOCODEBACKEND_SECRET_KEY',
+      'NOCODEBACKEND_INSTANCE',
+      'NOCODEBACKEND_USER_EMAIL',
+      'NOCODEBACKEND_USER_SECRET_KEY',
+      'NOCODEBACKEND_ADMIN_EMAIL',
+      'NOCODEBACKEND_ADMIN_SECRET_KEY'
+    ]) {
       const emptyAssignment = new RegExp(`^${runtimeOnlyVariable}=\\s*$`, 'm')
       if (!emptyAssignment.test(content)) violations.push(`${relative}: ${runtimeOnlyVariable} must not contain a repository value`)
     }
