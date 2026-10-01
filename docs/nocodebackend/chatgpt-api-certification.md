@@ -171,3 +171,25 @@ Launch certification uses the deployed application boundary as the primary evide
 - `npm run test:provider-smoke`, `npm run test:provider-connection`, and destructive provider-contract tests remain supplementary direct-provider diagnostics for explicitly configured isolated staging.
 
 The optional certification harness therefore answers a narrower question: **can a deliberately configured isolated staging runner directly perform generated NoCodeBackend CRUD operations?**
+
+
+## User/admin protected-preview certification (#577)
+
+The Vercel-owned user/admin variables are validated separately from the isolated CRUD harness:
+
+- `NOCODEBACKEND_USER_EMAIL`
+- `NOCODEBACKEND_USER_SECRET_KEY`
+- `NOCODEBACKEND_ADMIN_EMAIL`
+- `NOCODEBACKEND_ADMIN_SECRET_KEY`
+
+NoCodeBackend Secret Keys are server-to-server database credentials, so the certification must not guess that either Secret Key is an email-login password. The protected-preview route `POST /api/certification/user-admin` therefore performs only non-destructive provider checks:
+
+1. verify all four values are configured without returning them;
+2. require distinct user/admin email labels and distinct Secret Keys;
+3. prove the canonical auth provider discovery endpoint is reachable through the normal auth service credential;
+4. prove the user Secret Key can make a bounded generated-data read;
+5. prove the admin Secret Key can make the same bounded generated-data read;
+6. report account-session authentication as `SETUP_REQUIRED` until a supported password/OTP/JWT login credential is explicitly available;
+7. report owner-isolation as `INCONCLUSIVE` until account sessions exist.
+
+This route is available only on a Vercel Preview deployment, accepts POST only, requires the exact confirmation `RUN READ-ONLY USER ADMIN CERTIFICATION`, is same-origin/rate-limited, and returns a sanitized capability matrix. It performs no write/delete, no schema mutation and no rating reconciliation.
