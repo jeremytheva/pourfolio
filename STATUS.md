@@ -108,12 +108,15 @@ The producer/search programme through the provider-safe portion of Stage E is me
 - **PR #551, #552 and #554** — Brew Done It provider/cardinality and deployed-contract hardening, including removal of obsolete v3 `question_count` writes;
 - **PR #555** — isolated, manual, SHA-pinned Brew Done It connected-provider probe workflow;
 - **PR #557–#562 and #564** — Brew Done It retry, role/presentation, deduction and release-certification hardening, including fail-closed release readiness tests and exact full-commit candidate revision enforcement. These changes remain launch-excluded and do not authorize provider mutation or production enablement;
-- **PR #566–#570** — live-router legacy-proxy detachment, status/concise-reporting reconciliation and validated dependency maintenance;\n- **PR #580** — final `current-data-proxy.js` dependency removed together with its superseded plural bonus-field test; canonical rating routing remains authoritative;\n- **PR #582** — obsolete monolithic `api/data-proxy.js` removed after stale tests were retargeted to canonical specialised handlers or removed where superseded; direct URL containment remains intact;
-- **PR #574** — latest master development standards adopted, including WIP limits, validation fallback, provider/schema authority, migration-package governance and connected status-drift checking;\n- **PR #578** — protected user/admin Secret-Key certification added with preview-only read-only probes, redaction controls and explicit separation from account-session credentials and #165.
+- **PR #566–#570** — live-router legacy-proxy detachment, status/concise-reporting reconciliation and validated dependency maintenance;
+- **PR #580** — final `current-data-proxy.js` dependency removed together with its superseded plural bonus-field test; canonical rating routing remains authoritative;
+- **PR #582** — obsolete monolithic `api/data-proxy.js` removed after stale tests were retargeted to canonical specialised handlers or removed where superseded; direct URL containment remains intact;
+- **PR #574** — latest master development standards adopted, including WIP limits, validation fallback, provider/schema authority, migration-package governance and connected status-drift checking;
+- **PR #578** — protected user/admin Secret-Key certification added with preview-only read-only probes, redaction controls and explicit separation from account-session credentials and #165.
 
 Brew Done It remains launch-excluded and does not alter the Pourfolio launch dependency order.
 
-PRs **#532** and **#535** were not merged because deletion-only cleanup failed canonical validation while `api/data-router.js` and tests still imported `current-data-proxy.js`. **PR #566** subsequently removed the live router import/fallback after exact-head validation proved the canonical handlers cover those resources. The legacy module remains because direct test/import dependencies still need migration before deletion.
+PRs **#532** and **#535** were not merged because their deletion-only cleanup still had live/test dependencies. **PR #566** removed the live router dependency; **PR #580** then removed `current-data-proxy.js` after its final stale test dependency was eliminated. **PR #582** subsequently removed the obsolete monolithic `api/data-proxy.js` after remaining tests were migrated to canonical specialised handlers or removed where superseded.
 
 Producer Stage E remains intentionally incomplete where canonical data is unavailable: verified geography, historical lifecycle/rename/acquisition semantics, managed-business profiles and venue attribution remain dependency-gated by **#444**, **#437** and **#399** rather than inferred from free text or fabricated relationships.
 
