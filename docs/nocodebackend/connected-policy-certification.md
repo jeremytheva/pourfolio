@@ -9,6 +9,13 @@ store.
 
 ## Current execution status
 
+### October 2026 credential-boundary update
+
+Issue #577 adds a protected-preview, read-only preflight for the newly configured user/admin Secret Keys. This can prove that the two server-side database credentials are configured, distinct and accepted by the generated-data provider without exposing them.
+
+It does **not** reinterpret NoCodeBackend Secret Keys as email-login passwords. Until a supported account login credential (password, OTP or provider-issued user JWT/session path) is available for both identities, the session and cross-owner rows in this certification remain `BLOCKED` / `INCONCLUSIVE`. This refinement narrows the blocker without weakening it and performs no #165 rating migration.
+
+
 **Result: `BLOCKED` (connected staging could not be certified from this
 checkout).** On 5 August 2026 UTC, this repository environment exposed only
 `NOCODEBACKEND_DATA_BASE_URL` and no NoCodeBackend secret, auth base URL,
