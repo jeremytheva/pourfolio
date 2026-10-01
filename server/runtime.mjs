@@ -8,6 +8,7 @@ import authHandler from '../api/auth-proxy.js'
 import dataHandler from '../api/data-router.js'
 import healthHandler from '../api/health.js'
 import readinessHandler from '../api/readiness.js'
+import userAdminCertificationHandler from '../api/certification/user-admin.js'
 import { MAX_REQUEST_BYTES } from '../api/_lib/httpSecurity.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -127,6 +128,9 @@ const decodedRoutePath = (pathname, prefix) => pathname
 export const apiRoute = (pathname) => {
   if (pathname === '/api/health' || pathname === '/api/health/') return { handler: healthHandler, path: null }
   if (pathname === '/api/readiness' || pathname === '/api/readiness/') return { handler: readinessHandler, path: null }
+  if (pathname === '/api/certification/user-admin' || pathname === '/api/certification/user-admin/') {
+    return { handler: userAdminCertificationHandler, path: null }
+  }
 
   const authPrefix = '/api/nocodebackend/auth/'
   if (pathname === '/api/nocodebackend/auth' || pathname.startsWith(authPrefix)) {
