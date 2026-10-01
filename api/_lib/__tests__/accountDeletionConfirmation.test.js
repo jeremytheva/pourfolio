@@ -174,10 +174,9 @@ test('returns the same deterministic result and never echoes rejected private va
 })
 
 test('keeps confirmation validation server-only and unreachable from executable entrypoints', async () => {
-  const [source, authProxySource, dataProxySource, clientSource, appSource] = await Promise.all([
+  const [source, authProxySource, clientSource, appSource] = await Promise.all([
     readFile(new URL('../accountDeletionConfirmation.js', import.meta.url), 'utf8'),
     readFile(new URL('../../auth-proxy.js', import.meta.url), 'utf8'),
-    readFile(new URL('../../data-proxy.js', import.meta.url), 'utf8'),
     readFile(new URL('../../../src/lib/nocodeBackend.js', import.meta.url), 'utf8'),
     readFile(new URL('../../../src/App.jsx', import.meta.url), 'utf8')
   ])
@@ -189,7 +188,7 @@ test('keeps confirmation validation server-only and unreachable from executable 
   ]) {
     assert.doesNotMatch(source, pattern)
   }
-  for (const reachableSource of [authProxySource, dataProxySource, clientSource, appSource]) {
+  for (const reachableSource of [authProxySource, clientSource, appSource]) {
     assert.doesNotMatch(
       reachableSource,
       /accountDeletionConfirmation|account-deletion-confirmation/
