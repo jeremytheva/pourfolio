@@ -906,6 +906,7 @@ export default async function handler(request, response) {
 }
 
 export const __testables = {
+  listProducts,
   hydrateProducts,
   safeRelationshipList,
   requiredRelationshipList,

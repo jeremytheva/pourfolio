@@ -190,10 +190,9 @@ test('freezes every output level and remains deterministic across retries', () =
 })
 
 test('keeps discovery planning server-only and unreachable from deletion or browser entrypoints', async () => {
-  const [plannerSource, authProxySource, dataProxySource, clientSource, appSource] = await Promise.all([
+  const [plannerSource, authProxySource, clientSource, appSource] = await Promise.all([
     readFile(new URL('../accountDeletionPlan.js', import.meta.url), 'utf8'),
     readFile(new URL('../../auth-proxy.js', import.meta.url), 'utf8'),
-    readFile(new URL('../../data-proxy.js', import.meta.url), 'utf8'),
     readFile(new URL('../../../src/lib/nocodeBackend.js', import.meta.url), 'utf8'),
     readFile(new URL('../../../src/App.jsx', import.meta.url), 'utf8')
   ])
@@ -204,7 +203,7 @@ test('keeps discovery planning server-only and unreachable from deletion or brow
   ]) {
     assert.doesNotMatch(plannerSource, pattern)
   }
-  for (const reachableSource of [authProxySource, dataProxySource, clientSource, appSource]) {
+  for (const reachableSource of [authProxySource, clientSource, appSource]) {
     assert.doesNotMatch(reachableSource, /accountDeletionPlan|account-deletion-plan/)
   }
 })

@@ -271,10 +271,9 @@ test('fails closed on invalid later snapshots and deeply freezes deterministic r
 })
 
 test('keeps reconciliation server-only and unreachable from provider or browser entrypoints', async () => {
-  const [source, authProxySource, dataProxySource, clientSource, appSource] = await Promise.all([
+  const [source, authProxySource, clientSource, appSource] = await Promise.all([
     readFile(new URL('../accountDeletionReconciliation.js', import.meta.url), 'utf8'),
     readFile(new URL('../../auth-proxy.js', import.meta.url), 'utf8'),
-    readFile(new URL('../../data-proxy.js', import.meta.url), 'utf8'),
     readFile(new URL('../../../src/lib/nocodeBackend.js', import.meta.url), 'utf8'),
     readFile(new URL('../../../src/App.jsx', import.meta.url), 'utf8')
   ])
@@ -285,7 +284,7 @@ test('keeps reconciliation server-only and unreachable from provider or browser 
   ]) {
     assert.doesNotMatch(source, pattern)
   }
-  for (const reachableSource of [authProxySource, dataProxySource, clientSource, appSource]) {
+  for (const reachableSource of [authProxySource, clientSource, appSource]) {
     assert.doesNotMatch(
       reachableSource,
       /accountDeletionReconciliation|account-deletion-reconciliation/

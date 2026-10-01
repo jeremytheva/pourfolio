@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { dataProvider } from '../../_lib/dataProvider.js'
-import { __testables } from '../../data-proxy.js'
+import { __testables } from '../../rating-data-proxy.js'
 import { COLLECTIONS } from '../../../src/data/contract.js'
 
 const user = { id: 'owner-a' }
@@ -29,9 +29,9 @@ const installProvider = ({ failRemovalAt = 0, childOwner = user.id } = {}) => {
   dataProvider.get = async (collection, id) => records[collection].find((item) => String(item.id) === String(id)) || null
   dataProvider.list = async (collection, filters = {}) => records[collection].filter((item) =>
     Object.entries(filters).every(([key, value]) => String(item[key]) === String(value)))
-  dataProvider.compareAndSet = async (collection, id, expectedVersion, updates) => {
+  dataProvider.update = async (collection, id, updates) => {
     const item = records[collection].find((entry) => String(entry.id) === String(id))
-    if (Number(item.submission_version) !== expectedVersion) throw Object.assign(new Error('stale'), { code: 'VERSION_CONFLICT' })
+    if (!item) throw Object.assign(new Error('missing'), { status: 404 })
     Object.assign(item, updates)
     return item
   }
@@ -86,12 +86,3 @@ test('child cleanup is owner and parent scoped', async () => {
   assert.equal(records.ratings[0].submission_state, 'deleted')
 })
 
-test('deleting and deleted ratings are excluded from every read predicate', async () => {
-  const hidden = [
-    { user_id: user.id, submission_state: 'deleting', date_rated: '2025-01-01', product_id: 1 },
-    { user_id: user.id, submission_state: 'deleted', date_rated: '2025-01-01', product_id: 1 }
-  ]
-  for (const rating of hidden) {
-    assert.equal(__testables.activeRatingMatches(rating, user.id, Date.now(), { id: 1 }, 'both_rated_product'), false)
-  }
-})

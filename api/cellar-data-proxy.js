@@ -198,4 +198,10 @@ export default async function handler(request, response) {
   }
 }
 
-export const __testables = { safeProviderGet, hydrateProduct, sanitiseCellarRequest }
+export const __testables = {
+  safeProviderGet,
+  hydrateProduct,
+  sanitiseCellarRequest,
+  listCellar,
+  updateCellar
+}
