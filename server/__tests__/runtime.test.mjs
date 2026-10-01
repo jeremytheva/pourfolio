@@ -19,6 +19,7 @@ test('buildQuery preserves repeated query parameters', () => {
 test('apiRoute maps public API paths to the existing handlers', () => {
   assert.equal(typeof apiRoute('/api/health')?.handler, 'function')
   assert.equal(typeof apiRoute('/api/readiness')?.handler, 'function')
+  assert.equal(typeof apiRoute('/api/certification/user-admin')?.handler, 'function')
   assert.equal(apiRoute('/api/nocodebackend/auth/sign-in/email')?.path, 'sign-in/email')
   assert.equal(apiRoute('/api/nocodebackend/catalog/products')?.path, 'catalog/products')
   assert.equal(apiRoute('/api/data-proxy'), null)

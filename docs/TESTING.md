@@ -373,3 +373,22 @@ Any failure blocks promotion. Link a defect without sensitive evidence, repeat
 the full check against a new immutable deployment of the corrected commit, and
 retain the superseded result as a failed release attempt rather than overwriting
 it.
+
+
+## Protected user/admin credential certification
+
+Issue #577 provides a read-only Vercel Preview certification at:
+
+`POST /api/certification/user-admin`
+
+The endpoint exists to consume the Vercel-owned user/admin Secret Keys without copying them into GitHub or chat. It is intentionally unavailable outside `VERCEL_ENV=preview`.
+
+Send JSON:
+
+```json
+{ "confirmation": "RUN READ-ONLY USER ADMIN CERTIFICATION" }
+```
+
+Run it only through a Vercel-authenticated/protected Preview deployment. The response contains configuration booleans and capability statuses only. A healthy Secret-Key preflight is expected to return `overall: INCONCLUSIVE` while `accountSessionAuthentication` remains `SETUP_REQUIRED`: database Secret Keys prove server-to-server provider access, not user login sessions.
+
+Do not treat this result as #144 connected policy completion. Session identity, cross-owner authorization and revoked/expired-session evidence require supported account login credentials. The endpoint performs no mutation, no cleanup-sensitive action, no #165 schema work and no `/ratings/reconcile` call.
