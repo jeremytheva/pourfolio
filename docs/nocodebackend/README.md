@@ -15,6 +15,22 @@ Current project-specific records:
 
 Do not infer data CRUD semantics from the auth setup guide.
 
+## Runtime environment contract
+
+The canonical server-only NoCodeBackend environment contract includes:
+
+- `NOCODEBACKEND_AUTH_BASE_URL`
+- `NOCODEBACKEND_DATA_BASE_URL`
+- `NOCODEBACKEND_AUTH_SECRET_KEY`
+- `NOCODEBACKEND_SECRET_KEY`
+- `NOCODEBACKEND_INSTANCE`
+- `NOCODEBACKEND_USER_EMAIL`
+- `NOCODEBACKEND_USER_SECRET_KEY`
+- `NOCODEBACKEND_ADMIN_EMAIL`
+- `NOCODEBACKEND_ADMIN_SECRET_KEY`
+
+The user/admin emails and all secret-key values are runtime-only. Repository examples contain names/placeholders only; real values must remain in the deployment environment and must never be committed or exposed to browser code.
+
 
 ## Provider-schema authority
 
