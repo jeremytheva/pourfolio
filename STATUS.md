@@ -33,12 +33,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "eba163b851a623272e5c853ec113af0f07833b92"
+  observed_main_commit: "80809cf4d271e61d739cafce1b043c030bf865e0"
   current_candidate_commit: null
-  latest_validated_commit: "5d43352df196da0c26e6b4cadee5c4c4d16f8827"
-  latest_deployed_commit: "eba163b851a623272e5c853ec113af0f07833b92"
+  latest_validated_commit: "3e68b36ed88d0c671082d747f70460e9ee66dada"
+  latest_deployed_commit: "80809cf4d271e61d739cafce1b043c030bf865e0"
   latest_runtime_verified_commit: "cb5b3a996d7ea1c17babe0945830b9717e488dfa"
-  latest_browser_verified_commit: "5d43352df196da0c26e6b4cadee5c4c4d16f8827"
+  latest_browser_verified_commit: "3e68b36ed88d0c671082d747f70460e9ee66dada"
 validation:
   governance: PASS
   lint: PASS
@@ -47,8 +47,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "5d43352df196da0c26e6b4cadee5c4c4d16f8827"
-last_updated: "2026-10-01T23:50:14+10:00"
+last_verified_commit: "3e68b36ed88d0c671082d747f70460e9ee66dada"
+last_updated: "2026-10-01T23:37:00+10:00"
 ---
 
 
@@ -79,8 +79,8 @@ Do not reopen provider routing or frontend/backend URL changes without new contr
 - Dependent PR stack depth: **0 / 2**.
 - No open PR requires integration before new bounded work begins.
 - GitHub retains a large historical branch inventory from prior autonomous work. Those branches are not active WIP because they have no open PRs; clean them incrementally where safe rather than treating them as active implementation.
-- The latest canonical source and browser evidence is tied to PR #582 head `5d43352df196da0c26e6b4cadee5c4c4d16f8827`, which passed platform validation, Browser/accessibility, Dependency Review and CodeQL.
-- The reconciliation baseline `main` commit is `eba163b851a623272e5c853ec113af0f07833b92` (PR #582), with Vercel production deployment `dpl_HW7jfoVseyyAumgZM5nLBN9SMKdV` READY. `observed_main_commit` is a reconciliation baseline, not a self-referential claim that `STATUS.md` can contain the SHA of the commit that contains itself. Deployment evidence does not imply the protected #577 POST probe has run.
+- The latest canonical source and browser evidence is tied to PR #584 head `3e68b36ed88d0c671082d747f70460e9ee66dada`, which passed platform validation, Browser/accessibility, Dependency Review and CodeQL.
+- The reconciliation baseline `main` commit is `80809cf4d271e61d739cafce1b043c030bf865e0` (PR #584), with Vercel production deployment `dpl_Cj3rx4NmGrv674Bczmne9hafRHH4` READY. `observed_main_commit` is a reconciliation baseline, not a self-referential claim that `STATUS.md` can contain the SHA of the commit that contains itself. Deployment evidence does not imply the protected #577 POST probe has run.
 - Latest retained runtime verification remains `cb5b3a996d7ea1c17babe0945830b9717e488dfa`.
 
 Evidence stages remain distinct: validation PASS is not deployment, deployment is not runtime verification, provider configuration is not provider certification, and mocked/source tests are not persisted-provider evidence.
@@ -94,6 +94,8 @@ The repository now applies the portfolio/WIP controls, productive-work threshold
 Routine ChatGPT/Codex implementation, continuation, review, merge, deployment and status responses now use the concise `Done / Next / You` structure defined in `AGENTS.md`. Detailed implementation state, validation evidence, blockers, deferred work and technical history remain in repository/GitHub sources. `Blocked`, `Problem` and `Decision needed` are added only when materially necessary.
 
 ## Recently integrated
+
+- **PR #584** — unreachable legacy navigation components removed; `MainLayout.jsx` remains the single protected-route navigation surface; obsolete unreachable route/role UI removed without touching planned Drinking Buddy contract work.
 
 The producer/search programme through the provider-safe portion of Stage E is merged. Recent launch/governance work includes:
 
