@@ -18,8 +18,13 @@ Use only these application variables:
 ```env
 NOCODEBACKEND_AUTH_BASE_URL=https://app.nocodebackend.com/api/user-auth
 NOCODEBACKEND_DATA_BASE_URL=https://api.nocodebackend.com/
+NOCODEBACKEND_AUTH_SECRET_KEY=<stored outside repository>
 NOCODEBACKEND_SECRET_KEY=<stored outside repository>
 NOCODEBACKEND_INSTANCE=<stored outside repository>
+NOCODEBACKEND_USER_EMAIL=<stored outside repository>
+NOCODEBACKEND_USER_SECRET_KEY=<stored outside repository>
+NOCODEBACKEND_ADMIN_EMAIL=<stored outside repository>
+NOCODEBACKEND_ADMIN_SECRET_KEY=<stored outside repository>
 ```
 
 Rules:
@@ -28,7 +33,7 @@ Rules:
 - Do not use public/browser-prefixed variables.
 - Do not introduce alternate NoCodeBackend environment-variable aliases.
 - Retired short-form NoCodeBackend environment-variable names are prohibited.
-- `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE` must be supplied by the deployment/runtime environment and must not have repository defaults.
+- `NOCODEBACKEND_AUTH_SECRET_KEY`, `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_INSTANCE` and the user/admin certification variables must be supplied by the deployment/runtime environment and must not have repository defaults.
 - Do not use the auth base URL for generated table reads/writes.
 - Do not use the data base URL for authentication or session operations.
 
@@ -41,14 +46,14 @@ Pourfolio uses two distinct upstream NoCodeBackend surfaces:
 | Authentication/session | `NOCODEBACKEND_AUTH_BASE_URL` | `https://app.nocodebackend.com/api/user-auth` | `/api/nocodebackend/auth/*` |
 | Generated data CRUD | `NOCODEBACKEND_DATA_BASE_URL` | `https://api.nocodebackend.com/` | `/api/nocodebackend/*` |
 
-Both server-side adapters use the same runtime `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE`, but their upstream route, cookie, header, and transport requirements remain separate.
+The authentication adapter uses `NOCODEBACKEND_AUTH_SECRET_KEY`; generated data uses `NOCODEBACKEND_SECRET_KEY`. Both use `NOCODEBACKEND_INSTANCE`, but their upstream route, cookie, header, and transport requirements remain separate.
 
 ## Auth Proxy Contract
 
 - Browser authentication requests use the same-origin `/api/nocodebackend/auth/*` interface.
 - The application auth proxy forwards those requests through `NOCODEBACKEND_AUTH_BASE_URL`.
 - Include the runtime `NOCODEBACKEND_INSTANCE` via query/header where required by the upstream API.
-- Use `NOCODEBACKEND_SECRET_KEY` only on the server.
+- Use `NOCODEBACKEND_AUTH_SECRET_KEY` only on the server for the authentication provider. Keep `NOCODEBACKEND_SECRET_KEY` reserved for generated data CRUD.
 - Fail closed with a safe configuration error when either the secret or instance is missing.
 - Forward only Better Auth cookies when session context is needed.
 - Preserve session cookies through the application proxy.
@@ -95,11 +100,11 @@ These are Pourfolio same-origin routes. The auth proxy maps their action suffixe
 - [ ] Auth operations use `NOCODEBACKEND_AUTH_BASE_URL=https://app.nocodebackend.com/api/user-auth`.
 - [ ] Data operations use `NOCODEBACKEND_DATA_BASE_URL=https://api.nocodebackend.com/`.
 - [ ] Browser auth routes use `/api/nocodebackend/auth/*` and browser data routes use `/api/nocodebackend/*`.
-- [ ] `NOCODEBACKEND_SECRET_KEY` and `NOCODEBACKEND_INSTANCE` are configured outside the repository.
+- [ ] `NOCODEBACKEND_AUTH_SECRET_KEY`, `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_INSTANCE` and user/admin certification values are configured outside the repository.
 
 ## Data Operations
 
-CRUD/data operations are a separate concern from authentication. The repository data adapter uses `NOCODEBACKEND_DATA_BASE_URL`, `NOCODEBACKEND_SECRET_KEY`, and `NOCODEBACKEND_INSTANCE`; authentication uses `NOCODEBACKEND_AUTH_BASE_URL` with the same server-only secret and runtime-configured instance.
+CRUD/data operations are a separate concern from authentication. The repository data adapter uses `NOCODEBACKEND_DATA_BASE_URL`, `NOCODEBACKEND_SECRET_KEY`, and `NOCODEBACKEND_INSTANCE`; authentication uses `NOCODEBACKEND_AUTH_BASE_URL`, `NOCODEBACKEND_AUTH_SECRET_KEY`, and the same runtime-configured instance.
 
 The generated data contract is:
 
@@ -109,3 +114,10 @@ Authorization: Bearer <NOCODEBACKEND_SECRET_KEY>
 ```
 
 Authentication cookies and generated-data transport requirements must not be assumed to be interchangeable.
+
+
+## User/admin certification credentials
+
+`NOCODEBACKEND_USER_SECRET_KEY` and `NOCODEBACKEND_ADMIN_SECRET_KEY` are treated as server-to-server database Secret Keys for certification. They are not silently reused as email-login passwords. The paired email variables are retained only as protected identity labels until a supported session-login credential contract is supplied.
+
+The protected-preview endpoint `POST /api/certification/user-admin` performs read-only provider checks and emits only sanitized PASS/FAIL/INCONCLUSIVE/SETUP_REQUIRED states. It never returns the email values, Secret Keys, provider payloads, row IDs, cookies or tokens and never touches the #165 rating migration.
