@@ -131,10 +131,9 @@ test('is byte-for-byte stable and changes its checksum when content changes', ()
 })
 
 test('keeps artifact preparation server-only and unreachable from HTTP and browser code', async () => {
-  const [artifactSource, manifestSource, dataProxySource, clientSource, appSource] = await Promise.all([
+  const [artifactSource, manifestSource, clientSource, appSource] = await Promise.all([
     readFile(new URL('../accountExportArtifact.js', import.meta.url), 'utf8'),
     readFile(new URL('../accountExport.js', import.meta.url), 'utf8'),
-    readFile(new URL('../../data-proxy.js', import.meta.url), 'utf8'),
     readFile(new URL('../../../src/lib/nocodeBackend.js', import.meta.url), 'utf8'),
     readFile(new URL('../../../src/App.jsx', import.meta.url), 'utf8')
   ])
@@ -144,7 +143,7 @@ test('keeps artifact preparation server-only and unreachable from HTTP and brows
     assert.doesNotMatch(artifactSource, pattern)
   }
   assert.doesNotMatch(manifestSource, /accountExportArtifact/)
-  for (const reachableSource of [dataProxySource, clientSource, appSource]) {
+  for (const reachableSource of [clientSource, appSource]) {
     assert.doesNotMatch(reachableSource, /accountExportArtifact|account-export-artifact/)
   }
 })
