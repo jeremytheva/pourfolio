@@ -80,7 +80,7 @@ Default WIP limits are three ordinary open implementation PRs and a dependent PR
 
 | Area | Current implementation |
 |---|---|
-| Frontend | React 19.2 |
+| Frontend | React 19.3 |
 | Build tooling | Vite |
 | Runtime | Node.js 22 |
 | Package manager | npm |
