@@ -95,6 +95,27 @@ If the highest-priority item is blocked but other useful work is dependency-safe
 
 The same continuation loop applies after review fixes, diagnostic-CI repairs, documentation corrections and routine PR lifecycle transitions.
 
+## GitHub connector and write-action failure protocol
+
+GitHub authentication, repository authorization and individual connector write actions are separate concerns. Do not treat every rejected mutation as a disconnected GitHub account.
+
+When a GitHub mutation fails:
+
+1. verify repository read access and current PR/branch state;
+2. verify the connected actor and repository permission when those checks are available;
+3. distinguish the failure class:
+   - **authentication/connection failure** — the account, installation or repository can no longer be read or authenticated;
+   - **repository authorization/policy failure** — GitHub receives the operation but repository permissions, rules, branch protection or merge requirements reject it;
+   - **connector write-action/safety failure** — reads and repository permissions remain healthy but the mutation is rejected before GitHub applies it;
+4. request reconnection only for evidence of a genuine authentication/connection failure. Do not ask the owner to reconnect merely because a merge, comment, file write or other mutation is blocked;
+5. do not weaken branch protection, repository rules, permissions or security controls to work around a connector-layer failure;
+6. retry only when useful evidence suggests the operation may now succeed. Avoid repeated identical mutations that cannot change the outcome;
+7. record a persistent mutation failure as a scoped execution/tooling blocker and continue the highest-priority dependency-safe work that does not require that mutation.
+
+A connector write-action block is not, by itself, a reason to mark the whole project `BLOCKED`, disable scheduled autonomous continuation, or stop analysis/validation/evidence preparation. Scheduled continuation should remain enabled when useful dependency-safe work can still be performed. Disable it only when repeated runs have no productive action available, would create unsafe/duplicate work, or require owner intervention under the valid stop conditions below.
+
+If a mutation later succeeds, reconcile `STATUS.md`, PR metadata and any queued continuity state before creating overlapping work.
+
 ## Work-in-progress and productive-work control
 
 Autonomous delivery must not produce implementation faster than the repository can validate and integrate it.
