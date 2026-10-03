@@ -264,3 +264,9 @@ Update this standard when repeated project evidence reveals a reusable improveme
 ## 24. Master rule
 
 > **Autonomous project work uses normal non-draft PRs by default and records lifecycle state in repository/PR metadata. GitHub Draft is exceptional. AI may manage routine PR progression using sufficient project-owned evidence. GitHub CI is diagnostic rather than mandatory merge authority; successful work merges, real defects are remediated, and intentional non-adoption closes without merge.**
+
+## Advisory metadata and token diagnosis
+
+`.github/workflows/pr-lifecycle.yml` uses `pull_request`, with job-scoped `issues: write` / `pull-requests: write` for labels and `contents: write` for safe same-repository merged-branch cleanup. No PR code is checked out or executed. Label synchronisation is best-effort and never an acceptance gate; a failed mutation records a warning while project-owned implementation/validation continues. Direct authorised GitHub operations remain the primary autonomous write path.
+
+Fork and Dependabot PR tokens remain read-only. Do not enable write tokens for untrusted forks or broaden global defaults to repair advisory labels. A read-only default permits explicit job permissions; inspect event/token restrictions and applicable policies before diagnosing 403 as an account-access failure. Repository settings require a separate administration-capable read and are not inferred from collaborator admin access.

@@ -186,7 +186,7 @@ Lifecycle rules:
 - After a successful merge, delete the source branch where safe and continue downstream deployment/provider/runtime verification; `MERGED` is not `COMPLETE`.
 - Record only continuity-critical lifecycle state in `STATUS.md`; do not duplicate CI logs or full PR discussions.
 
-`.github/workflows/pr-lifecycle.yml` may synchronise safe lifecycle labels from GitHub-native state. It must not fabricate project-owned validation, conceal a material defect, or require Draft → Ready transitions for ordinary autonomous work.
+`.github/workflows/pr-lifecycle.yml` may synchronise safe lifecycle labels from GitHub-native state. Label mutation and branch cleanup are advisory, best-effort operations; their token/API failures must not block implementation or merging. It must not fabricate project-owned validation, conceal a material defect, or require Draft → Ready transitions for ordinary autonomous work.
 
 ## Coding standards
 
@@ -208,6 +208,8 @@ This repository may consume reusable master templates for repository guidance, G
 Do not create a shared package or common runtime abstraction merely because another project contains similar code. Prefer stable contracts, copied/adapted templates and project-local implementations until the behaviour is demonstrably stable across projects. When a project-specific implementation is already stronger than a generic template, retain it and document the mapping rather than replacing it with a weaker duplicate.
 
 ## Data, provider and migration governance
+
+Canonical provider URL variables are `NOCODEBACKEND_AUTH_BASE_URL` and `NOCODEBACKEND_DATA_BASE_URL`; the complete variable contract lives in `contracts/pourfolio-data-contract.json` and `.env.example`.
 
 For Pourfolio:
 
@@ -286,7 +288,7 @@ Never claim validation passed unless it was actually run or externally verified.
 
 Do not populate PASS/VERIFIED states without evidence. Use `NOT_RUN`, `PENDING`, `UNVERIFIED` or `NOT_APPLICABLE` truthfully.
 
-When authenticated GitHub access is available, `npm run check:status-github` provides a lightweight live drift check for active PR/branch state, WIP counts, dependent stack depth and the observed-main baseline. It is a connected reconciliation aid, not part of the offline canonical validation gate; if GitHub access is unavailable it reports WAITING rather than fabricating PASS.
+Offline `npm run check:project-docs` checks retained GitHub issue-state evidence for contradictory current blockers; it cannot prove fresh live state. Refresh that evidence with `npm run check:status-github -- --write-issue-evidence` when authenticated GitHub access is available. `npm run check:status-github` provides a lightweight live drift check for active PR/branch state, WIP counts, dependent stack depth and the observed-main baseline. It is a connected reconciliation aid, not part of the offline canonical validation gate; if GitHub access is unavailable it reports WAITING rather than fabricating PASS.
 
 ## Reporting
 

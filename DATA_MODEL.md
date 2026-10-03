@@ -180,7 +180,7 @@ Optional bonus ratings use:
 - `bonus_attribute_rating_mapping`;
 - `bonus_attribute_rating_mapping.bonus_attributes_id`.
 
-Bonus relationships are optional.
+Bonus relationships are optional. The plural `bonus_attributes_id` is the rating-mapping field; the separate category-mapping collection uses `bonus_attribute_id`. These are distinct contracts. Reconcile code to the supplied provider contract rather than renaming the model to match a regression.
 
 ## Cellar
 

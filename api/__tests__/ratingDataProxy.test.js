@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import fs from 'node:fs'
 
 import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../../src/data/contract.js'
 import { dataProvider } from '../_lib/dataProvider.js'
@@ -43,6 +44,8 @@ const defaultWeights = {
   follow: 0.25,
   bonus: 0.1
 }
+
+const providerContract = JSON.parse(fs.readFileSync(new URL('../../contracts/pourfolio-data-contract.json', import.meta.url), 'utf8'))
 
 const responseHarness = () => ({
   statusCode: null,
@@ -95,11 +98,15 @@ const durableProvider = () => {
         return listState(collection, filters)
       },
       create: async (collection, body) => {
+        if (collection === COLLECTIONS.bonusRatingMappings) {
+          const allowed = providerContract.collections.bonus_attribute_rating_mapping.provider_fields
+          assert.ok(Object.keys(body).every((field) => allowed.includes(field)), 'provider rejects undeployed bonus rating fields')
+        }
         const duplicate = collection === COLLECTIONS.ratings
           ? (state[collection] || []).some((item) => item.submission_key === body.submission_key)
           : collection === COLLECTIONS.ratingScores
             ? (state[collection] || []).some((item) => String(item.rating_id) === String(body.rating_id) && String(item.attribute_id) === String(body.attribute_id))
-            : (state[collection] || []).some((item) => String(item.rating_id) === String(body.rating_id) && String(item.bonus_attribute_id) === String(body.bonus_attribute_id))
+            : (state[collection] || []).some((item) => String(item.rating_id) === String(body.rating_id) && String(item.bonus_attributes_id) === String(body.bonus_attributes_id))
         if (duplicate) throw Object.assign(new Error('conflict'), { status: 409, code: 'UNIQUE_CONFLICT' })
         const record = { id: nextId++, ...body }
         state[collection].push(record)
@@ -169,7 +176,7 @@ test('submitRating ignores browser totals and Bonus, persists server-derived fiv
     assert.ok(provider.state[COLLECTIONS.ratingScores].every((score) => !Object.hasOwn(score, 'uniqueness_key')))
     assert.equal(provider.state[COLLECTIONS.bonusRatingMappings].length, 3)
     assert.ok(provider.state[COLLECTIONS.bonusRatingMappings].every((mapping) => String(mapping.rating_id) === String(ratingWrite.id)))
-    assert.ok(provider.state[COLLECTIONS.bonusRatingMappings].every((mapping) => Object.hasOwn(mapping, 'bonus_attribute_id') && !Object.hasOwn(mapping, 'bonus_attributes_id') && !Object.hasOwn(mapping, 'uniqueness_key')))
+    assert.ok(provider.state[COLLECTIONS.bonusRatingMappings].every((mapping) => Object.hasOwn(mapping, 'bonus_attributes_id') && !Object.hasOwn(mapping, 'bonus_attribute_id') && !Object.hasOwn(mapping, 'uniqueness_key')))
 
     const retryResponse = responseHarness()
     await submitMaximum(retryResponse)

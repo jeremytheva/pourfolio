@@ -72,8 +72,12 @@ Standard server variables:
 - `NOCODEBACKEND_AUTH_SECRET_KEY`
 - `NOCODEBACKEND_SECRET_KEY`
 - `NOCODEBACKEND_INSTANCE`
+- `NOCODEBACKEND_USER_EMAIL`
+- `NOCODEBACKEND_USER_SECRET_KEY`
+- `NOCODEBACKEND_ADMIN_EMAIL`
+- `NOCODEBACKEND_ADMIN_SECRET_KEY`
 
-Canonical URL defaults where required are `https://app.nocodebackend.com/api/user-auth` for authentication and `https://api.nocodebackend.com/` for data. Provider credentials and instance identifiers are runtime-owned and must not be committed or exposed to browser code. Legacy `NCB*` names are deprecated unless a documented compatibility boundary explicitly requires them.
+Canonical URL defaults where required are `https://app.nocodebackend.com/api/user-auth` for authentication and `https://api.nocodebackend.com/` for data. Provider credentials and instance identifiers are runtime-owned and must not be committed or exposed to browser code. User/admin Secret Keys are database API credentials for certification, not email-login passwords. The nine names are governed by `contracts/pourfolio-data-contract.json` and `.env.example`; retired short aliases are prohibited.
 
 ## Rate limiting
 
@@ -81,7 +85,7 @@ Sensitive authentication paths use a shared Redis-compatible store. No raw crede
 
 ## Rating write integrity
 
-A rating is a coordinated write across `ratings`, `rating_scores` and optional `bonus_attribute_rating_mapping` rows. The durable target uses an idempotent submission contract so retries cannot create duplicate logical ratings or partial child graphs.
+A rating is a coordinated write across `ratings`, `rating_scores` and optional `bonus_attribute_rating_mapping` rows. Their provider relationship field is `bonus_attributes_id`, referencing `bonus_attributes.id`. The durable target uses an idempotent submission contract so retries cannot create duplicate logical ratings or partial child graphs.
 
 The currently deployed schema must not be assumed to support the full target until #165's required fields, uniqueness semantics, migration/backfill procedure and recovery evidence are verified. `/ratings/reconcile` must remain unavailable until that durability contract is actually deployed and certified.
 
