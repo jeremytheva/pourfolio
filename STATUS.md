@@ -34,7 +34,7 @@ wip:
 evidence:
   observed_main_commit: "0eda4f4246edc27beb27d7358f04a82b58741e07"
   current_candidate_commit: null
-  latest_validated_commit: "3e68b36ed88d0c671082d747f70460e9ee66dada"
+  latest_validated_commit: "2958bea8e2da1f453c909b4780ee1a74569cd62b"
   latest_deployed_commit: "80809cf4d271e61d739cafce1b043c030bf865e0"
   latest_runtime_verified_commit: "cb5b3a996d7ea1c17babe0945830b9717e488dfa"
   latest_browser_verified_commit: "3e68b36ed88d0c671082d747f70460e9ee66dada"
@@ -101,4 +101,4 @@ Both issues were freshly confirmed open. No owner decision is requested before t
 
 ## Validation limitations
 
-Source validation does not prove a deployed SHA, provider field acceptance or persisted ratings. Workflow permission behaviour requires a hosted run after integration. Repository Actions policy has not been read through an administration-capable endpoint; collaborator admin access does not establish token policy. Advisory label failures require no owner action and do not change acceptance gates.
+Source validation does not prove a deployed SHA, provider field acceptance or persisted ratings. Hosted PR lifecycle run 37160372098 passed on candidate `2958bea8e2da1f453c909b4780ee1a74569cd62b`; run 37160227690 exposed the intended Issues: write and PullRequests: write token scopes. Actual label mutation is not inferred from workflow success; refusal handling is covered by failure-injection tests. Repository Actions policy has not been read through an administration-capable endpoint; collaborator admin access does not establish token policy. Advisory label failures require no owner action and do not change acceptance gates.
