@@ -1,23 +1,42 @@
 # SYSTEM_MAP.md
 
-**Last materially reviewed:** 26 August 2026
+**Last materially reviewed:** 4 October 2026
 
 This map is a compact navigation aid for whole-system analysis. `ARCHITECTURE.md` and `docs/ARCHITECTURE.md` remain the architectural authorities.
 
 ## Browser and routing
 
-```text
-React / Vite SPA
-  → /login
-  → /home
-  → /search
-  → /products/:productId
-  → /products/:productId/rate
-  → /cellar
-  → /profile
-```
+`src/App.jsx` owns reachable routes; `src/data/publicDocuments.js` owns public document routes. The inventory below is checked by `npm run check:project-docs`.
 
-Launch-excluded prototype modules must remain unreachable from launch routing/navigation.
+<!-- current-browser-routes:start -->
+- `/login`
+- `/home`
+- `/search`
+- `/products/propose`
+- `/places`
+- `/styles`
+- `/styles/:styleId`
+- `/taste-map`
+- `/brew-done-it`
+- `/products/:productId`
+- `/products/:productId/propose-edit`
+- `/products/:productId/rate`
+- `/breweries/:producerId`
+- `/users/:publicProfileId`
+- `/cellar`
+- `/history`
+- `/profile`
+- `/settings`
+- `/`
+- `*`
+- `/privacy`
+- `/terms`
+- `/moderation`
+- `/support`
+- `/retention`
+<!-- current-browser-routes:end -->
+
+Reachability is separate from certification. `/brew-done-it` remains policy/provider-gated and launch-excluded; `/` and `*` redirect. Current blockers and acceptance evidence belong only in `STATUS.md` and linked issues.
 
 ## Authentication
 
@@ -54,11 +73,7 @@ Home / Search / Product Details
       → optional collaboration producer relationships
 ```
 
-Current release blockers:
-
-- #225 generated data API authorization;
-- #224 current-main deployment evidence;
-- #154 canonical catalogue reconciliation and connected certification.
+Current certification dependencies: see `STATUS.md` and #154. Historical provider-access and deployment incidents #225 and #224 are closed; reopen only with new contradictory evidence.
 
 ## Ratings
 
@@ -112,7 +127,8 @@ Profile UI
   → session identity
   → user_id ownership match
   → writable-field allowlist
-  → profiles provider record
+  → session-backed profile read
+  → persistent profile write unavailable until provider capability exists
 ```
 
 Provider primary ID and authenticated owner ID are separate concepts.
@@ -185,11 +201,4 @@ GitHub
   → source + PR/CI/governance evidence
 ```
 
-Canonical NoCodeBackend server variables:
-
-- `NOCODEBACKEND_AUTH_BASE_URL`
-- `NOCODEBACKEND_DATA_BASE_URL`
-- `NOCODEBACKEND_SECRET_KEY`
-- `NOCODEBACKEND_INSTANCE`
-
-Privileged provider access never belongs in browser code.
+Canonical provider variables and URLs: `contracts/pourfolio-data-contract.json` and `.env.example`. Architectural use: `ARCHITECTURE.md`. Privileged provider access never belongs in browser code.

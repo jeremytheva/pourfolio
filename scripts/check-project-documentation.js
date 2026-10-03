@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { auditDocumentationContracts } from './project-documentation-contract.js'
 
 const root = process.cwd()
 
@@ -193,6 +194,15 @@ if (!fs.existsSync(workflowFullPath)) {
   findings.push({ code: 'CANONICAL_VALIDATION_WORKFLOW_MISSING', path: workflowPath })
 } else if (!readText(workflowPath).includes('run: npm run platform:validate')) {
   findings.push({ code: 'CANONICAL_VALIDATION_WORKFLOW_DIVERGED', path: workflowPath })
+}
+
+try {
+  const contract = JSON.parse(readText('contracts/pourfolio-data-contract.json'))
+  const issueEvidence = JSON.parse(readText('docs/evidence/github-issue-state.json'))
+  const files = ['ARCHITECTURE.md', 'AGENTS.md', '.env.example', 'src/App.jsx', 'src/data/publicDocuments.js', 'SYSTEM_MAP.md', 'STATUS.md', 'api/rating-data-proxy.js', 'DATA_MODEL.md', 'docs/DATA_MODEL.md', 'docs/nocodebackend/schema-mapping.md', 'docs/nocodebackend/launch-schema-contract.md']
+  findings.push(...auditDocumentationContracts({ contract, issueEvidence, texts: Object.fromEntries(files.map((file) => [file, readText(file)])) }))
+} catch (error) {
+  findings.push({ code: 'DOCUMENTATION_CONTRACT_INPUT_INVALID', message: error.message })
 }
 
 findings.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))
