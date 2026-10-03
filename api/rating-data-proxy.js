@@ -375,8 +375,8 @@ const submitRating = async (request, response, user, correlationId) => {
           expected_bonus_count: expectedBonusIds.length,
           returned_bonus_count: records(diagnosticBonuses).length,
           matched_bonus_count: matchedBonusIds.length,
-          returned_bonus_attributes_ids: records(diagnosticBonuses).map((item) => String(item?.bonus_attributes_id ?? '')).sort(),
-          missing_bonus_attributes_ids: expectedBonusIds.filter((id) => !completed.bonusIds.has(id))
+          returned_bonus_attribute_ids: records(diagnosticBonuses).map((item) => String(item?.bonus_attributes_id ?? '')).sort(),
+          missing_bonus_attribute_ids: expectedBonusIds.filter((id) => !completed.bonusIds.has(id))
         }))
       }
       throw new Error('Rating children remain incomplete after reconciliation.')

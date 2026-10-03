@@ -27,8 +27,8 @@ owner_decision:
   question: null
   recommendation: "Do not request #165 migration approval until the evidence package is complete enough to present the exact irreversible operation and recovery path."
 wip:
-  open_implementation_prs: 0
-  dependent_stack_depth: 0
+  open_implementation_prs: 1
+  dependent_stack_depth: 1
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
@@ -67,7 +67,7 @@ Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` 
 
 ## Current integration and evidence
 
-- PR #586 is reused for this reconciliation; dependency PRs #572 and #573 remain separate. No other ordinary implementation PR was open at inspection. Documentation-led PR #586 is excluded from implementation WIP by the existing connected checker.
+- PR #586 is reused for this reconciliation; dependency PRs #572 and #573 remain separate. No other ordinary implementation PR was open at inspection. PR #586 now includes the rating regression repair and counts as one implementation PR with stack depth one.
 - Current observed `main`: `0eda4f4246edc27beb27d7358f04a82b58741e07`. Canonical candidate source validation passes on Node.js 22; historical validation/browser evidence remains PR #584 head `3e68b36ed88d0c671082d747f70460e9ee66dada`.
 - Last retained production deployment: PR #584 main `80809cf4d271e61d739cafce1b043c030bf865e0`, Vercel `dpl_Cj3rx4NmGrv674Bczmne9hafRHH4` READY. It has not been refreshed during this reconciliation. Last retained runtime verification: `cb5b3a996d7ea1c17babe0945830b9717e488dfa`.
 - Provider access/credential-rotation incidents #224/#225/#381/#382 are resolved on retained evidence. GitHub freshly confirms #224 and #225 closed. Do not treat them as current blockers or infer new-candidate deployment from their historical evidence.

@@ -15,6 +15,9 @@ export const auditDocumentationContracts = ({ contract, texts, issueEvidence }) 
   const mappedRoutes = [...map.matchAll(/^- `([^`]+)`$/gm)].map((match) => match[1])
   const actual = new Set([...sourceRoutes, ...publicRoutes])
   const documented = new Set(mappedRoutes)
+  if (/Current release blockers:/i.test(texts['SYSTEM_MAP.md'])) {
+    add('CURRENT_BLOCKERS_DUPLICATED', { path: 'SYSTEM_MAP.md', authority: 'STATUS.md' })
+  }
   for (const route of actual) {
     if (!documented.has(route)) add('BROWSER_ROUTE_UNDOCUMENTED', { route })
   }

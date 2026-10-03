@@ -568,6 +568,27 @@ test('historical reconciliation never promotes or rewrites modern workflow submi
   })
 })
 
+test('historical reconciliation accepts the provider plural bonus field without mutating data', async () => {
+  await withProviderMocks({
+    listPage: async (collection) => {
+      const items = collection === COLLECTIONS.ratings
+        ? [{ id: 10, user_id: 'user-1', product_id: 4, total_weighted: 4 }]
+        : collection === COLLECTIONS.ratingScores
+          ? [{ id: 20, user_id: 'user-1', rating_id: 10, attribute_id: 5, attribute_score: '6.00' }]
+          : [{ id: 30, user_id: 'user-1', rating_id: 10, bonus_attributes_id: 50 }]
+      return { items, page: 1, pageSize: 100, total: items.length, totalPages: 1 }
+    },
+    update: async () => assert.fail('dry-run must not write')
+  }, async () => {
+    const response = responseHarness()
+    await __testables.reconcileHistoricalRatings({ body: {} }, response, { id: 'user-1' })
+    assert.equal(response.body.dryRun, true)
+    assert.equal(response.body.eligible, 1)
+    assert.equal(response.body.items[0].bonusCount, 1)
+    assert.equal(response.body.items[0].proposed.expected_bonus_count, 1)
+  })
+})
+
 test('diagnostic rating creation route is unavailable outside Vercel Preview', async () => {
   const previous = process.env.VERCEL_ENV
   process.env.VERCEL_ENV = 'production'

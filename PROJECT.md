@@ -93,18 +93,23 @@ Node.js 22 is the governed repository/deployment target. BonoHost provides Node.
 
 ## Repository authority
 
-Use the following project source hierarchy, while applying the inherited master standards as governing rules:
+Authority follows the fact being resolved; code proves implemented behaviour and does not automatically override intended domain/provider meaning.
 
-1. implemented code and configuration;
-2. `AGENTS.md`;
-3. current project documentation and accepted decisions;
-4. active provider/deployment state where the fact is provider/runtime-owned;
-5. tests and runtime evidence;
-6. GitHub issues, PRs, review state and validation evidence;
-7. prior chat/context;
-8. inference.
+| Fact | Owning source |
+|---|---|
+| Implemented behaviour/configuration | Code and configuration |
+| Agent workflow | `AGENTS.md` |
+| PR acceptance/progression | `PR_LIFECYCLE_STANDARD.md` |
+| Scope/identity | `PROJECT.md` |
+| Current continuity/blockers | `STATUS.md` |
+| Intended architecture/model | `ARCHITECTURE.md`, `DATA_MODEL.md` and their detailed specialist records |
+| Significant decisions | `docs/DECISIONS/` |
+| Live PR/issue/review/conflict state | GitHub |
+| Deployed schema/capability | Provider and dated verified evidence |
+| Deployed version | Deployment platform |
+| Validation result | Executed commands/runtime evidence |
 
-Routine ChatGPT/Codex responses are an operational summary only, not a project-state store. Detailed implementation state and evidence must remain in the repository/GitHub hierarchy above, with `STATUS.md` as the primary continuity/status document.
+Master adoption release: **2026-10-04**, as indexed by Project Master's `MASTER_SOURCE_MANIFEST.md`. Local operating bindings remain in the existing repository guidance. Chat provides supporting context and concise operational summaries.
 
 ## Canonical repository documents
 

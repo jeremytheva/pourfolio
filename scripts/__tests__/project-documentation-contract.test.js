@@ -49,3 +49,9 @@ test('closed and unknown blockers fail without pretending evidence is fresh', ()
     { code: 'CURRENT_BLOCKER_ISSUE_UNVERIFIED', issue: 999 }
   ])
 })
+
+test('system map cannot reintroduce a competing current-blocker list', () => {
+  const input = fixture()
+  input.texts['SYSTEM_MAP.md'] += '\nCurrent release blockers:\n- #224\n'
+  assert.ok(auditDocumentationContracts(input).some((finding) => finding.code === 'CURRENT_BLOCKERS_DUPLICATED'))
+})
