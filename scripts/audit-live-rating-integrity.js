@@ -175,9 +175,9 @@ const main = async () => {
   ])
   const bonusIds = new Set(bonusAttributes.map((item) => String(item.id ?? '')).filter(Boolean))
   for (const mapping of bonusMappings) {
-    assert.equal(Object.hasOwn(mapping, 'bonus_attribute_id'), false, 'rating bonus mapping must not expose the singular category-mapping field')
-    const bonusId = String(mapping.bonus_attributes_id ?? '')
-    assert.match(bonusId, /^[1-9]\d*$/, 'rating bonus mapping must expose bonus_attributes_id')
+    assert.equal(Object.hasOwn(mapping, 'bonus_attributes_id'), false, 'rating bonus mapping must not expose the stale plural export field')
+    const bonusId = String(mapping.bonus_attribute_id ?? '')
+    assert.match(bonusId, /^[1-9]\d*$/, 'rating bonus mapping must expose bonus_attribute_id')
     assert.equal(bonusIds.has(bonusId), true, 'rating bonus mapping must reference an existing bonus attribute')
   }
   const bonusMappingVerification = bonusMappings.length > 0 ? 'PROVIDER_VERIFIED' : 'INCONCLUSIVE_NO_ROWS'
@@ -198,7 +198,7 @@ const main = async () => {
     completedRatings: completed.length,
     productsWithCompletedRatings: completedByProduct.size,
     bonusMappingsExamined: bonusMappings.length,
-    bonusMappingField: 'bonus_attributes_id',
+    bonusMappingField: 'bonus_attribute_id',
     bonusMappingVerification,
     stateCounts
   })}\n`)
