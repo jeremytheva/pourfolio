@@ -45,18 +45,31 @@ export const validateBonusRatingMappings = ({ mappings, bonusAttributes, ratings
   const bonusIds = new Set(bonusAttributes.map((item) => String(item.id ?? '')).filter(Boolean))
   const ratingsById = new Map(ratings.map((item) => [String(item.id ?? ''), item]))
 
-  for (const mapping of mappings) {
-    assert.equal(
-      Object.hasOwn(mapping, 'bonus_attribute_id'),
-      false,
-      'rating bonus mapping must not expose the singular category-mapping field'
-    )
+  let pluralFieldRows = 0
+  let singularFieldRows = 0
+  let bothFieldRows = 0
+  let neitherFieldRows = 0
+  let conflictingDualFieldRows = 0
 
-    const bonusId = String(mapping.bonus_attributes_id ?? '')
+  for (const mapping of mappings) {
+    const pluralId = String(mapping.bonus_attributes_id ?? '').trim()
+    const singularId = String(mapping.bonus_attribute_id ?? '').trim()
+    const hasPlural = /^[1-9]\d*$/.test(pluralId)
+    const hasSingular = /^[1-9]\d*$/.test(singularId)
     const ratingId = String(mapping.rating_id ?? '')
-    assert.match(bonusId, /^[1-9]\d*$/, 'rating bonus mapping must expose bonus_attributes_id')
+
+    if (hasPlural) pluralFieldRows += 1
+    if (hasSingular) singularFieldRows += 1
+    if (hasPlural && hasSingular) {
+      bothFieldRows += 1
+      if (pluralId !== singularId) conflictingDualFieldRows += 1
+    }
+    if (!hasPlural && !hasSingular) neitherFieldRows += 1
+
     assert.match(ratingId, /^[1-9]\d*$/, 'rating bonus mapping must expose rating_id')
-    assert.equal(bonusIds.has(bonusId), true, 'rating bonus mapping must reference an existing bonus attribute')
+    assert.equal(hasPlural || hasSingular, true, 'rating bonus mapping must expose a usable bonus relationship field')
+    if (hasPlural) assert.equal(bonusIds.has(pluralId), true, 'plural bonus relationship must reference an existing bonus attribute')
+    if (hasSingular) assert.equal(bonusIds.has(singularId), true, 'singular bonus relationship must reference an existing bonus attribute')
     assert.equal(ratingsById.has(ratingId), true, 'rating bonus mapping must reference an existing rating')
 
     const rating = ratingsById.get(ratingId)
@@ -67,12 +80,24 @@ export const validateBonusRatingMappings = ({ mappings, bonusAttributes, ratings
     }
   }
 
+  let verification = 'INCONCLUSIVE_NO_ROWS'
+  if (mappings.length) {
+    if (pluralFieldRows === mappings.length && singularFieldRows === 0) verification = 'PLURAL_ONLY'
+    else if (singularFieldRows === mappings.length && pluralFieldRows === 0) verification = 'SINGULAR_ONLY'
+    else if (bothFieldRows === mappings.length && conflictingDualFieldRows === 0) verification = 'BOTH_SAME_VALUE'
+    else verification = 'MIXED_PROVIDER_STATE'
+  }
+
   return {
-    status: mappings.length ? 'PASS' : 'INCONCLUSIVE',
+    status: mappings.length && neitherFieldRows === 0 && conflictingDualFieldRows === 0 ? 'PASS' : mappings.length ? 'BLOCKED' : 'INCONCLUSIVE',
     mode: 'read-only',
-    verification: mappings.length ? 'PROVIDER_VERIFIED_EXISTING_ROWS' : 'INCONCLUSIVE_NO_ROWS',
-    field: 'bonus_attributes_id',
+    verification,
     mappingsExamined: mappings.length,
+    pluralFieldRows,
+    singularFieldRows,
+    bothFieldRows,
+    neitherFieldRows,
+    conflictingDualFieldRows,
     bonusAttributesExamined: bonusAttributes.length,
     ratingsExamined: ratings.length
   }
