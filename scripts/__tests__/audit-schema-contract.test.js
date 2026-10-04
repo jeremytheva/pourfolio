@@ -52,13 +52,13 @@ const compliantSchema = `
     id bigint unsigned NOT NULL AUTO_INCREMENT,
     user_id varchar(36) NOT NULL,
     rating_id bigint unsigned NOT NULL,
-    bonus_attributes_id bigint unsigned NOT NULL,
+    bonus_attribute_id bigint unsigned NOT NULL,
     uniqueness_key varchar(255) NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE INDEX uq_rating_bonus (rating_id, bonus_attributes_id),
+    UNIQUE INDEX uq_rating_bonus (rating_id, bonus_attribute_id),
     UNIQUE INDEX uq_rating_bonus_idempotency (uniqueness_key),
     CONSTRAINT fk_bonus_rating FOREIGN KEY (rating_id) REFERENCES ratings (id),
-    CONSTRAINT fk_bonus_attribute FOREIGN KEY (bonus_attributes_id) REFERENCES bonus_attributes (id)
+    CONSTRAINT fk_bonus_attribute FOREIGN KEY (bonus_attribute_id) REFERENCES bonus_attributes (id)
   );
 `
 
@@ -93,7 +93,7 @@ test('schema preflight blocks the supplied legacy rating shape', () => {
       id bigint unsigned NOT NULL AUTO_INCREMENT,
       user_id varchar(36) DEFAULT NULL,
       rating_id bigint DEFAULT NULL,
-      bonus_attributes_id bigint DEFAULT NULL,
+      bonus_attribute_id bigint DEFAULT NULL,
       PRIMARY KEY (id)
     );
   `)
