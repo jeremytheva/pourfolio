@@ -85,7 +85,7 @@ Sensitive authentication paths use a shared Redis-compatible store. No raw crede
 
 ## Rating write integrity
 
-A rating is a coordinated write across `ratings`, `rating_scores` and optional `bonus_attribute_rating_mapping` rows. Their provider relationship field is `bonus_attributes_id`, referencing `bonus_attributes.id`. The durable target uses an idempotent submission contract so retries cannot create duplicate logical ratings or partial child graphs.
+A rating is a coordinated write across `ratings`, `rating_scores` and optional `bonus_attribute_rating_mapping` rows. The current NoCodeBackend API relationship field is `bonus_attribute_id`, referencing `bonus_attributes.id`. A retained July 2026 SQL export records the older plural spelling `bonus_attributes_id`; connected provider evidence from 4 October 2026 supersedes that export for application integration. The durable target uses an idempotent submission contract so retries cannot create duplicate logical ratings or partial child graphs.
 
 The currently deployed schema must not be assumed to support the full target until #165's required fields, uniqueness semantics, migration/backfill procedure and recovery evidence are verified. `/ratings/reconcile` must remain unavailable until that durability contract is actually deployed and certified.
 
