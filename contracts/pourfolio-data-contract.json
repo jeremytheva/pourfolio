@@ -1,6 +1,6 @@
 {
   "contract_name": "pourfolio-data-contract",
-  "contract_version": "1.3.0",
+  "contract_version": "1.4.0",
   "authority": {
     "repository": "jeremytheva/pourfolio",
     "classification_document": "docs/nocodebackend/launch-schema-contract.md",
@@ -12,8 +12,8 @@
   },
   "evidence": {
     "provider_instance": "54026_rating",
-    "basis": "repository-supplied provider export plus governed owner-confirmed product_producers deployment and owner-provisioned Brew Done It v3 table contract; connected provider smoke remains pending",
-    "live_introspection": false
+    "basis": "repository-supplied provider export plus connected read-only provider verification on 2026-10-04; current live API rows are authoritative for application field names where they conflict with the older export",
+    "live_introspection": true
   },
   "provider": {
     "name": "NoCodeBackend",
@@ -173,8 +173,12 @@
         "id",
         "user_id",
         "rating_id",
-        "bonus_attributes_id"
-      ]
+        "bonus_attribute_id"
+      ],
+      "semantic_notes": {
+        "current_provider_field": "Connected read-only verification on 2026-10-04 examined 1,733 live mapping rows; all exposed bonus_attribute_id and none exposed bonus_attributes_id.",
+        "historical_export": "The retained 2026-07-14 SQL export records bonus_attributes_id for this table. Treat that spelling as historical evidence, not the current NoCodeBackend API contract."
+      }
     },
     "cellar": {
       "classification": "DEPLOYED_REQUIRED",
