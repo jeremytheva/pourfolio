@@ -7,7 +7,7 @@ Beer-first discovery, structured rating and private cellar platform.
 
 **Repository:** `jeremytheva/pourfolio`  
 **Primary branch:** `main`  
-**Project control baseline:** 4 October 2026
+**Project control baseline:** 5 October 2026
 
 ## Purpose
 
@@ -42,10 +42,11 @@ Pourfolio inherits the current master software-development rules supplied for th
 
 - **AI-First Platform Development Framework v3.2** — overarching architecture, whole-system, autonomy, continuity and project-managed PR governance framework;
 - **AI Platform Development Standard v1.5** — implementation protocol, execution gates, Continue/Next behaviour, repository/PR management and work-state rules;
-- **Pull Request Lifecycle Standard** — Implementing → Validating → Ready → Mergeable → Merged progression, with GitHub Draft reserved for exceptional incomplete/non-reviewable work;
-- **Testing, Validation & Release Standard** — project-owned evidence, deployment and completion rules;
-- **Project Documentation Standard** — project-document ownership, continuity, PR/gate status integration and source-of-truth rules;
-- the applicable Platform Engineering, Design, Data/Migration, Security, Observability and provider reference standards where their rules apply to this project.
+- **Project Documentation Standard v1.5** — project-document ownership, continuity, source reconciliation and source-of-truth rules;
+- **Pull Request Lifecycle Standard v1.1** — normal-PR progression, latest-head evidence and merge governance;
+- **GitHub Reference Guide v1.2** — repository state, least-privilege automation and GitHub evidence boundaries;
+- **Testing, Validation & Release Standard v1.2** — project-owned evidence, deployment and completion rules;
+- the retained current Platform Engineering, Design, Data/Migration, Security, Observability, NoCodeBackend and Vercel standards indexed by Project Master's `MASTER_SOURCE_MANIFEST.md`.
 
 Project-specific facts and exceptions belong in this repository. Master rules should be referenced rather than copied into project documents. `PR_LIFECYCLE_STANDARD.md` is retained in this repository as the adopted lifecycle contract used by repository automation and project continuity.
 
@@ -53,7 +54,7 @@ Project-specific facts and exceptions belong in this repository. Master rules sh
 
 No intentional project deviation currently overrides the master security or data-integrity rules. Provider limitations and unresolved runtime evidence are recorded rather than treated as complete.
 
-Routine agent execution belongs in `AGENTS.md`; PR mechanics and validation acceptance belong in `PR_LIFECYCLE_STANDARD.md`. No project exception changes their normal-PR or advisory-CI defaults.
+Routine agent execution belongs in `AGENTS.md`; the repository-local `PR_LIFECYCLE_STANDARD.md` is a concise Pourfolio binding to the inherited lifecycle rather than a competing master standard. The owner's current terminology uses `MERGEABLE` for the state equivalent to the master lifecycle's merge-ready state. No project exception changes the normal-PR, latest-head-evidence or advisory-CI defaults.
 
 ## Product principles
 
