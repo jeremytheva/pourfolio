@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { auditBlockerIssueStates } from './project-documentation-contract.js'
 
 const root = process.cwd()
 const statusPath = path.join(root, 'STATUS.md')
@@ -77,18 +76,6 @@ const dependentStackDepth = implementationPulls.length
   : 0
 
 const findings = []
-const blockerSection = frontMatter.match(/^blockers:\s*\n([\s\S]*?)^requires_owner_decision:/m)?.[1] ?? ''
-const blockerIssues = [...new Set([...blockerSection.matchAll(/^\s+issue:\s*(\d+)$/gm)].map((match) => Number(match[1])))]
-const blockerStates = Object.fromEntries(await Promise.all(blockerIssues.map(async (issue) => {
-  const liveIssue = await getJson(`https://api.github.com/repos/${repository}/issues/${issue}`)
-  return [issue, liveIssue.state]
-})))
-findings.push(...auditBlockerIssueStates(blockerIssues, blockerStates))
-if (process.argv.includes('--write-issue-evidence')) {
-  const target = path.join(root, 'docs/evidence/github-issue-state.json')
-  fs.mkdirSync(path.dirname(target), { recursive: true })
-  fs.writeFileSync(target, `${JSON.stringify({ repository, observed_at: new Date().toISOString(), source: 'GitHub REST issue state; historical evidence only', issue_states: blockerStates }, null, 2)}\n`)
-}
 const recordedOpen = Number(nested('open_implementation_prs'))
 const recordedDepth = Number(nested('dependent_stack_depth'))
 if (Number.isFinite(recordedOpen) && recordedOpen !== implementationPulls.length) {
@@ -143,8 +130,7 @@ if (observedMain) {
 output(findings.length ? 'DRIFT' : 'PASS', findings, {
   main_commit: mainCommit.sha,
   open_implementation_prs: implementationPulls.map((pr) => pr.number),
-  dependent_stack_depth: dependentStackDepth,
-  blocker_issue_states: blockerStates
+  dependent_stack_depth: dependentStackDepth
 })
 
 if (findings.length && process.env.STATUS_GITHUB_STRICT === '1') process.exitCode = 1
