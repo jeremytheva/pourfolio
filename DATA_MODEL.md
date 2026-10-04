@@ -178,9 +178,9 @@ Optional bonus ratings use:
 
 - `bonus_attributes`;
 - `bonus_attribute_rating_mapping`;
-- `bonus_attribute_rating_mapping.bonus_attributes_id`.
+- `bonus_attribute_rating_mapping.bonus_attribute_id`.
 
-Bonus relationships are optional. The plural `bonus_attributes_id` is the rating-mapping field; the separate category-mapping collection uses `bonus_attribute_id`. These are distinct contracts. Reconcile code to the supplied provider contract rather than renaming the model to match a regression.
+Bonus relationships are optional. Connected read-only verification on 4 October 2026 examined 1,733 live `bonus_attribute_rating_mapping` rows: every row exposed `bonus_attribute_id`, and none exposed `bonus_attributes_id`. The retained 14 July 2026 SQL export uses the older plural spelling for this table and is historical evidence only. Both category and rating mapping collections therefore use the singular provider API field name in the current deployed contract; collection context distinguishes their meaning.
 
 ## Cellar
 
