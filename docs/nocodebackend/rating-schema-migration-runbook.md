@@ -162,12 +162,12 @@ The target is the complete persisted rating contract in
 * all five `rating_scores` fields (`user_id`, `rating_id`, `attribute_id`,
   `attribute_score`, `uniqueness_key`) are non-null;
 * all four `bonus_attribute_rating_mapping` fields (`user_id`, `rating_id`,
-  `bonus_attributes_id`, `uniqueness_key`) are non-null; and
+  `bonus_attribute_id`, `uniqueness_key`) are non-null; and
 * the six exact rating-workflow unique constraints are
   `ratings(user_id, rating_id)`, `ratings(submission_key)`,
   `rating_scores(rating_id, attribute_id)`,
   `rating_scores(uniqueness_key)`,
-  `bonus_attribute_rating_mapping(rating_id, bonus_attributes_id)` and
+  `bonus_attribute_rating_mapping(rating_id, bonus_attribute_id)` and
   `bonus_attribute_rating_mapping(uniqueness_key)`; `profiles(user_id)` is an
   additional identity constraint.
 
@@ -184,7 +184,7 @@ preflight's nullable-to-non-null change are:
 7. `rating_scores.attribute_score`;
 8. `bonus_attribute_rating_mapping.user_id`;
 9. `bonus_attribute_rating_mapping.rating_id`; and
-10. `bonus_attribute_rating_mapping.bonus_attributes_id`.
+10. `bonus_attribute_rating_mapping.bonus_attribute_id`.
 
 `ratings.date_rated` was already non-null in the dated source. The newly added
 workflow and uniqueness fields, plus `profiles.user_id`, must also be non-null
@@ -337,7 +337,7 @@ quarantine manifest.
   `<user_id>:<client-rating_id>:score:<attribute_id>`, where client rating ID is
   the parent header's `rating_id`, not the provider parent primary key.
 * bonus mapping `uniqueness_key`: exact
-  `<user_id>:<client-rating_id>:bonus:<bonus_attributes_id>`.
+  `<user_id>:<client-rating_id>:bonus:<bonus_attribute_id>`.
 
 ### Duplicate remediation
 
@@ -398,7 +398,7 @@ The provider-managed definition must enforce:
   `ratings.cellar_id -> cellar.id`;
 * score `rating_id -> ratings.id` and `attribute_id -> rating_attributes.id`;
 * bonus mapping `rating_id -> ratings.id` and
-  `bonus_attributes_id -> bonus_attributes.id`;
+  `bonus_attribute_id -> bonus_attributes.id`;
 * profile/owned `user_id` consistency using the provider's supported identity
   relationship, without making profile deletion cascade owner data by default;
 * integer `rating_scores.attribute_score BETWEEN 1 AND 7`;
