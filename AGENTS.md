@@ -30,7 +30,7 @@ Pourfolio's launch scope is a beer-first MVP. Reachable production journeys are 
 
 ## Verified technology stack
 
-- **Client:** React 19.2 with a small same-origin History API router, built by Vite 8; JavaScript/JSX (ES modules).
+- **Client:** React 19.3 with a small same-origin History API router, built by Vite 8; JavaScript/JSX (ES modules).
 - **Runtime/package manager:** Node.js 22 (defined in `.nvmrc` and `package.json`) and npm with `package-lock.json`.
 - **Styling:** Tailwind CSS 3, PostCSS, Framer Motion, and React Icons.
 - **Data and authentication:** Browser requests use same-origin endpoints in `src/lib/nocodeBackend.js`. `api/auth-proxy.js` is the authentication proxy; the server data gateways enforce application policy before NoCodeBackend access.

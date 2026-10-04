@@ -1,10 +1,14 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { blockerIssueNumbers } from './project-documentation-contract.js'
 
 const root = process.cwd()
 const statusPath = path.join(root, 'STATUS.md')
 const repository = process.env.GITHUB_REPOSITORY || 'jeremytheva/pourfolio'
 const token = process.env.GITHUB_TOKEN
+const writeIssueEvidence = process.argv.includes('--write-issue-evidence')
+const issueEvidencePath = path.join(root, 'docs/evidence/github-issue-state.json')
+const retainedContinuityIssues = [143, 144, 154, 165, 224, 225, 429, 449, 577]
 
 const output = (status, findings = [], evidence = {}) => {
   process.stdout.write(`${JSON.stringify({ status, findings, evidence })}\n`)
@@ -53,10 +57,33 @@ const getJson = async (url) => {
   return response.json()
 }
 
-const [mainCommit, openPulls] = await Promise.all([
+const blockerIssues = blockerIssueNumbers(statusText)
+const issueNumbers = [...new Set([...blockerIssues, ...retainedContinuityIssues])].sort((a, b) => a - b)
+
+const [mainCommit, openPulls, issueStates] = await Promise.all([
   getJson(`https://api.github.com/repos/${repository}/commits/main`),
-  getJson(`https://api.github.com/repos/${repository}/pulls?state=open&per_page=100`)
+  getJson(`https://api.github.com/repos/${repository}/pulls?state=open&per_page=100`),
+  Promise.all(issueNumbers.map((number) =>
+    getJson(`https://api.github.com/repos/${repository}/issues/${number}`)
+      .then((issue) => ({
+        number,
+        title: issue.title,
+        state: issue.state,
+        html_url: issue.html_url
+      }))
+  ))
 ])
+
+if (writeIssueEvidence) {
+  fs.mkdirSync(path.dirname(issueEvidencePath), { recursive: true })
+  fs.writeFileSync(issueEvidencePath, `${JSON.stringify({
+    captured_at: new Date().toISOString(),
+    repository,
+    source: 'GitHub API via scripts/check-status-github-state.js',
+    scope: 'retained issue-state evidence for current blocker and continuity drift checks; offline validation does not treat this as fresh live state',
+    issues: issueStates
+  }, null, 2)}\n`)
+}
 
 const isImplementation = (pr) => {
   if (pr.user?.type === 'Bot' || /\[bot\]$/i.test(pr.user?.login || '')) return false
@@ -76,6 +103,12 @@ const dependentStackDepth = implementationPulls.length
   : 0
 
 const findings = []
+const issueStateByNumber = new Map(issueStates.map((issue) => [Number(issue.number), issue]))
+for (const issue of blockerIssues) {
+  const state = issueStateByNumber.get(Number(issue))
+  if (!state) findings.push({ code: 'STATUS_BLOCKER_ISSUE_UNRESOLVED', issue })
+  else if (state.state !== 'open') findings.push({ code: 'STATUS_BLOCKER_ISSUE_CLOSED', issue, title: state.title })
+}
 const recordedOpen = Number(nested('open_implementation_prs'))
 const recordedDepth = Number(nested('dependent_stack_depth'))
 if (Number.isFinite(recordedOpen) && recordedOpen !== implementationPulls.length) {
@@ -130,7 +163,9 @@ if (observedMain) {
 output(findings.length ? 'DRIFT' : 'PASS', findings, {
   main_commit: mainCommit.sha,
   open_implementation_prs: implementationPulls.map((pr) => pr.number),
-  dependent_stack_depth: dependentStackDepth
+  dependent_stack_depth: dependentStackDepth,
+  blocker_issues: blockerIssues.map((number) => issueStateByNumber.get(Number(number)) || { number, state: 'unknown' }),
+  issue_evidence_written: writeIssueEvidence ? path.relative(root, issueEvidencePath).replaceAll('\\', '/') : null
 })
 
 if (findings.length && process.env.STATUS_GITHUB_STRICT === '1') process.exitCode = 1
