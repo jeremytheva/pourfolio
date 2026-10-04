@@ -28,7 +28,7 @@ const baselineSchema = `
     id bigint unsigned NOT NULL AUTO_INCREMENT,
     user_id varchar(64) DEFAULT NULL,
     rating_id bigint DEFAULT NULL,
-    bonus_attributes_id bigint DEFAULT NULL,
+    bonus_attribute_id bigint DEFAULT NULL,
     PRIMARY KEY (id)
   );
 `
@@ -65,8 +65,8 @@ ${baselineSchema
     uniqueness_key varchar(255) DEFAULT NULL,`
   )
   .replace(
-    '    bonus_attributes_id bigint DEFAULT NULL,',
-    `    bonus_attributes_id bigint DEFAULT NULL,
+    '    bonus_attribute_id bigint DEFAULT NULL,',
+    `    bonus_attribute_id bigint DEFAULT NULL,
     uniqueness_key varchar(255) DEFAULT NULL,`
   )}`
 
