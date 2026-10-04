@@ -109,12 +109,12 @@ CREATE TABLE bonus_attribute_rating_mapping (
   id bigint unsigned NOT NULL AUTO_INCREMENT,
   user_id varchar(64) NOT NULL,
   rating_id bigint unsigned NOT NULL,
-  bonus_attributes_id bigint unsigned NOT NULL,
+  bonus_attribute_id bigint unsigned NOT NULL,
   uniqueness_key varchar(255) NOT NULL,
   created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_bonus_rating_mapping_rating_bonus (rating_id, bonus_attributes_id),
+  UNIQUE KEY uq_bonus_rating_mapping_rating_bonus (rating_id, bonus_attribute_id),
   UNIQUE KEY uq_bonus_rating_mapping_uniqueness_key (uniqueness_key),
   CONSTRAINT fk_bonus_rating_mapping_rating FOREIGN KEY (rating_id) REFERENCES ratings (id),
-  CONSTRAINT fk_bonus_rating_mapping_bonus_attribute FOREIGN KEY (bonus_attributes_id) REFERENCES bonus_attributes (id)
+  CONSTRAINT fk_bonus_rating_mapping_bonus_attribute FOREIGN KEY (bonus_attribute_id) REFERENCES bonus_attributes (id)
 );
