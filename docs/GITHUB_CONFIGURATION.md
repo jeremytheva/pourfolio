@@ -1,6 +1,6 @@
 # Manual GitHub configuration
 
-**Current remote review:** 11 September 2026
+**Current remote review:** 4 October 2026
 
 Repository files can define workflows and delivery expectations, but they are not evidence that GitHub repository settings are active. Administrator-controlled settings must be observed remotely and tied to an exact candidate SHA before the corresponding governance criterion is complete.
 
@@ -16,10 +16,27 @@ Observed for `jeremytheva/pourfolio` on 11 September 2026:
 - Direct branch-protection detail returns `403 Resource not accessible by integration`. This does not create uncertainty about the exposed branch summary above: the accessible branch resource itself reports protection disabled. It only prevents inspection of administrator-only detail that is not active in the exposed summary.
 - Pull-request validation and CodeQL workflows exist and have successful current runs. Their underlying results are useful project evidence and diagnostics, but GitHub Actions status is not itself an automatic merge gate under the adopted project policy.
 - Normal autonomous project pull requests are non-draft by default. Lifecycle state is represented by repository/PR metadata rather than GitHub Draft.
-- Current workflow files explicitly constrain token permissions: pull-request validation is `contents: read`; CodeQL is `contents: read` plus `security-events: write`; connected-provider and connected-release checks are `contents: read`; PR lifecycle defaults to `permissions: {}` and grants mutation permissions per job.
+- Current workflow files explicitly constrain token permissions: pull-request validation is `contents: read`; CodeQL is `contents: read` plus `security-events: write`; connected-provider and connected-release checks are `contents: read`; PR lifecycle defaults to `permissions: {}`, uses the safer `pull_request` event, grants only `issues: write` + `pull-requests: write` for advisory lifecycle labels, and grants only `contents: write` for same-repository merged-branch cleanup.
 - Dependency Review and CodeQL are actively executing successfully on current project PRs, establishing that those supporting security diagnostics are enabled and usable.
 
 These observations are current-state evidence only. Recheck them after repository-settings changes; do not copy them forward as permanent facts.
+
+## Lifecycle write-failure handling
+
+The 4 October 2026 source correction removes `pull_request_target` from the advisory lifecycle workflow and uses `pull_request` instead. The repository-wide workflow default remains `permissions: {}`.
+
+The lifecycle-label job receives only:
+
+- `issues: write`;
+- `pull-requests: write`.
+
+The merged-branch cleanup job receives only `contents: write`, and only attempts deletion for a merged branch from this repository that is not the default branch.
+
+Lifecycle labels and source-branch deletion are operational conveniences, not acceptance evidence. If GitHub returns an integration/permission refusal such as HTTP 403, the workflow records a warning and continues rather than failing implementation or merge readiness. A refused label addition is handled before any old lifecycle label is removed, preventing a permission failure from erasing the previous state.
+
+Fork and Dependabot pull-request tokens remain subject to GitHub's read-only restrictions. Do not enable write tokens for untrusted pull requests merely to make advisory labels succeed.
+
+The connected ChatGPT GitHub integration currently has repository push/admin capability, so a lifecycle-label `GITHUB_TOKEN` refusal must not be diagnosed as a general inability to write to the repository. Repository-level Actions administration policy is a separate GitHub-owned setting and remains unverified where the connector does not expose that administrator endpoint.
 
 ## Relationship to the PR lifecycle
 
@@ -76,7 +93,7 @@ These results should be inspected for real defects and exact-head relevance. The
 - [x] Keep CodeQL/code scanning enabled where useful and repair substantive findings. Successful current PR runs verify availability.
 - [ ] Enable/verify secret scanning and push protection where available. Current integration evidence does not expose these administrator settings.
 - [ ] Review Dependabot alerts regularly.
-- [x] Confirm GitHub Actions workflow permissions remain least privilege at source level. Current workflows explicitly use read-only defaults or minimal job-specific write permissions.
+- [x] Confirm GitHub Actions workflow permissions remain least privilege at source level. Current workflows explicitly use read-only defaults or minimal job-specific write permissions. Lifecycle metadata failures are best-effort warnings and cannot block project-owned acceptance.
 - [ ] Ensure untrusted workflows cannot access production secrets. Workflow source minimises token authority, but repository/environment secret-policy settings still require administrator evidence.
 - [ ] Record the ChatGPT/Codex GitHub App relationship and verify least-privilege repository access. The current connector can perform repository content/issue/PR operations but administrator-owned installation scoping is not exposed sufficiently for certification.
 

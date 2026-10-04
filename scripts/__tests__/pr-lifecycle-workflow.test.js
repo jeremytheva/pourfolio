@@ -12,16 +12,18 @@ const section = (start, end) => {
   return workflow.slice(startIndex, endIndex)
 }
 
-test('pull_request_target lifecycle workflow defaults to no token authority', () => {
-  assert.match(workflow, /on:\n {2}pull_request_target:/)
+test('pull_request lifecycle workflow defaults to no token authority', () => {
+  assert.match(workflow, /on:\n {2}pull_request:/)
+  assert.doesNotMatch(workflow, /pull_request_target:/)
   assert.match(workflow, /\npermissions: \{\}\n/)
 })
 
-test('lifecycle label synchronisation receives only issue-label write authority', () => {
+test('lifecycle label synchronisation receives only PR metadata write authority', () => {
   const sync = section('  sync-pull-request-state:', '  delete-merged-branch:')
   assert.match(sync, /permissions:\n {6}issues: write/)
-  assert.doesNotMatch(sync, /pull-requests:\s*write/)
+  assert.match(sync, /pull-requests:\s*write/)
   assert.doesNotMatch(sync, /contents:\s*write/)
+  assert.match(sync, /continue-on-error:\s*true/)
   assert.match(sync, /github\.rest\.issues\.removeLabel/)
   assert.match(sync, /github\.rest\.issues\.addLabels/)
   assert.doesNotMatch(sync, /github\.rest\.pulls\./)
@@ -34,5 +36,8 @@ test('merged-branch cleanup receives only contents write authority', () => {
   assert.match(cleanup, /permissions:\n {6}contents: write/)
   assert.doesNotMatch(cleanup, /issues:\s*write/)
   assert.doesNotMatch(cleanup, /pull-requests:\s*write/)
+  assert.match(cleanup, /continue-on-error:\s*true/)
   assert.match(cleanup, /github\.rest\.git\.deleteRef/)
+  assert.match(cleanup, /head\.repo\.full_name == github\.repository/)
+  assert.match(cleanup, /head\.ref != github\.event\.repository\.default_branch/)
 })
