@@ -2,10 +2,13 @@
 
 Use the following source hierarchy when changing the integration:
 
-1. Project-specific setup guides supplied for this deployment.
-2. Generated API documentation/export for the actual database instance.
-3. Retained working implementation evidence.
-4. General provider documentation only where it does not conflict with project-specific evidence.
+1. Current connected provider evidence from the governed environment.
+2. Project-specific setup guides supplied for this deployment.
+3. Generated API documentation/export for the actual database instance, where it is not contradicted by newer connected evidence.
+4. Retained working implementation evidence.
+5. General provider documentation only where it does not conflict with project-specific evidence.
+
+When a dated static export conflicts with a later read-only connected provider verification, preserve the export as historical evidence but use the verified live API shape for current application integration. Do not mutate provider schema merely to make it match an older export.
 
 Current project-specific records:
 
