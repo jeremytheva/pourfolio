@@ -7,12 +7,12 @@ stage: "Documentation authority and rating relationship contract reconciliation"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Correct rating bonus field regression, lifecycle metadata failures and current documentation drift in PR #586."
+  objective: "Correct the rating bonus relationship-field regression and current repository-document authority drift in PR #586."
   issue: null
   pr: 586
   branch: automation/current-alignment-runtime-docs
 next_actions:
-  - "Validate and integrate PR #586; verify the rating bonus mapping against the connected provider without schema mutation."
+  - "Validate and integrate PR #586; then verify the corrected rating bonus mapping against the connected provider without schema mutation."
   - "Complete the protected #577 credential probe when authenticated POST execution and supported account-session credentials are available."
   - "Keep #165 at the irreversible provider boundary until its migration approval package is complete."
 blockers:
@@ -32,22 +32,22 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "0eda4f4246edc27beb27d7358f04a82b58741e07"
-  current_candidate_commit: null
-  latest_validated_commit: "2958bea8e2da1f453c909b4780ee1a74569cd62b"
-  latest_deployed_commit: "80809cf4d271e61d739cafce1b043c030bf865e0"
+  observed_main_commit: "8b1898fd97afef1df16682997f6809bacec07e1b"
+  current_candidate_commit: "fd2dca2eecae3606f3c62a4ef7dc3402c75477f5"
+  latest_validated_commit: "fd2dca2eecae3606f3c62a4ef7dc3402c75477f5"
+  latest_deployed_commit: "8b1898fd97afef1df16682997f6809bacec07e1b"
   latest_runtime_verified_commit: "cb5b3a996d7ea1c17babe0945830b9717e488dfa"
-  latest_browser_verified_commit: "3e68b36ed88d0c671082d747f70460e9ee66dada"
+  latest_browser_verified_commit: "fd2dca2eecae3606f3c62a4ef7dc3402c75477f5"
 validation:
   governance: PASS
   lint: PASS
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: PENDING
+  ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "3e68b36ed88d0c671082d747f70460e9ee66dada"
-last_updated: "2026-10-03T22:50:31+00:00"
+last_verified_commit: "fd2dca2eecae3606f3c62a4ef7dc3402c75477f5"
+last_updated: "2026-10-04T12:20:00+00:00"
 ---
 
 
@@ -57,7 +57,7 @@ Last materially reviewed: 4 October 2026
 
 ## AI execution gate
 
-**Gate:** Integration. **State:** VALIDATING PR #586. The coherent current change repairs documentation authority, advisory lifecycle metadata and the provider relationship field `bonus_attributes_id`. Canonical source validation passes; connected rating verification remains a separate evidence stage.
+**Gate:** Integration. **State:** VALIDATING PR #586. The coherent current change repairs documentation authority and the provider relationship field `bonus_attributes_id`. Phase A lifecycle-write safety is already merged separately in PR #587. Canonical source validation passes; connected rating verification remains a separate evidence stage.
 
 ## Autonomous continuation support
 
@@ -67,9 +67,9 @@ Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` 
 
 ## Current integration and evidence
 
-- PR #586 is reused for this reconciliation; dependency PRs #572 and #573 remain separate. No other ordinary implementation PR was open at inspection. PR #586 now includes the rating regression repair and counts as one implementation PR with stack depth one.
-- Current observed `main`: `0eda4f4246edc27beb27d7358f04a82b58741e07`. Canonical candidate source validation passes on Node.js 22; historical validation/browser evidence remains PR #584 head `3e68b36ed88d0c671082d747f70460e9ee66dada`.
-- Last retained production deployment: PR #584 main `80809cf4d271e61d739cafce1b043c030bf865e0`, Vercel `dpl_Cj3rx4NmGrv674Bczmne9hafRHH4` READY. It has not been refreshed during this reconciliation. Last retained runtime verification: `cb5b3a996d7ea1c17babe0945830b9717e488dfa`.
+- PR #586 is the sole open implementation PR at inspection and counts as one implementation PR with stack depth one. Phase A lifecycle-write safety was separated and merged in PR #587.
+- Current observed `main`: `8b1898fd97afef1df16682997f6809bacec07e1b` after PR #587. PR #586 candidate `fd2dca2eecae3606f3c62a4ef7dc3402c75477f5` passed the canonical release gate, browser/accessibility, Dependency Review and CodeQL on Node.js 22.
+- Current production baseline: main `8b1898fd97afef1df16682997f6809bacec07e1b`, Vercel `dpl_9ENL4vvxBx2s3UUxecABYokwDRcb` READY. PR #586 preview `dpl_Hwc9MjRPuY3xkM8YhWQg3mFEZnDG` is READY. Neither deployment proves connected provider acceptance of the corrected bonus relationship field. Last retained runtime verification remains `cb5b3a996d7ea1c17babe0945830b9717e488dfa`.
 - Provider access/credential-rotation incidents #224/#225/#381/#382 are resolved on retained evidence. GitHub freshly confirms #224 and #225 closed. Do not treat them as current blockers or infer new-candidate deployment from their historical evidence.
 - The nine-variable NoCodeBackend contract is in `contracts/pourfolio-data-contract.json` and `.env.example`. User/admin Secret Keys are database credentials, not login passwords.
 - Local documentation validation compares code/configuration and retained `docs/evidence/github-issue-state.json`; the connected status checker verifies live blockers. Offline success does not prove current GitHub/provider state.
@@ -101,4 +101,4 @@ Both issues were freshly confirmed open. No owner decision is requested before t
 
 ## Validation limitations
 
-Source validation does not prove a deployed SHA, provider field acceptance or persisted ratings. Hosted PR lifecycle run 37160372098 passed on candidate `2958bea8e2da1f453c909b4780ee1a74569cd62b`; run 37160227690 exposed the intended Issues: write and PullRequests: write token scopes. Actual label mutation is not inferred from workflow success; refusal handling is covered by failure-injection tests. Repository Actions policy has not been read through an administration-capable endpoint; collaborator admin access does not establish token policy. Advisory label failures require no owner action and do not change acceptance gates.
+Source validation does not prove provider field acceptance or persisted ratings. Phase A is separately evidenced by merged PR #587: its lifecycle workflow succeeded, `pr:implementing` was applied, and same-repository merged-branch cleanup deleted the source branch. PR #586 source/browser/security/deployment evidence proves the candidate builds and behaves at the application boundary, but connected provider acceptance of `bonus_attributes_id` still requires a bounded runtime check.
