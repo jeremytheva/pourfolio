@@ -23,13 +23,13 @@ The current database uses:
 - `products.product_category_id` for product classification;
 - `products.edition` as nullable free-text edition metadata, not a relational vintage/product-family identity;
 - `cellar.series_version_id` for the optional sharing-series edition/version relationship;
-- `bonus_attribute_rating_mapping.bonus_attributes_id` for optional rating bonuses;
+- `bonus_attribute_rating_mapping.bonus_attribute_id` for optional rating bonuses;
 - a compact `ratings` header containing `product_id`, optional `cellar_id`, `date_rated`, `total_unweighted` and `total_weighted`;
 - a `cellar` row containing `product_id`, `location_id`, `quantity`, `mls`, `container`, `purchase_price`, `retail_price`, `date_received`, `sharing_series_id`, `series_version_id`, `purchase_location_id`, `purchased_by_id`, `gift`, `gift_from`, `bet_id` and `notes`, plus provider/server-owned identifiers.
 
 The exported `cellar` table does **not** contain `status`, `quantity_acquired`, `date_consumed`, `acquisition_type` or `historical_import`; launch browser writes and API projections must not treat those fields as deployed.
 
-These field names are pinned to the supplied schema/export evidence. `series_edition_id` and `bonus_attribute_id` are not launch write aliases.
+Provider-facing field names are pinned to the strongest current evidence. Connected read-only verification on 4 October 2026 shows `bonus_attribute_rating_mapping.bonus_attribute_id` across 1,733 live rows. The retained July 2026 SQL export's `bonus_attributes_id` spelling is historical and is not the current application write field. `series_edition_id` remains unavailable as a launch write alias.
 
 Sharing series and edition/version references on cellar records are nullable and optional. They must be `NULL` when not applicable and are never fabricated to satisfy a rating or cellar write. `series_version_id` is not a generic beer-vintage field and must not be repurposed for product lineage.
 
