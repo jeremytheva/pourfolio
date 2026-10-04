@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { pathToFileURL } from 'node:url'
 import { COLLECTIONS } from '../src/data/contract.js'
 import { dataProvider } from '../api/_lib/dataProvider.js'
 
@@ -90,7 +91,7 @@ export const runLiveBonusMappingAudit = async () => {
   return validateBonusRatingMappings({ mappings, bonusAttributes, ratings })
 }
 
-if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   runLiveBonusMappingAudit()
     .then((result) => {
       process.stdout.write(`${JSON.stringify(result)}\n`)
