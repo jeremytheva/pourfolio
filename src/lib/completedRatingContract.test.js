@@ -5,7 +5,8 @@ import {
   RATING_DISTRIBUTION_BUCKETS,
   buildCompletedRatingDistribution,
   completedRatingTotal,
-  distributionBucketForRating
+  distributionBucketForRating,
+  isReadableCompletedRating
 } from './completedRatingContract.js'
 
 test('completed rating totals are greater than zero and at most five', () => {
@@ -18,6 +19,18 @@ test('completed rating totals are greater than zero and at most five', () => {
   assert.equal(completedRatingTotal('4.76'), 4.76)
   assert.equal(completedRatingTotal(5), 5)
   assert.equal(completedRatingTotal(5.01), null)
+})
+
+test('readable completed ratings support deployed legacy rows without accepting workflow-incomplete states', () => {
+  assert.equal(isReadableCompletedRating({ total_weighted: 4.2 }), true)
+  assert.equal(isReadableCompletedRating({ submission_state: null, total_weighted: 4.2 }), true)
+  assert.equal(isReadableCompletedRating({ submission_state: 'complete', total_weighted: 4.2 }), true)
+  assert.equal(isReadableCompletedRating({ submission_state: 'pending', total_weighted: 4.2 }), false)
+  assert.equal(isReadableCompletedRating({ submission_state: 'failed', total_weighted: 4.2 }), false)
+  assert.equal(isReadableCompletedRating({ submission_state: 'deleting', total_weighted: 4.2 }), false)
+  assert.equal(isReadableCompletedRating({ submission_state: 'deleted', total_weighted: 4.2 }), false)
+  assert.equal(isReadableCompletedRating({ total_weighted: 0 }), false)
+  assert.equal(isReadableCompletedRating({ total_weighted: null }), false)
 })
 
 test('distribution uses ten explicit half-point ranges without integer rounding', () => {
