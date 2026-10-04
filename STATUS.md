@@ -1,18 +1,19 @@
 ---
 project: Pourfolio
 portfolio_state: ACTIVE
-execution_slot: INTEGRATING
+execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Live provider rating bonus contract correction"
+stage: "Connected personal rating history verification"
 gate: Integration
-execution_state: VALIDATING
+execution_state: READY
 current_work:
-  objective: "Align the rating bonus relationship contract to the live NoCodeBackend API field bonus_attribute_id in PR #589."
+  objective: "Diagnose and correct the connected provider 502 during personal_history_projection without schema mutation or #165 reconciliation enablement."
   issue: null
-  pr: 589
-  branch: fix/connected-rating-bonus-verification
+  pr: null
+  branch: null
 next_actions:
-  - "Validate and integrate PR #589, then rerun the read-only connected bonus mapping audit on the exact final candidate."
+  - "Diagnose the connected personal_history_projection provider 502 and correct the smallest safe application/provider-query defect."
+  - "Rerun the read-only connected rating integrity audit after the correction; do not use --apply or enable /ratings/reconcile."
   - "Complete the protected #577 credential probe when authenticated POST execution and supported account-session credentials are available."
   - "Keep #165 at the irreversible provider boundary until its migration approval package is complete."
 blockers:
@@ -27,17 +28,17 @@ owner_decision:
   question: null
   recommendation: "Do not request #165 migration approval until the evidence package is complete enough to present the exact irreversible operation and recovery path."
 wip:
-  open_implementation_prs: 1
-  dependent_stack_depth: 1
+  open_implementation_prs: 0
+  dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "1fdf29092bb988a119779cdd2e3123d5bb0bcf41"
+  observed_main_commit: "f6388c0cb9f3354d2b5a2146b0bff097fe1da251"
   current_candidate_commit: null
-  latest_validated_commit: "728c9ee806fd376d8a8bb83e1ef624852d8ff8e0"
-  latest_deployed_commit: "49804a82cd7ef4f90689900a14e6d3956929e891"
+  latest_validated_commit: "39d33df65c2f4bd1d2e1e4e5c8811d28e1e6b2e3"
+  latest_deployed_commit: "f6388c0cb9f3354d2b5a2146b0bff097fe1da251"
   latest_runtime_verified_commit: "cb5b3a996d7ea1c17babe0945830b9717e488dfa"
-  latest_browser_verified_commit: "728c9ee806fd376d8a8bb83e1ef624852d8ff8e0"
+  latest_browser_verified_commit: "39d33df65c2f4bd1d2e1e4e5c8811d28e1e6b2e3"
 validation:
   governance: PASS
   lint: PASS
@@ -46,8 +47,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "728c9ee806fd376d8a8bb83e1ef624852d8ff8e0"
-last_updated: "2026-10-04T13:05:00+00:00"
+last_verified_commit: "39d33df65c2f4bd1d2e1e4e5c8811d28e1e6b2e3"
+last_updated: "2026-10-04T13:15:00+00:00"
 ---
 
 
@@ -57,7 +58,7 @@ Last materially reviewed: 4 October 2026
 
 ## AI execution gate
 
-**Gate:** Integration. **State:** VALIDATING PR #589. Connected read-only verification disproved the Phase C plural-field assumption: all 1,733 live rating bonus mapping rows expose `bonus_attribute_id`, and none expose `bonus_attributes_id`. PR #589 aligns application code, contracts, documentation and #165 target artifacts to that live provider state without mutating provider schema or data.
+**Gate:** Integration. **State:** READY for connected personal-history diagnosis. PR #589 is merged and deployed. The current provider rating-bonus API field is `bonus_attribute_id`; read-only evidence examined 1,733 live mapping rows with zero plural-field rows. Application/provider field shape is aligned without schema mutation.
 
 ## Autonomous continuation support
 
@@ -67,9 +68,9 @@ Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` 
 
 ## Current integration and evidence
 
-- PR #589 is the sole ordinary implementation PR at inspection. It corrects the live provider field drift discovered after PR #586. Phase A lifecycle-write safety remains independently merged in PR #587.
-- Current observed `main`: `1fdf29092bb988a119779cdd2e3123d5bb0bcf41` after the post-Phase-C status reconciliation. PR #589 is validating the correction against the current live provider API.
-- Connected read-only staging-release evidence on 4 October 2026 examined 1,733 `bonus_attribute_rating_mapping` rows, 82 bonus attributes and 620 ratings: all mapping rows used `bonus_attribute_id`, zero used `bonus_attributes_id`, and all checked relationships were valid. This is PROVIDER VERIFIED field-shape evidence, not application-write verification. The broader rating integrity audit separately encountered a provider 502 during `personal_history_projection`.
+- PR #589 merged as `f6388c0cb9f3354d2b5a2146b0bff097fe1da251`; no ordinary implementation PR is open at inspection. Phase A lifecycle-write safety remains independently merged in PR #587.
+- Current observed `main`: `f6388c0cb9f3354d2b5a2146b0bff097fe1da251`. Exact candidate `39d33df65c2f4bd1d2e1e4e5c8811d28e1e6b2e3` passed canonical validation, browser/accessibility, Dependency Review and CodeQL.
+- Production deployment `dpl_FkJALvLbcgZ2afkvqJykG1HB1e6x` is READY on merged main `f6388c0cb9f3354d2b5a2146b0bff097fe1da251`. Connected read-only staging-release evidence examined 1,733 `bonus_attribute_rating_mapping` rows, 82 bonus attributes and 620 ratings: all mapping rows used `bonus_attribute_id`, zero used `bonus_attributes_id`, and all checked relationships were valid. This is PROVIDER VERIFIED field-shape evidence. The broader rating integrity audit separately encountered a provider 502 during `personal_history_projection`.
 - Provider access/credential-rotation incidents #224/#225/#381/#382 are resolved on retained evidence. GitHub freshly confirms #224 and #225 closed. Do not treat them as current blockers or infer new-candidate deployment from their historical evidence.
 - The nine-variable NoCodeBackend contract is in `contracts/pourfolio-data-contract.json` and `.env.example`. User/admin Secret Keys are database credentials, not login passwords.
 - Repository source validation checks the project documentation structure and configuration available in the repository. Live GitHub/provider state remains external evidence and must not be inferred from offline documentation checks.
@@ -87,7 +88,7 @@ Both issues were freshly confirmed open. No owner decision is requested before t
 
 ## Next dependency-correct work
 
-1. Validate and integrate PR #589, then rerun the isolated read-only bonus mapping audit on the exact final candidate. Treat the field shape as PROVIDER VERIFIED only; application-write verification remains separate.
+1. Diagnose and correct the connected `personal_history_projection` provider 502 using read-only evidence first, then rerun the connected rating integrity audit.
 2. Prepare #165 migration evidence within the reversible boundary. Once deployed and verified, continue #144 backend certification, backend-dependent #154 catalogue certification and launch verification.
 3. Continue #577 credential certification when its execution/session prerequisites are available.
 4. Continue bounded provider-independent #449 work or evidence-grounded #429 cleanup where useful; do not invent cleanup or re-delete removed proxies.
@@ -101,4 +102,4 @@ Both issues were freshly confirmed open. No owner decision is requested before t
 
 ## Validation limitations
 
-Source validation does not prove application writes. The isolated connected audit does prove the current provider read contract: `bonus_attribute_id` is present on all 1,733 examined rating mapping rows and the stale plural field is absent. A separate bounded application write/read verification is still required before calling the corrected write path APPLICATION VERIFIED. The unrelated `personal_history_projection` provider 502 remains a separate connected-audit defect.
+Source validation does not prove application writes. The isolated connected audit proves the current provider read contract: `bonus_attribute_id` is present on all 1,733 examined rating mapping rows and the stale plural field is absent. A separate bounded application write/read verification is still required before calling the corrected write path APPLICATION VERIFIED. The current next defect is the independent `personal_history_projection` provider 502.
