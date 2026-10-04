@@ -7,7 +7,7 @@ Beer-first discovery, structured rating and private cellar platform.
 
 **Repository:** `jeremytheva/pourfolio`  
 **Primary branch:** `main`  
-**Project control baseline:** 3 September 2026
+**Project control baseline:** 4 October 2026
 
 ## Purpose
 
@@ -40,8 +40,8 @@ Ratings and cellar records do **not** require a sharing series or edition. Those
 
 Pourfolio inherits the current master software-development rules supplied for the portfolio, including:
 
-- **AI-First Platform Development Framework v3.1** — overarching architecture, whole-system, autonomy, continuity and project-managed PR governance framework;
-- **AI Platform Development Standard v1.2** — implementation protocol, execution gates, Continue/Next behaviour, repository/PR management and work-state rules;
+- **AI-First Platform Development Framework v3.2** — overarching architecture, whole-system, autonomy, continuity and project-managed PR governance framework;
+- **AI Platform Development Standard v1.5** — implementation protocol, execution gates, Continue/Next behaviour, repository/PR management and work-state rules;
 - **Pull Request Lifecycle Standard** — Implementing → Validating → Ready → Mergeable → Merged progression, with GitHub Draft reserved for exceptional incomplete/non-reviewable work;
 - **Testing, Validation & Release Standard** — project-owned evidence, deployment and completion rules;
 - **Project Documentation Standard** — project-document ownership, continuity, PR/gate status integration and source-of-truth rules;
@@ -53,13 +53,7 @@ Project-specific facts and exceptions belong in this repository. Master rules sh
 
 No intentional project deviation currently overrides the master security or data-integrity rules. Provider limitations and unresolved runtime evidence are recorded rather than treated as complete.
 
-Autonomous project work uses normal, non-draft pull requests by default. Lifecycle state is recorded in repository/PR metadata rather than GitHub's draft flag. GitHub Draft is used only when a change genuinely should not be reviewable/mergeable yet or substantial intended implementation is deliberately incomplete. This project-specific policy prevents ordinary autonomous continuation from depending on a Draft → Ready transition.
-
-GitHub Actions/CI is diagnostic evidence under the current project PR policy, not an automatic merge prerequisite. A failing check that exposes a real implementation, security, data-integrity or release defect remains actionable. An empty/zero-step Platform Validation wrapper is treated as unavailable evidence rather than an application failure. Issue #143 tracks repository governance hardening and is not a blanket blocker on otherwise mergeable work.
-
-Portfolio importance and execution capacity are distinct. This repository uses the portfolio states `PLANNED`, `READY`, `ACTIVE`, `VALIDATING`, `BLOCKED`, `MAINTENANCE`, and `COMPLETE` where relevant, plus an execution slot of `BUILDING`, `INTEGRATING`, `VERIFYING`, `WAITING`, or `NONE`. Only work actively consuming delivery capacity should occupy BUILDING or INTEGRATING.
-
-Default WIP limits are three ordinary open implementation PRs and a dependent PR stack depth of two. Exceeding either limit shifts work to integration/reconciliation until the queue is back within limits.
+Routine agent execution belongs in `AGENTS.md`; PR mechanics and validation acceptance belong in `PR_LIFECYCLE_STANDARD.md`. No project exception changes their normal-PR or advisory-CI defaults.
 
 ## Product principles
 
@@ -74,13 +68,12 @@ Default WIP limits are three ordinary open implementation PRs and a dependent PR
 - Keep each implementation issue focused enough to produce one reviewable pull request.
 - Prefer integration throughput over accumulating overlapping implementation; respect the repository WIP/stack limits unless an explicit exception is recorded.
 - Reuse template patterns before introducing shared runtime packages across projects.
-- Keep required failing work open for remediation; close without merge only when work is intentionally excluded, superseded, duplicated or cancelled.
 
 ## Technology
 
 | Area | Current implementation |
 |---|---|
-| Frontend | React 19.2 |
+| Frontend | React 19.3 |
 | Build tooling | Vite |
 | Runtime | Node.js 22 |
 | Package manager | npm |
@@ -96,43 +89,27 @@ Node.js 22 is the governed repository/deployment target. BonoHost provides Node.
 
 ## Provider configuration contract
 
-The repository standardises on these server-only NoCodeBackend variables:
-
-- `NOCODEBACKEND_AUTH_BASE_URL`
-- `NOCODEBACKEND_DATA_BASE_URL`
-- `NOCODEBACKEND_AUTH_SECRET_KEY`
-- `NOCODEBACKEND_SECRET_KEY`
-- `NOCODEBACKEND_INSTANCE`
-- `NOCODEBACKEND_USER_EMAIL`
-- `NOCODEBACKEND_USER_SECRET_KEY`
-- `NOCODEBACKEND_ADMIN_EMAIL`
-- `NOCODEBACKEND_ADMIN_SECRET_KEY`
-
-Canonical URL defaults where a fallback is required:
-
-- Data: `https://api.nocodebackend.com/`
-- Authentication: `https://app.nocodebackend.com/api/user-auth`
-
-`NOCODEBACKEND_AUTH_SECRET_KEY`, `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_INSTANCE`, `NOCODEBACKEND_USER_EMAIL`, `NOCODEBACKEND_USER_SECRET_KEY`, `NOCODEBACKEND_ADMIN_EMAIL` and `NOCODEBACKEND_ADMIN_SECRET_KEY` must be supplied by the runtime/environment and must not have repository defaults or committed production values.
-
-Browser code must not receive the provider secret or bypass the Pourfolio same-origin server boundary.
+`contracts/pourfolio-data-contract.json` owns canonical provider variable names and URLs; `.env.example` is the setup template. `ARCHITECTURE.md` explains server-side use and the user/admin certification boundary. Runtime identities, instance and secrets have no committed values and never enter browser code.
 
 ## Repository authority
 
-Use the following project source hierarchy, while applying the inherited master standards as governing rules:
+Authority follows the fact being resolved; code proves implemented behaviour and does not automatically override intended domain/provider meaning.
 
-1. implemented code and configuration;
-2. `AGENTS.md`;
-3. current project documentation and accepted decisions;
-4. active provider/deployment state where the fact is provider/runtime-owned;
-5. tests and runtime evidence;
-6. GitHub issues, PRs, review state and validation evidence;
-7. prior chat/context;
-8. inference.
+| Fact | Owning source |
+|---|---|
+| Implemented behaviour/configuration | Code and configuration |
+| Agent workflow | `AGENTS.md` |
+| PR acceptance/progression | `PR_LIFECYCLE_STANDARD.md` |
+| Scope/identity | `PROJECT.md` |
+| Current continuity/blockers | `STATUS.md` |
+| Intended architecture/model | `ARCHITECTURE.md`, `DATA_MODEL.md` and their detailed specialist records |
+| Significant decisions | `docs/DECISIONS/` |
+| Live PR/issue/review/conflict state | GitHub |
+| Deployed schema/capability | Provider and dated verified evidence |
+| Deployed version | Deployment platform |
+| Validation result | Executed commands/runtime evidence |
 
-Routine ChatGPT/Codex responses are an operational summary only, not a project-state store. Detailed implementation state and evidence must remain in the repository/GitHub hierarchy above, with `STATUS.md` as the primary continuity/status document.
-
-For PR lifecycle facts, GitHub is authoritative for open/closed/merged state, latest head, review conversations and conflicts. Repository/PR metadata is authoritative for the project's Implementing/Validating/Ready/Mergeable lifecycle state. GitHub Draft is exceptional and must not be used as the routine lifecycle mechanism. Hosted checks are diagnostic evidence unless the project policy explicitly makes a particular underlying result material to the change. Conflicts must be investigated rather than silently reconciled.
+Master adoption release: **2026-10-04**, as indexed by Project Master's `MASTER_SOURCE_MANIFEST.md`. Local operating bindings remain in the existing repository guidance. Chat provides supporting context and concise operational summaries.
 
 ## Canonical repository documents
 

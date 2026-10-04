@@ -4,18 +4,22 @@ Pourfolio is a beer-first portfolio for discovering products, recording structur
 
 ## Launch scope
 
+The beer-first launch contract centres on:
+
 - NoCodeBackend authentication and server-authoritative profile identity
 - Live `products` catalogue, search and stable product routes
 - Normalised 1–7 ratings and personal history
 - Owner-scoped cellar CRUD
 - Same-origin server gateways for auth and data
 
-Prototype social, event, venue, analytics, producer/admin, photo and non-beer modules are not routed in the launch build.
+The authenticated browser currently also routes product proposals/corrections, brewery and venue discovery, style exploration, Beer Passport/Taste Map, public-profile projections, settings, and Brew Done It. Reachability is not release certification: backend/provider-dependent surfaces remain governed by `STATUS.md`, launch-readiness evidence and their capability gates. Brew Done It remains launch-excluded and fail-closed at its server policy boundary until its separate provider certification and production-enablement requirements are satisfied.
+
+Prototype social, event, analytics, producer/admin, photo and non-beer modules that are not present in `src/App.jsx` are not available product capabilities.
 
 ## Runtime
 
 - Node.js 22
-- React 19.2
+- React 19.3
 - Vite 8
 - npm
 - NoCodeBackend through the server gateways in `api/`
