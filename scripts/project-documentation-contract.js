@@ -12,7 +12,7 @@ export const extractSystemMapRoutes = (systemMapText = '') => {
   const endIndex = systemMapText.indexOf(end)
   if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) return []
   const block = systemMapText.slice(startIndex + start.length, endIndex)
-  return sortedUnique([...block.matchAll(/^- \`([^\`]+)\`$/gm)].map((match) => match[1]))
+  return sortedUnique([...block.matchAll(/^- `([^`]+)`$/gm)].map((match) => match[1]))
 }
 
 export const routeMapDrift = ({ sourceRoutes = [], mappedRoutes = [] } = {}) => ({
