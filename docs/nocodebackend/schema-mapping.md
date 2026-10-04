@@ -197,11 +197,13 @@ missing. `user_id` is set by the server.
 
 ### `bonus_attribute_rating_mapping`
 
-Bonus selections are optional. Each submitted `bonus_attributes_id` must exist.
-When selected, `user_id`, `rating_id` and `bonus_attributes_id` are non-null and
-the pair `(rating_id, bonus_attributes_id)` is unique. Each row also has a
+Connected read-only verification on 4 October 2026 examined 1,733 live rows in instance `54026_rating`: every row exposed `bonus_attribute_id`, none exposed `bonus_attributes_id`, all referenced an existing bonus attribute, and owner/rating relationships were valid. The retained 14 July 2026 SQL export uses the older plural spelling and is preserved as historical evidence only.
+
+Bonus selections are optional. Each submitted `bonus_attribute_id` must exist.
+When selected, `user_id`, `rating_id` and `bonus_attribute_id` are non-null and
+the pair `(rating_id, bonus_attribute_id)` is unique. Each row also has a
 non-null, globally unique deterministic `uniqueness_key` of
-`<user_id>:<client-rating_id>:bonus:<bonus_attributes_id>`. `user_id` and `rating_id`
+`<user_id>:<client-rating_id>:bonus:<bonus_attribute_id>`. `user_id` and `rating_id`
 are set by the server.
 
 ### `cellar`

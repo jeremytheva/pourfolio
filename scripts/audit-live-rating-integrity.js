@@ -3,7 +3,7 @@ import { COLLECTIONS } from '../src/data/contract.js'
 import { completedRatingTotal } from '../src/lib/completedRatingContract.js'
 import { dataProvider } from '../api/_lib/dataProvider.js'
 import { __testables as ratingWorkflow } from '../api/rating-data-proxy.js'
-import { __testables as catalogue } from '../api/data-proxy.js'
+import { __testables as catalogue } from '../api/catalog-data-proxy.js'
 
 const MAX_PAGES = 1000
 const PAGE_SIZE = 100
@@ -157,15 +157,30 @@ const main = async () => {
       .map((rating) => completedRatingTotal(rating.total_weighted))
       .filter((value) => value !== null)
 
-    const actualSummary = await readStage(
+    const response = responseHarness()
+    await readStage(
       'product_aggregate_projection',
-      () => catalogue.productRatingSummary(productId)
+      () => catalogue.getProduct(productId, response)
     )
-    assert.deepEqual(actualSummary, {
+    assert.equal(response.statusCode, 200, 'canonical product projection must succeed')
+    assert.deepEqual(response.body?.ratingSummary, {
       count: expectedTotals.length,
       average: roundedAverage(expectedTotals)
     }, 'product community aggregate must equal the complete 0-5 rating population')
   }
+
+  const [bonusMappings, bonusAttributes] = await Promise.all([
+    readStage('bonus_mapping_inventory', () => listAll(COLLECTIONS.bonusRatingMappings)),
+    readStage('bonus_attribute_inventory', () => listAll(COLLECTIONS.bonusAttributes))
+  ])
+  const bonusIds = new Set(bonusAttributes.map((item) => String(item.id ?? '')).filter(Boolean))
+  for (const mapping of bonusMappings) {
+    assert.equal(Object.hasOwn(mapping, 'bonus_attributes_id'), false, 'rating bonus mapping must not expose the stale plural export field')
+    const bonusId = String(mapping.bonus_attribute_id ?? '')
+    assert.match(bonusId, /^[1-9]\d*$/, 'rating bonus mapping must expose bonus_attribute_id')
+    assert.equal(bonusIds.has(bonusId), true, 'rating bonus mapping must reference an existing bonus attribute')
+  }
+  const bonusMappingVerification = bonusMappings.length > 0 ? 'PROVIDER_VERIFIED' : 'INCONCLUSIVE_NO_ROWS'
 
   const stateCounts = ratings.reduce((counts, rating) => {
     const state = String(rating.submission_state || 'legacy')
@@ -182,6 +197,9 @@ const main = async () => {
     legacyEligible,
     completedRatings: completed.length,
     productsWithCompletedRatings: completedByProduct.size,
+    bonusMappingsExamined: bonusMappings.length,
+    bonusMappingField: 'bonus_attribute_id',
+    bonusMappingVerification,
     stateCounts
   })}\n`)
 }

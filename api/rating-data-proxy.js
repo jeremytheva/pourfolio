@@ -149,14 +149,14 @@ const summariseSubmissionChildren = (rating, userId, expectedScores, expectedBon
     const expected = expectedScoresByAttribute.get(String(item.attribute_id))
     return expected && Number.isFinite(Number(item.attribute_score)) && Number(item.attribute_score) === Number(expected.attribute_score)
   }).map((item) => String(item.attribute_id)))
-  const matchingBonusIds = new Set(ownedBonuses.filter((item) => expectedBonusIdsSet.has(String(item.bonus_attributes_id))).map((item) => String(item.bonus_attributes_id)))
+  const matchingBonusIds = new Set(ownedBonuses.filter((item) => expectedBonusIdsSet.has(String(item.bonus_attribute_id))).map((item) => String(item.bonus_attribute_id)))
   return {
     complete: ownedScores.length === expectedScoresByAttribute.size && ownedBonuses.length === expectedBonusIdsSet.size &&
       ownedScores.every((item) => {
         const expected = expectedScoresByAttribute.get(String(item.attribute_id))
         return expected && Number.isFinite(Number(item.attribute_score)) && Number(item.attribute_score) === Number(expected.attribute_score)
       }) &&
-      ownedBonuses.every((item) => expectedBonusIdsSet.has(String(item.bonus_attributes_id))),
+      ownedBonuses.every((item) => expectedBonusIdsSet.has(String(item.bonus_attribute_id))),
     scoreAttributes: matchingScoreAttributes,
     bonusIds: matchingBonusIds,
     scores: ownedScores,
@@ -350,7 +350,7 @@ const submitRating = async (request, response, user, correlationId) => {
     for (const bonusId of requestedBonusIds) {
       if (existingChildren.bonusIds.has(String(bonusId))) continue
       workflowStage = 'create_bonus_child'
-      const persistedChild = await createChildIdempotently(COLLECTIONS.bonusRatingMappings, { user_id: user.id, rating_id: rating.id, bonus_attributes_id: bonusId }, async () => records(await dataProvider.list(COLLECTIONS.bonusRatingMappings, { user_id: user.id, rating_id: rating.id, bonus_attributes_id: bonusId }))[0])
+      const persistedChild = await createChildIdempotently(COLLECTIONS.bonusRatingMappings, { user_id: user.id, rating_id: rating.id, bonus_attribute_id: bonusId }, async () => records(await dataProvider.list(COLLECTIONS.bonusRatingMappings, { user_id: user.id, rating_id: rating.id, bonus_attribute_id: bonusId }))[0])
       verifiedBonuses.push(persistedChild)
     }
     workflowStage = 'reconcile_children'
@@ -375,7 +375,7 @@ const submitRating = async (request, response, user, correlationId) => {
           expected_bonus_count: expectedBonusIds.length,
           returned_bonus_count: records(diagnosticBonuses).length,
           matched_bonus_count: matchedBonusIds.length,
-          returned_bonus_attribute_ids: records(diagnosticBonuses).map((item) => String(item?.bonus_attributes_id ?? '')).sort(),
+          returned_bonus_attribute_ids: records(diagnosticBonuses).map((item) => String(item?.bonus_attribute_id ?? '')).sort(),
           missing_bonus_attribute_ids: expectedBonusIds.filter((id) => !completed.bonusIds.has(id))
         }))
       }
@@ -529,7 +529,7 @@ const historicalReconciliationPlan = async (user) => {
     const validScores = ownedScores.length > 0 && scoreAttributeIds.length === ownedScores.length &&
       uniqueScoreAttributes.size === ownedScores.length &&
       ownedScores.every((item) => Number.isFinite(Number(item.attribute_score)))
-    const bonusAttributeIds = ownedBonuses.map((item) => canonicalPositiveId(item.bonus_attributes_id)).filter(Boolean)
+    const bonusAttributeIds = ownedBonuses.map((item) => canonicalPositiveId(item.bonus_attribute_id)).filter(Boolean)
     const validBonuses = bonusAttributeIds.length === ownedBonuses.length && new Set(bonusAttributeIds).size === ownedBonuses.length
     const legacyCandidate = !String(rating.submission_key ?? '').trim() &&
       !String(rating.submission_fingerprint ?? '').trim()

@@ -196,7 +196,7 @@ schema mapping documents the equivalent relationship.
 | Scores without rating | `rating_scores.rating_id` missing from `ratings` | 0 | | |
 | Scores without attribute | `rating_scores.attribute_id` missing from `rating_attributes` | 0 | | |
 | Bonus mappings without rating | mapping `rating_id` missing from `ratings` | 0 | | |
-| Bonus mappings without bonus attribute | mapping `bonus_attributes_id` missing from `bonus_attributes` | 0 | | |
+| Bonus mappings without bonus attribute | mapping `bonus_attribute_id` missing from `bonus_attributes` | 0 | | |
 | Cellar rows without product | `cellar.product_id` missing from `products` | 0 | | |
 | Cellar rows without profile | `cellar.user_id` missing from `profiles.user_id` | 0 | | |
 | Rating score relationship count | joined score rows equals exported `rating_scores` rows | exact | | |

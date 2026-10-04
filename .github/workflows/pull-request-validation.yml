@@ -85,6 +85,41 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+  connected-bonus-mapping:
+    name: Connected bonus mapping
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[connected-rating]')
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run read-only live bonus mapping audit
+        env:
+          RUN_LIVE_BONUS_MAPPING_AUDIT: "1"
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+        shell: bash
+        run: |
+          mkdir -p artifacts/bonus-rating-mapping
+          node scripts/audit-live-bonus-rating-mapping.js | tee artifacts/bonus-rating-mapping/summary.json
+      - name: Retain redacted bonus mapping evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: connected-bonus-mapping-${{ github.sha }}
+          path: artifacts/bonus-rating-mapping/
+          if-no-files-found: error
+          retention-days: 30
+
   connected-rating:
     name: Connected rating integrity
     if: github.event_name == 'push' && contains(github.event.head_commit.message, '[connected-rating]')

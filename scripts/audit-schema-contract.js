@@ -259,11 +259,11 @@ const TABLE_RULES = [
   },
   {
     table: 'bonus_attribute_rating_mapping',
-    requiredColumns: ['user_id', 'rating_id', 'bonus_attributes_id', 'uniqueness_key'],
-    uniqueKeys: [['rating_id', 'bonus_attributes_id'], ['uniqueness_key']],
+    requiredColumns: ['user_id', 'rating_id', 'bonus_attribute_id', 'uniqueness_key'],
+    uniqueKeys: [['rating_id', 'bonus_attribute_id'], ['uniqueness_key']],
     foreignKeys: [
       { column: 'rating_id', parentTable: 'ratings', parentColumn: 'id' },
-      { column: 'bonus_attributes_id', parentTable: 'bonus_attributes', parentColumn: 'id' }
+      { column: 'bonus_attribute_id', parentTable: 'bonus_attributes', parentColumn: 'id' }
     ]
   }
 ]

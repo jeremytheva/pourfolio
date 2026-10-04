@@ -139,15 +139,15 @@ The collection is DEPLOYED_OPTIONAL because a rating may have zero bonus selecti
 
 When a bonus row is written, the current evidenced provider field name is:
 
-- `bonus_attributes_id`
+- `bonus_attribute_id`
 
 Active boundary fields are:
 
 - `rating_id`
-- `bonus_attributes_id`
+- `bonus_attribute_id`
 - server-authoritative `user_id` where stored by the provider contract
 
-`bonus_attribute_id` is **not** a launch write alias.
+`bonus_attribute_id` is the current live NoCodeBackend API field for rating bonus mappings. The retained July 2026 SQL export's `bonus_attributes_id` spelling is historical and is **not** the current launch write field.
 
 DEFERRED_TARGET integrity capability:
 

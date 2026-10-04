@@ -40,7 +40,7 @@ deterministic findings**:
   `ratings(user_id, rating_id)`, `ratings(submission_key)`,
   `rating_scores(rating_id, attribute_id)`,
   `rating_scores(uniqueness_key)`,
-  `bonus_attribute_rating_mapping(rating_id, bonus_attributes_id)` and
+  `bonus_attribute_rating_mapping(rating_id, bonus_attribute_id)` and
   `bonus_attribute_rating_mapping(uniqueness_key)`;
 - **6 `MISSING_FOREIGN_KEY`:** the snapshot does not enforce the canonical
   rating-to-product, optional rating-to-cellar, score-to-rating,
@@ -89,7 +89,7 @@ these exit codes:
 | `profiles` | Non-null, unique `user_id`. |
 | `ratings` | Non-null fields and unique keys listed previously; `product_id -> products.id` and, when present, `cellar_id -> cellar.id`; state limited to `pending`, `complete`, `failed`, `deleting`, or `deleted`; nullable `deleted_at`; non-negative integer version and expected counts; `date_rated` defaults on create and has no automatic update clause. |
 | `rating_scores` | Non-null fields and unique keys; `rating_id -> ratings.id`; `attribute_id -> rating_attributes.id`; integer `attribute_score` from 1 through 7. |
-| `bonus_attribute_rating_mapping` | Non-null fields and unique keys; `rating_id -> ratings.id`; `bonus_attributes_id -> bonus_attributes.id`. |
+| `bonus_attribute_rating_mapping` | Non-null fields and unique keys; `rating_id -> ratings.id`; `bonus_attribute_id -> bonus_attributes.id`. |
 
 The audit checks foreign keys, score and workflow checks, and create-time-only
 timestamp behaviour where the provider export represents them reliably. Owner

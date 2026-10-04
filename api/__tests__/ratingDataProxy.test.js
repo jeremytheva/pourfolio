@@ -106,7 +106,7 @@ const durableProvider = () => {
           ? (state[collection] || []).some((item) => item.submission_key === body.submission_key)
           : collection === COLLECTIONS.ratingScores
             ? (state[collection] || []).some((item) => String(item.rating_id) === String(body.rating_id) && String(item.attribute_id) === String(body.attribute_id))
-            : (state[collection] || []).some((item) => String(item.rating_id) === String(body.rating_id) && String(item.bonus_attributes_id) === String(body.bonus_attributes_id))
+            : (state[collection] || []).some((item) => String(item.rating_id) === String(body.rating_id) && String(item.bonus_attribute_id) === String(body.bonus_attribute_id))
         if (duplicate) throw Object.assign(new Error('conflict'), { status: 409, code: 'UNIQUE_CONFLICT' })
         const record = { id: nextId++, ...body }
         state[collection].push(record)
@@ -176,7 +176,7 @@ test('submitRating ignores browser totals and Bonus, persists server-derived fiv
     assert.ok(provider.state[COLLECTIONS.ratingScores].every((score) => !Object.hasOwn(score, 'uniqueness_key')))
     assert.equal(provider.state[COLLECTIONS.bonusRatingMappings].length, 3)
     assert.ok(provider.state[COLLECTIONS.bonusRatingMappings].every((mapping) => String(mapping.rating_id) === String(ratingWrite.id)))
-    assert.ok(provider.state[COLLECTIONS.bonusRatingMappings].every((mapping) => Object.hasOwn(mapping, 'bonus_attributes_id') && !Object.hasOwn(mapping, 'bonus_attribute_id') && !Object.hasOwn(mapping, 'uniqueness_key')))
+    assert.ok(provider.state[COLLECTIONS.bonusRatingMappings].every((mapping) => Object.hasOwn(mapping, 'bonus_attribute_id') && !Object.hasOwn(mapping, 'bonus_attributes_id') && !Object.hasOwn(mapping, 'uniqueness_key')))
 
     const retryResponse = responseHarness()
     await submitMaximum(retryResponse)
@@ -575,7 +575,7 @@ test('historical reconciliation accepts the provider plural bonus field without 
         ? [{ id: 10, user_id: 'user-1', product_id: 4, total_weighted: 4 }]
         : collection === COLLECTIONS.ratingScores
           ? [{ id: 20, user_id: 'user-1', rating_id: 10, attribute_id: 5, attribute_score: '6.00' }]
-          : [{ id: 30, user_id: 'user-1', rating_id: 10, bonus_attributes_id: 50 }]
+          : [{ id: 30, user_id: 'user-1', rating_id: 10, bonus_attribute_id: 50 }]
       return { items, page: 1, pageSize: 100, total: items.length, totalPages: 1 }
     },
     update: async () => assert.fail('dry-run must not write')
