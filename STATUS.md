@@ -3,16 +3,16 @@ project: Pourfolio
 portfolio_state: ACTIVE
 execution_slot: INTEGRATING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Latest master governance standards reconciliation"
+stage: "Post-governance integration reconciliation"
 gate: Integration
-execution_state: VALIDATING
+execution_state: IMPLEMENTING
 current_work:
-  objective: "Reconcile Pourfolio with the active Project Master governance standards and add proportionate repository drift prevention."
-  issue: 143
-  pr: 592
-  branch: chore/latest-master-governance-standards
+  objective: "Reconcile merged governance work and resume the preserved rating-read compatibility fix for the personal_history_projection provider 502."
+  issue: null
+  pr: null
+  branch: fix/rating-read-deferred-state-compatibility
 next_actions:
-  - "Validate and integrate PR #592 against the latest intended head, then reconcile merged/deployed state."
+  - "Reconcile merged PR #592 and resume the preserved rating-read compatibility branch for the personal_history_projection provider 502."
   - "Resume the preserved fix/rating-read-deferred-state-compatibility branch for the connected personal_history_projection 502; do not mix it into governance work."
   - "Complete the protected #577 credential probe when authenticated POST execution and supported account-session credentials are available."
   - "Keep #165 at the irreversible provider boundary until its migration approval package is complete."
@@ -28,7 +28,7 @@ owner_decision:
   question: null
   recommendation: "Do not request #165 migration approval until the evidence package is complete enough to present the exact irreversible operation and recovery path."
 wip:
-  open_implementation_prs: 1
+  open_implementation_prs: 0
   dependent_stack_depth: 1
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
@@ -58,7 +58,7 @@ Last materially reviewed: 4 October 2026
 
 ## AI execution gate
 
-**Gate:** Integration. **State:** VALIDATING PR #592. The current change adopts the active master governance editions, reduces duplicated local lifecycle policy, corrects runtime guidance drift and makes route/environment/data/workflow/blocker drift detectable through the existing canonical validation path.
+**Gate:** Integration. **State:** IMPLEMENTING. PR #592 is merged; current work resumes the preserved rating-read compatibility fix for the connected `personal_history_projection` provider 502.
 
 ## Autonomous continuation support
 
@@ -68,7 +68,7 @@ Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` 
 
 ## Current integration and evidence
 
-- PR #592 is the sole ordinary implementation PR at inspection. The partial `fix/rating-read-deferred-state-compatibility` branch is preserved outside this PR and is not counted as integrated work until it receives its own coherent PR/evidence.
+- PR #592 is merged. There are no ordinary implementation PRs at this reconciliation point. The partial `fix/rating-read-deferred-state-compatibility` branch remains preserved and is not counted as integrated work until it receives its own coherent PR/evidence.
 - Current observed `main`: `a50b14618d407f02a273fb5aa6b895c509100b07` after the #590 status reconciliation. Production deployment `dpl_GBUsuZhM6HMdKJwpZUm2EDoGM1Pd` is READY for that main revision. PR #592 must earn its own latest-head validation/deployment evidence before merge.
 - Production deployment `dpl_FkJALvLbcgZ2afkvqJykG1HB1e6x` is READY on merged main `f6388c0cb9f3354d2b5a2146b0bff097fe1da251`. Connected read-only staging-release evidence examined 1,733 `bonus_attribute_rating_mapping` rows, 82 bonus attributes and 620 ratings: all mapping rows used `bonus_attribute_id`, zero used `bonus_attributes_id`, and all checked relationships were valid. This is PROVIDER VERIFIED field-shape evidence. The broader rating integrity audit separately encountered a provider 502 during `personal_history_projection`.
 - Provider access/credential-rotation incidents #224/#225/#381/#382 are resolved on retained evidence. `docs/evidence/github-issue-state.json`, captured from connected GitHub inspection on 5 October 2026, records #224 and #225 closed. Offline repository validation must not describe that retained snapshot as fresh live GitHub state.
