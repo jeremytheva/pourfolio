@@ -12,9 +12,9 @@ The beer-first launch contract centres on:
 - Owner-scoped cellar CRUD
 - Same-origin server gateways for auth and data
 
-The authenticated browser currently also routes product proposals/corrections, brewery and venue discovery, style exploration, Beer Passport/Taste Map, public-profile projections, settings, and Brew Done It. Reachability is not release certification: backend/provider-dependent surfaces remain governed by `STATUS.md`, launch-readiness evidence and their capability gates. Brew Done It remains launch-excluded and fail-closed at its server policy boundary until its separate provider certification and production-enablement requirements are satisfied.
+The authenticated browser also routes product proposals/corrections, verified brewery discovery, style exploration, Beer Passport/Taste Map, public-profile projections, settings and a feature-status surface. Planned capabilities may appear as clearly labelled non-interactive placeholders, but they are not release-certified product actions. Venue discovery remains a planned data-gated slice. Brew Done It remains launch-excluded: `/brew-done-it` resolves to an informational status placeholder while its playable source stays contained behind separate provider certification and production-enablement requirements.
 
-Prototype social, event, analytics, producer/admin, photo and non-beer modules that are not present in `src/App.jsx` are not available product capabilities.
+Prototype social, event, analytics, producer/admin, photo and non-beer implementation modules are not available product capabilities merely because a roadmap placeholder describes them.
 
 ## Runtime
 
