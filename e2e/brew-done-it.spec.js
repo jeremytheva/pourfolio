@@ -3,7 +3,7 @@ import { installMockApi } from './mockApi.js'
 
 test.beforeEach(async ({ page }) => installMockApi(page))
 
-test('game is available from primary navigation and its protected route loads the Brew API', async ({ page }) => {
+test('primary navigation exposes planned features while Brew Done It remains contained', async ({ page }) => {
   const gameRequests = []
   page.on('request', (request) => {
     const pathname = new URL(request.url()).pathname
@@ -13,38 +13,45 @@ test('game is available from primary navigation and its protected route loads th
   await page.goto('/home')
   await expect(page.getByRole('heading', { name: 'Discover beer worth remembering' })).toBeVisible()
 
-  const brewNavigation = page.getByRole('navigation', { name: 'Primary navigation' }).getByRole('link', { name: 'Brew Done It' })
-  await expect(brewNavigation).toBeVisible()
-  await expect(brewNavigation).toHaveAttribute('href', '/brew-done-it')
+  const primaryNavigation = page.getByRole('navigation', { name: 'Primary navigation' })
+  await expect(primaryNavigation.getByRole('link', { name: 'Brew Done It' })).toHaveCount(0)
 
-  await brewNavigation.click()
-  await expect(page).toHaveURL(/\/brew-done-it$/)
-  await expect(page.getByRole('heading', { name: 'Brew Done It', level: 1 })).toBeVisible()
-  await expect(page.getByText('Persistent two-player deduction game')).toBeVisible()
+  const plannedNavigation = primaryNavigation.getByRole('link', { name: 'Coming soon' })
+  await expect(plannedNavigation).toBeVisible()
+  await expect(plannedNavigation).toHaveAttribute('href', '/features')
+  await plannedNavigation.click()
 
-  await expect.poll(() => gameRequests.length).toBeGreaterThan(0)
-  expect(gameRequests).toContain('/api/nocodebackend/brew-done-it/games')
-  expect(gameRequests).toContain('/api/nocodebackend/brew-done-it/stats')
-  expect(gameRequests).toContain('/api/nocodebackend/brew-done-it/options')
+  await expect(page).toHaveURL(/\/features$/)
+  await expect(page.getByRole('heading', { name: 'What is live and what is coming next', level: 1 })).toBeVisible()
+  await expect(page.getByText('Approved planned capabilities')).toBeVisible()
+  expect(gameRequests).toEqual([])
+
+  await page.goto('/brew-done-it')
+  await expect(page.getByRole('heading', { name: 'Brew Done It is not active yet', level: 1 })).toBeVisible()
+  await expect(page.getByText('No challenge action is available from this placeholder.')).toBeVisible()
+  expect(gameRequests).toEqual([])
 })
 
-test('product page opens Brew Done It with the viewed beer preselected without leaking it into the URL', async ({ page }) => {
+test('product page presents Brew Done It as planned and opens only the status placeholder', async ({ page }) => {
+  const gameRequests = []
+  page.on('request', (request) => {
+    const pathname = new URL(request.url()).pathname
+    if (pathname.startsWith('/api/nocodebackend/brew-done-it')) gameRequests.push(pathname)
+  })
+
   await page.goto('/products/4')
   await expect(page.getByRole('heading', { name: 'Ace', level: 1 })).toBeVisible()
 
-  const playLink = page.getByRole('link', { name: 'Play Brew-Done-It' })
-  await expect(playLink).toBeVisible()
-  await expect(playLink).toHaveAttribute('href', '/brew-done-it')
-  await playLink.click()
+  const plannedLink = page.getByRole('link', { name: 'Brew Done It · Planned' })
+  await expect(plannedLink).toBeVisible()
+  await expect(plannedLink).toHaveAttribute('href', '/brew-done-it')
+  await plannedLink.click()
 
   await expect(page).toHaveURL(/\/brew-done-it$/)
-  await expect(page.getByRole('heading', { name: 'Brew Done It', level: 1 })).toBeVisible()
-  await expect(page.getByText('The beer opened from its profile is preselected. Review or change it before creating the challenge.')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Brew Done It is not active yet', level: 1 })).toBeVisible()
+  await expect(page.getByText('No challenge action is available from this placeholder.')).toBeVisible()
 
-  const beerSelect = page.locator('#brew-done-it-create-beer-select')
-  await expect(beerSelect).toHaveValue('4')
-  await expect(beerSelect).toContainText('Ace — Rocky Ridge Brewing')
-
+  expect(gameRequests).toEqual([])
   expect(await page.evaluate(() => window.location.search)).toBe('')
-  expect(await page.evaluate(() => window.history.state?.initialProductId)).toBe('4')
+  expect(await page.evaluate(() => window.history.state?.initialProductId)).toBeUndefined()
 })
