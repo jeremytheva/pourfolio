@@ -18,56 +18,58 @@ const activeEnvironmentSetting = (source) => source.split(/\r?\n/).find((line) =
   /^\s*BREW_DONE_IT_POLICY_ENABLED\s*=/.test(line)
 ))
 
-const explicitlyDisabled = (value) => String(value ?? '')
+const environmentValue = (line) => String(line ?? '')
   .split('=')
   .slice(1)
   .join('=')
   .trim()
   .replace(/^['"]|['"]$/g, '')
-  .toLowerCase() === 'false'
+  .toLowerCase()
 
-// Historical function name retained because package/release tooling already imports it.
-// The browser surface may remain available for authenticated testing while the v3 API
-// itself fails closed unless the deployment explicitly opts in with the policy flag.
 export const inspectBrewDoneItContainment = ({ rootDirectory, requireBuild = true }) => {
   const findings = []
   const routeSource = readText(rootDirectory, 'src/App.jsx')
   const navigationSource = readText(rootDirectory, 'src/components/MainLayout.jsx')
   const gatewaySource = readText(rootDirectory, 'api/_lib/brewDoneItEntryV3.js')
 
-  if (!routeSource.includes("./pages/BrewDoneIt.jsx")) {
-    findings.push('src/App.jsx is missing the Brew Done It page import')
+  if (routeSource.includes("./pages/BrewDoneIt.jsx")) {
+    findings.push('src/App.jsx must not import the playable Brew Done It page while the feature is contained')
   }
-  if (!routeSource.includes('path="/brew-done-it"')) {
-    findings.push('src/App.jsx is missing the protected /brew-done-it route')
+  if (!routeSource.includes('path="/brew-done-it"') || !routeSource.includes('<ProductRoadmap focus="brew-done-it" />')) {
+    findings.push('src/App.jsx must route /brew-done-it to the informational ProductRoadmap status placeholder')
   }
-  if (!navigationSource.includes("to: '/brew-done-it'")) {
-    findings.push('src/components/MainLayout.jsx is missing Brew Done It primary navigation')
+  if (navigationSource.includes("to: '/brew-done-it'")) {
+    findings.push('src/components/MainLayout.jsx must not expose Brew Done It in primary navigation while contained')
+  }
+  if (!navigationSource.includes("to: '/features'")) {
+    findings.push('src/components/MainLayout.jsx must expose the planned-features status surface')
   }
   if (!gatewaySource.includes('BREW_DONE_IT_POLICY_ENABLED') || !gatewaySource.includes("toLowerCase() === 'true'")) {
     findings.push('api/_lib/brewDoneItEntryV3.js must require explicit BREW_DONE_IT_POLICY_ENABLED=true')
   }
 
   const vercelConfiguration = readText(rootDirectory, 'vercel.json')
-  if (/"BREW_DONE_IT_POLICY_ENABLED"\s*:\s*"false"/i.test(vercelConfiguration)) {
-    findings.push('vercel.json explicitly disables BREW_DONE_IT_POLICY_ENABLED')
+  if (/"BREW_DONE_IT_POLICY_ENABLED"\s*:\s*"true"/i.test(vercelConfiguration)) {
+    findings.push('vercel.json must not enable BREW_DONE_IT_POLICY_ENABLED while the feature is contained')
   }
 
   const exampleEnvironment = readText(rootDirectory, '.env.example')
   const policySetting = activeEnvironmentSetting(exampleEnvironment)
-  if (policySetting && explicitlyDisabled(policySetting)) {
-    findings.push('.env.example explicitly disables BREW_DONE_IT_POLICY_ENABLED')
+  if (policySetting && environmentValue(policySetting) === 'true') {
+    findings.push('.env.example must not actively enable BREW_DONE_IT_POLICY_ENABLED while the feature is contained')
   }
 
   const distDirectory = path.join(rootDirectory, 'dist')
   if (requireBuild && !fs.existsSync(distDirectory)) {
-    findings.push('dist is missing; run the production build before checking Brew Done It enablement')
+    findings.push('dist is missing; run the production build before checking Brew Done It containment')
   } else if (fs.existsSync(distDirectory)) {
-    const enabledBundlePresent = walkFiles(distDirectory).some((filePath) => {
+    const playableSurfaceBundled = walkFiles(distDirectory).some((filePath) => {
       const content = fs.readFileSync(filePath, 'utf8')
-      return content.includes('/brew-done-it') || content.includes('Brew Done It')
+      return content.includes('Persistent two-player deduction game')
     })
-    if (!enabledBundlePresent) findings.push('dist does not contain the enabled Brew Done It browser surface')
+    if (playableSurfaceBundled) {
+      findings.push('dist contains the playable Brew Done It browser surface while the feature is contained')
+    }
   }
 
   return findings
@@ -76,10 +78,10 @@ export const inspectBrewDoneItContainment = ({ rootDirectory, requireBuild = tru
 export const runCli = (rootDirectory = process.cwd()) => {
   const findings = inspectBrewDoneItContainment({ rootDirectory })
   if (findings.length) {
-    process.stderr.write(`Brew Done It enablement check failed:\n- ${findings.join('\n- ')}\n`)
+    process.stderr.write(`Brew Done It containment check failed:\n- ${findings.join('\n- ')}\n`)
     return 1
   }
-  process.stdout.write('Brew Done It route/navigation bundle and explicit backend enablement contract check passed.\n')
+  process.stdout.write('Brew Done It containment, placeholder routing and explicit backend policy gate check passed.\n')
   return 0
 }
 
