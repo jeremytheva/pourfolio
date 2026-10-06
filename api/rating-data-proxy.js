@@ -1,7 +1,7 @@
 import crypto from 'node:crypto'
 import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../src/data/contract.js'
 import { bonusScoreFromPoints, selectedBonusPointTotal } from '../src/lib/bonusAttributes.js'
-import { completedRatingTotal } from '../src/lib/completedRatingContract.js'
+import { completedRatingTotal, isReadableCompletedRating } from '../src/lib/completedRatingContract.js'
 import { buildAdvancedScore, canonicalRatingKey } from '../src/lib/ratingFormulaV1.js'
 import { calculateRatingTotals } from '../src/utils/ratingSubmission.js'
 import { requireSessionUser } from './_lib/authSession.js'
@@ -466,7 +466,6 @@ const ownerCompletedRatings = async (userId, productId = null) => {
   const ownerRatings = []
   const filters = {
     user_id: userId,
-    submission_state: 'complete',
     ...(productId ? { product_id: productId } : {})
   }
 
@@ -481,7 +480,7 @@ const ownerCompletedRatings = async (userId, productId = null) => {
     const pageItems = records(payload.items)
     ownerRatings.push(...pageItems.filter((rating) =>
       isOwnedBy(rating, userId) &&
-      isCompletedRating(rating) &&
+      isReadableCompletedRating(rating) &&
       (!productId || String(rating.product_id) === String(productId))
     ))
 
