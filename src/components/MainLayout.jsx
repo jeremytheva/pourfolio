@@ -13,7 +13,7 @@ const navigation = [
   { to: '/products/propose', label: 'Add Beer', icon: FiPlusCircle },
   { to: '/history', label: 'History', icon: FiClock },
   { to: '/cellar', label: 'Cellar', icon: FiUser },
-  { to: '/features', label: 'Coming soon', icon: FiLayers }
+  { to: '/features', label: "What's next", icon: FiLayers }
 ]
 
 const routeLabel = (pathname) => {
