@@ -19,7 +19,7 @@ const exploreNavigation = [
   { to: '/features', label: "What's next", icon: FiLayers }
 ]
 
-const routeLabel= (pathname) => {
+const routeLabel = (pathname) => {
   if (pathname === '/home') return 'Discover'
   if (pathname === '/styles') return 'Beer styles'
   if (/^\/styles\/[^/]+$/.test(pathname)) return 'Beer style details'
