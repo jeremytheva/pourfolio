@@ -25,11 +25,11 @@ Ratings and cellar records do not require a sharing series or edition.
 - privacy controls not enforced by backend permissions;
 - photo upload.
 
-Deferred modules may remain as prototype source for future research, but they are not reachable or bundled by launch routing and must not show fake success, statistics or user data.
+Deferred implementation modules must not be presented as live product capabilities. The launch UI may expose clearly labelled informational placeholders for approved roadmap work, provided those placeholders perform no unsupported writes, fabricate no data and do not bypass backend capability gates.
 
 ## Brew Done It — persistent cross-device deduction game, currently contained
 
-Brew Done It is an approved persistent social deduction game under [ADR 0006](DECISIONS/0006-adopt-brew-done-it-deduction-board.md). ADR 0006 retains the cross-device architecture and security model from [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) while superseding its controlled-question and scoring model. The feature is not yet shipped in the launch application: it has no production navigation item or playable route, and the server capability remains fail-closed while the required NoCodeBackend collections are unverified.
+Brew Done It is an approved persistent social deduction game under [ADR 0006](DECISIONS/0006-adopt-brew-done-it-deduction-board.md). ADR 0006 retains the cross-device architecture and security model from [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) while superseding its controlled-question and scoring model. The feature is not yet shipped as a playable launch capability: it has no active production navigation item, `/brew-done-it` resolves to an informational status placeholder, and the server capability remains fail-closed while the required NoCodeBackend collections are unverified.
 
 ### Product model
 
@@ -58,7 +58,7 @@ Refreshing, signing out or moving to another device must not erase an accepted s
 
 The selector chooses the secret beer before sharing the challenge. The server stores that choice as protected round state.
 
-The beer detail/profile page is an approved selector entry point. It exposes **Play Brew-Done-It** beside the normal beer actions. While the game remains contained, activating this button truthfully explains that play is not yet enabled and performs no Brew Done It API request or game-state persistence. Once a separately reviewed enablement change makes the game route reachable, the button carries the viewed canonical `product.id` into Brew Done It as a reviewable beer preselection. The selector may change it before creating the challenge, and the server must validate the selected product before persisting it.
+The beer detail/profile page is an approved future selector entry point. While the game remains contained, the product page exposes **Brew Done It · Planned**, which opens the informational status placeholder, explains that play is not yet enabled and performs no Brew Done It API request or game-state persistence. Once a separately reviewed enablement change makes the game route reachable, the button carries the viewed canonical `product.id` into Brew Done It as a reviewable beer preselection. The selector may change it before creating the challenge, and the server must validate the selected product before persisting it.
 
 The initial transport uses a game number plus challenge code in private shareable text. The same canonical text may be copied, sent through the device share sheet or pasted into the join form. Challenge credentials must not be placed in query strings or page URLs, so normal browser history/referrer navigation does not become part of the invitation transport. Both participants authenticate. Joining binds the second authenticated account to the persistent series. A later in-app player picker or notification workflow may supplement this transport without changing the series/round model.
 
