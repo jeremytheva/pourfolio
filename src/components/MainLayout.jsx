@@ -1,26 +1,30 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { FiBookOpen, FiClock, FiCompass, FiHome, FiLogOut, FiMapPin, FiPlusCircle, FiSearch, FiSettings, FiTarget, FiUser } from 'react-icons/fi'
+import { FiBookOpen, FiClock, FiCompass, FiHome, FiLayers, FiLogOut, FiMapPin, FiPlusCircle, FiSearch, FiSettings, FiUser } from 'react-icons/fi'
 import { Link, NavLink, useLocation } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import PublicDocumentLinks from './PublicDocumentLinks.jsx'
 
-const navigation = [
+const primaryNavigation = [
   { to: '/home', label: 'Discover', icon: FiHome },
-  { to: '/styles', label: 'Styles', icon: FiBookOpen },
-  { to: '/taste-map', label: 'Beer Passport', icon: FiCompass },
-  { to: '/brew-done-it', label: 'Brew Done It', icon: FiTarget },
   { to: '/places', label: 'Breweries & Venues', icon: FiMapPin },
   { to: '/search', label: 'Search', icon: FiSearch },
-  { to: '/products/propose', label: 'Add Beer', icon: FiPlusCircle },
-  { to: '/history', label: 'History', icon: FiClock },
   { to: '/cellar', label: 'Cellar', icon: FiUser }
 ]
 
-const routeLabel = (pathname) => {
+const exploreNavigation = [
+  { to: '/styles', label: 'Styles', icon: FiBookOpen },
+  { to: '/taste-map', label: 'Beer Passport', icon: FiCompass },
+  { to: '/history', label: 'Historical Feed', icon: FiClock },
+  { to: '/products/propose', label: 'Add Beer', icon: FiPlusCircle },
+  { to: '/features', label: "What's next", icon: FiLayers }
+]
+
+const routeLabel= (pathname) => {
   if (pathname === '/home') return 'Discover'
   if (pathname === '/styles') return 'Beer styles'
   if (/^\/styles\/[^/]+$/.test(pathname)) return 'Beer style details'
   if (pathname === '/taste-map') return 'Taste Map and Beer Passport'
+  if (pathname === '/features') return 'Feature roadmap'
   if (pathname === '/brew-done-it') return 'Brew Done It'
   if (pathname === '/places') return 'Breweries and venues'
   if (pathname === '/search') return 'Search'
@@ -80,7 +84,7 @@ function MainLayout({ children, user, onLogout }) {
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <Link to="/home" className={`rounded-md text-2xl font-bold text-amber-700 ${focusRing}`}>Pourfolio</Link>
           <nav aria-label="Primary navigation" className="order-3 flex w-full items-center gap-1 overflow-x-auto sm:order-none sm:w-auto">
-            {navigation.map((item) => (
+            {primaryNavigation.map((item) => (
               <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex min-w-max flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium sm:flex-none ${focusRing} ${isActive ? 'bg-amber-100 text-amber-900' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
                 <SafeIcon icon={item.icon} className="h-4 w-4" />{item.label}
               </NavLink>
@@ -97,6 +101,16 @@ function MainLayout({ children, user, onLogout }) {
           </div>
         </div>
         {signOutError && <div ref={signOutErrorRef} tabIndex={-1} role="alert" className="mx-auto max-w-7xl px-4 pb-3 text-sm font-medium text-red-700 outline-none focus:ring-2 focus:ring-red-300 sm:px-6 lg:px-8">{signOutError}</div>}
+        <div className="border-t border-gray-100 bg-gray-50/80">
+          <nav aria-label="Explore navigation" className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-2 sm:px-6 lg:px-8">
+            <span className="mr-2 min-w-max text-xs font-semibold uppercase tracking-wide text-gray-500">Explore</span>
+            {exploreNavigation.map((item) => (
+              <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex min-w-max items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${focusRing} ${isActive ? 'bg-white text-amber-900 shadow-sm' : 'text-gray-600 hover:bg-white hover:text-gray-900'}`}>
+                <SafeIcon icon={item.icon} className="h-4 w-4" />{item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
       </header>
       <main ref={mainContentRef} id="main-content" tabIndex={-1} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-400">{children}</main>
       <footer className="border-t border-gray-200 bg-white">
