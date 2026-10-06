@@ -4,7 +4,7 @@ import { producerService } from '../services/producerService.js'
 
 const tabs = [
   { id: 'breweries', label: 'Breweries' },
-  { id: 'venues', label: 'Venues' }
+  { id: 'venues', label: 'Venues · Planned' }
 ]
 
 const BREWERY_PAGE_SIZE = 24
@@ -117,8 +117,8 @@ function Places() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6">
-        <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Places</p>
-        <h1 className="mt-1 text-3xl font-bold text-gray-900">Breweries & Venues</h1>
+        <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Brewery discovery</p>
+        <h1 className="mt-1 text-3xl font-bold text-gray-900">Breweries</h1>
         <p className="mt-2 max-w-3xl text-gray-600">
           Explore verified breweries now. Venue discovery will activate only when verified venue data and rating attribution are available.
         </p>
@@ -298,7 +298,7 @@ function Places() {
           tabIndex={0}
           className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm outline-none focus:ring-2 focus:ring-amber-400"
         >
-          <h2 className="text-xl font-bold text-gray-900">Venues</h2>
+          <div className="flex flex-wrap items-center gap-3"><h2 className="text-xl font-bold text-gray-900">Venues</h2><span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-900">Planned</span></div>
           <p className="mt-2 max-w-2xl text-gray-600">
             Verified venue data is not yet available in the launch schema, so Pourfolio does not infer or fabricate venue records.
           </p>
