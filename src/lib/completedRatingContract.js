@@ -30,6 +30,12 @@ export const completedRatingTotal = (value) => {
 
 export const isCompletedRatingTotal = (value) => completedRatingTotal(value) !== null
 
+export const isReadableCompletedRating = (rating) => {
+  if (completedRatingTotal(rating?.total_weighted) === null) return false
+  const state = String(rating?.submission_state ?? '').trim()
+  return state === '' || state === 'complete'
+}
+
 export const distributionBucketForRating = (value) => {
   const total = completedRatingTotal(value)
   if (total === null) return null
