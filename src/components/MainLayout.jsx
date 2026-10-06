@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { FiBookOpen, FiClock, FiCompass, FiHome, FiLayers, FiLogOut, FiMapPin, FiPlusCircle, FiSearch, FiSettings, FiUser } from 'react-icons/fi'
+import { FiBookOpen, FiClock, FiCompass, FiHome, FiLogOut, FiMapPin, FiPlusCircle, FiSearch, FiSettings, FiUser } from 'react-icons/fi'
 import { Link, NavLink, useLocation } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import PublicDocumentLinks from './PublicDocumentLinks.jsx'
@@ -12,8 +12,7 @@ const navigation = [
   { to: '/search', label: 'Search', icon: FiSearch },
   { to: '/products/propose', label: 'Add Beer', icon: FiPlusCircle },
   { to: '/history', label: 'History', icon: FiClock },
-  { to: '/cellar', label: 'Cellar', icon: FiUser },
-  { to: '/features', label: "What's next", icon: FiLayers }
+  { to: '/cellar', label: 'Cellar', icon: FiUser }
 ]
 
 const routeLabel = (pathname) => {
@@ -101,7 +100,10 @@ function MainLayout({ children, user, onLogout }) {
       </header>
       <main ref={mainContentRef} id="main-content" tabIndex={-1} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-400">{children}</main>
       <footer className="border-t border-gray-200 bg-white">
-        <PublicDocumentLinks className="mx-auto flex max-w-7xl flex-wrap gap-x-5 gap-y-2 px-4 py-6 text-sm text-gray-700 sm:px-6 lg:px-8" />
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-6 text-sm text-gray-700 sm:px-6 lg:px-8">
+          <Link to="/features" className={`font-medium text-amber-800 hover:text-amber-900 ${focusRing}`}>Product roadmap</Link>
+          <PublicDocumentLinks className="flex flex-wrap gap-x-5 gap-y-2" />
+        </div>
       </footer>
     </div>
   )
