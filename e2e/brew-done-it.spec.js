@@ -16,10 +16,12 @@ test('primary navigation exposes planned features while Brew Done It remains con
   const primaryNavigation = page.getByRole('navigation', { name: 'Primary navigation' })
   await expect(primaryNavigation.getByRole('link', { name: 'Brew Done It' })).toHaveCount(0)
 
-  const plannedNavigation = primaryNavigation.getByRole('link', { name: "What's next" })
-  await expect(plannedNavigation).toBeVisible()
-  await expect(plannedNavigation).toHaveAttribute('href', '/features')
-  await plannedNavigation.click()
+  await expect(primaryNavigation.getByRole('link', { name: "What's next" })).toHaveCount(0)
+
+  const roadmapLink = page.getByRole('contentinfo').getByRole('link', { name: 'Product roadmap' })
+  await expect(roadmapLink).toBeVisible()
+  await expect(roadmapLink).toHaveAttribute('href', '/features')
+  await roadmapLink.click()
 
   await expect(page).toHaveURL(/\/features$/)
   await expect(page.getByRole('heading', { name: 'What is live and what is planned', level: 1 })).toBeVisible()
