@@ -136,15 +136,27 @@ const plannedFeatures = [
     icon: FiAward
   },
   {
-    title: 'Year in Pourfolio & data export',
-    status: 'Planned after analytics/export foundations',
-    description: 'A private annual recap, share-safe derived cards and convenient exports built on the existing canonical account-export authority.',
+    title: 'Year in Pourfolio',
+    status: 'Planned after analytics',
+    description: 'A private annual recap with share-safe derived cards built from verified personal analytics.',
     icon: FiBarChart2
+  },
+  {
+    title: 'Account export & deletion',
+    status: 'Identity lifecycle gated',
+    description: 'Portable account export, useful CSV views and governed account deletion will reuse the existing server-side identity lifecycle authority.',
+    icon: FiLock
+  },
+  {
+    title: 'Events',
+    status: 'Planned after verified business identity',
+    description: 'Releases, tap takeovers, festivals, tastings and tours with Interested/Going states and reminders after brewery and venue ownership is governed.',
+    icon: FiAward
   },
   {
     title: 'Verified brewery & venue tools',
     status: 'Planned',
-    description: 'Claimed business profiles, factual menus, privacy-safe analytics and moderated catalogue proposals require verified business ownership.',
+    description: 'Claimed business profiles, live factual menus, privacy-safe analytics and moderated catalogue proposals require verified business ownership. POS/menu integrations remain a later adapter layer after the native menu contract is stable.',
     icon: FiUsers
   },
   {

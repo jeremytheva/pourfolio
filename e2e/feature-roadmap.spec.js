@@ -19,13 +19,22 @@ test('feature status distinguishes active routes from planned placeholders', asy
     'Advanced beer rankings',
     'Lists & Want to Try',
     'Personal Taste Profile',
+    'Beer Passport geography',
+    'Style reference & personal context',
     'Venues & Venue Scores',
     'Find This Beer, follows & updates',
-    'Activity, achievements & expertise',
+    'Pourfolio Match & similar beers',
+    'Guest browse',
+    'Drinking Buddies & shared activity',
+    'Achievements & expertise indicators',
+    'Year in Pourfolio',
+    'Account export & deletion',
+    'Events',
     'Verified brewery & venue tools',
     'Brew Done It'
   ]) {
     const card = page.getByRole('article').filter({ hasText: title })
+    await expect(card).toHaveCount(1)
     await expect(card.getByRole('link')).toHaveCount(0)
   }
 
