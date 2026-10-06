@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { FiBookOpen, FiClock, FiCompass, FiHome, FiLogOut, FiMapPin, FiPlusCircle, FiSearch, FiSettings, FiTarget, FiUser } from 'react-icons/fi'
+import { FiBookOpen, FiClock, FiCompass, FiHome, FiLayers, FiLogOut, FiMapPin, FiPlusCircle, FiSearch, FiSettings, FiUser } from 'react-icons/fi'
 import { Link, NavLink, useLocation } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import PublicDocumentLinks from './PublicDocumentLinks.jsx'
@@ -8,12 +8,12 @@ const navigation = [
   { to: '/home', label: 'Discover', icon: FiHome },
   { to: '/styles', label: 'Styles', icon: FiBookOpen },
   { to: '/taste-map', label: 'Beer Passport', icon: FiCompass },
-  { to: '/brew-done-it', label: 'Brew Done It', icon: FiTarget },
-  { to: '/places', label: 'Breweries & Venues', icon: FiMapPin },
+  { to: '/places', label: 'Breweries', icon: FiMapPin },
   { to: '/search', label: 'Search', icon: FiSearch },
   { to: '/products/propose', label: 'Add Beer', icon: FiPlusCircle },
   { to: '/history', label: 'History', icon: FiClock },
-  { to: '/cellar', label: 'Cellar', icon: FiUser }
+  { to: '/cellar', label: 'Cellar', icon: FiUser },
+  { to: '/features', label: 'Coming soon', icon: FiLayers }
 ]
 
 const routeLabel = (pathname) => {
@@ -21,8 +21,9 @@ const routeLabel = (pathname) => {
   if (pathname === '/styles') return 'Beer styles'
   if (/^\/styles\/[^/]+$/.test(pathname)) return 'Beer style details'
   if (pathname === '/taste-map') return 'Taste Map and Beer Passport'
-  if (pathname === '/brew-done-it') return 'Brew Done It'
-  if (pathname === '/places') return 'Breweries and venues'
+  if (pathname === '/brew-done-it') return 'Brew Done It status'
+  if (pathname === '/places') return 'Breweries and planned venues'
+  if (pathname === '/features') return 'Planned features'
   if (pathname === '/search') return 'Search'
   if (pathname === '/products/propose') return 'Add beer proposal'
   if (pathname === '/cellar') return 'Cellar'
