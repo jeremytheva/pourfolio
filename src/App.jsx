@@ -15,12 +15,12 @@ const Styles = lazy(() => import('./pages/Styles.jsx'))
 const StyleProfile = lazy(() => import('./pages/StyleProfile.jsx'))
 const TasteMap = lazy(() => import('./pages/TasteMap.jsx'))
 const Places = lazy(() => import('./pages/Places.jsx'))
-const BrewDoneIt = lazy(() => import('./pages/BrewDoneIt.jsx'))
 const RateBeer = lazy(() => import('./pages/RateBeer.jsx'))
 const Cellar = lazy(() => import('./pages/Cellar.jsx'))
 const Profile = lazy(() => import('./pages/Profile.jsx'))
 const History = lazy(() => import('./pages/History.jsx'))
 const Settings = lazy(() => import('./pages/Settings.jsx'))
+const ProductRoadmap = lazy(() => import('./pages/ProductRoadmap.jsx'))
 const PublicUserProfile = lazy(() => import('./pages/PublicUserProfile.jsx'))
 const PublicDocumentPage = lazy(() => import('./pages/PublicDocumentPage.jsx'))
 
@@ -42,13 +42,6 @@ function ProtectedRoute({ user, onLogout, children }) {
 function AddBeerProposalRoute() {
   const location = useLocation()
   return <AddBeerProposal key={`${location.pathname}${location.search}`} />
-}
-
-function BrewDoneItRoute({ user }) {
-  const location = useLocation()
-  const candidate = String(location.state?.initialProductId ?? '').trim()
-  const initialProductId = /^[1-9]\d*$/.test(candidate) ? candidate : ''
-  return <BrewDoneIt key={initialProductId || 'brew-done-it'} user={user} initialProductId={initialProductId} />
 }
 
 function App() {
@@ -79,7 +72,8 @@ function App() {
             <Route path="/styles" element={protect(<Styles />)} />
             <Route path="/styles/:styleId" element={protect(<StyleProfile />)} />
             <Route path="/taste-map" element={protect(<TasteMap />)} />
-            <Route path="/brew-done-it" element={protect(<BrewDoneItRoute user={user} />)} />
+            <Route path="/features" element={protect(<ProductRoadmap />)} />
+            <Route path="/brew-done-it" element={protect(<ProductRoadmap focus="brew-done-it" />)} />
             <Route path="/products/:productId" element={protect(<BeerDetails />)} />
             <Route path="/products/:productId/propose-edit" element={protect(<EditBeerProposal />)} />
             <Route path="/products/:productId/rate" element={protect(<RateBeer />)} />
