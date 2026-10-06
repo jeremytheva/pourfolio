@@ -17,6 +17,7 @@ This map is a compact navigation aid for whole-system analysis. `ARCHITECTURE.md
 - `/styles`
 - `/styles/:styleId`
 - `/taste-map`
+- `/features`
 - `/brew-done-it`
 - `/products/:productId`
 - `/products/:productId/propose-edit`
@@ -36,7 +37,7 @@ This map is a compact navigation aid for whole-system analysis. `ARCHITECTURE.md
 - `/retention`
 <!-- current-browser-routes:end -->
 
-Reachability is separate from certification. `/brew-done-it` remains policy/provider-gated and launch-excluded; `/` and `*` redirect. Current blockers and acceptance evidence belong only in `STATUS.md` and linked issues.
+Reachability is separate from certification. `/features` is an informational roadmap surface. `/brew-done-it` is a non-playable status placeholder while the implemented game source remains policy/provider-gated and launch-excluded; `/` and `*` redirect. Current blockers and acceptance evidence belong only in `STATUS.md` and linked issues.
 
 ## Authentication
 
