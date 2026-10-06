@@ -194,6 +194,21 @@ function Profile() {
           })}</ul>}
         </section>
       </div>
+
+      <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="planned-personal-features">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Planned personal features</p>
+            <h2 id="planned-personal-features" className="mt-1 text-2xl font-semibold text-gray-900">Your Pourfolio will grow with your history</h2>
+          </div>
+          <Link to="/features" className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">View feature plan</Link>
+        </div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-3">
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Planned</p><h3 className="mt-1 font-semibold text-gray-900">Taste Profile</h3><p className="mt-2 text-sm text-gray-600">Private style, brewery, attribute and value patterns from qualifying history.</p></div>
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Privacy gated</p><h3 className="mt-1 font-semibold text-gray-900">Drinking Buddies</h3><p className="mt-2 text-sm text-gray-600">Mutual relationships and opt-in shared activity only after visibility and authorization rules are fully enforced.</p></div>
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Planned</p><h3 className="mt-1 font-semibold text-gray-900">Year in Pourfolio</h3><p className="mt-2 text-sm text-gray-600">A private annual recap with share-safe cards after personal analytics are stable.</p></div>
+        </div>
+      </section>
     </div>
   )
 }
