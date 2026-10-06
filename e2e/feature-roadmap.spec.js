@@ -9,9 +9,10 @@ test('feature status distinguishes active routes from planned placeholders', asy
   await page.goto('/features')
 
   await expect(page.getByRole('heading', { name: 'Available now and what comes next' })).toBeVisible()
-  await expect(page.getByRole('link', { name: /Beer Style Explorer/ })).toHaveAttribute('href', '/styles')
-  await expect(page.getByRole('link', { name: /Beer Passport/ })).toHaveAttribute('href', '/taste-map')
-  await expect(page.getByRole('link', { name: /Historical Feed/ })).toHaveAttribute('href', '/history')
+  const available = page.locator('section[aria-labelledby="available-features-heading"]')
+  await expect(available.getByRole('link', { name: /Beer Style Explorer/ })).toHaveAttribute('href', '/styles')
+  await expect(available.getByRole('link', { name: /Beer Passport/ })).toHaveAttribute('href', '/taste-map')
+  await expect(available.getByRole('link', { name: /Historical Feed/ })).toHaveAttribute('href', '/history')
 
   for (const title of [
     'Quick Rate',
