@@ -105,6 +105,22 @@ function Styles() {
           </ul>
         )}
       </section>
+
+      <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="planned-style-layers">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Style Explorer roadmap</p>
+            <h2 id="planned-style-layers" className="mt-1 text-2xl font-semibold text-gray-900">More style detail is planned</h2>
+            <p className="mt-2 max-w-3xl text-sm text-gray-600">The canonical style directory is live. These layers remain placeholders until their governed sources and dependent analytics are ready.</p>
+          </div>
+          <Link to="/features" className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">View product roadmap</Link>
+        </div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-3">
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Source gated</p><h3 className="mt-1 font-semibold text-gray-900">Style reference guide</h3><p className="mt-2 text-sm text-gray-600">Governed descriptions, expected characteristics and typical ranges without inferring facts from catalogue text.</p></div>
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Planned</p><h3 className="mt-1 font-semibold text-gray-900">Style rankings & value</h3><p className="mt-2 text-sm text-gray-600">Top-rated and best-value beers using server-authoritative rankings, Style Scaled Score and PPP.</p></div>
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Planned</p><h3 className="mt-1 font-semibold text-gray-900">Your style history</h3><p className="mt-2 text-sm text-gray-600">Owner-private tasting count, personal averages and favourite beers once the Taste Profile contract is stable.</p></div>
+        </div>
+      </section>
     </div>
   )
 }
