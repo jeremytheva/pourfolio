@@ -5,14 +5,14 @@ execution_slot: INTEGRATING
 phase: "Phase 3 — Beer discovery dependable"
 stage: "UI and roadmap truthfulness alignment"
 gate: Integration
-execution_state: VALIDATING
+execution_state: READY_FOR_REVIEW
 current_work:
   objective: "Align the production UI with implemented capabilities and the approved roadmap, using truthful placeholders for planned or contained features."
   issue: 593
   pr: 595
   branch: feat/ui-feature-plan-alignment
 next_actions:
-  - "Validate and integrate PR #595 against the latest intended head, then reconcile merged/deployed state."
+  - "Review and integrate PR #595; its substantive implementation head has passing project, browser/accessibility, CodeQL and preview-deployment evidence."
   - "Resume the preserved fix/rating-read-deferred-state-compatibility branch for the connected personal_history_projection 502; do not mix it into governance work."
   - "Complete the protected #577 credential probe when authenticated POST execution and supported account-session credentials are available."
   - "Keep #165 at the irreversible provider boundary until its migration approval package is complete."
@@ -35,10 +35,10 @@ wip:
 evidence:
   observed_main_commit: "20d55caf4fdf2a6e8b5327d5a176949c8f5b4230"
   current_candidate_commit: null
-  latest_validated_commit: "39d33df65c2f4bd1d2e1e4e5c8811d28e1e6b2e3"
+  latest_validated_commit: "b535d0fe004ad4b3c06f3f390f831f25c5b0142d"
   latest_deployed_commit: "20d55caf4fdf2a6e8b5327d5a176949c8f5b4230"
   latest_runtime_verified_commit: "cb5b3a996d7ea1c17babe0945830b9717e488dfa"
-  latest_browser_verified_commit: "39d33df65c2f4bd1d2e1e4e5c8811d28e1e6b2e3"
+  latest_browser_verified_commit: "b535d0fe004ad4b3c06f3f390f831f25c5b0142d"
 validation:
   governance: PASS
   lint: PASS
@@ -47,7 +47,7 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "39d33df65c2f4bd1d2e1e4e5c8811d28e1e6b2e3"
+last_verified_commit: "b535d0fe004ad4b3c06f3f390f831f25c5b0142d"
 last_updated: "2026-10-06T11:55:00+11:00"
 ---
 
@@ -58,7 +58,7 @@ Last materially reviewed: 6 October 2026
 
 ## AI execution gate
 
-**Gate:** Integration. **State:** VALIDATING PR #595. The current change aligns production navigation and user-facing feature states with the implemented application and approved roadmap: active capabilities remain interactive, planned capabilities are labelled placeholders, and contained Brew Done It play is not exposed as a live action.
+**Gate:** Integration. **State:** READY FOR REVIEW PR #595. The current change aligns production navigation and user-facing feature states with the implemented application and approved roadmap: active capabilities remain interactive, planned capabilities are labelled placeholders, and contained Brew Done It play is not exposed as a live action.
 
 ## Autonomous continuation support
 
@@ -69,7 +69,7 @@ Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` 
 ## Current integration and evidence
 
 - PR #595 is the sole ordinary implementation PR at inspection. It tracks issue #593 and keeps the partial `fix/rating-read-deferred-state-compatibility` branch preserved outside this UI slice until it receives its own coherent PR/evidence.
-- Current observed `main`: `20d55caf4fdf2a6e8b5327d5a176949c8f5b4230` after #592. Production deployment `dpl_2W7G35SWgVc94zAycAPRaqBcjLrw` is READY for that main revision. PR #595 has a READY Vercel preview at head `78c8d84b4ffc8c412976354827386600a45e1dee`; canonical PR validation must still complete against the final head before merge.
+- Current observed `main`: `20d55caf4fdf2a6e8b5327d5a176949c8f5b4230` after #592. Production deployment `dpl_2W7G35SWgVc94zAycAPRaqBcjLrw` is READY for that main revision. PR #595 substantive head `b535d0fe004ad4b3c06f3f390f831f25c5b0142d` passed canonical `npm run platform:validate`, browser/accessibility validation, CodeQL and dependency review, with READY Vercel preview `dpl_Emkms25mxcbKd3jV4d3KUvk8Cm5r`.
 - Production deployment `dpl_FkJALvLbcgZ2afkvqJykG1HB1e6x` is READY on merged main `f6388c0cb9f3354d2b5a2146b0bff097fe1da251`. Connected read-only staging-release evidence examined 1,733 `bonus_attribute_rating_mapping` rows, 82 bonus attributes and 620 ratings: all mapping rows used `bonus_attribute_id`, zero used `bonus_attributes_id`, and all checked relationships were valid. This is PROVIDER VERIFIED field-shape evidence. The broader rating integrity audit separately encountered a provider 502 during `personal_history_projection`.
 - Provider access/credential-rotation incidents #224/#225/#381/#382 are resolved on retained evidence. `docs/evidence/github-issue-state.json`, captured from connected GitHub inspection on 5 October 2026, records #224 and #225 closed. Offline repository validation must not describe that retained snapshot as fresh live GitHub state.
 - The nine-variable NoCodeBackend contract is in `contracts/pourfolio-data-contract.json` and `.env.example`. User/admin Secret Keys are database credentials, not login passwords.
@@ -88,7 +88,7 @@ Both issues were freshly confirmed open. No owner decision is requested before t
 
 ## Next dependency-correct work
 
-1. Validate and merge PR #595, then resume the preserved `fix/rating-read-deferred-state-compatibility` branch and diagnose the connected `personal_history_projection` provider 502 using read-only evidence first.
+1. Review and merge PR #595, then resume the preserved `fix/rating-read-deferred-state-compatibility` branch and diagnose the connected `personal_history_projection` provider 502 using read-only evidence first.
 2. Prepare #165 migration evidence within the reversible boundary. Once deployed and verified, continue #144 backend certification, backend-dependent #154 catalogue certification and launch verification.
 3. Continue #577 credential certification when its execution/session prerequisites are available.
 4. Continue bounded provider-independent #449 work or evidence-grounded #429 cleanup where useful; do not invent cleanup or re-delete removed proxies.
