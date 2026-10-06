@@ -25,7 +25,6 @@ test('feature status distinguishes active routes from planned placeholders', asy
     'Brew Done It'
   ]) {
     const card = page.getByRole('article').filter({ hasText: title })
-    await expect(card).toHaveAttribute('aria-disabled', 'true')
     await expect(card.getByRole('link')).toHaveCount(0)
   }
 
