@@ -39,11 +39,12 @@ Current authenticated routes include:
 - `/places` and `/breweries/:producerId`;
 - `/styles` and `/styles/:styleId`;
 - `/taste-map`;
+- `/features` for implemented/planned capability status;
 - `/cellar`, `/history`, `/profile`, `/settings`, and `/users/:publicProfileId`.
 
 `/login` is the unauthenticated entry route. Public document routes are generated from `src/data/publicDocuments.js`.
 
-`/brew-done-it` is present in source routing but remains a separately governed, fail-closed capability: production usability depends on its server-side policy/provider-certification boundary and it must not be represented as launch-ready merely because a browser route exists.
+`/brew-done-it` is present in source routing for controlled authenticated testing but remains absent from production-facing navigation and product CTAs. It is a separately governed, fail-closed capability: production discovery/usability depends on its server-side policy and provider/privacy/recovery certification boundary and it must not be represented as launch-ready merely because a browser route exists.
 
 Reachability and launch readiness are separate concepts. Prototype source that is not routed must not be represented as an available product capability, while routed capabilities that are policy-disabled or dependency-gated must be documented as such.
 
