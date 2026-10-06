@@ -1,6 +1,6 @@
 # ROADMAP.md
 
-**Last materially reviewed:** 22 September 2026
+**Last materially reviewed:** 6 October 2026
 
 ## Current milestone
 
@@ -34,9 +34,13 @@ GitHub Actions are supporting diagnostic evidence. Empty/non-substantive Platfor
 
 ## Phase 1 — Canonical backend contract
 
+### Current integration reconciliation
+
+Before entering provider mutation work, complete the preserved rating-read compatibility correction for the connected `personal_history_projection` 502 and bounded application verification of the corrected bonus relationship path. Live evidence has already established that `bonus_attribute_rating_mapping` uses singular `bonus_attribute_id`; #509 is therefore a bounded application verification task rather than a broad mapping implementation.
+
 ### #165 — rating idempotency/schema
 
-This is the current irreversible provider boundary.
+This is the current irreversible provider boundary. Begin with live-schema re-certification because retained evidence indicates durability fields may already have been migrated; never repeat a migration or backfill from documentation assumptions.
 
 Application-side durability/reconciliation contracts exist, but provider mutation must not proceed until there is evidence for:
 
@@ -49,9 +53,13 @@ Application-side durability/reconciliation contracts exist, but provider mutatio
 
 Until then, `/ratings/reconcile` remains unavailable and no application assumption may be represented as deployed provider capability.
 
+### #503 / #577 — durable workflow and connected auth certification
+
+After #165 live-state re-certification, complete the durable rating workflow against the provider state actually evidenced. Continue #577 connected user/admin authentication and authorization certification wherever its protected execution and supported account-session prerequisites are available; do not misuse database Secret Keys as login passwords and do not let #577 mutate the #165 rating boundary.
+
 ### #144 — canonical backend certification
 
-Proceed after the #165 provider prerequisites are satisfied. Certify the exact provider state, permissions, imports, retry/reconciliation behaviour, failure handling and recovery evidence against an exact candidate revision.
+Proceed after the applicable #165/#503 provider prerequisites are satisfied, incorporating #577 evidence where available. Certify the exact provider state, permissions, imports, retry/reconciliation behaviour, failure handling and recovery evidence against an exact candidate revision.
 
 ## Phase 2 — Identity lifecycle
 
@@ -102,8 +110,18 @@ The next Brew Done It work is provider schema/permission certification, connecte
 ## Immediate dependency-correct path
 
 ```text
+CURRENT RECONCILIATION
+rating-read compatibility / personal_history_projection 502
+        ↓
+bounded bonus relationship application verification
+        ↓
+
 CONNECTED PROVIDER PATH
-#165 rating idempotency/schema evidence + approved migration
+#165 live-schema re-certification → only then any required migration
+        ↓
+#503 durable rating workflow
+        ↓
+#577 connected auth/authorization certification where prerequisites permit
         ↓
 #144 canonical backend/provider certification
         ↓
@@ -113,8 +131,12 @@ exact-candidate launch verification
 
 INDEPENDENT LAUNCH WORK
 #449 safe provider-independent workflow work
-#429 targeted unreachable-code cleanup
+#449 safe provider-independent workflow work
 reliability / accessibility / truthful-data fixes
+
+MAINTENANCE LANES
+#143 governance hardening when evidence warrants it
+#429 targeted cleanup when reachability evidence warrants it
 
 BREW DONE IT (SEPARATE)
 #410 persistent core — merged
@@ -127,8 +149,6 @@ connected privacy / two-device / recovery evidence
         ↓
 separate production enablement
 
-GOVERNANCE (NON-BLOCKING UNTIL RELEASE)
-#143 practical GitHub/ruleset hardening
 ```
 
 ## Launch release gate
