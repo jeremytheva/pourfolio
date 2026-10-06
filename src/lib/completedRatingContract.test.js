@@ -5,7 +5,8 @@ import {
   RATING_DISTRIBUTION_BUCKETS,
   buildCompletedRatingDistribution,
   completedRatingTotal,
-  distributionBucketForRating
+  distributionBucketForRating,
+  isReadableCompletedRating
 } from './completedRatingContract.js'
 
 test('completed rating totals are greater than zero and at most five', () => {
@@ -42,4 +43,16 @@ test('distribution conserves every valid decimal rating exactly once', () => {
   const accepted = values.filter((value) => completedRatingTotal(value) !== null)
   assert.equal(distribution.reduce((sum, bucket) => sum + bucket.count, 0), accepted.length)
   assert.equal(distribution.find((bucket) => bucket.key === '4.5-5.0').count, 3)
+})
+
+
+test('readable completed ratings preserve legacy rows and reject explicit incomplete states', () => {
+  assert.equal(isReadableCompletedRating({ total_weighted: 4.2 }), true)
+  assert.equal(isReadableCompletedRating({ total_weighted: 4.2, submission_state: null }), true)
+  assert.equal(isReadableCompletedRating({ total_weighted: 4.2, submission_state: 'complete' }), true)
+  for (const submission_state of ['pending', 'failed', 'deleting', 'deleted']) {
+    assert.equal(isReadableCompletedRating({ total_weighted: 4.2, submission_state }), false)
+  }
+  assert.equal(isReadableCompletedRating({ total_weighted: 0, submission_state: 'complete' }), false)
+  assert.equal(isReadableCompletedRating({ total_weighted: 5.01, submission_state: 'complete' }), false)
 })
