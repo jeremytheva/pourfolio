@@ -1,21 +1,21 @@
 ---
 project: Pourfolio
-portfolio_state: ACTIVE
-execution_slot: INTEGRATING
+portfolio_state: READY
+execution_slot: NONE
 phase: "Phase 3 — Beer discovery dependable"
-stage: "UI and feature-roadmap alignment"
-gate: Integration
-execution_state: VALIDATING
+stage: "Dependency-correct launch continuation"
+gate: Project Entry
+execution_state: READY
 current_work:
-  objective: "Align production navigation and feature-status UI with the implemented code and approved roadmap without enabling dependency-gated capabilities."
-  issue: 594
-  pr: 596
-  branch: feat/ui-feature-status-alignment
+  objective: "No implementation PR is active; resume the highest-priority dependency-correct launch work."
+  issue: null
+  pr: null
+  branch: null
 next_actions:
-  - "Run canonical validation and applicable browser/accessibility checks on PR #596 latest head."
-  - "Inspect the Vercel preview for route/navigation rendering and truthful planned-feature states."
-  - "Fix any genuine failures, then merge #596 only when latest-head evidence is sufficient."
-  - "After integration, resume the preserved rating-read/provider 502 work and other dependency-correct launch tasks."
+  - "Resume the preserved rating-read deferred-state/provider 502 diagnosis using read-only evidence first."
+  - "Prepare #165 migration evidence within the reversible boundary; do not cross the irreversible provider boundary without the governed approval package."
+  - "Continue #577 credential certification when authenticated POST execution and supported account-session credentials are available."
+  - "Continue bounded provider-independent #449 work or evidence-grounded #429 cleanup where useful."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
@@ -28,27 +28,27 @@ owner_decision:
   question: null
   recommendation: "Do not request #165 migration approval until the evidence package is complete enough to present the exact irreversible operation and recovery path."
 wip:
-  open_implementation_prs: 1
-  dependent_stack_depth: 1
+  open_implementation_prs: 0
+  dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "20d55caf4fdf2a6e8b5327d5a176949c8f5b4230"
+  observed_main_commit: "5ecd49191d074f04cc4f5379748b8c1615fafdbb"
   current_candidate_commit: null
-  latest_validated_commit: "39d33df65c2f4bd1d2e1e4e5c8811d28e1e6b2e3"
-  latest_deployed_commit: "20d55caf4fdf2a6e8b5327d5a176949c8f5b4230"
-  latest_runtime_verified_commit: "cb5b3a996d7ea1c17babe0945830b9717e488dfa"
-  latest_browser_verified_commit: "39d33df65c2f4bd1d2e1e4e5c8811d28e1e6b2e3"
+  latest_validated_commit: "9a46b4386454c680bf421d298d4543bbbcf348ec"
+  latest_deployed_commit: "5ecd49191d074f04cc4f5379748b8c1615fafdbb"
+  latest_runtime_verified_commit: "5ecd49191d074f04cc4f5379748b8c1615fafdbb"
+  latest_browser_verified_commit: "9a46b4386454c680bf421d298d4543bbbcf348ec"
 validation:
-  governance: NOT_RUN
-  lint: NOT_RUN
+  governance: PASS
+  lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: NOT_RUN
-  build: NOT_RUN
-  ci: PENDING
-  runtime: UNVERIFIED
-last_verified_commit: "39d33df65c2f4bd1d2e1e4e5c8811d28e1e6b2e3"
-last_updated: "2026-10-06T11:54:51+11:00"
+  tests: PASS
+  build: PASS
+  ci: PASS
+  runtime: VERIFIED
+last_verified_commit: "9a46b4386454c680bf421d298d4543bbbcf348ec"
+last_updated: "2026-10-06T12:06:31+11:00"
 ---
 
 
@@ -58,7 +58,7 @@ Last materially reviewed: 6 October 2026
 
 ## AI execution gate
 
-**Gate:** Integration. **State:** VALIDATING PR #596. The current change reconciles the production-facing UI with the authoritative interface plan and approved roadmap: launch-primary navigation is narrowed to the documented four destinations, implemented supporting experiences move into an Explore surface, planned capabilities receive truthful non-interactive placeholders, and Brew Done It returns behind its production-discovery certification boundary.
+**Gate:** Project Entry. **State:** READY. UI/roadmap alignment issue #594 is complete and PR #596 is merged and deployed. There is no active implementation PR. Continue with the highest-priority dependency-correct launch work without reopening completed UI alignment unless new evidence shows drift.
 
 ## Autonomous continuation support
 
@@ -68,11 +68,12 @@ Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` 
 
 ## Current integration and evidence
 
-- PR #596 is the sole ordinary implementation PR for issue #594 on branch `feat/ui-feature-status-alignment`. It is based on observed main `20d55caf4fdf2a6e8b5327d5a176949c8f5b4230`.
-- The review found a concrete interface/code drift: `docs/INTERFACE_PLAN.md` defined four launch-primary destinations while `MainLayout.jsx` exposed secondary/post-launch surfaces as peers, including Brew Done It despite its explicit certification boundary.
-- The current candidate restores the documented primary information architecture, adds secondary Explore navigation, adds `/features` as a feature-status surface, keeps implemented foundations linked, and renders planned/dependency-gated capabilities as informational placeholders rather than fake active controls.
-- Brew Done It remains directly routed only for controlled authenticated testing; production-facing navigation and product CTAs no longer advertise it. The containment regression now enforces that boundary instead of requiring the stale primary-navigation exposure.
-- Production remains READY on Vercel at merged main `20d55caf4fdf2a6e8b5327d5a176949c8f5b4230`. PR #596 requires its own latest-head validation, browser/accessibility and preview/deployment evidence before merge.
+- UI/roadmap alignment issue #594 is closed via merged PR #596.
+- Final PR head `9a46b4386454c680bf421d298d4543bbbcf348ec` passed canonical `npm run platform:validate`, Browser and accessibility, Dependency review, CodeQL and PR lifecycle checks.
+- Production deployment `dpl_DTX2SMCLg5NKrexeqe7xvFEgu4D8` is READY on merged main `5ecd49191d074f04cc4f5379748b8c1615fafdbb`. Production `/api/health` reports that exact SHA and healthy configured authentication, data, canonical endpoints, credentials, instance and shared rate limiter.
+- The production UI now uses the documented launch-primary navigation, an Explore row for implemented supporting experiences, and `/features` for current/planned capability status. Planned cards are informational and non-actionable until their dependencies are certified.
+- Brew Done It remains absent from production-facing navigation and product CTAs. Its protected direct route remains available for controlled testing while its server policy/provider/privacy/recovery boundary stays fail-closed.
+- No provider schema, authentication authority or blocked capability was enabled by #596.
 
 Detailed implementation history belongs in commits, PRs and `docs/RELEASE_TRACKING.md`.
 
@@ -87,11 +88,10 @@ Both issues were freshly confirmed open. No owner decision is requested before t
 
 ## Next dependency-correct work
 
-1. Complete canonical validation, browser/accessibility evidence and Vercel preview inspection for PR #596; fix genuine failures and integrate only on sufficient latest-head evidence.
-2. After #596 integration, resume the preserved rating-read deferred-state/provider 502 diagnosis with read-only evidence first.
-3. Prepare #165 migration evidence within the reversible boundary. Once deployed and verified, continue #144 backend certification, backend-dependent #154 catalogue certification and launch verification.
-4. Continue #577 credential certification when its execution/session prerequisites are available.
-5. Continue bounded provider-independent #449 work or evidence-grounded #429 cleanup where useful.
+1. Resume the preserved rating-read deferred-state/provider `personal_history_projection` 502 diagnosis using read-only evidence first.
+2. Prepare #165 migration evidence within the reversible boundary. Once deployed and verified, continue #144 backend certification, backend-dependent #154 catalogue certification and launch verification.
+3. Continue #577 credential certification when its execution/session prerequisites are available.
+4. Continue bounded provider-independent #449 work or evidence-grounded #429 cleanup where useful.
 
 ## Deferred capability boundaries
 
