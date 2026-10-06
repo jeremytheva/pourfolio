@@ -53,7 +53,7 @@ const plannedGroups = [
     title: 'Guest browse & account portability',
     status: 'Planned',
     icon: FiLock,
-    description: 'Read-only public catalogue browsing without sign-in plus a completed portable account export with useful CSV views.',
+    description: 'Read-only public catalogue browsing without sign-in plus portable account export, useful CSV views and governed account-deletion controls.',
     dependency: 'Guest mode must use strict public projections. Export reuses the existing Phase 2 account-lifecycle authority rather than creating a parallel data path.'
   },
   {
