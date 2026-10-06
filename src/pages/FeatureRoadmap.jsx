@@ -205,7 +205,7 @@ function FeatureRoadmap() {
         <ul className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {plannedFeatures.map((feature) => (
             <li key={feature.title}>
-              <article aria-disabled="true" className="h-full rounded-2xl border border-dashed border-gray-300 bg-white p-5">
+              <article className="h-full rounded-2xl border border-dashed border-gray-300 bg-white p-5">
                 <div className="flex items-start gap-3">
                   <SafeIcon icon={feature.icon} className="mt-0.5 h-5 w-5 text-gray-500" />
                   <div className="min-w-0">
