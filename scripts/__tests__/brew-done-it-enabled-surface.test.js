@@ -15,7 +15,7 @@ test('Brew Done It remains contained behind an informational authenticated route
 test('Brew Done It is absent from primary navigation and planned features are discoverable', () => {
   const layout = read('src/components/MainLayout.jsx')
   assert.doesNotMatch(layout, /to: '\/brew-done-it', label: 'Brew Done It'/)
-  assert.match(layout, /to: '\/features', label: 'Coming soon'/)
+  assert.match(layout, /to: '\/features', label: "What's next"/)
   assert.match(layout, /pathname === '\/brew-done-it'/)
   assert.match(layout, /pathname === '\/features'/)
 })
