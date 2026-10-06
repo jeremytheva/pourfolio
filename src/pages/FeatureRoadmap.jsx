@@ -19,6 +19,24 @@ import { Link } from '../lib/router.jsx'
 
 const availableFeatures = [
   {
+    title: 'Discover, search & Full Tasting',
+    description: 'Browse the verified catalogue, open a beer and record the structured Pourfolio tasting that powers authoritative scores.',
+    to: '/home',
+    icon: FiTarget
+  },
+  {
+    title: 'Cellar',
+    description: 'Track beers you own with owner-scoped quantity, container, purchase and note details.',
+    to: '/cellar',
+    icon: FiList
+  },
+  {
+    title: 'Add beer & suggest corrections',
+    description: 'Propose missing beers and factual catalogue corrections through the governed moderation workflow.',
+    to: '/products/propose',
+    icon: FiCheckCircle
+  },
+  {
     title: 'Beer Style Explorer',
     description: 'Browse verified canonical styles and the beers and breweries currently linked to them.',
     to: '/styles',
@@ -94,10 +112,34 @@ const plannedFeatures = [
     icon: FiBell
   },
   {
-    title: 'Activity, achievements & expertise',
+    title: 'Pourfolio Match & similar beers',
+    status: 'Planned after taste analytics',
+    description: 'An explainable 0–100 compatibility score and similar-beer recommendations using documented style, brewery and attribute-affinity signals.',
+    icon: FiTrendingUp
+  },
+  {
+    title: 'Guest browse',
+    status: 'Planned',
+    description: 'Read-only catalogue, beer, brewery, style and ranking discovery through public projections without exposing owner-only data.',
+    icon: FiUsers
+  },
+  {
+    title: 'Drinking Buddies & shared activity',
+    status: 'Privacy/provider gated',
+    description: 'Opt-in tasting and exploration sharing with lightweight reactions, comments and Want to Try actions. Private history remains private by default.',
+    icon: FiUsers
+  },
+  {
+    title: 'Achievements & expertise indicators',
     status: 'Privacy-gated',
-    description: 'Opt-in shared activity and exploration achievements will recognise breadth and thoughtful tasting, not consumption speed or volume.',
+    description: 'Exploration achievements will recognise breadth, detailed tasting and learning rather than drinking speed or raw consumption volume.',
     icon: FiAward
+  },
+  {
+    title: 'Year in Pourfolio & data export',
+    status: 'Planned after analytics/export foundations',
+    description: 'A private annual recap, share-safe derived cards and convenient exports built on the existing canonical account-export authority.',
+    icon: FiBarChart2
   },
   {
     title: 'Verified brewery & venue tools',
