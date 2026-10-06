@@ -16,13 +16,13 @@ test('primary navigation exposes planned features while Brew Done It remains con
   const primaryNavigation = page.getByRole('navigation', { name: 'Primary navigation' })
   await expect(primaryNavigation.getByRole('link', { name: 'Brew Done It' })).toHaveCount(0)
 
-  const plannedNavigation = primaryNavigation.getByRole('link', { name: 'Coming soon' })
+  const plannedNavigation = primaryNavigation.getByRole('link', { name: "What's next" })
   await expect(plannedNavigation).toBeVisible()
   await expect(plannedNavigation).toHaveAttribute('href', '/features')
   await plannedNavigation.click()
 
   await expect(page).toHaveURL(/\/features$/)
-  await expect(page.getByRole('heading', { name: 'What is live and what is coming next', level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'What is live and what is planned', level: 1 })).toBeVisible()
   await expect(page.getByText('Approved planned capabilities')).toBeVisible()
   expect(gameRequests).toEqual([])
 
