@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { FiAlertTriangle, FiCheck, FiRotateCcw, FiSettings } from 'react-icons/fi'
 import SafeIcon from '../common/SafeIcon.jsx'
+import { Link } from '../lib/router.jsx'
 import { getSettings, resetSettings, saveSettings, validateWeights } from '../utils/settingsManager.js'
 import { FIXED_BONUS_WEIGHT, rebalanceFixedBonusWeights } from '../lib/ratingFormulaV1.js'
 
@@ -124,6 +125,29 @@ function Settings() {
           <button type="button" onClick={reset} className="inline-flex flex-1 items-center justify-center rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
             <SafeIcon icon={FiRotateCcw} className="mr-2 h-5 w-5" />Reset to defaults
           </button>
+        </div>
+      </section>
+
+      <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8" aria-labelledby="account-data-heading">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Planned account controls</p>
+            <h2 id="account-data-heading" className="mt-1 text-2xl font-semibold text-gray-900">Your account and data</h2>
+            <p className="mt-2 max-w-2xl text-sm text-gray-600">These controls are planned but are not active from the browser yet.</p>
+          </div>
+          <Link to="/features" className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">View product roadmap</Link>
+        </div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Planned</p>
+            <h3 className="mt-1 font-semibold text-gray-900">Export my data</h3>
+            <p className="mt-2 text-sm text-gray-600">Portable account export with useful CSV views for ratings, cellar and future lists, using the existing server-side export authority.</p>
+          </div>
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Planned</p>
+            <h3 className="mt-1 font-semibold text-gray-900">Delete my account</h3>
+            <p className="mt-2 text-sm text-gray-600">A governed account-deletion flow will be exposed only when identity, ownership and retained-history rules are fully certified.</p>
+          </div>
         </div>
       </section>
     </div>
