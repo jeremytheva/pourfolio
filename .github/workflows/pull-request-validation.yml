@@ -111,6 +111,28 @@ jobs:
         run: |
           mkdir -p artifacts/bonus-rating-mapping
           node scripts/audit-live-bonus-rating-mapping.js | tee artifacts/bonus-rating-mapping/summary.json
+      - name: Preflight live bonus category plan
+        env: &live-bonus-category-environment
+          RUN_LIVE_BONUS_CATEGORY_RECONCILIATION: "1"
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+        shell: bash
+        run: |
+          node scripts/reconcile-bonus-attribute-categories.js | tee artifacts/bonus-rating-mapping/category-plan-before.json
+      - name: Apply exact guarded live bonus category plan
+        env:
+          <<: *live-bonus-category-environment
+          LIVE_BONUS_CATEGORY_RECONCILIATION_CONFIRMATION: "APPLY LIVE BONUS ATTRIBUTE CATEGORY PLAN"
+          EXPECTED_LIVE_BONUS_CATEGORY_MUTATIONS: "95"
+        shell: bash
+        run: |
+          node scripts/reconcile-bonus-attribute-categories.js --apply | tee artifacts/bonus-rating-mapping/category-plan-apply.json
+      - name: Verify zero remaining live bonus category drift
+        env: *live-bonus-category-environment
+        shell: bash
+        run: |
+          node scripts/reconcile-bonus-attribute-categories.js | tee artifacts/bonus-rating-mapping/category-plan-after.json
       - name: Retain redacted bonus mapping evidence
         if: always()
         uses: actions/upload-artifact@v7
