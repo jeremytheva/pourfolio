@@ -394,8 +394,8 @@ const getProduct = async (id, response) => {
   // NoCodeBackend compound filters can omit otherwise valid rating rows.
   // Scope the provider read by product identity only, then enforce the durable
   // completion contract inside this trusted application boundary.
-  const ratings = await safeRelationshipList(COLLECTIONS.ratings, {
-    product_id: product.id
+  const ratings = await readAllProviderRows(COLLECTIONS.ratings, {
+    filters: { product_id: product.id }
   })
   const validRatings = ratings.filter((rating) =>
     String(rating?.product_id ?? '') === String(product.id) && isCompletedRating(rating)
