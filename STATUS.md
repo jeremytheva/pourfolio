@@ -7,12 +7,13 @@ stage: "Dependency-correct launch continuation"
 gate: Project Entry
 execution_state: READY
 current_work:
-  objective: "No implementation PR is active; resume the highest-priority dependency-correct launch work."
+  objective: "Connected rating integrity is green; prepare the exact #509 additive provider apply for owner approval while continuing independent launch work."
   issue: null
   pr: null
   branch: null
 next_actions:
-  - "Complete authenticated connected verification for #600 against the deployed owner-history fix; keep the issue open until the provider 502 is disproved in production."
+  - "Obtain explicit owner approval before the #509 live additive apply: create 1 Burp category plus 94 category mappings, exact mutation count 95; then rerun dry-run verification and require zero remaining mutations."
+  - "Complete #600 authenticated HTTP/session runtime evidence when supported account-session credentials are available; provider-read integrity is already verified."
   - "Prepare #165 migration evidence within the reversible boundary; do not cross the irreversible provider boundary without the governed approval package."
   - "Continue #577 credential certification when authenticated POST execution and supported account-session credentials are available."
   - "Continue bounded provider-independent #449 work or evidence-grounded #429 cleanup where useful."
@@ -23,22 +24,22 @@ blockers:
   - scope: user_admin_connected_session_certification
     issue: 577
     detail: "The read-only Secret-Key preflight is implemented and deployed, but current Secret Keys are database API credentials rather than login passwords. Protected POST execution plus supported password/OTP/JWT account credentials are still required for session and owner-isolation evidence."
-requires_owner_decision: false
+requires_owner_decision: true
 owner_decision:
-  question: null
-  recommendation: "Do not request #165 migration approval until the evidence package is complete enough to present the exact irreversible operation and recovery path."
+  question: "Approve #509 live additive provider reconciliation: create the missing Burp category and 94 bonus-category mappings using the exact preflight count of 95?"
+  recommendation: "Approve #509 only as the exact guarded additive operation above. Keep #165 migration approval separate until its irreversible-operation and recovery evidence package is complete."
 wip:
   open_implementation_prs: 0
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "f254176e6e19082e4528402a6db2e712d82b1188"
+  observed_main_commit: "6e3f90a047074d2b504a98f7eadff0a57545dd75"
   current_candidate_commit: null
-  latest_validated_commit: "53fa080e54c7388c17340fa3d5ea95e7bfcb9187"
-  latest_deployed_commit: "f254176e6e19082e4528402a6db2e712d82b1188"
+  latest_validated_commit: "8f919a8540ca8ab36e7d761fa7c593b487fb82b3"
+  latest_deployed_commit: "6e3f90a047074d2b504a98f7eadff0a57545dd75"
   latest_runtime_verified_commit: "5ecd49191d074f04cc4f5379748b8c1615fafdbb"
-  latest_browser_verified_commit: "53fa080e54c7388c17340fa3d5ea95e7bfcb9187"
+  latest_browser_verified_commit: "8f919a8540ca8ab36e7d761fa7c593b487fb82b3"
 validation:
   governance: PASS
   lint: PASS
@@ -47,18 +48,18 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "53fa080e54c7388c17340fa3d5ea95e7bfcb9187"
-last_updated: "2026-10-07T20:05:54+11:00"
+last_verified_commit: "8f919a8540ca8ab36e7d761fa7c593b487fb82b3"
+last_updated: "2026-10-07T20:43:42+11:00"
 ---
 
 
 # STATUS.md
 
-Last materially reviewed: 6 October 2026
+Last materially reviewed: 7 October 2026
 
 ## AI execution gate
 
-**Gate:** Project Entry. **State:** READY. Owner-history provider fix PR #601 is merged and deployed. There is no active implementation PR. Issue #600 remains open only for authenticated connected verification of the production provider read; continue the highest-priority dependency-correct launch work without reopening completed UI alignment unless new evidence shows drift.
+**Gate:** Project Entry. **State:** READY WITH OWNER DECISION. PRs #601, #604, #605 and #606 are merged; production is on #606. Connected rating integrity is green. #509 has a verified additive plan of 95 live mutations and now requires exact owner approval before provider write execution; independent launch work may continue.
 
 ## Autonomous continuation support
 
@@ -68,6 +69,9 @@ Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` 
 
 ## Current integration and evidence
 
+- PR #606 merged product community-rating pagination as `6e3f90a047074d2b504a98f7eadff0a57545dd75`; production deployment `dpl_AGQmQkFpGqejxxzEuBATtgtbavZN` is READY on that exact SHA. PR head `8f919a8540ca8ab36e7d761fa7c593b487fb82b3` passed canonical validation, Browser/accessibility, Dependency Review, CodeQL and PR lifecycle checks.
+- Protected read-only connected run `37602376459`, based on merged #606 application source, passed full rating integrity: 620 ratings, 3 owners, 574 complete / 38 pending / 8 failed, 308 products with completed ratings, 1,733 bonus-rating mappings, and the live rating reconciliation dry run with 0 eligible legacy mutations. The former `personal_history_projection` 502 and the 10-vs-11 product aggregate mismatch are no longer reproduced.
+- #509 live bonus-category dry run is now valid after #605 pagination correction: 82/82 canonical attributes matched, 8 global categories observed, 0 global category mappings currently present, 1 missing canonical category (`Burp`), 94 missing mappings, exact additive mutation count 95. No provider write has been performed; exact owner approval is required before apply.
 - PR #601 merged the owner-history provider query correction as `f254176e6e19082e4528402a6db2e712d82b1188`; exact head `53fa080e54c7388c17340fa3d5ea95e7bfcb9187` passed canonical validation, Browser/accessibility, Dependency Review, CodeQL and PR lifecycle checks. Production deployment `dpl_Hpe5UAr7nTZXxYA4eoJQLrLjW52x` is READY on the merged SHA. #600 remains open for authenticated connected verification only; no provider schema/data mutation occurred.
 - UI/roadmap alignment issue #594 is closed via merged PR #596.
 - Final PR head `9a46b4386454c680bf421d298d4543bbbcf348ec` passed canonical `npm run platform:validate`, Browser and accessibility, Dependency review, CodeQL and PR lifecycle checks.
@@ -89,10 +93,11 @@ Both issues were freshly confirmed open. No owner decision is requested before t
 
 ## Next dependency-correct work
 
-1. Complete authenticated connected verification for #600 against production. The source fix is merged/deployed; do not close #600 until live owner history proves the provider 502 is resolved.
-2. Prepare #165 migration evidence within the reversible boundary. Once deployed and verified, continue #144 backend certification, backend-dependent #154 catalogue certification and launch verification.
-3. Continue #577 credential certification when its execution/session prerequisites are available.
-4. Continue bounded provider-independent #449 work or evidence-grounded #429 cleanup where useful.
+1. Obtain explicit owner approval for #509 before the exact guarded live additive operation: create 1 missing `Burp` category and 94 category mappings (`EXPECTED_LIVE_BONUS_CATEGORY_MUTATIONS=95`), then rerun dry-run verification and require zero remaining mutations.
+2. Complete #600 authenticated HTTP/session runtime evidence when supported account-session credentials are available. The provider-read defect is resolved: connected owner-history projection and full rating integrity now pass.
+3. Prepare #165 migration evidence within the reversible boundary. Once deployed and verified, continue #144 backend certification, backend-dependent #154 catalogue certification and launch verification.
+4. Continue #577 credential certification when its execution/session prerequisites are available.
+5. Continue bounded provider-independent #449 work or evidence-grounded #429 cleanup where useful.
 
 ## Deferred capability boundaries
 
@@ -110,4 +115,4 @@ The available agent file controls cannot attach/detach Project sources. The exac
 
 ## Validation limitations
 
-Source validation does not prove application writes. The isolated connected audit proves the current provider read contract: `bonus_attribute_id` is present on all 1,733 examined rating mapping rows and the stale plural field is absent. A separate bounded application write/read verification is still required before calling the corrected write path APPLICATION VERIFIED. The current next defect is the independent `personal_history_projection` provider 502.
+Source validation does not prove application writes or authenticated HTTP/session behaviour. Connected read-only evidence now proves owner-history projection, product community aggregates, rating-integrity population rules, rating reconciliation dry-run behaviour, and the `bonus_attribute_id` provider field shape. #600 still needs authenticated HTTP/session evidence. #509 still needs explicit owner approval before its exact 95-mutation additive provider apply, followed by zero-drift verification and authenticated rating-form presentation evidence.
