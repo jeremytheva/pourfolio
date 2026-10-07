@@ -12,7 +12,7 @@ current_work:
   pr: null
   branch: null
 next_actions:
-  - "Resume the preserved rating-read deferred-state/provider 502 diagnosis using read-only evidence first."
+  - "Complete authenticated connected verification for #600 against the deployed owner-history fix; keep the issue open until the provider 502 is disproved in production."
   - "Prepare #165 migration evidence within the reversible boundary; do not cross the irreversible provider boundary without the governed approval package."
   - "Continue #577 credential certification when authenticated POST execution and supported account-session credentials are available."
   - "Continue bounded provider-independent #449 work or evidence-grounded #429 cleanup where useful."
@@ -33,12 +33,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "5ecd49191d074f04cc4f5379748b8c1615fafdbb"
+  observed_main_commit: "f254176e6e19082e4528402a6db2e712d82b1188"
   current_candidate_commit: null
-  latest_validated_commit: "9a46b4386454c680bf421d298d4543bbbcf348ec"
-  latest_deployed_commit: "5ecd49191d074f04cc4f5379748b8c1615fafdbb"
+  latest_validated_commit: "53fa080e54c7388c17340fa3d5ea95e7bfcb9187"
+  latest_deployed_commit: "f254176e6e19082e4528402a6db2e712d82b1188"
   latest_runtime_verified_commit: "5ecd49191d074f04cc4f5379748b8c1615fafdbb"
-  latest_browser_verified_commit: "9a46b4386454c680bf421d298d4543bbbcf348ec"
+  latest_browser_verified_commit: "53fa080e54c7388c17340fa3d5ea95e7bfcb9187"
 validation:
   governance: PASS
   lint: PASS
@@ -47,8 +47,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "9a46b4386454c680bf421d298d4543bbbcf348ec"
-last_updated: "2026-10-06T12:06:31+11:00"
+last_verified_commit: "53fa080e54c7388c17340fa3d5ea95e7bfcb9187"
+last_updated: "2026-10-07T20:05:54+11:00"
 ---
 
 
@@ -58,7 +58,7 @@ Last materially reviewed: 6 October 2026
 
 ## AI execution gate
 
-**Gate:** Project Entry. **State:** READY. UI/roadmap alignment issue #594 is complete and PR #596 is merged and deployed. There is no active implementation PR. Continue with the highest-priority dependency-correct launch work without reopening completed UI alignment unless new evidence shows drift.
+**Gate:** Project Entry. **State:** READY. Owner-history provider fix PR #601 is merged and deployed. There is no active implementation PR. Issue #600 remains open only for authenticated connected verification of the production provider read; continue the highest-priority dependency-correct launch work without reopening completed UI alignment unless new evidence shows drift.
 
 ## Autonomous continuation support
 
@@ -68,6 +68,7 @@ Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` 
 
 ## Current integration and evidence
 
+- PR #601 merged the owner-history provider query correction as `f254176e6e19082e4528402a6db2e712d82b1188`; exact head `53fa080e54c7388c17340fa3d5ea95e7bfcb9187` passed canonical validation, Browser/accessibility, Dependency Review, CodeQL and PR lifecycle checks. Production deployment `dpl_Hpe5UAr7nTZXxYA4eoJQLrLjW52x` is READY on the merged SHA. #600 remains open for authenticated connected verification only; no provider schema/data mutation occurred.
 - UI/roadmap alignment issue #594 is closed via merged PR #596.
 - Final PR head `9a46b4386454c680bf421d298d4543bbbcf348ec` passed canonical `npm run platform:validate`, Browser and accessibility, Dependency review, CodeQL and PR lifecycle checks.
 - Production deployment `dpl_DTX2SMCLg5NKrexeqe7xvFEgu4D8` is READY on merged main `5ecd49191d074f04cc4f5379748b8c1615fafdbb`. Production `/api/health` reports that exact SHA and healthy configured authentication, data, canonical endpoints, credentials, instance and shared rate limiter.
@@ -88,7 +89,7 @@ Both issues were freshly confirmed open. No owner decision is requested before t
 
 ## Next dependency-correct work
 
-1. Resume the preserved rating-read deferred-state/provider `personal_history_projection` 502 diagnosis using read-only evidence first.
+1. Complete authenticated connected verification for #600 against production. The source fix is merged/deployed; do not close #600 until live owner history proves the provider 502 is resolved.
 2. Prepare #165 migration evidence within the reversible boundary. Once deployed and verified, continue #144 backend certification, backend-dependent #154 catalogue certification and launch verification.
 3. Continue #577 credential certification when its execution/session prerequisites are available.
 4. Continue bounded provider-independent #449 work or evidence-grounded #429 cleanup where useful.
