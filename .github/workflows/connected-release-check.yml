@@ -30,8 +30,8 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'issue_comment' &&
-       github.event.issue.number == 278 &&
-       github.event.comment.body == '/release-certify' &&
+       ((github.event.issue.number == 278 && github.event.comment.body == '/release-certify') ||
+        (github.event.issue.number == 422 && github.event.comment.body == '/profile-certify')) &&
        github.event.comment.user.login == github.repository_owner &&
        !github.event.issue.pull_request)
     environment: staging-release
@@ -41,6 +41,7 @@ jobs:
       RELEASE_BASE_URL: ${{ github.event_name == 'issue_comment' && 'https://brew-buds-mobile-app-design-3577.vercel.app' || inputs.release_url }}
       RELEASE_SHA: ${{ github.event_name == 'issue_comment' && github.sha || inputs.release_sha }}
       RELEASE_DESTRUCTIVE_CONFIRMATION: ${{ github.event_name == 'workflow_dispatch' && inputs.destructive_confirmation || '' }}
+      RELEASE_PROFILE_CERTIFICATION_CONFIRMATION: ${{ github.event_name == 'issue_comment' && github.event.issue.number == 422 && github.event.comment.body == '/profile-certify' && 'RUN CLEANUP-GUARDED PROFILE CERTIFICATION' || '' }}
     steps:
       - uses: actions/checkout@v7
         with:
