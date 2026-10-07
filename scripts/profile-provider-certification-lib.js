@@ -183,7 +183,8 @@ export const runProfileProviderCertification = async ({
         const duplicate = first(await provider.create(table, {
           user_id: userId,
           public_id: alternatePublicId,
-          name: 'Duplicate owner profile certification'
+          name: 'Duplicate owner profile certification',
+          rating_history_public: 0
         }))
         if (duplicate) remember(duplicate)
       } catch (error) {
@@ -202,7 +203,8 @@ export const runProfileProviderCertification = async ({
         const duplicate = first(await provider.create(table, {
           user_id: alternateUserId,
           public_id: publicId,
-          name: 'Duplicate public profile certification'
+          name: 'Duplicate public profile certification',
+          rating_history_public: 0
         }))
         if (duplicate) remember(duplicate)
       } catch (error) {
