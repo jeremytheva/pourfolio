@@ -111,7 +111,7 @@ jobs:
         run: |
           mkdir -p artifacts/bonus-rating-mapping
           node scripts/audit-live-bonus-rating-mapping.js | tee artifacts/bonus-rating-mapping/summary.json
-      - name: Inspect live bonus category plan after failed apply
+      - name: Preflight remaining live bonus category plan
         env:
           RUN_LIVE_BONUS_CATEGORY_RECONCILIATION: "1"
           NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
@@ -119,28 +119,27 @@ jobs:
           NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
         shell: bash
         run: |
-          node scripts/reconcile-bonus-attribute-categories.js | tee artifacts/bonus-rating-mapping/category-plan-after-failure.json
-          node --input-type=module <<'NODE' | tee artifacts/bonus-rating-mapping/burp-category-diagnostic.json
-          import { dataProvider, COLLECTIONS } from './api/_lib/dataProvider.js'
-          const rows = []
-          let page = 1
-          while (true) {
-            const result = await dataProvider.listPage(COLLECTIONS.bonusAttributeCategories, {
-              page,
-              limit: 100,
-              orderBy: 'id',
-              order: 'asc',
-              filters: {}
-            })
-            rows.push(...(Array.isArray(result.items) ? result.items : []))
-            if (page >= result.totalPages) break
-            page += 1
-          }
-          const burp = rows
-            .filter((row) => String(row?.category ?? '').trim().toLowerCase() === 'burp')
-            .map((row) => ({ id: String(row?.id ?? ''), category: String(row?.category ?? ''), hasUserId: Boolean(String(row?.user_id ?? '').trim()) }))
-          console.log(JSON.stringify({ categoryRowsExamined: rows.length, burp }, null, 2))
-          NODE
+          node scripts/reconcile-bonus-attribute-categories.js | tee artifacts/bonus-rating-mapping/category-plan-before-resume.json
+      - name: Apply exact guarded remaining bonus category plan
+        env:
+          RUN_LIVE_BONUS_CATEGORY_RECONCILIATION: "1"
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+          LIVE_BONUS_CATEGORY_RECONCILIATION_CONFIRMATION: "APPLY LIVE BONUS ATTRIBUTE CATEGORY PLAN"
+          EXPECTED_LIVE_BONUS_CATEGORY_MUTATIONS: "83"
+        shell: bash
+        run: |
+          node scripts/reconcile-bonus-attribute-categories.js --apply | tee artifacts/bonus-rating-mapping/category-plan-resume-apply.json
+      - name: Verify zero remaining live bonus category drift
+        env:
+          RUN_LIVE_BONUS_CATEGORY_RECONCILIATION: "1"
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+        shell: bash
+        run: |
+          node scripts/reconcile-bonus-attribute-categories.js | tee artifacts/bonus-rating-mapping/category-plan-after-resume.json
       - name: Retain redacted bonus mapping evidence
         if: always()
         uses: actions/upload-artifact@v7
