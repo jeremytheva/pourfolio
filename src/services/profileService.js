@@ -4,8 +4,8 @@ import { normalisePublicProfileId, validatePublicProfileResponse } from './publi
 export const getCurrentUserProfile = async () => {
   const payload = await apiRequest('/profile')
   if (!payload?.profile?.public_id) {
-    throw new ApiError('Profile editing is not available yet. Your account details currently come from your authenticated session.', {
-      code: 'profile_persistence_unavailable'
+    throw new ApiError('Profile data could not be resolved.', {
+      code: 'profile_response_invalid'
     })
   }
   return payload
