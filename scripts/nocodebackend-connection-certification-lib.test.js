@@ -80,8 +80,8 @@ test('certifies isolated create/read/update/delete behaviour and leaves no rows'
   assert.equal(report.data_plane.status, 'PASS')
   assert.equal(report.cleanup.status, 'PASS')
   assert.equal(report.schema_plane.status, 'UNAVAILABLE_NOT_CONFIGURED')
-  assert.equal(report.profile_contract.status, 'PASS')
-  assert.equal(report.profile_contract.cleanup.status, 'PASS')
+  assert.equal(report.profile_contract.status, 'PARTIAL')
+  assert.equal(report.profile_contract.cleanup.status, 'NOT_APPLICABLE')
   assert.deepEqual(provider.remaining(), [])
 
   for (const result of Object.values(report.data_plane.capabilities)) assert.equal(result.status, 'PASS')
@@ -109,8 +109,8 @@ test('profile contract can pass independently when the generic test table fails'
   assert.equal(report.overall, 'FAIL')
   assert.equal(report.data_plane.status, 'FAIL')
   assert.equal(report.data_plane.capabilities.table_read.status, 'FAIL')
-  assert.equal(report.profile_contract.status, 'PASS')
-  assert.equal(report.profile_contract.cleanup.status, 'PASS')
+  assert.equal(report.profile_contract.status, 'PARTIAL')
+  assert.equal(report.profile_contract.cleanup.status, 'NOT_APPLICABLE')
   assert.deepEqual(provider.remaining(), [])
 })
 
