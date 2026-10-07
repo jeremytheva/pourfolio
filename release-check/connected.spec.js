@@ -250,7 +250,7 @@ test('catalogue stewardship and cellar launch forms are reachable without implic
   await expect(page.getByRole('heading', { name: /^Add .* to your cellar$/ })).toBeVisible()
   await expect(page.getByLabel('Quantity')).toBeVisible()
   await expect(page.getByLabel('Container volume (mL)')).toBeVisible()
-  await expect(page.getByLabel('Container')).toBeVisible()
+  await expect(page.locator('#cellar-add-section select').first()).toBeVisible()
   await expect(page.getByRole('button', { name: 'Save cellar item' })).toBeVisible()
 
   const gift = page.getByRole('checkbox', { name: 'Gift' })
