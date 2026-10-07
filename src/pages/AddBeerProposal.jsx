@@ -19,8 +19,7 @@ function AddBeerProposal() {
     abv: '',
     ibu: '',
     declared_category: '',
-    edition: '',
-    product_image: ''
+    edition: ''
   })
   const [producerMode, setProducerMode] = useState('existing')
   const [newProducerName, setNewProducerName] = useState('')
@@ -190,8 +189,7 @@ function AddBeerProposal() {
     (abv === null || (Number.isFinite(abv) && abv >= 0 && abv <= 80)) &&
     (ibu === null || (Number.isFinite(ibu) && ibu >= 0 && ibu <= 10000)) &&
     form.declared_category.trim().length <= 255 &&
-    form.edition.trim().length <= 255 &&
-    form.product_image.trim().length <= 255
+    form.edition.trim().length <= 255
   )
   const duplicateCheckReady = duplicateStatus === 'ready'
 
@@ -215,8 +213,7 @@ function AddBeerProposal() {
         ibu: form.ibu === '' ? null : Number(form.ibu),
         declared_category: form.declared_category.trim() || null,
         edition: form.edition.trim() || null,
-        collaboration: isCollaboration,
-        product_image: form.product_image.trim() || null
+        collaboration: isCollaboration
       })
       setSubmissionStatus('complete')
       navigate(`/products/${result.product.id}`, { replace: true })
