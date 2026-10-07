@@ -269,6 +269,59 @@ test('rating reconciliation dry-run is idempotent and completed aggregates are c
   expect((after.items || []).map(({ id }) => String(id)).sort()).toEqual(beforeIds)
 })
 
+
+test('live bonus category mappings render across every rating dimension and Overall', async ({ page }) => {
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
+
+  const catalogueResponse = await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1')
+  expect(catalogueResponse.status()).toBe(200)
+  const catalogue = await responseJson(catalogueResponse)
+  const product = catalogue.items?.[0]
+  expect(product?.id).toBeTruthy()
+
+  const ratingSubmitRequests = []
+  page.on('request', (request) => {
+    const requestUrl = new URL(request.url())
+    if (request.method() === 'POST' && requestUrl.pathname === '/api/nocodebackend/ratings/submit') {
+      ratingSubmitRequests.push(request.url())
+    }
+  })
+
+  const expectDimensionBonus = async (label, descriptor) => {
+    await expect(page.getByRole('heading', { name: label, level: 2 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: `Bonus attributes for ${label}`, level: 3 })).toBeVisible()
+    await expect(page.getByRole('checkbox', { name: new RegExp(descriptor) })).toBeVisible()
+  }
+
+  await page.goto(`/products/${product.id}/rate`)
+
+  await expectDimensionBonus('Design', "It's a Concept")
+  await page.getByRole('button', { name: 'Skip this attribute' }).click()
+
+  await expectDimensionBonus('Appearance', 'Beautiful colour')
+  await page.getByRole('button', { name: 'Appearance: 4 out of 7' }).click()
+
+  await expectDimensionBonus('Aroma', 'Dank, Dank Baby')
+  await page.getByRole('button', { name: 'Aroma: 4 out of 7' }).click()
+
+  await expectDimensionBonus('Mouthfeel', 'Great Mouth Feel')
+  await page.getByRole('button', { name: 'Mouthfeel: 4 out of 7' }).click()
+
+  await expectDimensionBonus('Flavour', 'Barrelled to Perfection')
+  await page.getByRole('button', { name: 'Flavour: 4 out of 7' }).click()
+
+  await expectDimensionBonus('Follow', 'Aftertaste just keeps giving')
+  await page.getByRole('button', { name: 'Follow: 4 out of 7' }).click()
+
+  await expectDimensionBonus('Burp', 'Burpalicious')
+  await page.getByRole('button', { name: 'Skip this attribute' }).click()
+
+  await expect(page.getByRole('heading', { name: 'All bonus attributes', level: 2 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Overall attributes', level: 3 })).toBeVisible()
+  await expect(page.getByRole('checkbox', { name: /A Trippy Adventure/ })).toBeVisible()
+  expect(ratingSubmitRequests).toEqual([])
+})
+
 test('Breweries & Venues is keyboard operable and preserves the verified-data boundary', async ({ page }) => {
   await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
   await page.goto('/places')
