@@ -194,6 +194,77 @@ test('catalogue, pagination, direct details, rating form boundary and session-ba
   authenticatedStorageState = await page.context().storageState()
 })
 
+
+test('catalogue stewardship and cellar launch forms are reachable without implicit writes', async ({ page }) => {
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
+
+  const unexpectedWrites = []
+  page.on('request', (request) => {
+    const url = new URL(request.url())
+    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method())) return
+    if (
+      url.pathname.startsWith('/api/nocodebackend/catalog/') ||
+      url.pathname.startsWith('/api/nocodebackend/cellar')
+    ) {
+      unexpectedWrites.push(request.method() + ' ' + url.pathname)
+    }
+  })
+
+  await page.goto('/search')
+  const proposalQuery = 'pourfolio-release-check-proposal-no-match-bd92f7'
+  await page.getByLabel('Search beers, breweries or styles').fill(proposalQuery)
+  await expect(page.getByRole('heading', { name: 'No matches found' })).toBeVisible()
+  const proposeMissingBeer = page.getByRole('link', { name: 'Propose this missing beer' })
+  await expect(proposeMissingBeer).toBeVisible()
+  await proposeMissingBeer.click()
+
+  await expect(page).toHaveURL(new RegExp('/products/propose\\?name=' + proposalQuery + '$'))
+  await expect(page.getByRole('heading', { name: 'Add a beer' })).toBeVisible()
+  await expect(page.getByLabel('Beer name')).toHaveValue(proposalQuery)
+  await expect(page.getByLabel('Search breweries')).toBeVisible()
+  await expect(page.getByLabel('Select brewery')).toBeVisible()
+  await expect(page.getByLabel('Search beer styles')).toBeVisible()
+  await expect(page.getByLabel('Beer style / category')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Review beer' })).toBeDisabled()
+
+  const catalogue = await responseJson(await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1'))
+  const product = catalogue.items?.[0]
+  expect(product?.id).toBeTruthy()
+  expect(product?.product_name).toBeTruthy()
+
+  await page.goto('/products/' + product.id)
+  const correctionLink = page.getByRole('link', { name: 'Suggest correction' })
+  await expect(correctionLink).toBeVisible()
+  await correctionLink.click()
+
+  await expect(page).toHaveURL(new RegExp('/products/' + product.id + '/propose-edit$'))
+  await expect(page.getByRole('heading', { name: 'Suggest a correction' })).toBeVisible()
+  await expect(page.getByText('Stable product ID: ' + product.id)).toBeVisible()
+  await expect(page.getByLabel('Beer name')).toHaveValue(product.product_name)
+  await expect(page.getByLabel('Brewery / producer')).toBeVisible()
+  await expect(page.getByLabel('Beer style / category')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Review changes' })).toBeDisabled()
+
+  await page.goto('/products/' + product.id)
+  await page.getByRole('button', { name: 'Add to cellar' }).click()
+  await expect(page.getByRole('heading', { name: /^Add .* to your cellar$/ })).toBeVisible()
+  await expect(page.getByLabel('Quantity')).toBeVisible()
+  await expect(page.getByLabel('Container volume (mL)')).toBeVisible()
+  await expect(page.getByLabel('Container')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Save cellar item' })).toBeVisible()
+
+  const gift = page.getByRole('checkbox', { name: 'Gift' })
+  await expect(gift).not.toBeChecked()
+  await gift.check()
+  const giftFrom = page.getByLabel('Gift from')
+  await expect(giftFrom).toBeVisible()
+  await giftFrom.fill('Release evidence only')
+  await gift.uncheck()
+  await expect(page.getByLabel('Gift from')).toHaveCount(0)
+
+  expect(unexpectedWrites).toEqual([])
+})
+
 test('rating reconciliation dry-run is idempotent and completed aggregates are coherent', async ({ page }) => {
   await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
 
