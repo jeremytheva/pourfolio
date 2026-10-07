@@ -34,12 +34,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "db2c32f8769fcf549bc06ab68e32654a684d6aff"
+  observed_main_commit: "aef3c0124c34bd6f748de55db3d0beb9816a2a94"
   current_candidate_commit: null
-  latest_validated_commit: "d0c536622dd78719fc99d97359b2ffaa599ffe09"
-  latest_deployed_commit: "db2c32f8769fcf549bc06ab68e32654a684d6aff"
+  latest_validated_commit: "09a51891d07f3cf3076ba11d876f6600d47588df"
+  latest_deployed_commit: "aef3c0124c34bd6f748de55db3d0beb9816a2a94"
   latest_runtime_verified_commit: "5ecd49191d074f04cc4f5379748b8c1615fafdbb"
-  latest_browser_verified_commit: "d0c536622dd78719fc99d97359b2ffaa599ffe09"
+  latest_browser_verified_commit: "09a51891d07f3cf3076ba11d876f6600d47588df"
 validation:
   governance: PASS
   lint: PASS
@@ -48,8 +48,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "d0c536622dd78719fc99d97359b2ffaa599ffe09"
-last_updated: "2026-10-07T21:10:00+11:00"
+last_verified_commit: "09a51891d07f3cf3076ba11d876f6600d47588df"
+last_updated: "2026-10-07T21:20:00+11:00"
 ---
 
 
@@ -82,6 +82,8 @@ Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` 
 - No provider schema, authentication authority or blocked capability was enabled by #596.
 
 - PR #611 merged current #165 migration-readiness evidence as `db2c32f8769fcf549bc06ab68e32654a684d6aff`; exact head `d0c536622dd78719fc99d97359b2ffaa599ffe09` passed canonical validation, Browser/accessibility, Dependency Review, CodeQL and PR lifecycle checks. It performed no provider/schema/data mutation and did not approve the irreversible migration.
+
+- PR #613 removed the blanket owner-approval gate for routine additive/reversible production provider writes and added regression checks preventing its return. It merged as `aef3c0124c34bd6f748de55db3d0beb9816a2a94`; production deployment `dpl_49Vzkg5xLsEFVxjDmi92qZTDrmtu` is READY. Exact PR head `09a51891d07f3cf3076ba11d876f6600d47588df` passed canonical validation, Browser/accessibility, Dependency Review, CodeQL and PR lifecycle checks.
 
 Detailed implementation history belongs in commits, PRs and `docs/RELEASE_TRACKING.md`.
 
