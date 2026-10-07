@@ -34,12 +34,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "6e3f90a047074d2b504a98f7eadff0a57545dd75"
+  observed_main_commit: "db1f055187c1ab7e3ad245517fc35ee6f6777e6e"
   current_candidate_commit: null
-  latest_validated_commit: "8f919a8540ca8ab36e7d761fa7c593b487fb82b3"
-  latest_deployed_commit: "6e3f90a047074d2b504a98f7eadff0a57545dd75"
+  latest_validated_commit: "d4dc0a21039d31d70b8da0c8496706cccf78c39d"
+  latest_deployed_commit: "db1f055187c1ab7e3ad245517fc35ee6f6777e6e"
   latest_runtime_verified_commit: "5ecd49191d074f04cc4f5379748b8c1615fafdbb"
-  latest_browser_verified_commit: "8f919a8540ca8ab36e7d761fa7c593b487fb82b3"
+  latest_browser_verified_commit: "d4dc0a21039d31d70b8da0c8496706cccf78c39d"
 validation:
   governance: PASS
   lint: PASS
@@ -48,8 +48,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "8f919a8540ca8ab36e7d761fa7c593b487fb82b3"
-last_updated: "2026-10-07T20:43:42+11:00"
+last_verified_commit: "d4dc0a21039d31d70b8da0c8496706cccf78c39d"
+last_updated: "2026-10-07T20:58:53+11:00"
 ---
 
 
@@ -59,7 +59,7 @@ Last materially reviewed: 7 October 2026
 
 ## AI execution gate
 
-**Gate:** Project Entry. **State:** READY WITH OWNER DECISION. PRs #601, #604, #605 and #606 are merged; production is on #606. Connected rating integrity is green. #509 has a verified additive plan of 95 live mutations and now requires exact owner approval before provider write execution; independent launch work may continue.
+**Gate:** Project Entry. **State:** READY WITH OWNER DECISION. Connected rating integrity is green and production is on current main after #609 cleanup. #509 has a verified additive plan of 95 live mutations and requires exact owner approval before provider write execution; independent launch work may continue.
 
 ## Autonomous continuation support
 
@@ -69,6 +69,7 @@ Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` 
 
 ## Current integration and evidence
 
+- PRs #608 and #609 continued #429 evidence-based cleanup, removing 1,144 lines of proven-unreferenced UI/hooks/utilities while deliberately retaining uncertain deferred feature clusters. PR #609 merged as `db1f055187c1ab7e3ad245517fc35ee6f6777e6e`; production deployment `dpl_K4cyoTLkzyuE3zmeUA6SSTBSSoKH` is READY. Exact PR head `d4dc0a21039d31d70b8da0c8496706cccf78c39d` passed canonical validation, Browser/accessibility, Dependency Review, CodeQL and PR lifecycle checks.
 - PR #606 merged product community-rating pagination as `6e3f90a047074d2b504a98f7eadff0a57545dd75`; production deployment `dpl_AGQmQkFpGqejxxzEuBATtgtbavZN` is READY on that exact SHA. PR head `8f919a8540ca8ab36e7d761fa7c593b487fb82b3` passed canonical validation, Browser/accessibility, Dependency Review, CodeQL and PR lifecycle checks.
 - Protected read-only connected run `37602376459`, based on merged #606 application source, passed full rating integrity: 620 ratings, 3 owners, 574 complete / 38 pending / 8 failed, 308 products with completed ratings, 1,733 bonus-rating mappings, and the live rating reconciliation dry run with 0 eligible legacy mutations. The former `personal_history_projection` 502 and the 10-vs-11 product aggregate mismatch are no longer reproduced.
 - #509 live bonus-category dry run is now valid after #605 pagination correction: 82/82 canonical attributes matched, 8 global categories observed, 0 global category mappings currently present, 1 missing canonical category (`Burp`), 94 missing mappings, exact additive mutation count 95. No provider write has been performed; exact owner approval is required before apply.
