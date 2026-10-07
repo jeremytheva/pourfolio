@@ -191,6 +191,26 @@ test('catalogue, pagination, direct details, rating form boundary and session-ba
   expect(profile.profile).not.toHaveProperty('id')
   expect(profile.profile).not.toHaveProperty('user_id')
 
+  const publicProfileResponse = await page.request.get(
+    '/api/nocodebackend/profiles/' + encodeURIComponent(profile.profile.public_id)
+  )
+  expect(publicProfileResponse.status()).toBe(200)
+  const publicProfile = await responseJson(publicProfileResponse)
+  expect(publicProfile.profile?.public_id).toBe(profile.profile.public_id)
+  expect(publicProfile.profile?.name).toBe(profile.profile.name)
+  expect(publicProfile.profile).not.toHaveProperty('id')
+  expect(publicProfile.profile).not.toHaveProperty('user_id')
+  expect(Array.isArray(publicProfile.ratings)).toBe(true)
+  expect(publicProfile.summary?.count).toBe(publicProfile.ratings.length)
+  const serializedPublicProfile = JSON.stringify(publicProfile)
+  for (const privateField of ['user_id', 'cellar_id', 'submission_key', 'submission_fingerprint', 'submission_state', 'deleted_at']) {
+    expect(serializedPublicProfile).not.toContain('"' + privateField + '"')
+  }
+  if (!profile.profile.rating_history_public) {
+    expect(publicProfile.ratings).toEqual([])
+    expect(publicProfile.summary).toEqual({ count: 0, average: null })
+  }
+
   authenticatedStorageState = await page.context().storageState()
 })
 
