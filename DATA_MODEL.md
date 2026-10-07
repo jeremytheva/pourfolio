@@ -35,7 +35,7 @@ Use `docs/nocodebackend/launch-schema-contract.md` when deciding whether an appl
 - **DEFERRED_TARGET** fields must remain disabled until governed provider migration and connected verification complete.
 - **UNAVAILABLE** capabilities must fail explicitly or use an already-approved non-persistent behaviour rather than fabricated persistence.
 
-The durable rating idempotency/concurrency fields tracked by #165 remain DEFERRED_TARGET. Persistent `profiles` storage remains UNAVAILABLE on current evidence.
+The durable rating idempotency/concurrency fields tracked by #165 remain DEFERRED_TARGET. Persistent `profiles` storage is DEPLOYED_REQUIRED from the governed #422 provider change and active application contract; connected permission/uniqueness/recovery certification remains pending.
 
 ## Core launch entities
 
@@ -67,6 +67,7 @@ Launch paths use:
 - `bonus_attributes`
 - `bonus_attribute_rating_mapping`
 - `cellar`
+- `profiles`
 
 Legacy names such as `beverages_pf2025`, `ratings_pf2025`, `cellar_items_pf2025` and `beverage_id` are not canonical launch identifiers.
 
@@ -212,6 +213,24 @@ The exported `cellar` table does **not** contain `status`, `quantity_acquired`, 
 Sharing-series / edition relationships are optional and must be null when not applicable.
 
 A rating may optionally reference a cellar record, but rating validity must not depend on sharing-series metadata.
+
+## Profiles
+
+`profiles` stores the persistent owner profile and public-profile identity.
+
+Active provider fields are:
+
+- `id`;
+- server-authoritative `user_id`;
+- stable server-generated `public_id`;
+- `name`;
+- optional `description`;
+- optional `avatar_url`;
+- `rating_history_public`, default-private.
+
+The browser-editable subset is limited to `name`, `description`, `avatar_url` and `rating_history_public`. Internal owner identity and public identity are not browser-authoritative. Public projections omit `user_id`; rating history is shared only after explicit opt-in.
+
+The structure/application capability is deployed. Issue #422 remains responsible for connected proof of uniqueness/default-private behaviour, owner isolation, public/private projection and recovery.
 
 ## Rating idempotency target
 
