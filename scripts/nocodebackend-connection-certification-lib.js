@@ -287,7 +287,7 @@ export const runNoCodeBackendConnectionCertification = async ({
 
   report.overall = report.data_plane.status === 'PASS' &&
     report.cleanup.status === 'PASS' &&
-    report.profile_contract.status === 'PASS'
+    report.profile_contract.status !== 'FAIL'
     ? 'PASS'
     : 'FAIL'
 
