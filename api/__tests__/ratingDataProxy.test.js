@@ -78,6 +78,13 @@ const durableProvider = () => {
   const listState = (collection, filters = {}) => (state[collection] || []).filter((item) =>
     Object.entries(filters).every(([key, value]) => String(item[key]) === String(value))
   )
+  const listProviderRows = async (collection, filters = {}) => {
+    if (collection === COLLECTIONS.ratingAttributes) return attributes
+    if (collection === COLLECTIONS.bonusAttributes) return bonusAttributes
+    if (collection === COLLECTIONS.bonusAttributeCategories) return []
+    if (collection === COLLECTIONS.bonusAttributeCategoryMappings) return []
+    return listState(collection, filters)
+  }
 
   return {
     state,
@@ -90,12 +97,17 @@ const durableProvider = () => {
         if (collection === COLLECTIONS.cellar) return null
         return (state[collection] || []).find((item) => String(item.id) === String(id)) || null
       },
-      list: async (collection, filters = {}) => {
-        if (collection === COLLECTIONS.ratingAttributes) return attributes
-        if (collection === COLLECTIONS.bonusAttributes) return bonusAttributes
-        if (collection === COLLECTIONS.bonusAttributeCategories) return []
-        if (collection === COLLECTIONS.bonusAttributeCategoryMappings) return []
-        return listState(collection, filters)
+      list: listProviderRows,
+      listPage: async (collection, { page = 1, limit = 100, filters = {} } = {}) => {
+        const rows = await listProviderRows(collection, filters)
+        const start = (page - 1) * limit
+        return {
+          items: rows.slice(start, start + limit),
+          page,
+          pageSize: limit,
+          total: rows.length,
+          totalPages: rows.length ? Math.ceil(rows.length / limit) : 0
+        }
       },
       create: async (collection, body) => {
         if (collection === COLLECTIONS.bonusRatingMappings) {
