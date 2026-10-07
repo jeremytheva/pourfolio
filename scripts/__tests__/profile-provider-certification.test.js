@@ -3,7 +3,7 @@ import test from 'node:test'
 
 import { runProfileProviderCertification } from '../profile-provider-certification-lib.js'
 
-const createProvider = ({ enforceUniqueness = true } = {}) => {
+const createProvider = ({ enforceUniqueness = true, requireVisibility = false } = {}) => {
   const records = new Map()
   let sequence = 0
 
@@ -16,6 +16,12 @@ const createProvider = ({ enforceUniqueness = true } = {}) => {
     async list(_table, filters = {}) { return list(filters) },
     async get(_table, id) { return records.has(String(id)) ? { ...records.get(String(id)) } : null },
     async create(_table, body) {
+      if (requireVisibility && body.rating_history_public === undefined) {
+        const error = new Error('rating_history_public required')
+        error.status = 400
+        error.code = 'PROVIDER_ERROR'
+        throw error
+      }
       if (enforceUniqueness && [...records.values()].some((record) => record.user_id === body.user_id || record.public_id === body.public_id)) {
         const error = new Error('unique')
         error.status = 409
@@ -51,6 +57,17 @@ test('profile provider certification proves defaults, uniqueness, update and cle
   assert.equal(report.cleanup.residual, 0)
   assert.deepEqual(provider.remaining(), [])
   for (const result of Object.values(report.capabilities)) assert.equal(result.status, 'PASS')
+})
+
+test('profile provider certification accepts provider-required explicit private visibility', async () => {
+  const provider = createProvider({ requireVisibility: true })
+  const report = await runProfileProviderCertification({ provider, runKey: 'test-profile-required-private' })
+
+  assert.equal(report.status, 'PASS')
+  assert.equal(report.capabilities.create_default_private.status, 'PASS')
+  assert.equal(report.capabilities.create_default_private.evidence.provider_mode, 'required_explicit_private')
+  assert.equal(report.cleanup.status, 'PASS')
+  assert.deepEqual(provider.remaining(), [])
 })
 
 test('profile provider certification fails when provider uniqueness is not enforced and still cleans up', async () => {
