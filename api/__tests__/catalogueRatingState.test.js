@@ -44,13 +44,14 @@ test('catalogue aggregates only durable complete ratings with present valid five
       if (collection === COLLECTIONS.ratings) {
         ratingFilters = filters
         return [
-          { id: 1, submission_state: 'complete', total_weighted: 4 },
-          { id: 2, submission_state: 'complete', total_weighted: 5 },
-          { id: 3, submission_state: 'pending', total_weighted: 5 },
-          { id: 4, submission_state: 'failed', total_weighted: 1 },
-          { id: 5, submission_state: 'complete', total_weighted: null },
-          { id: 6, submission_state: 'complete', total_weighted: 0 },
-          { id: 7, submission_state: 'complete', total_weighted: 6 }
+          { id: 1, product_id: 4, submission_state: 'complete', total_weighted: 4 },
+          { id: 2, product_id: 4, submission_state: 'complete', total_weighted: 5 },
+          { id: 3, product_id: 4, submission_state: 'pending', total_weighted: 5 },
+          { id: 4, product_id: 4, submission_state: 'failed', total_weighted: 1 },
+          { id: 5, product_id: 4, submission_state: 'complete', total_weighted: null },
+          { id: 6, product_id: 4, submission_state: 'complete', total_weighted: 0 },
+          { id: 7, product_id: 4, submission_state: 'complete', total_weighted: 6 },
+          { id: 8, product_id: 99, submission_state: 'complete', total_weighted: 5 }
         ]
       }
       if (collection === COLLECTIONS.ratingScores) return []
@@ -62,13 +63,39 @@ test('catalogue aggregates only durable complete ratings with present valid five
     await __testables.getProduct('4', response)
 
     assert.equal(response.statusCode, 200)
-    assert.deepEqual(ratingFilters, { product_id: 4, submission_state: 'complete' })
+    assert.deepEqual(ratingFilters, { product_id: 4 })
     assert.deepEqual(response.body.ratingSummary, { count: 2, average: 4.5 })
     assert.deepEqual(response.body.ratingInsights.distribution, buildCompletedRatingDistribution([4, 5]))
     assert.equal(
       response.body.ratingInsights.distribution.reduce((sum, bucket) => sum + bucket.count, 0),
       response.body.ratingSummary.count
     )
+  })
+})
+
+test('producer rating reads keep workflow state and product scope server-authoritative', async () => {
+  let providerFilters = null
+  await withProviderMocks({
+    listPage: async (collection, options = {}) => {
+      assert.equal(collection, COLLECTIONS.ratings)
+      providerFilters = options.filters
+      return {
+        items: [
+          { id: 11, product_id: 4, submission_state: 'complete', total_weighted: 4 },
+          { id: 12, product_id: 4, submission_state: 'pending', total_weighted: 5 },
+          { id: 13, product_id: 5, submission_state: 'complete', total_weighted: 3 },
+          { id: 14, product_id: 99, submission_state: 'complete', total_weighted: 5 }
+        ],
+        page: 1,
+        pageSize: 100,
+        total: 4,
+        totalPages: 1
+      }
+    }
+  }, async () => {
+    const ratings = await __testables.readProducerRatings(['4', '5'])
+    assert.deepEqual(providerFilters, { 'product_id[in]': '4,5' })
+    assert.deepEqual(ratings.map((rating) => String(rating.id)), ['11', '13'])
   })
 })
 
