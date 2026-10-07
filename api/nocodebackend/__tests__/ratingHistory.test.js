@@ -48,7 +48,7 @@ test('owner product history is paginated, owner-scoped, complete-only and newest
   const result = await __testables.ownerCompletedRatings(user.id, '4')
 
   assert.equal(calls.length, 2)
-  assert.deepEqual(calls[0].filters, { user_id: user.id, submission_state: 'complete', product_id: '4' })
+  assert.deepEqual(calls[0].filters, { user_id: user.id })
   assert.equal(result.length, 101)
   assert.ok(result.every((rating) => rating.user_id === user.id))
   assert.ok(result.every((rating) => rating.submission_state === 'complete'))
@@ -57,7 +57,7 @@ test('owner product history is paginated, owner-scoped, complete-only and newest
   assert.equal(result.at(-1).id, 1)
 })
 
-test('product-filtered /ratings/mine forwards the exact product filter to paginated owner history', async () => {
+test('product-filtered /ratings/mine keeps the provider query owner-only', async () => {
   const pageCalls = []
   dataProvider.listPage = async (collection, options) => {
     pageCalls.push({ collection, options })
@@ -72,7 +72,7 @@ test('product-filtered /ratings/mine forwards the exact product filter to pagina
   assert.deepEqual(result.body, { items: [] })
   assert.equal(pageCalls.length, 1)
   assert.equal(pageCalls[0].collection, COLLECTIONS.ratings)
-  assert.equal(pageCalls[0].options.filters.product_id, '4')
+  assert.deepEqual(pageCalls[0].options.filters, { user_id: user.id })
 })
 
 test('product-filtered owner history rejects invalid product identifiers before provider access', async () => {

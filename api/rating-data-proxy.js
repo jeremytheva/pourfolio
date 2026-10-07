@@ -464,11 +464,10 @@ const OWNER_HISTORY_MAX_PAGES = 1000
 
 const ownerCompletedRatings = async (userId, productId = null) => {
   const ownerRatings = []
-  const filters = {
-    user_id: userId,
-    submission_state: 'complete',
-    ...(productId ? { product_id: productId } : {})
-  }
+  // NoCodeBackend has returned 5xx responses for compound owner-history filters.
+  // Keep the provider query on the server-authoritative ownership key only, then
+  // enforce workflow state and optional product scope again inside this boundary.
+  const filters = { user_id: userId }
 
   for (let page = 1; page <= OWNER_HISTORY_MAX_PAGES; page += 1) {
     const payload = await dataProvider.listPage(COLLECTIONS.ratings, {
