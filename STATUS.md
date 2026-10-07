@@ -7,15 +7,15 @@ stage: "Dependency-correct launch continuation"
 gate: Project Entry
 execution_state: READY
 current_work:
-  objective: "No implementation PR is active; resume the highest-priority dependency-correct launch work."
+  objective: "Reconcile the dependency-correct plan after the merged owner-history fix, then complete the remaining bounded integration evidence before #165."
   issue: null
   pr: null
   branch: null
 next_actions:
   - "Complete authenticated connected verification for #600 against the deployed owner-history fix; keep the issue open until the provider 502 is disproved in production."
-  - "Prepare #165 migration evidence within the reversible boundary; do not cross the irreversible provider boundary without the governed approval package."
-  - "Continue #577 credential certification when authenticated POST execution and supported account-session credentials are available."
-  - "Continue bounded provider-independent #449 work or evidence-grounded #429 cleanup where useful."
+  - "Complete bounded application write/read verification of the corrected bonus_attribute_id relationship path; do not infer write correctness from the read-only 1,733-row audit."
+  - "Begin #165 with fresh live-schema re-certification and prepare the migration/evidence package from current provider evidence; never repeat or assume a migration from stale issue text."
+  - "Then progress #503 durable rating workflow, conditional #577 auth/authorization certification, #144 backend certification, #154 catalogue certification, #449 alignment, and exact-candidate beer-first release verification."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
@@ -33,7 +33,7 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "f254176e6e19082e4528402a6db2e712d82b1188"
+  observed_main_commit: "55c94659eeea31e470303b8eba8f5ff930141900"
   current_candidate_commit: null
   latest_validated_commit: "53fa080e54c7388c17340fa3d5ea95e7bfcb9187"
   latest_deployed_commit: "f254176e6e19082e4528402a6db2e712d82b1188"
@@ -48,13 +48,13 @@ validation:
   ci: PASS
   runtime: VERIFIED
 last_verified_commit: "53fa080e54c7388c17340fa3d5ea95e7bfcb9187"
-last_updated: "2026-10-07T20:05:54+11:00"
+last_updated: "2026-10-07T20:10:43+11:00"
 ---
 
 
 # STATUS.md
 
-Last materially reviewed: 6 October 2026
+Last materially reviewed: 7 October 2026
 
 ## AI execution gate
 
@@ -90,9 +90,12 @@ Both issues were freshly confirmed open. No owner decision is requested before t
 ## Next dependency-correct work
 
 1. Complete authenticated connected verification for #600 against production. The source fix is merged/deployed; do not close #600 until live owner history proves the provider 502 is resolved.
-2. Prepare #165 migration evidence within the reversible boundary. Once deployed and verified, continue #144 backend certification, backend-dependent #154 catalogue certification and launch verification.
-3. Continue #577 credential certification when its execution/session prerequisites are available.
-4. Continue bounded provider-independent #449 work or evidence-grounded #429 cleanup where useful.
+2. Complete the bounded application write/read verification for the corrected `bonus_attribute_id` relationship path. The read-only audit proves the current provider rows, not that a new application write persists and reads back correctly.
+3. Start #165 with **fresh live-schema re-certification**. Historical issue evidence conflicts: #503 records a live ratings-field migration/reconciliation, while #165 still describes the earlier legacy schema. Do not repeat a migration or assume current provider state. Re-certify first, then prepare the exact migration/evidence package only for gaps that still exist.
+4. Continue beer-first reliability in order: #503 durable rating workflow; #577 connected auth/authorization certification when prerequisites permit; #144 backend certification; #154 catalogue certification; #449 add/edit/cellar alignment; exact-candidate release verification.
+5. After beer-first reliability, continue rating model/history (#468, Quick Rate, repeat tasting semantics, #444), then personal intelligence, places/availability, social, business ecosystem and account lifecycle according to `ROADMAP.md`.
+
+#143 governance and #429 cleanup remain maintenance work selected when evidence warrants them, not sequential blockers. Brew Done It remains a separate contained workstream and must not be enabled to advance the main plan.
 
 ## Deferred capability boundaries
 
@@ -110,4 +113,4 @@ The available agent file controls cannot attach/detach Project sources. The exac
 
 ## Validation limitations
 
-Source validation does not prove application writes. The isolated connected audit proves the current provider read contract: `bonus_attribute_id` is present on all 1,733 examined rating mapping rows and the stale plural field is absent. A separate bounded application write/read verification is still required before calling the corrected write path APPLICATION VERIFIED. The current next defect is the independent `personal_history_projection` provider 502.
+Source validation does not prove application writes. The isolated connected audit proves the current provider read contract: `bonus_attribute_id` is present on all 1,733 examined rating mapping rows and the stale plural field is absent. A separate bounded application write/read verification is still required before calling the corrected write path APPLICATION VERIFIED. The `personal_history_projection` source fix is merged and deployed; #600 now requires authenticated connected production verification only.
