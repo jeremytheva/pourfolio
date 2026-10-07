@@ -11,6 +11,7 @@ import {
   extractSourceRoutes,
   extractSystemMapRoutes,
   lifecycleWorkflowFindings,
+  providerWriteApprovalFindings,
   ratingBonusFieldDrift,
   routeMapDrift,
   runtimeDocumentationDrift
@@ -122,4 +123,23 @@ test('competing current-blocker headings outside STATUS are rejected', () => {
     'PROJECT.md': '# Project\n## Current blockers\n- x',
     'ROADMAP.md': '# Roadmap\n## Dependencies\n- y'
   }), ['PROJECT.md'])
+})
+
+
+test('routine production provider writes remain autonomous while destructive changes stay gated', () => {
+  assert.deepEqual(providerWriteApprovalFindings({
+    agentsText: 'Routine guarded production provider writes do **not** require explicit product-owner approval',
+    providerReadmeText: 'Routine production provider writes do **not** require explicit product-owner approval',
+    statusText: '#509 exact additive apply is ready to execute autonomously.'
+  }), [])
+
+  const findings = providerWriteApprovalFindings({
+    agentsText: 'Before any irreversible or production-impacting provider/schema change, request approval.',
+    providerReadmeText: 'Before any irreversible or production-impacting provider/schema operation, request approval.',
+    statusText: '#509 requires exact owner approval before apply.'
+  })
+  assert.ok(findings.includes('ROUTINE_PROVIDER_WRITE_AUTONOMY_MISSING_FROM_AGENTS'))
+  assert.ok(findings.includes('ROUTINE_PROVIDER_WRITE_AUTONOMY_MISSING_FROM_PROVIDER_GUIDE'))
+  assert.ok(findings.includes('BLANKET_PRODUCTION_PROVIDER_APPROVAL_GATE_REINTRODUCED'))
+  assert.ok(findings.includes('ROUTINE_509_OWNER_APPROVAL_GATE_REINTRODUCED'))
 })

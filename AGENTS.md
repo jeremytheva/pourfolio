@@ -137,7 +137,7 @@ Stop and require product-owner involvement only when one of these conditions is 
 
 - a genuine product or business decision is required;
 - required credentials, provider capability or external access are unavailable;
-- an irreversible or destructive operation requires approval, including a production database/provider migration;
+- an irreversible or destructive provider/schema operation requires approval, including a destructive or irreversible production database/provider migration;
 - conflicting requirements cannot be resolved from repository evidence;
 - a security, privacy or legal decision requires owner authority;
 - an external dependency prevents further dependency-correct work;
@@ -230,7 +230,9 @@ Distinguish capability states:
 
 Provider certification should cover the relevant subset of configuration, authentication, server-only credentials, CRUD, ownership/isolation, filtering, pagination, error semantics, idempotency, uniqueness, optimistic concurrency, transaction/atomic behaviour, schema contract, migration capability, backup/snapshot and restore/recovery. Generic provider documentation is not sufficient evidence when application safety depends on the capability.
 
-Before any irreversible or production-impacting provider/schema change, assemble a migration approval package covering the change, affected resources, existing-data scope, current/proposed schema, constraints, backup/snapshot evidence, restore/recovery evidence, backfill algorithm, duplicate/conflict handling, dry run where possible, rollback/safe-forward path, post-migration verification, exact irreversible operation and required owner approval. Perform all reversible preparation before escalating. For #165, the existing rating migration evidence gate and runbook are the project-specific package and should be extended rather than duplicated.
+Routine guarded production provider writes do **not** require explicit product-owner approval when they are additive or otherwise reversible, have a bounded dry run or deterministic preflight, use an exact mutation/count guard where applicable, prohibit unrelated destructive operations, and require post-write verification. These writes are ordinary autonomous delivery work and should proceed when their evidence and safety gates pass.
+
+Before a destructive or irreversible provider/schema change, assemble a migration approval package covering the change, affected resources, existing-data scope, current/proposed schema, constraints, backup/snapshot evidence, restore/recovery evidence, backfill algorithm, duplicate/conflict handling, dry run where possible, rollback/safe-forward path, post-migration verification, the exact destructive/irreversible operation and required owner approval. Perform all reversible preparation before escalating. For #165, the existing rating migration evidence gate and runbook are the project-specific package and should be extended rather than duplicated.
 
 ## Required validation
 

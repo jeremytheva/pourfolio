@@ -10,6 +10,7 @@ import {
   extractSourceRoutes,
   extractSystemMapRoutes,
   lifecycleWorkflowFindings,
+  providerWriteApprovalFindings,
   ratingBonusFieldDrift,
   routeMapDrift,
   runtimeDocumentationDrift
@@ -293,6 +294,17 @@ if (dataContract && fs.existsSync(ratingProxyPath)) {
   } else {
     if (drift.expectedMissingFromCode) findings.push({ code: 'RATING_BONUS_FIELD_MISSING_FROM_CODE', field: drift.expected })
     for (const field of drift.stale) findings.push({ code: 'RATING_BONUS_STALE_FIELD_IN_CODE', field, expected: drift.expected })
+  }
+}
+
+const providerGuidePath = path.join(root, 'docs/nocodebackend/README.md')
+if (fs.existsSync(agentsPath) && fs.existsSync(providerGuidePath) && fs.existsSync(statusPath)) {
+  for (const code of providerWriteApprovalFindings({
+    agentsText: readText('AGENTS.md'),
+    providerReadmeText: readText('docs/nocodebackend/README.md'),
+    statusText: readText('STATUS.md')
+  })) {
+    findings.push({ code })
   }
 }
 
