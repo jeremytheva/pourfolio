@@ -131,7 +131,7 @@ The governed #422 provider change established the `profiles` collection used by 
 | `name` | Required owner-editable display name. |
 | `description` | Optional owner-editable profile text. |
 | `avatar_url` | Optional owner-editable avatar reference. |
-| `rating_history_public` is required on provider writes. The application creates profiles with `0`; connected certification shows omission is rejected, and only explicit owner opt-in enables public rating history.n visibility flag. |
+| `rating_history_public` | Required privacy flag. The application creates profiles with `0`; connected certification shows omission is rejected, and only explicit owner opt-in enables public rating history. |
 
 `GET /api/nocodebackend/profile` owner-scopes the provider lookup by authenticated `user_id` and creates a default-private record when no owner profile exists. `PUT /api/nocodebackend/profile` allowlists only `name`, `description`, `avatar_url` and `rating_history_public`. Browser-supplied `id`, `user_id`, `public_id`, email, role or provider metadata cannot become authoritative.
 
