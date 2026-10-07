@@ -397,7 +397,9 @@ const getProduct = async (id, response) => {
   const ratings = await safeRelationshipList(COLLECTIONS.ratings, {
     product_id: product.id
   })
-  const validRatings = ratings.filter(isCompletedRating)
+  const validRatings = ratings.filter((rating) =>
+    String(rating?.product_id ?? '') === String(product.id) && isCompletedRating(rating)
+  )
   const totals = validRatings.map((rating) => completedRatingTotal(rating.total_weighted))
   const ratingInsights = await buildRatingInsights(validRatings)
   response.status(200).json({
@@ -447,6 +449,7 @@ const loadProducerProducts = async (producerId) => {
 }
 
 const readProducerRatings = async (productIds) => {
+  const allowedProductIds = new Set(productIds.map(String))
   const ratingsById = new Map()
   for (const productChunk of chunk(productIds)) {
     const rows = await readAllProviderRows(COLLECTIONS.ratings, {
@@ -456,7 +459,8 @@ const readProducerRatings = async (productIds) => {
     })
     for (const rating of rows) {
       const ratingId = String(rating?.id ?? '')
-      if (!/^[1-9]\d*$/.test(ratingId) || !isCompletedRating(rating)) continue
+      const productId = String(rating?.product_id ?? '')
+      if (!/^[1-9]\d*$/.test(ratingId) || !allowedProductIds.has(productId) || !isCompletedRating(rating)) continue
       ratingsById.set(ratingId, rating)
     }
   }
