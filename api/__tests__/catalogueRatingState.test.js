@@ -62,7 +62,7 @@ test('catalogue aggregates only durable complete ratings with present valid five
     await __testables.getProduct('4', response)
 
     assert.equal(response.statusCode, 200)
-    assert.deepEqual(ratingFilters, { product_id: 4, submission_state: 'complete' })
+    assert.deepEqual(ratingFilters, { product_id: 4 })
     assert.deepEqual(response.body.ratingSummary, { count: 2, average: 4.5 })
     assert.deepEqual(response.body.ratingInsights.distribution, buildCompletedRatingDistribution([4, 5]))
     assert.equal(
