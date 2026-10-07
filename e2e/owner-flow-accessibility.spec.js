@@ -66,7 +66,7 @@ test('successful cellar edit restores focus to the persistent edit control', asy
   await expect(edit).toBeFocused()
 })
 
-test('profile read-only capability is announced without exposing mutation controls', async ({ page }) => {
+test('profile editing exposes owner-safe controls and an announced save result', async ({ page }) => {
   let profilePutRequests = 0
   page.on('request', (request) => {
     if (request.url().includes('/api/nocodebackend/profile') && request.method() === 'PUT') profilePutRequests += 1
@@ -75,11 +75,20 @@ test('profile read-only capability is announced without exposing mutation contro
   await page.goto('/profile')
 
   const profileSection = page.locator('section[aria-labelledby="profile-details"]')
-  await expect(profileSection.getByText('Profile editing is not available yet.')).toBeVisible()
-  await expect(profileSection.getByText(/authenticated session/)).toBeVisible()
-  await expect(profileSection.getByRole('textbox')).toHaveCount(0)
-  await expect(profileSection.getByRole('button', { name: /save/i })).toHaveCount(0)
-  expect(profilePutRequests).toBe(0)
+  const displayName = profileSection.getByLabel('Display name')
+  const save = profileSection.getByRole('button', { name: 'Save profile' })
+  await expect(displayName).toHaveValue('Jeremy')
+  await expect(save).toBeEnabled()
+  await expect(profileSection.getByLabel('Share my rating history')).not.toBeChecked()
+  await expect(page.getByLabel(/role/i)).toHaveCount(0)
+  await expect(page.getByLabel(/user id/i)).toHaveCount(0)
+
+  await displayName.fill('Jeremy Accessible')
+  await save.click()
+
+  await expect(profileSection.getByText('Profile saved.')).toBeVisible()
+  await expect(profileSection.getByText('Jeremy Accessible', { exact: true }).first()).toBeVisible()
+  expect(profilePutRequests).toBe(1)
 })
 
 test('profile rating history load failure has a focused retry path that recovers', async ({ page }) => {
