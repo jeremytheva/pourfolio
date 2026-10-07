@@ -391,9 +391,11 @@ const getProduct = async (id, response) => {
     return
   }
   const [hydrated] = await hydrateProducts([product])
+  // NoCodeBackend compound filters can omit otherwise valid rating rows.
+  // Scope the provider read by product identity only, then enforce the durable
+  // completion contract inside this trusted application boundary.
   const ratings = await safeRelationshipList(COLLECTIONS.ratings, {
-    product_id: product.id,
-    submission_state: 'complete'
+    product_id: product.id
   })
   const validRatings = ratings.filter(isCompletedRating)
   const totals = validRatings.map((rating) => completedRatingTotal(rating.total_weighted))
@@ -449,8 +451,7 @@ const readProducerRatings = async (productIds) => {
   for (const productChunk of chunk(productIds)) {
     const rows = await readAllProviderRows(COLLECTIONS.ratings, {
       filters: {
-        'product_id[in]': productChunk.join(','),
-        submission_state: 'complete'
+        'product_id[in]': productChunk.join(',')
       }
     })
     for (const rating of rows) {
