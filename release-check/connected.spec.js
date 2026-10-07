@@ -139,9 +139,9 @@ test('catalogue, pagination, direct details, rating form boundary and session-ba
   await page.goto('/search')
 
   const searchInput = page.getByLabel('Search beers, breweries or styles')
-  const searchStatus = page.locator('#product-search-status')
+  const searchStatus = page.locator('#catalogue-search-status')
   await expect(searchInput).toBeFocused()
-  await expect(searchStatus).toHaveText(/^\d+ products? found$/)
+  await expect(searchStatus).toHaveText(/^\d+ products? in catalogue$/)
 
   const nextPage = page.getByRole('button', { name: 'Next product page, page 2' })
   await expect(nextPage).toBeVisible()
@@ -156,7 +156,7 @@ test('catalogue, pagination, direct details, rating form boundary and session-ba
   const searchResponse = await searchResponsePromise
   const searchPayload = await responseJson(searchResponse)
   expect(searchPayload.items?.length).toBeGreaterThan(0)
-  await expect(searchStatus).toHaveText(new RegExp(`^${searchPayload.total} products? found$`))
+  await expect(searchStatus).toHaveText(new RegExp(`^${searchPayload.total} beers?(?:,|$)`))
 
   const productLink = page.locator('[aria-label="Products"] a[href^="/products/"]').first()
   await expect(productLink).toBeVisible()
