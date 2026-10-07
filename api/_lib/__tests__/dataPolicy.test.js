@@ -37,7 +37,6 @@ test('product creation accepts a verified producer relationship and strips brows
     declared_category: ' Lager ',
     edition: ' 2026 ',
     collaboration: true,
-    product_image: 'https://example.com/beer.jpg',
     user_id: 'browser-user',
     id: 999
   }), {
@@ -50,7 +49,7 @@ test('product creation accepts a verified producer relationship and strips brows
     declared_category: 'Lager',
     edition: '2026',
     collaboration: 1,
-    product_image: 'https://example.com/beer.jpg'
+    product_image: null
   })
 })
 
@@ -85,13 +84,14 @@ test('product creation accepts one new producer and does not accept a competing 
   }), (error) => error.status === 400 && /Choose one existing producer/.test(error.message))
 })
 
-test('product creation enforces product-table bounds and safe image urls', () => {
+test('product creation enforces product-table bounds and fails closed on ungoverned images', () => {
   const base = { product_name: 'Beer', product_category_id: 10, producer_id: 20 }
   assert.throws(() => sanitiseProductCreateInput({ ...base, abv: 81 }), /ABV must be between 0 and 80/)
   assert.throws(() => sanitiseProductCreateInput({ ...base, ibu: -1 }), /IBU must be a number/)
-  assert.throws(() => sanitiseProductCreateInput({ ...base, product_image: 'http://example.com/a.jpg' }), /must use HTTPS/)
+  assert.throws(() => sanitiseProductCreateInput({ ...base, product_image: 'https://example.com/a.jpg' }), /approved image provenance workflow/)
+  assert.throws(() => sanitiseProductCreateInput({ ...base, product_image: '/images/a.jpg' }), /approved image provenance workflow/)
   assert.throws(() => sanitiseProductCreateInput({ ...base, collaboration: 'yes' }), /Collaboration flag is invalid/)
-  assert.equal(sanitiseProductCreateInput({ ...base, product_image: '/images/a.jpg' }).product_image, '/images/a.jpg')
+  assert.equal(sanitiseProductCreateInput(base).product_image, null)
 })
 
 test('producer creation keeps only supported producer fields', () => {
