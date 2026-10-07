@@ -116,3 +116,25 @@ export const competingBlockerHeadingPaths = (documents = {}) =>
   Object.entries(documents)
     .filter(([, content]) => /^##?\s+Current blockers\b|^Current blockers\s*:/mi.test(String(content)))
     .map(([path]) => path)
+
+
+export const providerWriteApprovalFindings = ({
+  agentsText = '',
+  providerReadmeText = '',
+  statusText = ''
+} = {}) => {
+  const findings = []
+  const routineMarker = 'Routine guarded production provider writes do **not** require explicit product-owner approval'
+  if (!String(agentsText).includes(routineMarker)) findings.push('ROUTINE_PROVIDER_WRITE_AUTONOMY_MISSING_FROM_AGENTS')
+  if (!String(providerReadmeText).includes('Routine production provider writes do **not** require explicit product-owner approval')) {
+    findings.push('ROUTINE_PROVIDER_WRITE_AUTONOMY_MISSING_FROM_PROVIDER_GUIDE')
+  }
+  if (/irreversible or production-impacting provider\/schema/i.test(String(agentsText)) ||
+      /irreversible or production-impacting provider\/schema/i.test(String(providerReadmeText))) {
+    findings.push('BLANKET_PRODUCTION_PROVIDER_APPROVAL_GATE_REINTRODUCED')
+  }
+  if (/#509[^\n]*(?:explicit owner approval|requires exact owner approval)|(?:explicit owner approval|requires exact owner approval)[^\n]*#509/i.test(String(statusText))) {
+    findings.push('ROUTINE_509_OWNER_APPROVAL_GATE_REINTRODUCED')
+  }
+  return findings
+}
