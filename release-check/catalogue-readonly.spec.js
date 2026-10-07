@@ -26,7 +26,7 @@ test('read-only catalogue failures and verified brewery navigation stay truthful
   await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
 
   await page.goto('/search')
-  const searchInput = page.getByRole('searchbox', { name: 'Search products, producers or styles' })
+  const searchInput = page.getByRole('searchbox', { name: 'Search beers, breweries or styles' })
   const zeroResultResponsePromise = page.waitForResponse((response) => isCatalogueSearch(response, ZERO_RESULT_QUERY))
   await searchInput.fill(ZERO_RESULT_QUERY)
   const zeroResultResponse = await zeroResultResponsePromise

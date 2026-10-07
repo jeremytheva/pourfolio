@@ -138,7 +138,7 @@ test('catalogue, pagination, direct details, rating form boundary and session-ba
   await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
   await page.goto('/search')
 
-  const searchInput = page.getByLabel('Search products, producers or styles')
+  const searchInput = page.getByLabel('Search beers, breweries or styles')
   const searchStatus = page.locator('#product-search-status')
   await expect(searchInput).toBeFocused()
   await expect(searchStatus).toHaveText(/^\d+ products? found$/)
