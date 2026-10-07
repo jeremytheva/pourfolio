@@ -49,13 +49,13 @@ test('public user profile shows only the opted-in rated-beer history projection'
   await expect(page.getByRole('button', { name: /Delete rating/ })).toHaveCount(0)
 })
 
-test('public profile capability-unavailable response uses a recoverable focused error state', async ({ page }) => {
+test('public profile provider failure uses a recoverable focused error state', async ({ page }) => {
   await page.route(`**/api/nocodebackend/profiles/${publicProfileId}`, (route) => route.fulfill({
     status: 503,
     contentType: 'application/json',
     body: JSON.stringify({
-      error: 'Public user profiles are unavailable until profile persistence is deployed.',
-      code: 'profile_persistence_unavailable'
+      error: 'Public user profile is temporarily unavailable.',
+      code: 'profile_provider_unavailable'
     })
   }))
 
@@ -63,6 +63,6 @@ test('public profile capability-unavailable response uses a recoverable focused 
 
   const alert = page.getByRole('alert')
   await expect(alert).toBeFocused()
-  await expect(alert).toContainText('Public user profiles are unavailable until profile persistence is deployed.')
+  await expect(alert).toContainText('Public user profile is temporarily unavailable.')
   await expect(page.getByRole('button', { name: 'Retry' })).toBeVisible()
 })
