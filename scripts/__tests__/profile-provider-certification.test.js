@@ -3,7 +3,7 @@ import test from 'node:test'
 
 import { runProfileProviderCertification } from '../profile-provider-certification-lib.js'
 
-const createProvider = () => {
+const createProvider = ({ enforceUniqueness = true } = {}) => {
   const records = new Map()
   let sequence = 0
 
@@ -16,7 +16,7 @@ const createProvider = () => {
     async list(_table, filters = {}) { return list(filters) },
     async get(_table, id) { return records.has(String(id)) ? { ...records.get(String(id)) } : null },
     async create(_table, body) {
-      if ([...records.values()].some((record) => record.user_id === body.user_id || record.public_id === body.public_id)) {
+      if (enforceUniqueness && [...records.values()].some((record) => record.user_id === body.user_id || record.public_id === body.public_id)) {
         const error = new Error('unique')
         error.status = 409
         error.code = 'UNIQUE_CONFLICT'
@@ -54,23 +54,12 @@ test('profile provider certification proves defaults, uniqueness, update and cle
 })
 
 test('profile provider certification fails when provider uniqueness is not enforced and still cleans up', async () => {
-  const provider = createProvider()
-  provider.isUniqueConflict = () => false
-  const originalCreate = provider.create
-  provider.create = async (_table, body) => {
-    // Deliberately bypass the memory provider uniqueness rule for this negative test.
-    const existing = provider.remaining()
-    if (existing.some((record) => record.user_id === body.user_id || record.public_id === body.public_id)) {
-      const clone = { id: 100 + existing.length, rating_history_public: 0, ...body }
-      const records = existing.map((record) => ({ ...record }))
-      const fake = createProvider()
-      for (const record of records) await fake.create('profiles', record)
-      return clone
-    }
-    return originalCreate(_table, body)
-  }
-
+  const provider = createProvider({ enforceUniqueness: false })
   const report = await runProfileProviderCertification({ provider, runKey: 'test-profile-2' })
+
   assert.equal(report.status, 'FAIL')
   assert.equal(report.capabilities.unique_user_id.status, 'FAIL')
+  assert.equal(report.cleanup.status, 'PASS')
+  assert.equal(report.cleanup.residual, 0)
+  assert.deepEqual(provider.remaining(), [])
 })
