@@ -59,6 +59,98 @@ immutable job references and a supported recovery path, stop and obtain an
 approved architecture decision; do not substitute console edits.
 
 
+## Current reversible readiness checkpoint — 7 October 2026
+
+This checkpoint records what can be established without a provider mutation. It
+does **not** authorise rehearsal or production execution and it is not B0
+backup/restore evidence.
+
+### Public provider capability evidence
+
+Current public NoCodeBackend documentation establishes only part of the
+required authority:
+
+| Capability | Current public evidence | #165 interpretation |
+| --- | --- | --- |
+| Existing-table schema editing | `Managing Tables, Columns, and Records` documents that **Manage Tables** alters the live MySQL schema and can add/remove tables and columns. | Confirms schema edits exist, but also confirms dashboard edits affect live data; this is not enough to prove a repeatable versioned migration mechanism. |
+| Populated-table required columns | The same guide states that a new required column on a populated table needs a default value. | Supports the runbook's additive-nullable-first approach; it does not prove a safe bulk backfill or later constraint-conversion job. |
+| Column-level uniqueness | Current getting-started documentation describes duplicate rejection for fields marked Unique. | Confirms simple unique-field behaviour only. It does not establish the composite uniqueness required by the rating contract. |
+| REST collection API | Current REST documentation describes CRUD plus pagination against generated collection endpoints. | Useful for connected application verification only; it remains explicitly excluded as migration authority. |
+| Snapshots/cloning | The current NoCodeBackend product site advertises snapshots/cloning and testing changes safely with snapshots/clones. | Capability is advertised, but the public help centre does not provide the exact create/restore/rehearsal procedure, immutable restore job references, or tenant/version applicability required by B0. |
+| Automated backups | Current provider help documents/marketing state managed/automated backups exist. | Existence of backups is insufficient until an isolated restore is executed and verified under the exact tenant/version contract. |
+
+Current public references:
+- `https://app.nocodebackend.com/help/en/managing-records`
+- `https://app.nocodebackend.com/help/en/manual-setup`
+- `https://app.nocodebackend.com/help/en/getting-started`
+- `https://app.nocodebackend.com/help/en/rest-api`
+- `https://www.nocodebackend.com/`
+
+**Result:** the provider-mechanism gate remains **BLOCKED**. Before staging
+rehearsal, obtain a provider support/change record that explicitly proves all of
+the following for the target tenant/version:
+
+1. a versioned/repeatable schema-change mechanism covering the required field,
+   default, index, constraint and permission changes;
+2. a deterministic bulk backfill mechanism with restart/idempotency semantics;
+3. support for the required composite uniqueness constraints, or an approved
+   alternate provider-enforced design with equivalent guarantees;
+4. a fresh consistent snapshot/export procedure plus isolated clone/restore
+   procedure and immutable job/reference identifiers;
+5. restore validation and abort/safe-forward steps;
+6. permission-policy deployment/version evidence; and
+7. the named provider/operator path that will execute staging and production.
+
+A generic dashboard capability, generated CRUD endpoint, marketing statement or
+unrestored backup does not satisfy these requirements.
+
+### Current application/provider preflight
+
+Protected read-only connected run `37602376459`, based on application source
+merged through PR #606, established the following current pre-migration
+application/provider facts:
+
+- 620 rating rows examined;
+- 3 owners examined;
+- 574 ratings currently classified `complete`;
+- 38 ratings currently classified `pending`;
+- 8 ratings currently classified `failed`;
+- 308 products have completed ratings;
+- 1,733 bonus-rating mapping rows use the verified
+  `bonus_attribute_id` relationship field;
+- owner-history projection and product community aggregates reconcile under the
+  current application read contract; and
+- the live rating reconciliation **dry run** reports 0 currently eligible
+  legacy mutations.
+
+These counts are useful only as a reversible preflight reference. They **must
+not** be copied into the execution record as the migration baseline. Staging
+rehearsal and production each require a fresh write-fenced B0 export, fresh
+counts/digests and an independently proven isolated restore.
+
+### Approval-package readiness
+
+| Package element | State | Next evidence required |
+| --- | --- | --- |
+| Target schema/backfill/constraint design | READY IN REPOSITORY | Bind the reviewed design to provider-supported mechanism/version and immutable provider plan/job references. |
+| Application read integrity | PROVIDER VERIFIED | Preserve connected artifact references; repeat after migration. |
+| Legacy reconciliation inventory | CURRENT DRY RUN PASS | Recompute from fresh B0; do not assume current zero-eligible result survives until migration day. |
+| Write fence and compatibility plan | DESIGNED | Execute/prove in isolated staging before production. |
+| Provider schema mechanism | BLOCKED | Provider support/change record with tenant/version applicability and immutable operation reference. |
+| Provider bulk backfill mechanism | BLOCKED | Provider-supported deterministic/resumable job contract. |
+| Composite uniqueness | BLOCKED | Exact provider capability/equivalent guarantee evidence. |
+| Fresh backup/export | BLOCKED UNTIL EXECUTION WINDOW | Create only after write fence; retain IDs, digests and consistency evidence. |
+| Isolated restore/recovery rehearsal | BLOCKED | Restore fresh B0 into an isolated environment and prove counts/digests/readability. |
+| Permission-policy deployment | BLOCKED | Versioned provider policy/change evidence plus negative tests. |
+| Staging migration rehearsal | BLOCKED BY ITEMS ABOVE | Complete all phases and failure injections against restored production-equivalent data. |
+| Production approval | NOT REQUESTED | Request only after staging rehearsal, recovery evidence and exact production operation are reviewable. |
+
+The next owner decision for #165 is therefore **not** permission to mutate
+production. The next external dependency is provider evidence/support sufficient
+to complete the blocked rows above. Production approval remains deliberately
+deferred.
+
+
 ## Migration execution evidence record
 
 This section is the migration design record's public evidence index. It must be
