@@ -102,16 +102,36 @@ export const runProfileProviderCertification = async ({
   try {
     let createdProfile
     try {
-      createdProfile = remember(first(await provider.create(table, {
-        user_id: userId,
-        public_id: publicId,
-        name: 'Pourfolio profile certification'
-      })))
+      let omittedVisibilityRejected = false
+      try {
+        const createdWithoutVisibility = first(await provider.create(table, {
+          user_id: userId,
+          public_id: publicId,
+          name: 'Pourfolio profile certification'
+        }))
+        if (createdWithoutVisibility) createdProfile = remember(createdWithoutVisibility)
+      } catch (error) {
+        if (Number(error?.status) !== 400) throw error
+        omittedVisibilityRejected = true
+      }
+
+      if (!createdProfile) {
+        createdProfile = remember(first(await provider.create(table, {
+          user_id: userId,
+          public_id: publicId,
+          name: 'Pourfolio profile certification',
+          rating_history_public: 0
+        })))
+      }
+
       const fetched = await provider.get(table, createdProfile.id)
       requireCondition(String(fetched?.user_id ?? '') === userId, 'PROFILE_OWNER_DEFAULT_MISMATCH')
       requireCondition(String(fetched?.public_id ?? '') === publicId, 'PROFILE_PUBLIC_ID_DEFAULT_MISMATCH')
       requireCondition(booleanValue(fetched?.rating_history_public) === false, 'PROFILE_DEFAULT_PRIVATE_MISMATCH')
-      pass('create_default_private', { default_private: true })
+      pass('create_default_private', {
+        private_on_create: true,
+        provider_mode: omittedVisibilityRejected ? 'required_explicit_private' : 'provider_default_private'
+      })
     } catch (error) {
       fail('create_default_private', error)
       throw error
@@ -163,7 +183,8 @@ export const runProfileProviderCertification = async ({
         const duplicate = first(await provider.create(table, {
           user_id: userId,
           public_id: alternatePublicId,
-          name: 'Duplicate owner profile certification'
+          name: 'Duplicate owner profile certification',
+          rating_history_public: 0
         }))
         if (duplicate) remember(duplicate)
       } catch (error) {
@@ -182,7 +203,8 @@ export const runProfileProviderCertification = async ({
         const duplicate = first(await provider.create(table, {
           user_id: alternateUserId,
           public_id: publicId,
-          name: 'Duplicate public profile certification'
+          name: 'Duplicate public profile certification',
+          rating_history_public: 0
         }))
         if (duplicate) remember(duplicate)
       } catch (error) {
