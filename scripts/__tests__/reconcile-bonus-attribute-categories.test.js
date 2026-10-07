@@ -42,11 +42,22 @@ const fixture = () => ({
 
 const installProvider = (state) => {
   const creates = []
-  dataProvider.list = async (collection) => {
-    if (collection === COLLECTIONS.bonusAttributes) return state.attributes
-    if (collection === COLLECTIONS.bonusAttributeCategories) return state.categories
-    if (collection === COLLECTIONS.bonusAttributeCategoryMappings) return state.mappings
-    assert.fail(`Unexpected collection: ${collection}`)
+  dataProvider.listPage = async (collection, { page, limit }) => {
+    let rows
+    if (collection === COLLECTIONS.bonusAttributes) rows = state.attributes
+    else if (collection === COLLECTIONS.bonusAttributeCategories) rows = state.categories
+    else if (collection === COLLECTIONS.bonusAttributeCategoryMappings) rows = state.mappings
+    else assert.fail(`Unexpected collection: ${collection}`)
+
+    const start = (page - 1) * limit
+    const items = rows.slice(start, start + limit)
+    return {
+      items,
+      page,
+      pageSize: limit,
+      total: rows.length,
+      totalPages: rows.length ? Math.ceil(rows.length / limit) : 0
+    }
   }
   dataProvider.create = async (collection, body) => {
     const record = { id: state.nextId++, user_id: null, ...body }
@@ -58,6 +69,25 @@ const installProvider = (state) => {
   }
   return creates
 }
+
+test('bonus category reconciliation reads every provider page before deciding catalogue drift', async () => {
+  const state = fixture()
+  state.attributes = [
+    ...Array.from({ length: 100 }, (_, index) => ({
+      id: 1000 + index,
+      user_id: 'owner-1',
+      description: `Personal ${index + 1}`
+    })),
+    ...state.attributes
+  ]
+  installProvider(state)
+
+  const plan = await buildBonusCategoryReconciliationPlan(planRows)
+
+  assert.equal(plan.status, 'PASS')
+  assert.equal(plan.providerCounts.globalAttributes, 4)
+  assert.deepEqual(plan.missingCategories.map((category) => category.name), ['Follow'])
+})
 
 test('bonus category reconciliation dry-run reports missing canonical categories and mappings without writes', async () => {
   const state = fixture()
