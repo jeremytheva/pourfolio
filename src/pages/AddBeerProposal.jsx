@@ -353,10 +353,10 @@ function AddBeerProposal() {
           <input maxLength={255} value={form.edition} onChange={(event) => setField('edition', event.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
         </label>
 
-        <label className="block text-sm font-medium text-gray-700">Product image URL
-          <input type="url" maxLength={255} value={form.product_image} onChange={(event) => setField('product_image', event.target.value)} placeholder="https://…" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
-          <span className="mt-1 block text-xs font-normal text-gray-500">Optional. HTTPS URLs only.</span>
-        </label>
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900" role="status">
+          <p className="font-semibold">Product image</p>
+          <p className="mt-1">Image submission is not available yet. Catalogue images will use the approved image and provenance workflow when that capability is enabled.</p>
+        </div>
 
         <p className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900" role="status">
           {isCollaboration ? `${collaborators.length + 1} producers will be linked. This beer will be recorded as a collaboration.` : 'One producer will be linked. This beer will not be recorded as a collaboration.'}
