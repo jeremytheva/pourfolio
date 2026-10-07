@@ -1,230 +1,103 @@
 const asArray = (value) => Array.isArray(value) ? value : value ? [value] : []
-const first = (value) => asArray(value)[0] || null
 const recordId = (record) => record?.id === undefined || record?.id === null ? null : String(record.id)
-const booleanValue = (value) => value === true || value === 1 || value === '1'
+const privacyValue = (value) => [true, false, 1, 0, '1', '0'].includes(value)
 
-const evidenceError = (error) => ({
-  status: Number.isInteger(error?.status) ? error.status : null,
-  code: typeof error?.code === 'string' ? error.code : 'UNKNOWN_ERROR'
-})
-
-const requireCondition = (condition, code) => {
-  if (!condition) {
-    const error = new Error(code)
-    error.code = code
-    throw error
-  }
-}
-
-const capability = (status = 'PENDING', evidence = null) => ({
+const capability = (status = 'NOT_RUN', evidence = null) => ({
   status,
   ...(evidence ? { evidence } : {})
 })
 
+const errorEvidence = (error) => ({
+  status: Number.isInteger(error?.status) ? error.status : null,
+  code: typeof error?.code === 'string' ? error.code : 'UNKNOWN_ERROR'
+})
+
 export const runProfileProviderCertification = async ({
   provider,
-  runKey,
   table = 'profiles'
 }) => {
   if (!provider) throw new TypeError('provider is required')
-  if (!runKey) throw new TypeError('runKey is required')
-
-  const suffix = String(runKey).replace(/[^a-z0-9]/gi, '').slice(-20) || 'certification'
-  const userId = ('pf-cert-' + suffix).slice(0, 36)
-  const alternateUserId = ('pf-alt-' + suffix).slice(0, 36)
-  const publicId = 'pf_cert_' + suffix
-  const alternatePublicId = 'pf_alt_' + suffix
 
   const report = {
     status: 'PENDING',
     table,
     capabilities: {
-      create_default_private: capability(),
+      table_read: capability(),
+      required_field_shape: capability(),
       owner_filter: capability(),
       public_id_filter: capability(),
-      update: capability(),
-      unique_user_id: capability(),
-      unique_public_id: capability(),
-      cleanup: capability()
+      privacy_field: capability(),
+      create: capability('BLOCKED', { reason: 'valid_authenticated_test_subject_required' }),
+      update: capability('BLOCKED', { reason: 'cleanup_guarded_authenticated_profile_required' }),
+      unique_user_id: capability('BLOCKED', { reason: 'valid_authenticated_test_subject_required' }),
+      unique_public_id: capability('BLOCKED', { reason: 'second_valid_authenticated_test_subject_required' }),
+      cleanup: capability('NOT_APPLICABLE', { mutation_attempted: false, residual: 0 })
     },
-    cleanup: { attempted: 0, removed: 0, residual: 0, failures: [] }
-  }
-
-  const created = new Set()
-  let primaryFailure = null
-  const fail = (name, error) => {
-    report.capabilities[name] = capability('FAIL', evidenceError(error))
-    primaryFailure ||= { capability: name, ...evidenceError(error) }
-  }
-  const pass = (name, evidence) => {
-    report.capabilities[name] = capability('PASS', evidence)
-  }
-  const remember = (record) => {
-    const id = recordId(record)
-    requireCondition(id, 'PROFILE_CREATE_ID_MISSING')
-    created.add(id)
-    return record
-  }
-
-  const cleanup = async () => {
-    report.cleanup.attempted = created.size
-    for (const id of [...created].reverse()) {
-      try {
-        await provider.remove(table, id)
-        created.delete(id)
-        report.cleanup.removed += 1
-      } catch (error) {
-        report.cleanup.failures.push({ id: '<redacted-record-id>', ...evidenceError(error) })
-      }
+    cleanup: {
+      status: 'NOT_APPLICABLE',
+      attempted: 0,
+      removed: 0,
+      residual: 0,
+      failures: []
     }
-
-    try {
-      const residualRows = [
-        ...asArray(await provider.list(table, { user_id: userId })),
-        ...asArray(await provider.list(table, { user_id: alternateUserId })),
-        ...asArray(await provider.list(table, { public_id: publicId })),
-        ...asArray(await provider.list(table, { public_id: alternatePublicId }))
-      ]
-      const residualIds = new Set(residualRows.map(recordId).filter(Boolean))
-      report.cleanup.residual = residualIds.size
-    } catch (error) {
-      report.cleanup.failures.push({ verification: 'profile-scope-read', ...evidenceError(error) })
-    }
-
-    const ok = report.cleanup.failures.length === 0 && report.cleanup.residual === 0
-    report.cleanup.status = ok ? 'PASS' : 'FAIL'
-    report.capabilities.cleanup = capability(ok ? 'PASS' : 'FAIL', {
-      removed: report.cleanup.removed,
-      residual: report.cleanup.residual
-    })
   }
 
   try {
-    let createdProfile
-    try {
-      let omittedVisibilityRejected = false
-      try {
-        const createdWithoutVisibility = first(await provider.create(table, {
-          user_id: userId,
-          public_id: publicId,
-          name: 'Pourfolio profile certification'
-        }))
-        if (createdWithoutVisibility) createdProfile = remember(createdWithoutVisibility)
-      } catch (error) {
-        if (Number(error?.status) !== 400) throw error
-        omittedVisibilityRejected = true
-      }
+    const rows = asArray(await provider.list(table, {}))
+    report.capabilities.table_read = capability('PASS', { records_observed: rows.length })
 
-      if (!createdProfile) {
-        createdProfile = remember(first(await provider.create(table, {
-          user_id: userId,
-          public_id: publicId,
-          name: 'Pourfolio profile certification',
-          rating_history_public: 0
-        })))
-      }
-
-      const fetched = await provider.get(table, createdProfile.id)
-      requireCondition(String(fetched?.user_id ?? '') === userId, 'PROFILE_OWNER_DEFAULT_MISMATCH')
-      requireCondition(String(fetched?.public_id ?? '') === publicId, 'PROFILE_PUBLIC_ID_DEFAULT_MISMATCH')
-      requireCondition(booleanValue(fetched?.rating_history_public) === false, 'PROFILE_DEFAULT_PRIVATE_MISMATCH')
-      pass('create_default_private', {
-        private_on_create: true,
-        provider_mode: omittedVisibilityRejected ? 'required_explicit_private' : 'provider_default_private'
-      })
-    } catch (error) {
-      fail('create_default_private', error)
-      throw error
+    if (rows.length === 0) {
+      report.capabilities.required_field_shape = capability('BLOCKED', { reason: 'no_existing_profile_fixture' })
+      report.capabilities.owner_filter = capability('BLOCKED', { reason: 'no_existing_profile_fixture' })
+      report.capabilities.public_id_filter = capability('BLOCKED', { reason: 'no_existing_profile_fixture' })
+      report.capabilities.privacy_field = capability('BLOCKED', { reason: 'no_existing_profile_fixture' })
+      report.status = 'PARTIAL'
+      return report
     }
 
-    try {
-      const owned = asArray(await provider.list(table, { user_id: userId }))
-        .filter((row) => String(row?.user_id ?? '') === userId)
-      requireCondition(owned.length === 1, 'PROFILE_OWNER_FILTER_MISMATCH')
-      requireCondition(recordId(owned[0]) === recordId(createdProfile), 'PROFILE_OWNER_FILTER_ID_MISMATCH')
-      pass('owner_filter', { records: owned.length })
-    } catch (error) {
-      fail('owner_filter', error)
-      throw error
+    const candidate = rows.find((record) =>
+      recordId(record) &&
+      String(record?.user_id ?? '').trim() &&
+      String(record?.public_id ?? '').trim() &&
+      String(record?.name ?? '').trim() &&
+      privacyValue(record?.rating_history_public)
+    )
+
+    if (!candidate) {
+      report.capabilities.required_field_shape = capability('FAIL', { reason: 'no_valid_existing_profile_shape' })
+      report.status = 'FAIL'
+      return report
     }
 
-    try {
-      const publicRows = asArray(await provider.list(table, { public_id: publicId }))
-        .filter((row) => String(row?.public_id ?? '') === publicId)
-      requireCondition(publicRows.length === 1, 'PROFILE_PUBLIC_FILTER_MISMATCH')
-      requireCondition(recordId(publicRows[0]) === recordId(createdProfile), 'PROFILE_PUBLIC_FILTER_ID_MISMATCH')
-      pass('public_id_filter', { records: publicRows.length })
-    } catch (error) {
-      fail('public_id_filter', error)
-      throw error
+    report.capabilities.required_field_shape = capability('PASS', {
+      fields_present: ['id', 'user_id', 'public_id', 'name', 'rating_history_public']
+    })
+    report.capabilities.privacy_field = capability('PASS', { present_and_boolean_like: true })
+
+    const owned = asArray(await provider.list(table, { user_id: candidate.user_id }))
+      .filter((record) => String(record?.user_id ?? '') === String(candidate.user_id))
+    if (owned.length === 1 && recordId(owned[0]) === recordId(candidate)) {
+      report.capabilities.owner_filter = capability('PASS', { exact_records: 1 })
+    } else {
+      report.capabilities.owner_filter = capability('FAIL', { exact_records: owned.length })
     }
 
-    try {
-      await provider.update(table, createdProfile.id, {
-        name: 'Pourfolio profile certification updated',
-        description: 'Temporary provider certification row.',
-        rating_history_public: 1
-      })
-      const updated = await provider.get(table, createdProfile.id)
-      requireCondition(String(updated?.name ?? '') === 'Pourfolio profile certification updated', 'PROFILE_UPDATE_NAME_MISMATCH')
-      requireCondition(String(updated?.description ?? '') === 'Temporary provider certification row.', 'PROFILE_UPDATE_DESCRIPTION_MISMATCH')
-      requireCondition(booleanValue(updated?.rating_history_public) === true, 'PROFILE_UPDATE_VISIBILITY_MISMATCH')
-      requireCondition(String(updated?.user_id ?? '') === userId, 'PROFILE_UPDATE_OWNER_DRIFT')
-      requireCondition(String(updated?.public_id ?? '') === publicId, 'PROFILE_UPDATE_PUBLIC_ID_DRIFT')
-      pass('update', { matched: true })
-    } catch (error) {
-      fail('update', error)
-      throw error
+    const publicRows = asArray(await provider.list(table, { public_id: candidate.public_id }))
+      .filter((record) => String(record?.public_id ?? '') === String(candidate.public_id))
+    if (publicRows.length === 1 && recordId(publicRows[0]) === recordId(candidate)) {
+      report.capabilities.public_id_filter = capability('PASS', { exact_records: 1 })
+    } else {
+      report.capabilities.public_id_filter = capability('FAIL', { exact_records: publicRows.length })
     }
 
-    try {
-      let conflict = null
-      try {
-        const duplicate = first(await provider.create(table, {
-          user_id: userId,
-          public_id: alternatePublicId,
-          name: 'Duplicate owner profile certification',
-          rating_history_public: 0
-        }))
-        if (duplicate) remember(duplicate)
-      } catch (error) {
-        conflict = error
-      }
-      requireCondition(conflict && provider.isUniqueConflict?.(conflict), 'PROFILE_USER_ID_UNIQUENESS_MISSING')
-      pass('unique_user_id', { rejected_duplicate: true })
-    } catch (error) {
-      fail('unique_user_id', error)
-      throw error
-    }
-
-    try {
-      let conflict = null
-      try {
-        const duplicate = first(await provider.create(table, {
-          user_id: alternateUserId,
-          public_id: publicId,
-          name: 'Duplicate public profile certification',
-          rating_history_public: 0
-        }))
-        if (duplicate) remember(duplicate)
-      } catch (error) {
-        conflict = error
-      }
-      requireCondition(conflict && provider.isUniqueConflict?.(conflict), 'PROFILE_PUBLIC_ID_UNIQUENESS_MISSING')
-      pass('unique_public_id', { rejected_duplicate: true })
-    } catch (error) {
-      fail('unique_public_id', error)
-      throw error
-    }
-  } catch {
-    // Capability failure is recorded above; cleanup remains authoritative.
-  } finally {
-    await cleanup()
+    const failed = ['required_field_shape', 'owner_filter', 'public_id_filter', 'privacy_field']
+      .some((name) => report.capabilities[name].status === 'FAIL')
+    report.status = failed ? 'FAIL' : 'PARTIAL'
+  } catch (error) {
+    report.status = 'FAIL'
+    report.failure = { capability: 'table_read', ...errorEvidence(error) }
+    report.capabilities.table_read = capability('FAIL', errorEvidence(error))
   }
 
-  const failed = Object.values(report.capabilities).some((entry) => entry.status === 'FAIL')
-  const pending = Object.values(report.capabilities).some((entry) => entry.status === 'PENDING')
-  report.status = failed || pending ? 'FAIL' : 'PASS'
-  if (primaryFailure) report.failure = primaryFailure
   return report
 }

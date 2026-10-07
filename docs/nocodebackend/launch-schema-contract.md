@@ -206,11 +206,11 @@ Evidenced application fields are:
 - `name` — required display name;
 - `description` — optional owner-editable profile text;
 - `avatar_url` — optional owner-editable avatar reference;
-- `rating_history_public` — required opt-in visibility flag. The application supplies `0` on profile creation; connected provider evidence shows omission is rejected rather than defaulted.
+- `rating_history_public` — private-by-default opt-in visibility flag. The application supplies `0` on profile creation. Provider-side omission/default behavior remains pending a valid authenticated creation fixture.
 
 The browser may edit only `name`, `description`, `avatar_url` and `rating_history_public`. It must never authoritatively write `id`, `user_id`, `public_id`, email, role or provider metadata. Public profile projection excludes internal owner identity, and rating history is exposed only when `rating_history_public` is explicitly enabled.
 
-This classification records the governed deployed structure and current application path. It does not close #422: connected provider evidence is still required for owner create/read/update, uniqueness and fail-closed private-on-create behaviour, cross-owner denial, public/private projection, cleanup and recovery.
+This classification records the governed deployed structure and current application path. It does not close #422: connected provider evidence is still required for owner create/read/update, uniqueness/default behavior with a valid authenticated subject, cross-owner denial, public/private projection, cleanup and recovery.
 
 ## Provider/certification boundary
 
