@@ -29,8 +29,9 @@ const withProviderMocks = async (overrides, callback) => {
   }
 }
 
-test('catalogue aggregates only durable complete ratings with present valid five-point totals', async () => {
+test('catalogue aggregates all provider pages and only durable complete ratings with present valid five-point totals', async () => {
   let ratingFilters = null
+  const pagesSeen = []
   await withProviderMocks({
     get: async (collection, id) => {
       if (collection === COLLECTIONS.products) {
@@ -38,25 +39,35 @@ test('catalogue aggregates only durable complete ratings with present valid five
       }
       return null
     },
-    list: async (collection, filters = {}) => {
+    list: async (collection) => {
       if (collection === COLLECTIONS.producers) return [{ id: 20, producer_name: 'Durable Brewing' }]
       if (collection === COLLECTIONS.categories) return [{ id: 10, category_name: 'Pale Ale' }]
-      if (collection === COLLECTIONS.ratings) {
-        ratingFilters = filters
-        return [
-          { id: 1, product_id: 4, submission_state: 'complete', total_weighted: 4 },
-          { id: 2, product_id: 4, submission_state: 'complete', total_weighted: 5 },
-          { id: 3, product_id: 4, submission_state: 'pending', total_weighted: 5 },
-          { id: 4, product_id: 4, submission_state: 'failed', total_weighted: 1 },
-          { id: 5, product_id: 4, submission_state: 'complete', total_weighted: null },
-          { id: 6, product_id: 4, submission_state: 'complete', total_weighted: 0 },
-          { id: 7, product_id: 4, submission_state: 'complete', total_weighted: 6 },
-          { id: 8, product_id: 99, submission_state: 'complete', total_weighted: 5 }
-        ]
-      }
       if (collection === COLLECTIONS.ratingScores) return []
       if (collection === COLLECTIONS.ratingAttributes) return []
       return []
+    },
+    listPage: async (collection, options = {}) => {
+      assert.equal(collection, COLLECTIONS.ratings)
+      ratingFilters = options.filters
+      pagesSeen.push(options.page)
+      const rows = [
+        { id: 1, product_id: 4, submission_state: 'complete', total_weighted: 4 },
+        { id: 2, product_id: 4, submission_state: 'pending', total_weighted: 5 },
+        { id: 3, product_id: 4, submission_state: 'failed', total_weighted: 1 },
+        { id: 4, product_id: 4, submission_state: 'complete', total_weighted: null },
+        { id: 5, product_id: 4, submission_state: 'complete', total_weighted: 0 },
+        { id: 6, product_id: 99, submission_state: 'complete', total_weighted: 5 },
+        { id: 7, product_id: 4, submission_state: 'complete', total_weighted: 5 },
+        { id: 8, product_id: 4, submission_state: 'complete', total_weighted: 6 }
+      ]
+      const items = options.page === 1 ? rows.slice(0, 4) : rows.slice(4)
+      return {
+        items,
+        page: options.page,
+        pageSize: options.limit,
+        total: rows.length,
+        totalPages: 2
+      }
     }
   }, async () => {
     const response = responseHarness()
@@ -64,6 +75,7 @@ test('catalogue aggregates only durable complete ratings with present valid five
 
     assert.equal(response.statusCode, 200)
     assert.deepEqual(ratingFilters, { product_id: 4 })
+    assert.deepEqual(pagesSeen, [1, 2])
     assert.deepEqual(response.body.ratingSummary, { count: 2, average: 4.5 })
     assert.deepEqual(response.body.ratingInsights.distribution, buildCompletedRatingDistribution([4, 5]))
     assert.equal(
