@@ -33,8 +33,8 @@ test('read-only catalogue failures and verified brewery navigation stay truthful
   const zeroResultPayload = await responseJson(zeroResultResponse)
   expect(zeroResultPayload.items).toEqual([])
   expect(zeroResultPayload.total).toBe(0)
-  await expect(page.locator('#product-search-status')).toHaveText('0 products found')
-  await expect(page.getByRole('heading', { name: 'No matching products' })).toBeVisible()
+  await expect(page.locator('#catalogue-search-status')).toHaveText('0 beers, 0 breweries, 0 styles')
+  await expect(page.getByRole('heading', { name: 'No matches found' })).toBeVisible()
 
   await page.goto(`/products/${MISSING_PRODUCT_ID}`)
   const unavailable = page.getByRole('alert')
