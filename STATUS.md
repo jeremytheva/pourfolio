@@ -1,7 +1,7 @@
 ---
 project: Pourfolio
 portfolio_state: READY
-execution_slot: ACTIVE
+execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
 stage: "Dependency-correct launch continuation"
 gate: Project Entry
@@ -59,6 +59,12 @@ Last materially reviewed: 7 October 2026
 ## AI execution gate
 
 **Gate:** Project Entry. **State:** VALIDATING. PR #622 is the active bounded work item. It reconciles repository contract/document/test authority with the persistent `profiles` capability already deployed under #422. It performs no provider mutation and does not claim connected provider certification.
+
+## Autonomous continuation support
+
+Continue dependency-correct work from current repository and live GitHub evidence. #622 is the only active implementation PR. Scoped blockers #165 and #577 do not prevent independent work. Do not enable durable rating reconciliation before the governed #165 provider migration and certification.
+
+Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` and `PR_LIFECYCLE_STANDARD.md`.
 
 ## Current integration and evidence
 
