@@ -127,16 +127,7 @@ export const sanitiseProductCreateInput = (input) => {
 
   const productImage = catalogueText(body.product_image, { label: 'Product image', max: 255 })
   if (productImage) {
-    let validImage = productImage.startsWith('/') && !productImage.startsWith('//')
-    if (!validImage) {
-      try {
-        const url = new URL(productImage)
-        validImage = url.protocol === 'https:' && !url.username && !url.password
-      } catch {
-        validImage = false
-      }
-    }
-    if (!validImage) throw catalogueValidationError('Product image must use HTTPS or a local application path.')
+    throw catalogueValidationError('Product image creation is unavailable until an approved image provenance workflow is enabled.')
   }
 
   return {
