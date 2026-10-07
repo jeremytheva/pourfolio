@@ -87,6 +87,33 @@ test('certifies isolated create/read/update/delete behaviour and leaves no rows'
   for (const result of Object.values(report.data_plane.capabilities)) assert.equal(result.status, 'PASS')
 })
 
+test('profile contract can pass independently when the generic test table fails', async () => {
+  const provider = createMemoryProvider()
+  const originalList = provider.list
+  provider.list = async (table, filters = {}) => {
+    if (table === 'chatgpt_api_test') {
+      const error = new Error('generic table unavailable')
+      error.status = 500
+      error.code = 'PROVIDER_ERROR'
+      throw error
+    }
+    return originalList(table, filters)
+  }
+
+  const report = await runNoCodeBackendConnectionCertification({
+    provider,
+    table: 'chatgpt_api_test',
+    runKey: 'test-profile-independent'
+  })
+
+  assert.equal(report.overall, 'FAIL')
+  assert.equal(report.data_plane.status, 'FAIL')
+  assert.equal(report.data_plane.capabilities.table_read.status, 'FAIL')
+  assert.equal(report.profile_contract.status, 'PASS')
+  assert.equal(report.profile_contract.cleanup.status, 'PASS')
+  assert.deepEqual(provider.remaining(), [])
+})
+
 test('reports missing dedicated test table as setup required without false cleanup failure', async () => {
   const provider = {
     async list() {

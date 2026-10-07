@@ -283,9 +283,7 @@ export const runNoCodeBackendConnectionCertification = async ({
   const capabilityPending = Object.values(capabilityEntries).some((entry) => entry.status === 'PENDING')
   report.data_plane.status = capabilityFailed || capabilityPending ? 'FAIL' : 'PASS'
 
-  if (report.data_plane.status === 'PASS' && report.cleanup.status === 'PASS') {
-    report.profile_contract = await runProfileProviderCertification({ provider, runKey })
-  }
+  report.profile_contract = await runProfileProviderCertification({ provider, runKey })
 
   report.overall = report.data_plane.status === 'PASS' &&
     report.cleanup.status === 'PASS' &&
