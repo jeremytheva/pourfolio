@@ -111,6 +111,15 @@ jobs:
         run: |
           mkdir -p artifacts/bonus-rating-mapping
           node scripts/audit-live-bonus-rating-mapping.js | tee artifacts/bonus-rating-mapping/summary.json
+      - name: Run read-only live bonus category plan dry-run
+        env:
+          RUN_LIVE_BONUS_CATEGORY_RECONCILIATION: "1"
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+        shell: bash
+        run: |
+          node scripts/reconcile-bonus-attribute-categories.js | tee artifacts/bonus-rating-mapping/category-plan.json
       - name: Retain redacted bonus mapping evidence
         if: always()
         uses: actions/upload-artifact@v7
