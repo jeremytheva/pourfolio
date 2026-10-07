@@ -47,7 +47,7 @@ test('read-only catalogue failures and verified brewery navigation stay truthful
   await page.goto('/places')
   const breweryPanel = page.getByRole('tabpanel', { name: 'Breweries' })
   await expect(breweryPanel).toBeVisible()
-  await expect(breweryPanel.getByRole('status')).toHaveText(/^\d+ verified breweries shown\.$/)
+  await expect(breweryPanel.getByRole('status')).toHaveText(/^\d+ verified (?:brewery|breweries) found\.$/)
 
   const breweryLinks = breweryPanel.locator('a[href^="/breweries/"]')
   expect(await breweryLinks.count()).toBeGreaterThan(0)

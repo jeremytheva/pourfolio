@@ -158,7 +158,7 @@ test('catalogue, pagination, direct details, rating form boundary and session-ba
   expect(searchPayload.items?.length).toBeGreaterThan(0)
   await expect(searchStatus).toHaveText(new RegExp(`^${searchPayload.total} beers?(?:,|$)`))
 
-  const productLink = page.locator('[aria-label="Products"] a[href^="/products/"]').first()
+  const productLink = page.locator('[aria-label="Beer search results"] a[href^="/products/"]').first()
   await expect(productLink).toBeVisible()
   const productPath = await productLink.getAttribute('href')
   expect(productPath).toMatch(/^\/products\/\d+$/)
