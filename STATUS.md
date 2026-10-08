@@ -5,14 +5,14 @@ execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
 stage: "Dependency-correct launch continuation"
 gate: Release
-execution_state: VALIDATING
+execution_state: READY
 current_work:
-  objective: "Repair release-harness session reuse after login-budget exhaustion, then certify the deployed profile-history repair."
-  issue: null
-  pr: 629
-  branch: "fix/release-owner-session-reuse"
+  objective: "Certify deployed profile-history links and recovery when eligible owner and other-account fixtures are available; prepare the separate gateway write evidence."
+  issue: 422
+  pr: null
+  branch: null
 next_actions:
-  - "Validate and integrate release-harness session reuse, then rerun owner links, retry, three reloads and other-account rejection without rating writes."
+  - "Follow the step-by-step rating certification guide with a verified completed-owner fixture and distinct second account; repeat the skipped owner link/retry/reload and cross-account reads without rating writes."
   - "Run bounded connected #422 profile certification where existing credentials and cleanup safeguards support it; leave unsupported rows explicitly pending."
   - "Prepare #165 migration evidence within the reversible boundary; do not cross the irreversible provider boundary without the governed approval package."
   - "Continue #577 credential certification when supported user/admin account-session credentials are available."
@@ -29,27 +29,27 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 1
-  dependent_stack_depth: 1
+  open_implementation_prs: 0
+  dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
-  current_candidate_commit: "3602605e4c3a27be538ebdbdf33ab0da46c8e7c5"
-  latest_validated_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
-  latest_deployed_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
-  latest_runtime_verified_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
-  latest_browser_verified_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
+  observed_main_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
+  current_candidate_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
+  latest_validated_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
+  latest_deployed_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
+  latest_runtime_verified_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
+  latest_browser_verified_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
 validation:
   governance: PASS
   lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: NOT_RUN
-  build: NOT_RUN
-  ci: PENDING
+  tests: PASS
+  build: PASS
+  ci: PASS
   runtime: VERIFIED
-last_verified_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
-last_updated: "2026-10-08T06:31:00Z"
+last_verified_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
+last_updated: "2026-10-08T07:19:00Z"
 ---
 
 # STATUS.md
@@ -58,23 +58,25 @@ Last materially reviewed: 8 October 2026
 
 ## AI execution gate
 
-**Gate:** Release. **State:** VALIDATING. PR #628 is merged and deployed on
-`5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8`. Private profile history is paginated,
-optional enrichment failures/time are bounded, and each beer-page tasting links
-to its exact private profile entry. Canonical and browser/accessibility checks
-passed on the exact production source. Connected run `37737587480` passed its
-12 baseline checks but the new owner-history case stopped at a sign-in 429;
-history/reload/provider evidence was not reached. The active branch
-`fix/release-owner-session-reuse` in PR #629 reuses a server-verified temporary owner
-session for read-only checks within the existing login budget. This changes the
-test harness only; authentication limits and application code remain unchanged.
+**Gate:** Release. **State:** READY for dependency-correct evidence preparation.
+PR #628's profile-history repair and PR #629's session-budget harness repair
+are merged. Production `f9ec7204d3ccab9df6eda9f1704fd085b47f57f2` is READY
+with matching health metadata. Canonical Node 22 validation passed 714 tests
+(15 gated skips); browser/accessibility passed 135 tests. Connected rerun
+`37742072557` avoided the earlier login-budget failure and passed 12 baseline
+checks, but both new profile-history cases were explicitly skipped. Their
+owner/exact-entry/retry/reload and other-account provider evidence remains
+pending; two cleanup-guarded write cases also stayed skipped. A green workflow
+does not close those rows. Follow the step-by-step guide in
+`docs/nocodebackend/rating-workflow-certification.md`.
 No provider schema mutation or historical reconciliation was enabled.
 
 ## Autonomous continuation support
 
 Continue dependency-correct work from current repository and live GitHub evidence.
-Live checks show one implementation PR (#629) and two independent
-Dependabot PRs; #628 and #622 are already merged into main. Scoped blockers #165 and #577
+The source/harness implementation PRs #628/#629 are merged; two independent
+Dependabot PRs remain. The documentation handoff reconciles their completed
+integration while retaining the skipped connected rows. Scoped blockers #165 and #577
 do not prevent independent work. Do not enable durable rating reconciliation
 before the governed #165 provider migration and certification.
 
@@ -91,7 +93,10 @@ Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` 
 
 - PR #628 is merged as `5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8`. Production deployment `dpl_BDdwWhXQ6KaY7kEUM8HcWScJSvBX` is READY; `https://brew-buds-mobile-app-design-3577.vercel.app/api/health` returned 200, the exact production SHA and configured authentication, data and rate limiter.
 - Exact-production source run `37737475423` passed canonical Node 22 validation (job `113180212139`): 708 tests passed, 15 skipped, with all composed lint, audit, build and governance/security checks passing. Browser/accessibility job `113180211792` passed all 135 tests. Exact pre-merge head `ae74b69d657c99d0f9ce95367285a42cb9a35c38` also passed run `37737126748`, Dependency Review, CodeQL and exact preview health. Local Node 24 checks were supplemental only.
-- Connected production run `37737587480` on the merged SHA finished with 12 passed, two gated write checks skipped, one owner-history case failed before history access (login rate limit), and the serial other-account case did not run. It is not a provider pass for the repair. The harness follow-up introduces release/origin/owner-bound temporary cookie reuse, mode `0600`, server-session verification and always-run cleanup outside artifact paths. Six focused cache privacy/isolation/expiry/failure tests passed on the available Node 24 runtime; canonical latest-head and connected rerun evidence remain pending.
+- Connected production run `37737587480` on #628's merged SHA passed 12 baseline checks but failed before owner-history access due to sign-in rate limiting; the serial other-account case did not run. That superseded failed attempt is retained as failure evidence.
+- PR #629 is merged as `f9ec7204d3ccab9df6eda9f1704fd085b47f57f2`. Production deployment `dpl_7yJ6cJV1ka6AVnSFShARmzuZertq` is READY and public health returned HTTP 200 with that exact SHA. Session reuse is release/origin/owner-bound, server-verified, private mode `0600`, outside artifact paths and removed by always-run cleanup. Application/auth-limit/schema/write-gate behaviour is unchanged.
+- Exact #629 main run `37742009144` passed canonical Node 22 validation (job `113194640843`): 714 passed, 15 gated skips, zero failures, including six cache privacy/isolation/expiry/error tests. Browser/accessibility job `113194640536` passed 135 tests. Exact pre-merge `08c1cc860bbe20bd54e3cf3e6765b5bc6e2cdadd` passed run `37740937294`, Dependency Review, CodeQL and Preview health.
+- Connected rerun [37742072557](https://github.com/jeremytheva/pourfolio/actions/runs/37742072557) at exact production `f9ec7204d3ccab9df6eda9f1704fd085b47f57f2` completed with 12 passed, four skipped, zero failed (job `113194846211`). The two new owner-history/exact-link/retry/reload and other-account-history cases did not execute to completion: no eligible existing completed-owner beer fixture was selected by the first case, and the second also explicitly skipped. Those provider rows remain pending; separate usable fixture/session evidence is required. The other two skips are the rating-create/delete and cellar CRUD/cross-account write gates. No rating/cellar writes or historical reconciliation were enabled by this read-only run.
 - #509 is complete. The additive live bonus-category reconciliation was applied with the exact 95-mutation guard, zero drift was verified, and authenticated production presentation across Design, Appearance, Aroma, Mouthfeel, Flavour, Follow, Burp and Overall passed.
 - #600 is complete. Authenticated `/ratings/mine` and rating-integrity evidence no longer reproduce the former `personal_history_projection` 502.
 - #415 is complete. The release harness is aligned with the current beer-first UI and exact-production certification passes.
@@ -112,7 +117,7 @@ Neither scoped blocker prevents independent launch work. No owner decision is cu
 
 ## Next dependency-correct work
 
-1. Validate/integrate the harness follow-up and rerun the controlled connected owner/retry/reload/other-account checks. Keep unexecuted rows pending.
+1. Use the step-by-step guide with an existing verified completed-owner beer fixture and distinct second-account session; rerun the skipped owner/exact-link/retry/reload/other-account read checks. Keep unexecuted rows pending, and do not create production fixtures to bypass the write gate.
 2. Resume #165/#503 gateway certification within the reversible boundary. The preserved gateway changes still require canonical latest-head and connected write evidence; do not cross the irreversible provider boundary or claim those flows complete.
 3. Continue #422 with bounded connected profile evidence, keeping unsupported provider uniqueness/default-private creation or destructive rows explicitly pending.
 4. Continue #577 when supported user/admin session credentials exist.

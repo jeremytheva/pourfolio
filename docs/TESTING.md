@@ -224,7 +224,7 @@ or other persistent write occurs.
 
 Pull requests, pushes to the configured implementation branch families, and
 manual runs execute the release gate and Playwright browser/accessibility suite
-using Node 24 from `.nvmrc`. Pull requests to the governed integration branches
+using the governed Node 22 runtime from `.nvmrc`. Pull requests to the governed integration branches
 also attempt the `Dependency review` job. The job has no `continue-on-error`
 setting and is configured to fail when it finds a vulnerability of high severity
 or above. Dependency Graph must be enabled in the repository settings for the
@@ -291,6 +291,8 @@ covered by synthetic regression fixtures; neither command makes a connected
 provider claim without the private evidence files and independent review.
 
 ## Required pre-launch environment tests
+
+Follow the [step-by-step rating/profile acceptance and gateway certification guide](nocodebackend/rating-workflow-certification.md#step-by-step-acceptance-and-certification-guide) for deployment selection, repeat loading, exact-entry links, recovery, account isolation and the separate controlled-write gate.
 
 Source-only tests cannot replace these staging checks:
 
