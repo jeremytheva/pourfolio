@@ -16,10 +16,12 @@ export const updateCurrentUserProfile = (updates) => apiRequest('/profile', {
   body: updates
 })
 
-export const getPublicUserProfile = async (publicProfileId) => {
+export const getPublicUserProfile = async (publicProfileId, { page = 1, ratingId = null } = {}) => {
   const id = normalisePublicProfileId(publicProfileId)
-  const payload = await apiRequest(`/profiles/${encodeURIComponent(id)}`)
-  return validatePublicProfileResponse(payload, id)
+  const params = new URLSearchParams({ page: String(page), limit: '20' })
+  if (ratingId !== null) params.set('rating_id', String(ratingId))
+  const payload = await apiRequest(`/profiles/${encodeURIComponent(id)}?${params}`)
+  return validatePublicProfileResponse(payload, id, ratingId)
 }
 
 export const profileService = {

@@ -1,18 +1,18 @@
 ---
 project: Pourfolio
-portfolio_state: READY
+portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
 stage: "Dependency-correct launch continuation"
 gate: Release
-execution_state: READY
+execution_state: VALIDATING
 current_work:
-  objective: "Certify deployed profile-history links and recovery when eligible owner and other-account fixtures are available; prepare the separate gateway write evidence."
+  objective: "Repair the failed owner deletion test, correct shared tasting owner links and expose recorded historical breakdowns; validate without claiming provider write certification."
   issue: 422
-  pr: null
-  branch: null
+  pr: 631
+  branch: "fix/rating-delete-owner-breakdown"
 next_actions:
-  - "Follow the step-by-step rating certification guide with a verified completed-owner fixture and distinct second account; repeat the skipped owner link/retry/reload and cross-account reads without rating writes."
+  - "Complete latest-head canonical Node 22 and browser/accessibility validation for the deletion/owner-link/breakdown repair; integrate only the eligible source scope."
   - "Run bounded connected #422 profile certification where existing credentials and cleanup safeguards support it; leave unsupported rows explicitly pending."
   - "Prepare #165 migration evidence within the reversible boundary; do not cross the irreversible provider boundary without the governed approval package."
   - "Continue #577 credential certification when supported user/admin account-session credentials are available."
@@ -29,27 +29,27 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 0
+  open_implementation_prs: 1
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
-  current_candidate_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
-  latest_validated_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
+  observed_main_commit: "2bfe93befc98196143714e66d5e10d37f68ef302"
+  current_candidate_commit: "dc397df90e57062a489581309ca29700c56b5b97"
+  latest_validated_commit: "dc397df90e57062a489581309ca29700c56b5b97"
   latest_deployed_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
   latest_runtime_verified_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
   latest_browser_verified_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
 validation:
-  governance: PASS
+  governance: NOT_RUN
   lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: PASS
+  tests: NOT_RUN
   build: PASS
-  ci: PASS
-  runtime: VERIFIED
+  ci: PENDING
+  runtime: UNVERIFIED
 last_verified_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
-last_updated: "2026-10-08T07:19:00Z"
+last_updated: "2026-10-08T08:51:00Z"
 ---
 
 # STATUS.md
@@ -57,6 +57,28 @@ last_updated: "2026-10-08T07:19:00Z"
 Last materially reviewed: 8 October 2026
 
 ## AI execution gate
+
+**Current repair: VALIDATING.** The owner's 8 October mobile test failed deletion
+and left the rating visible, with upstream-error and pre-deletion-change messages.
+Production `2bfe93befc98196143714e66d5e10d37f68ef302` matches the screenshot's
+immutable deployment `dpl_Fsig3QZjQYQxaWNq1iqJVTo6Fp46`; retained runtime evidence
+includes a failing DELETE with correlation `cef24bbc-91e7-4633-8214-ee174aaf5467`.
+That manual delete row is FAILED, not certified by the prior green/skipped run.
+The active branch repairs bounded deletion verification and paged owner-checked
+child cleanup, supports child-first CRUD only for unmanaged historical rows,
+and adds exact opted-in author links and lazy recorded breakdowns. Managed rows
+with invalid/missing workflow versions fail closed; provider CAS and live write
+certification remain #165/#503 boundaries. Supplemental focused Node 24 checks
+passed. PR #631's first candidate `dc397df90e57062a489581309ca29700c56b5b97`
+passed canonical Node 22 validation in run `37751833207` (job `113226678978`):
+735 passed, 15 gated skips, zero failures; Dependency Review and CodeQL passed.
+Its exact preview health returned 200 with matching SHA. Browser job
+`113226679234` passed 139 cases but failed one new shared-link case because
+its mock public product included disallowed catalogue fields. The fixture is
+corrected without relaxing the public allowlist; an additional terminal-version
+deletion guard is covered by 16 focused deletion checks. Latest-head canonical
+and browser reruns are pending. No live user rating was deleted by automation and no schema or
+historical reconciliation was enabled.
 
 **Gate:** Release. **State:** READY for dependency-correct evidence preparation.
 PR #628's profile-history repair and PR #629's session-budget harness repair
@@ -74,7 +96,8 @@ No provider schema mutation or historical reconciliation was enabled.
 ## Autonomous continuation support
 
 Continue dependency-correct work from current repository and live GitHub evidence.
-The source/harness implementation PRs #628/#629 are merged; two independent
+The source/harness implementation PRs #628/#629 are merged. The active repair is
+`fix/rating-delete-owner-breakdown` in normal PR #631, not yet integrated; two independent
 Dependabot PRs remain. The documentation handoff reconciles their completed
 integration while retaining the skipped connected rows. Scoped blockers #165 and #577
 do not prevent independent work. Do not enable durable rating reconciliation
@@ -117,7 +140,7 @@ Neither scoped blocker prevents independent launch work. No owner decision is cu
 
 ## Next dependency-correct work
 
-1. Use the step-by-step guide with an existing verified completed-owner beer fixture and distinct second-account session; rerun the skipped owner/exact-link/retry/reload/other-account read checks. Keep unexecuted rows pending, and do not create production fixtures to bypass the write gate.
+1. Finish canonical and browser validation of the active deletion/owner-link/breakdown repair, then integrate and verify its exact deployment. Use the step-by-step guide with an existing verified completed-owner beer fixture and distinct second-account session; rerun the skipped owner/exact-link/retry/reload/other-account read checks. Keep unexecuted rows pending, and do not create production fixtures to bypass the write gate.
 2. Resume #165/#503 gateway certification within the reversible boundary. The preserved gateway changes still require canonical latest-head and connected write evidence; do not cross the irreversible provider boundary or claim those flows complete.
 3. Continue #422 with bounded connected profile evidence, keeping unsupported provider uniqueness/default-private creation or destructive rows explicitly pending.
 4. Continue #577 when supported user/admin session credentials exist.

@@ -280,6 +280,13 @@ export const installMockApi = async (page) => {
     body: JSON.stringify({ items: [{ ...rating, product }] })
   }))
 
+  await page.route('**/api/nocodebackend/ratings/shared?**', (route) => json(route, {
+    items: [], page: 1, pageSize: 20, total: 0, totalPages: 0
+  }))
+  await page.route('**/api/nocodebackend/ratings/*/breakdown', (route) => json(route, {
+    breakdown: { scores: [], selected_attributes: [], incomplete: false }
+  }))
+
   await page.route('**/api/nocodebackend/cellar', async (route) => {
     if (route.request().method() === 'POST') {
       return route.fulfill({
