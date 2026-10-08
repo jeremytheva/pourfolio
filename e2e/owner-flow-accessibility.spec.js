@@ -94,7 +94,7 @@ test('profile editing exposes owner-safe controls and an announced save result',
 test('profile rating history load failure has a focused retry path that recovers', async ({ page }) => {
   let attempt = 0
 
-  await page.route('**/api/nocodebackend/ratings/mine', async (route) => {
+  await page.route('**/api/nocodebackend/ratings/history?**', async (route) => {
     attempt += 1
     if (attempt === 1) {
       return route.fulfill({
@@ -122,13 +122,18 @@ test('profile rating history load failure has a focused retry path that recovers
 })
 
 test('profile rating delete disables the active control and restores focus to the heading when the list becomes empty', async ({ page }) => {
+  let deleted = false
   let releaseDelete
   const deleteGate = new Promise((resolve) => { releaseDelete = resolve })
 
   await page.route('**/api/nocodebackend/ratings/99', async (route) => {
     await deleteGate
+    deleted = true
     await route.fulfill({ status: 204, body: '' })
   })
+  await page.route('**/api/nocodebackend/ratings/history?**', (route) => deleted
+    ? route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0, summary: { count: 0, averageWeighted: null } }) })
+    : route.fallback())
 
   await page.goto('/profile')
   page.once('dialog', (dialog) => dialog.accept())
@@ -144,8 +149,9 @@ test('profile rating delete disables the active control and restores focus to th
 })
 
 test('profile rating delete restores focus to an adjacent remaining rating', async ({ page }) => {
+  let deleted = false
   const secondProduct = { ...product, id: 5, product_name: 'Bravo' }
-  await page.route('**/api/nocodebackend/ratings/mine', (route) => route.fulfill({
+  await page.route('**/api/nocodebackend/ratings/history?**', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({
@@ -170,10 +176,15 @@ test('profile rating delete restores focus to an adjacent remaining rating', asy
           total_weighted: 5,
           product: secondProduct
         }
-      ]
+      ].filter((item) => !deleted || item.id !== 99),
+      page: 1, pageSize: 20, total: deleted ? 1 : 2, totalPages: 1,
+      summary: { count: deleted ? 1 : 2, averageWeighted: deleted ? 5 : 4.5 }
     })
   }))
-  await page.route('**/api/nocodebackend/ratings/99', (route) => route.fulfill({ status: 204, body: '' }))
+  await page.route('**/api/nocodebackend/ratings/99', (route) => {
+    deleted = true
+    return route.fulfill({ status: 204, body: '' })
+  })
 
   await page.goto('/profile')
   page.once('dialog', (dialog) => dialog.accept())

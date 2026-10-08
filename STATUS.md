@@ -7,12 +7,13 @@ stage: "Dependency-correct launch continuation"
 gate: Project Entry
 execution_state: VALIDATING
 current_work:
-  objective: "Reconcile repository authority with the deployed persistent profile capability without claiming connected provider certification."
-  issue: 422
-  pr: 622
-  branch: "fix/422-profile-contract-reconciliation"
+  objective: "Repair intermittent private profile history loading and link each beer-page tasting to its exact profile entry."
+  issue: null
+  pr: null
+  branch: "fix/profile-rating-history-links"
 next_actions:
-  - "Validate and merge #622 if canonical, browser, security, review and deployment evidence remain satisfactory."
+  - "Publish and validate the bounded profile-history repair on Node 22 with browser/accessibility and exact-candidate deployment evidence."
+  - "Verify authenticated profile pagination and beer-to-profile links on the deployed candidate without mutating existing ratings."
   - "Run bounded connected #422 profile certification where existing credentials and cleanup safeguards support it; leave unsupported rows explicitly pending."
   - "Prepare #165 migration evidence within the reversible boundary; do not cross the irreversible provider boundary without the governed approval package."
   - "Continue #577 credential certification when supported user/admin account-session credentials are available."
@@ -29,14 +30,14 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 1
+  open_implementation_prs: 0
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "df3bac288e0cf71042cc59e09eff56fa8f9cb816"
-  current_candidate_commit: "c5f294ccb997f0a62cd411355ac83f6a3d536e69"
-  latest_validated_commit: "df3bac288e0cf71042cc59e09eff56fa8f9cb816"
+  observed_main_commit: "205a622844e50e22342b8ba15d31480af362b304"
+  current_candidate_commit: null
+  latest_validated_commit: "205a622844e50e22342b8ba15d31480af362b304"
   latest_deployed_commit: "df3bac288e0cf71042cc59e09eff56fa8f9cb816"
   latest_runtime_verified_commit: "df3bac288e0cf71042cc59e09eff56fa8f9cb816"
   latest_browser_verified_commit: "df3bac288e0cf71042cc59e09eff56fa8f9cb816"
@@ -44,25 +45,41 @@ validation:
   governance: PASS
   lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: PASS
+  tests: NOT_RUN
   build: PASS
-  ci: PASS
-  runtime: VERIFIED
-last_verified_commit: "df3bac288e0cf71042cc59e09eff56fa8f9cb816"
-last_updated: "2026-10-07T22:28:00+11:00"
+  ci: PENDING
+  runtime: UNVERIFIED
+last_verified_commit: "205a622844e50e22342b8ba15d31480af362b304"
+last_updated: "2026-10-08T06:03:14Z"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 7 October 2026
+Last materially reviewed: 8 October 2026
 
 ## AI execution gate
 
-**Gate:** Project Entry. **State:** VALIDATING. PR #622 is the active bounded work item. It reconciles repository contract/document/test authority with the persistent `profiles` capability already deployed under #422. It performs no provider mutation and does not claim connected provider certification.
+**Gate:** Project Entry. **State:** VALIDATING. The active branch is
+`fix/profile-rating-history-links`, based on main
+`205a622844e50e22342b8ba15d31480af362b304`. It replaces unbounded profile history
+loading with owner-safe pagination, limits optional enrichment failures/time,
+and links each beer-page tasting to its exact private profile entry. It performs
+no provider schema mutation and does not enable historical reconciliation.
 
 ## Autonomous continuation support
 
-Continue dependency-correct work from current repository and live GitHub evidence. #622 is the only active implementation PR. Scoped blockers #165 and #577 do not prevent independent work. Do not enable durable rating reconciliation before the governed #165 provider migration and certification.
+Continue dependency-correct work from current repository and live GitHub evidence.
+Live entry checks found no open implementation PRs (two independent Dependabot
+PRs remain); #622 is already merged into main. Scoped blockers #165 and #577 do
+not prevent this read/UI repair. Do not enable durable rating reconciliation
+before the governed #165 provider migration and certification.
+
+The earlier #165/#503 gateway-integrity work is preserved separately on
+`fix/165-503-rating-gateway-integrity` and has not been published or integrated.
+Its latest focused mock checks passed 51 individual assertions on Node 24;
+canonical latest-head validation and controlled connected create/retry/delete/
+cross-account certification remain outstanding. This profile repair does not
+certify those write flows.
 
 Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` and `PR_LIFECYCLE_STANDARD.md`.
 
@@ -74,7 +91,9 @@ Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` 
 - #600 is complete. Authenticated `/ratings/mine` and rating-integrity evidence no longer reproduce the former `personal_history_projection` 502.
 - #415 is complete. The release harness is aligned with the current beer-first UI and exact-production certification passes.
 - #449's launch-safe Add Beer, Suggest Correction and Add-to-cellar initiation/review boundary is production-certified. PR #621 also removed ungoverned product-image URL creation and made the server fail closed until an approved image/provenance workflow exists. #449 remains open only for genuinely provider-gated moderation/persistence and relationship-backed capabilities.
-- Persistent profile source behaviour is already implemented: owner profile create/read/update, stable server-generated `public_id`, default-private rating-history visibility and privacy-safe public projection. PR #622 is reconciling stale machine contract/docs/browser fixtures that still described this capability as unavailable.
+- Persistent profile source behaviour is already implemented: owner profile create/read/update, stable server-generated `public_id`, default-private rating-history visibility and privacy-safe public projection. PR #622 is merged and reconciled the formerly stale machine contract/docs/browser fixtures.
+- Main `205a622844e50e22342b8ba15d31480af362b304` has verified canonical and browser evidence from run `37694734987`: 699 unit/policy tests passed, 15 skipped, and 129 browser tests passed. These results apply to main, not the new profile-history candidate.
+- Current profile repair supplemental checks on Node 24: 34 focused unit/policy tests passed (15 history, 18 gateway, one service), lint and production build passed; 135 browser cases were discovered but have not been executed locally. Node 22 and Chromium are unavailable in this workspace; exact-candidate canonical/browser acceptance is **VALIDATION WAITING** until the trusted alternate runner executes them.
 - Brew Done It remains launch-excluded and absent from production-facing navigation/CTAs. Its protected direct route remains for controlled testing only.
 
 Detailed implementation history belongs in commits, PRs and `docs/RELEASE_TRACKING.md`.
@@ -90,8 +109,8 @@ Neither scoped blocker prevents independent launch work. No owner decision is cu
 
 ## Next dependency-correct work
 
-1. Finish #622 validation and merge if its exact-head evidence is satisfactory.
-2. Continue #422 with bounded connected profile evidence that can be proven using current production credentials and cleanup safeguards. Keep any unsupported cross-account or destructive row explicitly pending rather than inferred.
+1. Publish and validate the profile-history repair; merge only with sufficient canonical, browser/accessibility, review and applicable deployment evidence.
+2. Verify deployed authenticated history pagination and exact beer-to-profile links, then continue #422 with bounded connected profile evidence. Keep unsupported cross-account or destructive rows explicitly pending rather than inferred.
 3. Continue reversible #165 migration preparation without crossing its irreversible provider boundary.
 4. Continue #577 when supported user/admin session credentials exist.
 5. Use #429 or another independent launch slice if #422/#165/#577 reach external boundaries.

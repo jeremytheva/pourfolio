@@ -122,6 +122,17 @@ automated accessibility checks on the reachable launch pages. This suite verifie
 browser behaviour without requiring production credentials; it does not replace
 the connected staging tests below.
 
+Private profile history regression coverage exercises page-bounded enrichment,
+whole-history counts/average, canonical rating selection on older pages, repeat
+tastings, invalid and other-owner selectors, mandatory owner-read failures,
+optional enrichment failures, a shared enrichment deadline and request-local
+relationship deduplication. Browser cases follow a beer-page score to its exact
+profile entry, reload/back navigation, page controls, transient failure/retry,
+stale-response rejection and deletion of the selected last item on an older
+page. Existing keyboard-focus and automated accessibility checks cover the
+updated list, links and recovery controls. Mocked cases prove browser/policy
+behaviour; connected deployment/provider reads remain separate evidence.
+
 The catalogue fixture now follows the aggregate-only detail contract. Focused
 browser cases supply malformed successful browse and detail responses, a
 non-canonical direct route and an exact missing route. They check that labelled

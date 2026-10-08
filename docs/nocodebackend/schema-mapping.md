@@ -169,6 +169,25 @@ The structure and application path are deployed. #422 remains open until product
 
 The supplied database does not contain a rating-notes field. The launch form therefore does not pretend to persist review text. Adding notes requires an approved schema change and migration.
 
+Private profile history uses `GET /api/nocodebackend/ratings/history` with
+`page` and `limit` (default 20, maximum 50). Optional `rating_id` selects the
+canonical **`ratings.id`**, rather than the legacy client submission identifier,
+and returns the page containing that completed owner rating. The provider query
+remains owner-only (`user_id`); completion, product/date/search and selected-ID
+checks happen locally. A missing, deleted, incomplete or other-owner selection
+returns the same safe 404. Responses include `summary.count` and
+`summary.averageWeighted` across the entire filtered history, independent of the
+response page. No new collection or persisted field is required.
+
+Owner history headers and authentication remain mandatory. Optional catalogue,
+comparison-score and private cellar enrichment share a five-second response
+budget; failure or expiry leaves the verified rating/date/score available with
+nullable metadata and unavailable comparison/PPP values. Each response reads a
+shared beer/brewery/style record at most once and limits beer projection to four
+concurrent products. Unfiltered requests enrich only the selected response page.
+Beer-page personal tasting scores link to `/profile?rating=<ratings.id>`; the
+private profile selects and focuses that exact entry, including older pages.
+
 The provider must atomically compare `submission_version` with the supplied
 `expected_version` while updating both `submission_state` and
 `submission_version`. Permissions must restrict these fields to the privileged

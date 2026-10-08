@@ -29,11 +29,12 @@ export const ratingService = {
     const params = new URLSearchParams({ product_id: String(productId) })
     return apiRequest(`/ratings/mine?${params}`)
   },
-  getHistory({ page = 1, limit = 20, q = '', from = '', to = '' } = {}) {
+  getHistory({ page = 1, limit = 20, q = '', from = '', to = '', ratingId = null } = {}) {
     const params = new URLSearchParams({ page: String(page), limit: String(limit) })
     if (q.trim()) params.set('q', q.trim())
     if (from) params.set('from', from)
     if (to) params.set('to', to)
+    if (ratingId !== null) params.set('rating_id', String(ratingId))
     return apiRequest(`/ratings/history?${params}`)
   },
 
