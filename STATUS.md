@@ -7,12 +7,12 @@ stage: "Dependency-correct launch continuation"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Refresh and validate independent dependency maintenance while retaining the failed live deletion and unexecuted rating certification rows."
-  issue: null
-  pr: 572
-  branch: "dependabot/npm_and_yarn/production-minor-patches-41768f1409"
+  objective: "Complete the independent #429 legacy settings cleanup and reconcile release evidence while retaining the failed live deletion."
+  issue: 429
+  pr: null
+  branch: "chore/429-retire-legacy-profile-settings"
 next_actions:
-  - "Integrate refreshed #572 against the merged #591 baseline after exact-head source/browser and deployment checks; do not expand features."
+  - "Validate and integrate the proven-unused ProfileSettings cleanup; preserve live Settings/RateBeer preferences and contained future components."
   - "Retest the repaired production flows with an eligible completed-owner fixture and an opted-in distinct public author; keep unavailable connected rows pending."
   - "Run bounded connected #422 profile certification where existing credentials and cleanup safeguards support it; leave unsupported rows explicitly pending."
   - "Prepare #165 migration evidence within the reversible boundary; do not cross the irreversible provider boundary without the governed approval package."
@@ -35,12 +35,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "09b411a04bd2239d4df7ed2cc617909254740a1e"
+  observed_main_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
   current_candidate_commit: null
-  latest_validated_commit: "3b5fd45b68b799a6b2ef24d50f009695cdc5269e"
+  latest_validated_commit: "cac7738350c869fdc523b158aba32c2f74c04157"
   latest_deployed_commit: "09b411a04bd2239d4df7ed2cc617909254740a1e"
   latest_runtime_verified_commit: "09b411a04bd2239d4df7ed2cc617909254740a1e"
-  latest_browser_verified_commit: "3b5fd45b68b799a6b2ef24d50f009695cdc5269e"
+  latest_browser_verified_commit: "cac7738350c869fdc523b158aba32c2f74c04157"
 validation:
   governance: NOT_RUN
   lint: NOT_RUN
@@ -50,7 +50,7 @@ validation:
   ci: PENDING
   runtime: UNVERIFIED
 last_verified_commit: "09b411a04bd2239d4df7ed2cc617909254740a1e"
-last_updated: "2026-10-08T22:00:00Z"
+last_updated: "2026-10-08T22:03:00Z"
 ---
 
 # STATUS.md
@@ -59,10 +59,11 @@ Last materially reviewed: 9 October 2026 (Australia/Sydney)
 
 ## AI execution gate
 
-**Gate:** Integration. **State:** VALIDATING independent dependency maintenance.
+**Gate:** Integration. **State:** VALIDATING independent #429 settings cleanup.
 The owner requested continuation on other aspects after the latest live deletion
-failure. Existing PR #591 is merged; #572 is refreshed onto that integrated
-baseline and awaits exact-head source/browser and deployment evidence. Neither update
+failure. Existing PRs #591 and #572 are merged after current-head source/browser
+validation. The next #429 slice removes only the unreferenced legacy settings
+component and reconciles the stale profile system map. Neither dependency update
 changes rating policy, provider schema, write gates or feature availability.
 
 PR #591 merged as `09b411a04bd2239d4df7ed2cc617909254740a1e`. Its exact
@@ -94,6 +95,24 @@ No further live deletion was attempted by automation.
 
 Historical repair evidence follows; source/runtime success does not supersede
 the latest manual failure.
+
+PR #572 merged as `2263fee494a6098937629c8ef8ee74135f3f258e`. Its exact
+pre-merge `cac7738350c869fdc523b158aba32c2f74c04157` passed canonical Node 22
+validation (733 passed, 15 gated skips), all 140 browser/accessibility cases,
+CodeQL and Dependency Review in run `37850422322`. Preview
+`dpl_GseUSoMvMEsZwJ5ZuVr16tzkrXmE` was READY with exact-SHA HTTP 200 health.
+Merged production verification is still pending in this candidate's handoff.
+
+The bounded #429 audit found no source, server, test or documentation consumer
+of `src/components/ProfileSettings.jsx`; current-main code search matched only
+its own declaration/export. `src/pages/Settings.jsx` remains reachable, and
+`settingsManager.js` remains used by Settings and RateBeer. Only the unused
+216-line component is removed; BeverageTypeSelector, beverageTypes, other
+shared helpers and contained event/venue/social/account-lifecycle code are
+preserved. Removed source remains recoverable from Git history. SYSTEM_MAP.md
+now describes the implemented persistent/opt-in profile boundary rather than
+the obsolete session-only/write-unavailable model. No runtime route or policy
+is changed by this slice; canonical latest-head validation is pending.
 
 PR #631 is merged as `217ee25aa864aeed30d0155d8a826ed330606f24` and production
 `dpl_BD7imVDZ1w5PfKgCpV5oUSoo8MMF` is READY. Public health returned HTTP 200
@@ -131,8 +150,8 @@ not the immutable older deployment URL visible in the screenshots. Follow
 
 Continue dependency-correct work from current repository and live GitHub evidence.
 The source/harness implementation PRs #628/#629 and repair PR #631 are merged;
-the later manual deletion remains failed. Dependency PR #591 is merged;
-existing #572 is active on its refreshed baseline. This handoff reconciles
+the later manual deletion remains failed. Dependency PRs #591 and #572 are
+merged; the current #429 slice is in validation. This handoff reconciles
 completed integration while retaining the pending connected rows. Scoped blockers #165 and #577
 do not prevent independent work. Do not enable durable rating reconciliation
 before the governed #165 provider migration and certification.
@@ -177,9 +196,9 @@ Neither scoped blocker prevents independent launch work. No owner decision is cu
 
 ## Next dependency-correct work
 
-0. Complete refreshed dependency PR #572 with latest-head canonical
-   source/browser evidence and matching deployment health. Reuse those PRs;
-   preserve the live deletion failure and provider certification boundaries.
+0. Complete the current #429 cleanup with latest-head canonical source/browser
+   evidence and matching deployment health. Preserve the live deletion failure
+   and provider certification boundaries; do not remove future contained code.
 1. Review the exact-production connected run and use the step-by-step guide with an existing verified completed-owner beer fixture and distinct second-account session; rerun the skipped owner/exact-link/retry/reload/other-account read checks. Keep unexecuted rows pending, and do not create production fixtures to bypass the write gate.
 2. Resume #165/#503 gateway certification within the reversible boundary. The preserved gateway changes still require canonical latest-head and connected write evidence; do not cross the irreversible provider boundary or claim those flows complete.
 3. Continue #422 with bounded connected profile evidence, keeping unsupported provider uniqueness/default-private creation or destructive rows explicitly pending.
