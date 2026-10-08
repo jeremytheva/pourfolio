@@ -27,7 +27,7 @@ const fixture = (context) => {
   let status = 200
   let email = environment.RELEASE_OWNER_EMAIL
   const page = {
-    context: () => ({ addCookies: async () => { calls.cookies += 1 }, clearCookies: async () => { calls.cleared += 1 } }),
+    context: () => ({ addCookies: async () => { calls.cookies += 1 }, clearCookies: async () => { calls.cleared += 1 }, storageState: async () => ({ cookies: [cookie] }) }),
     request: { get: async (url) => { calls.requests.push(url); return { status: () => status, json: async () => ({ user: { id: 'owner-a', email } }) } } },
     goto: async (url) => { calls.navigation.push(url) }
   }

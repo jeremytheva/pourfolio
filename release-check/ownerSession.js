@@ -48,6 +48,7 @@ export const restoreReleaseOwnerSession = async (page, email) => {
     await page.context().clearCookies()
     return false
   }
+  saveReleaseOwnerSession(await page.context().storageState(), email)
   await page.goto('/home')
   return true
 }

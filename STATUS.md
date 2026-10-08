@@ -9,7 +9,7 @@ execution_state: VALIDATING
 current_work:
   objective: "Repair release-harness session reuse after login-budget exhaustion, then certify the deployed profile-history repair."
   issue: null
-  pr: null
+  pr: 629
   branch: "fix/release-owner-session-reuse"
 next_actions:
   - "Validate and integrate release-harness session reuse, then rerun owner links, retry, three reloads and other-account rejection without rating writes."
@@ -29,13 +29,13 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 0
-  dependent_stack_depth: 0
+  open_implementation_prs: 1
+  dependent_stack_depth: 1
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
   observed_main_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
-  current_candidate_commit: null
+  current_candidate_commit: "3602605e4c3a27be538ebdbdf33ab0da46c8e7c5"
   latest_validated_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
   latest_deployed_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
   latest_runtime_verified_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
@@ -65,7 +65,7 @@ to its exact private profile entry. Canonical and browser/accessibility checks
 passed on the exact production source. Connected run `37737587480` passed its
 12 baseline checks but the new owner-history case stopped at a sign-in 429;
 history/reload/provider evidence was not reached. The active branch
-`fix/release-owner-session-reuse` reuses a server-verified temporary owner
+`fix/release-owner-session-reuse` in PR #629 reuses a server-verified temporary owner
 session for read-only checks within the existing login budget. This changes the
 test harness only; authentication limits and application code remain unchanged.
 No provider schema mutation or historical reconciliation was enabled.
@@ -73,8 +73,8 @@ No provider schema mutation or historical reconciliation was enabled.
 ## Autonomous continuation support
 
 Continue dependency-correct work from current repository and live GitHub evidence.
-Live checks after #628 merged show no implementation PRs and two independent
-Dependabot PRs; #622 is already merged into main. Scoped blockers #165 and #577
+Live checks show one implementation PR (#629) and two independent
+Dependabot PRs; #628 and #622 are already merged into main. Scoped blockers #165 and #577
 do not prevent independent work. Do not enable durable rating reconciliation
 before the governed #165 provider migration and certification.
 
