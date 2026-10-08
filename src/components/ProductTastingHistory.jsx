@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from '../lib/router.jsx'
 import AdvancedRatingScores from './AdvancedRatingScores.jsx'
 import { formatDate } from '../utils/dateFormatting.js'
 
@@ -34,7 +35,10 @@ function ProductTastingHistory({ ratings = [], status = 'idle', error = '', onRe
                   <p className="font-medium text-gray-900">{formatDate(rating.date_rated)}</p>
                   <p className="mt-1 text-xs text-gray-500">Full Tasting</p>
                 </div>
-                <strong className="whitespace-nowrap text-xl text-amber-800">{rating.total_weighted} / 5</strong>
+                <Link to={`/profile?rating=${encodeURIComponent(rating.id)}`} aria-label={`View my rating from ${formatDate(rating.date_rated)} in profile`} className="text-right text-amber-800 hover:underline focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
+                  <strong className="block whitespace-nowrap text-xl">{rating.total_weighted} / 5</strong>
+                  <span className="mt-1 block text-sm">View in profile</span>
+                </Link>
               </div>
               <AdvancedRatingScores scores={rating.advanced_scores} className="mt-3" />
             </li>

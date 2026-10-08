@@ -122,6 +122,26 @@ automated accessibility checks on the reachable launch pages. This suite verifie
 browser behaviour without requiring production credentials; it does not replace
 the connected staging tests below.
 
+Private profile history regression coverage exercises page-bounded enrichment,
+whole-history counts/average, canonical rating selection on older pages, repeat
+tastings, invalid and other-owner selectors, mandatory owner-read failures,
+optional enrichment failures, a shared enrichment deadline and request-local
+relationship deduplication. Browser cases follow a beer-page score to its exact
+profile entry, reload/back navigation, page controls, transient failure/retry,
+stale-response rejection and deletion of the selected last item on an older
+page. Existing keyboard-focus and automated accessibility checks cover the
+updated list, links and recovery controls. Mocked cases prove browser/policy
+behaviour; connected deployment/provider reads remain separate evidence.
+
+`release-check/profile-history-readonly.spec.js` follows an existing completed
+owner tasting from its beer page into a paginated profile, injects one bounded
+503 and retries against the actual provider, then verifies three reloads. It
+also checks that a separately authenticated account receives the safe 404 for
+the owner's canonical rating link. These checks create or delete no ratings;
+missing owner fixtures or second-account credentials are explicitly skipped
+and remain pending evidence. Traces, screenshots and videos are disabled for
+these cases to keep private ratings and sign-in credentials out of artefacts.
+
 The catalogue fixture now follows the aggregate-only detail contract. Focused
 browser cases supply malformed successful browse and detail responses, a
 non-canonical direct route and an exact missing route. They check that labelled

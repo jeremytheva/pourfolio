@@ -121,12 +121,12 @@ const exactNamedRelationship = (record, id, nameField) => {
   return { id: record.id, [nameField]: name }
 }
 
-const productProjection = async (productId) => {
-  const product = await dataProvider.get(COLLECTIONS.products, productId)
+const productProjection = async (productId, readRecord = (collection, id) => dataProvider.get(collection, id)) => {
+  const product = await readRecord(COLLECTIONS.products, productId)
   if (!product || String(product.id ?? '') !== String(productId)) return null
   const [producerRecord, categoryRecord] = await Promise.all([
-    product.producer_id && String(product.producer_id) !== '0' ? dataProvider.get(COLLECTIONS.producers, product.producer_id) : Promise.resolve(null),
-    product.product_category_id ? dataProvider.get(COLLECTIONS.categories, product.product_category_id) : Promise.resolve(null)
+    product.producer_id && String(product.producer_id) !== '0' ? readRecord(COLLECTIONS.producers, product.producer_id) : Promise.resolve(null),
+    product.product_category_id ? readRecord(COLLECTIONS.categories, product.product_category_id) : Promise.resolve(null)
   ])
   return { id: product.id, product_name: String(product.product_name || '').trim(), product_category_id: product.product_category_id ?? null, producer_id: product.producer_id ?? null, producer: exactNamedRelationship(producerRecord, product.producer_id, 'producer_name'), category: exactNamedRelationship(categoryRecord, product.product_category_id, 'category_name') }
 }
@@ -592,13 +592,33 @@ const reconcileHistoricalRatings = async (request, response, user) => {
 
 const projectOwnerRatingItems = async (user, ownerRatings) => {
   if (!ownerRatings.length) return []
-  const [populations, cellarRows] = await Promise.all([
-    scorePopulations(),
-    dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }).then(records)
-  ])
-  const cellarById = new Map(cellarRows.filter((item) => isOwnedBy(item, user.id)).map((item) => [String(item.id), item]))
+  // Optional enrichment must not hide verified ratings or consume the browser's
+  // entire request timeout. The deadline is shared across this response page.
+  const deadline = Date.now() + 5_000
+  const optionalRead = (operation, fallback) => {
+    const remaining = deadline - Date.now()
+    if (remaining <= 0) return Promise.resolve(fallback)
+    let timer
+    return Promise.race([
+      Promise.resolve().then(operation).catch(() => fallback),
+      new Promise((resolve) => { timer = setTimeout(() => resolve(fallback), remaining) })
+    ]).finally(() => clearTimeout(timer))
+  }
+  const populationsPromise = optionalRead(scorePopulations, null)
+  const cellarPromise = optionalRead(() => dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }).then(records), [])
+  const reads = new Map()
+  const readOnce = (collection, id) => {
+    const key = `${collection}:${id}`
+    if (!reads.has(key)) reads.set(key, optionalRead(() => dataProvider.get(collection, id), null))
+    return reads.get(key)
+  }
   const productIds = [...new Set(ownerRatings.map((rating) => String(rating.product_id || '')).filter((id) => /^[1-9]\d*$/.test(id)))]
-  const products = await Promise.all(productIds.map(async (id) => [id, await productProjection(id)]))
+  const products = []
+  for (let index = 0; index < productIds.length; index += 4) {
+    products.push(...await Promise.all(productIds.slice(index, index + 4).map(async (id) => [id, await productProjection(id, readOnce)])))
+  }
+  const [populations, cellarRows] = await Promise.all([populationsPromise, cellarPromise])
+  const cellarById = new Map(cellarRows.filter((item) => isOwnedBy(item, user.id)).map((item) => [String(item.id), item]))
   const productsById = new Map(products)
   return ownerRatings.map((rating) => ({
     ...projectRating(rating),
@@ -676,7 +696,11 @@ const parseHistoryQuery = (request = {}) => {
     error.status = 400
     throw error
   }
-  return { page, limit, q, from, to }
+  const selected = request.query?.rating_id
+  return {
+    page, limit, q, from, to,
+    ...(selected === undefined ? {} : { ratingId: String(parseHistoryPositiveInteger(selected, '', 'History rating identifier')) })
+  }
 }
 
 const filterOwnerHistoryDates = (items, { from, to }) => items.filter((item) => {
@@ -701,32 +725,52 @@ const filterOwnerHistory = (items, { q, from, to }) => {
 const listUserHistory = async (response, user, request = {}) => {
   const query = parseHistoryQuery(request)
   const datedRatings = filterOwnerHistoryDates(await ownerCompletedRatings(user.id), query)
-  const start = (query.page - 1) * query.limit
+  const resolvePage = (items) => {
+    if (!query.ratingId) return query.page
+    const index = items.findIndex((item) => String(item.id) === query.ratingId)
+    if (index < 0) {
+      const error = new Error('That rating is not available in your history.')
+      error.status = 404
+      error.code = 'rating_not_found'
+      throw error
+    }
+    return Math.floor(index / query.limit) + 1
+  }
+  const summarise = (items) => ({
+    count: items.length,
+    averageWeighted: items.length ? Number((items.reduce((sum, item) => sum + Number(item.total_weighted), 0) / items.length).toFixed(2)) : null
+  })
 
   if (!query.q) {
+    const page = resolvePage(datedRatings)
+    const start = (page - 1) * query.limit
     const total = datedRatings.length
     const totalPages = total ? Math.ceil(total / query.limit) : 0
     const pageRatings = datedRatings.slice(start, start + query.limit)
     response.status(200).json({
       items: await projectOwnerRatingItems(user, pageRatings),
-      page: query.page,
+      page,
       pageSize: query.limit,
       total,
-      totalPages
+      totalPages,
+      summary: summarise(datedRatings)
     })
     return
   }
 
   const searchable = await projectOwnerRatingItems(user, datedRatings)
   const filtered = filterOwnerHistory(searchable, { ...query, from: null, to: null })
+  const page = resolvePage(filtered)
+  const start = (page - 1) * query.limit
   const total = filtered.length
   const totalPages = total ? Math.ceil(total / query.limit) : 0
   response.status(200).json({
     items: filtered.slice(start, start + query.limit),
-    page: query.page,
+    page,
     pageSize: query.limit,
     total,
-    totalPages
+    totalPages,
+    summary: summarise(filtered)
   })
 }
 

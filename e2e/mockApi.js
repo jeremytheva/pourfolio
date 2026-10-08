@@ -269,7 +269,8 @@ export const installMockApi = async (page) => {
       page: 1,
       pageSize: 20,
       total: 1,
-      totalPages: 1
+      totalPages: 1,
+      summary: { count: 1, averageWeighted: 4 }
     })
   }))
 

@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { FiExternalLink, FiStar, FiTrash2, FiUser } from 'react-icons/fi'
-import { Link } from '../lib/router.jsx'
+import { Link, useSearchParams } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import AdvancedRatingScores from '../components/AdvancedRatingScores.jsx'
 import { useAuth } from '../hooks/useAuth.js'
@@ -10,6 +10,9 @@ import { formatDate } from '../utils/dateFormatting.js'
 
 function Profile() {
   const { user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestedPage = searchParams.get('page') || '1'
+  const selectedRatingId = searchParams.get('rating')
   const [profile, setProfile] = useState(null)
   const [profileForm, setProfileForm] = useState({ name: '', description: '', avatar_url: '', rating_history_public: false })
   const [profileStatus, setProfileStatus] = useState('loading')
@@ -21,12 +24,14 @@ function Profile() {
   const [ratings, setRatings] = useState([])
   const [ratingsStatus, setRatingsStatus] = useState('loading')
   const [ratingsError, setRatingsError] = useState('')
+  const [historyPage, setHistoryPage] = useState({ page: 1, total: 0, totalPages: 0, average: null })
   const [deletingRatingId, setDeletingRatingId] = useState(null)
   const [deleteError, setDeleteError] = useState('')
   const deleteErrorRef = useRef(null)
   const ratingsErrorRef = useRef(null)
   const ratingHistoryHeadingRef = useRef(null)
   const ratingLinkRefs = useRef(new Map())
+  const ratingRowRefs = useRef(new Map())
   const pendingRatingFocusRef = useRef(null)
   const focusRatingHistoryAfterRetryRef = useRef(false)
   const ratingsRequestIdRef = useRef(0)
@@ -57,9 +62,10 @@ function Profile() {
     setRatingsError('')
     setRatingsStatus('loading')
     try {
-      const payload = await ratingService.getUserRatings()
+      const payload = await ratingService.getHistory({ page: requestedPage, ratingId: selectedRatingId })
       if (ratingsRequestIdRef.current !== requestId) return
       setRatings(payload.items || [])
+      setHistoryPage({ page: payload.page, total: payload.total, totalPages: payload.totalPages, average: payload.summary?.averageWeighted ?? null })
       setRatingsStatus('ready')
     } catch (requestError) {
       if (ratingsRequestIdRef.current !== requestId) return
@@ -67,7 +73,7 @@ function Profile() {
       setRatingsError(requestError.message || 'Rating history could not be loaded.')
       setRatingsStatus('error')
     }
-  }, [])
+  }, [requestedPage, selectedRatingId, user?.id])
 
   useEffect(() => { loadProfile() }, [loadProfile])
   useEffect(() => {
@@ -78,22 +84,26 @@ function Profile() {
   useEffect(() => { if (deleteError) deleteErrorRef.current?.focus() }, [deleteError])
   useEffect(() => { if (ratingsError) ratingsErrorRef.current?.focus() }, [ratingsError])
   useEffect(() => {
-    if (ratingsStatus !== 'ready' || !focusRatingHistoryAfterRetryRef.current) return
-    focusRatingHistoryAfterRetryRef.current = false
-    ratingHistoryHeadingRef.current?.focus()
-  }, [ratingsStatus])
-  useEffect(() => {
+    if (ratingsStatus !== 'ready') return
     const target = pendingRatingFocusRef.current
-    if (target === null) return
-    pendingRatingFocusRef.current = null
-    if (target === 'heading') ratingHistoryHeadingRef.current?.focus()
-    else ratingLinkRefs.current.get(target)?.focus()
-  }, [ratings])
+    if (target !== null) {
+      pendingRatingFocusRef.current = null
+      const link = ratingLinkRefs.current.get(String(target))
+      if (target === 'heading' || !link) ratingHistoryHeadingRef.current?.focus()
+      else link.focus()
+      return
+    }
+    const selectedRow = ratingRowRefs.current.get(selectedRatingId)
+    if (selectedRow) {
+      selectedRow.focus()
+      selectedRow.scrollIntoView({ block: 'center' })
+    } else if (focusRatingHistoryAfterRetryRef.current) {
+      ratingHistoryHeadingRef.current?.focus()
+    }
+    focusRatingHistoryAfterRetryRef.current = false
+  }, [ratings, ratingsStatus, selectedRatingId])
 
-  const average = useMemo(() => {
-    const values = ratings.map((rating) => Number(rating.total_weighted)).filter((value) => Number.isFinite(value) && value >= 0 && value <= 5)
-    return values.length ? (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2) : null
-  }, [ratings])
+  const average = ratingsStatus === 'ready' && historyPage.average !== null ? Number(historyPage.average).toFixed(2) : null
 
   const saveProfile = async (event) => {
     event.preventDefault()
@@ -123,6 +133,11 @@ function Profile() {
     loadRatings()
   }
 
+  const changeHistoryPage = (page) => {
+    focusRatingHistoryAfterRetryRef.current = true
+    setSearchParams({ page: String(page) })
+  }
+
   const deleteRating = async (rating) => {
     if (!window.confirm(`Delete your rating for ${rating.product?.product_name || 'this product'}?`)) return
     setDeleteError('')
@@ -133,7 +148,15 @@ function Profile() {
       const remainingRatings = ratings.filter((item) => item.id !== rating.id)
       const adjacentRating = remainingRatings[Math.min(deletedIndex, remainingRatings.length - 1)]
       pendingRatingFocusRef.current = adjacentRating?.id ?? 'heading'
-      setRatings(remainingRatings)
+      const nextPage = remainingRatings.length || historyPage.page === 1 ? historyPage.page : historyPage.page - 1
+      // Refresh the page and whole-history average from the authoritative read.
+      // Clearing a deleted selection avoids requesting an unavailable deep link.
+      if (selectedRatingId !== null || Number(requestedPage) !== nextPage) {
+        setRatingsStatus('loading')
+        setSearchParams({ page: String(nextPage) })
+      } else {
+        await loadRatings()
+      }
     } catch (requestError) {
       setDeleteError(requestError.message || 'The rating could not be deleted.')
     } finally {
@@ -186,12 +209,15 @@ function Profile() {
           </div>
 
           {ratingsStatus === 'loading' && <p className="py-10 text-center text-gray-600" role="status">Loading rating history…</p>}
-          {ratingsStatus === 'error' && <div ref={ratingsErrorRef} tabIndex={-1} className="my-8 rounded-lg border border-red-200 bg-red-50 p-4 text-center text-sm text-red-800 outline-none focus:ring-2 focus:ring-red-300" role="alert"><p>{ratingsError || 'Rating history is unavailable.'}</p><button type="button" onClick={retryRatingHistory} className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2">Retry rating history</button></div>}
-          {ratingsStatus === 'ready' && ratings.length === 0 && <div className="py-10 text-center"><SafeIcon icon={FiStar} className="mx-auto mb-3 h-9 w-9 text-gray-300" /><p className="font-medium text-gray-800">No ratings yet</p><Link to="/home" className="mt-2 inline-block text-sm font-medium text-amber-700 hover:underline">Browse products</Link></div>}
+          {ratingsStatus === 'error' && <div ref={ratingsErrorRef} tabIndex={-1} className="my-8 rounded-lg border border-red-200 bg-red-50 p-4 text-center text-sm text-red-800 outline-none focus:ring-2 focus:ring-red-300" role="alert"><p>{ratingsError || 'Rating history is unavailable.'}</p><button type="button" onClick={retryRatingHistory} className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2">Retry rating history</button>{selectedRatingId !== null && <Link to="/profile" className="mt-3 block font-medium underline focus:outline-none focus:ring-2 focus:ring-red-300">View all my ratings</Link>}</div>}
+          {ratingsStatus === 'ready' && ratings.length === 0 && <div className="py-10 text-center"><SafeIcon icon={FiStar} className="mx-auto mb-3 h-9 w-9 text-gray-300" /><p className="font-medium text-gray-800">{historyPage.total ? 'No ratings on this page' : 'No ratings yet'}</p><Link to={historyPage.total ? '/profile' : '/home'} className="mt-2 inline-block text-sm font-medium text-amber-700 hover:underline">{historyPage.total ? 'View all my ratings' : 'Browse products'}</Link></div>}
           {ratingsStatus === 'ready' && ratings.length > 0 && <ul className="mt-5 divide-y divide-gray-200" aria-label="Rating history">{ratings.map((rating) => {
             const isDeleting = deletingRatingId === rating.id
-            return <li key={rating.id} className="py-5" aria-busy={isDeleting ? 'true' : undefined}><div className="flex items-start justify-between gap-4"><div><Link ref={(node) => { if (node) ratingLinkRefs.current.set(rating.id, node); else ratingLinkRefs.current.delete(rating.id) }} to={`/products/${rating.product_id}`} className="font-semibold text-gray-900 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">{rating.product?.product_name || `Product ${rating.product_id}`}</Link><p className="mt-1 text-sm text-gray-600">{rating.product?.producer?.producer_name || 'Producer not recorded'}</p><p className="mt-1 text-xs text-gray-500">{formatDate(rating.date_rated)}</p></div><div className="flex items-center gap-3"><span className="whitespace-nowrap text-lg font-semibold text-amber-800">{rating.total_weighted} / 5</span><button type="button" onClick={() => deleteRating(rating)} disabled={isDeleting} className="rounded-lg p-2 text-red-700 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2" aria-label={`${isDeleting ? 'Deleting rating for' : 'Delete rating for'} ${rating.product?.product_name || 'product'}`}><SafeIcon icon={FiTrash2} className="h-4 w-4" /></button></div></div><AdvancedRatingScores scores={rating.advanced_scores} className="mt-3" /></li>
+            const ratingId = String(rating.id)
+            const isSelected = selectedRatingId === ratingId
+            return <li key={rating.id} id={`rating-${ratingId}`} tabIndex={-1} ref={(node) => { if (node) ratingRowRefs.current.set(ratingId, node); else ratingRowRefs.current.delete(ratingId) }} className={`py-5 outline-none focus:ring-2 focus:ring-amber-400 ${isSelected ? 'rounded-lg bg-amber-50 px-3' : ''}`} aria-busy={isDeleting ? 'true' : undefined}><div className="flex items-start justify-between gap-4"><div><Link ref={(node) => { if (node) ratingLinkRefs.current.set(ratingId, node); else ratingLinkRefs.current.delete(ratingId) }} to={`/products/${rating.product_id}`} className="font-semibold text-gray-900 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">{rating.product?.product_name || `Product ${rating.product_id}`}</Link><p className="mt-1 text-sm text-gray-600">{rating.product?.producer?.producer_name || 'Producer not recorded'}</p><p className="mt-1 text-xs text-gray-500">{formatDate(rating.date_rated)}</p></div><div className="flex items-center gap-3"><span className="whitespace-nowrap text-lg font-semibold text-amber-800">{rating.total_weighted} / 5</span><button type="button" onClick={() => deleteRating(rating)} disabled={deletingRatingId !== null} className="rounded-lg p-2 text-red-700 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2" aria-label={`${isDeleting ? 'Deleting rating for' : 'Delete rating for'} ${rating.product?.product_name || 'product'}`}><SafeIcon icon={FiTrash2} className="h-4 w-4" /></button></div></div><AdvancedRatingScores scores={rating.advanced_scores} className="mt-3" /></li>
           })}</ul>}
+          {ratingsStatus === 'ready' && historyPage.total > 0 && <nav aria-label="Rating history pages" className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 pt-4 text-sm"><button type="button" onClick={() => changeHistoryPage(historyPage.page - 1)} disabled={historyPage.page <= 1 || deletingRatingId !== null} className="rounded-lg border border-gray-300 px-3 py-2 font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-amber-300">Previous ratings</button><p role="status">Page {historyPage.page} of {historyPage.totalPages} · {historyPage.total} ratings</p><button type="button" onClick={() => changeHistoryPage(historyPage.page + 1)} disabled={historyPage.page >= historyPage.totalPages || deletingRatingId !== null} className="rounded-lg border border-gray-300 px-3 py-2 font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-amber-300">Next ratings</button></nav>}
         </section>
       </div>
     </div>
