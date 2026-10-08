@@ -9,10 +9,10 @@ execution_state: VALIDATING
 current_work:
   objective: "Refresh and validate independent dependency maintenance while retaining the failed live deletion and unexecuted rating certification rows."
   issue: null
-  pr: 591
-  branch: "dependabot/npm_and_yarn/development-minor-patches-42f885f7a6"
+  pr: 572
+  branch: "dependabot/npm_and_yarn/production-minor-patches-41768f1409"
 next_actions:
-  - "Integrate the existing #591 development dependency update, then refresh and validate #572 against its merged baseline; do not expand features."
+  - "Integrate refreshed #572 against the merged #591 baseline after exact-head source/browser and deployment checks; do not expand features."
   - "Retest the repaired production flows with an eligible completed-owner fixture and an opted-in distinct public author; keep unavailable connected rows pending."
   - "Run bounded connected #422 profile certification where existing credentials and cleanup safeguards support it; leave unsupported rows explicitly pending."
   - "Prepare #165 migration evidence within the reversible boundary; do not cross the irreversible provider boundary without the governed approval package."
@@ -35,12 +35,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984"
+  observed_main_commit: "09b411a04bd2239d4df7ed2cc617909254740a1e"
   current_candidate_commit: null
-  latest_validated_commit: "0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984"
-  latest_deployed_commit: "0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984"
-  latest_runtime_verified_commit: "0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984"
-  latest_browser_verified_commit: "0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984"
+  latest_validated_commit: "3b5fd45b68b799a6b2ef24d50f009695cdc5269e"
+  latest_deployed_commit: "09b411a04bd2239d4df7ed2cc617909254740a1e"
+  latest_runtime_verified_commit: "09b411a04bd2239d4df7ed2cc617909254740a1e"
+  latest_browser_verified_commit: "3b5fd45b68b799a6b2ef24d50f009695cdc5269e"
 validation:
   governance: NOT_RUN
   lint: NOT_RUN
@@ -49,7 +49,7 @@ validation:
   build: NOT_RUN
   ci: PENDING
   runtime: UNVERIFIED
-last_verified_commit: "0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984"
+last_verified_commit: "09b411a04bd2239d4df7ed2cc617909254740a1e"
 last_updated: "2026-10-08T22:00:00Z"
 ---
 
@@ -61,11 +61,18 @@ Last materially reviewed: 9 October 2026 (Australia/Sydney)
 
 **Gate:** Integration. **State:** VALIDATING independent dependency maintenance.
 The owner requested continuation on other aspects after the latest live deletion
-failure. Existing PR #591 is being refreshed onto current `main`; #572 follows
-only after exact-head source/browser and deployment evidence. Neither update
+failure. Existing PR #591 is merged; #572 is refreshed onto that integrated
+baseline and awaits exact-head source/browser and deployment evidence. Neither update
 changes rating policy, provider schema, write gates or feature availability.
 
-Current production is `0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984`
+PR #591 merged as `09b411a04bd2239d4df7ed2cc617909254740a1e`. Its exact
+pre-merge `3b5fd45b68b799a6b2ef24d50f009695cdc5269e` passed canonical Node 22
+validation (733 passed, 15 gated skips), all 140 browser/accessibility cases,
+CodeQL and Dependency Review in run `37849783879`. Preview health matched that
+head. Production `dpl_HYTgwuJkPZraknv3Zn9MpMqT7gXC` is READY and public health
+matched the merged SHA with authentication, data and rate limiting configured.
+
+The owner's latest failed retest used production `0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984`
 (`dpl_Cw1DFT2sVAGwpf7rNUksKnaBsLyR`). Public health matched that exact SHA.
 Its canonical Node 22 run `37765131242` passed 733 source tests (15 gated
 skips) and 140 browser/accessibility cases. PR #633 removed only unreachable
@@ -124,8 +131,8 @@ not the immutable older deployment URL visible in the screenshots. Follow
 
 Continue dependency-correct work from current repository and live GitHub evidence.
 The source/harness implementation PRs #628/#629 and repair PR #631 are merged;
-the later manual deletion remains failed. Existing dependency PR #591 is active,
-with #572 queued for a refreshed baseline. This handoff reconciles
+the later manual deletion remains failed. Dependency PR #591 is merged;
+existing #572 is active on its refreshed baseline. This handoff reconciles
 completed integration while retaining the pending connected rows. Scoped blockers #165 and #577
 do not prevent independent work. Do not enable durable rating reconciliation
 before the governed #165 provider migration and certification.
@@ -170,7 +177,7 @@ Neither scoped blocker prevents independent launch work. No owner decision is cu
 
 ## Next dependency-correct work
 
-0. Complete existing dependency PRs #591 then #572 with latest-head canonical
+0. Complete refreshed dependency PR #572 with latest-head canonical
    source/browser evidence and matching deployment health. Reuse those PRs;
    preserve the live deletion failure and provider certification boundaries.
 1. Review the exact-production connected run and use the step-by-step guide with an existing verified completed-owner beer fixture and distinct second-account session; rerun the skipped owner/exact-link/retry/reload/other-account read checks. Keep unexecuted rows pending, and do not create production fixtures to bypass the write gate.
