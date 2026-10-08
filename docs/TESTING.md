@@ -153,6 +153,9 @@ SHA, target origin and a digest of the owner identity, contains only target
 cookies, uses mode `0600`, lives in the runner's temporary directory outside
 artifact paths, and is removed by an always-run cleanup step. Without that
 configured temporary path, the harness uses fresh sign-ins as before.
+The connected Playwright suite collects only `.spec.js` files; Node unit
+fixtures under `release-check` run through canonical Node validation instead of
+executing during connected test discovery.
 
 The catalogue fixture now follows the aggregate-only detail contract. Focused
 browser cases supply malformed successful browse and detail responses, a
