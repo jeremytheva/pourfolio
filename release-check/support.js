@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test'
+import { restoreReleaseOwnerSession, saveReleaseOwnerSession } from './ownerSession.js'
 
 export const requiredEnvironment = (names) => Object.fromEntries(names.map((name) => {
   const value = process.env[name]
@@ -18,7 +19,11 @@ const retryAfterMilliseconds = (response) => {
   return 20_000
 }
 
-export const signIn = async (page, email, password) => {
+export const signIn = async (page, email, password, { reuseSession = false } = {}) => {
+  if (reuseSession && await restoreReleaseOwnerSession(page, email)) {
+    await expect(page).toHaveURL(/\/home$/)
+    return
+  }
   await page.goto('/login')
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password').fill(password)
@@ -30,6 +35,7 @@ export const signIn = async (page, email, password) => {
 
     if (response.status() !== 429) {
       await expect(page).toHaveURL(/\/home$/)
+      saveReleaseOwnerSession(await page.context().storageState(), email)
       return
     }
 

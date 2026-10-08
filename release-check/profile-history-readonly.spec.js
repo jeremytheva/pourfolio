@@ -16,7 +16,7 @@ const verifiedBeerRating = (items) => items.find((item) =>
 test('connected private history links, controlled retry and repeated reloads preserve the exact owner tasting', async ({ page }) => {
   test.setTimeout(120_000)
   await prohibitRatingWrites(page)
-  await signIn(page, owner.RELEASE_OWNER_EMAIL, owner.RELEASE_OWNER_PASSWORD)
+  await signIn(page, owner.RELEASE_OWNER_EMAIL, owner.RELEASE_OWNER_PASSWORD, { reuseSession: true })
   const firstResponse = await page.request.get(historyPath)
   expect(firstResponse.status()).toBe(200)
   const first = await responseJson(firstResponse)
@@ -68,7 +68,7 @@ test('connected other-account history cannot resolve an owner rating link', asyn
   if (other.RELEASE_OTHER_EMAIL.toLowerCase() === owner.RELEASE_OWNER_EMAIL.toLowerCase()) {
     throw new Error('Two distinct release accounts are required for cross-account history certification.')
   }
-  await signIn(page, owner.RELEASE_OWNER_EMAIL, owner.RELEASE_OWNER_PASSWORD)
+  await signIn(page, owner.RELEASE_OWNER_EMAIL, owner.RELEASE_OWNER_PASSWORD, { reuseSession: true })
   const ownerResponse = await page.request.get(historyPath)
   expect(ownerResponse.status()).toBe(200)
   const rating = (await responseJson(ownerResponse)).items[0]

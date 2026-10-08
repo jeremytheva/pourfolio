@@ -23,7 +23,7 @@ const isCatalogueSearch = (response, query) => {
 test.describe.configure({ mode: 'serial', retries: 0 })
 
 test('read-only catalogue failures and verified brewery navigation stay truthful', async ({ page }) => {
-  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD, { reuseSession: true })
 
   await page.goto('/search')
   const searchInput = page.getByRole('searchbox', { name: 'Search beers, breweries or styles' })

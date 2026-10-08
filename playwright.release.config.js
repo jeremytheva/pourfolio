@@ -5,6 +5,7 @@ const baseURL = parseReleaseBaseUrl(process.env.RELEASE_BASE_URL)
 
 export default defineConfig({
   testDir: './release-check',
+  testMatch: '**/*.spec.js',
   outputDir: 'test-results/release-check',
   fullyParallel: false,
   forbidOnly: true,
