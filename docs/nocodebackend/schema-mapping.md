@@ -12,7 +12,7 @@ The mapping is derived from:
 
 The obsolete `*_pf2025` collection names and `beverage_id` field are not part of this contract. `api/auth-proxy.js` is the authentication proxy, and `api/data-proxy.js` is the owner-enforcing application-data gateway through which the browser accesses these collections.
 
-Persistent `profiles` storage is **UNAVAILABLE on current provider evidence**. The current profile GET is session-backed through the authenticated application boundary and profile PUT fails explicitly with `profile_persistence_unavailable`. Any persistent-profile fields or constraints documented below are a deferred provider-migration target, not a deployed launch dependency.
+Persistent `profiles` storage is **DEPLOYED_REQUIRED** from the governed #422 provider change and active profile implementation. The application uses it for owner create/read/update and stable public projection. This structural classification does not claim completed connected certification: #422 still requires live uniqueness/default-private, owner-isolation, public/private projection and recovery evidence.
 
 ### Atomic-workflow verification (29 July 2026)
 
@@ -51,7 +51,7 @@ rejected stale write and the final persisted version.
 
 ## Active deployed collection summary
 
-The table below lists provider collections used by the current launch contract. It does not include deferred or unavailable targets such as persistent `profiles` storage or the proposed Brew Done It collections documented later in this file.
+The table below lists provider collections used by the current launch contract. It does not include deferred or unavailable targets such as the proposed Brew Done It collections documented later in this file.
 
 | Collection | Purpose | Ownership |
 | --- | --- | --- |
@@ -64,12 +64,13 @@ The table below lists provider collections used by the current launch contract. 
 | `rating_scores` | Normalised attribute scores for a rating. | Same owner as parent rating. |
 | `bonus_attribute_rating_mapping` | Normalised optional bonus selections. | Same owner as parent rating. |
 | `cellar` | Private user cellar inventory. | Owner CRUD only. |
+| `profiles` | Persistent owner profile and stable public-profile identity. | Owner create/read/update; public projection by opaque `public_id`; rating history remains opt-in. |
 
 ## Account export, deletion and retention status
 
 The evidenced launch schema has no deletion-job, deletion-receipt, export-job,
 verification-status or retention-control fields. None is implied by the
-session-backed profile surface, and no browser-supplied lifecycle status may be
+persistent profile surface, and no browser-supplied lifecycle status may be
 trusted. Whole-account export and executable deletion are therefore not
 implemented against this contract. The source-only
 [deletion discovery planner](../account-deletion-plan-contract.md) creates no
@@ -85,9 +86,9 @@ or permission field.
 The proposed owner-data boundary and dependency order are documented in the
 [account lifecycle readiness review](../account-lifecycle-readiness.md). Current
 persisted owner data includes `ratings`, `rating_scores`,
-`bonus_attribute_rating_mapping` and `cellar`; a future persistent `profiles`
-collection would join that boundary only after provider migration and
-certification. Shared catalogue and attribute definitions are not owner data and
+`bonus_attribute_rating_mapping`, `cellar` and `profiles`. Profile deletion/export
+work must use the same authenticated owner identity rather than treating the
+public profile identifier as an ownership key. Shared catalogue and attribute definitions are not owner data and
 must not be deleted with an account.
 
 Before any executable or persisted whole-account workflow, a reviewed provider
@@ -118,18 +119,42 @@ erDiagram
 
 ## Required fields and target fields
 
-### Profile capability — current launch behaviour
+### `profiles` — deployed persistent owner profile
 
-Persistent `profiles` storage is not evidenced in the deployed launch schema.
-The application therefore uses these fail-closed behaviours:
+The governed #422 provider change established the `profiles` collection used by the active application. The application contract is:
 
-- `GET /api/nocodebackend/profile` returns the authenticated session user's safe display projection and does not call a provider `profiles` collection.
-- Profile identity is always derived from the verified server session. Browser-supplied user IDs, roles, email addresses or provider metadata are never authoritative.
-- `PUT /api/nocodebackend/profile` fails explicitly with `profile_persistence_unavailable`; the application must not simulate persistence or write to another collection as a fallback.
+| Field | Rule |
+| --- | --- |
+| `id` | Provider record identity; never browser-authoritative. |
+| `user_id` | Required immutable owner identity derived from the authenticated server session; unique per profile under the intended provider constraint. |
+| `public_id` | Required stable opaque public identifier generated by the server; unique under the intended provider constraint and preserved across edits. |
+| `name` | Required owner-editable display name. |
+| `description` | Optional owner-editable profile text. |
+| `avatar_url` | Optional owner-editable avatar reference. |
+| `rating_history_public` | Private-by-default visibility flag. The application creates profiles with `0`; provider omission/default behavior remains pending a valid authenticated creation fixture, and only explicit owner opt-in enables public rating history. |
 
-### Future persistent `profiles` target — DEFERRED / UNAVAILABLE
+`GET /api/nocodebackend/profile` owner-scopes the provider lookup by authenticated `user_id` and creates a default-private record when no owner profile exists. `PUT /api/nocodebackend/profile` allowlists only `name`, `description`, `avatar_url` and `rating_history_public`. Browser-supplied `id`, `user_id`, `public_id`, email, role or provider metadata cannot become authoritative.
 
-If persistent profile editing is later approved, provider migration evidence must first establish a `profiles` collection and its permission/uniqueness rules. The target `user_id` must be non-null, unique and match the immutable authenticated user ID; the provider primary key may use the same identity. Editable browser fields remain limited to `name`, `description`, and `avatar_url`. Email, role, identity and provider metadata must never be accepted from a profile update. These are target requirements, not current deployed fields.
+`GET /api/nocodebackend/profiles/:public_id` returns only the safe public profile projection. Individual rating history is included only when `rating_history_public` is explicitly enabled; private price and other owner-only data are excluded.
+
+Public history accepts `page`, `limit` and the canonical `rating_id` selector,
+returning the selected entry's page, whole-history summary and nullable optional
+product metadata. `GET /api/nocodebackend/ratings/shared?product_id=:id` returns
+paged completed tastings from other owners only after verifying their current
+opt-in and authoritative opaque profile identity. Profile lookup failure remains
+an error rather than an empty success. Shared links target that author's exact
+`/users/:public_id?rating=:ratings.id` entry.
+
+Historical breakdowns load only when expanded. The owner endpoint is
+`GET /api/nocodebackend/ratings/:id/breakdown`; the shared endpoint is
+`GET /api/nocodebackend/profiles/:public_id/ratings/:id/breakdown`. Both verify a
+completed parent and matching owner; the shared endpoint first checks current
+profile opt-in. Only recorded score names/values/scales/non-scoring markers and
+selected attribute descriptions are projected. No raw child IDs, account keys,
+cellar prices or reconstructed historical weights are exposed. Missing details
+are explicitly unavailable and do not erase the verified rating header.
+
+The structure and application path are deployed. #422 remains open until production-equivalent connected evidence proves provider uniqueness/default-private behaviour, cross-owner denial, public/private projection, cleanup and recovery.
 
 ### `products`
 
@@ -161,6 +186,25 @@ If persistent profile editing is later approved, provider migration evidence mus
 
 The supplied database does not contain a rating-notes field. The launch form therefore does not pretend to persist review text. Adding notes requires an approved schema change and migration.
 
+Private profile history uses `GET /api/nocodebackend/ratings/history` with
+`page` and `limit` (default 20, maximum 50). Optional `rating_id` selects the
+canonical **`ratings.id`**, rather than the legacy client submission identifier,
+and returns the page containing that completed owner rating. The provider query
+remains owner-only (`user_id`); completion, product/date/search and selected-ID
+checks happen locally. A missing, deleted, incomplete or other-owner selection
+returns the same safe 404. Responses include `summary.count` and
+`summary.averageWeighted` across the entire filtered history, independent of the
+response page. No new collection or persisted field is required.
+
+Owner history headers and authentication remain mandatory. Optional catalogue,
+comparison-score and private cellar enrichment share a five-second response
+budget; failure or expiry leaves the verified rating/date/score available with
+nullable metadata and unavailable comparison/PPP values. Each response reads a
+shared beer/brewery/style record at most once and limits beer projection to four
+concurrent products. Unfiltered requests enrich only the selected response page.
+Beer-page personal tasting scores link to `/profile?rating=<ratings.id>`; the
+private profile selects and focuses that exact entry, including older pages.
+
 The provider must atomically compare `submission_version` with the supplied
 `expected_version` while updating both `submission_state` and
 `submission_version`. Permissions must restrict these fields to the privileged
@@ -176,14 +220,30 @@ change; existing non-production headers require a reviewed backfill to version
 
 Cross-collection atomic deletion is not certified for the current provider
 contract. Until certification supplies an atomic commit/abort endpoint, deletion
-retains the parent as a recoverable tombstone: conditionally transition its
-state/version to `deleting`, repeatedly list/get/delete children with both
-`rating_id` and authenticated `user_id`, prove no owner-scoped children remain,
+retains managed submissions as recoverable tombstones: conditionally transition
+their state/version to `deleting`, repeatedly list/get/delete children by the
+single parent filter `rating_id`, verify authenticated ownership locally on every
+listed and re-read child, prove no children remain,
 then conditionally transition to `deleted` and set `deleted_at`. Retries and
 concurrent requests resume from either persisted deletion state. They never
 delete a child whose re-read owner or parent does not match. If an atomic graph
 delete is later certified, record the endpoint, owner-policy and forced-abort
 evidence here before replacing this workflow.
+
+The compatibility path for an existing completed historical header with no
+submission identity and no workflow version uses deployed child-first CRUD and
+physical header removal. It never adds deferred lifecycle fields. Parent-only
+child reads cover all pages; ownership conflicts abort before child mutation.
+The header must retain its original identity, date, totals and absent workflow
+version before removal, and bounded re-reads must confirm absence before success.
+A partial failure is retried against the remaining children. This path is limited
+to unmanaged historical rows and does not establish atomic graph deletion or
+create-versus-delete race safety. A managed row with an absent/invalid version
+fails closed; it must not fall back to physical deletion. Managed transitions and
+child/header cleanup use bounded read-back verification rather than trusting one
+immediate provider read. #165's provider compare-and-set, constraints and controlled
+write certification remain required; no migration or bulk historical backfill is
+enabled by this compatibility repair.
 
 ### `rating_scores`
 
@@ -395,8 +455,9 @@ product because a foreign key alone cannot express those rules.
 ## Schema preflight
 
 Run the [rating schema preflight](schema-preflight.md) against a complete,
-production-equivalent SQL export. Persistent profile storage is not a launch
-preflight requirement while its capability remains `UNAVAILABLE`. The current
+production-equivalent SQL export. Profile structure is tracked separately under
+#422 because the active `profiles` collection was established by a later governed
+provider change rather than the retained historical SQL export. The current
 supplied export still lacks the deferred rating workflow integrity controls and
 has `date_rated` update behaviour that must be reconciled before the #165 target
 workflow can be enabled.
@@ -408,8 +469,8 @@ Before public launch, test these cases in the production-equivalent NoCodeBacken
 | Actor | Expected |
 | --- | --- |
 | Unauthenticated | No access to application data endpoints. |
-| Owner | CRUD own cellar; create/read/delete own ratings; read own session-backed profile projection. Persistent profile update remains unavailable until separately migrated and certified. |
-| Other user | Cannot read or mutate another user's private cellar/rating records; the profile endpoint is scoped only to the authenticated session identity. |
+| Owner | CRUD own cellar; create/read/delete own ratings; create/read/update only their persistent profile through the allowlisted application boundary. |
+| Other user | Cannot read or mutate another user's private cellar/rating/profile records; public profile access is limited to the safe `public_id` projection and opted-in rating history. |
 | Authenticated catalogue user | Can read only projected product/producer/category/attribute data. |
 | Administrator/provider secret | Can perform only the server workflows required by the gateway. |
 

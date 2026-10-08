@@ -122,6 +122,41 @@ automated accessibility checks on the reachable launch pages. This suite verifie
 browser behaviour without requiring production credentials; it does not replace
 the connected staging tests below.
 
+Private profile history regression coverage exercises page-bounded enrichment,
+whole-history counts/average, canonical rating selection on older pages, repeat
+tastings, invalid and other-owner selectors, mandatory owner-read failures,
+optional enrichment failures, a shared enrichment deadline and request-local
+relationship deduplication. Browser cases follow a beer-page score to its exact
+profile entry, reload/back navigation, page controls, transient failure/retry,
+stale-response rejection and deletion of the selected last item on an older
+page. Existing keyboard-focus and automated accessibility checks cover the
+updated list, links and recovery controls. Mocked cases prove browser/policy
+behaviour; connected deployment/provider reads remain separate evidence.
+
+`release-check/profile-history-readonly.spec.js` follows an existing completed
+owner tasting from its beer page into a paginated profile, injects one bounded
+503 and retries against the actual provider, then verifies three reloads. It
+also checks that a separately authenticated account receives the safe 404 for
+the owner's canonical rating link. These checks create or delete no ratings;
+missing owner fixtures or second-account credentials are explicitly skipped
+and remain pending evidence. Traces, screenshots and videos are disabled for
+these cases to keep private ratings and sign-in credentials out of artefacts.
+
+The connected suite has a finite sign-in budget (ten attempts per account/IP
+over 15 minutes). Read-only owner journeys may reuse a session created by the
+suite, verifying it with `auth/get-session` and the expected owner before each
+reuse. The explicit password sign-in/sign-out test continues to authenticate
+directly, and other-account sessions remain separate. A missing or expired
+owner session requires a fresh sign-in; failed authentication-service
+verification remains a failure. The optional session file is bound to release
+SHA, target origin and a digest of the owner identity, contains only target
+cookies, uses mode `0600`, lives in the runner's temporary directory outside
+artifact paths, and is removed by an always-run cleanup step. Without that
+configured temporary path, the harness uses fresh sign-ins as before.
+The connected Playwright suite collects only `.spec.js` files; Node unit
+fixtures under `release-check` run through canonical Node validation instead of
+executing during connected test discovery.
+
 The catalogue fixture now follows the aggregate-only detail contract. Focused
 browser cases supply malformed successful browse and detail responses, a
 non-canonical direct route and an exact missing route. They check that labelled
@@ -189,7 +224,7 @@ or other persistent write occurs.
 
 Pull requests, pushes to the configured implementation branch families, and
 manual runs execute the release gate and Playwright browser/accessibility suite
-using Node 24 from `.nvmrc`. Pull requests to the governed integration branches
+using the governed Node 22 runtime from `.nvmrc`. Pull requests to the governed integration branches
 also attempt the `Dependency review` job. The job has no `continue-on-error`
 setting and is configured to fail when it finds a vulnerability of high severity
 or above. Dependency Graph must be enabled in the repository settings for the
@@ -256,6 +291,8 @@ covered by synthetic regression fixtures; neither command makes a connected
 provider claim without the private evidence files and independent review.
 
 ## Required pre-launch environment tests
+
+Follow the [step-by-step rating/profile acceptance and gateway certification guide](nocodebackend/rating-workflow-certification.md#step-by-step-acceptance-and-certification-guide) for deployment selection, repeat loading, exact-entry links, recovery, account isolation and the separate controlled-write gate.
 
 Source-only tests cannot replace these staging checks:
 

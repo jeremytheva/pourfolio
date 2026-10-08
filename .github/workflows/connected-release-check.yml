@@ -65,6 +65,7 @@ jobs:
       - name: Run connected release checks
         run: npm run test:release
         env:
+          RELEASE_OWNER_SESSION_PATH: ${{ runner.temp }}/pourfolio-release-owner-${{ github.run_id }}.json
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
           RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}
@@ -74,6 +75,12 @@ jobs:
           RELEASE_OTP_EMAIL: ${{ secrets.RELEASE_OTP_EMAIL }}
           RELEASE_OTP_CODE: ${{ secrets.RELEASE_OTP_CODE }}
           RELEASE_SEARCH_TERM: ${{ vars.RELEASE_SEARCH_TERM }}
+      - name: Remove temporary owner session
+        if: always()
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; fs.rmSync(process.env.RELEASE_OWNER_SESSION_PATH, { force: true });'
+        env:
+          RELEASE_OWNER_SESSION_PATH: ${{ runner.temp }}/pourfolio-release-owner-${{ github.run_id }}.json
       - name: Retain redacted evidence
         if: always()
         uses: actions/upload-artifact@v7

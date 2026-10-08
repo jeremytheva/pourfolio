@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-09-11
-- Updated: 2026-09-11
+- Updated: 2026-10-08
 
 ## Context
 
@@ -22,7 +22,9 @@ Existing rating ownership keys remain internal identifiers and must not be reuse
 - The application creates the owner's profile on first owner-profile access if one does not already exist, using the authenticated session identity and a server-generated UUID public identifier.
 - Owner updates are allowlisted to `name`, `description`, `avatar_url`, and `rating_history_public`. Browser-supplied `user_id`, `public_id`, role, email, and provider metadata are ignored and cannot replace server-owned identity.
 - Public profile responses contain only safe display profile fields, rating date and totals, and the product/producer fields needed to render rated beers.
-- Public responses exclude email, internal `user_id`, cellar references, detailed rating child rows, submission/workflow fields, and other private account data.
+- Public responses exclude email, internal `user_id`, cellar references, raw rating child rows, submission/workflow fields, and other private account data.
+- Following the owner's 8 October request, expandable historical breakdowns may expose only recorded score names, values, scales, non-scoring markers and selected tasting-attribute descriptions. They require the same current opt-in and exact parent/profile ownership proof as public history. Child identifiers, owner keys, private prices and reconstructed historical weights remain excluded.
+- Beer-page shared tasting links use the authoritative author's opaque profile ID and canonical rating ID: `/users/:publicProfileId?rating=:ratingId`. Personal tastings continue to use `/profile?rating=:ratingId`. Public history resolves the selected entry's page and retains whole-history totals; a foreign, deleted or no-longer-shared selection is safely unavailable.
 - Public profile routes remain signed-in-only for this scope.
 - If a profile has not opted in to rating-history sharing, the public response returns the safe profile projection with an empty rating history and no rating-provider read.
 

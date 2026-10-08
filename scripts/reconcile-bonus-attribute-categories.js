@@ -25,6 +25,24 @@ const asArray = (value) => Array.isArray(value) ? value : value ? [value] : []
 const first = (value) => Array.isArray(value) ? value[0] || null : value || null
 const globalRecord = (record) => !textValue(record?.user_id)
 
+const readAllProviderRows = async (collection, { limit = 100 } = {}) => {
+  const rows = []
+  let page = 1
+  while (true) {
+    const providerPage = await dataProvider.listPage(collection, {
+      page,
+      limit,
+      orderBy: 'id',
+      order: 'asc',
+      filters: {}
+    })
+    rows.push(...asArray(providerPage.items))
+    if (page >= providerPage.totalPages) break
+    page += 1
+  }
+  return rows
+}
+
 export const loadBonusCategoryPlan = (fileUrl = BONUS_CATEGORY_PLAN_PATH) => {
   const rows = parseCsv(fs.readFileSync(fileUrl, 'utf8'))
   const seenIds = new Set()
@@ -48,9 +66,9 @@ export const loadBonusCategoryPlan = (fileUrl = BONUS_CATEGORY_PLAN_PATH) => {
 
 export const buildBonusCategoryReconciliationPlan = async (planRows = loadBonusCategoryPlan()) => {
   const [attributeRows, categoryRows, mappingRows] = await Promise.all([
-    dataProvider.list(COLLECTIONS.bonusAttributes),
-    dataProvider.list(COLLECTIONS.bonusAttributeCategories),
-    dataProvider.list(COLLECTIONS.bonusAttributeCategoryMappings)
+    readAllProviderRows(COLLECTIONS.bonusAttributes),
+    readAllProviderRows(COLLECTIONS.bonusAttributeCategories),
+    readAllProviderRows(COLLECTIONS.bonusAttributeCategoryMappings)
   ])
 
   const attributes = asArray(attributeRows)

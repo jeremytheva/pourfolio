@@ -226,10 +226,12 @@ test('cellar records load, update and delete through server endpoints', async ({
   await expect(page.getByText('Your cellar is empty')).toBeVisible()
 })
 
-test('profile exposes session-backed identity without unavailable persistence controls', async ({ page }) => {
-  let profilePutRequests = 0
+test('profile exposes owner-safe persistent editing without identity fields', async ({ page }) => {
+  const profilePutBodies = []
   page.on('request', (request) => {
-    if (request.url().includes('/api/nocodebackend/profile') && request.method() === 'PUT') profilePutRequests += 1
+    if (request.url().includes('/api/nocodebackend/profile') && request.method() === 'PUT') {
+      profilePutBodies.push(request.postDataJSON())
+    }
   })
 
   await page.goto('/profile')
@@ -238,10 +240,26 @@ test('profile exposes session-backed identity without unavailable persistence co
   await expect(page.getByRole('heading', { name: 'Profile and rating history' })).toBeVisible()
   await expect(profile.getByText('Jeremy', { exact: true }).first()).toBeVisible()
   await expect(profile.getByText('jeremy@example.com', { exact: true }).first()).toBeVisible()
-  await expect(profile.getByText('Profile editing is not available yet.')).toBeVisible()
-  await expect(profile.getByRole('button', { name: /save profile/i })).toHaveCount(0)
-  await expect(profile.getByRole('textbox')).toHaveCount(0)
+  await expect(profile.getByLabel('Display name')).toHaveValue('Jeremy')
+  await expect(profile.getByLabel('About')).toBeVisible()
+  await expect(profile.getByLabel('Avatar URL')).toBeVisible()
+  await expect(profile.getByRole('checkbox', { name: 'Share my rating history' })).not.toBeChecked()
+  await expect(profile.getByRole('button', { name: 'Save profile' })).toBeVisible()
   await expect(page.getByLabel(/role/i)).toHaveCount(0)
+  await expect(page.getByLabel(/user id/i)).toHaveCount(0)
+
+  await profile.getByLabel('Display name').fill('Jeremy Updated')
+  await profile.getByLabel('About').fill('Profile persistence test')
+  await profile.getByRole('checkbox', { name: 'Share my rating history' }).check()
+  await profile.getByRole('button', { name: 'Save profile' }).click()
+
+  await expect(profile.getByText('Profile saved.')).toBeVisible()
+  await expect(profile.getByText('Jeremy Updated', { exact: true }).first()).toBeVisible()
+  expect(profilePutBodies).toEqual([{
+    name: 'Jeremy Updated',
+    description: 'Profile persistence test',
+    avatar_url: '',
+    rating_history_public: true
+  }])
   await expect(page.getByText('4 / 5')).toBeVisible()
-  expect(profilePutRequests).toBe(0)
 })

@@ -135,13 +135,13 @@ test('provider discovery, sign-up, password sign-in, OTP, Google and logout', as
 })
 
 test('catalogue, pagination, direct details, rating form boundary and session-backed profile read', async ({ page }) => {
-  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD, { reuseSession: true })
   await page.goto('/search')
 
-  const searchInput = page.getByLabel('Search products, producers or styles')
-  const searchStatus = page.locator('#product-search-status')
+  const searchInput = page.getByLabel('Search beers, breweries or styles')
+  const searchStatus = page.locator('#catalogue-search-status')
   await expect(searchInput).toBeFocused()
-  await expect(searchStatus).toHaveText(/^\d+ products? found$/)
+  await expect(searchStatus).toHaveText(/^\d+ products? in catalogue$/)
 
   const nextPage = page.getByRole('button', { name: 'Next product page, page 2' })
   await expect(nextPage).toBeVisible()
@@ -156,9 +156,9 @@ test('catalogue, pagination, direct details, rating form boundary and session-ba
   const searchResponse = await searchResponsePromise
   const searchPayload = await responseJson(searchResponse)
   expect(searchPayload.items?.length).toBeGreaterThan(0)
-  await expect(searchStatus).toHaveText(new RegExp(`^${searchPayload.total} products? found$`))
+  await expect(searchStatus).toHaveText(new RegExp(`^${searchPayload.total} beers?(?:,|$)`))
 
-  const productLink = page.locator('[aria-label="Products"] a[href^="/products/"]').first()
+  const productLink = page.locator('[aria-label="Beer search results"] a[href^="/products/"]').first()
   await expect(productLink).toBeVisible()
   const productPath = await productLink.getAttribute('href')
   expect(productPath).toMatch(/^\/products\/\d+$/)
@@ -191,11 +191,102 @@ test('catalogue, pagination, direct details, rating form boundary and session-ba
   expect(profile.profile).not.toHaveProperty('id')
   expect(profile.profile).not.toHaveProperty('user_id')
 
+  const publicProfileResponse = await page.request.get(
+    '/api/nocodebackend/profiles/' + encodeURIComponent(profile.profile.public_id)
+  )
+  expect(publicProfileResponse.status()).toBe(200)
+  const publicProfile = await responseJson(publicProfileResponse)
+  expect(publicProfile.profile?.public_id).toBe(profile.profile.public_id)
+  expect(publicProfile.profile?.name).toBe(profile.profile.name)
+  expect(publicProfile.profile).not.toHaveProperty('id')
+  expect(publicProfile.profile).not.toHaveProperty('user_id')
+  expect(Array.isArray(publicProfile.ratings)).toBe(true)
+  expect(publicProfile.summary?.count).toBe(publicProfile.ratings.length)
+  const serializedPublicProfile = JSON.stringify(publicProfile)
+  for (const privateField of ['user_id', 'cellar_id', 'submission_key', 'submission_fingerprint', 'submission_state', 'deleted_at']) {
+    expect(serializedPublicProfile).not.toContain('"' + privateField + '"')
+  }
+  if (!profile.profile.rating_history_public) {
+    expect(publicProfile.ratings).toEqual([])
+    expect(publicProfile.summary).toEqual({ count: 0, average: null })
+  }
+
   authenticatedStorageState = await page.context().storageState()
 })
 
+
+test('catalogue stewardship and cellar launch forms are reachable without implicit writes', async ({ page }) => {
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD, { reuseSession: true })
+
+  const unexpectedWrites = []
+  page.on('request', (request) => {
+    const url = new URL(request.url())
+    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method())) return
+    if (
+      url.pathname.startsWith('/api/nocodebackend/catalog/') ||
+      url.pathname.startsWith('/api/nocodebackend/cellar')
+    ) {
+      unexpectedWrites.push(request.method() + ' ' + url.pathname)
+    }
+  })
+
+  await page.goto('/search')
+  const proposalQuery = 'pourfolio-release-check-proposal-no-match-bd92f7'
+  await page.getByLabel('Search beers, breweries or styles').fill(proposalQuery)
+  await expect(page.getByRole('heading', { name: 'No matches found' })).toBeVisible()
+  const proposeMissingBeer = page.getByRole('link', { name: 'Propose this missing beer' })
+  await expect(proposeMissingBeer).toBeVisible()
+  await proposeMissingBeer.click()
+
+  await expect(page).toHaveURL(new RegExp('/products/propose\\?name=' + proposalQuery + '$'))
+  await expect(page.getByRole('heading', { name: 'Add a beer' })).toBeVisible()
+  await expect(page.getByLabel('Beer name')).toHaveValue(proposalQuery)
+  await expect(page.getByLabel('Search breweries')).toBeVisible()
+  await expect(page.getByLabel('Select brewery')).toBeVisible()
+  await expect(page.getByLabel('Search beer styles')).toBeVisible()
+  await expect(page.getByLabel('Beer style / category')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Review beer' })).toBeDisabled()
+
+  const catalogue = await responseJson(await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1'))
+  const product = catalogue.items?.[0]
+  expect(product?.id).toBeTruthy()
+  expect(product?.product_name).toBeTruthy()
+
+  await page.goto('/products/' + product.id)
+  const correctionLink = page.getByRole('link', { name: 'Suggest correction' })
+  await expect(correctionLink).toBeVisible()
+  await correctionLink.click()
+
+  await expect(page).toHaveURL(new RegExp('/products/' + product.id + '/propose-edit$'))
+  await expect(page.getByRole('heading', { name: 'Suggest a correction' })).toBeVisible()
+  await expect(page.getByText('Stable product ID: ' + product.id)).toBeVisible()
+  await expect(page.getByLabel('Beer name')).toHaveValue(product.product_name)
+  await expect(page.getByLabel('Brewery / producer')).toBeVisible()
+  await expect(page.getByLabel('Beer style / category')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Review changes' })).toBeDisabled()
+
+  await page.goto('/products/' + product.id)
+  await page.getByRole('button', { name: 'Add to cellar' }).click()
+  await expect(page.getByRole('heading', { name: /^Add .* to your cellar$/ })).toBeVisible()
+  await expect(page.getByLabel('Quantity')).toBeVisible()
+  await expect(page.getByLabel('Container volume (mL)')).toBeVisible()
+  await expect(page.locator('#cellar-add-section select').first()).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Save cellar item' })).toBeVisible()
+
+  const gift = page.getByRole('checkbox', { name: 'Gift' })
+  await expect(gift).not.toBeChecked()
+  await gift.check()
+  const giftFrom = page.getByLabel('Gift from')
+  await expect(giftFrom).toBeVisible()
+  await giftFrom.fill('Release evidence only')
+  await gift.uncheck()
+  await expect(page.getByLabel('Gift from')).toHaveCount(0)
+
+  expect(unexpectedWrites).toEqual([])
+})
+
 test('rating reconciliation dry-run is idempotent and completed aggregates are coherent', async ({ page }) => {
-  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD, { reuseSession: true })
 
   const before = await responseJson(await page.request.get('/api/nocodebackend/ratings/mine'))
   const beforeItems = Array.isArray(before.items) ? before.items : []
@@ -269,8 +360,61 @@ test('rating reconciliation dry-run is idempotent and completed aggregates are c
   expect((after.items || []).map(({ id }) => String(id)).sort()).toEqual(beforeIds)
 })
 
+
+test('live bonus category mappings render across every rating dimension and Overall', async ({ page }) => {
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD, { reuseSession: true })
+
+  const catalogueResponse = await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1')
+  expect(catalogueResponse.status()).toBe(200)
+  const catalogue = await responseJson(catalogueResponse)
+  const product = catalogue.items?.[0]
+  expect(product?.id).toBeTruthy()
+
+  const ratingSubmitRequests = []
+  page.on('request', (request) => {
+    const requestUrl = new URL(request.url())
+    if (request.method() === 'POST' && requestUrl.pathname === '/api/nocodebackend/ratings/submit') {
+      ratingSubmitRequests.push(request.url())
+    }
+  })
+
+  const expectDimensionBonus = async (label, descriptor) => {
+    await expect(page.getByRole('heading', { name: label, level: 2 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: `Bonus attributes for ${label}`, level: 3 })).toBeVisible()
+    await expect(page.getByRole('checkbox', { name: new RegExp(descriptor) })).toBeVisible()
+  }
+
+  await page.goto(`/products/${product.id}/rate`)
+
+  await expectDimensionBonus('Design', "It's a Concept")
+  await page.getByRole('button', { name: 'Skip this attribute' }).click()
+
+  await expectDimensionBonus('Appearance', 'Beautiful colour')
+  await page.getByRole('button', { name: 'Appearance: 4 out of 7' }).click()
+
+  await expectDimensionBonus('Aroma', 'Dank, Dank Baby')
+  await page.getByRole('button', { name: 'Aroma: 4 out of 7' }).click()
+
+  await expectDimensionBonus('Mouthfeel', 'Great Mouth Feel')
+  await page.getByRole('button', { name: 'Mouthfeel: 4 out of 7' }).click()
+
+  await expectDimensionBonus('Flavour', 'Barrelled to Perfection')
+  await page.getByRole('button', { name: 'Flavour: 4 out of 7' }).click()
+
+  await expectDimensionBonus('Follow', 'Aftertaste just keeps giving')
+  await page.getByRole('button', { name: 'Follow: 4 out of 7' }).click()
+
+  await expectDimensionBonus('Burp', 'Burpalicious')
+  await page.getByRole('button', { name: 'Skip this attribute' }).click()
+
+  await expect(page.getByRole('heading', { name: 'All bonus attributes', level: 2 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Overall attributes', level: 3 })).toBeVisible()
+  await expect(page.getByRole('checkbox', { name: /A Trippy Adventure/ })).toBeVisible()
+  expect(ratingSubmitRequests).toEqual([])
+})
+
 test('Breweries & Venues is keyboard operable and preserves the verified-data boundary', async ({ page }) => {
-  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD, { reuseSession: true })
   await page.goto('/places')
 
   const breweries = page.getByRole('tab', { name: 'Breweries' })
@@ -290,7 +434,7 @@ test('Breweries & Venues is keyboard operable and preserves the verified-data bo
 test('rating create/history/delete uses exact cleanup identity', async ({ page }) => {
   test.skip(!destructiveEnabled, `Requires RELEASE_DESTRUCTIVE_CONFIRMATION=${DESTRUCTIVE_CONFIRMATION}`)
 
-  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD, { reuseSession: true })
   const catalogue = await responseJson(await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1'))
   const product = catalogue.items[0]
   expect(product?.id).toBeTruthy()
@@ -322,7 +466,7 @@ test('cellar CRUD and cross-account ownership boundaries use guaranteed cleanup'
   test.skip(!destructiveEnabled, `Requires RELEASE_DESTRUCTIVE_CONFIRMATION=${DESTRUCTIVE_CONFIRMATION}`)
   const otherCredentials = requiredEnvironment(['RELEASE_OTHER_EMAIL', 'RELEASE_OTHER_PASSWORD'])
 
-  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD, { reuseSession: true })
   const catalogue = await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1')
   const product = (await responseJson(catalogue)).items[0]
   expect(product?.id).toBeTruthy()
@@ -363,7 +507,7 @@ test('cellar CRUD and cross-account ownership boundaries use guaranteed cleanup'
 })
 
 test('expired session returns every protected direct route to sign-in', async ({ page }) => {
-  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD, { reuseSession: true })
   await page.context().clearCookies()
   for (const path of ['/home', '/search', '/places', '/cellar', '/profile']) {
     await page.goto(path)

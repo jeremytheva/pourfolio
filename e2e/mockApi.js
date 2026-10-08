@@ -57,6 +57,15 @@ export const installMockApi = async (page) => {
   let guessCount = 0
   let staleOnce = true
   let nextBonusId = 14
+  let profileRecord = {
+    id: 77,
+    user_id: 'user-1',
+    public_id: 'public_user_1',
+    name: 'Jeremy',
+    description: '',
+    avatar_url: null,
+    rating_history_public: 0
+  }
   const json = (route, body, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
 
   await page.route('**/api/nocodebackend/auth/get-session', (route) => route.fulfill({
@@ -67,19 +76,28 @@ export const installMockApi = async (page) => {
 
   await page.route('**/api/nocodebackend/profile', async (route) => {
     if (route.request().method() === 'PUT') {
-      return route.fulfill({
-        status: 503,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          error: 'Profile editing is unavailable until profile persistence is deployed.',
-          code: 'profile_persistence_unavailable'
-        })
-      })
+      const updates = route.request().postDataJSON()
+      profileRecord = {
+        ...profileRecord,
+        name: updates.name,
+        description: updates.description,
+        avatar_url: updates.avatar_url || null,
+        rating_history_public: updates.rating_history_public ? 1 : 0
+      }
     }
+    const { public_id, name, description, avatar_url, rating_history_public } = profileRecord
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ profile: { id: 'user-1', name: 'Jeremy', description: '', avatar_url: null } })
+      body: JSON.stringify({
+        profile: {
+          public_id,
+          name,
+          description,
+          avatar_url,
+          rating_history_public: Boolean(rating_history_public)
+        }
+      })
     })
   })
 
@@ -251,7 +269,8 @@ export const installMockApi = async (page) => {
       page: 1,
       pageSize: 20,
       total: 1,
-      totalPages: 1
+      totalPages: 1,
+      summary: { count: 1, averageWeighted: 4 }
     })
   }))
 
@@ -259,6 +278,13 @@ export const installMockApi = async (page) => {
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({ items: [{ ...rating, product }] })
+  }))
+
+  await page.route('**/api/nocodebackend/ratings/shared?**', (route) => json(route, {
+    items: [], page: 1, pageSize: 20, total: 0, totalPages: 0
+  }))
+  await page.route('**/api/nocodebackend/ratings/*/breakdown', (route) => json(route, {
+    breakdown: { scores: [], selected_attributes: [], incomplete: false }
   }))
 
   await page.route('**/api/nocodebackend/cellar', async (route) => {

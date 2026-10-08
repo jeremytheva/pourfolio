@@ -2,7 +2,7 @@ import { ApiError } from '../lib/nocodeBackend.js'
 
 const INVALID_PUBLIC_PROFILE_MESSAGE = 'The server returned invalid profile data. Please try again.'
 
-const PAYLOAD_KEYS = new Set(['profile', 'ratings', 'summary'])
+const PAYLOAD_KEYS = new Set(['profile', 'ratings', 'summary', 'page', 'pageSize', 'totalPages'])
 const PROFILE_KEYS = new Set(['public_id', 'name', 'description', 'avatar_url'])
 const SUMMARY_KEYS = new Set(['count', 'average'])
 const RATING_KEYS = new Set(['id', 'product_id', 'date_rated', 'total_unweighted', 'total_weighted', 'product'])
@@ -19,7 +19,8 @@ const hasOnlyKeys = (value, allowed) => Object.keys(value).every((key) => allowe
 const nonEmptyString = (value, max) => typeof value === 'string' && value.trim().length > 0 && value.length <= max
 const nullableString = (value, max) => value === null || (typeof value === 'string' && value.length <= max)
 const positiveId = (value) => /^[1-9]\d*$/.test(String(value ?? ''))
-const finiteScore = (value) => Number.isFinite(Number(value)) && Number(value) >= 0 && Number(value) <= 5
+const finiteScore = (value) => (typeof value === 'number' || (typeof value === 'string' && value.trim())) &&
+  Number.isFinite(Number(value)) && Number(value) > 0 && Number(value) <= 5
 
 const validateProducer = (producer) => {
   if (producer === null) return null
@@ -29,6 +30,7 @@ const validateProducer = (producer) => {
 }
 
 const validateProduct = (product, productId) => {
+  if (product === null) return null
   if (!plainObject(product) || !hasOnlyKeys(product, PRODUCT_KEYS)) invalid()
   if (!positiveId(product.id) || String(product.id) !== String(productId)) invalid()
   if (!nonEmptyString(product.product_name, 255)) invalid()
@@ -46,7 +48,7 @@ const validateRating = (rating) => {
   return rating
 }
 
-export const validatePublicProfileResponse = (payload, expectedPublicId = null) => {
+export const validatePublicProfileResponse = (payload, expectedPublicId = null, expectedRatingId = null) => {
   if (!plainObject(payload) || !hasOnlyKeys(payload, PAYLOAD_KEYS)) invalid()
   if (!plainObject(payload.profile) || !hasOnlyKeys(payload.profile, PROFILE_KEYS)) invalid()
   if (!nonEmptyString(payload.profile.public_id, 128) || !PUBLIC_PROFILE_ID_PATTERN.test(payload.profile.public_id)) invalid()
@@ -62,9 +64,17 @@ export const validatePublicProfileResponse = (payload, expectedPublicId = null) 
     if (ids.has(String(rating.id))) invalid()
     ids.add(String(rating.id))
   }
+  if (expectedRatingId !== null && !payload.ratings.some((rating) => String(rating.id) === String(expectedRatingId))) invalid()
 
   if (!plainObject(payload.summary) || !hasOnlyKeys(payload.summary, SUMMARY_KEYS)) invalid()
-  if (!Number.isSafeInteger(payload.summary.count) || payload.summary.count < 0 || payload.summary.count !== payload.ratings.length) invalid()
+  if (!Number.isSafeInteger(payload.summary.count) || payload.summary.count < 0) invalid()
+  if (payload.page === undefined) {
+    if (payload.summary.count !== payload.ratings.length || payload.pageSize !== undefined || payload.totalPages !== undefined) invalid()
+  } else if (!Number.isSafeInteger(payload.page) || payload.page < 1 || !Number.isSafeInteger(payload.pageSize) ||
+      payload.pageSize < 1 || payload.pageSize > 50 || !Number.isSafeInteger(payload.totalPages) ||
+      payload.totalPages !== Math.ceil(payload.summary.count / payload.pageSize) ||
+      payload.page > Math.max(1, payload.totalPages) || payload.ratings.length !==
+      Math.min(payload.pageSize, Math.max(0, payload.summary.count - (payload.page - 1) * payload.pageSize))) invalid()
   if (payload.summary.count === 0) {
     if (payload.summary.average !== null) invalid()
   } else if (!finiteScore(payload.summary.average)) invalid()

@@ -72,9 +72,13 @@ Use the existing connection/provider contract suites and evidence records to cer
 
 Generic provider documentation alone is not sufficient when application safety depends on the behaviour.
 
-## Migration approval package
+## Provider write and migration approval boundary
 
-Before any irreversible or production-impacting provider/schema operation, the project must assemble a compact approval package containing:
+Routine production provider writes do **not** require explicit product-owner approval when they are additive or otherwise reversible and protected by the repository's normal safeguards: deterministic preflight/dry-run evidence, exact mutation guards where applicable, no unrelated destructive behaviour, bounded scope and post-write verification.
+
+Explicit approval is reserved for destructive or irreversible provider/schema operations.
+
+Before a destructive or irreversible provider/schema operation, the project must assemble a compact approval package containing:
 
 - change and affected tables/resources;
 - existing-data scope;
@@ -87,10 +91,10 @@ Before any irreversible or production-impacting provider/schema operation, the p
 - dry-run result where possible;
 - rollback or safe-forward path;
 - post-migration verification;
-- the exact irreversible operation;
+- the exact destructive or irreversible operation;
 - explicit owner approval requirement.
 
-Perform reversible preparation and evidence gathering before requesting approval. The current #165 rating migration uses `rating-migration-evidence-gate.md` plus `rating-schema-migration-runbook.md` as its project-specific approval package; extend those sources rather than creating a parallel generic migration document.
+Perform routine reversible/additive provider work autonomously when its normal safety gates pass. Perform reversible migration preparation and evidence gathering before requesting approval for the destructive or irreversible boundary. The current #165 rating migration uses `rating-migration-evidence-gate.md` plus `rating-schema-migration-runbook.md` as its project-specific approval package; extend those sources rather than creating a parallel generic migration document.
 
 ## Drift rule
 

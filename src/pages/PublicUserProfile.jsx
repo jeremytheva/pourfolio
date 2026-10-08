@@ -1,33 +1,48 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FiStar, FiUser } from 'react-icons/fi'
 import SafeIcon from '../common/SafeIcon.jsx'
-import { Link, useParams } from '../lib/router.jsx'
+import { Link, useParams, useSearchParams } from '../lib/router.jsx'
 import { profileService } from '../services/profileService.js'
 import { formatDate } from '../utils/dateFormatting.js'
+import RatingBreakdown from '../components/RatingBreakdown.jsx'
 
 function PublicUserProfile() {
   const { publicProfileId } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const selectedRatingId = searchParams.get('rating')
+  const requestedPage = searchParams.get('page') || '1'
   const [status, setStatus] = useState('loading')
   const [payload, setPayload] = useState(null)
   const [error, setError] = useState('')
   const errorRef = useRef(null)
+  const selectedRef = useRef(null)
+  const requestId = useRef(0)
 
   const loadProfile = useCallback(async () => {
+    const current = ++requestId.current
     setStatus('loading')
+    setPayload(null)
     setError('')
     try {
-      const result = await profileService.getPublicUserProfile(publicProfileId)
+      const result = await profileService.getPublicUserProfile(publicProfileId, { page: requestedPage, ratingId: selectedRatingId })
+      if (current !== requestId.current) return
       setPayload(result)
       setStatus('ready')
     } catch (requestError) {
+      if (current !== requestId.current) return
       setPayload(null)
       setError(requestError.message || 'This profile could not be loaded.')
       setStatus('error')
     }
-  }, [publicProfileId])
+  }, [publicProfileId, requestedPage, selectedRatingId])
 
-  useEffect(() => { loadProfile() }, [loadProfile])
+  useEffect(() => { loadProfile(); return () => { requestId.current += 1 } }, [loadProfile])
   useEffect(() => { if (status === 'error') errorRef.current?.focus() }, [status])
+  useEffect(() => {
+    if (status === 'ready' && selectedRatingId && selectedRef.current) {
+      selectedRef.current.focus(); selectedRef.current.scrollIntoView?.({ block: 'center' })
+    }
+  }, [status, selectedRatingId, payload])
 
   const profile = payload?.profile
   const ratings = payload?.ratings || []
@@ -44,6 +59,7 @@ function PublicUserProfile() {
           <h1 className="text-xl font-semibold">User profile unavailable</h1>
           <p className="mt-2">{error}</p>
           <button type="button" onClick={loadProfile} className="mt-4 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2">Retry</button>
+          {selectedRatingId && <Link to={`/users/${publicProfileId}`} className="mt-3 block underline focus:outline-none focus:ring-2 focus:ring-red-300">View all shared ratings</Link>}
         </div>
       )}
 
@@ -73,13 +89,15 @@ function PublicUserProfile() {
             ) : (
               <ul className="mt-5 divide-y divide-gray-200" aria-label="Shared rating history">
                 {ratings.map((rating) => (
-                  <li key={rating.id} className="flex items-start justify-between gap-4 py-4">
-                    <div><Link to={`/products/${rating.product_id}`} className="font-semibold text-gray-900 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">{rating.product.product_name}</Link><p className="mt-1 text-sm text-gray-600">{rating.product.producer?.producer_name || 'Producer not recorded'}</p><p className="mt-1 text-xs text-gray-500">{formatDate(rating.date_rated)}</p></div>
+                  <li key={rating.id} id={`rating-${rating.id}`} ref={String(rating.id) === selectedRatingId ? selectedRef : null} tabIndex={-1} className={`py-4 outline-none focus:ring-2 focus:ring-amber-300 ${String(rating.id) === selectedRatingId ? 'rounded-lg bg-amber-50 px-3' : ''}`}>
+                    <div className="flex items-start justify-between gap-4"><div><Link to={`/products/${rating.product_id}`} className="font-semibold text-gray-900 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">{rating.product?.product_name || 'Beer details unavailable'}</Link><p className="mt-1 text-sm text-gray-600">{rating.product?.producer?.producer_name || 'Producer not recorded'}</p><p className="mt-1 text-xs text-gray-500">{formatDate(rating.date_rated)}</p></div>
                     <span className="whitespace-nowrap text-lg font-semibold text-amber-800">{rating.total_weighted} / 5</span>
+                    </div><RatingBreakdown rating={rating} publicProfileId={publicProfileId} />
                   </li>
                 ))}
               </ul>
             )}
+            {payload.totalPages > 1 && <nav className="mt-5 flex items-center justify-between gap-3" aria-label="Shared rating history pages"><button type="button" disabled={payload.page <= 1} onClick={() => setSearchParams({ page: String(payload.page - 1) })} className="rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-50">Previous</button><p className="text-sm text-gray-600">Page {payload.page} of {payload.totalPages}</p><button type="button" disabled={payload.page >= payload.totalPages} onClick={() => setSearchParams({ page: String(payload.page + 1) })} className="rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-50">Next</button></nav>}
           </section>
         </>
       )}

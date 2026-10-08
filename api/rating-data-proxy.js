@@ -11,13 +11,14 @@ import { isOwnedBy, projectRating } from './_lib/dataPolicy.js'
 import { enforceOrigin, enforceRateLimit, enforceRequestSize, safeErrorMessage } from './_lib/httpSecurity.js'
 import { buildStyleScoreIndex, styleScaledScoreForRating } from './_lib/styleScaledScore.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
+import { isCompletedRating, ownerCompletedRatings, ratingChildren } from './_lib/ratingHistoryRecords.js'
+import { loadRatingBreakdown } from './_lib/ratingBreakdown.js'
+import { loadSharedProductRatings } from './_lib/sharedProductRatings.js'
 
 const ALLOWED_METHODS = new Set(['GET', 'POST', 'DELETE'])
 const asArray = (value) => (Array.isArray(value) ? value : value ? [value] : [])
 const records = (value) => asArray(value).filter((item) => item && typeof item === 'object')
 const first = (value) => (Array.isArray(value) ? value[0] || null : value || null)
-const isCompletedRating = (rating) =>
-  rating?.submission_state === 'complete' && completedRatingTotal(rating?.total_weighted) !== null
 
 const pathSegments = (request) => {
   const raw = request.query?.path
@@ -121,12 +122,12 @@ const exactNamedRelationship = (record, id, nameField) => {
   return { id: record.id, [nameField]: name }
 }
 
-const productProjection = async (productId) => {
-  const product = await dataProvider.get(COLLECTIONS.products, productId)
+const productProjection = async (productId, readRecord = (collection, id) => dataProvider.get(collection, id)) => {
+  const product = await readRecord(COLLECTIONS.products, productId)
   if (!product || String(product.id ?? '') !== String(productId)) return null
   const [producerRecord, categoryRecord] = await Promise.all([
-    product.producer_id && String(product.producer_id) !== '0' ? dataProvider.get(COLLECTIONS.producers, product.producer_id) : Promise.resolve(null),
-    product.product_category_id ? dataProvider.get(COLLECTIONS.categories, product.product_category_id) : Promise.resolve(null)
+    product.producer_id && String(product.producer_id) !== '0' ? readRecord(COLLECTIONS.producers, product.producer_id) : Promise.resolve(null),
+    product.product_category_id ? readRecord(COLLECTIONS.categories, product.product_category_id) : Promise.resolve(null)
   ])
   return { id: product.id, product_name: String(product.product_name || '').trim(), product_category_id: product.product_category_id ?? null, producer_id: product.producer_id ?? null, producer: exactNamedRelationship(producerRecord, product.producer_id, 'producer_name'), category: exactNamedRelationship(categoryRecord, product.product_category_id, 'category_name') }
 }
@@ -459,44 +460,6 @@ const historicalOwnerRecords = async (collection, userId) => {
   throw new Error('Historical rating reconciliation exceeded the safe pagination limit.')
 }
 
-const OWNER_HISTORY_PAGE_SIZE = 100
-const OWNER_HISTORY_MAX_PAGES = 1000
-
-const ownerCompletedRatings = async (userId, productId = null) => {
-  const ownerRatings = []
-  const filters = {
-    user_id: userId,
-    submission_state: 'complete',
-    ...(productId ? { product_id: productId } : {})
-  }
-
-  for (let page = 1; page <= OWNER_HISTORY_MAX_PAGES; page += 1) {
-    const payload = await dataProvider.listPage(COLLECTIONS.ratings, {
-      page,
-      limit: OWNER_HISTORY_PAGE_SIZE,
-      orderBy: 'id',
-      order: 'asc',
-      filters
-    })
-    const pageItems = records(payload.items)
-    ownerRatings.push(...pageItems.filter((rating) =>
-      isOwnedBy(rating, userId) &&
-      isCompletedRating(rating) &&
-      (!productId || String(rating.product_id) === String(productId))
-    ))
-
-    if (payload.totalPages === 0 || page >= payload.totalPages || pageItems.length < OWNER_HISTORY_PAGE_SIZE) {
-      return ownerRatings.sort((left, right) => {
-        const dateOrder = String(right.date_rated || '').localeCompare(String(left.date_rated || ''))
-        if (dateOrder !== 0) return dateOrder
-        return Number(right.id || 0) - Number(left.id || 0)
-      })
-    }
-  }
-
-  throw new Error('Owner rating history exceeded the safe pagination limit.')
-}
-
 const groupHistoricalChildren = (children) => {
   const grouped = new Map()
   for (const child of children) {
@@ -593,13 +556,33 @@ const reconcileHistoricalRatings = async (request, response, user) => {
 
 const projectOwnerRatingItems = async (user, ownerRatings) => {
   if (!ownerRatings.length) return []
-  const [populations, cellarRows] = await Promise.all([
-    scorePopulations(),
-    dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }).then(records)
-  ])
-  const cellarById = new Map(cellarRows.filter((item) => isOwnedBy(item, user.id)).map((item) => [String(item.id), item]))
+  // Optional enrichment must not hide verified ratings or consume the browser's
+  // entire request timeout. The deadline is shared across this response page.
+  const deadline = Date.now() + 5_000
+  const optionalRead = (operation, fallback) => {
+    const remaining = deadline - Date.now()
+    if (remaining <= 0) return Promise.resolve(fallback)
+    let timer
+    return Promise.race([
+      Promise.resolve().then(operation).catch(() => fallback),
+      new Promise((resolve) => { timer = setTimeout(() => resolve(fallback), remaining) })
+    ]).finally(() => clearTimeout(timer))
+  }
+  const populationsPromise = optionalRead(scorePopulations, null)
+  const cellarPromise = optionalRead(() => dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }).then(records), [])
+  const reads = new Map()
+  const readOnce = (collection, id) => {
+    const key = `${collection}:${id}`
+    if (!reads.has(key)) reads.set(key, optionalRead(() => dataProvider.get(collection, id), null))
+    return reads.get(key)
+  }
   const productIds = [...new Set(ownerRatings.map((rating) => String(rating.product_id || '')).filter((id) => /^[1-9]\d*$/.test(id)))]
-  const products = await Promise.all(productIds.map(async (id) => [id, await productProjection(id)]))
+  const products = []
+  for (let index = 0; index < productIds.length; index += 4) {
+    products.push(...await Promise.all(productIds.slice(index, index + 4).map(async (id) => [id, await productProjection(id, readOnce)])))
+  }
+  const [populations, cellarRows] = await Promise.all([populationsPromise, cellarPromise])
+  const cellarById = new Map(cellarRows.filter((item) => isOwnedBy(item, user.id)).map((item) => [String(item.id), item]))
   const productsById = new Map(products)
   return ownerRatings.map((rating) => ({
     ...projectRating(rating),
@@ -677,7 +660,11 @@ const parseHistoryQuery = (request = {}) => {
     error.status = 400
     throw error
   }
-  return { page, limit, q, from, to }
+  const selected = request.query?.rating_id
+  return {
+    page, limit, q, from, to,
+    ...(selected === undefined ? {} : { ratingId: String(parseHistoryPositiveInteger(selected, '', 'History rating identifier')) })
+  }
 }
 
 const filterOwnerHistoryDates = (items, { from, to }) => items.filter((item) => {
@@ -702,32 +689,52 @@ const filterOwnerHistory = (items, { q, from, to }) => {
 const listUserHistory = async (response, user, request = {}) => {
   const query = parseHistoryQuery(request)
   const datedRatings = filterOwnerHistoryDates(await ownerCompletedRatings(user.id), query)
-  const start = (query.page - 1) * query.limit
+  const resolvePage = (items) => {
+    if (!query.ratingId) return query.page
+    const index = items.findIndex((item) => String(item.id) === query.ratingId)
+    if (index < 0) {
+      const error = new Error('That rating is not available in your history.')
+      error.status = 404
+      error.code = 'rating_not_found'
+      throw error
+    }
+    return Math.floor(index / query.limit) + 1
+  }
+  const summarise = (items) => ({
+    count: items.length,
+    averageWeighted: items.length ? Number((items.reduce((sum, item) => sum + Number(item.total_weighted), 0) / items.length).toFixed(2)) : null
+  })
 
   if (!query.q) {
+    const page = resolvePage(datedRatings)
+    const start = (page - 1) * query.limit
     const total = datedRatings.length
     const totalPages = total ? Math.ceil(total / query.limit) : 0
     const pageRatings = datedRatings.slice(start, start + query.limit)
     response.status(200).json({
       items: await projectOwnerRatingItems(user, pageRatings),
-      page: query.page,
+      page,
       pageSize: query.limit,
       total,
-      totalPages
+      totalPages,
+      summary: summarise(datedRatings)
     })
     return
   }
 
   const searchable = await projectOwnerRatingItems(user, datedRatings)
   const filtered = filterOwnerHistory(searchable, { ...query, from: null, to: null })
+  const page = resolvePage(filtered)
+  const start = (page - 1) * query.limit
   const total = filtered.length
   const totalPages = total ? Math.ceil(total / query.limit) : 0
   response.status(200).json({
     items: filtered.slice(start, start + query.limit),
-    page: query.page,
+    page,
     pageSize: query.limit,
     total,
-    totalPages
+    totalPages,
+    summary: summarise(filtered)
   })
 }
 
@@ -814,42 +821,98 @@ const diagnosticRatingCreate = async (request, response, user) => {
   })
 }
 
+const deletionConflict = (message) => Object.assign(new Error(message), { status: 409, code: 'RATING_DELETE_CONFLICT' })
+const deletionVersion = (rating) => {
+  const raw = rating?.submission_version
+  if (raw === undefined || raw === null || raw === '') return null
+  const version = Number(raw)
+  return Number.isSafeInteger(version) && version >= 0 ? version : null
+}
+const historicalDeletionSignature = (rating) => JSON.stringify([
+  rating.user_id, rating.product_id, rating.date_rated, rating.total_weighted, rating.total_unweighted,
+  rating.submission_state, rating.submission_version ?? null, rating.submission_key ?? null, rating.submission_fingerprint ?? null
+])
+
+const verifyDeletionState = async (id, userId, state, version) => {
+  for (const delay of RATING_STATE_VERIFY_DELAYS_MS) {
+    if (delay) await wait(delay)
+    const current = await dataProvider.get(COLLECTIONS.ratings, id)
+    if (!isOwnedBy(current, userId)) throw deletionConflict('The rating is no longer available for deletion.')
+    if ((current.submission_state === 'deleted' && deletionVersion(current) !== null && deletionVersion(current) >= version) ||
+        (current.submission_state === state && deletionVersion(current) === version)) return current
+    if (deletionVersion(current) > version) throw deletionConflict('The rating changed during deletion. Please reload and try again.')
+  }
+  throw Object.assign(new Error('Rating deletion could not be confirmed yet. Please retry.'), {
+    status: 503, code: 'RATING_DELETE_VERIFICATION_PENDING'
+  })
+}
+
 const deleteRating = async (id, response, user) => {
   const ratingId = positiveId(id, 'Rating identifier')
   let rating = await dataProvider.get(COLLECTIONS.ratings, ratingId)
-  if (!rating) { response.status(404).json({ error: 'Rating not found.' }); return }
+  if (!rating) { response.status(204).end(); return }
   if (!isOwnedBy(rating, user.id)) { response.status(403).json({ error: 'You are not authorised to delete this rating.' }); return }
-  if (rating.submission_state === 'deleted') { response.status(204).end(); return }
-  if (rating.submission_state !== 'deleting') {
-    const version = Number(rating.submission_version)
-    if (!Number.isSafeInteger(version) || version < 0) throw new Error('The rating workflow version is invalid.')
-    await dataProvider.update(COLLECTIONS.ratings, ratingId, { submission_state: 'deleting', submission_version: version + 1 })
-    rating = await dataProvider.get(COLLECTIONS.ratings, ratingId)
-    if (!isOwnedBy(rating, user.id)) { const error = new Error('The rating ownership changed during deletion.'); error.status = 409; throw error }
-    if (rating.submission_state === 'deleted') { response.status(204).end(); return }
-    if (rating.submission_state !== 'deleting') { const error = new Error('The rating changed before deletion could start.'); error.status = 409; throw error }
+  const missingVersion = rating.submission_version === undefined || rating.submission_version === null || rating.submission_version === ''
+  const historical = missingVersion && !rating.submission_key && !rating.submission_fingerprint &&
+    rating.submission_state === 'complete'
+  const historicalSignature = historical ? historicalDeletionSignature(rating) : null
+  const collections = [COLLECTIONS.ratingScores, COLLECTIONS.bonusRatingMappings]
+  // A historical record without a durable submission identity has no in-flight
+  // gateway writer. Delete its existing children then header using deployed CRUD;
+  // do not fabricate deferred workflow fields or downgrade a managed submission.
+  if (!historical) {
+    const version = deletionVersion(rating)
+    if (version === null || version >= Number.MAX_SAFE_INTEGER) {
+      throw Object.assign(new Error('Rating deletion is temporarily unavailable.'), { status: 503, code: 'RATING_DELETE_WORKFLOW_UNAVAILABLE' })
+    }
+    if (rating.submission_state !== 'deleting' && rating.submission_state !== 'deleted') {
+      await dataProvider.update(COLLECTIONS.ratings, ratingId, { submission_state: 'deleting', submission_version: version + 1 })
+      rating = await verifyDeletionState(ratingId, user.id, 'deleting', version + 1)
+    }
   }
-  const childCollections = [COLLECTIONS.ratingScores, COLLECTIONS.bonusRatingMappings]
-  for (const collection of childCollections) {
-    const children = records(await dataProvider.list(collection, { rating_id: ratingId, user_id: user.id }))
-    for (const listedChild of children) {
-      const child = await dataProvider.get(collection, listedChild.id)
-      if (!isOwnedBy(child, user.id) || String(child.rating_id) !== String(ratingId)) continue
+  const childSets = await Promise.all(collections.map((collection) => ratingChildren(collection, rating)))
+  for (const [index, collection] of collections.entries()) {
+    const children = childSets[index]
+    for (const listed of children) {
+      const child = await dataProvider.get(collection, listed.id)
+      if (!child) continue
+      if (String(child.rating_id) !== String(ratingId) ||
+          (String(child.user_id ?? '').trim() && !isOwnedBy(child, user.id))) {
+        throw deletionConflict('The rating details changed during deletion. Please retry.')
+      }
       try { await dataProvider.remove(collection, child.id) } catch (error) { if (error?.status !== 404) throw error }
     }
   }
-  for (const collection of childCollections) {
-    const remaining = records(await dataProvider.list(collection, { rating_id: ratingId, user_id: user.id })).filter((child) => isOwnedBy(child, user.id) && String(child.rating_id) === String(ratingId))
-    if (remaining.length) throw new Error('Rating deletion reconciliation remains incomplete.')
+  for (const collection of collections) {
+    let remaining
+    for (const delay of RATING_STATE_VERIFY_DELAYS_MS) {
+      if (delay) await wait(delay)
+      remaining = await ratingChildren(collection, rating)
+      if (!remaining.length) break
+    }
+    if (remaining.length) throw Object.assign(new Error('Rating deletion could not be confirmed yet. Please retry.'), { status: 503, code: 'RATING_DELETE_VERIFICATION_PENDING' })
   }
   const persisted = await dataProvider.get(COLLECTIONS.ratings, ratingId)
-  if (!isOwnedBy(persisted, user.id)) throw new Error('The rating ownership changed during deletion.')
+  if (!persisted && historical) { response.status(204).end(); return }
+  if (!isOwnedBy(persisted, user.id)) throw deletionConflict('The rating is no longer available for deletion.')
+  if (historical) {
+    if (historicalDeletionSignature(persisted) !== historicalSignature) {
+      throw deletionConflict('The rating changed during deletion. Please reload and try again.')
+    }
+    try { await dataProvider.remove(COLLECTIONS.ratings, ratingId) } catch (error) { if (error?.status !== 404) throw error }
+    for (const delay of RATING_STATE_VERIFY_DELAYS_MS) {
+      if (delay) await wait(delay)
+      if (!await dataProvider.get(COLLECTIONS.ratings, ratingId)) { response.status(204).end(); return }
+    }
+    throw Object.assign(new Error('Rating deletion could not be confirmed yet. Please retry.'), { status: 503, code: 'RATING_DELETE_VERIFICATION_PENDING' })
+  }
   if (persisted.submission_state !== 'deleted') {
-    const version = Number(persisted.submission_version)
-    if (persisted.submission_state !== 'deleting' || !Number.isSafeInteger(version) || version < 0) throw new Error('The rating deletion workflow state is invalid.')
+    const version = deletionVersion(persisted)
+    if (persisted.submission_state !== 'deleting' || version === null || version >= Number.MAX_SAFE_INTEGER) {
+      throw deletionConflict('The rating changed during deletion. Please reload and try again.')
+    }
     await dataProvider.update(COLLECTIONS.ratings, ratingId, { submission_state: 'deleted', submission_version: version + 1, deleted_at: new Date().toISOString() })
-    const reconciled = await dataProvider.get(COLLECTIONS.ratings, ratingId)
-    if (!isOwnedBy(reconciled, user.id) || reconciled.submission_state !== 'deleted' || Number(reconciled.submission_version) !== version + 1) throw new Error('Rating deletion state was not durably updated.')
+    await verifyDeletionState(ratingId, user.id, 'deleted', version + 1)
   }
   response.status(204).end()
 }
@@ -865,6 +928,22 @@ export const routeRatingRequest = async (request, response, user, correlationId)
       return
     }
     return diagnosticRatingCreate(request, response, user)
+  }
+  if (request.method === 'GET' && id === 'shared' && !action) {
+    const productId = positiveId(request.query?.product_id, 'Product identifier')
+    const page = parseHistoryPositiveInteger(request.query?.page, '1', 'History page')
+    const limit = parseHistoryPositiveInteger(request.query?.limit, '20', 'History page size', 50)
+    response.status(200).json(await loadSharedProductRatings(productId, user.id, { page, limit }))
+    return
+  }
+  if (request.method === 'GET' && id && action === 'breakdown' && pathSegments(request).length === 3) {
+    const rating = await dataProvider.get(COLLECTIONS.ratings, positiveId(id, 'Rating identifier'))
+    if (!isOwnedBy(rating, user.id) || !isCompletedRating(rating)) {
+      response.status(404).json({ error: 'That rating is not available in your history.', code: 'rating_not_found' })
+      return
+    }
+    response.status(200).json({ breakdown: await loadRatingBreakdown(rating) })
+    return
   }
   if (request.method === 'GET' && id === 'mine') return listUserRatings(response, user, request)
   if (request.method === 'GET' && id === 'history') return listUserHistory(response, user, request)

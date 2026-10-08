@@ -23,18 +23,18 @@ const isCatalogueSearch = (response, query) => {
 test.describe.configure({ mode: 'serial', retries: 0 })
 
 test('read-only catalogue failures and verified brewery navigation stay truthful', async ({ page }) => {
-  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD, { reuseSession: true })
 
   await page.goto('/search')
-  const searchInput = page.getByRole('searchbox', { name: 'Search products, producers or styles' })
+  const searchInput = page.getByRole('searchbox', { name: 'Search beers, breweries or styles' })
   const zeroResultResponsePromise = page.waitForResponse((response) => isCatalogueSearch(response, ZERO_RESULT_QUERY))
   await searchInput.fill(ZERO_RESULT_QUERY)
   const zeroResultResponse = await zeroResultResponsePromise
   const zeroResultPayload = await responseJson(zeroResultResponse)
   expect(zeroResultPayload.items).toEqual([])
   expect(zeroResultPayload.total).toBe(0)
-  await expect(page.locator('#product-search-status')).toHaveText('0 products found')
-  await expect(page.getByRole('heading', { name: 'No matching products' })).toBeVisible()
+  await expect(page.locator('#catalogue-search-status')).toHaveText('0 beers, 0 breweries, 0 styles')
+  await expect(page.getByRole('heading', { name: 'No matches found' })).toBeVisible()
 
   await page.goto(`/products/${MISSING_PRODUCT_ID}`)
   const unavailable = page.getByRole('alert')
@@ -47,7 +47,7 @@ test('read-only catalogue failures and verified brewery navigation stay truthful
   await page.goto('/places')
   const breweryPanel = page.getByRole('tabpanel', { name: 'Breweries' })
   await expect(breweryPanel).toBeVisible()
-  await expect(breweryPanel.getByRole('status')).toHaveText(/^\d+ verified breweries shown\.$/)
+  await expect(breweryPanel.getByRole('status')).toHaveText(/^\d+ verified (?:brewery|breweries) found\.$/)
 
   const breweryLinks = breweryPanel.locator('a[href^="/breweries/"]')
   expect(await breweryLinks.count()).toBeGreaterThan(0)

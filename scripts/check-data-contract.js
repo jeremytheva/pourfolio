@@ -46,8 +46,17 @@ const requiredProductProducerFields = new Set([
   'sort_order'
 ])
 
+const requiredProfileFields = new Set([
+  'id',
+  'user_id',
+  'public_id',
+  'name',
+  'description',
+  'avatar_url',
+  'rating_history_public'
+])
+
 const expectedUnavailable = [
-  'profiles',
   'catalogue_source_records',
   'product_images',
   'producer_logos',
@@ -58,6 +67,7 @@ const expectedUnavailable = [
 
 const feederDeniedCollections = [
   'product_producers',
+  'profiles',
   'catalogue_source_records',
   'product_images',
   'producer_logos',
@@ -129,6 +139,20 @@ if (!fs.existsSync(contractPath)) {
       }
       if (productProducers.relationships?.producer_id !== 'producers.id') {
         add('DATA_CONTRACT_PRODUCT_PRODUCER_PRODUCER_RELATIONSHIP_INVALID')
+      }
+    }
+
+    const profiles = contract.collections?.profiles
+    if (!profiles || profiles.classification !== 'DEPLOYED_REQUIRED') {
+      add('DATA_CONTRACT_PROFILES_CLASSIFICATION_INVALID')
+    } else {
+      const actualFields = new Set(profiles.provider_fields ?? [])
+      for (const field of requiredProfileFields) {
+        if (!actualFields.has(field)) add('DATA_CONTRACT_PROFILE_FIELD_MISSING', { field })
+      }
+      const requiredFields = new Set(profiles.required_fields ?? [])
+      for (const field of ['id', 'user_id', 'public_id', 'name', 'rating_history_public']) {
+        if (!requiredFields.has(field)) add('DATA_CONTRACT_PROFILE_REQUIRED_FIELD_MISSING', { field })
       }
     }
 

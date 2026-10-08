@@ -27,8 +27,8 @@ const explicitlyDisabled = (value) => String(value ?? '')
   .toLowerCase() === 'false'
 
 // Historical function name retained because package/release tooling already imports it.
-// The browser surface may remain available for authenticated testing while the v3 API
-// itself fails closed unless the deployment explicitly opts in with the policy flag.
+// The guarded route remains available for controlled testing, but production-facing
+// navigation must stay hidden until the provider/privacy/recovery certification gate passes.
 export const inspectBrewDoneItContainment = ({ rootDirectory, requireBuild = true }) => {
   const findings = []
   const routeSource = readText(rootDirectory, 'src/App.jsx')
@@ -41,8 +41,8 @@ export const inspectBrewDoneItContainment = ({ rootDirectory, requireBuild = tru
   if (!routeSource.includes('path="/brew-done-it"')) {
     findings.push('src/App.jsx is missing the protected /brew-done-it route')
   }
-  if (!navigationSource.includes("to: '/brew-done-it'")) {
-    findings.push('src/components/MainLayout.jsx is missing Brew Done It primary navigation')
+  if (navigationSource.includes("to: '/brew-done-it'")) {
+    findings.push('src/components/MainLayout.jsx must not expose Brew Done It in production navigation before certification')
   }
   if (!gatewaySource.includes('BREW_DONE_IT_POLICY_ENABLED') || !gatewaySource.includes("toLowerCase() === 'true'")) {
     findings.push('api/_lib/brewDoneItEntryV3.js must require explicit BREW_DONE_IT_POLICY_ENABLED=true')
@@ -79,7 +79,7 @@ export const runCli = (rootDirectory = process.cwd()) => {
     process.stderr.write(`Brew Done It enablement check failed:\n- ${findings.join('\n- ')}\n`)
     return 1
   }
-  process.stdout.write('Brew Done It route/navigation bundle and explicit backend enablement contract check passed.\n')
+  process.stdout.write('Brew Done It guarded route, hidden production navigation and explicit backend enablement contract check passed.\n')
   return 0
 }
 

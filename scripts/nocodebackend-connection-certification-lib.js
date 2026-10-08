@@ -1,3 +1,5 @@
+import { runProfileProviderCertification } from './profile-provider-certification-lib.js'
+
 const asArray = (value) => Array.isArray(value) ? value : value ? [value] : []
 const first = (value) => asArray(value)[0] || null
 const recordId = (record) => record?.id === undefined || record?.id === null ? null : String(record.id)
@@ -79,6 +81,7 @@ export const runNoCodeBackendConnectionCertification = async ({
       }
     },
     schema_plane: buildSchemaCapability(),
+    profile_contract: { status: 'NOT_RUN' },
     cleanup: { status: 'PENDING', attempted: 0, removed: 0, residual: 0, failures: [] }
   }
 
@@ -279,7 +282,22 @@ export const runNoCodeBackendConnectionCertification = async ({
   const capabilityFailed = Object.values(capabilityEntries).some((entry) => entry.status === 'FAIL')
   const capabilityPending = Object.values(capabilityEntries).some((entry) => entry.status === 'PENDING')
   report.data_plane.status = capabilityFailed || capabilityPending ? 'FAIL' : 'PASS'
-  report.overall = report.data_plane.status === 'PASS' && report.cleanup.status === 'PASS' ? 'PASS' : 'FAIL'
+
+  report.profile_contract = await runProfileProviderCertification({ provider, runKey })
+
+  report.overall = report.data_plane.status === 'PASS' &&
+    report.cleanup.status === 'PASS' &&
+    report.profile_contract.status !== 'FAIL'
+    ? 'PASS'
+    : 'FAIL'
+
   if (primaryFailure) report.failure = primaryFailure
+  else if (report.profile_contract.status === 'FAIL') {
+    report.failure = {
+      capability: `profiles.${report.profile_contract.failure?.capability || 'contract'}`,
+      status: report.profile_contract.failure?.status ?? null,
+      code: report.profile_contract.failure?.code || 'PROFILE_CONTRACT_FAILED'
+    }
+  }
   return report
 }

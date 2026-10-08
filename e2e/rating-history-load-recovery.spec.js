@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
 test('rating history retry restores focus to the recovered heading', async ({ page }) => {
   let attempts = 0
 
-  await page.route('**/api/nocodebackend/ratings/mine', async (route) => {
+  await page.route('**/api/nocodebackend/ratings/history?**', async (route) => {
     attempts += 1
     if (attempts > 1) return route.fallback()
 
@@ -35,7 +35,7 @@ test('rating history retry restores focus to the recovered heading', async ({ pa
 })
 
 test('failed rating history retry returns focus to the load error alert', async ({ page }) => {
-  await page.route('**/api/nocodebackend/ratings/mine', async (route) => {
+  await page.route('**/api/nocodebackend/ratings/history?**', async (route) => {
     return route.fulfill({
       status: 503,
       contentType: 'application/json',

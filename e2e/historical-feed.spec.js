@@ -56,7 +56,7 @@ test('Historical Feed is private, filterable and paginated with focus restoratio
   await page.goto('/history')
 
   await expect(page.getByRole('heading', { name: 'Historical Feed' })).toBeVisible()
-  await expect(page.getByRole('navigation', { name: 'Primary navigation' }).getByRole('link', { name: 'History' })).toHaveAttribute('aria-current', 'page')
+  await expect(page.getByRole('navigation', { name: 'Explore navigation' }).getByRole('link', { name: 'Historical Feed' })).toHaveAttribute('aria-current', 'page')
   await expect(page.getByRole('list', { name: 'Historical tasting events' })).toContainText('Ace')
   await expect(page.getByRole('list', { name: 'Historical tasting events' })).toContainText('Rocky Ridge Brewing')
   await expect(page.getByRole('list', { name: 'Historical tasting events' })).toContainText('4.5 / 5')

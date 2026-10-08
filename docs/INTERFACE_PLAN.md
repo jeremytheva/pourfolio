@@ -11,6 +11,18 @@ Primary signed-in navigation:
 
 Profile remains available from the account control rather than as a primary discovery tab.
 
+Secondary signed-in **Explore** navigation contains implemented supporting experiences that are useful but are not launch-primary:
+
+- Beer Style Explorer;
+- Beer Passport;
+- Historical Feed;
+- Add Beer;
+- What's next.
+
+`/features` is the feature-status surface. It links only to implemented experiences. Approved but inactive capabilities appear as non-interactive placeholders with an explicit dependency/status label so planned work is visible without presenting it as usable.
+
+Brew Done It remains absent from production-facing navigation and product CTAs until its provider, privacy, two-device and recovery certification gates pass. Its protected source route may remain available for controlled testing while the server policy boundary continues to fail closed unless deliberately enabled.
+
 ## Breweries & Venues
 
 `/places` is the shared places-discovery surface with two accessible tabs:
@@ -81,7 +93,8 @@ Do not expose private per-rating records merely to calculate public aggregates.
 
 ## Accessibility requirements
 
-- Primary navigation remains keyboard reachable with visible focus.
+- Primary and Explore navigation remain keyboard reachable with visible focus.
+- Planned feature placeholders are informational rather than disabled fake links or controls.
 - `/places` uses correct tablist/tab/tabpanel semantics.
 - Tabs must be operable without pointer input.
 - Route changes retain the existing route-announcement/focus-management behaviour.
