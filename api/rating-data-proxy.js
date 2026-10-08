@@ -838,7 +838,7 @@ const verifyDeletionState = async (id, userId, state, version) => {
     if (delay) await wait(delay)
     const current = await dataProvider.get(COLLECTIONS.ratings, id)
     if (!isOwnedBy(current, userId)) throw deletionConflict('The rating is no longer available for deletion.')
-    if (current.submission_state === 'deleted' ||
+    if ((current.submission_state === 'deleted' && deletionVersion(current) !== null && deletionVersion(current) >= version) ||
         (current.submission_state === state && deletionVersion(current) === version)) return current
     if (deletionVersion(current) > version) throw deletionConflict('The rating changed during deletion. Please reload and try again.')
   }

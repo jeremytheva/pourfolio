@@ -160,6 +160,14 @@ test('a managed submission with a missing version cannot fall back to physical d
   }
 })
 
+test('a malformed terminal read cannot authorise child deletion', async () => {
+  const records = installProvider()
+  dataProvider.update = async () => { records.ratings[0].submission_state = 'deleted'; records.ratings[0].submission_version = null }
+  await assert.rejects(__testables.deleteRating('1', response(), user), (error) => error.code === 'RATING_DELETE_VERIFICATION_PENDING')
+  assert.equal(records.rating_scores.length, 2)
+  assert.equal(records.bonus_attribute_rating_mapping.length, 2)
+})
+
 test('historical header changes during cleanup prevent header deletion', async () => {
   const records = installProvider()
   delete records.ratings[0].submission_version

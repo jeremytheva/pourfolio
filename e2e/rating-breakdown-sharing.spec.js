@@ -63,7 +63,8 @@ test('other-user beer tasting opens that exact public entry on an older page and
   const sharedRating = { id: 1, product_id: 4, date_rated: '2025-06-18', total_weighted: 3,
     author: { public_id: publicId, name: 'Beer Friend' } }
   const profilePayload = { profile: { public_id: publicId, name: 'Beer Friend', description: '', avatar_url: null },
-    ratings: [{ id: 1, product_id: 4, date_rated: '2025-06-18', total_weighted: 3, product }],
+    ratings: [{ id: 1, product_id: 4, date_rated: '2025-06-18', total_weighted: 3,
+      product: { id: product.id, product_name: product.product_name, producer: product.producer } }],
     summary: { count: 21, average: 4 }, page: 2, pageSize: 20, totalPages: 2 }
   const selections = []
   let publicReads = 0

@@ -9,7 +9,7 @@ execution_state: VALIDATING
 current_work:
   objective: "Repair the failed owner deletion test, correct shared tasting owner links and expose recorded historical breakdowns; validate without claiming provider write certification."
   issue: 422
-  pr: null
+  pr: 631
   branch: "fix/rating-delete-owner-breakdown"
 next_actions:
   - "Complete latest-head canonical Node 22 and browser/accessibility validation for the deletion/owner-link/breakdown repair; integrate only the eligible source scope."
@@ -29,14 +29,14 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 0
+  open_implementation_prs: 1
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
   observed_main_commit: "2bfe93befc98196143714e66d5e10d37f68ef302"
-  current_candidate_commit: null
-  latest_validated_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
+  current_candidate_commit: "dc397df90e57062a489581309ca29700c56b5b97"
+  latest_validated_commit: "dc397df90e57062a489581309ca29700c56b5b97"
   latest_deployed_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
   latest_runtime_verified_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
   latest_browser_verified_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
@@ -49,7 +49,7 @@ validation:
   ci: PENDING
   runtime: UNVERIFIED
 last_verified_commit: "f9ec7204d3ccab9df6eda9f1704fd085b47f57f2"
-last_updated: "2026-10-08T08:33:00Z"
+last_updated: "2026-10-08T08:51:00Z"
 ---
 
 # STATUS.md
@@ -69,8 +69,15 @@ child cleanup, supports child-first CRUD only for unmanaged historical rows,
 and adds exact opted-in author links and lazy recorded breakdowns. Managed rows
 with invalid/missing workflow versions fail closed; provider CAS and live write
 certification remain #165/#503 boundaries. Supplemental focused Node 24 checks
-passed; full canonical Node 22/browser results and candidate runtime evidence
-are pending. No live user rating was deleted by automation and no schema or
+passed. PR #631's first candidate `dc397df90e57062a489581309ca29700c56b5b97`
+passed canonical Node 22 validation in run `37751833207` (job `113226678978`):
+735 passed, 15 gated skips, zero failures; Dependency Review and CodeQL passed.
+Its exact preview health returned 200 with matching SHA. Browser job
+`113226679234` passed 139 cases but failed one new shared-link case because
+its mock public product included disallowed catalogue fields. The fixture is
+corrected without relaxing the public allowlist; an additional terminal-version
+deletion guard is covered by 16 focused deletion checks. Latest-head canonical
+and browser reruns are pending. No live user rating was deleted by automation and no schema or
 historical reconciliation was enabled.
 
 **Gate:** Release. **State:** READY for dependency-correct evidence preparation.
@@ -90,7 +97,7 @@ No provider schema mutation or historical reconciliation was enabled.
 
 Continue dependency-correct work from current repository and live GitHub evidence.
 The source/harness implementation PRs #628/#629 are merged. The active repair is
-`fix/rating-delete-owner-breakdown`, not yet integrated; two independent
+`fix/rating-delete-owner-breakdown` in normal PR #631, not yet integrated; two independent
 Dependabot PRs remain. The documentation handoff reconciles their completed
 integration while retaining the skipped connected rows. Scoped blockers #165 and #577
 do not prevent independent work. Do not enable durable rating reconciliation
