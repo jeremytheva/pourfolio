@@ -1,17 +1,18 @@
 ---
 project: Pourfolio
 portfolio_state: READY
-execution_slot: VERIFYING
+execution_slot: INTEGRATING
 phase: "Phase 3 — Beer discovery dependable"
 stage: "Dependency-correct launch continuation"
-gate: Release
-execution_state: READY
+gate: Integration
+execution_state: VALIDATING
 current_work:
-  objective: "Certify deployed deletion recovery, exact owner/shared-profile links and historical breakdowns with eligible fixtures; complete the separate #165/#503 provider evidence before dependent features."
-  issue: 422
-  pr: null
-  branch: null
+  objective: "Refresh and validate independent dependency maintenance while retaining the failed live deletion and unexecuted rating certification rows."
+  issue: null
+  pr: 591
+  branch: "dependabot/npm_and_yarn/development-minor-patches-42f885f7a6"
 next_actions:
+  - "Integrate the existing #591 development dependency update, then refresh and validate #572 against its merged baseline; do not expand features."
   - "Retest the repaired production flows with an eligible completed-owner fixture and an opted-in distinct public author; keep unavailable connected rows pending."
   - "Run bounded connected #422 profile certification where existing credentials and cleanup safeguards support it; leave unsupported rows explicitly pending."
   - "Prepare #165 migration evidence within the reversible boundary; do not cross the irreversible provider boundary without the governed approval package."
@@ -29,36 +30,64 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 0
+  open_implementation_prs: 1
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "217ee25aa864aeed30d0155d8a826ed330606f24"
-  current_candidate_commit: "217ee25aa864aeed30d0155d8a826ed330606f24"
-  latest_validated_commit: "217ee25aa864aeed30d0155d8a826ed330606f24"
-  latest_deployed_commit: "217ee25aa864aeed30d0155d8a826ed330606f24"
-  latest_runtime_verified_commit: "217ee25aa864aeed30d0155d8a826ed330606f24"
-  latest_browser_verified_commit: "217ee25aa864aeed30d0155d8a826ed330606f24"
+  observed_main_commit: "0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984"
+  current_candidate_commit: null
+  latest_validated_commit: "0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984"
+  latest_deployed_commit: "0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984"
+  latest_runtime_verified_commit: "0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984"
+  latest_browser_verified_commit: "0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984"
 validation:
-  governance: PASS
-  lint: PASS
+  governance: NOT_RUN
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PASS
-  build: PASS
-  ci: PASS
-  runtime: VERIFIED
-last_verified_commit: "217ee25aa864aeed30d0155d8a826ed330606f24"
-last_updated: "2026-10-08T09:01:00Z"
+  tests: NOT_RUN
+  build: NOT_RUN
+  ci: PENDING
+  runtime: UNVERIFIED
+last_verified_commit: "0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984"
+last_updated: "2026-10-08T22:00:00Z"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 8 October 2026
+Last materially reviewed: 9 October 2026 (Australia/Sydney)
 
 ## AI execution gate
 
-**Gate:** Release. **State:** READY for controlled evidence preparation.
+**Gate:** Integration. **State:** VALIDATING independent dependency maintenance.
+The owner requested continuation on other aspects after the latest live deletion
+failure. Existing PR #591 is being refreshed onto current `main`; #572 follows
+only after exact-head source/browser and deployment evidence. Neither update
+changes rating policy, provider schema, write gates or feature availability.
+
+Current production is `0ef12b0e0b29bb9a086d21b50bf8f0e3ed2c6984`
+(`dpl_Cw1DFT2sVAGwpf7rNUksKnaBsLyR`). Public health matched that exact SHA.
+Its canonical Node 22 run `37765131242` passed 733 source tests (15 gated
+skips) and 140 browser/accessibility cases. PR #633 removed only unreachable
+legacy rating UI/helpers and their obsolete tests; the lower source-test count
+does not represent removal of the current rating gateway/browser regressions.
+Latest executed connected run `37762658045` on docs release `8df6994` again
+passed 12 baseline checks and skipped the four required history/write cases;
+temporary session cleanup passed. Later comment-triggered runs were skipped,
+not additional executed certification evidence.
+
+The owner's 9 October 08:45 Sydney screenshot (`IMG_4236.png`) shows the
+current public app, loaded owner history, a collapsed breakdown control and
+the still-present 4D rating beside “The request was not valid.” The live delete
+retest FAILED. The screenshot establishes neither the rejected provider stage
+nor successful breakdown contents or cross-account behaviour. The message
+matches the generic HTTP 400 mapping, but no matching runtime log or request ID
+was available; do not infer a repaired deletion or a confirmed root cause.
+No further live deletion was attempted by automation.
+
+Historical repair evidence follows; source/runtime success does not supersede
+the latest manual failure.
+
 PR #631 is merged as `217ee25aa864aeed30d0155d8a826ed330606f24` and production
 `dpl_BD7imVDZ1w5PfKgCpV5oUSoo8MMF` is READY. Public health returned HTTP 200
 with that exact production SHA and configured authentication/data/rate limiter.
@@ -94,8 +123,9 @@ not the immutable older deployment URL visible in the screenshots. Follow
 ## Autonomous continuation support
 
 Continue dependency-correct work from current repository and live GitHub evidence.
-The source/harness implementation PRs #628/#629 and failed-test repair PR #631
-are merged. Two independent Dependabot PRs remain. This handoff reconciles
+The source/harness implementation PRs #628/#629 and repair PR #631 are merged;
+the later manual deletion remains failed. Existing dependency PR #591 is active,
+with #572 queued for a refreshed baseline. This handoff reconciles
 completed integration while retaining the pending connected rows. Scoped blockers #165 and #577
 do not prevent independent work. Do not enable durable rating reconciliation
 before the governed #165 provider migration and certification.
@@ -140,6 +170,9 @@ Neither scoped blocker prevents independent launch work. No owner decision is cu
 
 ## Next dependency-correct work
 
+0. Complete existing dependency PRs #591 then #572 with latest-head canonical
+   source/browser evidence and matching deployment health. Reuse those PRs;
+   preserve the live deletion failure and provider certification boundaries.
 1. Review the exact-production connected run and use the step-by-step guide with an existing verified completed-owner beer fixture and distinct second-account session; rerun the skipped owner/exact-link/retry/reload/other-account read checks. Keep unexecuted rows pending, and do not create production fixtures to bypass the write gate.
 2. Resume #165/#503 gateway certification within the reversible boundary. The preserved gateway changes still require canonical latest-head and connected write evidence; do not cross the irreversible provider boundary or claim those flows complete.
 3. Continue #422 with bounded connected profile evidence, keeping unsupported provider uniqueness/default-private creation or destructive rows explicitly pending.
