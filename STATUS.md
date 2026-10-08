@@ -4,16 +4,15 @@ portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
 stage: "Dependency-correct launch continuation"
-gate: Integration
+gate: Release
 execution_state: VALIDATING
 current_work:
-  objective: "Repair intermittent private profile history loading and link each beer-page tasting to its exact profile entry."
+  objective: "Repair release-harness session reuse after login-budget exhaustion, then certify the deployed profile-history repair."
   issue: null
-  pr: 628
-  branch: "fix/profile-rating-history-links"
+  pr: null
+  branch: "fix/release-owner-session-reuse"
 next_actions:
-  - "Integrate #628 after confirming its latest metadata head retains satisfactory canonical, browser/accessibility and preview evidence."
-  - "Verify authenticated profile pagination and beer-to-profile links on the deployed candidate without mutating existing ratings."
+  - "Validate and integrate release-harness session reuse, then rerun owner links, retry, three reloads and other-account rejection without rating writes."
   - "Run bounded connected #422 profile certification where existing credentials and cleanup safeguards support it; leave unsupported rows explicitly pending."
   - "Prepare #165 migration evidence within the reversible boundary; do not cross the irreversible provider boundary without the governed approval package."
   - "Continue #577 credential certification when supported user/admin account-session credentials are available."
@@ -24,33 +23,33 @@ blockers:
     detail: "Durable idempotency requires irreversible provider schema/constraint and existing-data migration work. Provider-supported migration/backfill, backup/restore proof and the governed approval package are required before mutation."
   - scope: user_admin_connected_session_certification
     issue: 577
-    detail: "Current configured Secret Keys are database API credentials, not supported user/admin login credentials. Full two-account session/authorization certification waits for password/OTP/JWT account credentials or another provider-supported session mechanism."
+    detail: "Provider-level user/admin session and authorisation certification remains pending. Database Secret Keys cannot be treated as login passwords; protected application release-account sessions are a separate evidence scope."
 requires_owner_decision: false
 owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 1
-  dependent_stack_depth: 1
+  open_implementation_prs: 0
+  dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "205a622844e50e22342b8ba15d31480af362b304"
-  current_candidate_commit: "a4854a2ba4eae02862a4c604e843183375c85ffa"
-  latest_validated_commit: "a4854a2ba4eae02862a4c604e843183375c85ffa"
-  latest_deployed_commit: "4ea8e18ce1706c5da2c7d50712acc9c7a2d331a6"
-  latest_runtime_verified_commit: "4ea8e18ce1706c5da2c7d50712acc9c7a2d331a6"
-  latest_browser_verified_commit: "a4854a2ba4eae02862a4c604e843183375c85ffa"
+  observed_main_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
+  current_candidate_commit: null
+  latest_validated_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
+  latest_deployed_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
+  latest_runtime_verified_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
+  latest_browser_verified_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
 validation:
   governance: PASS
   lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: PASS
-  build: PASS
+  tests: NOT_RUN
+  build: NOT_RUN
   ci: PENDING
   runtime: VERIFIED
-last_verified_commit: "4ea8e18ce1706c5da2c7d50712acc9c7a2d331a6"
-last_updated: "2026-10-08T06:11:00Z"
+last_verified_commit: "5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8"
+last_updated: "2026-10-08T06:31:00Z"
 ---
 
 # STATUS.md
@@ -59,19 +58,24 @@ Last materially reviewed: 8 October 2026
 
 ## AI execution gate
 
-**Gate:** Integration. **State:** VALIDATING. PR #628 is the active repair on
-`fix/profile-rating-history-links`, based on main
-`205a622844e50e22342b8ba15d31480af362b304`. It replaces unbounded profile history
-loading with owner-safe pagination, limits optional enrichment failures/time,
-and links each beer-page tasting to its exact private profile entry. It performs
-no provider schema mutation and does not enable historical reconciliation.
+**Gate:** Release. **State:** VALIDATING. PR #628 is merged and deployed on
+`5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8`. Private profile history is paginated,
+optional enrichment failures/time are bounded, and each beer-page tasting links
+to its exact private profile entry. Canonical and browser/accessibility checks
+passed on the exact production source. Connected run `37737587480` passed its
+12 baseline checks but the new owner-history case stopped at a sign-in 429;
+history/reload/provider evidence was not reached. The active branch
+`fix/release-owner-session-reuse` reuses a server-verified temporary owner
+session for read-only checks within the existing login budget. This changes the
+test harness only; authentication limits and application code remain unchanged.
+No provider schema mutation or historical reconciliation was enabled.
 
 ## Autonomous continuation support
 
 Continue dependency-correct work from current repository and live GitHub evidence.
-Live checks now show one implementation PR (#628) and two independent Dependabot
-PRs; #622 is already merged into main. Scoped blockers #165 and #577 do
-not prevent this read/UI repair. Do not enable durable rating reconciliation
+Live checks after #628 merged show no implementation PRs and two independent
+Dependabot PRs; #622 is already merged into main. Scoped blockers #165 and #577
+do not prevent independent work. Do not enable durable rating reconciliation
 before the governed #165 provider migration and certification.
 
 The earlier #165/#503 gateway-integrity work is preserved separately on
@@ -85,18 +89,14 @@ Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` 
 
 ## Current integration and evidence
 
-- Production health was freshly verified on `205a622844e50e22342b8ba15d31480af362b304` at `https://brew-buds-mobile-app-design-3577.vercel.app/api/health`. Exact-production connected release run `37694330782` previously passed on this SHA: 12 connected browser checks passed and the two cleanup-guarded write checks remained skipped. Those results do not certify the new repair or the separate #165/#503 write changes.
+- PR #628 is merged as `5f111da0c62af8f7551d7e071b8ce7f9d2c4c5c8`. Production deployment `dpl_BDdwWhXQ6KaY7kEUM8HcWScJSvBX` is READY; `https://brew-buds-mobile-app-design-3577.vercel.app/api/health` returned 200, the exact production SHA and configured authentication, data and rate limiter.
+- Exact-production source run `37737475423` passed canonical Node 22 validation (job `113180212139`): 708 tests passed, 15 skipped, with all composed lint, audit, build and governance/security checks passing. Browser/accessibility job `113180211792` passed all 135 tests. Exact pre-merge head `ae74b69d657c99d0f9ce95367285a42cb9a35c38` also passed run `37737126748`, Dependency Review, CodeQL and exact preview health. Local Node 24 checks were supplemental only.
+- Connected production run `37737587480` on the merged SHA finished with 12 passed, two gated write checks skipped, one owner-history case failed before history access (login rate limit), and the serial other-account case did not run. It is not a provider pass for the repair. The harness follow-up introduces release/origin/owner-bound temporary cookie reuse, mode `0600`, server-session verification and always-run cleanup outside artifact paths. Six focused cache privacy/isolation/expiry/failure tests passed on the available Node 24 runtime; canonical latest-head and connected rerun evidence remain pending.
 - #509 is complete. The additive live bonus-category reconciliation was applied with the exact 95-mutation guard, zero drift was verified, and authenticated production presentation across Design, Appearance, Aroma, Mouthfeel, Flavour, Follow, Burp and Overall passed.
 - #600 is complete. Authenticated `/ratings/mine` and rating-integrity evidence no longer reproduce the former `personal_history_projection` 502.
 - #415 is complete. The release harness is aligned with the current beer-first UI and exact-production certification passes.
 - #449's launch-safe Add Beer, Suggest Correction and Add-to-cellar initiation/review boundary is production-certified. PR #621 also removed ungoverned product-image URL creation and made the server fail closed until an approved image/provenance workflow exists. #449 remains open only for genuinely provider-gated moderation/persistence and relationship-backed capabilities.
 - Persistent profile source behaviour is already implemented: owner profile create/read/update, stable server-generated `public_id`, default-private rating-history visibility and privacy-safe public projection. PR #622 is merged and reconciled the formerly stale machine contract/docs/browser fixtures.
-- Main `205a622844e50e22342b8ba15d31480af362b304` has verified canonical and browser evidence from run `37694734987`: 699 unit/policy tests passed, 15 skipped, and 129 browser tests passed. These results apply to main, not the new profile-history candidate.
-- Profile repair implementation `4ea8e18ce1706c5da2c7d50712acc9c7a2d331a6` passed the trusted Node 22 canonical executor in run `37735704870` (job `113174606063`): 708 tests passed, 15 skipped, with lint, audit, build and all composed governance/security checks passing. Browser/accessibility job `113174606204` passed all 135 tests; Dependency Review and CodeQL passed. Local Node 24 checks were supplemental only.
-- Exact preview `dpl_4BmL7Ep5KaZvuYDX9tXDJ1h7Wsf8` is READY at `https://pourfolio-r1djwgxaw-jeremythevas-projects.vercel.app`; `/api/health` returned 200 and the exact implementation SHA, with authentication, data and rate-limiter configuration present. This is basic runtime/configuration evidence, not authenticated provider-flow certification. An unauthenticated private-history fetch returned 401; it did not supply an owner session or prove private history loading. Controlled connected owner-history/link confirmation remains pending.
-- The evidence SHA fields identify the tested implementation; PR #628 owns the latest head, including read-only release cases and evidence updates. Recheck that head before integration. These follow-up changes do not alter application runtime behaviour.
-- Metadata candidate `a4854a2ba4eae02862a4c604e843183375c85ffa` also passed exact-head canonical/browser validation in run `37736368751` (708 passed, 15 skipped; all 135 browser/accessibility cases passed). The later connected-test additions remain pending their own latest-head validation and protected runtime execution.
-- Read-only connected certification now has dedicated owner link/retry/three-reload and other-account selector cases in `release-check/profile-history-readonly.spec.js`. They require the existing protected release-account credentials and completed fixtures, mutate no ratings, suppress private-data artefacts and keep unavailable rows explicitly skipped. Execute them through the existing connected release workflow after deployment; source availability does not constitute a provider pass.
 - Brew Done It remains launch-excluded and absent from production-facing navigation/CTAs. Its protected direct route remains for controlled testing only.
 
 Detailed implementation history belongs in commits, PRs and `docs/RELEASE_TRACKING.md`.
@@ -112,9 +112,9 @@ Neither scoped blocker prevents independent launch work. No owner decision is cu
 
 ## Next dependency-correct work
 
-1. Integrate #628 when its latest metadata head retains sufficient canonical, browser/accessibility, review and preview evidence.
-2. Verify deployed authenticated history pagination and exact beer-to-profile links, then continue #422 with bounded connected profile evidence. Keep unsupported cross-account or destructive rows explicitly pending rather than inferred.
-3. Continue reversible #165 migration preparation without crossing its irreversible provider boundary.
+1. Validate/integrate the harness follow-up and rerun the controlled connected owner/retry/reload/other-account checks. Keep unexecuted rows pending.
+2. Resume #165/#503 gateway certification within the reversible boundary. The preserved gateway changes still require canonical latest-head and connected write evidence; do not cross the irreversible provider boundary or claim those flows complete.
+3. Continue #422 with bounded connected profile evidence, keeping unsupported provider uniqueness/default-private creation or destructive rows explicitly pending.
 4. Continue #577 when supported user/admin session credentials exist.
 5. Use #429 or another independent launch slice if #422/#165/#577 reach external boundaries.
 

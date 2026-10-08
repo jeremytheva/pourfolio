@@ -142,6 +142,18 @@ missing owner fixtures or second-account credentials are explicitly skipped
 and remain pending evidence. Traces, screenshots and videos are disabled for
 these cases to keep private ratings and sign-in credentials out of artefacts.
 
+The connected suite has a finite sign-in budget (ten attempts per account/IP
+over 15 minutes). Read-only owner journeys may reuse a session created by the
+suite, verifying it with `auth/get-session` and the expected owner before each
+reuse. The explicit password sign-in/sign-out test continues to authenticate
+directly, and other-account sessions remain separate. A missing or expired
+owner session requires a fresh sign-in; failed authentication-service
+verification remains a failure. The optional session file is bound to release
+SHA, target origin and a digest of the owner identity, contains only target
+cookies, uses mode `0600`, lives in the runner's temporary directory outside
+artifact paths, and is removed by an always-run cleanup step. Without that
+configured temporary path, the harness uses fresh sign-ins as before.
+
 The catalogue fixture now follows the aggregate-only detail contract. Focused
 browser cases supply malformed successful browse and detail responses, a
 non-canonical direct route and an exact missing route. They check that labelled
