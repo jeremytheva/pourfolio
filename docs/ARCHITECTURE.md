@@ -16,15 +16,18 @@ flowchart LR
 
 ## Browser boundary
 
-The reachable launch routes are:
+The current browser route surface includes:
 
-- `/login`
-- `/home`
-- `/search`
-- `/products/:productId`
-- `/products/:productId/rate`
-- `/cellar`
-- `/profile`
+- `/login`;
+- `/home` and `/search`;
+- `/products/propose`, `/products/:productId`, `/products/:productId/propose-edit`, and `/products/:productId/rate`;
+- `/places` and `/breweries/:producerId`;
+- `/styles` and `/styles/:styleId`;
+- `/taste-map` and the informational `/features` status surface;
+- `/cellar`, `/history`, `/profile`, `/settings`, and `/users/:publicProfileId`;
+- the guarded `/brew-done-it` route for controlled authenticated testing.
+
+Reachability does not imply launch scope or provider certification. Production-facing primary navigation remains the smaller Discover / Breweries & Venues / Search / Cellar set documented in `docs/INTERFACE_PLAN.md`.
 
 Catalogue, product, rating, rating-history, cellar and profile operations use explicit services and same-origin `/api/nocodebackend/*` endpoints. The browser stores no authentication secret, private cellar record, role override, rating transaction or privacy policy state. Device-local browser storage remains only in unreachable prototype modules.
 
@@ -169,9 +172,7 @@ policy remain required. The complete gate is tracked in the
 
 ## Brew Done It containment boundary
 
-Brew Done It remains absent from the launch route table and primary navigation.
-The launch catch-all therefore prevents the retained page/service modules from
-being loaded by production browser routing.
+Brew Done It remains absent from production-facing navigation and product CTAs, but a protected direct route is retained for controlled authenticated testing. That route does not constitute production enablement: the same-origin Brew Done It gateway remains fail-closed unless the server-only policy flag is explicitly enabled after the provider, privacy, two-device and recovery certification gates pass.
 
 [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) supersedes the
 old same-device decision and approves the following future architecture:

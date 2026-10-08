@@ -11,9 +11,9 @@ test('Brew Done It is exposed as an authenticated application route', () => {
   assert.match(app, /<BrewDoneIt(?: key=\{initialProductId \|\| 'brew-done-it'\})? user=\{user\} initialProductId=\{initialProductId\} \/>/)
 })
 
-test('Brew Done It appears in authenticated primary navigation', () => {
+test('Brew Done It stays out of production navigation until certification', () => {
   const layout = read('src/components/MainLayout.jsx')
-  assert.match(layout, /to: '\/brew-done-it', label: 'Brew Done It'/)
+  assert.doesNotMatch(layout, /to: '\/brew-done-it', label: 'Brew Done It'/)
   assert.match(layout, /pathname === '\/brew-done-it'/)
 })
 

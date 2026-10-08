@@ -92,6 +92,8 @@ test('add beer links an existing verified producer and creates the product', asy
 
   await page.goto('/products/propose?name=New%20Beer')
   await expect(page.getByRole('heading', { name: 'Add a beer' })).toBeVisible()
+  await expect(page.getByLabel('Product image URL')).toHaveCount(0)
+  await expect(page.getByText('Image submission is not available yet.')).toBeVisible()
 
   const producerSearch = page.getByLabel('Search breweries')
   const producerSelect = page.getByLabel('Select brewery')
@@ -126,6 +128,7 @@ test('add beer links an existing verified producer and creates the product', asy
   expect(submittedBody.product_name).toBe('New Beer')
   expect(submittedBody).not.toHaveProperty('new_producer')
   expect(submittedBody).not.toHaveProperty('user_id')
+  expect(submittedBody).not.toHaveProperty('product_image')
 })
 
 test('add beer can create a missing producer without exposing raw relationship ids', async ({ page }) => {

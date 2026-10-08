@@ -9,7 +9,7 @@ const createFixture = () => {
   const rootDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'pourfolio-brew-enablement-'))
   const files = {
     'src/App.jsx': "const BrewDoneIt = lazy(() => import('./pages/BrewDoneIt.jsx')); <Route path=\"/brew-done-it\" element={protect(<BrewDoneItRoute user={user} />)} />",
-    'src/components/MainLayout.jsx': "const navigation = [{ to: '/brew-done-it', label: 'Brew Done It' }]",
+    'src/components/MainLayout.jsx': "const primaryNavigation = [{ to: '/home', label: 'Discover' }]",
     'api/_lib/brewDoneItEntryV3.js': "const enabled = String(env.BREW_DONE_IT_POLICY_ENABLED ?? '').trim().toLowerCase() === 'true'",
     'vercel.json': '{"rewrites":[]}',
     '.env.example': '# BREW_DONE_IT_POLICY_ENABLED=false\n',
@@ -23,7 +23,7 @@ const createFixture = () => {
   return rootDirectory
 }
 
-test('enabled browser surface and explicit backend opt-in contract pass', (context) => {
+test('guarded browser route, hidden production navigation and explicit backend opt-in contract pass', (context) => {
   const rootDirectory = createFixture()
   context.after(() => fs.rmSync(rootDirectory, { recursive: true, force: true }))
   assert.deepEqual(inspectBrewDoneItContainment({ rootDirectory }), [])
@@ -33,14 +33,14 @@ test('missing enabled surface and explicit backend opt-in contract fail the rele
   const rootDirectory = createFixture()
   context.after(() => fs.rmSync(rootDirectory, { recursive: true, force: true }))
   fs.writeFileSync(path.join(rootDirectory, 'src/App.jsx'), 'export default function App() { return null }')
-  fs.writeFileSync(path.join(rootDirectory, 'src/components/MainLayout.jsx'), "const navigation = [{ to: '/home' }]")
+  fs.writeFileSync(path.join(rootDirectory, 'src/components/MainLayout.jsx'), "const primaryNavigation = [{ to: '/brew-done-it', label: 'Brew Done It' }]")
   fs.writeFileSync(path.join(rootDirectory, 'api/_lib/brewDoneItEntryV3.js'), 'export default function handler() {}')
   fs.writeFileSync(path.join(rootDirectory, 'dist/assets/app.js'), 'const app = "Pourfolio"')
 
   const findings = inspectBrewDoneItContainment({ rootDirectory })
   assert.ok(findings.some((finding) => finding.includes('page import')))
   assert.ok(findings.some((finding) => finding.includes('protected /brew-done-it route')))
-  assert.ok(findings.some((finding) => finding.includes('primary navigation')))
+  assert.ok(findings.some((finding) => finding.includes('must not expose Brew Done It')))
   assert.ok(findings.some((finding) => finding.includes('must require explicit')))
   assert.ok(findings.some((finding) => finding.includes('dist does not contain')))
 })

@@ -3,21 +3,44 @@ import test from 'node:test'
 import { runNoCodeBackendConnectionCertification } from './nocodebackend-connection-certification-lib.js'
 
 const createMemoryProvider = () => {
-  const records = new Map()
+  const tables = new Map()
   let sequence = 0
 
-  const filter = (filters = {}) => [...records.values()].filter((record) => Object.entries(filters).every(([key, value]) => String(record?.[key]) === String(value)))
+  const tableRecords = (table) => {
+    if (!tables.has(table)) tables.set(table, new Map())
+    return tables.get(table)
+  }
+  const filter = (table, filters = {}) => [...tableRecords(table).values()]
+    .filter((record) => Object.entries(filters).every(([key, value]) => String(record?.[key]) === String(value)))
 
   return {
-    async list(_table, filters = {}) { return filter(filters).map((record) => ({ ...record })) },
-    async get(_table, id) { return records.has(String(id)) ? { ...records.get(String(id)) } : null },
-    async create(_table, body) {
+    isUniqueConflict(error) { return error?.code === 'UNIQUE_CONFLICT' },
+    async list(table, filters = {}) { return filter(table, filters).map((record) => ({ ...record })) },
+    async get(table, id) {
+      const records = tableRecords(table)
+      return records.has(String(id)) ? { ...records.get(String(id)) } : null
+    },
+    async create(table, body) {
+      const records = tableRecords(table)
+      if (table === 'profiles' && [...records.values()].some((record) =>
+        record.user_id === body.user_id || record.public_id === body.public_id
+      )) {
+        const error = new Error('unique')
+        error.status = 409
+        error.code = 'UNIQUE_CONFLICT'
+        throw error
+      }
       sequence += 1
-      const record = { id: sequence, ...body }
+      const record = {
+        id: sequence,
+        ...(table === 'profiles' ? { rating_history_public: 0 } : {}),
+        ...body
+      }
       records.set(String(sequence), record)
       return { ...record }
     },
-    async update(_table, id, body) {
+    async update(table, id, body) {
+      const records = tableRecords(table)
       const key = String(id)
       if (!records.has(key)) {
         const error = new Error('missing')
@@ -28,7 +51,8 @@ const createMemoryProvider = () => {
       records.set(key, record)
       return { ...record }
     },
-    async remove(_table, id) {
+    async remove(table, id) {
+      const records = tableRecords(table)
       const key = String(id)
       if (!records.has(key)) {
         const error = new Error('missing')
@@ -38,7 +62,9 @@ const createMemoryProvider = () => {
       records.delete(key)
       return null
     },
-    remaining() { return [...records.values()] }
+    remaining() {
+      return [...tables.values()].flatMap((records) => [...records.values()])
+    }
   }
 }
 
@@ -54,9 +80,38 @@ test('certifies isolated create/read/update/delete behaviour and leaves no rows'
   assert.equal(report.data_plane.status, 'PASS')
   assert.equal(report.cleanup.status, 'PASS')
   assert.equal(report.schema_plane.status, 'UNAVAILABLE_NOT_CONFIGURED')
+  assert.equal(report.profile_contract.status, 'PARTIAL')
+  assert.equal(report.profile_contract.cleanup.status, 'NOT_APPLICABLE')
   assert.deepEqual(provider.remaining(), [])
 
   for (const result of Object.values(report.data_plane.capabilities)) assert.equal(result.status, 'PASS')
+})
+
+test('profile contract can pass independently when the generic test table fails', async () => {
+  const provider = createMemoryProvider()
+  const originalList = provider.list
+  provider.list = async (table, filters = {}) => {
+    if (table === 'chatgpt_api_test') {
+      const error = new Error('generic table unavailable')
+      error.status = 500
+      error.code = 'PROVIDER_ERROR'
+      throw error
+    }
+    return originalList(table, filters)
+  }
+
+  const report = await runNoCodeBackendConnectionCertification({
+    provider,
+    table: 'chatgpt_api_test',
+    runKey: 'test-profile-independent'
+  })
+
+  assert.equal(report.overall, 'FAIL')
+  assert.equal(report.data_plane.status, 'FAIL')
+  assert.equal(report.data_plane.capabilities.table_read.status, 'FAIL')
+  assert.equal(report.profile_contract.status, 'PARTIAL')
+  assert.equal(report.profile_contract.cleanup.status, 'NOT_APPLICABLE')
+  assert.deepEqual(provider.remaining(), [])
 })
 
 test('reports missing dedicated test table as setup required without false cleanup failure', async () => {

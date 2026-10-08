@@ -14,6 +14,7 @@ const BreweryProfile = lazy(() => import('./pages/BreweryProfile.jsx'))
 const Styles = lazy(() => import('./pages/Styles.jsx'))
 const StyleProfile = lazy(() => import('./pages/StyleProfile.jsx'))
 const TasteMap = lazy(() => import('./pages/TasteMap.jsx'))
+const FeatureRoadmap = lazy(() => import('./pages/FeatureRoadmap.jsx'))
 const Places = lazy(() => import('./pages/Places.jsx'))
 const BrewDoneIt = lazy(() => import('./pages/BrewDoneIt.jsx'))
 const RateBeer = lazy(() => import('./pages/RateBeer.jsx'))
@@ -79,6 +80,7 @@ function App() {
             <Route path="/styles" element={protect(<Styles />)} />
             <Route path="/styles/:styleId" element={protect(<StyleProfile />)} />
             <Route path="/taste-map" element={protect(<TasteMap />)} />
+            <Route path="/features" element={protect(<FeatureRoadmap />)} />
             <Route path="/brew-done-it" element={protect(<BrewDoneItRoute user={user} />)} />
             <Route path="/products/:productId" element={protect(<BeerDetails />)} />
             <Route path="/products/:productId/propose-edit" element={protect(<EditBeerProposal />)} />

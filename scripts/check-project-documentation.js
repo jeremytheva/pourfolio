@@ -1,5 +1,20 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import {
+  blockerEvidenceDrift,
+  blockerIssueNumbers,
+  canonicalEnvironmentNames,
+  competingBlockerHeadingPaths,
+  environmentAssignments,
+  environmentDrift,
+  extractSourceRoutes,
+  extractSystemMapRoutes,
+  lifecycleWorkflowFindings,
+  providerWriteApprovalFindings,
+  ratingBonusFieldDrift,
+  routeMapDrift,
+  runtimeDocumentationDrift
+} from './project-documentation-contract.js'
 
 const root = process.cwd()
 
@@ -184,6 +199,147 @@ if (fs.existsSync(statusPath)) {
         findings.push({ code: 'STATUS_DEPENDENT_STACK_LIMIT_EXCEEDED', dependentStackDepth, maximum: 2 })
       }
     }
+  }
+}
+
+
+const projectPath = path.join(root, 'PROJECT.md')
+if (fs.existsSync(projectPath)) {
+  const project = readText('PROJECT.md')
+  const requiredMasterMarkers = [
+    'AI-First Platform Development Framework v3.2',
+    'AI Platform Development Standard v1.5',
+    'Project Documentation Standard v1.5',
+    'Pull Request Lifecycle Standard v1.1',
+    'GitHub Reference Guide v1.2',
+    'Testing, Validation & Release Standard v1.2'
+  ]
+  for (const marker of requiredMasterMarkers) {
+    if (!project.includes(marker)) findings.push({ code: 'MASTER_ADOPTION_MARKER_MISSING', marker })
+  }
+}
+
+const routeInputs = [
+  'src/App.jsx',
+  'src/data/publicDocuments.js',
+  'SYSTEM_MAP.md'
+]
+if (routeInputs.every((file) => fs.existsSync(path.join(root, file)))) {
+  const sourceRoutes = extractSourceRoutes({
+    appText: readText('src/App.jsx'),
+    publicDocumentsText: readText('src/data/publicDocuments.js')
+  })
+  const mappedRoutes = extractSystemMapRoutes(readText('SYSTEM_MAP.md'))
+  const drift = routeMapDrift({ sourceRoutes, mappedRoutes })
+  for (const route of drift.missing) findings.push({ code: 'SYSTEM_MAP_ROUTE_MISSING', route })
+  for (const route of drift.stale) findings.push({ code: 'SYSTEM_MAP_ROUTE_STALE', route })
+} else {
+  for (const file of routeInputs) {
+    if (!fs.existsSync(path.join(root, file))) findings.push({ code: 'ROUTE_AUTHORITY_FILE_MISSING', path: file })
+  }
+}
+
+const contractPath = path.join(root, 'contracts/pourfolio-data-contract.json')
+const envPath = path.join(root, '.env.example')
+const architecturePath = path.join(root, 'ARCHITECTURE.md')
+let dataContract = null
+if (fs.existsSync(contractPath)) {
+  try {
+    dataContract = JSON.parse(readText('contracts/pourfolio-data-contract.json'))
+  } catch (error) {
+    findings.push({ code: 'DATA_CONTRACT_INVALID_FOR_DOCUMENTATION_CHECK', message: error.message })
+  }
+}
+if (dataContract && fs.existsSync(envPath) && fs.existsSync(architecturePath)) {
+  const drift = environmentDrift({
+    contractNames: canonicalEnvironmentNames(dataContract),
+    templateNames: environmentAssignments(readText('.env.example')),
+    architectureText: readText('ARCHITECTURE.md')
+  })
+  for (const name of drift.missingFromTemplate) findings.push({ code: 'CANONICAL_ENV_MISSING_FROM_TEMPLATE', name })
+  for (const name of drift.extraInTemplate) findings.push({ code: 'CANONICAL_ENV_EXTRA_IN_TEMPLATE', name })
+  for (const name of drift.missingFromArchitecture) findings.push({ code: 'CANONICAL_ENV_MISSING_FROM_ARCHITECTURE', name })
+}
+
+const packagePath = path.join(root, 'package.json')
+if (fs.existsSync(packagePath)) {
+  let packageJson
+  try {
+    packageJson = JSON.parse(readText('package.json'))
+  } catch (error) {
+    findings.push({ code: 'PACKAGE_JSON_INVALID_FOR_DOCUMENTATION_CHECK', message: error.message })
+  }
+  if (packageJson) {
+    for (const drift of runtimeDocumentationDrift({
+      packageJson,
+      documents: Object.fromEntries(['AGENTS.md', 'PROJECT.md', 'README.md']
+        .filter((file) => fs.existsSync(path.join(root, file)))
+        .map((file) => [file, readText(file)]))
+    })) {
+      findings.push({ code: 'RUNTIME_DOCUMENTATION_DRIFT', ...drift })
+    }
+  }
+}
+
+const ratingProxyPath = path.join(root, 'api/rating-data-proxy.js')
+if (dataContract && fs.existsSync(ratingProxyPath)) {
+  const drift = ratingBonusFieldDrift({
+    contract: dataContract,
+    ratingCode: readText('api/rating-data-proxy.js')
+  })
+  if (drift.invalidContractFields.length) {
+    findings.push({ code: 'RATING_BONUS_PROVIDER_FIELD_AMBIGUOUS', fields: drift.invalidContractFields })
+  } else if (!drift.expected) {
+    findings.push({ code: 'RATING_BONUS_PROVIDER_FIELD_MISSING' })
+  } else {
+    if (drift.expectedMissingFromCode) findings.push({ code: 'RATING_BONUS_FIELD_MISSING_FROM_CODE', field: drift.expected })
+    for (const field of drift.stale) findings.push({ code: 'RATING_BONUS_STALE_FIELD_IN_CODE', field, expected: drift.expected })
+  }
+}
+
+const providerGuidePath = path.join(root, 'docs/nocodebackend/README.md')
+if (fs.existsSync(agentsPath) && fs.existsSync(providerGuidePath) && fs.existsSync(statusPath)) {
+  for (const code of providerWriteApprovalFindings({
+    agentsText: readText('AGENTS.md'),
+    providerReadmeText: readText('docs/nocodebackend/README.md'),
+    statusText: readText('STATUS.md')
+  })) {
+    findings.push({ code })
+  }
+}
+
+const lifecycleWorkflowPath = path.join(root, '.github/workflows/pr-lifecycle.yml')
+if (fs.existsSync(lifecycleWorkflowPath)) {
+  for (const code of lifecycleWorkflowFindings(readText('.github/workflows/pr-lifecycle.yml'))) {
+    findings.push({ code })
+  }
+} else {
+  findings.push({ code: 'PR_LIFECYCLE_WORKFLOW_MISSING' })
+}
+
+const blockerOwnerDocuments = ['PROJECT.md', 'ARCHITECTURE.md', 'ROADMAP.md', 'SYSTEM_MAP.md', 'AGENTS.md', 'README.md']
+for (const pathValue of competingBlockerHeadingPaths(Object.fromEntries(
+  blockerOwnerDocuments
+    .filter((file) => fs.existsSync(path.join(root, file)))
+    .map((file) => [file, readText(file)])
+))) {
+  findings.push({ code: 'COMPETING_CURRENT_BLOCKER_LIST', path: pathValue })
+}
+
+const issueEvidencePath = path.join(root, 'docs/evidence/github-issue-state.json')
+if (!fs.existsSync(issueEvidencePath)) {
+  findings.push({ code: 'GITHUB_ISSUE_STATE_EVIDENCE_MISSING', path: 'docs/evidence/github-issue-state.json' })
+} else if (fs.existsSync(statusPath)) {
+  try {
+    const issueEvidence = JSON.parse(readText('docs/evidence/github-issue-state.json'))
+    const drift = blockerEvidenceDrift({
+      blockerIssues: blockerIssueNumbers(readText('STATUS.md')),
+      issueEvidence: issueEvidence.issues || []
+    })
+    for (const issue of drift.missing) findings.push({ code: 'STATUS_BLOCKER_MISSING_RETAINED_ISSUE_EVIDENCE', issue })
+    for (const issue of drift.closed) findings.push({ code: 'STATUS_BLOCKER_RECORDED_CLOSED', issue })
+  } catch (error) {
+    findings.push({ code: 'GITHUB_ISSUE_STATE_EVIDENCE_INVALID', message: error.message })
   }
 }
 

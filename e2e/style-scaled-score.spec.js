@@ -4,7 +4,7 @@ import { installMockApi, product } from './mockApi.js'
 
 test('owner rating history distinguishes overall and style scaled scores', async ({ page }) => {
   await installMockApi(page)
-  await page.route('**/api/nocodebackend/ratings/mine', (route) => route.fulfill({
+  await page.route('**/api/nocodebackend/ratings/history?**', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({
@@ -27,7 +27,7 @@ test('owner rating history distinguishes overall and style scaled scores', async
           retail_ppp: null,
           purchased_ppp: null
         }
-      }]
+      }], page: 1, pageSize: 20, total: 1, totalPages: 1, summary: { count: 1, averageWeighted: 4 }
     })
   }))
 
@@ -47,7 +47,7 @@ test('owner rating history distinguishes overall and style scaled scores', async
 
 test('owner rating history shows style score as unavailable when style identity is unverified', async ({ page }) => {
   await installMockApi(page)
-  await page.route('**/api/nocodebackend/ratings/mine', (route) => route.fulfill({
+  await page.route('**/api/nocodebackend/ratings/history?**', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({
@@ -68,7 +68,7 @@ test('owner rating history shows style score as unavailable when style identity 
           retail_ppp: null,
           purchased_ppp: null
         }
-      }]
+      }], page: 1, pageSize: 20, total: 1, totalPages: 1, summary: { count: 1, averageWeighted: 4 }
     })
   }))
 
