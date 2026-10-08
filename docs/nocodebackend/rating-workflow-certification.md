@@ -38,6 +38,11 @@ the linked pull requests.
    second tasting of the same beer and an older-page rating. Reload and use
    browser Back/Forward. Pass when every link selects its own tasting, not an
    arbitrary rating of that beer.
+   In Shared tasting history, select another user's opted-in tasting. Verify it
+   opens `/users/<that author's opaque public_id>?rating=<canonical id>`, focuses
+   the correct date/score and survives reload, including an older public-history
+   page. It must never open the viewer's private profile. With sharing revoked,
+   the copied exact link and breakdown must return the safe unavailable result.
 5. **Check pagination and stable totals.** Use Next and Previous. Check at most
    20 entries per page, no missing/duplicate entries across pages, and the
    baseline count and whole-history average remain unchanged between pages.
@@ -65,6 +70,14 @@ the linked pull requests.
    visible focus, correct focus after navigation/recovery, understandable
    screen-reader names/statuses, readable layout at 200% zoom, and no clipped
    controls. Retain manual pass/fail evidence alongside automated axe results.
+   Expand View rating breakdown on personal and shared entries. Verify recorded
+   Appearance/Aroma/Mouthfeel/Flavour/Follow, Bonus and optional Design/Burp values
+   match stored rows, including zero Bonus/Burp values and selected attribute
+   descriptions. Check collapsed initial state, lazy loading, keyboard operation,
+   collapse/reopen and focused Retry after one failed details request. Missing
+   historical components must be labelled unavailable without invented values or
+   a changed stored total. Public details must not expose child/account identifiers
+   or private cellar prices.
 9. **Establish the controlled-write boundary.** Before create/retry/delete
    certification, use an immutable staging deployment connected to a verified
    isolated backend and disposable A/B/product/attribute fixtures. Confirm the

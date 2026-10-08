@@ -137,6 +137,23 @@ The governed #422 provider change established the `profiles` collection used by 
 
 `GET /api/nocodebackend/profiles/:public_id` returns only the safe public profile projection. Individual rating history is included only when `rating_history_public` is explicitly enabled; private price and other owner-only data are excluded.
 
+Public history accepts `page`, `limit` and the canonical `rating_id` selector,
+returning the selected entry's page, whole-history summary and nullable optional
+product metadata. `GET /api/nocodebackend/ratings/shared?product_id=:id` returns
+paged completed tastings from other owners only after verifying their current
+opt-in and authoritative opaque profile identity. Profile lookup failure remains
+an error rather than an empty success. Shared links target that author's exact
+`/users/:public_id?rating=:ratings.id` entry.
+
+Historical breakdowns load only when expanded. The owner endpoint is
+`GET /api/nocodebackend/ratings/:id/breakdown`; the shared endpoint is
+`GET /api/nocodebackend/profiles/:public_id/ratings/:id/breakdown`. Both verify a
+completed parent and matching owner; the shared endpoint first checks current
+profile opt-in. Only recorded score names/values/scales/non-scoring markers and
+selected attribute descriptions are projected. No raw child IDs, account keys,
+cellar prices or reconstructed historical weights are exposed. Missing details
+are explicitly unavailable and do not erase the verified rating header.
+
 The structure and application path are deployed. #422 remains open until production-equivalent connected evidence proves provider uniqueness/default-private behaviour, cross-owner denial, public/private projection, cleanup and recovery.
 
 ### `products`
@@ -203,14 +220,30 @@ change; existing non-production headers require a reviewed backfill to version
 
 Cross-collection atomic deletion is not certified for the current provider
 contract. Until certification supplies an atomic commit/abort endpoint, deletion
-retains the parent as a recoverable tombstone: conditionally transition its
-state/version to `deleting`, repeatedly list/get/delete children with both
-`rating_id` and authenticated `user_id`, prove no owner-scoped children remain,
+retains managed submissions as recoverable tombstones: conditionally transition
+their state/version to `deleting`, repeatedly list/get/delete children by the
+single parent filter `rating_id`, verify authenticated ownership locally on every
+listed and re-read child, prove no children remain,
 then conditionally transition to `deleted` and set `deleted_at`. Retries and
 concurrent requests resume from either persisted deletion state. They never
 delete a child whose re-read owner or parent does not match. If an atomic graph
 delete is later certified, record the endpoint, owner-policy and forced-abort
 evidence here before replacing this workflow.
+
+The compatibility path for an existing completed historical header with no
+submission identity and no workflow version uses deployed child-first CRUD and
+physical header removal. It never adds deferred lifecycle fields. Parent-only
+child reads cover all pages; ownership conflicts abort before child mutation.
+The header must retain its original identity, date, totals and absent workflow
+version before removal, and bounded re-reads must confirm absence before success.
+A partial failure is retried against the remaining children. This path is limited
+to unmanaged historical rows and does not establish atomic graph deletion or
+create-versus-delete race safety. A managed row with an absent/invalid version
+fails closed; it must not fall back to physical deletion. Managed transitions and
+child/header cleanup use bounded read-back verification rather than trusting one
+immediate provider read. #165's provider compare-and-set, constraints and controlled
+write certification remain required; no migration or bulk historical backfill is
+enabled by this compatibility repair.
 
 ### `rating_scores`
 

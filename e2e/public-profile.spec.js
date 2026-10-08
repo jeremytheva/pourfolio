@@ -32,7 +32,7 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('public user profile shows only the opted-in rated-beer history projection', async ({ page }) => {
-  await page.route(`**/api/nocodebackend/profiles/${publicProfileId}`, (route) => route.fulfill({
+  await page.route(`**/api/nocodebackend/profiles/${publicProfileId}?**`, (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify(publicProfile)
@@ -50,7 +50,7 @@ test('public user profile shows only the opted-in rated-beer history projection'
 })
 
 test('public profile provider failure uses a recoverable focused error state', async ({ page }) => {
-  await page.route(`**/api/nocodebackend/profiles/${publicProfileId}`, (route) => route.fulfill({
+  await page.route(`**/api/nocodebackend/profiles/${publicProfileId}?**`, (route) => route.fulfill({
     status: 503,
     contentType: 'application/json',
     body: JSON.stringify({
