@@ -77,7 +77,8 @@ jobs:
           RELEASE_SEARCH_TERM: ${{ vars.RELEASE_SEARCH_TERM }}
       - name: Remove temporary owner session
         if: always()
-        run: node --input-type=module -e 'import fs from "node:fs"; fs.rmSync(process.env.RELEASE_OWNER_SESSION_PATH, { force: true });'
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; fs.rmSync(process.env.RELEASE_OWNER_SESSION_PATH, { force: true });'
         env:
           RELEASE_OWNER_SESSION_PATH: ${{ runner.temp }}/pourfolio-release-owner-${{ github.run_id }}.json
       - name: Retain redacted evidence
