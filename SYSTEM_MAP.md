@@ -1,6 +1,6 @@
 # SYSTEM_MAP.md
 
-**Last materially reviewed:** 4 October 2026
+**Last materially reviewed:** 9 October 2026 (Australia/Sydney)
 
 This map is a compact navigation aid for whole-system analysis. `ARCHITECTURE.md` and `docs/ARCHITECTURE.md` remain the architectural authorities.
 
@@ -99,12 +99,16 @@ Current constraint: the target idempotency schema must not be treated as deploye
 Authenticated user
   → rating history service
   → owner-scoped gateway
-  → ratings owned by session user
-  → product relationship hydration
+  → paged completed ratings owned by session user
+  → page-bounded optional relationship enrichment
   → private history projection
 ```
 
 Incomplete/deleting rating workflow states must not be represented as completed history.
+Personal beer-page links select the canonical rating through `/profile?rating=:ratingId`.
+The gateway resolves the containing page and retains whole-history totals. Recorded
+score/selected-attribute breakdowns are lazy reads of the authorised parent;
+missing components are not reconstructed from current weighting settings.
 
 ## Cellar
 
@@ -122,17 +126,27 @@ Sharing-series/version relationships remain optional and normalize to `null` whe
 
 ## Profiles
 
-```text
-Profile UI
-  → profile gateway
-  → session identity
-  → user_id ownership match
-  → writable-field allowlist
-  → session-backed profile read
-  → persistent profile write unavailable until provider capability exists
-```
+`Profile.jsx` uses `profileService` and `api/profile-data-proxy.js` for persistent
+owner profile access. `profileStore.js` resolves the authenticated owner, creates
+a default-private profile with a server-generated opaque `public_id` when absent,
+and allowlists owner display/privacy updates. Provider primary ID, authenticated
+owner ID and public profile ID are separate concepts.
 
-Provider primary ID and authenticated owner ID are separate concepts.
+Signed-in public profile reads use `/users/:publicProfileId`; shared beer-page
+links select `/users/:publicProfileId?rating=:ratingId` for the authoritative
+author, not the viewer. Current explicit sharing opt-in and exact parent/profile
+ownership are checked before shared history or its safe breakdown is returned.
+Private account identifiers, child identifiers, workflow fields and cellar
+prices are excluded. See [ADR 0003](docs/DECISIONS/0003-public-user-profiles-and-rating-history.md).
+
+`Settings.jsx` is the reachable rating-preference screen; `settingsManager.js`
+also serves `RateBeer.jsx`. The unused legacy `ProfileSettings.jsx` is retired,
+not replaced with another preference or profile implementation. Deferred
+event/venue components and their shared helpers remain contained and retained.
+
+These are implemented source contracts, not completed connected provider
+certification. Live acceptance, the failed deletion and unsupported #422 rows
+remain governed by `STATUS.md` and the rating workflow certification guide.
 
 ## Rate limiting
 
