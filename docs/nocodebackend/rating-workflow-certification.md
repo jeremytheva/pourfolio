@@ -7,6 +7,15 @@ attempt below is retained as a failed/blocked attempt, not current completion
 evidence. Latest results and remaining boundaries belong in `STATUS.md` and
 the linked pull requests.
 
+The 8 October failed-delete/author-link/breakdown repair is deployed through
+PR #631. Source validation and 140 mocked browser/accessibility cases pass;
+connected production run `37753349432` passed 12 baseline cases but skipped the
+two private-history fixture cases and two guarded write cases. These skips do
+not certify deletion or cross-account access. Retest through the current public
+app at `https://brew-buds-mobile-app-design-3577.vercel.app`, checking its exact
+health SHA. The immutable `...5pcf74oat...` URL in the failure screenshots keeps
+the older code and cannot show the deployed repair.
+
 1. **Select the deployment and fixtures.** Record its HTTPS URL, full commit SHA
    and backend environment. Confirm `/api/health` reports that exact SHA. For
    read-only profile checks, use two distinct supported test accounts, A and B,
