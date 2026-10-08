@@ -36,11 +36,11 @@ wip:
   max_dependent_stack_depth: 2
 evidence:
   observed_main_commit: "205a622844e50e22342b8ba15d31480af362b304"
-  current_candidate_commit: "4ea8e18ce1706c5da2c7d50712acc9c7a2d331a6"
-  latest_validated_commit: "4ea8e18ce1706c5da2c7d50712acc9c7a2d331a6"
+  current_candidate_commit: "a4854a2ba4eae02862a4c604e843183375c85ffa"
+  latest_validated_commit: "a4854a2ba4eae02862a4c604e843183375c85ffa"
   latest_deployed_commit: "4ea8e18ce1706c5da2c7d50712acc9c7a2d331a6"
   latest_runtime_verified_commit: "4ea8e18ce1706c5da2c7d50712acc9c7a2d331a6"
-  latest_browser_verified_commit: "4ea8e18ce1706c5da2c7d50712acc9c7a2d331a6"
+  latest_browser_verified_commit: "a4854a2ba4eae02862a4c604e843183375c85ffa"
 validation:
   governance: PASS
   lint: PASS
@@ -94,7 +94,9 @@ Owner response standard: Done / Next / You. Operating rules live in `AGENTS.md` 
 - Main `205a622844e50e22342b8ba15d31480af362b304` has verified canonical and browser evidence from run `37694734987`: 699 unit/policy tests passed, 15 skipped, and 129 browser tests passed. These results apply to main, not the new profile-history candidate.
 - Profile repair implementation `4ea8e18ce1706c5da2c7d50712acc9c7a2d331a6` passed the trusted Node 22 canonical executor in run `37735704870` (job `113174606063`): 708 tests passed, 15 skipped, with lint, audit, build and all composed governance/security checks passing. Browser/accessibility job `113174606204` passed all 135 tests; Dependency Review and CodeQL passed. Local Node 24 checks were supplemental only.
 - Exact preview `dpl_4BmL7Ep5KaZvuYDX9tXDJ1h7Wsf8` is READY at `https://pourfolio-r1djwgxaw-jeremythevas-projects.vercel.app`; `/api/health` returned 200 and the exact implementation SHA, with authentication, data and rate-limiter configuration present. This is basic runtime/configuration evidence, not authenticated provider-flow certification. An unauthenticated private-history fetch returned 401; it did not supply an owner session or prove private history loading. Controlled connected owner-history/link confirmation remains pending.
-- The evidence SHA fields identify the tested implementation; PR #628 owns the latest metadata-only head. Recheck that head before integration. The subsequent status update records evidence and does not alter runtime behaviour.
+- The evidence SHA fields identify the tested implementation; PR #628 owns the latest head, including read-only release cases and evidence updates. Recheck that head before integration. These follow-up changes do not alter application runtime behaviour.
+- Metadata candidate `a4854a2ba4eae02862a4c604e843183375c85ffa` also passed exact-head canonical/browser validation in run `37736368751` (708 passed, 15 skipped; all 135 browser/accessibility cases passed). The later connected-test additions remain pending their own latest-head validation and protected runtime execution.
+- Read-only connected certification now has dedicated owner link/retry/three-reload and other-account selector cases in `release-check/profile-history-readonly.spec.js`. They require the existing protected release-account credentials and completed fixtures, mutate no ratings, suppress private-data artefacts and keep unavailable rows explicitly skipped. Execute them through the existing connected release workflow after deployment; source availability does not constitute a provider pass.
 - Brew Done It remains launch-excluded and absent from production-facing navigation/CTAs. Its protected direct route remains for controlled testing only.
 
 Detailed implementation history belongs in commits, PRs and `docs/RELEASE_TRACKING.md`.
