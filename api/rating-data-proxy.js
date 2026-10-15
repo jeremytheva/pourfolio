@@ -11,7 +11,7 @@ import { isOwnedBy, projectRating } from './_lib/dataPolicy.js'
 import { enforceOrigin, enforceRateLimit, enforceRequestSize, safeErrorMessage } from './_lib/httpSecurity.js'
 import { buildStyleScoreIndex, styleScaledScoreForRating } from './_lib/styleScaledScore.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
-import { isCompletedRating, ownerCompletedRatings, ratingChildren } from './_lib/ratingHistoryRecords.js'
+import { isCompletedRating, ownerCompletedRatings, ratingChildren, readRatingRows } from './_lib/ratingHistoryRecords.js'
 import { loadRatingBreakdown } from './_lib/ratingBreakdown.js'
 import { loadSharedProductRatings } from './_lib/sharedProductRatings.js'
 
@@ -98,7 +98,9 @@ const loadExactRecords = async (collection, ids) => {
 }
 
 const scorePopulations = async () => {
-  const ratingRows = records(await dataProvider.list(COLLECTIONS.ratings)).filter(isCompletedRating)
+  // Keep Overall and Style populations complete beyond the provider's first page.
+  // readRatingRows validates unique IDs and fails closed on pagination drift.
+  const ratingRows = (await readRatingRows(COLLECTIONS.ratings, {})).filter(isCompletedRating)
   const overall = Object.freeze(ratingRows
     .map((rating) => completedRatingTotal(rating.total_weighted))
     .filter((score) => score !== null))
