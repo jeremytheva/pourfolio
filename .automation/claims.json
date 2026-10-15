@@ -1,17 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "integration": {
-      "owner": "reliability-upgrade-20261015-merge",
-      "workstream": "integration",
-      "issue": 143,
-      "pr": 641,
-      "surfaces": [
-        "repo:integration",
-        "docs:status"
-      ],
-      "acquiredAt": "2026-10-15T13:16:13.221Z",
-      "expiresAt": "2026-10-15T13:46:13.221Z"
-    }
-  }
+  "claims": {}
 }
