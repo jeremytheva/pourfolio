@@ -2,7 +2,9 @@
 
 Last reconciled: **15 October 2026 UTC**. Source review baseline:
 [`ccb92e60aa237ce7dd0af86a56fa22347925c8b2`](https://github.com/jeremytheva/pourfolio/commit/ccb92e60aa237ce7dd0af86a56fa22347925c8b2).
-This reconciliation adds no connected-provider, deployment or migration evidence.
+The initial checklist reconciliation added no connected-provider or migration
+certification. Subsequent bounded deployment evidence is recorded below and in
+`STATUS.md`.
 
 ## Current launch decision
 
