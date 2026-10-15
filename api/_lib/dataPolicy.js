@@ -244,7 +244,7 @@ const cellarGift = (value) => {
 
 const cellarDate = (value) => {
   if (value === null || value === '') return null
-  if (typeof value !== 'string' || !/^\\d{4}-\\d{2}-\\d{2}$/u.test(value)) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/u.test(value)) {
     throw cellarWriteError('Date received must be a valid YYYY-MM-DD date.')
   }
   const date = new Date(`${value}T00:00:00.000Z`)
