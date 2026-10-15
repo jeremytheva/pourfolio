@@ -18,25 +18,12 @@
       "owner": "launch-20261015T1405-it9x5yen",
       "workstream": "integration",
       "issue": null,
-      "pr": 642,
+      "pr": 643,
       "surfaces": [
-        "file:api/_lib/httpSecurity.js",
-        "file:api/_lib/__tests__/httpSecurity.test.js",
-        "file:api/_lib/__tests__/rateLimit.test.js",
-        "file:api/_lib/authSession.js",
-        "file:api/auth-proxy.js",
-        "file:api/_lib/dataProvider.js",
-        "file:api/_lib/profileStore.js",
-        "file:api/__tests__/profileDataProxy.test.js",
-        "file:api/_lib/__tests__/dataProvider.test.js",
-        "file:api/_lib/__tests__/authSession.test.js",
-        "file:api/nocodebackend/auth/__tests__/authProxyPolicy.test.js",
-        "file:docs/LAUNCH_READINESS.md",
-        "file:api/_lib/userAdminCertification.js",
-        "file:api/_lib/__tests__/userAdminCertification.test.js",
         "file:STATUS.md",
+        "file:docs/LAUNCH_READINESS.md",
         "repo:integration",
-        "pr:642"
+        "pr:643"
       ],
       "acquiredAt": "2026-10-15T14:18:43.000Z",
       "expiresAt": "2026-10-15T14:48:43.000Z"
