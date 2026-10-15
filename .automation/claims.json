@@ -13,20 +13,6 @@
       ],
       "acquiredAt": "2026-10-15T14:00:13.984Z",
       "expiresAt": "2026-10-15T14:30:13.984Z"
-    },
-    "integration": {
-      "owner": "launch-20261015T1405-it9x5yen",
-      "workstream": "integration",
-      "issue": null,
-      "pr": 643,
-      "surfaces": [
-        "file:STATUS.md",
-        "file:docs/LAUNCH_READINESS.md",
-        "repo:integration",
-        "pr:643"
-      ],
-      "acquiredAt": "2026-10-15T14:18:43.000Z",
-      "expiresAt": "2026-10-15T14:48:43.000Z"
     }
   }
 }
