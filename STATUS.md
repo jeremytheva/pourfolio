@@ -1,26 +1,24 @@
 ---
 project: Pourfolio
 portfolio_state: READY
-execution_slot: VERIFYING
+execution_slot: INTEGRATING
 phase: "Phase 3 — Beer discovery dependable"
 stage: "Dependency-correct launch continuation"
 gate: Release
-execution_state: READY
+execution_state: VALIDATING
 current_work:
-  objective: "Integrate the existing producer and Brew recovery PRs under one execution authority, then continue dependency-correct beer-first launch work and rating/provider certification."
-  issue: 441
-  pr: 639
-  branch: "fix/producer-ranking-pagination-20261014"
+  objective: "Integrate the source-validated launch boundary repairs in PR #642, verify production, then resume remaining producer and rating/provider gates."
+  issue: null
+  pr: 642
+  branch: "fix/launch-boundary-guarantees-20261015"
 next_actions:
-  - "Address the two material #639 producer-ranking reviews (out-of-range page recovery and stale candidate SHA), validate its exact head, and submit it to sole integration authority."
-  - "Run current-head canonical and targeted browser checks for #637 Brew initial-load recovery, then integrate if evidence and resolved reviews permit."
-  - "Confirm coordination lease/recovery smoke evidence and preview-build suppression remain correct after #641 integration."
-  - "Continue only evidence-based #429 cleanup or other independent launch work; preserve live Settings/RateBeer preferences and contained future components."
-  - "Retest the repaired production flows with an eligible completed-owner fixture and an opted-in distinct public author; keep unavailable connected rows pending."
-  - "Run bounded connected #422 profile certification where existing credentials and cleanup safeguards support it; leave unsupported rows explicitly pending."
-  - "Prepare #165 migration evidence within the reversible boundary; do not cross the irreversible provider boundary without the governed approval package."
-  - "Continue #577 credential certification when supported user/admin account-session credentials are available."
-  - "Continue provider-gated #449 work only when backing lookup/moderation contracts become verifiable; otherwise use #429 cleanup or other independent launch work."
+  - "Validate the final documentation head of #642, merge under the verified integration claim, and verify the resulting production SHA/health/readiness."
+  - "Resolve #639's material producer-pagination reviews and reconcile its exact head with current main before integration."
+  - "Re-evaluate #637's exact-head canonical/browser evidence; preserve Brew launch exclusion."
+  - "Continue #503 deletion diagnosis only through the active ratings claimant; source repairs do not supersede the retained live failure."
+  - "Run supported connected #422 profile privacy/revocation and distinct-account certification; keep unsupported rows pending."
+  - "Prepare #165 provider migration, uniqueness, backup/restore and approval evidence without irreversible mutation."
+  - "Complete #577 using supported account-session credentials; database Secret Keys are not login passwords."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
@@ -33,17 +31,17 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 2
+  open_implementation_prs: 3
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: null
-  current_candidate_commit: "863995a87e437993227ccba7baa189bef2149873"
-  latest_validated_commit: "97d29d2d7f3e185e6dbe986f9c40a5039bea5ef7"
+  observed_main_commit: "ccb92e60aa237ce7dd0af86a56fa22347925c8b2"
+  current_candidate_commit: "dcc55b54a487040a3e3e9a4f041ebbecc47b11fa"
+  latest_validated_commit: "dcc55b54a487040a3e3e9a4f041ebbecc47b11fa"
   latest_deployed_commit: "75133ff7f29aa69a0bdaf173b2f549afcdde179b"
   latest_runtime_verified_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
-  latest_browser_verified_commit: "97d29d2d7f3e185e6dbe986f9c40a5039bea5ef7"
+  latest_browser_verified_commit: "dcc55b54a487040a3e3e9a4f041ebbecc47b11fa"
 validation:
   governance: PASS
   lint: PASS
@@ -51,14 +49,57 @@ validation:
   tests: PASS
   build: PASS
   ci: PASS
-  runtime: VERIFIED
+  runtime: UNVERIFIED
 last_verified_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
-last_updated: "2026-10-15T13:15:37Z"
+last_updated: "2026-10-15T14:20:00Z"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 9 October 2026 (Australia/Sydney)
+Last materially reviewed: 15 October 2026 UTC
+
+## AI execution gate
+
+Current work: launch boundary repair integration.
+
+PR [#642](https://github.com/jeremytheva/pourfolio/pull/642) repairs the three
+launch-review findings: only the Vercel runtime trusts its forwarding header;
+profile saves require persisted identity/value readback; and all five provider
+fetch callers retain the original deadline through body consumption. The launch
+checklist in `docs/LAUNCH_READINESS.md` now separates current requirements from
+historical evidence, retains the guarded Brew exclusion and keeps provider gates open.
+
+Exact source candidate `dcc55b54a487040a3e3e9a4f041ebbecc47b11fa` passed Node
+22.23.3 canonical validation: 783 tests passed, 15 provider-gated skips, zero
+failures, plus the composed lint/audit/build/contract/security checks in run
+[38749539863](https://github.com/jeremytheva/pourfolio/actions/runs/38749539863)
+(job `116472132590`). All 140 browser/accessibility cases passed in run
+[38749600966](https://github.com/jeremytheva/pourfolio/actions/runs/38749600966)
+(job `116472208262`); CodeQL and Dependency Review passed. Independent source
+review found no material outstanding issue and PR review-thread readback was empty.
+
+Preview `dpl_DhaoVQQkQgEqHYcmUqbfzEhpB5HU` is READY. Health returned HTTP 200
+with that exact candidate SHA; readiness returned HTTP 200 with `dataProvider: ok`.
+Private preview endpoint probes were blocked by deployment authentication and
+provide no application-authorisation evidence. The connected rating/bonus jobs
+skipped; no provider mutation, live rating/cellar write, or migration occurred.
+The final handoff-only documentation head must retain its own current checks;
+this earlier source candidate does not prove a later deployment or final launch.
+
+At this snapshot, main remains `ccb92e60aa237ce7dd0af86a56fa22347925c8b2`.
+The former integration lease expired at 14:18:07 UTC. Fresh main/PR/STATUS reads
+were reconciled before the launch execution acquired and read back the bounded
+integration claim for #642. The separate ratings lease still owns #503 and its
+rating gateway/test files; these were not changed. Three ordinary implementation
+PRs (#637, #639, #642) and two dependency PRs are open, with no dependent stack.
+No additional implementation PR should be opened before integration frees capacity.
+
+Production deployed/runtime fields below retain earlier evidence until fresh
+post-merge verification exists. The latest retained live deletion FAILED;
+#165 provider migration/restore/approval, #422 privacy/cross-owner and #577
+supported account-session evidence remain open. The complete current checklist
+is in `docs/LAUNCH_READINESS.md`; no owner action is required for this bounded repair.
+
 
 ## Live integration and automation reconciliation (snapshot before #641 integration, 15 October 2026 UTC)
 
@@ -73,7 +114,7 @@ Verified against GitHub and Vercel for this reliability change:
 
 **Immediate sequence:** finish #641 source/canonical validation and coordination smoke exercise, then re-evaluate #639 and #637 exact-head acceptance without inventing provider tests. Resolve material findings and integrate eligible PRs through the single integration task. Continue rating deletion diagnostics under #503 separately. Keep #165 schema mutation and other provider/security release gates intact. No owner action is established solely by this audit.
 
-## AI execution gate
+## Retained earlier release handoff — 9 October 2026
 
 **Gate:** Release. **State:** READY for independent maintenance and reversible
 evidence preparation. The evidence fields pin the inspected production and
@@ -255,3 +296,4 @@ The available repository tools cannot attach/detach ChatGPT Project sources. The
 ## Validation limitations
 
 Source and production read evidence do not by themselves prove every provider write/permission boundary. #422 must retain unsupported connected rows as pending until they are exercised against the provider with safe cleanup. #165 remains separately blocked at an irreversible schema migration boundary, and #577 remains limited by the available account-session credential contract.
+
