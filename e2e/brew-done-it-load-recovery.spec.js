@@ -119,3 +119,25 @@ test('an older failed statistics request cannot hide newer successful results', 
   await expect(page.getByRole('alert')).toHaveCount(0)
   await expect(page.locator('section[aria-labelledby="statistics-heading"] dd').first()).toHaveText('3')
 })
+
+test('malformed successful statistics response stays in error state until retry', async ({ page }) => {
+  await page.route('**/api/nocodebackend/brew-done-it/games', (route) => {
+    if (route.request().method() !== 'GET') return route.fallback()
+    return respond(route, { series: [] })
+  })
+  let attempts = 0
+  await page.route('**/api/nocodebackend/brew-done-it/stats', (route) => {
+    attempts += 1
+    return attempts === 1
+      ? respond(route, { seriesCount: 'not-a-count', terminalRounds: 0, awardedPoints: 0 })
+      : respond(route, { seriesCount: 3, terminalRounds: 2, awardedPoints: 9 })
+  })
+
+  await page.goto('/brew-done-it')
+  await expect(page.getByRole('alert')).toContainText('Your statistics could not be loaded')
+  await expect(page.getByRole('heading', { name: 'Your Brew Done It record' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Retry loading statistics' }).click()
+  await expect(page.locator('section[aria-labelledby="statistics-heading"] dd').first()).toHaveText('3')
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  expect(attempts).toBe(2)
+})
