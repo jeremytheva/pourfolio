@@ -921,7 +921,9 @@ export const routeRatingRequest = async (request, response, user, correlationId)
   const [resource, id, action] = pathSegments(request)
   if (resource !== 'ratings') { response.status(404).json({ error: 'Application data route not found.' }); return }
   if (request.method === 'POST' && id === 'submit') return submitRating(request, response, user, correlationId)
-  if (request.method === 'POST' && id === 'reconcile') return reconcileHistoricalRatings(request, response, user)
+  // #165: historical reconciliation stays offline until the governed provider
+  // migration, recovery proof and owner approval are complete. Its internal
+  // planner remains available to isolated tests, never to an HTTP caller.
   if (request.method === 'POST' && id === 'create-diagnostic') {
     if (process.env.VERCEL_ENV !== 'preview') {
       response.status(404).json({ error: 'Application data route not found.' })
