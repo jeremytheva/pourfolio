@@ -1,18 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "brew": {
-      "owner": "brew-20261015T211944-637-v9",
-      "workstream": "brew",
-      "issue": null,
-      "pr": 637,
-      "surfaces": [
-        "pr:637",
-        "src/pages/BrewDoneIt.jsx",
-        "e2e/brew-done-it-load-recovery.spec.js"
-      ],
-      "acquiredAt": "2026-10-15T21:19:44.797Z",
-      "expiresAt": "2026-10-15T21:49:44.797Z"
-    }
-  }
+  "claims": {}
 }
