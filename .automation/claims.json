@@ -1,18 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "integration": {
-      "owner": "integration-20261016T0841-pr637-acd8633",
-      "workstream": "integration",
-      "issue": null,
-      "pr": 637,
-      "surfaces": [
-        "file:STATUS.md",
-        "pr:637",
-        "repo:integration"
-      ],
-      "acquiredAt": "2026-10-15T21:42:35.295Z",
-      "expiresAt": "2026-10-15T22:12:35.295Z"
-    }
-  }
+  "claims": {}
 }
