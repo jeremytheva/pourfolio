@@ -45,12 +45,16 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
   const [cluesLoading, setCluesLoading] = useState(false)
   const [revealedProduct, setRevealedProduct] = useState(null)
   const [stats, setStats] = useState({})
+  const [readStatus, setReadStatus] = useState({ series: 'loading', options: 'loading', stats: 'loading' })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [announcement, setAnnouncement] = useState('')
   const [canRetryAction, setCanRetryAction] = useState(false)
   const lastAction = useRef(null)
   const role = roleFor(round, user)
+  const setReadState = useCallback((resource, status) => {
+    setReadStatus((current) => ({ ...current, [resource]: status }))
+  }, [])
 
   const run = useCallback(async (action, successMessage) => {
     setBusy(true)
@@ -82,11 +86,42 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
   }, [])
 
   const loadSeries = useCallback(async () => {
-    const payload = await getBrewDoneItGames()
-    setSeries(Array.isArray(payload.series) ? payload.series : [])
-  }, [])
+    setReadState('series', 'loading')
+    try {
+      const payload = await getBrewDoneItGames()
+      if (!Array.isArray(payload?.series)) throw new Error('Invalid series response')
+      setSeries(payload.series)
+      setReadState('series', 'ready')
+    } catch {
+      setReadState('series', 'error')
+    }
+  }, [setReadState])
 
-  const loadStats = useCallback(async () => setStats(await getBrewDoneItStats()), [])
+  const loadStats = useCallback(async () => {
+    setReadState('stats', 'loading')
+    try {
+      const payload = await getBrewDoneItStats()
+      if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new Error('Invalid statistics response')
+      setStats(payload)
+      setReadState('stats', 'ready')
+    } catch {
+      setReadState('stats', 'error')
+    }
+  }, [setReadState])
+
+  const loadOptions = useCallback(async () => {
+    setReadState('options', 'loading')
+    try {
+      const payload = await getBrewDoneItOptions()
+      if (!Array.isArray(payload?.breweries) || !Array.isArray(payload?.styles) || !Array.isArray(payload?.beers)) {
+        throw new Error('Invalid deduction options response')
+      }
+      setOptions(payload)
+      setReadState('options', 'ready')
+    } catch {
+      setReadState('options', 'error')
+    }
+  }, [setReadState])
 
   const loadRoundWorkspace = useCallback(async (nextRound) => {
     setDeductions([])
@@ -122,9 +157,10 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
   }, [game?.id, loadRevealedProduct, loadRoundWorkspace, loadSeries, loadStats, run])
 
   useEffect(() => {
-    getBrewDoneItOptions().then(setOptions).catch(() => setOptions({ breweries: [], styles: [], beers: [], capabilities: {} }))
-    Promise.all([loadSeries(), loadStats()]).catch(() => undefined)
-  }, [loadSeries, loadStats])
+    void loadOptions()
+    void loadSeries()
+    void loadStats()
+  }, [loadOptions, loadSeries, loadStats])
 
   const remember = (action) => {
     lastAction.current = action
@@ -223,7 +259,7 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
     setError('')
     setCanRetryAction(false)
     lastAction.current = null
-    await loadSeries().catch(() => undefined)
+    await loadSeries()
   }
 
   const historySharing = game && user ? (
@@ -256,7 +292,14 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
 
       {!game && (
         <>
-          <BrewDoneItSeriesList series={series} userId={user?.id} busy={busy} onOpen={openSeries} />
+          {readStatus.series === 'loading' && <p role="status">Loading your challenges…</p>}
+          {readStatus.series === 'error' && (
+            <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-4 text-red-950">
+              <p>Your challenges could not be loaded. This does not mean you have no challenges.</p>
+              <button type="button" disabled={busy} onClick={loadSeries} className="mt-2 rounded-md border border-red-800 px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">Retry loading challenges</button>
+            </div>
+          )}
+          {readStatus.series === 'ready' && <BrewDoneItSeriesList series={series} userId={user?.id} busy={busy} onOpen={openSeries} />}
           <BrewDoneItInvite invitation={invitation} busy={busy} initialProductId={initialProductId} onCreate={create} onJoin={join} />
         </>
       )}
@@ -276,7 +319,12 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
         <BrewDoneItRound game={game} round={round} role={role} busy={busy} options={options} onRefresh={refresh} onForfeit={forfeit}>
           {role === 'selector'
             ? <BrewDoneItSelectorSheet clues={selectorClues} loading={cluesLoading} />
-            : <BrewDoneItDeductionBoard round={round} options={options} deductions={deductions} busy={busy} historySharing={historySharing} onHistorySharing={updateHistorySharing} onSaveDeduction={saveDeduction} onOutcome={submitOutcome} onComplete={completeRound} />}
+            : readStatus.options === 'ready'
+              ? <BrewDoneItDeductionBoard round={round} options={options} deductions={deductions} busy={busy} historySharing={historySharing} onHistorySharing={updateHistorySharing} onSaveDeduction={saveDeduction} onOutcome={submitOutcome} onComplete={completeRound} />
+              : <div role={readStatus.options === 'error' ? 'alert' : 'status'} className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-950">
+                  <p>{readStatus.options === 'error' ? 'Deduction options could not be loaded. Guessing is unavailable until they are restored.' : 'Loading deduction options…'}</p>
+                  {readStatus.options === 'error' && <button type="button" disabled={busy} onClick={loadOptions} className="mt-2 rounded-md border border-amber-700 px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">Retry loading options</button>}
+                </div>}
         </BrewDoneItRound>
       )}
 
@@ -290,7 +338,14 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
           ) : null}
         </>
       )}
-      <BrewDoneItStatistics stats={stats} />
+      {readStatus.stats === 'loading' && <p role="status">Loading your Brew Done It statistics…</p>}
+      {readStatus.stats === 'error' && (
+        <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-4 text-red-950">
+          <p>Your statistics could not be loaded. Previous results have not been reset.</p>
+          <button type="button" disabled={busy} onClick={loadStats} className="mt-2 rounded-md border border-red-800 px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">Retry loading statistics</button>
+        </div>
+      )}
+      {readStatus.stats === 'ready' && <BrewDoneItStatistics stats={stats} />
     </div>
   )
 }
