@@ -1,18 +1,18 @@
 {
   "version": 1,
   "claims": {
-    "ratings": {
-      "owner": "ratings-20261016T0100-delete-diag-03",
-      "workstream": "ratings",
-      "issue": 503,
-      "pr": null,
+    "integration": {
+      "owner": "integration-20261015T144955-pr637-06",
+      "workstream": "integration",
+      "issue": null,
+      "pr": 637,
       "surfaces": [
-        "file:api/__tests__/ratingDataProxy.test.js",
-        "file:api/rating-data-proxy.js",
-        "issue:503"
+        "file:STATUS.md",
+        "pr:637",
+        "repo:integration"
       ],
-      "acquiredAt": "2026-10-15T14:00:13.984Z",
-      "expiresAt": "2026-10-15T14:30:13.984Z"
+      "acquiredAt": "2026-10-15T14:49:55.224Z",
+      "expiresAt": "2026-10-15T15:19:55.224Z"
     }
   }
 }
