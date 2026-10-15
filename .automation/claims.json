@@ -40,19 +40,6 @@
       ],
       "acquiredAt": "2026-10-15T14:18:43.000Z",
       "expiresAt": "2026-10-15T14:48:43.000Z"
-    },
-    "brew": {
-      "owner": "brew-20261016T0119-pr637-6d4e",
-      "workstream": "brew",
-      "issue": null,
-      "pr": 637,
-      "surfaces": [
-        "pr:637",
-        "file:src/pages/BrewDoneIt.jsx",
-        "file:e2e/brew-done-it-load-recovery.spec.js"
-      ],
-      "acquiredAt": "2026-10-15T14:20:26.828Z",
-      "expiresAt": "2026-10-15T14:50:26.828Z"
     }
   }
 }
