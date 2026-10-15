@@ -345,7 +345,7 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
           <button type="button" disabled={busy} onClick={loadStats} className="mt-2 rounded-md border border-red-800 px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">Retry loading statistics</button>
         </div>
       )}
-      {readStatus.stats === 'ready' && <BrewDoneItStatistics stats={stats} />
+      {readStatus.stats === 'ready' && <BrewDoneItStatistics stats={stats} />}
     </div>
   )
 }
