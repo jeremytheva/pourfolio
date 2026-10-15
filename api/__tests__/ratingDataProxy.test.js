@@ -340,7 +340,12 @@ test('owner history preserves exact category metadata, derives private PPP and h
   await withProviderMocks({
     listPage: async (collection, { page, limit, filters = {} }) => {
       assert.equal(collection, COLLECTIONS.ratings)
-      const items = ownerRatings.filter((item) =>
+      // The same paginated provider serves the whole-community population and
+      // owner-filtered history. Preserve another completed tasting for ranking.
+      const source = Object.keys(filters).length === 0
+        ? [...ownerRatings, { id: 100, user_id: 'user-2', product_id: 4, total_weighted: 5, submission_state: 'complete' }]
+        : ownerRatings
+      const items = source.filter((item) =>
         Object.entries(filters).every(([key, value]) => String(item[key]) === String(value)))
       return { items, page, pageSize: limit, total: items.length, totalPages: items.length ? 1 : 0 }
     },
