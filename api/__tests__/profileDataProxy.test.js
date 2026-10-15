@@ -24,9 +24,10 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), {
   headers: { 'content-type': 'application/json' }
 })
 
-const installProvider = ({ profiles = [], ratings = [] } = {}) => {
+const installProvider = ({ profiles = [], ratings = [], updateProfile, readProfiles } = {}) => {
   const requests = []
   const state = { profiles: structuredClone(profiles), ratings: structuredClone(ratings) }
+  let profileReads = 0
   global.fetch = async (url, options = {}) => {
     const parsed = new URL(String(url))
     requests.push({ url: String(url), method: options.method || 'GET', body: options.body ? JSON.parse(options.body) : null })
@@ -37,7 +38,9 @@ const installProvider = ({ profiles = [], ratings = [] } = {}) => {
     if (parsed.pathname === '/read/profiles') {
       const userId = parsed.searchParams.get('user_id')
       const publicId = parsed.searchParams.get('public_id')
-      return json(state.profiles.filter((record) => (!userId || record.user_id === userId) && (!publicId || record.public_id === publicId)))
+      const records = state.profiles.filter((record) => (!userId || record.user_id === userId) && (!publicId || record.public_id === publicId))
+      profileReads += 1
+      return readProfiles ? readProfiles(records, profileReads) : json(records)
     }
     if (parsed.pathname === '/create/profiles') {
       const record = { id: state.profiles.length + 1, ...JSON.parse(options.body) }
@@ -48,8 +51,12 @@ const installProvider = ({ profiles = [], ratings = [] } = {}) => {
       const id = parsed.pathname.split('/').pop()
       const index = state.profiles.findIndex((record) => String(record.id) === id)
       if (index < 0) return json({ error: 'not found' }, 404)
-      state.profiles[index] = { ...state.profiles[index], ...JSON.parse(options.body) }
-      return json(state.profiles[index])
+      const changes = JSON.parse(options.body)
+      const result = updateProfile
+        ? updateProfile(state.profiles[index], changes)
+        : { saved: { ...state.profiles[index], ...changes } }
+      state.profiles[index] = result.saved
+      return json(Object.hasOwn(result, 'response') ? result.response : result.saved)
     }
     if (parsed.pathname === '/read/ratings') {
       const userId = parsed.searchParams.get('user_id')
@@ -128,6 +135,130 @@ test('owner PUT allowlists editable fields and cannot replace ownership or publi
   assert.equal(response.body.profile.rating_history_public, true)
 })
 
+test('owner PUT rejects a privacy revocation that did not persist', async () => {
+  const { state } = installProvider({
+    profiles: [ownerProfile({ rating_history_public: 1 })],
+    updateProfile: (saved) => ({ saved })
+  })
+  const response = await call({ method: 'PUT', body: { rating_history_public: false } })
+
+  assert.equal(response.statusCode, 502)
+  assert.equal(response.body.code, 'profile_provider_invalid')
+  assert.equal(state.profiles[0].rating_history_public, 1)
+  assert.equal('profile' in response.body, false)
+})
+
+test('owner PUT verifies stored privacy despite an optimistic update response', async () => {
+  installProvider({
+    profiles: [ownerProfile({ rating_history_public: 1 })],
+    updateProfile: (saved, changes) => ({ saved, response: { ...saved, ...changes } })
+  })
+  const response = await call({ method: 'PUT', body: { rating_history_public: false } })
+
+  assert.equal(response.statusCode, 502)
+  assert.equal(response.body.code, 'profile_provider_invalid')
+  assert.equal('profile' in response.body, false)
+})
+
+for (const updateResponse of [null, { success: true }, { rating_history_public: 0 }]) {
+  test(`owner PUT verifies persisted revocation after ${JSON.stringify(updateResponse)} update response`, async () => {
+    const { requests } = installProvider({
+      profiles: [ownerProfile({ rating_history_public: 1 })],
+      updateProfile: (saved, changes) => ({ saved: { ...saved, ...changes }, response: updateResponse })
+    })
+    const response = await call({ method: 'PUT', body: { rating_history_public: false } })
+
+    assert.equal(response.statusCode, 200)
+    assert.equal(response.body.profile.rating_history_public, false)
+    const updateIndex = requests.findIndex(({ url }) => url.includes('/update/profiles/'))
+    assert.equal(requests.slice(updateIndex + 1).some(({ url }) => url.includes('/read/profiles')), true)
+
+    const publicResponse = await call({ path: ['profiles', 'profile_abcdefgh1234'] })
+    assert.equal(publicResponse.statusCode, 200)
+    assert.deepEqual(publicResponse.body.ratings, [])
+    assert.equal(requests.some(({ url }) => url.includes('/read/ratings')), false)
+  })
+}
+
+for (const privacy of [undefined, null, '', 'false', 2]) {
+  test(`owner PUT cannot confirm revocation from invalid stored privacy ${JSON.stringify(privacy)}`, async () => {
+    installProvider({
+      profiles: [ownerProfile({ rating_history_public: 1 })],
+      updateProfile: (saved) => ({ saved: { ...saved, rating_history_public: privacy }, response: null })
+    })
+    const response = await call({ method: 'PUT', body: { rating_history_public: false } })
+
+    assert.equal(response.statusCode, 502)
+    assert.equal(response.body.code, 'profile_provider_invalid')
+    assert.equal('profile' in response.body, false)
+  })
+}
+
+for (const privacy of [false, 0, '0', true, 1, '1']) {
+  test(`owner PUT accepts persisted boolean-like privacy ${JSON.stringify(privacy)}`, async () => {
+    const expectedPublic = [true, 1, '1'].includes(privacy)
+    installProvider({
+      profiles: [ownerProfile({ rating_history_public: expectedPublic ? 0 : 1 })],
+      updateProfile: (saved, changes) => ({ saved: { ...saved, ...changes, rating_history_public: privacy } })
+    })
+    const response = await call({ method: 'PUT', body: { rating_history_public: expectedPublic } })
+
+    assert.equal(response.statusCode, 200)
+    assert.equal(response.body.profile.rating_history_public, expectedPublic)
+  })
+}
+
+for (const identityChange of [{ id: 8 }, { public_id: 'different_public_profile' }, { user_id: 'other-user' }]) {
+  test(`owner PUT rejects changed persisted identity ${JSON.stringify(identityChange)}`, async () => {
+    installProvider({
+      profiles: [ownerProfile({ rating_history_public: 1 })],
+      updateProfile: (saved, changes) => ({ saved: { ...saved, ...changes, ...identityChange } })
+    })
+    const response = await call({ method: 'PUT', body: { rating_history_public: false } })
+
+    assert.equal(response.statusCode, 502)
+    assert.equal(response.body.code, 'profile_provider_invalid')
+    assert.equal('profile' in response.body, false)
+  })
+}
+
+test('owner PUT cannot confirm a save when the persisted profile is missing', async () => {
+  installProvider({
+    profiles: [ownerProfile()],
+    readProfiles: (records, count) => json(count === 1 ? records : [])
+  })
+  const response = await call({ method: 'PUT', body: { name: 'Changed' } })
+
+  assert.equal(response.statusCode, 502)
+  assert.equal(response.body.code, 'profile_provider_invalid')
+  assert.equal('profile' in response.body, false)
+})
+
+test('owner PUT reports readback failure without claiming the persisted update failed', async () => {
+  const { state } = installProvider({
+    profiles: [ownerProfile({ rating_history_public: 1 })],
+    readProfiles: (records, count) => count === 1 ? json(records) : json({ error: 'Unavailable' }, 503)
+  })
+  const response = await call({ method: 'PUT', body: { rating_history_public: false } })
+
+  assert.equal(response.statusCode, 503)
+  assert.equal(response.body.code, 'provider_error')
+  assert.equal(state.profiles[0].rating_history_public, 0)
+  assert.equal('profile' in response.body, false)
+})
+
+test('owner PUT rejects other editable fields that did not persist', async () => {
+  installProvider({
+    profiles: [ownerProfile()],
+    updateProfile: (saved) => ({ saved })
+  })
+  const response = await call({ method: 'PUT', body: { name: 'Changed' } })
+
+  assert.equal(response.statusCode, 502)
+  assert.equal(response.body.code, 'profile_provider_invalid')
+  assert.equal('profile' in response.body, false)
+})
+
 test('private profile lookup exposes safe profile fields but does not read rating history', async () => {
   const { requests } = installProvider({ profiles: [ownerProfile()] })
   const response = await call({ path: ['profiles', 'profile_abcdefgh1234'] })
@@ -176,3 +307,4 @@ test('public profile route rejects malformed identifiers before profile provider
   assert.equal(response.body.code, 'invalid_profile_identifier')
   assert.equal(requests.some((request) => request.url.includes('/read/profiles')), false)
 })
+

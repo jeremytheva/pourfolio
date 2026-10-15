@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { __testables } from '../../../auth-proxy.js'
+import { UPSTREAM_TIMEOUT_MS } from '../../../_lib/httpSecurity.js'
 
 const TEST_INSTANCE = 'test-instance'
 const originalInstance = process.env.NOCODEBACKEND_INSTANCE
@@ -108,3 +109,54 @@ test('combined Set-Cookie fallback does not split an Expires date', () => {
     'refresh=def; Path=/api/user-auth'
   ])
 })
+
+for (const status of [200, 403]) {
+  test(`authentication proxy ${status} body consumption keeps the original request deadline`, async (context) => {
+    context.mock.timers.enable({ apis: ['setTimeout'] })
+    let requestSignal, bodyStarted
+    const reading = new Promise((resolve) => { bodyStarted = resolve })
+    context.mock.method(globalThis, 'fetch', async (_url, { signal }) => {
+      requestSignal = signal
+      context.mock.timers.tick(UPSTREAM_TIMEOUT_MS - 1)
+      return {
+        status,
+        arrayBuffer: () => new Promise((_resolve, reject) => {
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+          bodyStarted()
+        })
+      }
+    })
+
+    const pending = __testables.fetchUpstreamResponse({ method: 'GET', headers: {} }, 'providers', 'test-secret')
+    const rejected = assert.rejects(pending, { name: 'AbortError' })
+    await reading
+    assert.equal(requestSignal.aborted, false)
+    context.mock.timers.tick(1)
+    assert.equal(requestSignal.aborted, true)
+    await rejected
+  })
+}
+
+test('authentication proxy clears its timeout after buffered bodies and preserves manual redirects', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout'] })
+  const signals = []
+  const body = new ArrayBuffer(0)
+  context.mock.method(globalThis, 'fetch', async (_url, { signal }) => {
+    signals.push(signal)
+    return { status: 200, arrayBuffer: async () => body }
+  })
+  const request = { method: 'GET', headers: {} }
+  assert.equal((await __testables.fetchUpstreamResponse(request, 'providers', 'test-secret')).body, body)
+
+  globalThis.fetch = async (_url, { signal, redirect }) => {
+    signals.push(signal)
+    assert.equal(redirect, 'manual')
+    return { status: 302, arrayBuffer: () => assert.fail('redirect body must not be buffered') }
+  }
+  const result = await __testables.fetchUpstreamResponse(request, 'sign-in/google', 'test-secret')
+  assert.equal(result.upstream.status, 302)
+  assert.equal(result.body, null)
+  context.mock.timers.tick(UPSTREAM_TIMEOUT_MS)
+  assert.equal(signals.every((signal) => !signal.aborted), true)
+})
+

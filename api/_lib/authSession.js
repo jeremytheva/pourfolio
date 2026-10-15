@@ -70,11 +70,18 @@ export const requireSessionUser = async (request) => {
     throw error
   }
 
-  const upstream = await withTimeout((signal) => fetch(buildSessionUrl(), {
-    method: 'GET',
-    headers: buildSessionHeaders(request, secret),
-    signal
-  }))
+  const { upstream, payload } = await withTimeout(async (signal) => {
+    const upstream = await fetch(buildSessionUrl(), {
+      method: 'GET',
+      headers: buildSessionHeaders(request, secret),
+      signal
+    })
+    const payload = upstream.ok ? await upstream.json().catch((error) => {
+      if (signal.aborted) throw error
+      return null
+    }) : null
+    return { upstream, payload }
+  })
 
   if (!upstream.ok) {
     const error = new Error('Authentication is required.')
@@ -82,7 +89,6 @@ export const requireSessionUser = async (request) => {
     throw error
   }
 
-  const payload = await upstream.json().catch(() => null)
   const user = extractSessionUser(payload)
   if (!user) {
     const error = new Error('Authentication is required.')
@@ -99,3 +105,4 @@ export const __testables = {
   configuredInstance,
   requireConfiguredInstance
 }
+
