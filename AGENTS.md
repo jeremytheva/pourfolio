@@ -78,6 +78,22 @@ Before applying a local fix:
 - avoid duplicate adapters, competing validation paths, contradictory state documents and temporary workarounds where the existing system should be repaired;
 - prefer the smallest effective correction that preserves sound existing work.
 
+## Cross-task execution ownership and recoverable claims
+
+The four enabled scheduler workstreams have distinct implementation authority: **catalogue** (#449, cellar and add/edit stewardship), **producers** (#441/#399 and producer/venue UI), **ratings** (#165/#503/#422/#577 scoring/history/privacy), and **brew** (Brew Done It). The **catalogue task is the sole repository integration authority** for merging PRs, release coordination and material `STATUS.md` reconciliation; it must not rewrite code owned by another active task. A domain task may maintain its own PR and issue evidence but must request/await the integration slot for merges and shared status changes. Independent issue/PR work may proceed in parallel only when integration surfaces do not overlap.
+
+Before any write, each autonomous execution must obtain a **bounded claim** from `automation/coordination:.automation/claims.json` using a fresh execution ID, stable workstream, issue and PR numbers where applicable, and specific shared surfaces. Claim scopes must include each shared module as well as `repo:integration` for merges, release and `STATUS.md`. The repository-owned helper is `scripts/automation-coordination.mjs` with `node --test scripts/automation-coordination.test.mjs` regressions; the connected GitHub `fetch_file` + `update_file` operations can perform the same versioned content-SHA check when a trusted Node runner/token is unavailable. Do not put short-lived claims on `main`, bypass PR protection or assume a successful claim before readback confirms it.
+
+The lease is 30 minutes by default and never over 45 minutes. Refresh it using the same execution ID before expiry while actively writing; release after the scoped work ends. An expired lease is reclaimable using a fresh GitHub read and compare-and-swap update; expiration does not prove the previous run stopped, so reconcile its branch/PR/file writes before resuming and never reuse an unknown in-flight write. On 409/412/422, re-read and choose a nonconflicting claim rather than force-writing; retry at most four CAS attempts. On ambiguous results, read back ownership and branch/PR state before attempting the operation again. If the claim store or write capability is unavailable, **fail closed for competing mutations** and do only read-only diagnostics, separately safe testing or already-claimed independent work. Staggered hourly schedules are an optimisation, not a lock.
+
+One execution may touch many related files but must never claim unrelated broad domains to monopolise work. A domain task needing shared files/merges coordinates through the integration owner and records the dependency in its existing PR. Do not disable existing tasks as an implicit remedy.
+
+## Failure classification and continuation
+
+At each failed action: **Detect → Classify → Recover → Validate → Continue → Record**. Use: A transient service/tool (bounded exponential backoff + jitter where supported); B authentication/authorisation (no permission bypass); C stale SHA/competing write (refresh and CAS); D genuine source/test/build defect (fix, do not rerun unchanged failure); E missing browser/runtime/provider evidence (record NOT_RUN); F unavailable external dependency/capability; G security/privacy/migration/approval boundary (stop the unsafe operation); H no remaining useful safe work (do not fabricate tasks). Failed or absent CI steps are NOT_RUN; do not infer source failure or PASS.
+
+All non-idempotent GitHub changes require **read-before-write and read-after-uncertainty**: reuse stable issue/branch/PR identity, preserve commits after interrupted actions, inspect GitHub after a lost response, and only retry confirmed transient operations. Persistent failure reports must identify operation, HTTP/error category if actually present, observed remote result, recoverability and next safe fallback. Repo read success does not certify every write capability. Keep observed facts separate from suspected explanations.
+
 ## Autonomous continuation semantics
 
 `Continue`, `Next`, a scheduled supervisory run, or equivalent instruction means:
