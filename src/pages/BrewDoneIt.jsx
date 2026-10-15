@@ -34,6 +34,21 @@ const requestKey = () => `brew-done-it-${crypto.randomUUID()}`
 const terminalRound = (round) => ['completed', 'forfeited'].includes(round?.status)
 const roleFor = (round, user) => String(round?.selector_participant_id) === String(user?.id) ? 'selector' : 'guesser'
 
+const isValidStatsPayload = (payload) => {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return false
+  // Keep compatibility with older browser fixtures while requiring actual numeric totals.
+  const requiredTotals = [
+    payload.seriesCount ?? payload.completedGames,
+    payload.terminalRounds ?? payload.completedRounds,
+    payload.awardedPoints
+  ]
+  if (!requiredTotals.every((value) => typeof value === 'number' && Number.isFinite(value) && value >= 0)) return false
+  const optionalTotals = ['roundsAsGuesser', 'brewerySolved', 'exactBeerSolved', 'styleFallbackSolved', 'averagePointsPerGuessingRound']
+  if (optionalTotals.some((key) => payload[key] != null &&
+    (typeof payload[key] !== 'number' || !Number.isFinite(payload[key]) || payload[key] < 0))) return false
+  return payload.headToHead == null || Array.isArray(payload.headToHead)
+}
+
 export default function BrewDoneIt({ user, initialProductId = '' }) {
   const [game, setGame] = useState(null)
   const [round, setRound] = useState(null)
@@ -105,7 +120,7 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
     setReadState('stats', 'loading')
     try {
       const payload = await getBrewDoneItStats()
-      if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new Error('Invalid statistics response')
+      if (!isValidStatsPayload(payload)) throw new Error('Invalid statistics response')
       if (requestId !== latestRead.current.stats) return
       setStats(payload)
       setReadState('stats', 'ready')
