@@ -1,16 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "reliability-smoke": {
-      "owner": "audit-20261015-001",
-      "workstream": "reliability-smoke",
-      "issue": null,
-      "pr": null,
-      "surfaces": [
-        "smoke:isolated"
-      ],
-      "acquiredAt": "2026-10-15T13:05:06.086Z",
-      "expiresAt": "2026-10-15T13:25:06.086Z"
-    }
-  }
+  "claims": {}
 }
