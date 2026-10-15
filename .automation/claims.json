@@ -31,7 +31,7 @@
       "owner": "launch-20261015T1405-it9x5yen",
       "workstream": "launch-hardening",
       "issue": null,
-      "pr": null,
+      "pr": 642,
       "surfaces": [
         "file:api/_lib/httpSecurity.js",
         "file:api/_lib/__tests__/httpSecurity.test.js",
