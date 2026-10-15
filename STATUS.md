@@ -1,17 +1,18 @@
 ---
 project: Pourfolio
-portfolio_state: READY
+portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Dependency-correct launch continuation"
-gate: Release
-execution_state: READY
+stage: "Brewery ranking pagination validation"
+gate: Change
+execution_state: VALIDATING
 current_work:
-  objective: "Continue evidence-based independent release maintenance and reversible provider preparation; retain the failed live deletion and do not expand features before controlled certification."
-  issue: 429
+  objective: "Validate the bounded brewery ranking pagination repair while preserving separate launch/provider blockers."
+  issue: 441
   pr: null
-  branch: null
+  branch: fix/producer-ranking-pagination-20261014
 next_actions:
+  - "Obtain exact-head canonical npm run platform:validate and Playwright ranking/browser/accessibility evidence for the producer pagination branch; create a normal PR when connector creation permits."
   - "Continue only evidence-based #429 cleanup or other independent launch work; preserve live Settings/RateBeer preferences and contained future components."
   - "Retest the repaired production flows with an eligible completed-owner fixture and an opted-in distinct public author; keep unavailable connected rows pending."
   - "Run bounded connected #422 profile certification where existing credentials and cleanup safeguards support it; leave unsupported rows explicitly pending."
@@ -35,29 +36,31 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
-  current_candidate_commit: "97d29d2d7f3e185e6dbe986f9c40a5039bea5ef7"
+  observed_main_commit: "4a574823e0f2d184a3a6bea51bdd914dfe421c7c"
+  current_candidate_commit: "3c660045621c7a382ee45d25525e6d160e0984ff"
   latest_validated_commit: "97d29d2d7f3e185e6dbe986f9c40a5039bea5ef7"
   latest_deployed_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
   latest_runtime_verified_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
   latest_browser_verified_commit: "97d29d2d7f3e185e6dbe986f9c40a5039bea5ef7"
 validation:
-  governance: PASS
-  lint: PASS
+  governance: NOT_RUN
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PASS
+  tests: NOT_RUN
   build: PASS
-  ci: PASS
-  runtime: VERIFIED
+  ci: NOT_RUN
+  runtime: UNVERIFIED
 last_verified_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
-last_updated: "2026-10-08T22:06:00Z"
+last_updated: "2026-10-15T06:36:07Z"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 9 October 2026 (Australia/Sydney)
+Last materially reviewed: 15 October 2026 (Australia/Sydney)
 
 ## AI execution gate
+
+**15 October 2026 producer pagination update:** The independent ranking-page defect is corrected on `fix/producer-ranking-pagination-20261014` at source commit `3c660045621c7a382ee45d25525e6d160e0984ff`. The patch adds server-backed rankings navigation beyond the first 24 entries, global rank numbering, accessible focus restoration and a new 25-entry Playwright regression. Vercel preview deployment `dpl_6Qx7VegZVKe6sMXFBheNuJASf5K2` is READY for this exact source commit and its Vite build passed. The connector rejected PR creation before GitHub accepted it; no PR exists. Canonical `npm run platform:validate` and Playwright were **NOT RUN** for this branch. Do not merge or claim browser/connected/provider certification until current-head validation and review evidence are obtained. The previous live rating deletion failure remains unresolved and venue functionality remains unavailable.
 
 **Gate:** Release. **State:** READY for independent maintenance and reversible
 evidence preparation. The evidence fields pin the inspected production and
