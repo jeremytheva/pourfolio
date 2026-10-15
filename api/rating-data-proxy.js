@@ -931,7 +931,7 @@ const deleteRating = async (id, response, user) => {
   }
   response.status(204).end()
   } catch (error) {
-    error.workflowStage ||= workflowStage
+    error.workflowStage = workflowStage
     throw error
   }
 }
