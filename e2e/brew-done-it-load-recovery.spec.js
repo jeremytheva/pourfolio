@@ -82,3 +82,40 @@ test('deduction board remains unavailable until failed options load is retried',
   await expect(page.getByText('Deduction options could not be loaded')).toHaveCount(0)
   expect(attempts).toBe(2)
 })
+
+test('an older failed statistics request cannot hide newer successful results', async ({ page }) => {
+  let releaseFirst
+  const firstResponseGate = new Promise((resolve) => { releaseFirst = resolve })
+  let attempts = 0
+  await page.route('**/api/nocodebackend/brew-done-it/stats', async (route) => {
+    attempts += 1
+    if (attempts === 1) {
+      await firstResponseGate
+      return respond(route, { error: 'Older request failed' }, 503)
+    }
+    return respond(route, { seriesCount: 3, terminalRounds: 2, awardedPoints: 9 })
+  })
+  await page.route('**/api/nocodebackend/brew-done-it/games', (route) => {
+    if (route.request().method() !== 'GET') return route.fallback()
+    return respond(route, { series: [{ game: { id: 71, status: 'waiting' }, round: null }] })
+  })
+  await page.route('**/api/nocodebackend/brew-done-it/games/71', (route) => respond(route, {
+    game: { id: 71, status: 'waiting', creator_participant_id: 'user-2', opponent_participant_id: null },
+    rounds: []
+  }))
+
+  await page.goto('/brew-done-it')
+  await expect.poll(() => attempts).toBe(1)
+  await page.getByRole('button', { name: 'Open series' }).click()
+  await page.getByRole('button', { name: 'Refresh challenge' }).click()
+  await expect.poll(() => attempts).toBe(2)
+  await expect(page.locator('section[aria-labelledby="statistics-heading"] dd').first()).toHaveText('3')
+  const oldFailure = page.waitForResponse((response) =>
+    response.url().endsWith('/brew-done-it/stats') && response.status() === 503
+  )
+  releaseFirst()
+  await oldFailure
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  await expect(page.locator('section[aria-labelledby="statistics-heading"] dd').first()).toHaveText('3')
+})
