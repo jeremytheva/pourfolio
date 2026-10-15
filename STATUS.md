@@ -7,10 +7,10 @@ stage: "Dependency-correct launch continuation"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Continue evidence-based independent release maintenance and reversible provider preparation; retain the failed live deletion and do not expand features before controlled certification."
-  issue: 429
-  pr: null
-  branch: null
+  objective: "Repair and verify autonomous workstream coordination while completing the existing release-safe PR queue; rating deletion and provider certification remain outstanding."
+  issue: 143
+  pr: 641
+  branch: "fix/autonomous-execution-reliability-20261015"
 next_actions:
   - "Continue only evidence-based #429 cleanup or other independent launch work; preserve live Settings/RateBeer preferences and contained future components."
   - "Retest the repaired production flows with an eligible completed-owner fixture and an opted-in distinct public author; keep unavailable connected rows pending."
@@ -30,15 +30,15 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 0
+  open_implementation_prs: 3
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
+  observed_main_commit: "75133ff7f29aa69a0bdaf173b2f549afcdde179b"
   current_candidate_commit: "97d29d2d7f3e185e6dbe986f9c40a5039bea5ef7"
   latest_validated_commit: "97d29d2d7f3e185e6dbe986f9c40a5039bea5ef7"
-  latest_deployed_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
+  latest_deployed_commit: "75133ff7f29aa69a0bdaf173b2f549afcdde179b"
   latest_runtime_verified_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
   latest_browser_verified_commit: "97d29d2d7f3e185e6dbe986f9c40a5039bea5ef7"
 validation:
@@ -50,12 +50,25 @@ validation:
   ci: PASS
   runtime: VERIFIED
 last_verified_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
-last_updated: "2026-10-08T22:06:00Z"
+last_updated: "2026-10-15T13:02:29.157Z"
 ---
 
 # STATUS.md
 
 Last materially reviewed: 9 October 2026 (Australia/Sydney)
+
+## Live integration and automation reconciliation (15 October 2026 UTC)
+
+Verified against GitHub and Vercel for this reliability change:
+
+- `main`: [`75133ff7`](https://github.com/jeremytheva/pourfolio/commit/75133ff7f29aa69a0bdaf173b2f549afcdde179b), the already-merged paginated Overall/Style Scaled Score work. Vercel production deployment `dpl_HfPe1frkgrFoFgEy5yxZ24tBVzDS` reported **READY** at that SHA; this is deployment evidence only, not independent runtime or connected provider certification. Old runtime-verified and source/browser-validated SHAs remain separately recorded in the front matter and history.
+- Existing implementation PRs: [#637](https://github.com/jeremytheva/pourfolio/pull/637) (Brew Done It initial read recovery; exact-head canonical/browser evidence **NOT_RUN** as reported in PR) and [#639](https://github.com/jeremytheva/pourfolio/pull/639) (producer ranking pagination; source/browser/CodeQL/preview PASS previously recorded for head `863995a`, needs base/review recheck). Two Dependabot PRs [#635](https://github.com/jeremytheva/pourfolio/pull/635), [#636](https://github.com/jeremytheva/pourfolio/pull/636) are not implementation WIP.
+- Reliability PR [#641](https://github.com/jeremytheva/pourfolio/pull/641) is the third active implementation PR. Its targeted seven local Node regression tests passed on equivalent source; canonical project validation on the exact proposed GitHub commit is **NOT_RUN** at authoring, so it must not merge on these tests alone. No additional unrelated implementation PRs should open while WIP is 3/3.
+- Four enabled ChatGPT hourly tasks (rating at :00, Brew at :15, producer/venue at :30, catalogue + integration at :45) previously had conflicting authority over rating, brewery, shared docs and merges. Existing schedules remain enabled and staggered; ownership is split by workstream and the catalogue/product-launch task is the only integration/merge/`STATUS.md` authority. The coordination ledger was established at branch `automation/coordination`, `.automation/claims.json` (initial commit `37218c68`). Claims are bounded, content-SHA-fenced and recoverable; runner execution evidence must still be gathered before declaring the entire upgrade complete.
+- GitHub connector can create branches, files and PRs in the current session; previous failed scheduled writes have no accessible execution failure logs/error codes in the scheduler snapshot. Their exact cause is **UNVERIFIED**, not evidence that the current connector is unhealthy. GitHub Actions recent release gate and browser jobs on `main` completed, while provider jobs were skipped. A previous *live rating deletion* failure remains a **genuine unresolved product defect**, not an orchestrator diagnosis.
+- Separate `automation/coordination` branch caused a READY preview deployment. Vercel project's ignored-build command has been set to skip that branch only; verify this setting and a subsequent claim update before calling build suppression certified.
+
+**Immediate sequence:** finish #641 source/canonical validation and coordination smoke exercise, then re-evaluate #639 and #637 exact-head acceptance without inventing provider tests. Resolve material findings and integrate eligible PRs through the single integration task. Continue rating deletion diagnostics under #503 separately. Keep #165 schema mutation and other provider/security release gates intact. No owner action is established solely by this audit.
 
 ## AI execution gate
 
