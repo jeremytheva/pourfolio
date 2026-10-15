@@ -1,18 +1,17 @@
 ---
 project: Pourfolio
 portfolio_state: READY
-execution_slot: INTEGRATING
+execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
 stage: "Dependency-correct launch continuation"
 gate: Release
-execution_state: VALIDATING
+execution_state: READY
 current_work:
-  objective: "Integrate the source-validated launch boundary repairs in PR #642, verify production, then resume remaining producer and rating/provider gates."
-  issue: null
-  pr: 642
-  branch: "fix/launch-boundary-guarantees-20261015"
+  objective: "Complete the remaining live rating deletion and provider certification gates; the launch boundary fixes are merged and production health/readiness verified."
+  issue: 503
+  pr: null
+  branch: null
 next_actions:
-  - "Validate the final documentation head of #642, merge under the verified integration claim, and verify the resulting production SHA/health/readiness."
   - "Resolve #639's material producer-pagination reviews and reconcile its exact head with current main before integration."
   - "Re-evaluate #637's exact-head canonical/browser evidence; preserve Brew launch exclusion."
   - "Continue #503 deletion diagnosis only through the active ratings claimant; source repairs do not supersede the retained live failure."
@@ -31,17 +30,17 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 3
+  open_implementation_prs: 2
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "ccb92e60aa237ce7dd0af86a56fa22347925c8b2"
-  current_candidate_commit: "dcc55b54a487040a3e3e9a4f041ebbecc47b11fa"
-  latest_validated_commit: "dcc55b54a487040a3e3e9a4f041ebbecc47b11fa"
-  latest_deployed_commit: "75133ff7f29aa69a0bdaf173b2f549afcdde179b"
-  latest_runtime_verified_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
-  latest_browser_verified_commit: "dcc55b54a487040a3e3e9a4f041ebbecc47b11fa"
+  observed_main_commit: "0bd208bf10618d6a04bc46628af9ad23973e4618"
+  current_candidate_commit: "0bd208bf10618d6a04bc46628af9ad23973e4618"
+  latest_validated_commit: "830debd65814e3265fed167572f95fe95e1d366d"
+  latest_deployed_commit: "0bd208bf10618d6a04bc46628af9ad23973e4618"
+  latest_runtime_verified_commit: "0bd208bf10618d6a04bc46628af9ad23973e4618"
+  latest_browser_verified_commit: "830debd65814e3265fed167572f95fe95e1d366d"
 validation:
   governance: PASS
   lint: PASS
@@ -49,9 +48,9 @@ validation:
   tests: PASS
   build: PASS
   ci: PASS
-  runtime: UNVERIFIED
-last_verified_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
-last_updated: "2026-10-15T14:20:00Z"
+  runtime: VERIFIED
+last_verified_commit: "0bd208bf10618d6a04bc46628af9ad23973e4618"
+last_updated: "2026-10-15T14:25:00Z"
 ---
 
 # STATUS.md
@@ -60,46 +59,48 @@ Last materially reviewed: 15 October 2026 UTC
 
 ## AI execution gate
 
-Current work: launch boundary repair integration.
+Current work: continue the remaining beer-first launch gates. **Public launch
+remains NO-GO**; production configuration/readiness proof is narrower than
+connected rating/privacy certification.
 
-PR [#642](https://github.com/jeremytheva/pourfolio/pull/642) repairs the three
-launch-review findings: only the Vercel runtime trusts its forwarding header;
-profile saves require persisted identity/value readback; and all five provider
-fetch callers retain the original deadline through body consumption. The launch
-checklist in `docs/LAUNCH_READINESS.md` now separates current requirements from
-historical evidence, retains the guarded Brew exclusion and keeps provider gates open.
+PR [#642](https://github.com/jeremytheva/pourfolio/pull/642) is merged as
+`0bd208bf10618d6a04bc46628af9ad23973e4618`. It repairs all three launch-review
+findings: Vercel-only forwarding-header trust, persisted profile save readback,
+and provider deadlines that include response bodies. The launch checklist now
+maps current scope, owners and evidence while preserving dated historical records.
 
-Exact source candidate `dcc55b54a487040a3e3e9a4f041ebbecc47b11fa` passed Node
-22.23.3 canonical validation: 783 tests passed, 15 provider-gated skips, zero
-failures, plus the composed lint/audit/build/contract/security checks in run
-[38749539863](https://github.com/jeremytheva/pourfolio/actions/runs/38749539863)
-(job `116472132590`). All 140 browser/accessibility cases passed in run
-[38749600966](https://github.com/jeremytheva/pourfolio/actions/runs/38749600966)
-(job `116472208262`); CodeQL and Dependency Review passed. Independent source
-review found no material outstanding issue and PR review-thread readback was empty.
+The exact final pre-merge head `830debd65814e3265fed167572f95fe95e1d366d`
+passed canonical Node 22.23.3 validation: 783 tests passed, 15 provider-gated skips,
+zero failures, composed lint/audit/build/contract/security checks, all 140
+browser/accessibility cases, CodeQL and Dependency Review. Evidence is in run
+[38750535282](https://github.com/jeremytheva/pourfolio/actions/runs/38750535282)
+(release job `116475449411`, browser job `116475449686`). Independent source
+review found no material outstanding issue; review-thread readback was empty.
 
-Preview `dpl_DhaoVQQkQgEqHYcmUqbfzEhpB5HU` is READY. Health returned HTTP 200
-with that exact candidate SHA; readiness returned HTTP 200 with `dataProvider: ok`.
-Private preview endpoint probes were blocked by deployment authentication and
-provide no application-authorisation evidence. The connected rating/bonus jobs
-skipped; no provider mutation, live rating/cellar write, or migration occurred.
-The final handoff-only documentation head must retain its own current checks;
-this earlier source candidate does not prove a later deployment or final launch.
+Production `dpl_ETme4rrb1mXomtqaHCcse2wa1mAs` is READY. Public
+`https://brew-buds-mobile-app-design-3577.vercel.app/api/health` returned HTTP
+200 with merged SHA `0bd208bf10618d6a04bc46628af9ad23973e4618` and configured
+auth/data/rate limiting; `/api/readiness` returned HTTP 200 with the same SHA
+and `dataProvider: ok` on 15 October 2026 at 14:24 UTC. This verifies deployment,
+configuration and a bounded provider read, not connected owner writes or privacy
+revocation. The exact merged SHA's separate source/browser CI is additional
+evidence, not assumed from the pre-merge head.
 
-At this snapshot, main remains `ccb92e60aa237ce7dd0af86a56fa22347925c8b2`.
-The former integration lease expired at 14:18:07 UTC. Fresh main/PR/STATUS reads
-were reconciled before the launch execution acquired and read back the bounded
-integration claim for #642. The separate ratings lease still owns #503 and its
-rating gateway/test files; these were not changed. Three ordinary implementation
-PRs (#637, #639, #642) and two dependency PRs are open, with no dependent stack.
-No additional implementation PR should be opened before integration frees capacity.
+No provider migration or live rating/cellar write was performed. Connected
+rating/bonus jobs skipped; private preview endpoint probes hit deployment
+authentication and supply no application-authorisation evidence. The latest
+retained live rating deletion FAILED. #165 migration/uniqueness/restore/approval,
+#422 connected profile/privacy/cross-owner checks and #577 supported account-session
+evidence remain open. Follow `docs/LAUNCH_READINESS.md` for the current launch gates.
 
-Production deployed/runtime fields below retain earlier evidence until fresh
-post-merge verification exists. The latest retained live deletion FAILED;
-#165 provider migration/restore/approval, #422 privacy/cross-owner and #577
-supported account-session evidence remain open. The complete current checklist
-is in `docs/LAUNCH_READINESS.md`; no owner action is required for this bounded repair.
-
+The expired integration lease was recovered only after fresh main/PR/STATUS
+reconciliation and CAS readback. #642's merged branch was automatically removed.
+At the post-#642 snapshot, ordinary implementation PRs #637 and #639 remain open
+alongside dependency PRs #635/#636, with no dependent stack. A documentation-only
+follow-up reconciles this evidence; it does not add a feature or provider claim.
+The separate ratings workstream owns #503 and its gateway/tests; the launch repair
+did not change those files. Preserve Brew exclusion and resolve material #639
+reviews before integration. No owner decision is required for the completed fixes.
 
 ## Live integration and automation reconciliation (snapshot before #641 integration, 15 October 2026 UTC)
 
