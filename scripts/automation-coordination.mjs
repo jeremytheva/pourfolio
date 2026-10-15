@@ -29,8 +29,12 @@ export function activeClaims(document, now = Date.now()) {
   if (document?.version !== 1 || !document.claims || typeof document.claims !== 'object' || Array.isArray(document.claims)) {
     throw new Error('Invalid coordination ledger: fail closed')
   }
-  return Object.fromEntries(Object.entries(document.claims).filter(([, c]) =>
-    c && typeof c.owner === 'string' && typeof c.expiresAt === 'string' && Date.parse(c.expiresAt) > now))
+  for (const c of Object.values(document.claims)) {
+    if (!c || typeof c.owner !== 'string' || typeof c.workstream !== 'string' || !Array.isArray(c.surfaces) || typeof c.expiresAt !== 'string' || !Number.isFinite(Date.parse(c.expiresAt))) {
+      throw new Error('Malformed active or expired claim: fail closed')
+    }
+  }
+  return Object.fromEntries(Object.entries(document.claims).filter(([, c]) => Date.parse(c.expiresAt) > now))
 }
 
 export function overlaps(a, b) {
@@ -88,7 +92,7 @@ export function githubClaimStore({ repository, token, fetchImpl = fetch, pause =
   if (!/^[\w.-]+\/[\w.-]+$/.test(repository)) throw new TypeError('Invalid repository')
   if (!token) throw new RepoWriteBlocked('GITHUB_TOKEN not available; use connected GitHub CAS actions or proceed read-only')
   const endpoint = `https://api.github.com/repos/${repository}/contents/${CLAIM_PATH}`
-  const headers = { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28' }
+  const headers = { Accept: 'application/vnd.github+json', 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28' }
   const request = async (method, url, body) => {
     for (let attempt = 0; attempt < 3; attempt++) {
       let response
@@ -96,7 +100,8 @@ export function githubClaimStore({ repository, token, fetchImpl = fetch, pause =
       catch (error) { if (method !== 'GET') { const e = new Error('Ambiguous GitHub write'); e.code = 'UNCERTAIN_WRITE'; throw e }; if (attempt === 2) throw error; await pause(100 * 2 ** attempt + Math.floor(random() * 50)); continue }
       if (response.ok) return response.json()
       if ([401, 403].includes(response.status)) throw new RepoWriteBlocked(`GitHub access denied (HTTP ${response.status})`)
-      if ([409, 412, 422].includes(response.status)) { const e = new Error('GitHub revision conflict'); e.code = 'STALE_SHA'; throw e }
+      if ([409, 412].includes(response.status)) { const e = new Error('GitHub revision conflict'); e.code = 'STALE_SHA'; throw e }
+      if (response.status === 422) throw new RepoWriteBlocked('GitHub rejected claim request (HTTP 422); inspect input and policy, do not retry')
       if (TRANSIENT.has(response.status) && attempt < 2 && method === 'GET') { await pause(100 * 2 ** attempt + Math.floor(random() * 50)); continue }
       if (TRANSIENT.has(response.status) && method !== 'GET') { const e = new Error('Ambiguous transient GitHub write'); e.code = 'UNCERTAIN_WRITE'; throw e }
       throw new Error(`GitHub API HTTP ${response.status}`)
@@ -123,10 +128,13 @@ export async function runCli({ argv = process.argv.slice(2), env = process.env }
   if (!workstream) throw new TypeError('Workstream required')
   if (action === 'release') return mutateLedger(store, document => releaseNext(document, workstream, owner))
   const args = Object.fromEntries(rest.map(arg => { const i = arg.indexOf('='); if (i === -1) throw new TypeError('Expected key=value'); return [arg.slice(0, i), arg.slice(i + 1)] }))
-  return mutateLedger(store, document => claimNext(document, {
+  return mutateLedger(store, document => {
+    if (action === 'renew' && activeClaims(document)[workstream]?.owner !== owner) throw new ClaimConflict('Cannot renew a missing or differently owned lease')
+    return claimNext(document, {
     owner, workstream, issue: args.issue ? Number(args.issue) : null, pr: args.pr ? Number(args.pr) : null,
     surfaces: args.surfaces?.split(',') ?? []
-  }))
+  })
+  })
 }
 
 if (process.argv[1]?.endsWith('/automation-coordination.mjs')) {
