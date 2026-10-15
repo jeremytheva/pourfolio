@@ -601,6 +601,29 @@ test('historical reconciliation accepts the provider plural bonus field without 
   })
 })
 
+test('historical reconciliation remains unavailable via HTTP even when apply is requested', async () => {
+  const called = []
+  await withProviderMocks({
+    get: async () => { called.push('get'); throw new Error('unexpected provider get') },
+    list: async () => { called.push('list'); throw new Error('unexpected provider list') },
+    listPage: async () => { called.push('listPage'); throw new Error('unexpected provider listPage') },
+    update: async () => { called.push('update'); throw new Error('unexpected provider update') }
+  }, async () => {
+    for (const body of [{}, { apply: true }, { apply: false }]) {
+      const response = responseHarness()
+      await __testables.routeRatingRequest(
+        { method: 'POST', query: { path: ['ratings', 'reconcile'] }, body },
+        response,
+        { id: 'user-1' },
+        'blocked-rating-reconciliation'
+      )
+      assert.equal(response.statusCode, 404)
+      assert.deepEqual(response.body, { error: 'Application data route not found.' })
+    }
+  })
+  assert.deepEqual(called, [])
+})
+
 test('diagnostic rating creation route is unavailable outside Vercel Preview', async () => {
   const previous = process.env.VERCEL_ENV
   process.env.VERCEL_ENV = 'production'
