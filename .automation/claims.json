@@ -13,6 +13,19 @@
       ],
       "acquiredAt": "2026-10-15T15:44:09.506Z",
       "expiresAt": "2026-10-15T16:14:09.506Z"
+    },
+    "ratings": {
+      "owner": "ratings-20261016T0302-turn4-503-telemetry",
+      "workstream": "ratings",
+      "issue": 503,
+      "pr": null,
+      "surfaces": [
+        "file:api/rating-data-proxy.js",
+        "file:api/__tests__/ratingDataProxy.test.js",
+        "issue:503"
+      ],
+      "acquiredAt": "2026-10-15T16:04:18.276Z",
+      "expiresAt": "2026-10-15T16:34:18.276Z"
     }
   }
 }
