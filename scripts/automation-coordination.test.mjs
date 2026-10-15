@@ -75,3 +75,14 @@ test('GitHub transport classifies access denial without retrying writes', async 
   await assert.rejects(store.write(empty(), 'sha'), /GitHub access denied/)
   assert.equal(requests, 1)
 })
+
+test('malformed lease never silently expires out of coordination', () => {
+  assert.throws(() => activeClaims({ version: 1, claims: { rating: { owner: 'someone', expiresAt: 'nonsense' } } }), /fail closed/)
+})
+
+test('invalid GitHub 422 is not mistaken for a recoverable stale revision', async () => {
+  let calls = 0
+  const store = githubClaimStore({ repository: 'jeremytheva/pourfolio', token: 'test-not-real', fetchImpl: async () => { calls++; return { status: 422, ok: false } } })
+  await assert.rejects(store.write(empty(), 'blob'), /HTTP 422/)
+  assert.equal(calls, 1)
+})
