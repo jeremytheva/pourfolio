@@ -601,6 +601,84 @@ test('historical reconciliation accepts the provider plural bonus field without 
   })
 })
 
+test('historical deletion surfaces the failing child stage without changing other rating rows', async () => {
+  const rating = { id: 10, user_id: 'user-1', product_id: 4, total_weighted: 4, submission_state: 'complete' }
+  const child = { id: 20, user_id: 'user-1', rating_id: 10, attribute_id: 5, attribute_score: 6 }
+  let attemptedDeletes = 0
+  await withProviderMocks({
+    get: async (collection, id) => {
+      if (collection === COLLECTIONS.ratings && String(id) === '10') return rating
+      if (collection === COLLECTIONS.ratingScores && String(id) === '20') return child
+      return null
+    },
+    listPage: async (collection, { filters }) => {
+      const items = collection === COLLECTIONS.ratingScores ? [child] : []
+      assert.deepEqual(filters, { rating_id: '10' })
+      return { items, page: 1, pageSize: 100, total: items.length, totalPages: items.length ? 1 : 0 }
+    },
+    remove: async () => {
+      attemptedDeletes += 1
+      throw Object.assign(new Error('The request was not valid'), { status: 400 })
+    }
+  }, async () => {
+    await assert.rejects(
+      __testables.deleteRating('10', responseHarness(), { id: 'user-1' }),
+      (error) => {
+        assert.equal(error.status, 400)
+        assert.equal(error.workflowStage, 'delete_rating_child')
+        return true
+      }
+    )
+  })
+  assert.equal(attemptedDeletes, 1)
+  assert.equal(rating.submission_state, 'complete')
+})
+
+test('managed deletion identifies a provider rejection at the state transition', async () => {
+  const rating = {
+    id: 10, user_id: 'user-1', product_id: 4, total_weighted: 4,
+    submission_state: 'complete', submission_version: 0, submission_key: 'durable'
+  }
+  await withProviderMocks({
+    get: async () => rating,
+    update: async () => { throw Object.assign(new Error('The request was not valid'), { status: 400 }) },
+    listPage: async () => assert.fail('child reads must not begin after a rejected state transition')
+  }, async () => {
+    await assert.rejects(
+      __testables.deleteRating('10', responseHarness(), { id: 'user-1' }),
+      (error) => {
+        assert.equal(error.status, 400)
+        assert.equal(error.workflowStage, 'mark_rating_deleting')
+        return true
+      }
+    )
+  })
+  assert.equal(rating.submission_state, 'complete')
+})
+
+test('historical reconciliation remains unavailable via HTTP even when apply is requested', async () => {
+  const called = []
+  await withProviderMocks({
+    get: async () => { called.push('get'); throw new Error('unexpected provider get') },
+    list: async () => { called.push('list'); throw new Error('unexpected provider list') },
+    listPage: async () => { called.push('listPage'); throw new Error('unexpected provider listPage') },
+    update: async () => { called.push('update'); throw new Error('unexpected provider update') }
+  }, async () => {
+    for (const body of [{}, { apply: true }, { apply: false }]) {
+      const response = responseHarness()
+      await __testables.routeRatingRequest(
+        { method: 'POST', query: { path: ['ratings', 'reconcile'] }, body },
+        response,
+        { id: 'user-1' },
+        'blocked-rating-reconciliation'
+      )
+      assert.equal(response.statusCode, 404)
+      assert.deepEqual(response.body, { error: 'Application data route not found.' })
+    }
+  })
+  assert.deepEqual(called, [])
+})
+
 test('diagnostic rating creation route is unavailable outside Vercel Preview', async () => {
   const previous = process.env.VERCEL_ENV
   process.env.VERCEL_ENV = 'production'

@@ -848,7 +848,11 @@ const verifyDeletionState = async (id, userId, state, version) => {
 }
 
 const deleteRating = async (id, response, user) => {
+  // Only controlled stage names are logged, never identifiers or provider payloads.
+  let workflowStage = 'validate_rating_id'
+  try {
   const ratingId = positiveId(id, 'Rating identifier')
+  workflowStage = 'read_rating_parent'
   let rating = await dataProvider.get(COLLECTIONS.ratings, ratingId)
   if (!rating) { response.status(204).end(); return }
   if (!isOwnedBy(rating, user.id)) { response.status(403).json({ error: 'You are not authorised to delete this rating.' }); return }
@@ -866,23 +870,29 @@ const deleteRating = async (id, response, user) => {
       throw Object.assign(new Error('Rating deletion is temporarily unavailable.'), { status: 503, code: 'RATING_DELETE_WORKFLOW_UNAVAILABLE' })
     }
     if (rating.submission_state !== 'deleting' && rating.submission_state !== 'deleted') {
+      workflowStage = 'mark_rating_deleting'
       await dataProvider.update(COLLECTIONS.ratings, ratingId, { submission_state: 'deleting', submission_version: version + 1 })
+      workflowStage = 'verify_rating_deleting'
       rating = await verifyDeletionState(ratingId, user.id, 'deleting', version + 1)
     }
   }
+  workflowStage = 'read_rating_children'
   const childSets = await Promise.all(collections.map((collection) => ratingChildren(collection, rating)))
   for (const [index, collection] of collections.entries()) {
     const children = childSets[index]
     for (const listed of children) {
+      workflowStage = 'read_rating_child'
       const child = await dataProvider.get(collection, listed.id)
       if (!child) continue
       if (String(child.rating_id) !== String(ratingId) ||
           (String(child.user_id ?? '').trim() && !isOwnedBy(child, user.id))) {
         throw deletionConflict('The rating details changed during deletion. Please retry.')
       }
+      workflowStage = 'delete_rating_child'
       try { await dataProvider.remove(collection, child.id) } catch (error) { if (error?.status !== 404) throw error }
     }
   }
+  workflowStage = 'verify_rating_children_removed'
   for (const collection of collections) {
     let remaining
     for (const delay of RATING_STATE_VERIFY_DELAYS_MS) {
@@ -892,6 +902,7 @@ const deleteRating = async (id, response, user) => {
     }
     if (remaining.length) throw Object.assign(new Error('Rating deletion could not be confirmed yet. Please retry.'), { status: 503, code: 'RATING_DELETE_VERIFICATION_PENDING' })
   }
+  workflowStage = 'reread_rating_parent'
   const persisted = await dataProvider.get(COLLECTIONS.ratings, ratingId)
   if (!persisted && historical) { response.status(204).end(); return }
   if (!isOwnedBy(persisted, user.id)) throw deletionConflict('The rating is no longer available for deletion.')
@@ -899,7 +910,9 @@ const deleteRating = async (id, response, user) => {
     if (historicalDeletionSignature(persisted) !== historicalSignature) {
       throw deletionConflict('The rating changed during deletion. Please reload and try again.')
     }
+    workflowStage = 'delete_legacy_rating_parent'
     try { await dataProvider.remove(COLLECTIONS.ratings, ratingId) } catch (error) { if (error?.status !== 404) throw error }
+    workflowStage = 'verify_legacy_parent_removed'
     for (const delay of RATING_STATE_VERIFY_DELAYS_MS) {
       if (delay) await wait(delay)
       if (!await dataProvider.get(COLLECTIONS.ratings, ratingId)) { response.status(204).end(); return }
@@ -911,17 +924,25 @@ const deleteRating = async (id, response, user) => {
     if (persisted.submission_state !== 'deleting' || version === null || version >= Number.MAX_SAFE_INTEGER) {
       throw deletionConflict('The rating changed during deletion. Please reload and try again.')
     }
+    workflowStage = 'mark_rating_deleted'
     await dataProvider.update(COLLECTIONS.ratings, ratingId, { submission_state: 'deleted', submission_version: version + 1, deleted_at: new Date().toISOString() })
+    workflowStage = 'verify_rating_deleted'
     await verifyDeletionState(ratingId, user.id, 'deleted', version + 1)
   }
   response.status(204).end()
+  } catch (error) {
+    error.workflowStage = workflowStage
+    throw error
+  }
 }
 
 export const routeRatingRequest = async (request, response, user, correlationId) => {
   const [resource, id, action] = pathSegments(request)
   if (resource !== 'ratings') { response.status(404).json({ error: 'Application data route not found.' }); return }
   if (request.method === 'POST' && id === 'submit') return submitRating(request, response, user, correlationId)
-  if (request.method === 'POST' && id === 'reconcile') return reconcileHistoricalRatings(request, response, user)
+  // #165: historical reconciliation stays offline until the governed provider
+  // migration, recovery proof and owner approval are complete. Its internal
+  // planner remains available to isolated tests, never to an HTTP caller.
   if (request.method === 'POST' && id === 'create-diagnostic') {
     if (process.env.VERCEL_ENV !== 'preview') {
       response.status(404).json({ error: 'Application data route not found.' })
@@ -961,7 +982,7 @@ export default async function handler(request, response) {
   try { const user = await requireSessionUser(request); await routeRatingRequest(request, response, user, correlationId) }
   catch (error) {
     const status = Number(error.status) >= 400 && Number(error.status) < 600 ? Number(error.status) : 500
-    if (status >= 500) writeTelemetryError(runtimeTelemetry({ route_template: '/api/nocodebackend/ratings/:action', method: request.method, status_class: `${Math.floor(status / 100)}xx`, event_name: error.name === 'AbortError' ? 'provider_timeout' : 'gateway_failure', correlation_id: correlationId, workflow_stage: error.workflowStage, error_name: error?.name || 'Error', error_code: error?.code || error?.status || 'unknown' }))
+    if (status >= 500 || (request.method === 'DELETE' && [400, 409, 422].includes(status))) writeTelemetryError(runtimeTelemetry({ route_template: '/api/nocodebackend/ratings/:action', method: request.method, status_class: `${Math.floor(status / 100)}xx`, event_name: request.method === 'DELETE' ? 'rating_delete_failure' : error.name === 'AbortError' ? 'provider_timeout' : 'gateway_failure', correlation_id: correlationId, workflow_stage: error.workflowStage }))
     response.status(status).json(error.payload || { error: status < 500 && error.message ? error.message : safeErrorMessage(status), code: error.code, requestId: correlationId })
   }
 }
