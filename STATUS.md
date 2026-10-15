@@ -7,11 +7,14 @@ stage: "Dependency-correct launch continuation"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Continue evidence-based independent release maintenance and reversible provider preparation; retain the failed live deletion and do not expand features before controlled certification."
-  issue: 429
-  pr: null
-  branch: null
+  objective: "Integrate the existing producer and Brew recovery PRs under one execution authority, then continue dependency-correct beer-first launch work and rating/provider certification."
+  issue: 441
+  pr: 639
+  branch: "fix/producer-ranking-pagination-20261014"
 next_actions:
+  - "Address the two material #639 producer-ranking reviews (out-of-range page recovery and stale candidate SHA), validate its exact head, and submit it to sole integration authority."
+  - "Run current-head canonical and targeted browser checks for #637 Brew initial-load recovery, then integrate if evidence and resolved reviews permit."
+  - "Confirm coordination lease/recovery smoke evidence and preview-build suppression remain correct after #641 integration."
   - "Continue only evidence-based #429 cleanup or other independent launch work; preserve live Settings/RateBeer preferences and contained future components."
   - "Retest the repaired production flows with an eligible completed-owner fixture and an opted-in distinct public author; keep unavailable connected rows pending."
   - "Run bounded connected #422 profile certification where existing credentials and cleanup safeguards support it; leave unsupported rows explicitly pending."
@@ -30,15 +33,15 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 0
+  open_implementation_prs: 2
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
-  current_candidate_commit: "97d29d2d7f3e185e6dbe986f9c40a5039bea5ef7"
+  observed_main_commit: null
+  current_candidate_commit: "863995a87e437993227ccba7baa189bef2149873"
   latest_validated_commit: "97d29d2d7f3e185e6dbe986f9c40a5039bea5ef7"
-  latest_deployed_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
+  latest_deployed_commit: "75133ff7f29aa69a0bdaf173b2f549afcdde179b"
   latest_runtime_verified_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
   latest_browser_verified_commit: "97d29d2d7f3e185e6dbe986f9c40a5039bea5ef7"
 validation:
@@ -50,12 +53,25 @@ validation:
   ci: PASS
   runtime: VERIFIED
 last_verified_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
-last_updated: "2026-10-08T22:06:00Z"
+last_updated: "2026-10-15T13:15:37Z"
 ---
 
 # STATUS.md
 
 Last materially reviewed: 9 October 2026 (Australia/Sydney)
+
+## Live integration and automation reconciliation (snapshot before #641 integration, 15 October 2026 UTC)
+
+Verified against GitHub and Vercel for this reliability change:
+
+- `main`: [`75133ff7`](https://github.com/jeremytheva/pourfolio/commit/75133ff7f29aa69a0bdaf173b2f549afcdde179b), the already-merged paginated Overall/Style Scaled Score work. Vercel production deployment `dpl_HfPe1frkgrFoFgEy5yxZ24tBVzDS` reported **READY** at that SHA; this is deployment evidence only, not independent runtime or connected provider certification. Old runtime-verified and source/browser-validated SHAs remain separately recorded in the front matter and history.
+- Existing implementation PRs: [#637](https://github.com/jeremytheva/pourfolio/pull/637) (Brew Done It initial read recovery; exact-head canonical/browser evidence **NOT_RUN** as reported in PR) and [#639](https://github.com/jeremytheva/pourfolio/pull/639) (producer ranking pagination; source/browser/CodeQL/preview PASS previously recorded for head `863995a`, needs base/review recheck). Two Dependabot PRs [#635](https://github.com/jeremytheva/pourfolio/pull/635), [#636](https://github.com/jeremytheva/pourfolio/pull/636) are not implementation WIP.
+- Reliability PR [#641](https://github.com/jeremytheva/pourfolio/pull/641) was the third implementation PR at the diagnostic snapshot. Its exact-head validation subsequently passed 747 of 762 Node tests (15 provider-gated skips), 140 browser/accessibility tests, build, CodeQL and Dependency Review on `c40ba1c592141f76691ae97325648d27d735216d`; preview `dpl_CTFxv55X2dFmAoeNxJYCf1Jckz7h` was READY. A dedicated live GitHub smoke test acquired a lease, verified a 409 stale-SHA rejection, preserved the original claimant and released cleanly. The front matter is the **post-integration handoff target**; refresh `observed_main_commit` to the actual merge SHA after integration, not a guessed value.
+- Four enabled ChatGPT hourly tasks (rating at :00, Brew at :15, producer/venue at :30, catalogue + integration at :45) previously had conflicting authority over rating, brewery, shared docs and merges. Existing schedules remain enabled and staggered; ownership is split by workstream and the catalogue/product-launch task is the only integration/merge/`STATUS.md` authority. The coordination ledger was established at branch `automation/coordination`, `.automation/claims.json` (initial commit `37218c68`). Claims are bounded, content-SHA-fenced and recoverable; runner execution evidence must still be gathered before declaring the entire upgrade complete.
+- GitHub connector can create branches, files and PRs in the current session; previous failed scheduled writes have no accessible execution failure logs/error codes in the scheduler snapshot. Their exact cause is **UNVERIFIED**, not evidence that the current connector is unhealthy. GitHub Actions recent release gate and browser jobs on `main` completed, while provider jobs were skipped. A previous *live rating deletion* failure remains a **genuine unresolved product defect**, not an orchestrator diagnosis.
+- Separate `automation/coordination` branch initially caused a READY preview deployment. After the Vercel ignored-build command was scoped to that branch, the two later claim-update deployments (`dpl_CCr4NBZRikjEYGYUf2WWKzTV9LBG` and `dpl_D4S7mmAeie8PX7hJ3VJwGeRxPCox`) were CANCELED as intended. Production `main` and regular PR builds remained available.
+
+**Immediate sequence:** finish #641 source/canonical validation and coordination smoke exercise, then re-evaluate #639 and #637 exact-head acceptance without inventing provider tests. Resolve material findings and integrate eligible PRs through the single integration task. Continue rating deletion diagnostics under #503 separately. Keep #165 schema mutation and other provider/security release gates intact. No owner action is established solely by this audit.
 
 ## AI execution gate
 
