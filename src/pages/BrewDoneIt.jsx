@@ -51,6 +51,7 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
   const [announcement, setAnnouncement] = useState('')
   const [canRetryAction, setCanRetryAction] = useState(false)
   const lastAction = useRef(null)
+  const latestRead = useRef({ series: 0, stats: 0, options: 0 })
   const role = roleFor(round, user)
   const setReadState = useCallback((resource, status) => {
     setReadStatus((current) => ({ ...current, [resource]: status }))
@@ -86,40 +87,46 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
   }, [])
 
   const loadSeries = useCallback(async () => {
+    const requestId = ++latestRead.current.series
     setReadState('series', 'loading')
     try {
       const payload = await getBrewDoneItGames()
       if (!Array.isArray(payload?.series)) throw new Error('Invalid series response')
+      if (requestId !== latestRead.current.series) return
       setSeries(payload.series)
       setReadState('series', 'ready')
     } catch {
-      setReadState('series', 'error')
+      if (requestId === latestRead.current.series) setReadState('series', 'error')
     }
   }, [setReadState])
 
   const loadStats = useCallback(async () => {
+    const requestId = ++latestRead.current.stats
     setReadState('stats', 'loading')
     try {
       const payload = await getBrewDoneItStats()
       if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new Error('Invalid statistics response')
+      if (requestId !== latestRead.current.stats) return
       setStats(payload)
       setReadState('stats', 'ready')
     } catch {
-      setReadState('stats', 'error')
+      if (requestId === latestRead.current.stats) setReadState('stats', 'error')
     }
   }, [setReadState])
 
   const loadOptions = useCallback(async () => {
+    const requestId = ++latestRead.current.options
     setReadState('options', 'loading')
     try {
       const payload = await getBrewDoneItOptions()
       if (!Array.isArray(payload?.breweries) || !Array.isArray(payload?.styles) || !Array.isArray(payload?.beers)) {
         throw new Error('Invalid deduction options response')
       }
+      if (requestId !== latestRead.current.options) return
       setOptions(payload)
       setReadState('options', 'ready')
     } catch {
-      setReadState('options', 'error')
+      if (requestId === latestRead.current.options) setReadState('options', 'error')
     }
   }, [setReadState])
 
