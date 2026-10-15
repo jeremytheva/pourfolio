@@ -1,4 +1,18 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "integration": {
+      "owner": "catalogue-20261016T004637-a91c",
+      "workstream": "integration",
+      "issue": null,
+      "pr": 637,
+      "surfaces": [
+        "file:STATUS.md",
+        "pr:637",
+        "repo:integration"
+      ],
+      "acquiredAt": "2026-10-15T13:48:07.678Z",
+      "expiresAt": "2026-10-15T14:18:07.678Z"
+    }
+  }
 }
