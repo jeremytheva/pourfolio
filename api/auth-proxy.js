@@ -141,6 +141,18 @@ const copyResponseHeaders = (upstream, response) => {
   if (cookies.length) response.setHeader('Set-Cookie', cookies.map(secureCookie))
 }
 
+const fetchUpstreamResponse = (request, path, secret) => withTimeout(async (signal) => {
+  const upstream = await fetch(buildUpstreamUrl(request, path), {
+    method: request.method,
+    headers: buildUpstreamHeaders(request, secret),
+    body: getRequestBody(request, path),
+    redirect: 'manual',
+    signal
+  })
+  const body = upstream.status >= 300 && upstream.status < 400 ? null : await upstream.arrayBuffer()
+  return { upstream, body }
+})
+
 const providerCredentialFailure = (path, status) => (
   PROVIDER_CREDENTIAL_ACTIONS.has(path) && (status === 401 || status === 403)
 )
@@ -193,13 +205,7 @@ export default async function handler(request, response) {
   if (!await enforceSharedRateLimit(request, response, path, { requestId: correlationId })) return
 
   try {
-    const upstream = await withTimeout((signal) => fetch(buildUpstreamUrl(request, path), {
-      method: request.method,
-      headers: buildUpstreamHeaders(request, secret),
-      body: getRequestBody(request, path),
-      redirect: 'manual',
-      signal
-    }))
+    const { upstream, body } = await fetchUpstreamResponse(request, path, secret)
 
     copyResponseHeaders(upstream, response)
 
@@ -208,7 +214,6 @@ export default async function handler(request, response) {
       return
     }
 
-    const body = await upstream.arrayBuffer()
     if (!upstream.ok) {
       const eventName = providerCredentialFailure(path, upstream.status)
         ? 'auth_provider_unauthorised'
@@ -254,6 +259,7 @@ export const __testables = {
   buildUpstreamUrl,
   configuredAuthBaseUrl,
   configuredInstance,
+  fetchUpstreamResponse,
   getRequestBody,
   getRequestPath,
   providerCredentialFailure,
@@ -265,3 +271,4 @@ export const __testables = {
   secureCookie,
   upstreamAuthOrigin
 }
+

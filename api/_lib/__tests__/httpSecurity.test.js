@@ -15,13 +15,50 @@ test('same-origin browser requests are accepted', () => {
   }), true)
 })
 
-test('client address ignores spoofable x-forwarded-for', () => {
+test('Vercel client address uses only its overwritten forwarding header', () => {
   assert.equal(getClientAddress({
     headers: {
       'x-vercel-forwarded-for': '203.0.113.1',
       'x-forwarded-for': '198.51.100.9'
-    }
-  }), '203.0.113.1')
+    },
+    socket: { remoteAddress: '192.0.2.1' }
+  }, { VERCEL: '1' }), '203.0.113.1')
+})
+
+test('Node client address ignores all client-supplied forwarding headers', () => {
+  const request = {
+    headers: { 'x-vercel-forwarded-for': '203.0.113.1', 'x-forwarded-for': '198.51.100.9' },
+    socket: { remoteAddress: '192.0.2.1' }
+  }
+  assert.equal(getClientAddress(request, {}), '192.0.2.1')
+  assert.equal(getClientAddress(request, { VERCEL: '0' }), '192.0.2.1')
+  assert.equal(getClientAddress({ headers: request.headers }, {}), 'unknown')
+})
+
+test('Vercel addresses handle arrays and fall back to the socket when absent', () => {
+  assert.equal(getClientAddress({
+    headers: { 'x-vercel-forwarded-for': ['203.0.113.1, 192.0.2.2'] }
+  }, { VERCEL: '1' }), '203.0.113.1')
+  assert.equal(getClientAddress({ headers: {}, socket: { remoteAddress: '192.0.2.1' } }, { VERCEL: '1' }), '192.0.2.1')
+})
+
+test('changing forwarding headers on Node cannot reset a local rate-limit bucket', () => {
+  __resetRateLimitsForTests()
+  const previousVercel = process.env.VERCEL
+  delete process.env.VERCEL
+  const response = { setHeader() {}, status(code) { this.statusCode = code; return this }, json() {} }
+  const request = (address) => ({
+    headers: { 'x-vercel-forwarded-for': address }, socket: { remoteAddress: '192.0.2.1' }
+  })
+  try {
+    assert.equal(enforceRateLimit(request('203.0.113.1'), response, { limit: 1 }), true)
+    assert.equal(enforceRateLimit(request('203.0.113.2'), response, { limit: 1 }), false)
+    assert.equal(response.statusCode, 429)
+  } finally {
+    if (previousVercel === undefined) delete process.env.VERCEL
+    else process.env.VERCEL = previousVercel
+    __resetRateLimitsForTests()
+  }
 })
 
 test('cross-origin browser requests are rejected by default', () => {
@@ -57,10 +94,10 @@ test('expired local buckets are cleaned and attacker-generated state is bounded'
   Date.now = () => now
   const response = { setHeader() {}, status() { return this }, json() {} }
   try {
-    enforceRateLimit({ headers: { 'x-vercel-forwarded-for': 'expired' } }, response, { windowMs: 1 })
+    enforceRateLimit({ socket: { remoteAddress: 'expired' } }, response, { windowMs: 1 })
     now += 2
     for (let index = 0; index < 5_100; index += 1) {
-      enforceRateLimit({ headers: { 'x-vercel-forwarded-for': String(index) } }, response)
+      enforceRateLimit({ socket: { remoteAddress: String(index) } }, response)
     }
     assert.equal(__rateLimitBucketCountForTests() <= 5_000, true)
   } finally {

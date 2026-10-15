@@ -12,6 +12,7 @@ import { createInMemoryRedis } from './inMemoryRedis.js'
 
 const request = (email = ' Person@Example.COM ') => ({
   headers: { 'x-vercel-forwarded-for': '203.0.113.8' },
+  socket: { remoteAddress: '203.0.113.8' },
   body: { email }
 })
 
@@ -30,7 +31,8 @@ test('account and client identifiers produce namespaced opaque keys', () => {
   const differentAccountKey = buildSharedRateLimitKey(request('other@example.com'), 'sign-in/email', 'secret')
   const differentAddressKey = buildSharedRateLimitKey({
     ...request(),
-    headers: { 'x-vercel-forwarded-for': '203.0.113.9' }
+    headers: { 'x-vercel-forwarded-for': '203.0.113.9' },
+    socket: { remoteAddress: '203.0.113.9' }
   }, 'sign-in/email', 'secret')
   const namespace = 'pourfolio:auth:signin:'
 
@@ -49,6 +51,27 @@ const authenticationPolicies = [
   { path: 'sign-in/otp', limit: 10, windowMs: 15 * 60_000 },
   { path: 'verify-otp', limit: 8, windowMs: 15 * 60_000 }
 ]
+
+test('Node forwarding header rotation cannot reset the shared authentication limit', async () => {
+  const previousVercel = process.env.VERCEL
+  delete process.env.VERCEL
+  const redis = createInMemoryRedis()
+  try {
+    const decisions = []
+    for (let index = 0; index <= AUTH_RATE_LIMITS['sign-in/email'].limit; index += 1) {
+      decisions.push(await checkSharedRateLimit({
+        ...request(),
+        headers: { 'x-vercel-forwarded-for': `198.51.100.${index + 1}` }
+      }, 'sign-in/email', { keySecret: 'secret', redis }))
+    }
+    assert.equal(decisions[0].count, 1)
+    assert.equal(decisions.at(-1).count, AUTH_RATE_LIMITS['sign-in/email'].limit + 1)
+    assert.equal(decisions.at(-1).allowed, false)
+  } finally {
+    if (previousVercel === undefined) delete process.env.VERCEL
+    else process.env.VERCEL = previousVercel
+  }
+})
 
 for (const expectedPolicy of authenticationPolicies) {
   test(`${expectedPolicy.path} applies its configured request boundary`, async () => {

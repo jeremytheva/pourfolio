@@ -128,8 +128,19 @@ export const sanitiseProfileUpdates = (input) => {
 export const updateOwnerProfile = async (user, input) => {
   const existing = await ensureOwnerProfile(user)
   const updates = sanitiseProfileUpdates(input)
-  const updated = first(await dataProvider.update(COLLECTIONS.profiles, existing.id, updates))
-  const merged = { ...existing, ...(updated || {}), ...updates }
-  if (!isOwnedBy(merged, user.id) || String(merged.public_id) !== String(existing.public_id)) throw providerFailure()
-  return merged
+  await dataProvider.update(COLLECTIONS.profiles, existing.id, updates)
+
+  const saved = await findOwnedProfile(user.id)
+  if (!saved || String(saved.id) !== String(existing.id) ||
+      String(saved.public_id) !== String(existing.public_id)) throw providerFailure()
+
+  const projected = projectOwnerProfile(saved)
+  for (const [field, value] of Object.entries(updates)) {
+    if (field === 'rating_history_public' &&
+        ![true, false, 1, 0, '1', '0'].includes(saved.rating_history_public)) throw providerFailure()
+    const expected = field === 'rating_history_public' ? profileHistoryIsPublic(value) : value
+    if (projected[field] !== expected) throw providerFailure()
+  }
+  return saved
 }
+
