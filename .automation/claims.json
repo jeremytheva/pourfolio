@@ -1,4 +1,16 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "brew": {
+      "owner": "brew-20261016T0311Z-pr637-run9",
+      "workstream": "brew",
+      "issue": null,
+      "pr": 637,
+      "surfaces": [
+        "pr:637:readiness-evidence"
+      ],
+      "acquiredAt": "2026-10-16T03:11:03.844Z",
+      "expiresAt": "2026-10-16T03:26:03.844Z"
+    }
+  }
 }
