@@ -141,3 +141,21 @@ test('malformed successful statistics response stays in error state until retry'
   await expect(page.getByRole('alert')).toHaveCount(0)
   expect(attempts).toBe(2)
 })
+
+test('legacy statistics aliases are normalized before rendering', async ({ page }) => {
+  await page.route('**/api/nocodebackend/brew-done-it/games', (route) => {
+    if (route.request().method() !== 'GET') return route.fallback()
+    return respond(route, { series: [] })
+  })
+  await page.route('**/api/nocodebackend/brew-done-it/stats', (route) =>
+    respond(route, { completedGames: 3, completedRounds: 2, awardedPoints: 9 })
+  )
+
+  await page.goto('/brew-done-it')
+  const record = page.locator('section[aria-labelledby="statistics-heading"]')
+  await expect(record).toBeVisible()
+  await expect(record.locator('dd').nth(0)).toHaveText('3')
+  await expect(record.locator('dd').nth(1)).toHaveText('2')
+  await expect(record.locator('dd').nth(7)).toHaveText('9')
+  await expect(page.getByRole('alert')).toHaveCount(0)
+})
