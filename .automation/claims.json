@@ -1,18 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "brew": {
-      "owner": "brew-20261016T1218Z-pr637-nested-stats-r12",
-      "workstream": "brew",
-      "issue": null,
-      "pr": 637,
-      "surfaces": [
-        "e2e/brew-done-it-load-recovery.spec.js",
-        "pr:637:source",
-        "src/pages/BrewDoneIt.jsx"
-      ],
-      "acquiredAt": "2026-10-16T12:17:59.560Z",
-      "expiresAt": "2026-10-16T12:47:59.560Z"
-    }
-  }
+  "claims": {}
 }
