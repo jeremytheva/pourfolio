@@ -2,7 +2,7 @@
   "version": 1,
   "claims": {
     "brew": {
-      "owner": "brew-20261016T1011Z-pr637-nested-stats-r11",
+      "owner": "brew-20261016T1218Z-pr637-nested-stats-r12",
       "workstream": "brew",
       "issue": null,
       "pr": 637,
@@ -11,8 +11,8 @@
         "pr:637:source",
         "src/pages/BrewDoneIt.jsx"
       ],
-      "acquiredAt": "2026-10-16T10:11:28.672Z",
-      "expiresAt": "2026-10-16T10:41:28.672Z"
+      "acquiredAt": "2026-10-16T12:17:59.560Z",
+      "expiresAt": "2026-10-16T12:47:59.560Z"
     }
   }
 }
