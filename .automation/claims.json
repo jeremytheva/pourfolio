@@ -1,18 +1,18 @@
 {
   "version": 1,
   "claims": {
-    "integration": {
-      "owner": "integration-20261016T0846Z-pr637-run9",
-      "workstream": "integration",
+    "brew": {
+      "owner": "brew-20261016T1011Z-pr637-nested-stats-r11",
+      "workstream": "brew",
       "issue": null,
       "pr": 637,
       "surfaces": [
-        "repo:integration",
-        "pr:637:merge",
-        "STATUS.md"
+        "e2e/brew-done-it-load-recovery.spec.js",
+        "pr:637:source",
+        "src/pages/BrewDoneIt.jsx"
       ],
-      "acquiredAt": "2026-10-16T08:47:00.000Z",
-      "expiresAt": "2026-10-16T09:17:00.000Z"
+      "acquiredAt": "2026-10-16T10:11:28.672Z",
+      "expiresAt": "2026-10-16T10:41:28.672Z"
     }
   }
 }
