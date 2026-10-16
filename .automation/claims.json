@@ -1,16 +1,18 @@
 {
   "version": 1,
   "claims": {
-    "brew": {
-      "owner": "brew-20261016T0311Z-pr637-run9",
-      "workstream": "brew",
+    "integration": {
+      "owner": "integration-20261016T0540Z-pr637-run9",
+      "workstream": "integration",
       "issue": null,
       "pr": 637,
       "surfaces": [
-        "pr:637:readiness-evidence"
+        "STATUS.md",
+        "pr:637:merge",
+        "repo:integration"
       ],
-      "acquiredAt": "2026-10-16T03:11:03.844Z",
-      "expiresAt": "2026-10-16T03:26:03.844Z"
+      "acquiredAt": "2026-10-16T05:41:05.634Z",
+      "expiresAt": "2026-10-16T06:06:05.634Z"
     }
   }
 }
