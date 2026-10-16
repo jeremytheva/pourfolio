@@ -156,6 +156,6 @@ test('legacy statistics aliases are normalized before rendering', async ({ page 
   await expect(record).toBeVisible()
   await expect(record.locator('dd').nth(0)).toHaveText('3')
   await expect(record.locator('dd').nth(1)).toHaveText('2')
-  await expect(record.locator('dd').nth(7)).toHaveText('9')
+  await expect(record.locator('dl > div').nth(6).locator('dd').first()).toHaveText('9')
   await expect(page.getByRole('alert')).toHaveCount(0)
 })
