@@ -13,6 +13,20 @@
       ],
       "acquiredAt": "2026-10-16T05:41:05.634Z",
       "expiresAt": "2026-10-16T06:06:05.634Z"
+    },
+    "catalogue": {
+      "owner": "catalogue-20261016T0545Z-449-run9",
+      "workstream": "catalogue",
+      "issue": 449,
+      "pr": null,
+      "surfaces": [
+        "api/_lib/dataPolicy.js",
+        "api/_lib/__tests__/dataPolicy.test.js",
+        "api/cellar-data-proxy.js",
+        "api/nocodebackend/__tests__/cellarOwnership.test.js"
+      ],
+      "acquiredAt": "2026-10-16T05:42:31.784Z",
+      "expiresAt": "2026-10-16T06:02:31.784Z"
     }
   }
 }
