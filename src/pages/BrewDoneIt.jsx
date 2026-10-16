@@ -122,7 +122,12 @@ export default function BrewDoneIt({ user, initialProductId = '' }) {
       const payload = await getBrewDoneItStats()
       if (!isValidStatsPayload(payload)) throw new Error('Invalid statistics response')
       if (requestId !== latestRead.current.stats) return
-      setStats(payload)
+      // The accepted legacy totals must be projected to the canonical keys used by the record view.
+      setStats({
+        ...payload,
+        seriesCount: payload.seriesCount ?? payload.completedGames,
+        terminalRounds: payload.terminalRounds ?? payload.completedRounds
+      })
       setReadState('stats', 'ready')
     } catch {
       if (requestId === latestRead.current.stats) setReadState('stats', 'error')
