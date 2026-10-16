@@ -1,19 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "catalogue-20261017T0945-a10",
-      "workstream": "catalogue",
-      "issue": 449,
-      "pr": null,
-      "surfaces": [
-        "file:api/cellar-data-proxy.js",
-        "file:api/_lib/__tests__/cellarWriteBoundary.test.js",
-        "file:api/_lib/dataPolicy.js",
-        "issue:449"
-      ],
-      "acquiredAt": "2026-10-16T22:48:19.606Z",
-      "expiresAt": "2026-10-16T23:18:19.606Z"
-    }
-  }
+  "claims": {}
 }
