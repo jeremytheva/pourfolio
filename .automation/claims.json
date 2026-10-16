@@ -1,18 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "integration": {
-      "owner": "integration-20261017T0945-a10",
-      "workstream": "integration",
-      "issue": null,
-      "pr": 637,
-      "surfaces": [
-        "repo:integration",
-        "pr:637",
-        "file:STATUS.md"
-      ],
-      "acquiredAt": "2026-10-16T22:46:55.235Z",
-      "expiresAt": "2026-10-16T23:11:55.235Z"
-    }
-  }
+  "claims": {}
 }
