@@ -1,21 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "integration": {
-      "owner": "integration-20261018T0750-r10-449",
-      "workstream": "integration",
-      "issue": 449,
-      "pr": null,
-      "surfaces": [
-        "repo:integration",
-        "api/_lib/dataPolicy.js",
-        "api/cellar-data-proxy.js",
-        "api/_lib/__tests__/cellarSchemaContract.test.js",
-        "api/_lib/__tests__/cellarWriteBoundary.test.js",
-        "api/nocodebackend/__tests__/cellarOwnership.test.js"
-      ],
-      "acquiredAt": "2026-10-17T20:53:22.912Z",
-      "expiresAt": "2026-10-17T21:23:22.912Z"
-    }
-  }
+  "claims": {}
 }
