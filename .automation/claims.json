@@ -1,17 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "launch-plan-20261018-1792320002701",
-      "workstream": "catalogue",
-      "issue": 154,
-      "pr": null,
-      "surfaces": [
-        "docs/LAUNCH_READINESS.md",
-        "repo:integration"
-      ],
-      "acquiredAt": "2026-10-18T10:40:02.701Z",
-      "expiresAt": "2026-10-18T11:10:02.701Z"
-    }
-  }
+  "claims": {}
 }
