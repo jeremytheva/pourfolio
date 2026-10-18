@@ -1,7 +1,7 @@
 # Launch readiness
 
-Last reconciled: **15 October 2026 UTC**. Source review baseline:
-[`ccb92e60aa237ce7dd0af86a56fa22347925c8b2`](https://github.com/jeremytheva/pourfolio/commit/ccb92e60aa237ce7dd0af86a56fa22347925c8b2).
+Last reconciled: **18 October 2026 UTC**. Source review baseline:
+[`acd8633494066c66e2d882d7317009669397de39`](https://github.com/jeremytheva/pourfolio/commit/acd8633494066c66e2d882d7317009669397de39).
 The initial checklist reconciliation added no connected-provider or migration
 certification. Subsequent bounded deployment evidence is recorded below and in
 `STATUS.md`.
@@ -117,6 +117,163 @@ hidden navigation, bundled test surface and explicit backend policy contract.
 Repeat canonical validation and applicable browser/accessibility checks on the
 exact candidate; static containment evidence alone does not certify gameplay
 or deployed policy.
+
+## Launch execution plan — 18 October 2026
+
+### Reviewed position
+
+The recommended path is to finish the existing beer-first release, qualify one
+candidate and run a controlled pilot before public launch. Public launch remains
+**NO-GO**. New feature growth and a hosting/framework migration are not prerequisites.
+
+Live review baseline:
+`acd8633494066c66e2d882d7317009669397de39`. Production deployment
+`dpl_8t1QfZgSXtPCZ6bTdCdF2ypVypeQ` reports READY at that SHA. Public health
+and readiness returned HTTP 200 at approximately 10:33 UTC on 18 October with
+matching provenance, configured authentication/data/shared rate limiting and
+`dataProvider: ok`. This verifies configuration and a bounded read, not owner writes.
+
+Exact-main run [38752087946](https://github.com/jeremytheva/pourfolio/actions/runs/38752087946)
+executed canonical acceptance (job `116480799187`: 783 passed, 15 skipped,
+zero failed, plus composed contract/lint/audit/build/security checks) and 140
+browser/accessibility cases (job `116480799367`). Connected rating-integrity
+and bonus-mapping jobs skipped. Required connected rows remain open.
+
+### Dependency-ordered delivery
+
+| Stage | Required work | Exit criterion |
+| --- | --- | --- |
+| A — Baseline | Confirm release/data scope, current claims and existing PR evidence. Reuse #503/#165/#144/#154/#449/#422/#577 and existing release documents. | One bounded queue and dated evidence baseline; no duplicate launch backlog. |
+| B — Rating/provider integrity | Correlate the #503 deletion failure, fix the verified operation, complete #165 provider authority/restore/approval prerequisites and certify the approved write path under #144. | Connected create, identical/lost-response retry, changed-payload rejection, partial-child recovery, concurrency, historical/current deletion and cleanup pass. |
+| C — Core journeys/data | Repair cellar validation under #449; certify sessions/rate limits, catalogue, score calculations, history/breakdowns, profile privacy/revocation and owner isolation using two distinct accounts. Reconcile data actually included at launch. | Every required connected journey passes with evidence and cleanup; no required skip or unresolved integrity/privacy defect. |
+| D — Publication/operations | Complete the existing publication/configuration/operations procedures, support contacts, named operators/backups, monitoring/redaction, provider restore and deployment rollback. Reconcile dated scope/prose. | Effective reviewed public documents, exercised support/alert routes and demonstrated compatible recovery. |
+| E — Candidate qualification | Freeze one SHA after fixes/public content integrate; execute canonical/browser/connected acceptance and verify actual production SHA, configuration, schema state and failure paths. | Dated release decision with complete exact-candidate evidence and no material unresolved reviews. |
+| F — Pilot/public release | After B–E pass, invite a small representative group, observe repeat use, repair material defects and record release GO before widening access. | Pilot acceptance and exact-candidate public release approval recorded. |
+
+A can start immediately. B diagnosis, C reversible fixes/read-only preparation
+and D can progress independently where dependencies and verified claims permit.
+E waits for B–D. A pilot never waives integrity, privacy or recovery requirements.
+Recommended pilot observation is 10–20 invited adults over 7–14 days; this is not
+a promised launch date or a newly scheduled automation.
+
+### First implementation slices
+
+1. **#503 — deletion diagnosis:** use an isolated disposable fixture reproducing
+   the affected historical/managed shape, or a separately authorised controlled
+   retest. Capture release SHA, safe request ID, failing provider stage/status
+   and before/after counts. Add a focused regression and fix the verified cause.
+   PR #638's diagnostic logging is not itself evidence that deletion works.
+2. **#449 — strict cellar validation:** the reviewed production sanitiser
+   `api/_lib/dataPolicy.js` reproducibly accepts `date_received: "2026-02-30"`
+   as `2026-03-02`, numeric date `0` as `1970-01-01`,
+   `quantity: true` as `1`, and `gift: "false"` as `1`.
+   Reject impossible dates and unsupported JSON types before provider I/O while
+   preserving accepted valid-zero, optional-null and numeric-form semantics.
+   Cover both creates and partial updates.
+3. **#165/#144 — provider evidence:** #503 records workflow columns as deployed.
+   Establish actual fields and guarantees from a fresh consistent baseline;
+   do not repeat deployed changes blindly or equate column presence with
+   uniqueness/conditional-update/backfill/recovery certification. Complete the
+   existing provider-supported mechanism, isolated restore and explicit
+   irreversible-change approval package before the remaining provider work.
+   Keep the public reconciliation boundary unavailable until its governed gate.
+4. **#422/#577 — privacy/session certification:** supported login credentials
+   and two distinct sessions must prove default-private creation, uniqueness,
+   stable public identity, persisted edits/opt-in, copied links, revocation and
+   cross-owner denial. Database Secret Keys are not login passwords.
+
+### Required journey coverage
+
+Use the existing release harness and record exact candidate, environment,
+UTC interval, operator, result, safe evidence reference and cleanup for each row.
+
+- Supported registration/sign-in, session refresh/expiry/revocation/sign-out,
+  enabled email/OTP delivery and local/shared auth limits at the actual proxy boundary.
+- Catalogue browse/search/no results, deterministic full pagination, stable direct
+  product links, collaboration/category integrity and provider failure recovery.
+- Current scoring contract: personalised/default weights, zero-weight omissions,
+  derived Bonus, optional Design/Burp, stored historical totals, PPP price/volume
+  boundaries and Overall/Style Scaled Score ties/multi-page populations.
+- Reliable new/historical owner history across reload and a new session/device;
+  exact own/other-author links and actual recorded component/descriptor breakdowns.
+  Never reconstruct past ratings from today's weighting settings.
+- Default-private profile/history, opt-in and immediate revocation, copied-link
+  behaviour, second-account privacy and update denial, no stale private content.
+- Owner cellar CRUD, optional relationships without a series, valid primitives,
+  Gift/Gift-from clearing, invalid-input rejection and verified fixture cleanup.
+- Missing-beer/correction initiation truthfully respects persistence/image/lookup
+  capability gates. Do not imply an unavailable proposal was saved.
+- Connected Safari/iPhone and Android/Chromium smoke, keyboard, screen reader,
+  200% zoom, narrow screens, slow-network and accessible error/retry behaviour.
+
+### Source-data and documentation findings
+
+Fresh read-only repository audits against the supplied historical files produced:
+
+- **Catalogue BLOCKED:** 350 products, 159 producers and 331 categories with 209
+  finding records. These include missing references, category ancestry/cycles,
+  duplicate sort-key rows and encoding. Counts overlap.
+- **Historical SQL BLOCKED:** 34 structural findings against the current target.
+  The old export does not prove those fields are absent from the live provider.
+- **Cross-reference BLOCKED:** 53 findings using the supplied workbook's
+  `Ready_Ratings` (593 rows) and `Cellar_Staging` (399 rows), paired with the
+  product/producer CSVs: 29 product-to-producer, 14 rating-to-product and 10
+  cellar-to-product occurrences. Keep this exact-input result separate from
+  the older retained 46-occurrence/41-task remediation record.
+- The workbook retains 604 source ratings (593 marked ready, 11 excluded),
+  4,177 uploadable scores (15 excluded), 69 unmatched bonus selections across
+  10 variants, and 399 prepared cellar entries without verified owners or
+  confirmed destination IDs. Readiness labels do not establish completed import.
+
+These inputs are not evidenced as a same-state current-provider export. Certify
+a fresh launch catalogue/history snapshot. Recommend keeping unimported,
+unreconciled candidates separate from the first release dataset; this does not
+authorise deleting or hiding existing live history. Any bulk import still needs
+reviewed mappings, identity evidence, dry run, idempotent rerun and restore proof.
+
+Update existing specialist documents rather than adding competing authorities:
+
+- `docs/RATING_FORMULA_V1.md` describes historical v1 weights including
+  Design/Burp, while `src/lib/ratingFormulaV1.js` declares v2 and current core
+  weights (Appearance 10%, Aroma 10%, Mouthfeel 20%, Flavour 25%, Follow 25%,
+  Bonus 10%). Reconcile accepted personalisation/Bonus, scale, rounding and
+  historical semantics without rewriting historical totals.
+- `docs/OPERATIONS_READINESS.md` still describes provider readiness as deferred.
+  Reconcile it with the implemented endpoint and retain actual safety/evidence limits.
+- `src/data/publicDocuments.js` still contains RC draft/not-effective content,
+  unapproved operator details and no approved public support contact. Complete
+  the existing required independent publication review and workable support,
+  access/correction/deletion process. Future self-service account lifecycle
+  remains distinct from current privacy obligations and is not silently added.
+
+### Queue, ownership and release boundaries
+
+Catalogue remains sole integration/release/shared-status authority. Ratings,
+producers and Brew retain their scopes. Use verified bounded claims, ordinary
+PRs, at most three implementation PRs and stack depth two.
+
+At review, #637 and #639 were the two open implementation PRs; #635/#636 were
+dependency PRs. #639 has unresolved recovery and candidate-provenance reviews.
+#637's body is stale: exact-head runs `38828882651`/`38828876697` report
+successful validation. Inspect executed jobs/reviews and reconcile the body
+before integration. Brew remains outside the launch critical path. Do not add
+routine major dependency upgrades solely because a PR exists.
+
+The repository describes four scheduler workstreams, but the private task lookup
+exposed none in this review session. Verify authoritative task visibility,
+execution capability and recent outcomes before relying on unattended work.
+This is a visibility limitation, not proof that no tasks exist; avoid duplicates.
+
+Keep Brew Done It excluded/policy-disabled, and preserve existing deferred
+social/venue/business/geography/photo/non-beer gates. No new feature phase or
+hosting move is needed. Vercel is the currently verified target; BonoHost would
+need its own target-specific evidence if selected.
+
+Jeremy need not manage routine engineering. Escalate only concrete unavailable
+credentials/provider capabilities, irreversible-change approval, ambiguous
+historical identity decisions, necessary named external assignments and the
+public release decision after reversible preparation. Do not request blanket
+permission to begin.
 
 ## Retained source-hardening record — July–August 2026
 
