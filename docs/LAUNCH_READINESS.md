@@ -20,6 +20,12 @@ The dated July–August records later in this document are retained history;
 their results must not be presented as certification of this source baseline or
 a future release candidate.
 
+## Continuous launch-readiness traceability (Project Master pilot)
+
+The scoped traceability index at [`.project-master/launch-readiness.json`](../.project-master/launch-readiness.json) maps existing product goals, acceptance criteria and issue links to implementation/test paths and the evidence locations already owned by this document. It does **not** replace this launch checklist or duplicate its PASS/FAIL/NO-GO state.
+
+`npm run check:launch-readiness` verifies the index. The advisory **Launch Readiness Impact** workflow classifies pull-request changed files and issue/defect events and publishes a GitHub step summary. The project integration authority must review affected and unmapped items, reconcile this document and linked tests/issues, and retain failed/superseded evidence before considering a requirement closed. The workflow cannot certify a connected provider, approve an irreversible migration, override the latest failed rating delete or authorise launch. The existing dependency-scoped blockers and NO-GO decision remain unchanged.
+
 ## Current launch checklist
 
 `PARTIAL` means some source or historical runtime evidence exists, with required
