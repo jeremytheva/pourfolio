@@ -186,10 +186,27 @@ const main = async () => {
       () => catalogue.getProduct(productId, response)
     )
     assert.equal(response.statusCode, 200, 'canonical product projection must succeed')
-    assert.deepEqual(response.body?.ratingSummary, {
+    const expectedSummary = {
       count: expectedTotals.length,
       average: roundedAverage(expectedTotals)
-    }, 'product community aggregate must equal the complete 0-5 rating population')
+    }
+    const reportedSummary = response.body?.ratingSummary
+    if (reportedSummary?.count !== expectedSummary.count ||
+        reportedSummary?.average !== expectedSummary.average) {
+      // Diagnose provider filtered vs unfiltered reads without disclosing
+      // product IDs, rating IDs or owners in CI transcripts.
+      const scopedRows = await readStage('product_discrepancy_scoped_inventory', () =>
+        listAll(COLLECTIONS.ratings, { product_id: productId }))
+      const scopedCompleted = scopedRows.filter((rating) =>
+        String(rating.product_id) === String(productId) && isCompletedRating(rating))
+      const globalIds = new Set(productRatings.map((rating) => String(rating.id)))
+      const scopedIds = new Set(scopedCompleted.map((rating) => String(rating.id)))
+      const error = new Error(
+        `Community aggregate population mismatch: globalCount=${expectedSummary.count}, providerFilteredCount=${scopedCompleted.length}, reportedCount=${reportedSummary?.count ?? 'missing'}, globalMissingFromFiltered=${productRatings.filter((rating) => !scopedIds.has(String(rating.id))).length}, providerFilteredMissingFromGlobal=${scopedCompleted.filter((rating) => !globalIds.has(String(rating.id))).length}.`
+      )
+      error.auditStage = 'product_aggregate_projection'
+      throw error
+    }
   }
 
   const [bonusMappings, bonusAttributes] = await Promise.all([
