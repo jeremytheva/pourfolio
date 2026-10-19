@@ -1,4 +1,30 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "full-rating-test-20261019-1792375392214-catalogue",
+      "workstream": "catalogue",
+      "issue": 449,
+      "pr": null,
+      "surfaces": [
+        "STATUS.md",
+        "repo:integration",
+        "runtime:catalogue-qa"
+      ],
+      "acquiredAt": "2026-10-19T02:03:12.214Z",
+      "expiresAt": "2026-10-19T02:33:12.214Z"
+    },
+    "ratings": {
+      "owner": "full-rating-test-20261019-1792375392214-ratings",
+      "workstream": "ratings",
+      "issue": 503,
+      "pr": null,
+      "surfaces": [
+        "runtime:bonus-qa",
+        "runtime:ratings-qa"
+      ],
+      "acquiredAt": "2026-10-19T02:03:12.214Z",
+      "expiresAt": "2026-10-19T02:33:12.214Z"
+    }
+  }
 }
