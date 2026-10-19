@@ -1,4 +1,19 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "ratings": {
+      "owner": "bonus-live-audit-20261019-1792379209525",
+      "workstream": "ratings",
+      "issue": 165,
+      "pr": 651,
+      "surfaces": [
+        "scripts/audit-live-bonus-rating-mapping.js",
+        "scripts/__tests__/liveBonusRatingMappingAudit.test.js",
+        "docs/nocodebackend/rating-workflow-certification.md",
+        "repo:ratings-qa"
+      ],
+      "acquiredAt": "2026-10-19T03:06:49.525Z",
+      "expiresAt": "2026-10-19T03:41:49.525Z"
+    }
+  }
 }
