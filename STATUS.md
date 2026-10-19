@@ -3,22 +3,22 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Browser shell cleanup source/preview verified; isolated provider-write checks waiting"
+stage: "Brewery unrated-card fix merged; guarded provider write and legacy-data certification still blocked"
 gate: Release
 execution_state: VALIDATING
 current_work:
-  objective: "Complete guarded isolated bonus write/readback/owner-isolation/cleanup certification under #651; preserve pending provider and historical data gates."
-  issue: 503
+  objective: "Certify current-instance guarded bonus and cellar writes, recover historical provider integrity with approved backup/rollback, and finish cross-account release checks."
+  issue: 165
   pr: 651
   branch: "fix/bonus-point-persistence-readback-20261019"
 next_actions:
   - "Investigate one persisted rating with submission_state=complete and deleted_at set; obtain verified record/child ownership, backup, rollback and governed approval before any repair."
-  - "Complete #651 guarded isolated-staging custom bonus create/readback/owner-isolation/cleanup certification before merge; 81 global bonus point values are absent and cannot be inferred."
+  - "Complete #651 exact-candidate current-instance custom bonus create/readback/second-account-denial/cleanup only after a verified, bounded owner-safe cleanup path exists; 81 stored point values remain absent and must not be guessed."
   - "Prepare #165 uniqueness, version/conditional update and backup/restore evidence for controlled migration; retain approval boundary."
-  - "Review #657: new cellar create/edit/delete source checks passed, but connected controlled writes, two-account ownership and safe cleanup are NOT_RUN; obtain isolated fixtures before merge."
+  - "Certify #657 exact-candidate cellar create/edit/delete, owner A/B denial and verified fixture cleanup on the authorised current instance when safe rollback and release-account sessions are established."
   - "For the 966 ownerless historical cellar rows, establish provenance and a backed-up, reviewed migration or archival decision; do not assign users by inference."
-  - "Run #422/#577 distinct-session privacy and authorization checks when supported staging sessions are available."
-  - "Use merged #656 commit as source baseline; preserve the one incomplete rating deletion and ownerless cellar history findings as explicit data gates."
+  - "Run #422/#577 distinct-session privacy and authorization checks with supported release accounts; current-instance testing is authorised but does not replace account separation."
+  - "Use merged #664 commit as the source baseline; preserve the incomplete rating deletion and 966 ownerless cellar history records as separate release blockers."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
@@ -36,7 +36,7 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "f7f27dcf004d2ed59a7a0366455a064619414487"
+  observed_main_commit: "0085cb35ab42216a5c96f7bf68113e8447bb61dc"
   current_candidate_commit: null
   latest_validated_commit: "c33187dbf4e562d6e6f2d8246a97ac3cd48650ee"
   latest_deployed_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
@@ -51,7 +51,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "c33187dbf4e562d6e6f2d8246a97ac3cd48650ee"
-last_updated: "2026-10-19T11:44:55Z"
+last_updated: "2026-10-19T13:29:00Z"
 ---
 
 # STATUS.md
@@ -59,6 +59,44 @@ last_updated: "2026-10-19T11:44:55Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Producer profile integration and current-instance certification — 19 October 2026, 13:29 UTC
+
+[PR #664](https://github.com/jeremytheva/pourfolio/pull/664)
+was integrated by the catalogue workstream under an exclusive repository
+integration lease as merge commit `0085cb35ab42216a5c96f7bf68113e8447bb61dc`.
+The producer profile safely renders unrated beer cards under filter and
+sort controls without weakening the strict API aggregate validator.
+Exact-head pull-request evidence at `c28e16b8`: **828** Node 22
+source tests passed, **15** provider-gated skips, **155** browser and
+accessibility tests passed, CodeQL and Dependency Review passed,
+no unresolved review threads, and Vercel preview
+`dpl_2xAyM6sUW7uuKB2iyuuGQWaHMxos` was READY for that
+same source SHA. The merge-to-main checks remain distinct from this
+candidate acceptance and do not certify current provider operations.
+
+The owner authorised **current-instance testing** for #651;
+a separate database is not required solely for that test. This does
+not authorise guessed deletions, irreversible migrations or use of
+database keys as login credentials. In a bounded authenticated
+**non-writing** current-instance check, an existing private QA
+`0.7` descriptor and global `0.5` descriptor rendered and summed
+correctly. No new custom attribute was created or deleted; the bonus
+handler currently has **POST only**, without a verified safe owner
+delete route. Consequently, #651 custom write/readback, second-account
+denial and cleanup remain **NOT_RUN** at its latest candidate source.
+
+PR #657 cellar create/edit/delete source checks have passed, but
+connected write/retry, A/B owner isolation and guaranteed cleanup
+remain **NOT_RUN**. The read-only inventory establishes **966/967**
+historical cellar rows without `user_id`; the historical 500-row CSV
+likewise contains **zero** populated `user_id` and
+`purchased_by_id` values, but it is not proof of live account identity.
+Do not backfill. One historical rating with contradictory
+`submission_state=complete` plus `deleted_at`, and one surviving
+score child, remains a separate governed recovery gate under #165.
+Provider and launch state: **NO-GO**.
+
 
 ### Independent launch shell cleanup — 19 October 2026
 
