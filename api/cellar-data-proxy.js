@@ -89,7 +89,7 @@ const matchesRequestedCellarValue = (field, actual, expected) => {
 // saved. Verify the persisted private record; never return a fabricated
 // merged object as an acknowledged cellar mutation.
 export const verifyPersistedCellar = async ({ provider = dataProvider, id, userId, expected }) => {
-  if (!/^[1-9]\\d*$/.test(String(id ?? ''))) throw cellarPersistenceError()
+  if (!/^[1-9]\d*$/.test(String(id ?? ''))) throw cellarPersistenceError()
   const stored = await provider.get(COLLECTIONS.cellar, id)
   if (!stored || String(stored.id) !== String(id) || String(stored.user_id ?? '') !== String(userId)) {
     throw cellarPersistenceError()
