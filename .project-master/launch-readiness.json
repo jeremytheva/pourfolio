@@ -59,8 +59,8 @@
         "#144"
       ],
       "change_paths": [
-        "api/_lib/**provider*",
-        "api/_lib/**rating*",
+        "api/_lib/**provider**",
+        "api/_lib/**rating**",
         "data/**",
         "scripts/*schema*",
         "scripts/*baseline*",
@@ -87,8 +87,8 @@
         "#165"
       ],
       "change_paths": [
-        "api/**rating*",
-        "api/**ratings*",
+        "api/**rating**",
+        "api/**ratings**",
         "src/**/Rating*",
         "e2e/*rating*",
         "release-check/*rating*",
@@ -112,11 +112,11 @@
       "applicability": "required",
       "criticality": "blocking",
       "issue_refs": [
-        "#503"
+        "PR #651"
       ],
       "change_paths": [
-        "api/**bonus*",
-        "api/**Bonus*",
+        "api/**bonus**",
+        "api/**Bonus**",
         "src/**/Bonus*",
         "src/**/bonus*",
         "e2e/bonus-attributes.spec.js",
@@ -141,9 +141,9 @@
         "#154"
       ],
       "change_paths": [
-        "api/**catalogue*",
-        "api/**producer*",
-        "api/**product*",
+        "api/**catalogue**",
+        "api/**producer**",
+        "api/**product**",
         "src/**/Product*",
         "src/**/Producer*",
         "src/**/Search*",
@@ -172,7 +172,7 @@
         "#449"
       ],
       "change_paths": [
-        "api/**cellar*",
+        "api/**cellar**",
         "src/**/Cellar*",
         "e2e/cellar*",
         "release-check/**cellar*"
@@ -197,8 +197,8 @@
         "#422"
       ],
       "change_paths": [
-        "api/**profile*",
-        "api/**history*",
+        "api/**profile**",
+        "api/**history**",
         "src/**/Profile*",
         "e2e/*profile*",
         "e2e/*history*",
@@ -256,7 +256,8 @@
         "package.json",
         ".github/workflows/**",
         "docs/OPERATIONS_READINESS.md",
-        "docs/PUBLICATION_AND_RELEASE_EVIDENCE.md"
+        "docs/PUBLICATION_AND_RELEASE_EVIDENCE.md",
+        "release-check/**"
       ],
       "test_refs": [
         "release-check/connected.spec.js",
