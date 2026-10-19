@@ -354,3 +354,7 @@ Do not require the product owner to reconstruct technical state manually from co
 Work is COMPLETE only when its acceptance outcome and relevant real-system evidence exist, known dependent work is not hidden by the completion claim, project state is current and the required release/completion evidence is sufficient. Otherwise use the explicit state supported by evidence (for example IMPLEMENTING, VALIDATING, READY, BLOCKED, DEPLOYED or VERIFIED).
 
 Reviewers must check regressions and edge cases, authorisation bypasses, unsafe data operations, missing schema/migration evidence, missing tests, accessibility/security regressions, unnecessary complexity, scope creep, stale project documentation and inaccurate provider/deployment claims.
+
+## Living launch-readiness pilot
+
+For every feature, defect, review correction or release change, inspect `.project-master/launch-readiness.json`, run `npm run check:launch-readiness`, and review the advisory changed-path or issue impact report. The catalogue integration authority reconciles impacted requirements against **existing** `docs/LAUNCH_READINESS.md`, tests, evidence and issue state, without creating a separate launch sign-off. Unmapped relevant changes require deliberate classification. A mapped PR or green source validation never qualifies provider, connected browser, runtime or release evidence. Preserve the current NO-GO and issue #165/#503/#577 boundaries until independently verified.
