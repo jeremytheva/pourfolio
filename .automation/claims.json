@@ -4,20 +4,16 @@
     "catalogue": {
       "owner": "launch-implementation-20261019-1792369717792",
       "workstream": "catalogue",
-      "issue": 449,
-      "pr": 648,
+      "issue": 154,
+      "pr": null,
       "surfaces": [
         "STATUS.md",
-        "api/_lib/__tests__/cellarSchemaContract.test.js",
-        "api/_lib/__tests__/cellarWriteBoundary.test.js",
-        "api/_lib/dataPolicy.js",
-        "api/nocodebackend/__tests__/cellarOwnership.test.js",
-        "docs/LAUNCH_READINESS.md",
-        "docs/nocodebackend/schema-mapping.md",
+        "docs/OPERATIONS_READINESS.md",
+        "docs/RATING_FORMULA_V1.md",
         "repo:integration"
       ],
       "acquiredAt": "2026-10-19T00:28:37.792Z",
-      "expiresAt": "2026-10-19T01:10:56.504Z"
+      "expiresAt": "2026-10-19T01:15:28.380Z"
     }
   }
 }
