@@ -1,17 +1,18 @@
 {
   "version": 1,
   "claims": {
-    "catalogue": {
-      "owner": "status-integration-20261019-1792380860956",
-      "workstream": "catalogue",
+    "ratings": {
+      "owner": "bonus-mapping-persistence-20261019-1792381417546",
+      "workstream": "ratings",
       "issue": 165,
-      "pr": null,
+      "pr": 651,
       "surfaces": [
-        "STATUS.md",
-        "repo:integration"
+        "api/bonus-attribute-data-proxy.js",
+        "api/_lib/__tests__/bonusAttributeCreation.test.js",
+        "docs/nocodebackend/rating-workflow-certification.md"
       ],
-      "acquiredAt": "2026-10-19T03:34:20.956Z",
-      "expiresAt": "2026-10-19T03:59:20.956Z"
+      "acquiredAt": "2026-10-19T03:43:37.546Z",
+      "expiresAt": "2026-10-19T04:17:37.546Z"
     }
   }
 }
