@@ -1,18 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "ratings": {
-      "owner": "bonus-mapping-persistence-20261019-1792381417546",
-      "workstream": "ratings",
-      "issue": 165,
-      "pr": 651,
-      "surfaces": [
-        "api/bonus-attribute-data-proxy.js",
-        "api/_lib/__tests__/bonusAttributeCreation.test.js",
-        "docs/nocodebackend/rating-workflow-certification.md"
-      ],
-      "acquiredAt": "2026-10-19T03:43:37.546Z",
-      "expiresAt": "2026-10-19T04:17:37.546Z"
-    }
-  }
+  "claims": {}
 }
