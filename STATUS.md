@@ -3,20 +3,20 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Tombstoned completed rating included in catalogue aggregates; #652 fixes shared predicate"
+stage: "Tombstone-aware community scoring deployed; one inconsistent provider rating remains for review"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Resolve the live rating population discrepancy, certify source-safe bonus point persistence and preserve blocked provider-write gates."
+  objective: "Safely disposition one contradictory completed/deleted rating, complete connected bonus write and rating/cellar/privacy certification, and retain provider migration gates."
   issue: 165
-  pr: 652
-  branch: "fix/live-rating-audit-completion-parity-20261019"
+  pr: 651
+  branch: "fix/bonus-point-persistence-readback-20261019"
 next_actions:
-  - "Validate #652 tombstone-aware product and producer aggregates with the full source suite and connected read-only rating audit; preserve actual provider inconsistency and deletion certification gates."
-  - "Review #651 source acceptance and actual provider point-value readout; guarded disposable write/readback/cleanup remains required before custom bonus create is certified."
+  - "Investigate one persisted rating with submission_state=complete and deleted_at set; obtain verified record/child ownership, backup, rollback and governed approval before any repair."
+  - "Complete #651 guarded isolated-staging custom bonus create/readback/owner-isolation/cleanup certification before merge; 81 global bonus point values are absent and cannot be inferred."
   - "Prepare #165 uniqueness, version/conditional update and backup/restore evidence for controlled migration; retain approval boundary."
   - "Run #449 guarded cellar/catalogue test and #422/#577 distinct-session privacy checks when supported staging fixtures are available."
-  - "Reconcile STATUS after accepted PR integration, deployment evidence and exact commit checks."
+  - "Use the deployed #652 commit as the source baseline, retain failing connected data finding as a release gate, and rerun release certification only after verified provider remediation."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
@@ -29,27 +29,27 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 2
+  open_implementation_prs: 1
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "d82a991e5578b66dfb97a344785ef0e0453b3dd3"
+  observed_main_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
   current_candidate_commit: null
-  latest_validated_commit: "78501ec93d1b9d55a1c266a81b1957dd44f58f37"
-  latest_deployed_commit: "d82a991e5578b66dfb97a344785ef0e0453b3dd3"
+  latest_validated_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
+  latest_deployed_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
   latest_runtime_verified_commit: "2c8d88e8f8d466e8adc26c1a44d5a9814ca18033"
-  latest_browser_verified_commit: "78501ec93d1b9d55a1c266a81b1957dd44f58f37"
+  latest_browser_verified_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
 validation:
   governance: PASS
   lint: PASS
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: PASS
+  ci: BLOCKED
   runtime: UNVERIFIED
-last_verified_commit: "78501ec93d1b9d55a1c266a81b1957dd44f58f37"
-last_updated: "2026-10-19T03:20:00Z"
+last_verified_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
+last_updated: "2026-10-19T03:34:00Z"
 ---
 
 # STATUS.md
@@ -57,6 +57,59 @@ last_updated: "2026-10-19T03:20:00Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Deployed tombstone scoring repair; outstanding provider state — 19 October 2026, 03:34 UTC
+
+PR [#652](https://github.com/jeremytheva/pourfolio/pull/652)
+merged as `d233a7e39f7c643df3a04900066d8ba3e8a83c73`.
+It replaces the catalogue's duplicate, tombstone-unaware completion rule
+with the shared history predicate. Production deployment
+`dpl_49Z9yhWwzyMKdmhvotHuPAkEPW98` is **READY** and its GitHub
+provenance matches that exact merge SHA. This is deployment metadata
+evidence, **not** an independently verified authenticated HTTP/write test.
+
+The [PR source acceptance run 39194592481](https://github.com/jeremytheva/pourfolio/actions/runs/39194592481)
+passed Node 22 canonical `npm run platform:validate` (802 passed,
+15 provider-gated skips, zero test failures), all 149 browser/accessibility
+tests, Dependency Review and CodeQL at exact source head `fbd367eb`.
+The merged main run
+[39194986241](https://github.com/jeremytheva/pourfolio/actions/runs/39194986241)
+passed canonical source/browser checks, but the **overall GitHub run is
+FAILED for an actual connected provider data-integrity finding**.
+It must not be described as a fully passing release or dismissed as an
+empty diagnostic workflow.
+
+On [read-only run 39194588209](https://github.com/jeremytheva/pourfolio/actions/runs/39194588209)
+the connected audit reported 627 ratings, 574 eligible completions,
+1,744 verified singular bonus relationships and owner/history/product
+population agreement after the source correction. It returned
+`REVIEW_REQUIRED` / exit 2 because **one** stored rating still has
+`submission_state=complete` and a nonempty `deleted_at`. This
+contradiction remains a separate **live provider data-integrity and
+terminal-delete certification** gate. Do not mutate, remove, backfill,
+or silently reclassify the row without verified owner/child state,
+approved snapshot/restore/recovery authority and a cleanup protocol.
+The source change merely excludes the tombstoned record from
+community metrics.
+
+PR [#651](https://github.com/jeremytheva/pourfolio/pull/651)
+is the sole open implementation PR; its source acceptance and
+read-only bonus mapping audit passed, but controlled isolated-staging
+custom `point_value` create/readback/second-account denial/cleanup
+remain **NOT_RUN**. Live bonus attributes: 83 total (82 global,
+one private), 81 blank/null point values, only one explicit global
+value (`0.5`), zero malformed values. Legacy display fallback
+`0.2` is not proof of intended values for the missing records;
+do not invent data or backfill them. Dependency PRs #645/#646/#647
+remain separate.
+
+**Launch NO-GO.** Issue #503 is closed as implemented source work;
+provider migration/certification #165/#144, profile/privacy #422,
+distinct release sessions #577 and connected cellar/catalogue #449
+retain separate evidence gates. Later plans should pick independent
+provider-safe work instead of repeatedly reopening closed #503 or
+inventing custom bonus values.
+
 
 ### Live read-only continuation — 19 October 2026, 03:20 UTC
 
