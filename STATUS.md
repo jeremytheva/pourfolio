@@ -3,14 +3,14 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Connected rating test repaired and source-validated; isolated write/provider gates retained"
+stage: "Browser shell cleanup validating; isolated provider-write checks waiting"
 gate: Release
-execution_state: READY
+execution_state: VALIDATING
 current_work:
-  objective: "Qualify the isolated bonus write and cleanup path under #651 while retaining pending cellar, terminal-delete and missing-value provider gates."
-  issue: 165
-  pr: 651
-  branch: "fix/bonus-point-persistence-readback-20261019"
+  objective: "Repair the missing app icon and remove the provably unused stylesheet under #429 while isolated provider-write gates remain pending."
+  issue: 429
+  pr: null
+  branch: "fix/launch-shell-cleanup-20261019"
 next_actions:
   - "Investigate one persisted rating with submission_state=complete and deleted_at set; obtain verified record/child ownership, backup, rollback and governed approval before any repair."
   - "Complete #651 guarded isolated-staging custom bonus create/readback/owner-isolation/cleanup certification before merge; 81 global bonus point values are absent and cannot be inferred."
@@ -31,14 +31,14 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 2
+  open_implementation_prs: 3
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
+  observed_main_commit: "f7f27dcf004d2ed59a7a0366455a064619414487"
   current_candidate_commit: null
-  latest_validated_commit: "e52b630e57375eb71a7bed5500b688934911bff2"
+  latest_validated_commit: "e8c154dfbbb243fcaa713d56ece8716bc07ddbc4"
   latest_deployed_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
   latest_runtime_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
   latest_browser_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
@@ -50,8 +50,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "e52b630e57375eb71a7bed5500b688934911bff2"
-last_updated: "2026-10-19T09:49:00Z"
+last_verified_commit: "e8c154dfbbb243fcaa713d56ece8716bc07ddbc4"
+last_updated: "2026-10-19T11:41:21Z"
 ---
 
 # STATUS.md
@@ -59,6 +59,40 @@ last_updated: "2026-10-19T09:49:00Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Independent launch shell cleanup — 19 October 2026
+
+The live-write boundary remains in place. Existing PR #651 at `9edb94ea`
+passed 852 source tests / 15 provider-gated skips and all 151 browser cases,
+Dependency Review and CodeQL in run 39241276192. It rejects known/malformed
+create identities and removes unsafe compensating deletion. Existing PR #657
+at `ad41c594` passed 853 source tests / 15 skips and 151 browser cases.
+Both remain unmerged pending connected writes, separate-account denial, cleanup
+and exact-head rollout evidence. Vercel reported deployment rate limiting; no
+new preview or independent production deployment is claimed. Isolated target
+configuration remains unknown, not evidence of missing credentials. The owner
+has been asked for the isolated deployment URL and test-instance name only.
+
+The bounded #429 slice repairs a broken shell asset reference: `index.html`
+requests `/vite.svg`, but the current Git tree contains no such asset. It now
+uses a bundled local Pourfolio monogram at `/favicon.svg`. Two browser cases
+require real image MIME/body and successful image decoding on public and
+authenticated deep routes, so SPA HTTP 200 fallback cannot falsely pass.
+`src/App.css` is deleted because the whole current source tree has no import
+or consumer; `src/main.jsx` uses `index.css`. Its legacy styles remain
+recoverable in Git. No other deferred source is removed and no live records,
+provider schema, auth, rating policy or user data are changed. Canonical
+validation and browser acceptance for this slice are **PENDING**; the new PR
+must record its exact source/deployment evidence before integration.
+
+PR #662 is already merged as `f7f27dcf004d2ed59a7a0366455a064619414487`;
+its final `e8c154df` passed 828 source tests / 15 skips, all 151 browser cases,
+Dependency Review and CodeQL (run 39232880890). This section supersedes older
+active-queue statements below. With this new slice, the three-implementation-PR
+WIP limit is reached: validate/integrate existing work before adding another.
+The isolated bonus/cellar gates, retained private QA attribute, 81 missing
+bonus point values and historical deletion/ownership findings remain open.
+Public launch remains **NO-GO**.
 
 ### Connected rating driver and cleanup repair — 19 October 2026
 
