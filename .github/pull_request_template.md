@@ -16,6 +16,14 @@ Closes #
 
 ## Files or modules affected
 
+## Launch readiness impact
+
+- Applicable launch requirement IDs (from `.project-master/launch-readiness.json`), or reason none apply:
+- What acceptance/tests/evidence need reconciliation:
+- Unmapped change classification / linked defect:
+
+The Launch Readiness Impact workflow is advisory; do not assert PASS based on this mapping alone.
+
 ## Acceptance criteria verification
 
 - [ ] Criterion 1
