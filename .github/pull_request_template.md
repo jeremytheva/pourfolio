@@ -18,7 +18,7 @@ Closes #
 
 ## Launch readiness impact
 
-- Applicable launch requirement IDs (from `.project-master/launch-readiness.json`), or reason none apply:
+- Launch requirement IDs (use exact line `Launch requirement IDs: PF-LAUNCH-...` if known), or reason none apply:
 - What acceptance/tests/evidence need reconciliation:
 - Unmapped change classification / linked defect:
 
