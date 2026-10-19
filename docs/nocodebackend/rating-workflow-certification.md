@@ -1,5 +1,39 @@
 # Rating workflow staging certification
 
+## Merged bonus release and production smoke — 20 October 2026 Sydney
+
+PR #651 merged as `4019c90e5ba342b654361109b0fe8896117f18c4` after final
+candidate `cf9a972cc03cdd78cb091cc661745084c1761f7c` passed
+[Node 22 validation 39332306413](https://github.com/jeremytheva/pourfolio/actions/runs/39332306413):
+896 source tests, 15 gated skips, 155 browser/accessibility cases, Dependency
+Review and CodeQL. Production `dpl_6ZymFxn4dysG2hMeSBzPF5LRt1bj` is READY.
+Public `https://brew-buds-mobile-app-design-3577.vercel.app/api/health`
+and `/api/readiness` returned HTTP 200 and that exact merged SHA, with
+authentication, data and rate limiting configured. The workflow auth pin
+now matches this observed production release; the older auth SHA in the
+historical runs below remains accurate.
+
+Authenticated non-writing checks verified search, product details/history
+and the producer's unrated-beer filter. In the nine-step rating form, five
+required scores of 4/7, skipped Design/Burp and six bonus selections produced
+2.00 points, Bonus 2/2 and 3.07/5. Stored global 0.5/private 0.7 rendered
+correctly and summed to 1.20 before the remaining four selections. The draft
+was discarded; totals remained four community/two personal ratings, with
+existing links preserved. No new rating or attribute was submitted.
+
+[Main run 39332757207](https://github.com/jeremytheva/pourfolio/actions/runs/39332757207)
+passed source/browser and read-only bonus checks: 83 attributes (82 global,
+one earlier private QA), 81 absent values, one explicit global 0.5 and
+1,738 mappings using the certified singular field. The separate rating audit
+failed on the known historical completed/deleted parent and surviving score
+child; no repair was attempted. The earlier manual private 0.7 QA record is
+outside this test's random fixture scope.
+
+The bounded provider result below remains persistence/reload/unused-fixture
+cleanup PASS: two creates, two exact deletes, no mutation retry, no fixture
+from that run remains. HTTP/browser custom creation/rating use, distinct-account
+denial and concurrency are separate pending checks. Public launch is NO-GO.
+
 ## Bounded current-instance bonus persistence test
 
 The owner approved the current instance for testing on 19 October 2026 at
