@@ -18,6 +18,16 @@ values. This change does **not** invent historical point allocations or
 backfill provider records. Current production data must be re-read before
 any proposed corrective migration.
 
+The existing **read-only** connected mapping audit now also reports a
+redacted inventory of actual provider `point_value` fields: global/private
+row counts, explicit/missing/invalid values and aggregate point-value counts
+for global attributes only. It does not log descriptions, individual IDs or
+account identifiers, backfill missing values or treat the legacy fallback as
+provider-persisted data. `LEGACY_FALLBACK_PRESENT` is evidence of missing
+stored values, not an automatic mapping failure or authorisation to guess
+their intended points. A `REVIEW_REQUIRED` inventory needs investigation of
+invalid/out-of-range values before release.
+
 Connected certification still requires a disposable owner-created attribute
 with a non-default value (for example `0.7`), server write/readback,
 category mapping, rating use, reload, exact provider query, denial from a
