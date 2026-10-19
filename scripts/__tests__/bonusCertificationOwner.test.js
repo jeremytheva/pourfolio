@@ -3,17 +3,27 @@ import test from 'node:test'
 import { resolveBonusCertificationOwner } from '../bonus-certification-owner.js'
 
 const environment = {
-  NOCODEBACKEND_INSTANCE: 'test-instance', NOCODEBACKEND_AUTH_SECRET_KEY: 'private-service-key',
+  BONUS_CERTIFICATION_BASE_URL: 'https://pourfolio-test-jeremythevas-projects.vercel.app',
+  BONUS_CERTIFICATION_SHA: 'a'.repeat(40),
   RELEASE_OWNER_EMAIL: 'Owner@example.test', RELEASE_OWNER_PASSWORD: 'private-login-password'
 }
 const fixture = (options = {}) => {
   const calls = []
-  const fetchImpl = async (url, init) => {
+  const fetchImpl = async (input, init) => {
+    const url = new URL(input)
     const action = url.pathname.split('/').at(-1)
     calls.push({ url, init, action })
-    assert.equal(url.origin, 'https://app.nocodebackend.com')
-    assert.equal(url.searchParams.get('instance'), 'test-instance')
-    assert.equal(init.headers.authorization, 'Bearer private-service-key')
+    if (action === 'readiness') {
+      assert.equal(init.headers.cookie, undefined)
+      assert.equal(init.headers.authorization, undefined)
+      return new Response(JSON.stringify({ status: 'ready',
+        release: { commitSha: options.wrongSha ? 'b'.repeat(40) : environment.BONUS_CERTIFICATION_SHA, environment: 'preview' },
+        checks: { dataProvider: 'ok' } }), { status: 200 })
+    }
+    assert.equal(url.origin, environment.BONUS_CERTIFICATION_BASE_URL)
+    assert.equal(url.pathname.startsWith('/api/nocodebackend/auth/'), true)
+    assert.equal(init.headers.origin, environment.BONUS_CERTIFICATION_BASE_URL)
+    assert.equal(init.headers.authorization, undefined)
     assert.equal(init.redirect, 'error')
     if (options.unavailable) throw new Error('Sensitive provider error, do not disclose')
     if (action === 'email') return new Response('{}', {
@@ -47,10 +57,23 @@ test('missing both owner configurations blocks before any request and exposes na
 test('release authentication resolves the session owner and signs out before returning its ID', async () => {
   const f = fixture()
   assert.deepEqual(await f.run(), { id: 'verified-private-owner', source: 'verified-release-session' })
-  assert.deepEqual(f.calls.map((call) => call.action), ['email', 'get-session', 'sign-out'])
-  assert.deepEqual(JSON.parse(f.calls[0].init.body), {
+  assert.deepEqual(f.calls.map((call) => call.action), ['readiness', 'email', 'get-session', 'sign-out'])
+  assert.deepEqual(JSON.parse(f.calls[1].init.body), {
     email: 'Owner@example.test', password: 'private-login-password'
   })
+})
+
+test('wrong release provenance sends no account credentials', async () => {
+  const f = fixture({ wrongSha: true })
+  await assert.rejects(f.run(), (error) => error.code === 'BONUS_TEST_OWNER_TARGET_UNVERIFIED')
+  assert.deepEqual(f.calls.map((call) => call.action), ['readiness'])
+})
+
+test('an unapproved deployment URL receives no request or credentials', async () => {
+  const f = fixture()
+  await assert.rejects(f.run({ ...environment, BONUS_CERTIFICATION_BASE_URL: 'https://other.example' }),
+    (error) => error.code === 'BONUS_TEST_OWNER_TARGET_UNVERIFIED')
+  assert.equal(f.calls.length, 0)
 })
 
 for (const [name, options, code] of [

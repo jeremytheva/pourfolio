@@ -30,13 +30,16 @@ are never selected for removal.
 
 The workflow first runs canonical validation and verifies the checked-out SHA.
 It requires the existing protected provider configuration and either
-`NOCODEBACKEND_CONTRACT_USER_ID`, or the existing protected
-`NOCODEBACKEND_AUTH_SECRET_KEY` / `RELEASE_OWNER_EMAIL` /
-`RELEASE_OWNER_PASSWORD` configuration. When the ID is absent, the worker
-signs in through the canonical provider, verifies the resulting session's
-ID and matching email with the application's session parser, and signs out
-before any data write. Cookies and credentials stay in worker memory.
-Rejected, mismatched or unconfirmed sessions block writes; database keys
+`NOCODEBACKEND_CONTRACT_USER_ID`, or the protected
+`RELEASE_OWNER_EMAIL` / `RELEASE_OWNER_PASSWORD` configuration. When the ID
+is absent, the worker first uses the existing release-target verifier to
+check the approved Pourfolio deployment origin and exact checked-out SHA.
+Only then does it sign in through the app's normal same-origin auth route,
+verify the resulting session's ID and matching email with the application's
+session parser, and sign out before any data write. Credentials/cookies
+stay in worker memory. The deployment keeps its auth service key server-side;
+the test worker does not need a copy. Rejected, mismatched or unconfirmed
+sessions and incorrect deployment provenance block writes. Database keys
 are never used as user passwords. Missing both owner configurations blocks
 before any provider write. A branch push containing
 `[connected-bonus-write]` or a manual workflow dispatch requests this bounded
@@ -70,6 +73,17 @@ protected account settings. Its eleven focused ownership/credential tests
 and the fifteen fixture tests pass locally (Node 24 diagnostic). Canonical
 validation and the protected execution of this follow-up remain pending.
 No fixture was created by either the first protected run or local tests.
+
+Candidate `8a3c0f16a64bf39bff8e770edaede2cbe3085e23` passed **878**
+canonical Node 22 tests (15 gated skips). Its exact-SHA preview health and
+branch-alias readiness passed. The second protected
+[run 39328818421](https://github.com/jeremytheva/pourfolio/actions/runs/39328818421)
+confirmed that release email/password settings are present, but the worker's
+separate auth service key is absent. It stopped before all provider calls
+with zero creates/deletes. The final owner resolver therefore reuses normal
+application sign-in plus the existing release-origin/SHA verifier, as the
+established connected browser checks do. All **28** focused tests pass
+locally; this follow-up's canonical and protected execution remain pending.
 
 ## Custom bonus point-value persistence verification (PR #651)
 

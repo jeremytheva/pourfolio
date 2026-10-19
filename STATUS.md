@@ -38,7 +38,7 @@ wip:
 evidence:
   observed_main_commit: "7c030b43b415eaf8567ecb305caa5296b3f37e39"
   current_candidate_commit: null
-  latest_validated_commit: "c93179379a748cbcd5d7e97ac08026d1d7404dc8"
+  latest_validated_commit: "8a3c0f16a64bf39bff8e770edaede2cbe3085e23"
   latest_deployed_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
   latest_runtime_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
   latest_browser_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
@@ -50,8 +50,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "c93179379a748cbcd5d7e97ac08026d1d7404dc8"
-last_updated: "2026-10-19T21:36:20Z"
+last_verified_commit: "8a3c0f16a64bf39bff8e770edaede2cbe3085e23"
+last_updated: "2026-10-19T21:39:09Z"
 ---
 
 # STATUS.md
@@ -59,6 +59,18 @@ last_updated: "2026-10-19T21:36:20Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Application sign-in resolves the bounded test owner — 20 October 2026 Sydney
+
+The protected execution of `8a3c0f16` passed **878** canonical tests with
+15 provider skips, then stopped before any provider calls: the worker's
+`NOCODEBACKEND_AUTH_SECRET_KEY` is absent. Release email/password secrets
+are present. The exact-SHA app preview has configured auth and passed
+health/readiness. The test now uses that normal application sign-in boundary
+after verifying its approved origin and exact candidate SHA. It verifies
+the resulting account and signs out before writes; no auth key is copied
+out of the deployment. All **28** focused tests pass locally. The latest
+source/provider run is pending; no test fixture has been created so far.
 
 ### Protected bonus test owner resolution — 20 October 2026 Sydney
 

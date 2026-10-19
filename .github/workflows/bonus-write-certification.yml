@@ -43,8 +43,7 @@ jobs:
           NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
           NOCODEBACKEND_CONTRACT_USER_ID: ${{ secrets.NOCODEBACKEND_CONTRACT_USER_ID }}
-          NOCODEBACKEND_AUTH_BASE_URL: https://app.nocodebackend.com/api/user-auth
-          NOCODEBACKEND_AUTH_SECRET_KEY: ${{ secrets.NOCODEBACKEND_AUTH_SECRET_KEY }}
+          BONUS_CERTIFICATION_BASE_URL: https://pourfolio-git-fix-bonus-point-pers-936c9e-jeremythevas-projects.vercel.app
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
       - name: Retain redacted provider evidence

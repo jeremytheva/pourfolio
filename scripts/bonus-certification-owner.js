@@ -1,37 +1,40 @@
 import { extractSessionUser } from '../api/_lib/authSession.js'
-import { resolveAuthCredential } from '../api/_lib/ncbCredentials.js'
-import { resolveAuthBaseUrl } from '../api/_lib/nocodeBackendConfig.js'
+import { verifyReleaseTarget } from '../release-check/releaseTarget.js'
 
 const fail = (code, extra = {}) => Object.assign(new Error(code), { code, ...extra })
 
-// Credentials and cookies remain inside the protected worker. A database key
-// authenticates the service request; only the release password signs in a user.
+// Reuse the application's normal sign-in boundary and the existing release
+// provenance verifier. Credentials and cookies remain in the protected worker.
 export const resolveBonusCertificationOwner = async ({ environment = process.env, fetchImpl = fetch } = {}) => {
   const configuredId = environment.NOCODEBACKEND_CONTRACT_USER_ID?.trim()
   if (configuredId) return { id: configuredId, source: 'configured-contract-user' }
 
-  const required = ['NOCODEBACKEND_AUTH_SECRET_KEY', 'NOCODEBACKEND_INSTANCE', 'RELEASE_OWNER_EMAIL', 'RELEASE_OWNER_PASSWORD']
+  const required = ['BONUS_CERTIFICATION_BASE_URL', 'BONUS_CERTIFICATION_SHA', 'RELEASE_OWNER_EMAIL', 'RELEASE_OWNER_PASSWORD']
   const missing = required.filter((name) => !environment[name]?.trim())
   if (missing.length) throw fail('RUNTIME_CONFIGURATION_MISSING', {
     missing: ['NOCODEBACKEND_CONTRACT_USER_ID', ...missing]
   })
 
-  const base = resolveAuthBaseUrl(environment.NOCODEBACKEND_AUTH_BASE_URL)
-  const secret = resolveAuthCredential(environment).value
+  const boundedFetch = (url, init) => fetchImpl(url, { ...init, signal: AbortSignal.timeout(15_000) })
+  let origin
+  try {
+    const verified = await verifyReleaseTarget({ baseUrl: environment.BONUS_CERTIFICATION_BASE_URL,
+      releaseSha: environment.BONUS_CERTIFICATION_SHA, fetchImpl: boundedFetch })
+    origin = verified.origin
+  } catch {
+    throw fail('BONUS_TEST_OWNER_TARGET_UNVERIFIED')
+  }
   const email = environment.RELEASE_OWNER_EMAIL.trim()
-  const instance = environment.NOCODEBACKEND_INSTANCE.trim()
   let cookie = ''
   let user
   let failure
   const request = (action, method, body) => {
-    const url = new URL(`${base}/${action}`)
-    url.searchParams.set('instance', instance)
-    return fetchImpl(url, {
-      method, redirect: 'error', signal: AbortSignal.timeout(15_000),
+    const url = new URL(`${origin}/api/nocodebackend/auth/${action}`)
+    return boundedFetch(url, {
+      method, redirect: 'error',
       headers: {
         accept: 'application/json', 'content-type': 'application/json',
-        authorization: `Bearer ${secret}`, 'x-database-instance': instance,
-        origin: new URL(base).origin, ...(cookie ? { cookie } : {})
+        origin, ...(cookie ? { cookie } : {})
       }, ...(body === undefined ? {} : { body: JSON.stringify(body) })
     })
   }

@@ -19,7 +19,7 @@ if (missing.length || !guarded) {
   try {
     owner = await resolveBonusCertificationOwner()
   } catch (error) {
-    const allowed = ['RUNTIME_CONFIGURATION_MISSING', 'AUTH_CONFIGURATION_INVALID',
+    const allowed = ['RUNTIME_CONFIGURATION_MISSING', 'BONUS_TEST_OWNER_TARGET_UNVERIFIED',
       'BONUS_TEST_OWNER_AUTH_REJECTED', 'BONUS_TEST_OWNER_SESSION_UNCONFIRMED',
       'BONUS_TEST_OWNER_AUTH_UNAVAILABLE', 'BONUS_TEST_OWNER_SIGNOUT_UNCONFIRMED']
     report = { version: 1, status: 'BLOCKED', mode: 'current-instance-bounded-bonus-write',
