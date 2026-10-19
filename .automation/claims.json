@@ -17,16 +17,16 @@
       "expiresAt": "2026-10-19T13:27:31.905Z"
     },
     "catalogue": {
-      "owner": "bonus-main-reconcile-1792414651905-catalogue",
+      "owner": "producer-reviewed-integration-20261019-1792416464420",
       "workstream": "catalogue",
-      "issue": 154,
-      "pr": null,
+      "issue": 441,
+      "pr": 664,
       "surfaces": [
-        "STATUS.md",
-        "repo:integration"
+        "repo:integration",
+        "STATUS.md"
       ],
-      "acquiredAt": "2026-10-19T12:57:31.905Z",
-      "expiresAt": "2026-10-19T13:27:31.905Z"
+      "acquiredAt": "2026-10-19T13:27:44.420Z",
+      "expiresAt": "2026-10-19T13:52:44.420Z"
     }
   }
 }
