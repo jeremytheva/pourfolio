@@ -11,10 +11,12 @@
         "scripts/run-bonus-write-certification.js",
         "scripts/__tests__/bonusWriteCertification.test.js",
         ".github/workflows/bonus-write-certification.yml",
-        "docs/nocodebackend/rating-workflow-certification.md"
+        "docs/nocodebackend/rating-workflow-certification.md",
+        "scripts/bonus-certification-owner.js",
+        "scripts/__tests__/bonusCertificationOwner.test.js"
       ],
       "acquiredAt": "2026-10-19T21:26:25.645Z",
-      "expiresAt": "2026-10-19T21:56:25.645Z"
+      "expiresAt": "2026-10-19T22:04:39.253Z"
     },
     "catalogue": {
       "owner": "bonus-provider-test-1792445185645-catalogue",
@@ -26,7 +28,7 @@
         "repo:integration"
       ],
       "acquiredAt": "2026-10-19T21:26:25.645Z",
-      "expiresAt": "2026-10-19T21:56:25.645Z"
+      "expiresAt": "2026-10-19T22:04:39.253Z"
     }
   }
 }
