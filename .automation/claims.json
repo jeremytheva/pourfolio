@@ -11,19 +11,20 @@
         "repo:integration"
       ],
       "acquiredAt": "2026-10-19T00:28:37.792Z",
-      "expiresAt": "2026-10-19T01:24:36.976Z"
+      "expiresAt": "2026-10-19T01:31:25.918Z"
     },
-    "producers": {
-      "owner": "launch-implementation-20261019-1792369717792-producers",
-      "workstream": "producers",
-      "issue": 441,
-      "pr": 639,
+    "brew": {
+      "owner": "launch-implementation-20261019-1792369717792-brew",
+      "workstream": "brew",
+      "issue": null,
+      "pr": 637,
       "surfaces": [
-        "e2e/producer-ranking-pagination.spec.js",
-        "src/pages/Places.jsx"
+        "docs/BREW_DONE_IT_READINESS.md",
+        "e2e/brew-done-it-load-recovery.spec.js",
+        "src/pages/BrewDoneIt.jsx"
       ],
-      "acquiredAt": "2026-10-19T00:54:36.976Z",
-      "expiresAt": "2026-10-19T01:24:36.976Z"
+      "acquiredAt": "2026-10-19T01:01:25.918Z",
+      "expiresAt": "2026-10-19T01:31:25.918Z"
     }
   }
 }
