@@ -126,6 +126,14 @@ Current source does **not** treat producer free-text address/suburb identifiers 
 
 Dark and barrel-aged are useful social clues, but remain manual notes only until trustworthy structured trait metadata exists. Missing information must never be interpreted as `no`.
 
+## Controlled use of existing provider tables (15 October 2026)
+
+The owner reports that no Brew Done It games have been played and permits test-data cleanup after setup/certification. This authorizes planning against the four existing `brew_done_it_games`, `brew_done_it_rounds`, `brew_done_it_guesses`, and `brew_done_it_deductions` tables, **not** an assertion that they are empty, that the shared NoCodeBackend instance is disposable, or that irreversible schema migration or public enablement is approved.
+
+Before any connected write, read and record row counts, table constraints, provider instance/environment identity, protected-data boundaries and cleanup capability. Preserve a recoverable snapshot/rollback plan. Use dedicated test accounts and traceable fixture identifiers, exclude unrelated catalogue/ratings/cellar/authentication records, and clean up **only positively identified test-owned rows**, in dependency-safe order, with post-cleanup verification. A whole-table wipe is prohibited unless every row has been independently verified as disposable and the governed mutation and recovery gate is explicitly satisfied. Existing tables may certify isolated workflows only when shared-instance isolation, privacy and non-interference are demonstrated; otherwise a separate disposable provider instance remains necessary.
+
+Keep `BREW_DONE_IT_POLICY_ENABLED` off and public navigation/CTA contained while tests or provider analysis proceed. Record actual connected PASS/FAIL/NOT_RUN evidence; do not treat this test disposition as provider capability, privacy or release certification.
+
 ## Provider migration gate
 
 Before a connected provider mutation, retain evidence for:

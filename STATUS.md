@@ -3,18 +3,17 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Producer ranking pagination acceptance"
+stage: "Initial source fixes integrated; connected launch gates remain"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Complete existing PR #639 producer-ranking pagination and removed-page recovery with current-main acceptance; retain the connected rating/provider/privacy gates."
-  issue: 441
-  pr: 639
-  branch: "fix/producer-ranking-pagination-20261014"
+  objective: "Continue #503/#165 connected rating/provider evidence after the validated initial source batch; retain privacy/session/cellar certification and Brew launch exclusion."
+  issue: 503
+  pr: null
+  branch: null
 next_actions:
   - "Run #449 guarded connected cellar CRUD/ownership checks only with supported isolated fixtures and verified cleanup; source/runtime-read evidence does not close mutable acceptance."
-  - "Resolve #639's material producer-pagination reviews and reconcile its exact head with current main before integration."
-  - "Reconcile #637's stale NOT_RUN body with successful exact-head runs 38828882651/38828876697 and material reviews; preserve Brew launch exclusion."
+  - "Reconcile #637 final integration/deployment from its PR, then continue the connected launch gates; preserve Brew launch exclusion."
   - "Continue #503 deletion diagnosis only through the active ratings claimant; source repairs do not supersede the retained live failure."
   - "Run supported connected #422 profile privacy/revocation and distinct-account certification; keep unsupported rows pending."
   - "Prepare #165 provider migration, uniqueness, backup/restore and approval evidence without irreversible mutation."
@@ -31,27 +30,27 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 2
+  open_implementation_prs: 1
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "c6bde59aae98c6b117b208e90252cc2c84d69386"
+  observed_main_commit: "6db82263a6c59fb9f9121af676e25b66b954acaf"
   current_candidate_commit: null
-  latest_validated_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
-  latest_deployed_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
-  latest_runtime_verified_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
-  latest_browser_verified_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
+  latest_validated_commit: "650f1cf3e7525cccbcc21af2b38cf1bfc69dc439"
+  latest_deployed_commit: "6db82263a6c59fb9f9121af676e25b66b954acaf"
+  latest_runtime_verified_commit: "6db82263a6c59fb9f9121af676e25b66b954acaf"
+  latest_browser_verified_commit: "650f1cf3e7525cccbcc21af2b38cf1bfc69dc439"
 validation:
   governance: PASS
-  lint: NOT_RUN
+  lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: NOT_RUN
-  build: NOT_RUN
-  ci: PENDING
-  runtime: UNVERIFIED
-last_verified_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
-last_updated: "2026-10-19T00:57:43Z"
+  tests: PASS
+  build: PASS
+  ci: PASS
+  runtime: VERIFIED
+last_verified_commit: "650f1cf3e7525cccbcc21af2b38cf1bfc69dc439"
+last_updated: "2026-10-19T01:05:53Z"
 ---
 
 # STATUS.md
@@ -60,21 +59,55 @@ Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
 
-### Current implementation — existing PR #639
+### Current handoff — 19 October 2026 UTC
 
-The producer pagination branch is reconciled with main `c6bde59a` and retains
-the existing global ranks, bounded pages and results-focus behaviour. A 400 on
-a later ranking page now returns to page one, preventing a trapped retry after
-the qualifying cohort shrinks. Transient failures retain the requested page,
-focus the error, and restore results focus after retry. Deterministic browser
-regressions cover pagination, removed-page recovery and transient retry.
+PR #639 is merged as `6db82263a6c59fb9f9121af676e25b66b954acaf`.
+Ranking pagination preserves global rank and results focus; a removed later
+page recovers to page one, while transient failures retry the same page with
+accessible error/results focus. Both material reviews are resolved. Its exact
+pre-merge head `f0e2ac28f63d564c3beb1180c16d264d65eb9f53` passed run
+[39183143918](https://github.com/jeremytheva/pourfolio/actions/runs/39183143918):
+Node 22 canonical acceptance (791 passed, 15 provider-gated skips, zero failures),
+143 browser/accessibility cases and Dependency Review. CodeQL run `39183144057`
+passed. Preview health matched that exact head. Production deployment
+`dpl_ETrRSQvRryoTHECzTjApovrgAFrS` is READY at the merge SHA; public health and
+readiness matched it with HTTP 200 at approximately 01:01 UTC. These bounded
+read/configuration observations do not certify authenticated writes. The exact
+merge independently passed canonical and browser acceptance in run
+[39183390627](https://github.com/jeremytheva/pourfolio/actions/runs/39183390627).
 
-Current-head canonical/browser/preview acceptance is pending and must be
-recorded in PR #639 before integration. The evidence SHA fields retain
-the prior independently verified source-bearing release, rather than assigning
-that evidence to this unpublished branch. PR #649 has merged the scoring and
-readiness contract documentation as `c6bde59a`; it is no longer an open WIP slot.
-Public launch remains **NO-GO** and connected/provider acceptance remains open.
+PR #649 merged scoring/readiness contract documentation as `c6bde59a`.
+At this dated snapshot, #637 is the sole ordinary implementation PR; dependency
+PRs #645/#646/#647 are separate. #637's existing six mocked browser regressions
+and recoverable list/options/statistics reads are reconciled onto this main
+baseline, including protection against older responses overwriting newer
+results and validation/normalisation of accepted statistics totals. Reconciled source head
+`650f1cf3e7525cccbcc21af2b38cf1bfc69dc439` passed run
+[39183502542](https://github.com/jeremytheva/pourfolio/actions/runs/39183502542):
+canonical Node 22 acceptance (791 passed, 15 provider-gated skips, zero failures),
+149 browser/accessibility cases including all six recovery cases, and Dependency
+Review. CodeQL run `39183502501` passed; READY preview
+`dpl_NPrTZNAiQEHgjLyEYYGrFURaw8BJ` returned HTTP 200 health with that exact SHA.
+There are no unresolved material review threads. The old NOT_RUN PR body has
+been corrected. This final handoff-only follow-up requires its own final-head
+acceptance and integration/deployment result in #637. Brew remains launch-excluded
+and policy-gated; no provider gameplay or isolation acceptance is claimed.
+
+The evidence fields distinguish the latest verified Brew source head from
+the actual observed production merge SHA. The final launch candidate is not
+frozen, so `current_candidate_commit` remains null. The validation block describes
+the exact source-bearing evidence above; it does not transfer that evidence
+to a later documentation-only head, which has separate acceptance in #637. Catalogue
+owns only STATUS/integration; the bounded Brew claim covers its existing three
+changed source/test/readiness files. No other workstream code or schedules are
+changed.
+
+Public launch remains **NO-GO**. Continue #503 with a correlated isolated
+rating deletion fixture only where supported, then #165/#144 provider authority,
+uniqueness/conditional-update/backfill and isolated restore/approval evidence.
+#422 privacy/revocation, #577 account-session evidence and #449 connected CRUD/
+ownership remain open. No live rating/cellar mutation, provider schema change,
+public capability enablement or production launch approval was performed.
 
 ### Initial launch implementation completed — 19 October 2026 UTC
 
@@ -112,13 +145,13 @@ public health/readiness responses and their actual limits; dedicated monitor
 authentication/throttling, alert delivery, restore and operator assignments are
 not invented or marked complete. This is documentation reconciliation only.
 
-The evidence fields refer to the exact source-bearing `a3080c31` release
-observed above. The final launch candidate has not been frozen, so
+In this earlier snapshot, the evidence referred to the source-bearing
+`a3080c31` release observed above. The final launch candidate has not been frozen, so
 `current_candidate_commit` remains null. Any later documentation head has its
 own PR acceptance and must not be inferred to be runtime/provider certification
 from this source-bearing snapshot.
 
-At this verified snapshot, ordinary implementation PRs #637/#639 remain open;
+At that earlier snapshot, ordinary implementation PRs #637/#639 were open;
 dependency PRs #645/#646/#647 are separate. Keep the repository limit and
 reconcile live state at the next execution. Catalogue owns integration/STATUS;
 the bounded producer claim owns only the existing pagination source and tests.
