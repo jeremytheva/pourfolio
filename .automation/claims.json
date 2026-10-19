@@ -24,7 +24,9 @@
       "pr": 652,
       "surfaces": [
         "STATUS.md",
-        "repo:integration"
+        "repo:integration",
+        "api/catalog-data-proxy.js",
+        "api/_lib/__tests__/catalogueTombstoneMetrics.test.js"
       ],
       "acquiredAt": "2026-10-19T03:19:58.052Z",
       "expiresAt": "2026-10-19T03:41:58.052Z"
