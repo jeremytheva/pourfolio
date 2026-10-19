@@ -41,6 +41,52 @@ const listAll = async (collection) => {
   throw new Error(`Connected bonus mapping audit exceeded ${MAX_PAGES} pages for ${collection}.`)
 }
 
+// Aggregate provider point values without logging descriptions, user IDs or
+// individual attribute identifiers. Missing historical values are *not*
+// assigned an invented value: the client continues its documented fallback.
+export const summariseBonusPointValues = (bonusAttributes) => {
+  const counts = {
+    total: bonusAttributes.length,
+    global: 0,
+    private: 0,
+    explicitlyStored: 0,
+    missingOrBlank: 0,
+    invalidNumeric: 0,
+    outsideCustomPointRange: 0
+  }
+  const globalByValue = new Map()
+  for (const attribute of bonusAttributes) {
+    const isGlobal = !String(attribute?.user_id ?? '').trim()
+    counts[isGlobal ? 'global' : 'private'] += 1
+    const raw = attribute?.point_value
+    if (raw === null || raw === undefined || String(raw).trim() === '') {
+      counts.missingOrBlank += 1
+      continue
+    }
+    const value = Number(raw)
+    if (!Number.isFinite(value)) {
+      counts.invalidNumeric += 1
+      continue
+    }
+    counts.explicitlyStored += 1
+    if (value < 0.1 || value > 0.8 || Math.abs(value * 10 - Math.round(value * 10)) > 1e-8) {
+      counts.outsideCustomPointRange += 1
+    }
+    if (isGlobal) globalByValue.set(value, (globalByValue.get(value) || 0) + 1)
+  }
+  const status = counts.invalidNumeric || counts.outsideCustomPointRange ? 'REVIEW_REQUIRED'
+    : !counts.total ? 'INCONCLUSIVE_NO_ATTRIBUTES'
+      : counts.missingOrBlank ? 'LEGACY_FALLBACK_PRESENT'
+        : 'COMPLETE'
+  return {
+    status,
+    ...counts,
+    globalExplicitValueCounts: [...globalByValue]
+      .sort(([left], [right]) => left - right)
+      .map(([value, count]) => ({ value, count }))
+  }
+}
+
 export const validateBonusRatingMappings = ({ mappings, bonusAttributes, ratings }) => {
   const bonusIds = new Set(bonusAttributes.map((item) => String(item.id ?? '')).filter(Boolean))
   const ratingsById = new Map(ratings.map((item) => [String(item.id ?? ''), item]))
@@ -99,7 +145,8 @@ export const validateBonusRatingMappings = ({ mappings, bonusAttributes, ratings
     neitherFieldRows,
     conflictingDualFieldRows,
     bonusAttributesExamined: bonusAttributes.length,
-    ratingsExamined: ratings.length
+    ratingsExamined: ratings.length,
+    bonusPointValues: summariseBonusPointValues(bonusAttributes)
   }
 }
 
