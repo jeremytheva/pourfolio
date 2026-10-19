@@ -8,7 +8,7 @@
       "pr": 651,
       "surfaces": [
         "api/bonus-attribute-data-proxy.js",
-        "api/_lib/__tests__/bonus-attribute-persistence.test.js",
+        "api/_lib/__tests__/bonusAttributeCreation.test.js",
         "docs/nocodebackend/rating-workflow-certification.md"
       ],
       "acquiredAt": "2026-10-19T10:56:29.819Z",
