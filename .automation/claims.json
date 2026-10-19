@@ -1,35 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "cellar-cleanup-safe-20261019-1792405153813",
-      "workstream": "catalogue",
-      "issue": 449,
-      "pr": 657,
-      "surfaces": [
-        "release-check/connected.spec.js",
-        "release-check/cellarCleanup.js",
-        "release-check/cellarCleanup.test.js",
-        "api/cellar-data-proxy.js",
-        "repo:cellar-certification"
-      ],
-      "acquiredAt": "2026-10-19T10:19:13.813Z",
-      "expiresAt": "2026-10-19T10:54:13.813Z"
-    },
-    "ratings": {
-      "owner": "bonus-base-reconcile-20261019-1792405595963",
-      "workstream": "ratings",
-      "issue": 165,
-      "pr": 651,
-      "surfaces": [
-        "api/bonus-attribute-data-proxy.js",
-        "api/_lib/__tests__/bonusAttributeCreation.test.js",
-        "scripts/audit-live-bonus-rating-mapping.js",
-        "scripts/__tests__/liveBonusRatingMappingAudit.test.js",
-        "docs/nocodebackend/rating-workflow-certification.md"
-      ],
-      "acquiredAt": "2026-10-19T10:26:35.963Z",
-      "expiresAt": "2026-10-19T10:55:35.963Z"
-    }
-  }
+  "claims": {}
 }
