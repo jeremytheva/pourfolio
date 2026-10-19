@@ -7,13 +7,13 @@ stage: "Dependency-correct launch continuation"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Integrate the launch execution plan, then repair strict cellar input validation under #449 while preserving the remaining #503/#165/#422/#577 connected gates."
+  objective: "Validate and integrate strict cellar input validation under #449; continue the remaining #503/#165/#422/#577 connected gates without assuming live certification."
   issue: 449
-  pr: 644
-  branch: docs/launch-plan-20261018
+  pr: 648
+  branch: fix/cellar-write-validation
 next_actions:
-  - "Integrate #644 after current-head review fixes and canonical/browser/deployment evidence; every pilot repair returns to exact-candidate qualification."
-  - "Implement strict #449 cellar calendar-date and primitive-type validation with create/update regressions; do not perform live provider writes."
+  - "Finish current-head canonical/browser/preview acceptance of the recovered fix/cellar-write-validation branch and integrate #449 strict input validation."
+  - "Keep #449 connected cellar CRUD/ownership rows pending until guarded provider execution and verified cleanup; this source fix performs no provider mutation."
   - "Resolve #639's material producer-pagination reviews and reconcile its exact head with current main before integration."
   - "Reconcile #637's stale NOT_RUN body with successful exact-head runs 38828882651/38828876697 and material reviews; preserve Brew launch exclusion."
   - "Continue #503 deletion diagnosis only through the active ratings claimant; source repairs do not supersede the retained live failure."
@@ -37,22 +37,22 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "acd8633494066c66e2d882d7317009669397de39"
-  current_candidate_commit: "fa5429d2e1a87009c837bef606875e2be2311e51"
-  latest_validated_commit: "fa5429d2e1a87009c837bef606875e2be2311e51"
-  latest_deployed_commit: "acd8633494066c66e2d882d7317009669397de39"
-  latest_runtime_verified_commit: "acd8633494066c66e2d882d7317009669397de39"
-  latest_browser_verified_commit: "fa5429d2e1a87009c837bef606875e2be2311e51"
+  observed_main_commit: "1d16a879ca1f6cc9fe067e307d0b5cc318389d12"
+  current_candidate_commit: null
+  latest_validated_commit: "0f23a48f3f5aa543978b1cffb9a6ac828c755a2e"
+  latest_deployed_commit: "1d16a879ca1f6cc9fe067e307d0b5cc318389d12"
+  latest_runtime_verified_commit: "1d16a879ca1f6cc9fe067e307d0b5cc318389d12"
+  latest_browser_verified_commit: "0f23a48f3f5aa543978b1cffb9a6ac828c755a2e"
 validation:
   governance: PASS
-  lint: PASS
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PASS
-  build: PASS
-  ci: PASS
-  runtime: VERIFIED
-last_verified_commit: "acd8633494066c66e2d882d7317009669397de39"
-last_updated: "2026-10-19T00:31:09Z"
+  tests: NOT_RUN
+  build: NOT_RUN
+  ci: NOT_RUN
+  runtime: UNVERIFIED
+last_verified_commit: "1d16a879ca1f6cc9fe067e307d0b5cc318389d12"
+last_updated: "2026-10-19T00:39:49Z"
 ---
 
 # STATUS.md
@@ -61,7 +61,50 @@ Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
 
-### Launch implementation handoff — 19 October 2026 UTC
+### Strict cellar validation implementation — 19 October 2026 UTC
+
+PR #644 merged as `1d16a879ca1f6cc9fe067e307d0b5cc318389d12` after
+exact head `0f23a48f3f5aa543978b1cffb9a6ac828c755a2e` passed canonical
+Node 22 acceptance (783 passed, 15 gated skips), 140 browser/accessibility cases,
+CodeQL, Dependency Review and matching READY preview. Both material review
+threads were resolved. Fresh production health/readiness matched the merge SHA
+after integration with configured auth/data/shared limiting and a bounded
+`dataProvider: ok` read. No connected write/privacy gate was closed.
+
+The catalogue execution recovered the existing unpublished
+`fix/cellar-write-validation` branch, previously at `86070fc2`, instead of
+creating duplicate work. Its four attempted commits were reconciled with current
+main. The older attempt's rejection of all unknown fields and zero quantity
+conflicted with the accepted current allowlist/zero-value contract; those
+unapproved assertions are replaced by explicit preservation and immutable-input
+regressions. Its valid strict date/Gift intent is retained, completed with typed
+numeric/text/product checks, and reconciled through a history-preserving merge.
+
+PR [#648](https://github.com/jeremytheva/pourfolio/pull/648) implements the #449 fix and rejects impossible date rollovers, numeric dates, ambiguous
+Gift strings and unsupported Boolean/array/object field types. Real date-only
+values, leap days, decimal form strings, zero values, nullable optional fields,
+server-owned identity and existing relationship gates remain supported. Invalid
+creates and updates reject with HTTP 400 before provider mutation. Dates are
+calendar values, not implicitly timezone-shifted timestamps.
+
+Six new regressions failed against the original source before the repair;
+focused policy/gateway/service tests pass locally on Node 24.19.0. This is
+bounded source evidence, not the required Node 22 canonical or browser gate.
+The final published branch head is the candidate; `current_candidate_commit`
+remains null until an exact observed head is recorded, rather than inventing a
+self-referential commit. Full current-head acceptance is NOT_RUN pending the
+trusted Node 22 executor.
+
+#503 diagnosis inspected the available Vercel error-log path: a seven-day query
+was refused because Hobby retention does not cover that window; a corrected
+30-minute production rating-error query returned no matching logs. This neither
+reproduces nor clears the retained deletion failure. A fresh correlated failure
+still needs supported sessions and safe isolated fixtures. #165/#422/#577
+provider/session/recovery gates remain open; no live rating/cellar write or
+schema change occurred.
+
+
+### Retained plan-review handoff — 19 October 2026 UTC
 
 The owner instructed implementation of the launch plan. Public launch remains
 **NO-GO**. Existing plan PR [#644](https://github.com/jeremytheva/pourfolio/pull/644)
