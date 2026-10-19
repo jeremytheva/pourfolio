@@ -148,13 +148,17 @@ and bonus-mapping jobs skipped. Required connected rows remain open.
 | C — Core journeys/data | Repair cellar validation under #449; certify sessions/rate limits, catalogue, score calculations, history/breakdowns, profile privacy/revocation and owner isolation using two distinct accounts. Reconcile data actually included at launch. | Every required connected journey passes with evidence and cleanup; no required skip or unresolved integrity/privacy defect. |
 | D — Publication/operations | Complete the existing publication/configuration/operations procedures, support contacts, named operators/backups, monitoring/redaction, provider restore and deployment rollback. Reconcile dated scope/prose. | Effective reviewed public documents, exercised support/alert routes and demonstrated compatible recovery. |
 | E — Candidate qualification | Freeze one SHA after fixes/public content integrate; execute canonical/browser/connected acceptance and verify actual production SHA, configuration, schema state and failure paths. | Dated release decision with complete exact-candidate evidence and no material unresolved reviews. |
-| F — Pilot/public release | After B–E pass, invite a small representative group, observe repeat use, repair material defects and record release GO before widening access. | Pilot acceptance and exact-candidate public release approval recorded. |
+| F — Pilot/public release | After B–E pass, invite a small representative group and observe repeat use. Every pilot repair freezes a new candidate and returns to E for canonical, browser, connected and deployment requalification before resuming the pilot or recording GO. | Pilot acceptance and public release approval refer to the same final qualified candidate. |
 
 A can start immediately. B diagnosis, C reversible fixes/read-only preparation
 and D can progress independently where dependencies and verified claims permit.
 E waits for B–D. A pilot never waives integrity, privacy or recovery requirements.
 Recommended pilot observation is 10–20 invited adults over 7–14 days; this is not
-a promised launch date or a newly scheduled automation.
+a promised launch date or a newly scheduled automation. Every pilot repair returns
+to E: freeze the new SHA, rerun canonical source, browser/accessibility and required
+connected acceptance, and verify the new deployment/configuration before resuming
+pilot acceptance or recording GO. Evidence for the pre-repair SHA cannot qualify
+the repaired candidate.
 
 ### First implementation slices
 

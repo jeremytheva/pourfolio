@@ -7,13 +7,15 @@ stage: "Dependency-correct launch continuation"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Complete the remaining live rating deletion and provider certification gates; the launch boundary fixes are merged and production health/readiness verified."
-  issue: 503
-  pr: null
-  branch: null
+  objective: "Integrate the launch execution plan, then repair strict cellar input validation under #449 while preserving the remaining #503/#165/#422/#577 connected gates."
+  issue: 449
+  pr: 644
+  branch: docs/launch-plan-20261018
 next_actions:
+  - "Integrate #644 after current-head review fixes and canonical/browser/deployment evidence; every pilot repair returns to exact-candidate qualification."
+  - "Implement strict #449 cellar calendar-date and primitive-type validation with create/update regressions; do not perform live provider writes."
   - "Resolve #639's material producer-pagination reviews and reconcile its exact head with current main before integration."
-  - "Re-evaluate #637's exact-head canonical/browser evidence; preserve Brew launch exclusion."
+  - "Reconcile #637's stale NOT_RUN body with successful exact-head runs 38828882651/38828876697 and material reviews; preserve Brew launch exclusion."
   - "Continue #503 deletion diagnosis only through the active ratings claimant; source repairs do not supersede the retained live failure."
   - "Run supported connected #422 profile privacy/revocation and distinct-account certification; keep unsupported rows pending."
   - "Prepare #165 provider migration, uniqueness, backup/restore and approval evidence without irreversible mutation."
@@ -30,17 +32,17 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 2
+  open_implementation_prs: 3
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "0bd208bf10618d6a04bc46628af9ad23973e4618"
-  current_candidate_commit: "0bd208bf10618d6a04bc46628af9ad23973e4618"
-  latest_validated_commit: "830debd65814e3265fed167572f95fe95e1d366d"
-  latest_deployed_commit: "0bd208bf10618d6a04bc46628af9ad23973e4618"
-  latest_runtime_verified_commit: "0bd208bf10618d6a04bc46628af9ad23973e4618"
-  latest_browser_verified_commit: "830debd65814e3265fed167572f95fe95e1d366d"
+  observed_main_commit: "acd8633494066c66e2d882d7317009669397de39"
+  current_candidate_commit: "fa5429d2e1a87009c837bef606875e2be2311e51"
+  latest_validated_commit: "fa5429d2e1a87009c837bef606875e2be2311e51"
+  latest_deployed_commit: "acd8633494066c66e2d882d7317009669397de39"
+  latest_runtime_verified_commit: "acd8633494066c66e2d882d7317009669397de39"
+  latest_browser_verified_commit: "fa5429d2e1a87009c837bef606875e2be2311e51"
 validation:
   governance: PASS
   lint: PASS
@@ -49,15 +51,62 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "0bd208bf10618d6a04bc46628af9ad23973e4618"
-last_updated: "2026-10-15T14:25:00Z"
+last_verified_commit: "acd8633494066c66e2d882d7317009669397de39"
+last_updated: "2026-10-19T00:31:09Z"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 15 October 2026 UTC
+Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Launch implementation handoff — 19 October 2026 UTC
+
+The owner instructed implementation of the launch plan. Public launch remains
+**NO-GO**. Existing plan PR [#644](https://github.com/jeremytheva/pourfolio/pull/644)
+is being completed before another implementation PR is opened. Its two review
+findings are addressed in source: every pilot repair returns to stage E's exact-SHA
+source/browser/connected/deployment qualification, and this durable handoff now
+reflects the current main/deployment and queue. Current revision checks remain
+pending until executed; `fa5429d` below is the previously validated PR head,
+not evidence for later edits.
+
+Fresh production checks on 19 October at approximately 00:29 UTC returned HTTP
+200 for health and readiness, matching `acd8633494066c66e2d882d7317009669397de39`
+and production deployment `dpl_8t1QfZgSXtPCZ6bTdCdF2ypVypeQ`. Canonical
+auth/data configuration and shared limiter presence were reported; readiness
+returned `dataProvider: ok`. This is bounded configuration/provider-read evidence.
+
+PR #644 head `fa5429d2e1a87009c837bef606875e2be2311e51` passed exact-head
+run [39120312656](https://github.com/jeremytheva/pourfolio/actions/runs/39120312656):
+Release gate job `117654406873` and browser/accessibility job `117654406724`
+completed their substantive steps successfully, with Dependency Review, CodeQL
+and preview deployment success. Connected rating/bonus jobs skipped. A changed
+head requires fresh acceptance; no provider/write/privacy certification is inferred.
+
+Current ordinary implementation WIP is three: #644, #639 and #637, stack depth
+zero. Dependency PRs #645/#646/#647 are separate from implementation WIP and
+supersede the older dependency snapshot below. #639 still has material recovery
+and candidate-provenance reviews. #637 exact-head validation runs
+`38828882651`/`38828876697` report success; its old NOT_RUN body needs
+reconciliation with executed jobs and reviews before integration. Brew remains
+launch-excluded.
+
+The first independent code outcome is #449 strict cellar validation. The current
+sanitiser accepts impossible calendar dates and coerces unsupported JSON
+types. Repair it with create/update regressions, preserving documented zero/null
+semantics and ownership/capability gates. #503's latest live deletion failure
+remains unresolved. Diagnosis and connected writes still need supported sessions
+and safe isolated fixtures; #165 irreversible provider guarantees/restore/approval
+and #422/#577 certification remain separate gates. No owner action is needed to
+perform the reversible source work.
+
+The catalogue execution acquired and read back a fresh bounded integration/file
+claim after reconciling the expired ledger and existing PR/main state. Other
+workstream code and task schedules are unchanged.
+
+## Retained launch verification — 15 October 2026 UTC
 
 Current work: continue the remaining beer-first launch gates. **Public launch
 remains NO-GO**; production configuration/readiness proof is narrower than
