@@ -52,6 +52,78 @@ const installProvider = ({ failRemovalAt = 0, childOwner = user.id } = {}) => {
 
 test.afterEach(() => Object.assign(dataProvider, original))
 
+const requireProviderTimestamp = (updates) => {
+  if (updates.deleted_at !== undefined && !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(updates.deleted_at)) {
+    throw Object.assign(new Error('Invalid provider timestamp'), { status: 400 })
+  }
+}
+
+test('managed deletion sends the provider UTC timestamp format without changing the tasting date', async (context) => {
+  context.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-10-19T12:20:27.240+11:00') })
+  const records = installProvider()
+  records.ratings[0].date_rated = '2026-10-18 06:30:00'
+  const unrelated = { id: 2, user_id: 'owner-b', submission_state: 'complete', submission_version: 3 }
+  records.ratings.push(structuredClone(unrelated))
+  const writes = []
+  const update = dataProvider.update
+  dataProvider.update = async (collection, id, updates) => {
+    requireProviderTimestamp(updates)
+    writes.push(structuredClone(updates))
+    return update(collection, id, updates)
+  }
+
+  const result = response()
+  await __testables.deleteRating('1', result, user)
+
+  assert.equal(result.statusCode, 204)
+  assert.deepEqual(writes, [
+    { submission_state: 'deleting', submission_version: 5 },
+    { submission_state: 'deleted', submission_version: 6, deleted_at: '2026-10-19 01:20:27' }
+  ])
+  assert.equal(records.ratings[0].date_rated, '2026-10-18 06:30:00')
+  assert.equal(records.rating_scores.length + records.bonus_attribute_rating_mapping.length, 0)
+  assert.deepEqual(records.ratings[1], unrelated)
+})
+
+test('a terminal write failure resumes the deleting rating and repeated delete preserves its timestamp', async (context) => {
+  context.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-10-19T01:20:27.240Z') })
+  const records = installProvider()
+  Object.assign(records.ratings[0], { submission_state: 'deleting', submission_version: 5, submission_key: 'managed-key' })
+  records.rating_scores = []
+  records.bonus_attribute_rating_mapping = []
+  let attempts = 0
+  const update = dataProvider.update
+  dataProvider.update = async (collection, id, updates) => {
+    requireProviderTimestamp(updates)
+    assert.equal(updates.submission_state, 'deleted')
+    if (++attempts === 1) throw Object.assign(new Error('Temporary provider failure'), { status: 503 })
+    return update(collection, id, updates)
+  }
+
+  await assert.rejects(__testables.deleteRating('1', response(), user), (error) => {
+    assert.equal(error.status, 503)
+    assert.equal(error.workflowStage, 'mark_rating_deleted')
+    return true
+  })
+  assert.equal(records.ratings[0].submission_state, 'deleting')
+  assert.equal(records.ratings[0].submission_version, 5)
+  assert.equal(records.ratings[0].deleted_at, undefined)
+  context.mock.timers.tick(1000)
+  const retried = response()
+  await __testables.deleteRating('1', retried, user)
+  assert.equal(retried.statusCode, 204)
+  assert.equal(records.ratings[0].submission_state, 'deleted')
+  assert.equal(records.ratings[0].submission_version, 6)
+  assert.equal(records.ratings[0].deleted_at, '2026-10-19 01:20:28')
+
+  context.mock.timers.tick(1000)
+  const repeated = response()
+  await __testables.deleteRating('1', repeated, user)
+  assert.equal(repeated.statusCode, 204)
+  assert.equal(attempts, 2)
+  assert.equal(records.ratings[0].deleted_at, '2026-10-19 01:20:28')
+})
+
 for (const failurePoint of [1, 2, 3, 4]) {
   test(`deletion reconciles after failure at child deletion ${failurePoint}`, async () => {
     const records = installProvider({ failRemovalAt: failurePoint })
