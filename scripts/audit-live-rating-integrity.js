@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict'
+import { pathToFileURL } from 'node:url'
 import { COLLECTIONS } from '../src/data/contract.js'
 import { completedRatingTotal } from '../src/lib/completedRatingContract.js'
 import { dataProvider } from '../api/_lib/dataProvider.js'
 import { __testables as ratingWorkflow } from '../api/rating-data-proxy.js'
 import { __testables as catalogue } from '../api/catalog-data-proxy.js'
+import { isCompletedRating } from '../api/_lib/ratingHistoryRecords.js'
 
 const MAX_PAGES = 1000
 const PAGE_SIZE = 100
@@ -101,15 +103,26 @@ const roundedAverage = (values) => values.length
   ? Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2))
   : null
 
+
+export const classifyCompletedRatings = (ratings) => {
+  const completed = ratings.filter(isCompletedRating)
+  // A record with both a completion state and a deletion timestamp is not a
+  // visible completed tasting. Count it separately: excluding it from the
+  // expected history is correct, but the contradictory stored state still
+  // requires a provider lifecycle review.
+  const tombstonedCompleteRows = ratings.filter((rating) =>
+    rating?.submission_state === 'complete' && Boolean(rating?.deleted_at)
+  )
+  return { completed, contradictoryCompletionCount: tombstonedCompleteRows.length }
+}
+
 const main = async () => {
   requireReadOnlyMode()
   disableMutations()
 
   const ratings = await readStage('ratings_inventory', () => listAll(COLLECTIONS.ratings))
   const userIds = [...new Set(ratings.map((rating) => String(rating.user_id || '').trim()).filter(Boolean))].sort()
-  const completed = ratings.filter((rating) =>
-    rating.submission_state === 'complete' && completedRatingTotal(rating.total_weighted) !== null
-  )
+  const { completed, contradictoryCompletionCount } = classifyCompletedRatings(ratings)
   const completedByUser = new Map()
   const completedByProduct = new Map()
 
@@ -139,7 +152,17 @@ const main = async () => {
 
     const actualIds = (response.body?.items || []).map(({ id }) => String(id)).sort()
     const expectedIds = (completedByUser.get(userId) || []).map(({ id }) => String(id)).sort()
-    assert.deepEqual(actualIds, expectedIds, 'personal history must equal the owner complete-rating set')
+    if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
+      const actual = new Set(actualIds)
+      const expected = new Set(expectedIds)
+      const missing = expectedIds.filter((id) => !actual.has(id)).length
+      const unexpected = actualIds.filter((id) => !expected.has(id)).length
+      const error = new Error(
+        `Personal completed-history mismatch: expected ${expectedIds.length}, actual ${actualIds.length}, missing ${missing}, unexpected ${unexpected}.`
+      )
+      error.auditStage = 'personal_history_projection'
+      throw error
+    }
 
     const planById = new Map(first.map((item) => [String(item.ratingId), item]))
     for (const item of response.body?.items || []) {
@@ -163,10 +186,27 @@ const main = async () => {
       () => catalogue.getProduct(productId, response)
     )
     assert.equal(response.statusCode, 200, 'canonical product projection must succeed')
-    assert.deepEqual(response.body?.ratingSummary, {
+    const expectedSummary = {
       count: expectedTotals.length,
       average: roundedAverage(expectedTotals)
-    }, 'product community aggregate must equal the complete 0-5 rating population')
+    }
+    const reportedSummary = response.body?.ratingSummary
+    if (reportedSummary?.count !== expectedSummary.count ||
+        reportedSummary?.average !== expectedSummary.average) {
+      // Diagnose provider filtered vs unfiltered reads without disclosing
+      // product IDs, rating IDs or owners in CI transcripts.
+      const scopedRows = await readStage('product_discrepancy_scoped_inventory', () =>
+        listAll(COLLECTIONS.ratings, { product_id: productId }))
+      const scopedCompleted = scopedRows.filter((rating) =>
+        String(rating.product_id) === String(productId) && isCompletedRating(rating))
+      const globalIds = new Set(productRatings.map((rating) => String(rating.id)))
+      const scopedIds = new Set(scopedCompleted.map((rating) => String(rating.id)))
+      const error = new Error(
+        `Community aggregate population mismatch: globalCount=${expectedSummary.count}, providerFilteredCount=${scopedCompleted.length}, reportedCount=${reportedSummary?.count ?? 'missing'}, globalMissingFromFiltered=${productRatings.filter((rating) => !scopedIds.has(String(rating.id))).length}, providerFilteredMissingFromGlobal=${scopedCompleted.filter((rating) => !globalIds.has(String(rating.id))).length}.`
+      )
+      error.auditStage = 'product_aggregate_projection'
+      throw error
+    }
   }
 
   const [bonusMappings, bonusAttributes] = await Promise.all([
@@ -189,8 +229,9 @@ const main = async () => {
   }, {})
 
   process.stdout.write(`${JSON.stringify({
-    status: 'PASS',
+    status: contradictoryCompletionCount ? 'REVIEW_REQUIRED' : 'PASS',
     mode: 'read-only',
+    contradictoryCompletionCount,
     ratingsExamined: ratings.length,
     ownersExamined: userIds.length,
     plansExamined: examinedByPlans,
@@ -202,16 +243,19 @@ const main = async () => {
     bonusMappingVerification,
     stateCounts
   })}\n`)
+  if (contradictoryCompletionCount) process.exitCode = 2
 }
 
-main().catch((error) => {
-  process.stderr.write(`${JSON.stringify({
-    status: 'BLOCKED',
-    mode: 'read-only',
-    error: error?.message || 'Connected rating integrity audit failed.',
-    stage: error?.auditStage || null,
-    providerStatus: error?.providerStatus ?? null,
-    providerCode: error?.providerCode || null
-  })}\n`)
-  process.exitCode = 1
-})
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    process.stderr.write(`${JSON.stringify({
+      status: 'BLOCKED',
+      mode: 'read-only',
+      error: error?.message || 'Connected rating integrity audit failed.',
+      stage: error?.auditStage || null,
+      providerStatus: error?.providerStatus ?? null,
+      providerCode: error?.providerCode || null
+    })}\n`)
+    process.exitCode = 1
+  })
+}
