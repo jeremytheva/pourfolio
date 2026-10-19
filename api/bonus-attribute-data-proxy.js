@@ -23,6 +23,10 @@ export const persistBonusWithCategory = async ({ userId, input, categoryId, prov
   if (!created?.id) throw new Error('The bonus attribute service did not return an identifier.')
 
   let confirmedOwned = false
+  // Once mapping creation is attempted, a provider error/response is not
+  // evidence that no mapping was committed. Do not delete its parent while an
+  // unknown mapping might still refer to it.
+  let mappingAttempted = false
   try {
     const stored = await provider.get(COLLECTIONS.bonusAttributes, created.id)
     confirmedOwned = Boolean(stored && String(stored.id) === String(created.id) && String(stored.user_id) === String(userId))
@@ -40,17 +44,41 @@ export const persistBonusWithCategory = async ({ userId, input, categoryId, prov
       throw error
     }
 
+    mappingAttempted = true
     const mapping = first(await provider.create(COLLECTIONS.bonusAttributeCategoryMappings, {
       user_id: userId,
       category_id: categoryId,
       bonus_attribute_id: created.id
     }))
-    if (!mapping?.id) throw new Error('The bonus attribute category mapping was not created.')
+    if (!mapping?.id) {
+      const error = new Error('The bonus category mapping could not be verified.')
+      error.status = 502
+      error.code = 'BONUS_MAPPING_PERSISTENCE_MISMATCH'
+      throw error
+    }
+
+    const storedMapping = await provider.get(COLLECTIONS.bonusAttributeCategoryMappings, mapping.id)
+    if (
+      !storedMapping ||
+      String(storedMapping.id) !== String(mapping.id) ||
+      String(storedMapping.user_id) !== String(userId) ||
+      String(storedMapping.category_id) !== String(categoryId) ||
+      String(storedMapping.bonus_attribute_id) !== String(created.id)
+    ) {
+      const error = new Error('The saved bonus category mapping could not be verified.')
+      error.status = 502
+      error.code = 'BONUS_MAPPING_PERSISTENCE_MISMATCH'
+      throw error
+    }
+
     return stored
   } catch (error) {
-    // An unverified ID could refer to another account; never delete it merely
-    // because create returned that ID or readback failed.
-    if (confirmedOwned) {
+    // An unverified create ID could belong to another account. Likewise,
+    // failed mapping writes can have ambiguous side effects. Only compensate
+    // the attribute when we verified ownership AND did not attempt a child
+    // mapping. Any uncertain partial pair must be reconciled by a guarded
+    // provider-safe cleanup, never by guessing a record ID.
+    if (confirmedOwned && !mappingAttempted) {
       try { await provider.remove(COLLECTIONS.bonusAttributes, created.id) } catch { /* best effort compensation */ }
     }
     throw error
