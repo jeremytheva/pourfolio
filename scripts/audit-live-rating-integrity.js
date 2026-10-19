@@ -116,6 +116,46 @@ export const classifyCompletedRatings = (ratings) => {
   return { completed, contradictoryCompletionCount: tombstonedCompleteRows.length }
 }
 
+// Summarise contradictory terminal-delete rows without retaining or
+// outputting rating identifiers, account IDs or sensitive child values.
+// Global inventories (not potentially lossy compound filters) establish
+// whether score/bonus child records still reference those parent rows.
+export const summariseContradictoryDeleteChildren = ({ ratings, scores, bonuses }) => {
+  const parents = ratings.filter((rating) =>
+    rating?.submission_state === 'complete' && Boolean(rating?.deleted_at)
+  )
+  const parentById = new Map(parents.map((rating) => [String(rating.id), rating]))
+  const counts = new Map([...parentById.keys()].map((id) => [id, { scores: 0, bonuses: 0 }]))
+  let mismatchedChildOwners = 0
+  let childrenWithoutOwner = 0
+
+  for (const [records, key] of [[scores, 'scores'], [bonuses, 'bonuses']]) {
+    for (const child of records) {
+      const parentId = String(child?.rating_id ?? '')
+      const parent = parentById.get(parentId)
+      if (!parent) continue
+      counts.get(parentId)[key] += 1
+      const childOwner = String(child?.user_id ?? '').trim()
+      const parentOwner = String(parent?.user_id ?? '').trim()
+      if (!childOwner || !parentOwner) childrenWithoutOwner += 1
+      else if (childOwner !== parentOwner) mismatchedChildOwners += 1
+    }
+  }
+
+  const pairs = [...counts.values()]
+  return {
+    contradictoryRows: parents.length,
+    withScores: pairs.filter((item) => item.scores > 0).length,
+    withBonuses: pairs.filter((item) => item.bonuses > 0).length,
+    withAnyChildren: pairs.filter((item) => item.scores + item.bonuses > 0).length,
+    withoutChildren: pairs.filter((item) => item.scores + item.bonuses === 0).length,
+    scoreChildrenRemaining: pairs.reduce((sum, item) => sum + item.scores, 0),
+    bonusChildrenRemaining: pairs.reduce((sum, item) => sum + item.bonuses, 0),
+    mismatchedChildOwners,
+    childrenWithoutOwner
+  }
+}
+
 const main = async () => {
   requireReadOnlyMode()
   disableMutations()
@@ -221,6 +261,16 @@ const main = async () => {
     assert.equal(bonusIds.has(bonusId), true, 'rating bonus mapping must reference an existing bonus attribute')
   }
   const bonusMappingVerification = bonusMappings.length > 0 ? 'PROVIDER_VERIFIED' : 'INCONCLUSIVE_NO_ROWS'
+  const scoreRows = contradictoryCompletionCount
+    ? await readStage('terminal_delete_score_inventory', () => listAll(COLLECTIONS.ratingScores))
+    : []
+  const contradictoryChildEvidence = summariseContradictoryDeleteChildren({
+    ratings,
+    scores: scoreRows,
+    bonuses: bonusMappings
+  })
+  // This is an evidence report, not an authorisation to repair a row:
+  // child absence does not prove the provider terminal transition committed.
 
   const stateCounts = ratings.reduce((counts, rating) => {
     const state = String(rating.submission_state || 'legacy')
@@ -232,6 +282,7 @@ const main = async () => {
     status: contradictoryCompletionCount ? 'REVIEW_REQUIRED' : 'PASS',
     mode: 'read-only',
     contradictoryCompletionCount,
+    contradictoryChildEvidence,
     ratingsExamined: ratings.length,
     ownersExamined: userIds.length,
     plansExamined: examinedByPlans,
