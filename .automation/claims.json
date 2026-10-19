@@ -5,7 +5,7 @@
       "owner": "launch-implementation-20261019-1792369717792",
       "workstream": "catalogue",
       "issue": 449,
-      "pr": 644,
+      "pr": null,
       "surfaces": [
         "STATUS.md",
         "api/_lib/__tests__/cellarSchemaContract.test.js",
@@ -16,7 +16,7 @@
         "repo:integration"
       ],
       "acquiredAt": "2026-10-19T00:28:37.792Z",
-      "expiresAt": "2026-10-19T00:58:37.792Z"
+      "expiresAt": "2026-10-19T01:07:48.529Z"
     }
   }
 }
