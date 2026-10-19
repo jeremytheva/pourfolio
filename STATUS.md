@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Brewery unrated-card fix merged; guarded provider write and legacy-data certification still blocked"
+stage: "Bonus persistence and fixture cleanup verified; final PR validation"
 gate: Release
 execution_state: VALIDATING
 current_work:
@@ -12,8 +12,9 @@ current_work:
   pr: 651
   branch: "fix/bonus-point-persistence-readback-20261019"
 next_actions:
+  - "Complete #651 final source/deployment acceptance and integration review using verified provider persistence, reload and exact cleanup evidence; retain the separate HTTP/browser/A-B/concurrency release rows."
   - "Investigate one persisted rating with submission_state=complete and deleted_at set; obtain verified record/child ownership, backup, rollback and governed approval before any repair."
-  - "Complete #651 exact-candidate current-instance custom bonus create/readback/second-account-denial/cleanup only after a verified, bounded owner-safe cleanup path exists; 81 stored point values remain absent and must not be guessed."
+  - "Certify current-candidate bonus HTTP/browser creation, rating use and second-account denial; provider persistence and exact fixture cleanup are verified. The 81 absent stored values must not be guessed."
   - "Prepare #165 uniqueness, version/conditional update and backup/restore evidence for controlled migration; retain approval boundary."
   - "Certify #657 exact-candidate cellar create/edit/delete, owner A/B denial and verified fixture cleanup on the authorised current instance when safe rollback and release-account sessions are established."
   - "For the 966 ownerless historical cellar rows, establish provenance and a backed-up, reviewed migration or archival decision; do not assign users by inference."
@@ -36,9 +37,9 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "0085cb35ab42216a5c96f7bf68113e8447bb61dc"
+  observed_main_commit: "7c030b43b415eaf8567ecb305caa5296b3f37e39"
   current_candidate_commit: null
-  latest_validated_commit: "c33187dbf4e562d6e6f2d8246a97ac3cd48650ee"
+  latest_validated_commit: "b36ad771b9eb361faa851073fabae2e93e6bce32"
   latest_deployed_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
   latest_runtime_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
   latest_browser_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
@@ -50,8 +51,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "c33187dbf4e562d6e6f2d8246a97ac3cd48650ee"
-last_updated: "2026-10-19T13:29:00Z"
+last_verified_commit: "b36ad771b9eb361faa851073fabae2e93e6bce32"
+last_updated: "2026-10-19T22:04:13Z"
 ---
 
 # STATUS.md
@@ -59,6 +60,39 @@ last_updated: "2026-10-19T13:29:00Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Bonus create/readback and exact fixture cleanup verified — 20 October 2026 Sydney
+
+PR #651 has current-instance **provider persistence PASS, independent reload
+PASS and reviewed cleanup PASS**. Candidate `89064711` saved and reloaded the
+private 0.7 attribute and its category mapping. The initial full-list cleanup
+mismatch stopped all deletes. Read-only investigation then established exact
+provenance, consistent list/direct reads and no rating use. A child DELETE
+initially had unconfirmed readback; later full-list, normal and uncached
+reads proved absence. The final [run 39331752492](https://github.com/jeremytheva/pourfolio/actions/runs/39331752492)
+at `b36ad771` deleted only the remaining parent once, with immediate verified
+absence and cleanup PASS. **Two total creates, two exact deletes, no mutation
+retry; no fixture from this run remains.** The mechanism of delayed mapping
+readback remains unproven and is not hidden by the successful recovery.
+
+`b36ad771` passed canonical Node 22 validation (**893 tests**, 15 provider
+skips), browser/accessibility, Dependency Review and CodeQL. Its application
+handler blob is identical to the actual live persistence test; subsequent
+changes affect only tooling/evidence. The final operational correction keeps
+encrypted atomic create intents and acknowledgements for future recovery;
+a failed initial checkpoint prevents writes. All **44** focused tests pass
+locally. This receipt-only follow-up makes no provider write request and
+awaits final canonical/deployment acceptance and PR readiness review.
+
+The worker authenticated the designated account on the pinned public auth
+release `90c86fd1`; the provider test ran candidate source separately. This
+is direct server persistence/teardown evidence. HTTP/browser creation and
+rating use, distinct-account denial and concurrency remain separate launch
+checks. No public rollout or full workflow certificate is claimed yet.
+The original earlier QA bonus, 81 absent global point values, contradictory
+historical rating and 966 ownerless cellar rows remain separate. PR #657 is
+open at `17c21767`. Public launch remains **NO-GO**; current-instance approval
+remains active and no new owner permission is needed for routine verification.
 
 ### Producer profile integration and current-instance certification — 19 October 2026, 13:29 UTC
 
