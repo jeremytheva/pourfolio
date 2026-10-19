@@ -4,12 +4,12 @@ export const MAX_RATE_LIMIT_BUCKETS = 5_000
 export const MAX_REQUEST_BYTES = 32 * 1024
 export const UPSTREAM_TIMEOUT_MS = 10_000
 
-export const getClientAddress = (request) => {
-  // Vercel overwrites this header at its edge. Do not use x-forwarded-for: a
-  // direct client can supply it and thereby choose its own bucket.
-  const forwarded = request.headers?.['x-vercel-forwarded-for']
-  if (Array.isArray(forwarded)) return forwarded[0] || 'unknown'
-  return String(forwarded || request.socket?.remoteAddress || 'unknown').split(',')[0].trim()
+export const getClientAddress = (request, environment = process.env) => {
+  // Only Vercel's runtime guarantees that its edge overwrites this header.
+  // Standard Node hosts must use the socket peer, even if a client sends it.
+  const forwarded = environment.VERCEL === '1' ? request.headers?.['x-vercel-forwarded-for'] : undefined
+  const address = Array.isArray(forwarded) ? forwarded[0] : forwarded
+  return String(address || request.socket?.remoteAddress || 'unknown').split(',')[0].trim() || 'unknown'
 }
 
 const cleanRateLimitBuckets = (now) => {

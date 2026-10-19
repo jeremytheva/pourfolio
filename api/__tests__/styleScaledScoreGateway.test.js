@@ -8,9 +8,27 @@ import { __testables } from '../rating-data-proxy.js'
 const complete = (rating) => ({ submission_state: 'complete', ...rating })
 
 const withProviderList = async (replacement, callback) => {
-  const original = dataProvider.list
+  const originalList = dataProvider.list
+  const originalPage = dataProvider.listPage
   dataProvider.list = replacement
-  try { await callback() } finally { dataProvider.list = original }
+  dataProvider.listPage = async (collection, { page = 1, limit = 100, orderBy, order, filters = {} } = {}) => {
+    assert.equal(collection, COLLECTIONS.ratings)
+    assert.equal(orderBy, 'id')
+    assert.equal(order, 'asc')
+    const rows = await replacement(collection, filters)
+    const offset = (page - 1) * limit
+    return {
+      items: rows.slice(offset, offset + limit),
+      page,
+      pageSize: limit,
+      total: rows.length,
+      totalPages: Math.ceil(rows.length / limit)
+    }
+  }
+  try { await callback() } finally {
+    dataProvider.list = originalList
+    dataProvider.listPage = originalPage
+  }
 }
 
 test('gateway builds overall and verified-style populations from the same completed rating set', async () => {
@@ -76,4 +94,61 @@ test('gateway leaves style score unavailable when canonical category evidence is
     assert.equal(advanced.style_sample_size, 0)
     assert.equal(advanced.style_id, null)
   })
+})
+
+test('gateway includes every completed rating when the provider requires multiple pages', async () => {
+  const ratings = Array.from({ length: 205 }, (_, index) => complete({
+    id: index + 1,
+    product_id: index % 2 ? 5 : 4,
+    total_weighted: index % 2 ? 5 : 4
+  }))
+  ratings.push({ id: 206, product_id: 4, total_weighted: 5, submission_state: 'pending' })
+  const fetchedPages = []
+  await withProviderList(async (collection) => {
+    if (collection === COLLECTIONS.ratings) return ratings
+    if (collection === COLLECTIONS.products) return [
+      { id: 4, product_category_id: 10 },
+      { id: 5, product_category_id: 11 }
+    ]
+    if (collection === COLLECTIONS.categories) return [
+      { id: 10, category_name: 'Pale Ale' },
+      { id: 11, category_name: 'Stout' }
+    ]
+    return []
+  }, async () => {
+    const originalPage = dataProvider.listPage
+    dataProvider.listPage = async (collection, options) => {
+      fetchedPages.push(options.page)
+      return originalPage(collection, options)
+    }
+    try {
+      const population = await __testables.scorePopulations()
+      assert.equal(population.overall.length, 205)
+      assert.equal(population.styleIndex.styleScores.get('10').length, 103)
+      assert.equal(population.styleIndex.styleScores.get('11').length, 102)
+      assert.deepEqual(fetchedPages, [1, 2, 3])
+      assert.equal(population.overall.filter((score) => score === 5).length, 102)
+      assert.equal(population.overall.filter((score) => score === 4).length, 103)
+    } finally {
+      dataProvider.listPage = originalPage
+    }
+  })
+})
+
+test('gateway rejects repeated IDs between rating population pages instead of skewing scores', async () => {
+  const originalPage = dataProvider.listPage
+  const originalList = dataProvider.list
+  try {
+    dataProvider.listPage = async (_collection, { page }) => ({
+      items: page === 1
+        ? [{ id: 1, product_id: 4, total_weighted: 4, submission_state: 'complete' }]
+        : [{ id: 1, product_id: 4, total_weighted: 4, submission_state: 'complete' }],
+      totalPages: 2
+    })
+    dataProvider.list = async () => assert.fail('duplicate pages must not reach style relationships')
+    await assert.rejects(__testables.scorePopulations(), /invalid records/)
+  } finally {
+    dataProvider.listPage = originalPage
+    dataProvider.list = originalList
+  }
 })

@@ -15,11 +15,12 @@ const statusFromHttp = (status) => {
 
 const configuredInstance = (environment) => environment.NOCODEBACKEND_INSTANCE?.trim() || null
 
-const safeJson = async (response) => {
+const safeJson = async (response, signal) => {
   try {
     const text = await response.text()
     return text ? JSON.parse(text) : null
-  } catch {
+  } catch (error) {
+    if (signal.aborted) throw error
     return null
   }
 }
@@ -45,16 +46,18 @@ const probeAuthProvider = async ({ environment, fetchImpl }) => {
   try {
     const url = new URL(baseUrl + '/providers')
     url.searchParams.set('instance', instance)
-    const response = await withTimeout((signal) => fetchImpl(url, {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        authorization: 'Bearer ' + secret,
-        'x-database-instance': instance
-      },
-      signal
-    }))
-    const payload = await safeJson(response)
+    const { response, payload } = await withTimeout(async (signal) => {
+      const response = await fetchImpl(url, {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          authorization: 'Bearer ' + secret,
+          'x-database-instance': instance
+        },
+        signal
+      })
+      return { response, payload: await safeJson(response, signal) }
+    })
     if (!response.ok) return { status: statusFromHttp(response.status), code: 'AUTH_PROVIDER_REJECTED' }
     if (!payload?.providers || typeof payload.providers !== 'object' || Array.isArray(payload.providers)) {
       return { status: 'FAIL', code: 'AUTH_PROVIDER_RESPONSE_INVALID' }
@@ -84,17 +87,19 @@ const probeDataSecretKey = async ({ environment, fetchImpl, secretKey }) => {
     url.searchParams.set('sort', 'id')
     url.searchParams.set('order', 'asc')
 
-    const response = await withTimeout((signal) => fetchImpl(url, {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        authorization: 'Bearer ' + secretKey
-      },
-      signal
-    }))
+    const { response, payload } = await withTimeout(async (signal) => {
+      const response = await fetchImpl(url, {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          authorization: 'Bearer ' + secretKey
+        },
+        signal
+      })
+      return { response, payload: response.ok ? await safeJson(response, signal) : null }
+    })
 
     if (!response.ok) return { status: statusFromHttp(response.status), code: 'DATA_KEY_REJECTED' }
-    const payload = await safeJson(response)
     if (payload === null) return { status: 'FAIL', code: 'DATA_PROVIDER_RESPONSE_INVALID' }
     if (payload?.error || payload?.success === false || payload?.status === 'error') {
       return { status: 'FAIL', code: 'DATA_PROVIDER_RESPONSE_REJECTED' }
@@ -172,3 +177,4 @@ export const runUserAdminCertification = async ({
 }
 
 export const __testables = { probeAuthProvider, probeDataSecretKey, statusFromHttp }
+

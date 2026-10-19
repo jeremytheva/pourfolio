@@ -1,5 +1,8 @@
 # Production operations readiness
 
+Probe semantics last reconciled: 19 October 2026. Dated historical evidence
+below remains historical; remote alert/ownership/restore gates are not closed.
+
 This runbook defines the operational release contract for Pourfolio. It does
 not claim that settings in Vercel, GitHub or NoCodeBackend have been changed:
 those controls require an authorised administrator and dated evidence in the
@@ -113,26 +116,41 @@ acknowledgement timestamps. Never cause a real provider write failure, weaken
 authorisation or send credentials/private data to prove paging. Repeat after
 route or owner changes and at least quarterly.
 
-## Health endpoint decision
+## Health and readiness endpoints
 
-`GET /api/health` remains an **unauthenticated, configuration-only liveness
-signal** for launch. A `200` response means only that the function can execute;
-the two Boolean checks separately report whether the required server variables
-are present. Those checks do not validate either value, contact NoCodeBackend,
-inspect data, or establish that login, catalogue or writes are ready. The
-response is sent with `Cache-Control: no-store`. Callers must not interpret it
-as readiness or use its status alone to admit production traffic.
+Reconciled against the implemented handlers on 19 October 2026. This section
+describes the current runtime, not completion of monitoring/alerting or provider
+write certification. Earlier deferred-readiness design prose is superseded by
+the implemented boundary below.
 
-A provider-backed readiness probe is deferred because an unauthenticated probe
-would disclose provider availability and could consume provider/rate-limit
-capacity, while authenticating an external monitor adds a credential that must
-be rotated and protected. Add a separate endpoint only with a reviewed design
-that uses monitor authentication, least-privilege read-only provider access,
-strict throttling and a generic `ready`/`unavailable` response. It must not
-return secret presence, credential validity, provider identity/URL, collection
-names, response bodies, counts, latency detail or private data. Liveness must
-remain independent so a provider outage does not cause the platform to recycle
-otherwise healthy functions.
+`GET /api/health` is public, configuration/liveness evidence. It returns the
+release SHA/environment and non-secret configuration/transport/limiter-presence
+indicators with `Cache-Control: no-store`. It does not sign a user in, validate
+credential acceptance, contact NoCodeBackend or establish owner-scoped read/write
+behaviour. HTTP 200 alone is insufficient for traffic or launch acceptance.
+
+`GET /api/readiness` is also implemented and public. It performs one
+`products` page read (`page: 1`, `limit: 1`, ordered by ID) through the
+server-only provider adapter and its transport deadline. A successful bounded
+read returns HTTP 200, `status: ready`, matching release provenance and
+`checks.dataProvider: ok`. Failure returns HTTP 503, `status: degraded` and
+a safe classification: `misconfigured`, `unauthenticated`, `forbidden`,
+`contract-mismatch` or `unavailable`. It never returns the catalogue row,
+provider payload, credential value, owner identity or a row count. Other methods
+receive HTTP 405.
+
+This is a narrowly scoped read, not a check of every collection, authentication
+session, permission, rating retry/delete, profile privacy, cellar mutation or
+recovery mechanism. Verify the exact intended SHA for both endpoints and retain
+separate connected evidence for those workflows.
+
+The current readiness handler has no dedicated monitor credential or
+handler-level throttle. Do not represent the earlier proposed monitor-auth/
+throttling controls, live alert delivery or least-privilege provider configuration
+as implemented/verified from these responses. Review actual monitor cadence and
+provider/abuse controls within the existing operational/security release work.
+Keep liveness independent of upstream readiness, and do not cause provider
+failures or production writes merely to exercise a monitor.
 
 ## Backup and isolated restore rehearsal
 

@@ -285,7 +285,7 @@ test('catalogue stewardship and cellar launch forms are reachable without implic
   expect(unexpectedWrites).toEqual([])
 })
 
-test('rating reconciliation dry-run is idempotent and completed aggregates are coherent', async ({ page }) => {
+test('historical reconciliation is inaccessible and completed aggregates remain coherent', async ({ page }) => {
   await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD, { reuseSession: true })
 
   const before = await responseJson(await page.request.get('/api/nocodebackend/ratings/mine'))
@@ -293,50 +293,13 @@ test('rating reconciliation dry-run is idempotent and completed aggregates are c
   const beforeIds = beforeItems.map(({ id }) => String(id)).sort()
   expect(new Set(beforeIds).size).toBe(beforeIds.length)
 
-  const dryRunRequest = () => page.request.post('/api/nocodebackend/ratings/reconcile', {
-    data: { apply: false }
-  })
-
-  const firstResponse = await dryRunRequest()
-  expect(firstResponse.status()).toBe(200)
-  const first = await responseJson(firstResponse)
-  expect(first.dryRun).toBe(true)
-  expect(first.examined).toBeGreaterThanOrEqual(beforeItems.length)
-  expect(first.eligible).toBeGreaterThanOrEqual(0)
-  expect(Array.isArray(first.items)).toBe(true)
-
-  const secondResponse = await dryRunRequest()
-  expect(secondResponse.status()).toBe(200)
-  const second = await responseJson(secondResponse)
-
-  const stablePlan = (payload) => ({
-    dryRun: payload.dryRun,
-    examined: payload.examined,
-    eligible: payload.eligible,
-    items: (payload.items || []).map((item) => ({
-      ratingId: String(item.ratingId),
-      currentState: item.currentState,
-      legacyCandidate: item.legacyCandidate,
-      structurallyValid: item.structurallyValid,
-      scoreCount: item.scoreCount,
-      bonusCount: item.bonusCount,
-      proposed: item.proposed
-    })).sort((left, right) => left.ratingId.localeCompare(right.ratingId))
-  })
-  expect(stablePlan(second)).toEqual(stablePlan(first))
-
-  const planById = new Map(first.items.map((item) => [String(item.ratingId), item]))
-  for (const rating of beforeItems) {
-    expect(planById.has(String(rating.id))).toBe(true)
-    expect(planById.get(String(rating.id)).currentState).toBe('complete')
-    const total = Number(rating.total_weighted)
-    expect(Number.isFinite(total) && total > 0 && total <= 5).toBe(true)
-  }
-
-  for (const item of first.items) {
-    if (item.currentState === 'pending' || item.currentState === 'failed') {
-      expect(beforeIds).not.toContain(String(item.ratingId))
-    }
+  // The governed #165 provider migration has not been approved for runtime use.
+  // Both dry-run and apply must fail closed over HTTP without touching ratings.
+  for (const apply of [false, true]) {
+    const response = await page.request.post('/api/nocodebackend/ratings/reconcile', { data: { apply } })
+    expect(response.status()).toBe(404)
+    const unavailable = await responseJson(response)
+    expect(unavailable.error).toBe('Application data route not found.')
   }
 
   const byProduct = new Map()
