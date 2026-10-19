@@ -22,12 +22,12 @@ export const persistBonusWithCategory = async ({ userId, input, categoryId, prov
   }))
   if (!created?.id) throw new Error('The bonus attribute service did not return an identifier.')
 
+  let confirmedOwned = false
   try {
     const stored = await provider.get(COLLECTIONS.bonusAttributes, created.id)
+    confirmedOwned = Boolean(stored && String(stored.id) === String(created.id) && String(stored.user_id) === String(userId))
     if (
-      !stored ||
-      String(stored.id) !== String(created.id) ||
-      String(stored.user_id) !== String(userId) ||
+      !confirmedOwned ||
       comparable(stored.description) !== comparable(input.description) ||
       stored.point_value === null ||
       stored.point_value === undefined ||
@@ -48,7 +48,11 @@ export const persistBonusWithCategory = async ({ userId, input, categoryId, prov
     if (!mapping?.id) throw new Error('The bonus attribute category mapping was not created.')
     return stored
   } catch (error) {
-    try { await provider.remove(COLLECTIONS.bonusAttributes, created.id) } catch { /* best effort compensation */ }
+    // An unverified ID could refer to another account; never delete it merely
+    // because create returned that ID or readback failed.
+    if (confirmedOwned) {
+      try { await provider.remove(COLLECTIONS.bonusAttributes, created.id) } catch { /* best effort compensation */ }
+    }
     throw error
   }
 }
