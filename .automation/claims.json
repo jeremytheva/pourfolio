@@ -1,4 +1,16 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "ratings": {
+      "owner": "current-instance-preflight-1792410915034",
+      "workstream": "ratings",
+      "issue": 503,
+      "pr": 651,
+      "surfaces": [
+        "PR #651 evidence and test-target acceptance"
+      ],
+      "acquiredAt": "2026-10-19T11:55:15.034Z",
+      "expiresAt": "2026-10-19T12:25:15.034Z"
+    }
+  }
 }
