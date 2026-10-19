@@ -3,16 +3,15 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Controlled rating QA and product attribute pagination repair"
+stage: "Rating QA and community attribute repair deployed; bonus/provider gates retained"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Validate PR #660 product attribute pagination and retain bounded live rating QA alongside pending bonus/cellar provider certification."
-  issue: 154
-  pr: 660
-  branch: "fix/product-attribute-pagination-20261019"
+  objective: "Qualify the isolated bonus write and cleanup path under #651 while retaining pending cellar, terminal-delete and missing-value provider gates."
+  issue: 165
+  pr: 651
+  branch: "fix/bonus-point-persistence-readback-20261019"
 next_actions:
-  - "Complete exact-head acceptance and deployed read verification for #660; keep its passing disposable-tasting UI observations distinct from independent provider terminal-delete certification."
   - "Investigate one persisted rating with submission_state=complete and deleted_at set; obtain verified record/child ownership, backup, rollback and governed approval before any repair."
   - "Complete #651 guarded isolated-staging custom bonus create/readback/owner-isolation/cleanup certification before merge; 81 global bonus point values are absent and cannot be inferred."
   - "Prepare #165 uniqueness, version/conditional update and backup/restore evidence for controlled migration; retain approval boundary."
@@ -32,27 +31,27 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 3
+  open_implementation_prs: 2
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "825a5b3034018918c513682c394e3b767eb7f480"
+  observed_main_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
   current_candidate_commit: null
-  latest_validated_commit: "e84fe79a289176ccdd98f31aaba701015428c263"
-  latest_deployed_commit: "81a4dbd0b774ecf8703fe9aae89cf3174c607c74"
-  latest_runtime_verified_commit: "81a4dbd0b774ecf8703fe9aae89cf3174c607c74"
-  latest_browser_verified_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
+  latest_validated_commit: "f8c08446795c8974ad84db053a32d470cac63013"
+  latest_deployed_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
+  latest_runtime_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
+  latest_browser_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
 validation:
   governance: PASS
   lint: PASS
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: PENDING
+  ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "e84fe79a289176ccdd98f31aaba701015428c263"
-last_updated: "2026-10-19T09:17:11Z"
+last_verified_commit: "f8c08446795c8974ad84db053a32d470cac63013"
+last_updated: "2026-10-19T09:22:56Z"
 ---
 
 # STATUS.md
@@ -60,6 +59,42 @@ last_updated: "2026-10-19T09:17:11Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Product attribute repair integrated and live-read verified — 19 October 2026, 09:21 UTC
+
+[PR #660](https://github.com/jeremytheva/pourfolio/pull/660) merged as
+`f48d95090e0271557b43ee3035f01aecd05c243f`.
+Its final head `f8c08446795c8974ad84db053a32d470cac63013` passed
+canonical Node 22 acceptance in
+[run 39228933739](https://github.com/jeremytheva/pourfolio/actions/runs/39228933739):
+820 passed, 15 provider-gated skips, zero failures, all 149 browser/
+accessibility cases, Dependency Review and CodeQL. Launch-readiness
+traceability checks passed. No unresolved material review threads remained.
+
+Production `dpl_BocUbtPDmBvHjm5Gr6xiciBTz4T7` is READY; public health
+returned HTTP 200 and that exact merge SHA. A fresh authenticated beer-page
+read now includes late score rows: Appearance 5.67/7 from 3 scores (previously
+6/7 from 2), Aroma 6.33/7 from 3, and Mouthfeel/Flavour 5.5/7 plus Follow 6/7
+from 4 scores each (previously one each). The overall 4-community/2-personal
+counts and older personal tastings remain intact. This is bounded live
+application-read verification, not new provider-write certification.
+
+The disposable tasting was removed during the authorized test workflow.
+Its exact link is safely unavailable; recovery to all history and page
+navigation pass, with 284 total ratings, 20 unique rows on each of the first
+two pages, zero cross-page overlap and a stable 4.08/5 whole-history average.
+One private QA bonus attribute remains; the app has no bonus delete control.
+The earlier contradictory historical parent and surviving child, 81 absent
+global bonus point values, missing catalogue edit/delete capability and
+#651/#657 isolated write/isolation/cleanup gates remain unresolved.
+
+Two implementation PRs remain (#651 and #657), excluding this documentation
+handoff. Do not recreate #660 or merge either write-path candidate solely
+from source tests. No provider migration, historical repair, shared catalogue
+fixture or missing-value backfill was performed. Public launch remains
+**NO-GO**. The older dated snapshots below retain their original evidence;
+this section and the latest PR records supersede their active-queue/deployment
+statements.
 
 ### Controlled full rating journey QA — 19 October 2026, 09:08–09:16 UTC
 

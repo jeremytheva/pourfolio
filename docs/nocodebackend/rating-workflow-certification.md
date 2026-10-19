@@ -44,8 +44,15 @@ The product-attribute source repair must read every score page, scope each
 unavailable later page instead of publishing a partial average. Three new
 regressions failed on the original source and pass after correction; a fourth
 preserves incomplete/tombstone exclusion. The focused 10-test Node 24 run is
-diagnostic only; exact-head Node 22 canonical/browser validation and deployed
-read verification must be recorded separately in the associated PR.
+diagnostic only. PR #660 final head `f8c08446795c8974ad84db053a32d470cac63013`
+passed canonical Node 22 acceptance (820 passed, 15 gated skips, zero failures),
+all 149 browser/accessibility cases, Dependency Review and CodeQL in run
+39228933739. The merge `f48d95090e0271557b43ee3035f01aecd05c243f` is deployed;
+HTTP 200 health matched it, and a fresh authenticated product read included
+Appearance/Aroma from three scores and Mouthfeel/Flavour/Follow from four,
+preserving the 4-community/2-personal totals and older tastings. This verifies
+the existing provider paged-read integration; it does not close independent
+terminal-write, child-absence, second-account or legacy recovery gates.
 
 ## Step-by-step acceptance and certification guide
 
