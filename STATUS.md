@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Brewery unrated-card fix merged; guarded provider write and legacy-data certification still blocked"
+stage: "Bounded current-instance bonus provider test implemented; validation and execution pending"
 gate: Release
 execution_state: VALIDATING
 current_work:
@@ -36,7 +36,7 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "0085cb35ab42216a5c96f7bf68113e8447bb61dc"
+  observed_main_commit: "7c030b43b415eaf8567ecb305caa5296b3f37e39"
   current_candidate_commit: null
   latest_validated_commit: "c33187dbf4e562d6e6f2d8246a97ac3cd48650ee"
   latest_deployed_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
@@ -51,7 +51,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "c33187dbf4e562d6e6f2d8246a97ac3cd48650ee"
-last_updated: "2026-10-19T13:29:00Z"
+last_updated: "2026-10-19T21:30:38Z"
 ---
 
 # STATUS.md
@@ -59,6 +59,34 @@ last_updated: "2026-10-19T13:29:00Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Bounded bonus provider test added to existing PR #651 — 20 October 2026 Sydney
+
+The overnight reconciliation at `221d89977412e76f276145cc21346aea3d9a560d`
+already incorporates current main `7c030b43`; no duplicate merge was made.
+The remaining fixture-cleanup dependency now has a candidate test implementation
+in the existing PR: one random private 0.7 attribute, one existing Overall
+category mapping, persisted/readback/reload verification, and child-first
+cleanup of only acknowledged, newly created, owner/nonce-verified IDs. Full
+paged reference reads protect existing ratings and unexpected mappings. Failed
+or lost responses never authorise retries or guessed deletion. Fifteen focused
+Node 24 regressions pass locally, including retained-delete acknowledgements,
+cross-owner IDs, lost responses, page failure and preservation of both errors.
+
+The protected worker uses the existing provider secret/instance and designated
+`NOCODEBACKEND_CONTRACT_USER_ID`; missing configuration blocks before writes.
+It validates the candidate before enabling the requested current-instance run.
+Source/browser/security acceptance and actual provider execution for this
+change are **PENDING** and must be recorded in PR #651. The worker directly
+exercises the candidate server persistence function; it does not establish an
+HTTP/browser/cross-account or concurrency certificate, nor deploy the app.
+No new live record has been created by implementation/local tests.
+
+Owner approval for the current instance remains active. A separate database
+is not required for this test. The previous form-only 0.5/0.7/2.00/3.07 check,
+retained earlier QA attribute, missing 81 values, contradictory historical
+rating deletion and 966 ownerless cellar rows remain separate evidence.
+PR #657 remains open. Public launch remains **NO-GO**.
 
 ### Producer profile integration and current-instance certification — 19 October 2026, 13:29 UTC
 

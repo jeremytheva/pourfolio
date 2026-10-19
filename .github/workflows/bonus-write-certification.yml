@@ -1,0 +1,53 @@
+name: Bounded current-instance bonus certification
+
+on:
+  push:
+    branches:
+      - fix/bonus-point-persistence-readback-20261019
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bounded-current-instance-bonus-certification
+  cancel-in-progress: false
+
+jobs:
+  certify:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-bonus-write]')
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Validate candidate before provider writes
+        run: npm run platform:validate
+      - name: Verify the checked-out candidate
+        run: test "$(git rev-parse HEAD)" = "$BONUS_CERTIFICATION_SHA"
+        env:
+          BONUS_CERTIFICATION_SHA: ${{ github.sha }}
+      - name: Run the bounded bonus persistence and cleanup check
+        run: node scripts/run-bonus-write-certification.js
+        env:
+          BONUS_CERTIFICATION_SHA: ${{ github.sha }}
+          BONUS_CERTIFICATION_CONFIRMATION: RUN CURRENT INSTANCE BONUS TEST
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NOCODEBACKEND_CONTRACT_USER_ID: ${{ secrets.NOCODEBACKEND_CONTRACT_USER_ID }}
+      - name: Retain redacted provider evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bounded-bonus-${{ github.sha }}
+          path: artifacts/bonus-write-certification/
+          if-no-files-found: warn
+          retention-days: 30

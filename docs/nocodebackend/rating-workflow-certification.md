@@ -1,5 +1,49 @@
 # Rating workflow staging certification
 
+## Bounded current-instance bonus persistence test
+
+The owner approved the current instance for testing on 19 October 2026 at
+22:51 Sydney. The protected `bonus-write-certification.yml` workflow now runs
+the candidate's `persistBonusWithCategory` function directly against the
+configured provider. It uses the existing `staging-release` credential
+boundary; that environment name does not assert database isolation.
+
+The test takes a paginated baseline, reuses an existing visible Overall
+category, and permits exactly one private attribute at 0.7 plus one category
+mapping. A random run identifier in the description, canonical new IDs,
+baseline exclusion, exact ownership and foreign-key checks establish the
+fixture scope. Fresh reads verify decimal value persistence and the mapping.
+The existing server persistence implementation is exercised from the checked
+out commit; a Vercel deployment is not required for this narrower provider
+test.
+
+Cleanup uses only acknowledged IDs. It first verifies the private owner and
+exact random description, checks the complete category/rating references and
+rejects any existing rating use or unexpected mapping. It removes the verified
+category mapping, proves its absence, rechecks references and provenance, then
+removes the attribute and proves its absence. At most two creates and two
+deletes are attempted. Old/global/other-owner records cannot be cleanup targets.
+Lost responses, missing identity, changed ownership/references or unreadable
+state leave cleanup UNCONFIRMED and fail the run; no create retry, guessed
+deletion or history-difference sweep is allowed. Earlier retained QA records
+are never selected for removal.
+
+The workflow first runs canonical validation and verifies the checked-out SHA.
+It requires the existing protected provider configuration and
+`NOCODEBACKEND_CONTRACT_USER_ID` for the designated test account. Missing
+configuration blocks before any provider write. A branch push containing
+`[connected-bonus-write]` or a manual workflow dispatch requests this bounded
+run under the protected environment. It does not enable the broader isolated
+provider contract or schema mutation. The report contains statuses/counts and
+the candidate SHA, excluding record IDs, owner identity and description.
+
+A PASS qualifies this candidate's provider create/readback/reload/unused-fixture
+cleanup only. HTTP authentication/204 semantics, browser submission/rating use,
+second-account denial and concurrent atomicity retain their separate release
+checks. Public launch remains NO-GO. Current-instance approval supersedes older
+separate-database prerequisites, while #165 migration and historical recovery
+approval requirements remain intact.
+
 ## Custom bonus point-value persistence verification (PR #651)
 
 Creating a private Overall bonus attribute must not return success on the
