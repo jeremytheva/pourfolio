@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '22'
       - name: Validate traceability contract
-        run: node scripts/check-launch-readiness.mjs
+        run: node scripts/check-launch-readiness.mjs --verify-links
       - name: Classify PR file impacts
         if: github.event_name == 'pull_request'
         env:
@@ -25,20 +25,7 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           git diff --name-only "$BASE_SHA" "$HEAD_SHA" > "$RUNNER_TEMP/launch-changed.txt"
-          node scripts/check-launch-readiness.mjs --changed-files "$RUNNER_TEMP/launch-changed.txt" --markdown >> "$GITHUB_STEP_SUMMARY"
+          node scripts/check-launch-readiness.mjs --changed-files "$RUNNER_TEMP/launch-changed.txt" --github-event "$GITHUB_EVENT_PATH" --markdown >> "$GITHUB_STEP_SUMMARY"
       - name: Classify issue / defect against linked requirements
         if: github.event_name == 'issues'
-        env:
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          ISSUE_LABELS: ${{ toJSON(github.event.issue.labels) }}
-        run: |
-          node --input-type=module -e '
-            import {readFileSync,writeFileSync} from "node:fs";
-            const m=JSON.parse(readFileSync(".project-master/launch-readiness.json","utf8"));
-            const ref="#"+process.env.ISSUE_NUMBER;
-            const requirement_ids=m.requirements.filter(r=>r.issue_refs.includes(ref)).map(r=>r.id);
-            const labels=JSON.parse(process.env.ISSUE_LABELS||"[]");
-            const type=labels.some(l=>l.name==="bug")?"defect":"feature";
-            writeFileSync(process.env.RUNNER_TEMP+"/launch-event.json",JSON.stringify([{type,ref,requirement_ids}]));
-          '
-          node scripts/check-launch-readiness.mjs --events "$RUNNER_TEMP/launch-event.json" --markdown >> "$GITHUB_STEP_SUMMARY"
+        run: node scripts/check-launch-readiness.mjs --github-event "$GITHUB_EVENT_PATH" --markdown >> "$GITHUB_STEP_SUMMARY"
