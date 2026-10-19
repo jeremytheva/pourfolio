@@ -1,33 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "ratings": {
-      "owner": "rating-release-journey-1792402613024-ratings",
-      "workstream": "ratings",
-      "issue": 165,
-      "pr": 662,
-      "surfaces": [
-        "release-check/connected.spec.js",
-        "release-check/ratingJourney.js",
-        "release-check/ratingCleanup.js",
-        "release-check/__tests__/ratingCleanup.test.js",
-        "e2e/release-rating-journey.spec.js",
-        "docs/nocodebackend/rating-workflow-certification.md"
-      ],
-      "acquiredAt": "2026-10-19T09:36:53.024Z",
-      "expiresAt": "2026-10-19T10:06:53.024Z"
-    },
-    "catalogue": {
-      "owner": "rating-release-journey-1792402613024-catalogue",
-      "workstream": "catalogue",
-      "issue": 154,
-      "pr": null,
-      "surfaces": [
-        "STATUS.md",
-        "repo:integration"
-      ],
-      "acquiredAt": "2026-10-19T09:36:53.024Z",
-      "expiresAt": "2026-10-19T10:06:53.024Z"
-    }
-  }
+  "claims": {}
 }
