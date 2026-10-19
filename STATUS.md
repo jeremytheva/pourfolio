@@ -7,13 +7,12 @@ stage: "Dependency-correct launch continuation"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Validate and integrate strict cellar input validation under #449; continue the remaining #503/#165/#422/#577 connected gates without assuming live certification."
-  issue: 449
-  pr: 648
-  branch: fix/cellar-write-validation
+  objective: "Continue the remaining rating deletion and provider/privacy certification gates; the launch plan and strict cellar repair are merged, validated and deployed."
+  issue: 503
+  pr: null
+  branch: null
 next_actions:
-  - "Finish current-head canonical/browser/preview acceptance of the recovered fix/cellar-write-validation branch and integrate #449 strict input validation."
-  - "Keep #449 connected cellar CRUD/ownership rows pending until guarded provider execution and verified cleanup; this source fix performs no provider mutation."
+  - "Run #449 guarded connected cellar CRUD/ownership checks only with supported isolated fixtures and verified cleanup; source/runtime-read evidence does not close mutable acceptance."
   - "Resolve #639's material producer-pagination reviews and reconcile its exact head with current main before integration."
   - "Reconcile #637's stale NOT_RUN body with successful exact-head runs 38828882651/38828876697 and material reviews; preserve Brew launch exclusion."
   - "Continue #503 deletion diagnosis only through the active ratings claimant; source repairs do not supersede the retained live failure."
@@ -32,27 +31,27 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 3
+  open_implementation_prs: 2
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "1d16a879ca1f6cc9fe067e307d0b5cc318389d12"
+  observed_main_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
   current_candidate_commit: null
-  latest_validated_commit: "0f23a48f3f5aa543978b1cffb9a6ac828c755a2e"
-  latest_deployed_commit: "1d16a879ca1f6cc9fe067e307d0b5cc318389d12"
-  latest_runtime_verified_commit: "1d16a879ca1f6cc9fe067e307d0b5cc318389d12"
-  latest_browser_verified_commit: "0f23a48f3f5aa543978b1cffb9a6ac828c755a2e"
+  latest_validated_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
+  latest_deployed_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
+  latest_runtime_verified_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
+  latest_browser_verified_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
 validation:
   governance: PASS
-  lint: NOT_RUN
+  lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: NOT_RUN
-  build: NOT_RUN
-  ci: NOT_RUN
-  runtime: UNVERIFIED
-last_verified_commit: "1d16a879ca1f6cc9fe067e307d0b5cc318389d12"
-last_updated: "2026-10-19T00:39:49Z"
+  tests: PASS
+  build: PASS
+  ci: PASS
+  runtime: VERIFIED
+last_verified_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
+last_updated: "2026-10-19T00:49:53Z"
 ---
 
 # STATUS.md
@@ -61,7 +60,70 @@ Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
 
-### Strict cellar validation implementation — 19 October 2026 UTC
+### Initial launch implementation completed — 19 October 2026 UTC
+
+Public launch remains **NO-GO**. The launch-plan implementation has begun:
+
+- PR #644 integrated the reviewed plan and exact-candidate pilot requalification
+  rule as `1d16a879ca1f6cc9fe067e307d0b5cc318389d12`.
+- PR #648 integrated strict cellar input validation as
+  `a3080c31ac7c0dd9d905225a09df4ffe215d6f4c`. Impossible dates, unsafe
+  numeric/text/identity coercions and ambiguous Gift values now fail before
+  provider mutations. Valid zero/null/decimal values, real calendar dates,
+  owner-derived identity and capability gates are preserved.
+- Exact pre-merge head `fe176181cb15cd2e33c6868d8fd11b2bedc00620`
+  passed run `39181874327`: Node 22 canonical acceptance (791 passed,
+  15 provider-gated skips, zero failures), 140 browser/accessibility cases,
+  Dependency Review, CodeQL and matching READY preview, with no unresolved
+  review threads.
+- Exact merged main `a3080c31` independently passed run
+  [39182153493](https://github.com/jeremytheva/pourfolio/actions/runs/39182153493):
+  canonical job `117836995508` (791 passed, 15 skipped) and browser job
+  `117836995258` (140 passed). Connected rating/bonus jobs skipped.
+- Production deployment `dpl_2Rq9NCWuqmRG7RgMaHiR3KjsnEvd` is READY at
+  that merge SHA. On 19 October at approximately 00:46 UTC, public health and
+  readiness returned HTTP 200 with matching provenance, configured auth/data/
+  shared-limiter indicators and `dataProvider: ok`. An anonymous cellar GET
+  returned HTTP 401. These prove bounded deployed/read/denial behaviour, not
+  authenticated cellar mutation or two-account certification.
+
+The existing scoring guide now describes the implemented v2 totals, derived
+Bonus, standard/comparison field meaning, personalised/default weights and
+PPP/Scaled Score semantics, with v1 retained as historical. It explicitly
+distinguishes the settings UI's fixed Bonus allocation from the formula boundary
+without changing either. The operations guide now describes the implemented
+public health/readiness responses and their actual limits; dedicated monitor
+authentication/throttling, alert delivery, restore and operator assignments are
+not invented or marked complete. This is documentation reconciliation only.
+
+The evidence fields refer to the exact source-bearing `a3080c31` release
+observed above. The final launch candidate has not been frozen, so
+`current_candidate_commit` remains null. Any later documentation head has its
+own PR acceptance and must not be inferred to be runtime/provider certification
+from this source-bearing snapshot.
+
+At this verified snapshot, ordinary implementation PRs #637/#639 remain open;
+dependency PRs #645/#646/#647 are separate. The documentation follow-up temporarily
+uses the third slot while open. Keep the repository limit and reconcile live
+state at the next execution. The catalogue claim was narrowed to documentation/
+integration after #648, leaving other workstream code and schedules unchanged.
+
+Next: continue #503 with a fresh correlated isolated deletion fixture where
+supported; a seven-day Vercel query was outside Hobby retention and the corrected
+30-minute rating-error query found no matching log, which does not clear the
+retained failure. If session/fixture/provider boundaries prevent that execution,
+continue #639's existing review corrections or reversible #165 evidence
+preparation. #165 migration/uniqueness/restore/approval, #422 profile privacy/
+revocation, #577 account-session evidence and #449 connected CRUD remain open.
+No live rating/cellar mutation, provider schema change, public capability
+enablement or production launch approval was performed.
+
+No owner action is required for the completed source/documentation work.
+Escalate only a concrete unavailable external prerequisite or the established
+irreversible-change/release approval after reversible preparation.
+
+
+### Retained cellar implementation checkpoint — 19 October 2026 UTC
 
 PR #644 merged as `1d16a879ca1f6cc9fe067e307d0b5cc318389d12` after
 exact head `0f23a48f3f5aa543978b1cffb9a6ac828c755a2e` passed canonical
