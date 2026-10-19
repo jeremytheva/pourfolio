@@ -44,6 +44,12 @@ GitHub Draft is exceptional. Use it only when work is deliberately incomplete/no
 - Default WIP limits are **3 ordinary implementation PRs** and dependent stack depth **2**.
 - A preserved branch without an open PR is partial repository work, not completed integration evidence.
 
+## 3a. Integration authority and claim fencing
+
+The catalogue/product-launch scheduled workstream coordinates integration, review completion, merging, release and shared `STATUS.md` updates for **all** Pourfolio workstreams. Ratings, producers/venues and Brew Done It own their domain implementation/PRs; they may not merge or rewrite shared status independently. When a domain change requires shared scoring, auth, provider routing or documentation, claim those precise shared surfaces and coordinate with their current owner.
+
+Before GitHub writes, use the atomic content-SHA workstream ledger `automation/coordination:.automation/claims.json` under the rules in `AGENTS.md`; independent tasks need distinct issue/PR/surface claims. The 30-minute leases expire, but interruption recovery still requires refreshed branch/PR evidence before continuing. Claims do not replace latest-head validation, merge conflict checks, branch protections or owner approval. If claim acquisition is not verifiable, do not perform potentially competing writes.
+
 ## 4. Canonical validation
 
 The canonical source-validation command is:

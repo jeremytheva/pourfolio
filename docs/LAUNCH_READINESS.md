@@ -1,38 +1,292 @@
 # Launch readiness
 
-## Stage 1 containment state
+Last reconciled: **18 October 2026 UTC**. Source review baseline:
+[`acd8633494066c66e2d882d7317009669397de39`](https://github.com/jeremytheva/pourfolio/commit/acd8633494066c66e2d882d7317009669397de39).
+The initial checklist reconciliation added no connected-provider or migration
+certification. Subsequent bounded deployment evidence is recorded below and in
+`STATUS.md`.
 
-- [x] Brew Done It is absent from launch navigation and routing; direct browser
-  requests fall back without loading playable controls or calling game APIs.
-- [x] Game gateway routes remain fail-closed behind the unset, server-only
-  `BREW_DONE_IT_POLICY_ENABLED` flag.
-- [ ] Do not enable Brew Done It unless a reviewed delivery implements the
-  accepted same-device ADR or a newly accepted ADR supersedes it.
+## Current launch decision
 
-The accepted ADR permits only session-memory, same-device play: no second
-account, invitation, shared-history access, persisted round or score, durable
-statistics, or retention schedule. It is an approved future model, not a
-currently reachable journey.
+**NO-GO for public launch.** The beer-first application is implemented, but
+required provider, rating-integrity, privacy and release evidence remains open.
+Continue dependency-safe fixes and reversible evidence preparation. An existing
+production deployment does not establish launch readiness.
 
-These repository checks establish containment only. They do not close any
-external release gate or approve the retained remote, persistent game. Its
-two-account shared history, invitations, stored scoring, retention and durable
-statistics remain an unapproved proposal and require a superseding accepted ADR.
+[PROJECT.md](../PROJECT.md) owns launch scope, [ROADMAP.md](../ROADMAP.md) owns
+sequencing, and [STATUS.md](../STATUS.md) owns current continuity and live work
+handoff. The checklist below maps those requirements to their evidence paths.
+The dated July–August records later in this document are retained history;
+their results must not be presented as certification of this source baseline or
+a future release candidate.
 
-The checked containment statements are guarded on every `npm run validate` by
-the route, primary-navigation, generated-bundle and tracked normal-environment
-check in `scripts/check-brew-done-it-containment.js`, and by the gateway policy
-tests. Before treating those statements as release evidence, repeat
-`npm run validate`, `npx playwright install --with-deps chromium` and
-`npm run test:e2e` against the exact candidate. The Playwright run supplies the
-direct-route, no-game-request and reachable-page accessibility evidence; a
-static or unit-only pass is insufficient.
+## Current launch checklist
 
-## Decision
+`PARTIAL` means some source or historical runtime evidence exists, with required
+connected rows still open. `NOT_RUN` and skipped checks supply no passing
+evidence. Each completed row must identify the exact candidate, environment,
+UTC interval, operator, reviewer, safe evidence reference and cleanup result.
 
-Source-controlled launch hardening is implemented for a beer-first MVP, but production remains **no-go** until every external gate below is evidenced and signed off.
+| Work / issue | Delivery owner | Retained evidence and remaining completion gate | Current result |
+| --- | --- | --- | --- |
+| Authentication and rate limits | Launch hardening; ratings owns #577 session certification | Same-origin authentication, session and limiter controls are implemented. Certify sign-up/sign-in, refresh, expiry, sign-out and revoked/invalid sessions, plus enforced local/shared authentication limits against the intended hosting proxy boundary. | **PARTIAL; current connected lifecycle/rate-limit evidence pending** |
+| Rating provider foundation — [#165](https://github.com/jeremytheva/pourfolio/issues/165) | Ratings | Application durability contracts exist. Prove provider migration/backfill, uniqueness, conditional updates, immutable rating dates, backup and isolated restore; complete the [migration evidence package](nocodebackend/rating-schema-migration-runbook.md) and obtain explicit approval before irreversible mutation. G04, G10–G12, G14–G16 and G28 remain open. | **BLOCKED at provider/approval boundary** |
+| Rating lifecycle and deletion — [#503](https://github.com/jeremytheva/pourfolio/issues/503) | Ratings | Source repairs and earlier source/browser passes do not supersede the latest retained live deletion failure in `STATUS.md`. Correlate the failed request with its provider stage, then certify create/retry/partial-write recovery/delete/concurrent operations using disposable isolated fixtures and verified cleanup. | **FAIL: retained live deletion; required connected write cases NOT_RUN** |
+| Backend certification — [#144](https://github.com/jeremytheva/pourfolio/issues/144) | Ratings, coordinated by catalogue | Read-only production checks exist. Complete the same-state provider baseline and [connected policy matrix](nocodebackend/connected-policy-certification.md), including negative ownership/session cases, response contracts, failure recovery and cleanup. Read-only passes do not close write/permission rows. | **PARTIAL** |
+| Catalogue certification — [#154](https://github.com/jeremytheva/pourfolio/issues/154) | Catalogue; producers owns producer fixes | Browse/search/details and relationship controls are integrated. Complete connected catalogue reconciliation, provider-failure recovery and browser/accessibility evidence; resolve applicable producer-pagination findings and document which historical data is included in the launch catalogue. | **PARTIAL** |
+| Private cellar CRUD — [#449](https://github.com/jeremytheva/pourfolio/issues/449) | Catalogue | Owner-scoped source controls and launch-safe Add-to-cellar initiation exist. Certify create/read/update/delete, nullable optional relationships, second-account denial and guaranteed cleanup. Relationship-backed selectors and moderated/persisted proposals remain gated by their backing provider contracts; do not fabricate lookup identities. | **PARTIAL; required connected CRUD/ownership cases NOT_RUN** |
+| Persistent profiles and public history — [#422](https://github.com/jeremytheva/pourfolio/issues/422) | Ratings | Persistent profiles, stable `public_id` and opt-in public history are implemented. Certify provider uniqueness/default-private creation, persisted privacy changes and revocation, copied-link behaviour, cross-owner denial and recovery. Unsupported connected rows stay pending. | **PARTIAL** |
+| User/admin session certification — [#577](https://github.com/jeremytheva/pourfolio/issues/577) | Ratings | Database-key presence/provider acceptance preflight is a separate scope. Supported account-session credentials and protected execution are still required for user/admin, expired/revoked and cross-owner certification. Database Secret Keys are not login passwords. | **BLOCKED at session-evidence boundary** |
+| Current review corrections | Launch hardening (bounded shared-file claim); integration by catalogue | PR #642 implements Node-hosting forwarded-header trust, persisted profile readback and response-body deadlines. Exact source candidate `dcc55b54a487040a3e3e9a4f041ebbecc47b11fa` passed canonical Node 22 validation (783 passed, 15 provider-gated skips), 140 browser/accessibility cases, CodeQL and Dependency Review; final head `830debd65814e3265fed167572f95fe95e1d366d` passed the same required checks and merged as `0bd208bf10618d6a04bc46628af9ad23973e4618`. Production health/readiness matched that merge SHA. Connected privacy/write acceptance remains open; see `STATUS.md` and the PR. | **MERGED; source/browser and production health/readiness verified** |
+| Exact-candidate release qualification | Catalogue integration authority | Freeze the candidate; run Node 22 `npm run platform:validate`, applicable browser/accessibility and connected acceptance checks, resolve material reviews, then verify actual deployed SHA, configuration, readiness and critical journeys. Historical passes do not qualify a new candidate. | **NOT_RUN for the final launch candidate** |
+| Publication and operations | Catalogue coordinates; `@jeremytheva` accountable for assigning named operators/reviewers | Reconcile current evidence against [publication](PUBLICATION_AND_RELEASE_EVIDENCE.md), [configuration](launch-configuration-evidence.md) and [operations](OPERATIONS_READINESS.md) procedures: reviewed public documents, support/alert ownership, safe logs, monitoring, credential handling, backup/restore and deployment rollback. No new remote verification is claimed here. | **PENDING current release evidence** |
 
-## Implemented in this change
+The retained connected runs in `STATUS.md` passed 12 baseline cases and skipped
+four required history/write cases. Those skips, including rating/cellar writes
+and distinct-account history checks, remain open; they cannot be converted into
+passes by a source test or by creating production fixtures outside the write
+gate. Use two distinct supported accounts and an isolated provider environment
+for controlled writes, retaining before/after evidence and exact cleanup identity.
+
+## Delivery and evidence ownership
+
+`@jeremytheva` remains accountable for missing external evidence and named
+specialist assignments. Delivery ownership follows [AGENTS.md](../AGENTS.md):
+catalogue is the sole integration, merge, release and `STATUS.md` authority;
+ratings owns #165/#503/#422/#577; producers owns producer implementation; Brew
+Done It has its own contained workstream. Independent work requires bounded,
+verified coordination claims. Retain the limits of three ordinary implementation
+PRs and dependent stack depth two; reconcile existing work before opening
+overlapping implementation.
+
+The critical provider path is **#165 → #144 → #154 → exact-candidate release**.
+Reversible fixes and evidence preparation can proceed in parallel where their
+dependencies permit. `/ratings/reconcile` stays unavailable until its governed
+provider prerequisites are satisfied. No schema mutation, historical import or
+production write gate is authorised by this document update.
+
+## Launch sign-off
+
+Public launch requires a dated decision against one exact candidate with:
+
+1. required launch workflows and permission-negative cases passing against the
+   connected production-equivalent backend, including reliable rating deletion,
+   retry integrity, private cellar ownership and persisted profile privacy;
+2. Node 22 canonical validation and applicable browser/accessibility/runtime
+   evidence, with no unresolved material defects or review findings;
+3. verified provider/schema controls and reconciled data actually included in
+   the launch catalogue; any historical import has its own approved evidence;
+4. verified deployment SHA, production configuration and operational readiness,
+   exercised restore/rollback and named technical, privacy, support and alert owners;
+5. applicable publication/privacy obligations evidenced and explicit disposition
+   of historical requirements against current scope; and
+6. production smoke results and the observation/rollback decision recorded by
+   the release authority.
+
+Hosted CodeQL, Dependency Review and other CI results are diagnostic evidence
+unless an active protection or explicit project rule requires them. Resolve
+material findings and respect actual repository protections; an unavailable
+hosted wrapper is not an application failure or passing evidence.
+
+Account export/deletion foundations remain future-phase work under the current
+roadmap. Historical G23/G26 requirements below are preserved for traceability;
+they do not silently expand the current launch scope. Required privacy/legal
+obligations still need an explicit, evidenced disposition. Bulk historical
+imports, broader social/business features and Brew Done It remain separately
+governed capabilities.
+
+## Brew Done It launch exclusion
+
+- [x] Source includes an authenticated, guarded `/brew-done-it` direct route for
+  controlled testing, while production-facing primary navigation stays hidden.
+- [x] The game gateway requires explicit server-side
+  `BREW_DONE_IT_POLICY_ENABLED=true` and otherwise fails closed before provider access.
+- [ ] Verify the normal deployment policy remains unset and retain exclusion
+  until capability-specific provider/privacy/recovery certification and a
+  separately reviewed enablement change are complete.
+
+[ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) and
+[ADR 0006](DECISIONS/0006-adopt-brew-done-it-deduction-board.md) approve the
+persistent two-account/two-device deduction model. ADR 0001's same-device model
+is superseded. Source approval is distinct from provider mutation or production
+enablement; [Brew Done It readiness](BREW_DONE_IT_READINESS.md) retains the
+capability-specific evidence requirements.
+
+`scripts/check-brew-done-it-containment.js` guards the protected direct route,
+hidden navigation, bundled test surface and explicit backend policy contract.
+Repeat canonical validation and applicable browser/accessibility checks on the
+exact candidate; static containment evidence alone does not certify gameplay
+or deployed policy.
+
+## Launch execution plan — 18 October 2026
+
+### Reviewed position
+
+The recommended path is to finish the existing beer-first release, qualify one
+candidate and run a controlled pilot before public launch. Public launch remains
+**NO-GO**. New feature growth and a hosting/framework migration are not prerequisites.
+
+Live review baseline:
+`acd8633494066c66e2d882d7317009669397de39`. Production deployment
+`dpl_8t1QfZgSXtPCZ6bTdCdF2ypVypeQ` reports READY at that SHA. Public health
+and readiness returned HTTP 200 at approximately 10:33 UTC on 18 October with
+matching provenance, configured authentication/data/shared rate limiting and
+`dataProvider: ok`. This verifies configuration and a bounded read, not owner writes.
+
+Exact-main run [38752087946](https://github.com/jeremytheva/pourfolio/actions/runs/38752087946)
+executed canonical acceptance (job `116480799187`: 783 passed, 15 skipped,
+zero failed, plus composed contract/lint/audit/build/security checks) and 140
+browser/accessibility cases (job `116480799367`). Connected rating-integrity
+and bonus-mapping jobs skipped. Required connected rows remain open.
+
+### Dependency-ordered delivery
+
+| Stage | Required work | Exit criterion |
+| --- | --- | --- |
+| A — Baseline | Confirm release/data scope, current claims and existing PR evidence. Reuse #503/#165/#144/#154/#449/#422/#577 and existing release documents. | One bounded queue and dated evidence baseline; no duplicate launch backlog. |
+| B — Rating/provider integrity | Correlate the #503 deletion failure, fix the verified operation, complete #165 provider authority/restore/approval prerequisites and certify the approved write path under #144. | Connected create, identical/lost-response retry, changed-payload rejection, partial-child recovery, concurrency, historical/current deletion and cleanup pass. |
+| C — Core journeys/data | Repair cellar validation under #449; certify sessions/rate limits, catalogue, score calculations, history/breakdowns, profile privacy/revocation and owner isolation using two distinct accounts. Reconcile data actually included at launch. | Every required connected journey passes with evidence and cleanup; no required skip or unresolved integrity/privacy defect. |
+| D — Publication/operations | Complete the existing publication/configuration/operations procedures, support contacts, named operators/backups, monitoring/redaction, provider restore and deployment rollback. Reconcile dated scope/prose. | Effective reviewed public documents, exercised support/alert routes and demonstrated compatible recovery. |
+| E — Candidate qualification | Freeze one SHA after fixes/public content integrate; execute canonical/browser/connected acceptance and verify actual production SHA, configuration, schema state and failure paths. | Dated release decision with complete exact-candidate evidence and no material unresolved reviews. |
+| F — Pilot/public release | After B–E pass, invite a small representative group and observe repeat use. Every pilot repair freezes a new candidate and returns to E for canonical, browser, connected and deployment requalification before resuming the pilot or recording GO. | Pilot acceptance and public release approval refer to the same final qualified candidate. |
+
+A can start immediately. B diagnosis, C reversible fixes/read-only preparation
+and D can progress independently where dependencies and verified claims permit.
+E waits for B–D. A pilot never waives integrity, privacy or recovery requirements.
+Recommended pilot observation is 10–20 invited adults over 7–14 days; this is not
+a promised launch date or a newly scheduled automation. Every pilot repair returns
+to E: freeze the new SHA, rerun canonical source, browser/accessibility and required
+connected acceptance, and verify the new deployment/configuration before resuming
+pilot acceptance or recording GO. Evidence for the pre-repair SHA cannot qualify
+the repaired candidate.
+
+### First implementation slices
+
+1. **#503 — deletion diagnosis:** use an isolated disposable fixture reproducing
+   the affected historical/managed shape, or a separately authorised controlled
+   retest. Capture release SHA, safe request ID, failing provider stage/status
+   and before/after counts. Add a focused regression and fix the verified cause.
+   PR #638's diagnostic logging is not itself evidence that deletion works.
+2. **#449 — strict cellar validation:** the reviewed production sanitiser
+   `api/_lib/dataPolicy.js` reproducibly accepts `date_received: "2026-02-30"`
+   as `2026-03-02`, numeric date `0` as `1970-01-01`,
+   `quantity: true` as `1`, and `gift: "false"` as `1`.
+   Reject impossible dates and unsupported JSON types before provider I/O while
+   preserving accepted valid-zero, optional-null and numeric-form semantics.
+   Cover both creates and partial updates.
+3. **#165/#144 — provider evidence:** #503 records workflow columns as deployed.
+   Establish actual fields and guarantees from a fresh consistent baseline;
+   do not repeat deployed changes blindly or equate column presence with
+   uniqueness/conditional-update/backfill/recovery certification. Complete the
+   existing provider-supported mechanism, isolated restore and explicit
+   irreversible-change approval package before the remaining provider work.
+   Keep the public reconciliation boundary unavailable until its governed gate.
+4. **#422/#577 — privacy/session certification:** supported login credentials
+   and two distinct sessions must prove default-private creation, uniqueness,
+   stable public identity, persisted edits/opt-in, copied links, revocation and
+   cross-owner denial. Database Secret Keys are not login passwords.
+
+### Required journey coverage
+
+Use the existing release harness and record exact candidate, environment,
+UTC interval, operator, result, safe evidence reference and cleanup for each row.
+
+- Supported registration/sign-in, session refresh/expiry/revocation/sign-out,
+  enabled email/OTP delivery and local/shared auth limits at the actual proxy boundary.
+- Catalogue browse/search/no results, deterministic full pagination, stable direct
+  product links, collaboration/category integrity and provider failure recovery.
+- Current scoring contract: personalised/default weights, zero-weight omissions,
+  derived Bonus, optional Design/Burp, stored historical totals, PPP price/volume
+  boundaries and Overall/Style Scaled Score ties/multi-page populations.
+- Reliable new/historical owner history across reload and a new session/device;
+  exact own/other-author links and actual recorded component/descriptor breakdowns.
+  Never reconstruct past ratings from today's weighting settings.
+- Default-private profile/history, opt-in and immediate revocation, copied-link
+  behaviour, second-account privacy and update denial, no stale private content.
+- Owner cellar CRUD, optional relationships without a series, valid primitives,
+  Gift/Gift-from clearing, invalid-input rejection and verified fixture cleanup.
+- Missing-beer/correction initiation truthfully respects persistence/image/lookup
+  capability gates. Do not imply an unavailable proposal was saved.
+- Connected Safari/iPhone and Android/Chromium smoke, keyboard, screen reader,
+  200% zoom, narrow screens, slow-network and accessible error/retry behaviour.
+
+### Source-data and documentation findings
+
+Fresh read-only repository audits against the supplied historical files produced:
+
+- **Catalogue BLOCKED:** 350 products, 159 producers and 331 categories with 209
+  finding records. These include missing references, category ancestry/cycles,
+  duplicate sort-key rows and encoding. Counts overlap.
+- **Historical SQL BLOCKED:** 34 structural findings against the current target.
+  The old export does not prove those fields are absent from the live provider.
+- **Cross-reference BLOCKED:** 53 findings using the supplied workbook's
+  `Ready_Ratings` (593 rows) and `Cellar_Staging` (399 rows), paired with the
+  product/producer CSVs: 29 product-to-producer, 14 rating-to-product and 10
+  cellar-to-product occurrences. Keep this exact-input result separate from
+  the older retained 46-occurrence/41-task remediation record.
+- The workbook retains 604 source ratings (593 marked ready, 11 excluded),
+  4,177 uploadable scores (15 excluded), 69 unmatched bonus selections across
+  10 variants, and 399 prepared cellar entries without verified owners or
+  confirmed destination IDs. Readiness labels do not establish completed import.
+
+These inputs are not evidenced as a same-state current-provider export. Certify
+a fresh launch catalogue/history snapshot. Recommend keeping unimported,
+unreconciled candidates separate from the first release dataset; this does not
+authorise deleting or hiding existing live history. Any bulk import still needs
+reviewed mappings, identity evidence, dry run, idempotent rerun and restore proof.
+
+Update existing specialist documents rather than adding competing authorities:
+
+- `docs/RATING_FORMULA_V1.md` describes historical v1 weights including
+  Design/Burp, while `src/lib/ratingFormulaV1.js` declares v2 and current core
+  weights (Appearance 10%, Aroma 10%, Mouthfeel 20%, Flavour 25%, Follow 25%,
+  Bonus 10%). Reconcile accepted personalisation/Bonus, scale, rounding and
+  historical semantics without rewriting historical totals.
+- `docs/OPERATIONS_READINESS.md` still describes provider readiness as deferred.
+  Reconcile it with the implemented endpoint and retain actual safety/evidence limits.
+- `src/data/publicDocuments.js` still contains RC draft/not-effective content,
+  unapproved operator details and no approved public support contact. Complete
+  the existing required independent publication review and workable support,
+  access/correction/deletion process. Future self-service account lifecycle
+  remains distinct from current privacy obligations and is not silently added.
+
+### Queue, ownership and release boundaries
+
+Catalogue remains sole integration/release/shared-status authority. Ratings,
+producers and Brew retain their scopes. Use verified bounded claims, ordinary
+PRs, at most three implementation PRs and stack depth two.
+
+At review, #637 and #639 were the two open implementation PRs; #635/#636 were
+dependency PRs. #639 has unresolved recovery and candidate-provenance reviews.
+#637's body is stale: exact-head runs `38828882651`/`38828876697` report
+successful validation. Inspect executed jobs/reviews and reconcile the body
+before integration. Brew remains outside the launch critical path. Do not add
+routine major dependency upgrades solely because a PR exists.
+
+The repository describes four scheduler workstreams, but the private task lookup
+exposed none in this review session. Verify authoritative task visibility,
+execution capability and recent outcomes before relying on unattended work.
+This is a visibility limitation, not proof that no tasks exist; avoid duplicates.
+
+Keep Brew Done It excluded/policy-disabled, and preserve existing deferred
+social/venue/business/geography/photo/non-beer gates. No new feature phase or
+hosting move is needed. Vercel is the currently verified target; BonoHost would
+need its own target-specific evidence if selected.
+
+Jeremy need not manage routine engineering. Escalate only concrete unavailable
+credentials/provider capabilities, irreversible-change approval, ambiguous
+historical identity decisions, necessary named external assignments and the
+public release decision after reversible preparation. Do not request blanket
+permission to begin.
+
+## Retained source-hardening record — July–August 2026
+
+The following implementation and G01–G32 records retain their original dated
+evidence references and unresolved results. They describe the earlier baseline,
+not a fresh audit of current provider state. Existing gate anchors remain stable
+for linked issues, migration procedures and private evidence packages. Before
+closing a current requirement, reconcile its historical row with the current
+checklist, governing scope and exact-candidate evidence.
 
 - Privileged self-registration, admin credential hint, test-user switching and browser role overrides removed.
 - Server-authoritative session identity and editable profile-field allowlist.
@@ -61,7 +315,7 @@ Source-controlled launch hardening is implemented for a beer-first MVP, but prod
   catalogue references, missing profile/rating controls, duplicate-permitting
   schema and mutable rating timestamps.
 
-The response boundary is the first source-only slice of
+In this historical record, the response boundary was the first source-only slice of
 [`PF-P3-01`](https://github.com/jeremytheva/pourfolio/issues/154). It does not
 repair or approve the supplied catalogue sources and does not establish
 connected route, provider-failure or accessibility evidence. The historical
@@ -69,7 +323,7 @@ import blockers and every earlier external gate below remain unchanged.
 
 ## Historical import evidence
 
-The supplied workbook currently reports:
+The retained July 2026 workbook review reported:
 
 | Item | Current evidence | Gate |
 | --- | ---: | --- |
@@ -84,12 +338,14 @@ The supplied workbook currently reports:
 The previously missing products, cellar, bonus-attribute and SQL exports are now present in the supplied source set. Their presence does not complete import reconciliation. The [historical import preflight](nocodebackend/import-preflight.md) currently blocks the source set because catalogue and producer references do not reconcile. The repository can now generate and validate a private, identity-field-free decision ledger for the 41 distinct remediation tasks represented by the 46 failures; no completed or reviewed ledger has been supplied.
 
 The [rating schema preflight](nocodebackend/schema-preflight.md) also blocks the
-supplied `54026_rating_export(2).sql` source snapshot. As audited on 29 July
-2026 against the current preflight contract, its 25 findings are one missing
+supplied `54026_rating_export(2).sql` source snapshot. The 29 July
+2026 audit against the contract then in use retained 25 findings: one missing
 table, seven missing required workflow/idempotency columns, ten nullable
 required columns, six missing unique constraints and one mutable timestamp
-default. The category counts are taken from the retained audit output contract,
-not inferred from the headline total.
+default. That is historical evidence only. The expanded 15 August structural
+audit retained in `exports/legacy-schema-audit-report.json` records 34 findings
+for the same source snapshot; the linked preflight and migration runbook own
+the current requirements. Neither audit proves the live provider state.
 
 ### Historical import execution record
 
@@ -267,9 +523,11 @@ register are defined in the [production operations readiness runbook](OPERATIONS
 Its blocked evidence fields are release gates, not evidence of completed remote
 configuration or rehearsals.
 
-## Launch sign-off
+## Historical sign-off requirements — 29 July 2026
 
-Public launch requires:
+The earlier review required the following. Current launch sign-off is defined
+above; retain these requirements and their evidence links when reconciling
+scope rather than treating this older list as a new release decision:
 
 1. every P0/P1 box closed with dated evidence;
 2. the release-gate and CodeQL checks green on the exact deployed commit;
@@ -280,9 +538,10 @@ Public launch requires:
 
 ## Release evidence register
 
-This register links every launch checkbox to an accountable person and the
-private evidence reference that must be reviewed before it can close. The
-review date is **29 July 2026**. `PRR` references are identifiers in the
+This historical register links the earlier launch checkboxes to an accountable
+person and private evidence references. The initial review date was
+**29 July 2026**, with individually dated August updates retained below. No row
+was re-certified by the 15 October reconciliation. `PRR` references are identifiers in the
 access-controlled private release record, not public links: the underlying
 artefacts may contain operational metadata and must remain redacted and access
 controlled. A reference marked `not supplied` is evidence of an unresolved
@@ -294,7 +553,7 @@ privacy/legal, moderation, support, or backup owners. Where specialist approval
 is required, the missing named approver remains an explicit blocker even though
 the action has an accountable owner.
 
-| Gate | Accountable owner | Dated, redacted evidence | Result on frozen candidate |
+| Gate | Accountable owner | Dated, redacted evidence | Historical result on referenced candidate |
 | --- | --- | --- | --- |
 | <a id="evidence-g01"></a>G01: Presence-only evidence confirms that `NOCODEBACKEND_SECRET_KEY`, `NOCODEBACKEND_DATA_BASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `RATE_LIMIT_KEY_SECRET` and any deliberately configured `NOCODEBACKEND_AUTH_BASE_URL`/`ALLOWED_ORIGINS` are present as server-only variables in isolated staging and production scopes and absent from browser bundles, source maps, repository files, command transcripts and evidence; no value may appear in the evidence, and presence alone is not operational provider or Redis evidence. | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-LAUNCH-CONFIG`: the completed, independently approved private package ties presence-only staging and production inventories to commit `af13281edaffc2aaa508c19c7e8a85b35c46f989`; it confirms required variables are server-only, records optional-variable dispositions, and retains browser/source-map negatives, endpoint identities, redacted request IDs, least-privilege probe results, redacted-log checks, named rotation and rollback owners, rollback rehearsal and named independent approval | **PASS** |
 | <a id="evidence-g02"></a>G02: The canonical collections in | `@jeremytheva` | 5 August 2026 — `PRR-2026-08-05-G02`: baseline-template review confirms the repository has no completed production-equivalent package; same-state schema, `products`, `producers`, `categories`, `ratings`, rating-child, `profiles` and `cellar` exports, page ledger, row counts, collection checksums and legacy-alias report are not supplied, so this row cannot close | **BLOCKED** |
@@ -329,20 +588,18 @@ the action has an accountable owner.
 | <a id="evidence-g31"></a>G31: Enable GitHub Issues or nominate another tracker for the remainin… | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G31`: not supplied | **BLOCKED** |
 | <a id="evidence-g32"></a>G32: Test direct routes and `/api/health` on the production host. | `@jeremytheva` | 29 July 2026 — `PRR-2026-07-29-G32`: not supplied | **BLOCKED** |
 
-### Frozen-candidate decision record
+### Frozen-candidate decision record — 29 July 2026
 
-The candidate is frozen by the Git commit created from this review; its full
-SHA must be recorded in `PRR-2026-07-29-RC` after commit creation and must be the
-SHA supplied to the connected staging workflow. A Git SHA cannot truthfully be
-embedded in the content of the commit it identifies. No staging or production
-deployment is authorised from this review because every register entry above
-is blocked and the environment supplies no deployment credentials or remote
-administration access.
+The earlier review required its candidate SHA in `PRR-2026-07-29-RC` after
+commit creation and the same SHA in the connected staging workflow. It did not
+authorise staging or production deployment: the evidence and remote access
+available to that review were insufficient. The subsequently dated G01/G08
+passes apply only to their referenced August candidate.
 
-**Decision: NO-GO.** Release management must create one public, non-sensitive
-issue per unresolved item using the **Release blocker** issue form, then keep
-private evidence in the access-controlled release record. Production promotion
-is prohibited while any P0 or P1 issue remains open.
+**Historical decision: NO-GO.** The review required public, non-sensitive
+release-blocker issues and private evidence for unresolved items. Reuse the
+existing tracked issues in the current checklist; this historical instruction
+does not require duplicate issues or qualify a current candidate.
 
 ### Approval record
 
@@ -358,9 +615,10 @@ date, scope, frozen SHA, findings and resolutions in the private record.
 Silence, a role label, a workflow result, or this repository review is not
 approval.
 
-### Post-deployment evidence (not authorised)
+### Retained post-deployment evidence procedure
 
-If a later review closes every gate and authorises promotion, retain one
+After a current review meets the launch sign-off requirements and authorises
+promotion, retain one
 redacted smoke report tied to the deployed SHA covering direct SPA routes,
 authentication, catalogue list/search/details, rating create/retry/recovery and
 history, cellar CRUD, profile editing, `/api/health`, correlation-safe logging,

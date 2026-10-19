@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { runUserAdminCertification } from '../userAdminCertification.js'
+import { runUserAdminCertification, __testables } from '../userAdminCertification.js'
+import { UPSTREAM_TIMEOUT_MS } from '../httpSecurity.js'
 
 const environment = {
   NOCODEBACKEND_AUTH_BASE_URL: 'https://app.nocodebackend.com/api/user-auth',
@@ -90,3 +91,34 @@ test('a rejected key fails the certification without revealing provider detail',
   assert.equal(report.safeCodes.userKey, 'DATA_KEY_REJECTED')
   assert.doesNotMatch(JSON.stringify(report), /private provider text/)
 })
+
+for (const [name, probe, code] of [
+  ['authentication discovery', __testables.probeAuthProvider, 'AUTH_PROVIDER_UNAVAILABLE'],
+  ['data-key discovery', __testables.probeDataSecretKey, 'DATA_PROVIDER_UNAVAILABLE']
+]) {
+  test(`${name} classifies a stalled body as unavailable within the request deadline`, async (context) => {
+    context.mock.timers.enable({ apis: ['setTimeout'] })
+    let requestSignal, bodyStarted
+    const reading = new Promise((resolve) => { bodyStarted = resolve })
+    const fetchImpl = async (_url, { signal }) => {
+      requestSignal = signal
+      context.mock.timers.tick(UPSTREAM_TIMEOUT_MS - 1)
+      return {
+        ok: true,
+        status: 200,
+        text: () => new Promise((_resolve, reject) => {
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+          bodyStarted()
+        })
+      }
+    }
+
+    const pending = probe({ environment, fetchImpl, secretKey: 'test-data-secret' })
+    await reading
+    assert.equal(requestSignal.aborted, false)
+    context.mock.timers.tick(1)
+    assert.equal(requestSignal.aborted, true)
+    assert.deepEqual(await pending, { status: 'FAIL', code })
+  })
+}
+

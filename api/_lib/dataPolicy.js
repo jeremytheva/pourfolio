@@ -187,13 +187,37 @@ export const projectBrewDoneItRound = (record, viewerId) => {
 
 const asOptionalNumber = (value, { integer = false, min, max } = {}) => {
   if (value === undefined || value === null || value === '') return null
-  const number = Number(value)
+  if (typeof value !== 'number' && typeof value !== 'string') throw new Error('A numeric field is invalid.')
+  const text = typeof value === 'string' ? value.trim() : null
+  if (text === '') return null
+  if (text !== null && !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(text)) {
+    throw new Error('A numeric field is invalid.')
+  }
+  const number = Number(text ?? value)
   if (!Number.isFinite(number) || (integer && !Number.isInteger(number))) {
     throw new Error('A numeric field is invalid.')
   }
   if (min !== undefined && number < min) throw new Error('A numeric field is below its allowed minimum.')
   if (max !== undefined && number > max) throw new Error('A numeric field is above its allowed maximum.')
   return number
+}
+
+const cellarReceivedDate = (value) => {
+  if (value === null || value === '') return null
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || value.startsWith('0000-')) {
+    throw new Error('Date received is invalid.')
+  }
+  const date = new Date(`${value}T00:00:00.000Z`)
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+    throw new Error('Date received is invalid.')
+  }
+  return value
+}
+
+const cellarGiftFlag = (value) => {
+  if (value === null || value === '' || value === false || value === 0 || value === '0') return 0
+  if (value === true || value === 1 || value === '1') return 1
+  throw new Error('Gift flag is invalid.')
 }
 
 export const sanitiseProfileUpdates = (input) => {
@@ -219,56 +243,15 @@ const rejectUnverifiedCellarRelationship = (field, value) => {
   return null
 }
 
-const cellarWriteError = (message) => {
-  const error = new Error(message)
-  error.status = 400
-  error.code = 'CELLAR_INPUT_INVALID'
-  return error
-}
-
-const cellarWriteFields = new Set(CELLAR_EDITABLE_FIELDS)
-
-const cellarText = (value, field) => {
-  if (value === null || value === '') return null
-  if (typeof value !== 'string' || value.length > 255) {
-    throw cellarWriteError(`Cellar ${field} must be text of at most 255 characters.`)
-  }
-  return value.trim()
-}
-
-const cellarGift = (value) => {
-  if (value === true || value === 1 || value === '1') return 1
-  if (value === false || value === 0 || value === '0' || value === null || value === '') return 0
-  throw cellarWriteError('Cellar gift flag is invalid.')
-}
-
-const cellarDate = (value) => {
-  if (value === null || value === '') return null
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/u.test(value)) {
-    throw cellarWriteError('Date received must be a valid YYYY-MM-DD date.')
-  }
-  const date = new Date(`${value}T00:00:00.000Z`)
-  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
-    throw cellarWriteError('Date received must be a valid YYYY-MM-DD date.')
-  }
-  return value
-}
-
-export const sanitiseCellarInput = (input, { partial = false, existingGift = false } = {}) => {
-  if (!input || typeof input !== 'object' || Array.isArray(input)) {
-    throw cellarWriteError('Cellar write data is invalid.')
-  }
-  if (Object.keys(input).some((field) => !cellarWriteFields.has(field))) {
-    throw cellarWriteError('Unsupported cellar write field.')
-  }
-  const result = pickFields(input, CELLAR_EDITABLE_FIELDS) || {}
-  if (partial && Object.keys(result).length === 0) {
-    throw cellarWriteError('A cellar update must include at least one supported field.')
-  }
+export const sanitiseCellarInput = (input, { partial = false } = {}) => {
+  const result = pickFields(requirePlainObject(input), CELLAR_EDITABLE_FIELDS) || {}
 
   if (result.product_id === undefined) {
-    if (!partial) throw cellarWriteError('A product is required.')
+    if (!partial) throw new Error('A product is required.')
   } else {
+    if (typeof result.product_id !== 'string' && typeof result.product_id !== 'number') {
+      throw new Error('Product identifier is invalid.')
+    }
     result.product_id = positiveId(result.product_id, 'Product identifier')
   }
 
@@ -276,21 +259,20 @@ export const sanitiseCellarInput = (input, { partial = false, existingGift = fal
     if (result[field] !== undefined) result[field] = rejectUnverifiedCellarRelationship(field, result[field])
   }
 
-  if (result.quantity !== undefined) result.quantity = asOptionalNumber(result.quantity, { integer: true, min: 1, max: 10000 })
-  if (result.mls !== undefined) result.mls = asOptionalNumber(result.mls, { integer: true, min: 1, max: 100000 })
+  if (result.quantity !== undefined) result.quantity = asOptionalNumber(result.quantity, { integer: true, min: 0, max: 10000 })
+  if (result.mls !== undefined) result.mls = asOptionalNumber(result.mls, { integer: true, min: 0, max: 100000 })
   if (result.purchase_price !== undefined) result.purchase_price = asOptionalNumber(result.purchase_price, { min: 0, max: 1000000 })
   if (result.retail_price !== undefined) result.retail_price = asOptionalNumber(result.retail_price, { min: 0, max: 1000000 })
-  if (result.gift !== undefined) result.gift = cellarGift(result.gift)
+  if (result.gift !== undefined) result.gift = cellarGiftFlag(result.gift)
 
   for (const field of ['container', 'gift_from', 'notes']) {
-    if (result[field] !== undefined) result[field] = cellarText(result[field], field)
+    if (result[field] !== undefined && result[field] !== null) {
+      if (typeof result[field] !== 'string') throw new Error('A text field is invalid.')
+      result[field] = result[field].trim().slice(0, 255)
+    }
   }
 
-  const isGift = result.gift === undefined ? existingGift : result.gift === 1
-  if (!isGift && (result.gift !== undefined || result.gift_from !== undefined)) {
-    result.gift_from = null
-  }
-  if (result.date_received !== undefined) result.date_received = cellarDate(result.date_received)
+  if (result.date_received !== undefined) result.date_received = cellarReceivedDate(result.date_received)
 
   return result
 }

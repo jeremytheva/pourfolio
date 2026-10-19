@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { dataProvider, __testables } from '../dataProvider.js'
+import { UPSTREAM_TIMEOUT_MS } from '../httpSecurity.js'
 
 const TEST_INSTANCE = 'test-instance'
 const originalFetch = global.fetch
@@ -198,3 +199,51 @@ test('missing NOCODEBACKEND_SECRET_KEY fails closed before provider request', as
   global.fetch = async () => assert.fail('fetch must not be called')
   await assert.rejects(dataProvider.list('products'), { status: 503, code: 'DATA_CREDENTIAL_MISSING' })
 })
+
+for (const status of [200, 409]) {
+  test(`provider ${status} body reads share the fetch deadline and return a safe timeout error`, async (context) => {
+    context.mock.timers.enable({ apis: ['setTimeout'] })
+    let requestSignal, bodyStarted
+    const reading = new Promise((resolve) => { bodyStarted = resolve })
+    global.fetch = async (_url, { signal }) => {
+      requestSignal = signal
+      context.mock.timers.tick(UPSTREAM_TIMEOUT_MS - 1)
+      return {
+        ok: status === 200,
+        status,
+        text: () => new Promise((_resolve, reject) => {
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+          bodyStarted()
+        })
+      }
+    }
+
+    const pending = dataProvider.list('products')
+    const rejected = assert.rejects(pending, {
+      status: 502,
+      code: 'PROVIDER_ERROR',
+      message: 'The upstream service could not complete the request.'
+    })
+    await reading
+    assert.equal(requestSignal.aborted, false)
+    context.mock.timers.tick(1)
+    assert.equal(requestSignal.aborted, true)
+    await rejected
+  })
+}
+
+test('provider completion clears its timeout and malformed JSON retains the safe error', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout'] })
+  let requestSignal
+  global.fetch = async (_url, { signal }) => {
+    requestSignal = signal
+    return response({ data: [{ id: 7 }] })
+  }
+  assert.deepEqual(await dataProvider.list('products'), [{ id: 7 }])
+  context.mock.timers.tick(UPSTREAM_TIMEOUT_MS)
+  assert.equal(requestSignal.aborted, false)
+
+  global.fetch = async () => response(null, { raw: '{invalid JSON' })
+  await assert.rejects(dataProvider.list('products'), { status: 502, code: 'PROVIDER_ERROR' })
+})
+

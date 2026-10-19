@@ -120,14 +120,18 @@ const safeRequestShape = (body) => {
 
 const providerRequest = async (path, { method = 'GET', body, filters, preserveEnvelope = false } = {}) => {
   const { baseUrl, secret, instance } = getConfiguration()
-  let upstream
+  let result
   try {
-    upstream = await withTimeout((signal) => fetch(buildUrl(baseUrl, path, filters, instance), {
-      method,
-      headers: buildProviderHeaders({ secret, body }),
-      body: body === undefined ? undefined : JSON.stringify(body),
-      signal
-    }))
+    result = await withTimeout(async (signal) => {
+      const upstream = await fetch(buildUrl(baseUrl, path, filters, instance), {
+        method,
+        headers: buildProviderHeaders({ secret, body }),
+        body: body === undefined ? undefined : JSON.stringify(body),
+        signal
+      })
+      const text = await upstream.text()
+      return { upstream, payload: text ? JSON.parse(text) : null }
+    })
   } catch (cause) {
     if (['DATA_CONFIGURATION_INVALID', 'DATA_CREDENTIAL_MISSING', 'DATA_INSTANCE_MISSING'].includes(cause?.code)) throw cause
     const error = new Error(safeErrorMessage(502))
@@ -136,17 +140,7 @@ const providerRequest = async (path, { method = 'GET', body, filters, preserveEn
     throw error
   }
 
-  let payload
-  try {
-    const text = await upstream.text()
-    payload = text ? JSON.parse(text) : null
-  } catch {
-    const error = new Error(safeErrorMessage(502))
-    error.status = 502
-    error.code = 'PROVIDER_ERROR'
-    throw error
-  }
-
+  const { upstream, payload } = result
   if (!upstream.ok || payload?.error || payload?.success === false || payload?.status === 'error') {
     const error = new Error(safeErrorMessage(upstream.status))
     error.status = upstream.status >= 400 && upstream.status < 600 ? upstream.status : 502
@@ -247,3 +241,4 @@ export const __testables = {
   canRecoverEmptyExactRead,
   DEFAULT_DATA_BASE_URL: CANONICAL_DATA_BASE_URL
 }
+
