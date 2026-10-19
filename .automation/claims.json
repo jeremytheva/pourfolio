@@ -1,19 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "full-rating-resume-1792400867055-catalogue",
-      "workstream": "catalogue",
-      "issue": 154,
-      "pr": 661,
-      "surfaces": [
-        "STATUS.md",
-        "repo:integration",
-        "docs/LAUNCH_READINESS.md",
-        "docs/nocodebackend/rating-workflow-certification.md"
-      ],
-      "acquiredAt": "2026-10-19T09:07:47.055Z",
-      "expiresAt": "2026-10-19T09:37:47.055Z"
-    }
-  }
+  "claims": {}
 }
