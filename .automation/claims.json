@@ -1,4 +1,30 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "ratings": {
+      "owner": "full-rating-resume-1792400867055-ratings",
+      "workstream": "ratings",
+      "issue": 165,
+      "pr": 651,
+      "surfaces": [
+        "runtime:ratings-qa",
+        "runtime:bonus-qa",
+        "docs/nocodebackend/rating-workflow-certification.md"
+      ],
+      "acquiredAt": "2026-10-19T09:07:47.055Z",
+      "expiresAt": "2026-10-19T09:37:47.055Z"
+    },
+    "catalogue": {
+      "owner": "full-rating-resume-1792400867055-catalogue",
+      "workstream": "catalogue",
+      "issue": 449,
+      "pr": null,
+      "surfaces": [
+        "STATUS.md",
+        "repo:integration"
+      ],
+      "acquiredAt": "2026-10-19T09:07:47.055Z",
+      "expiresAt": "2026-10-19T09:37:47.055Z"
+    }
+  }
 }
