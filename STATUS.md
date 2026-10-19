@@ -34,10 +34,10 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
+  observed_main_commit: "85bf9b2a65737ebe76ff2d0e2e94b5b101c0c7b6"
   current_candidate_commit: null
   latest_validated_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
-  latest_deployed_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
+  latest_deployed_commit: "85bf9b2a65737ebe76ff2d0e2e94b5b101c0c7b6"
   latest_runtime_verified_commit: "2c8d88e8f8d466e8adc26c1a44d5a9814ca18033"
   latest_browser_verified_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
 validation:
@@ -49,7 +49,7 @@ validation:
   ci: BLOCKED
   runtime: UNVERIFIED
 last_verified_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
-last_updated: "2026-10-19T03:34:00Z"
+last_updated: "2026-10-19T03:37:00Z"
 ---
 
 # STATUS.md
@@ -57,6 +57,18 @@ last_updated: "2026-10-19T03:34:00Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Concurrent launch-readiness traceability integration — 19 October 2026, 03:37 UTC
+
+PR #653 merged as `85bf9b2a65737ebe76ff2d0e2e94b5b101c0c7b6`
+after the tombstone fix. It adds a launch-readiness traceability
+pilot without changing the rating/cellars provider records. The
+newer `main` deployment `dpl_5VuYEejL47yGEgiDKkCQJHrxgbZH`
+is READY and matches that SHA; authenticated release certification
+and its independent exact-head validation remain separate evidence
+requirements. The source acceptance for the tombstone scoring fix
+remains at the earlier merged PR #652 head and read-only audit,
+not automatically inherited by #653.
 
 ### Deployed tombstone scoring repair; outstanding provider state — 19 October 2026, 03:34 UTC
 
