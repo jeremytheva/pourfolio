@@ -20,22 +20,30 @@
         "scripts/cleanup-bonus-write-fixture.js",
         "docs/evidence/bonus-fixture-recovery-39329607548.json"
       ],
-      "acquiredAt": "2026-10-19T22:19:07.405Z",
-      "expiresAt": "2026-10-19T22:49:07.405Z"
+      "acquiredAt": "2026-10-19T22:28:54.345Z",
+      "expiresAt": "2026-10-19T22:58:54.345Z"
     },
     "catalogue": {
       "owner": "bonus-provider-test-1792445185645-catalogue",
       "workstream": "catalogue",
-      "issue": 154,
-      "pr": null,
+      "issue": 449,
+      "pr": 657,
       "surfaces": [
         "STATUS.md",
         "repo:integration",
         "docs/evidence/github-issue-state.json",
-        "docs/LAUNCH_READINESS.md"
+        "docs/LAUNCH_READINESS.md",
+        ".github/workflows/pull-request-validation.yml",
+        "api/_lib/__tests__/cellarPersistence.test.js",
+        "api/cellar-data-proxy.js",
+        "release-check/__tests__/cellarCleanup.test.js",
+        "release-check/cellarCleanup.js",
+        "release-check/connected.spec.js",
+        "scripts/__tests__/liveCellarIntegrityAudit.test.js",
+        "scripts/audit-live-cellar-integrity.js"
       ],
-      "acquiredAt": "2026-10-19T22:19:07.405Z",
-      "expiresAt": "2026-10-19T22:49:07.405Z"
+      "acquiredAt": "2026-10-19T22:28:54.345Z",
+      "expiresAt": "2026-10-19T22:58:54.345Z"
     }
   }
 }
