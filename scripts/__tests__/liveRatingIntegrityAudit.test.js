@@ -44,3 +44,14 @@ test('completion audit rejects invalid totals and preserves the exact empty-time
   assert.deepEqual(result.completed.map(({ id }) => id), [12])
   assert.equal(result.contradictoryCompletionCount, 0)
 })
+
+test('deleted timestamp excludes a complete row even when its recorded weighted score is otherwise valid', () => {
+  const records = [
+    { id: 40, submission_state: 'complete', total_weighted: '4.45', deleted_at: null },
+    { id: 41, submission_state: 'complete', total_weighted: '3.55', deleted_at: '2026-10-19 02:20:00' }
+  ]
+  const classified = classifyCompletedRatings(records)
+  assert.equal(classified.completed.length, 1)
+  assert.equal(classified.completed[0].id, 40)
+  assert.equal(classified.contradictoryCompletionCount, 1)
+})
