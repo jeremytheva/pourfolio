@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   certify:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-bonus-write]') || contains(github.event.head_commit.message, '[bonus-fixture-inspect]')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-bonus-write]') || contains(github.event.head_commit.message, '[bonus-fixture-inspect]') || contains(github.event.head_commit.message, '[bonus-fixture-cleanup]')
     environment: staging-release
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -56,6 +56,20 @@ jobs:
         env:
           BONUS_CERTIFICATION_SHA: ${{ github.sha }}
           BONUS_INSPECTION_CONFIRMATION: INSPECT CURRENT INSTANCE BONUS FIXTURE
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NOCODEBACKEND_CONTRACT_USER_ID: ${{ secrets.NOCODEBACKEND_CONTRACT_USER_ID }}
+          BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
+          BONUS_CERTIFICATION_AUTH_SHA: 90c86fd13873b51a9025f4e3481dc594eef95a80
+          RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
+          RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
+      - name: Clean up only the reviewed exact test fixture
+        if: contains(github.event.head_commit.message, '[bonus-fixture-cleanup]')
+        run: node scripts/cleanup-bonus-write-fixture.js
+        env:
+          BONUS_CERTIFICATION_SHA: ${{ github.sha }}
+          BONUS_RECOVERY_CONFIRMATION: CLEAN UP THE VERIFIED BONUS TEST FIXTURE
           NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
           NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}

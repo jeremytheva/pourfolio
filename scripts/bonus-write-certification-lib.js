@@ -19,7 +19,7 @@ const failureCode = (error) => /^[A-Z][A-Z0-9_]{0,79}$/.test(error?.code || '')
 const same = (left, right) => String(left ?? '') === String(right ?? '')
 const first = (value) => Array.isArray(value) ? value[0] : value
 
-const listAll = async (provider, collection) => {
+export const readAllBonusCertificationRows = async (provider, collection) => {
   const rows = []
   const seen = new Set()
   for (let page = 1; page <= 1000; page += 1) {
@@ -36,10 +36,59 @@ const listAll = async (provider, collection) => {
   }
   throw Object.assign(new Error('BONUS_PAGE_LIMIT'), { code: 'BONUS_PAGE_LIMIT' })
 }
+const listAll = readAllBonusCertificationRows
 
 const referencesAttribute = (row, id) => same(row.bonus_attribute_id, id) || same(row.bonus_attributes_id, id)
 const requireReferenceFields = (rows) => requireThat(rows.every((row) =>
   idOf(row.bonus_attribute_id) || idOf(row.bonus_attributes_id)), 'BONUS_REFERENCE_READ_UNCONFIRMED')
+
+// Both the original test and explicitly reviewed recovery use the same exact
+// ownership, nonce and full-reference guards. This helper never creates rows.
+export const cleanupBonusTestFixture = async ({ provider, userId, attributeId, mappingId, categoryId, description, report }) => {
+  const attributeMatches = (row) => row && same(row.id, attributeId) && same(row.user_id, userId) && row.description === description
+  const mappingMatches = (row) => row && same(row.id, mappingId) && same(row.user_id, userId) &&
+    same(row.category_id, categoryId) && same(row.bonus_attribute_id, attributeId)
+  report.cleanup = 'UNCONFIRMED'
+  try {
+    requireThat(idOf(attributeId) && (!mappingId || idOf(mappingId)) && idOf(categoryId) &&
+      typeof userId === 'string' && userId.trim() === userId && userId.length > 0 &&
+      /^Pourfolio release QA bonus-[a-f0-9-]{36}$/.test(description || '') && report.deletesAttempted === 0,
+    'BONUS_CLEANUP_SCOPE_UNCONFIRMED')
+    const [attribute, mappings, ratingMappings] = await Promise.all([
+      provider.get(ATTRIBUTE, attributeId), listAll(provider, MAPPING), listAll(provider, RATING_MAPPING)
+    ])
+    requireThat(attributeMatches(attribute), 'BONUS_CLEANUP_PROVENANCE_UNCONFIRMED')
+    requireReferenceFields(ratingMappings)
+    requireThat(!ratingMappings.some((row) => referencesAttribute(row, attributeId)), 'BONUS_FIXTURE_IS_REFERENCED')
+    requireThat(mappings.every((row) => idOf(row.bonus_attribute_id)), 'BONUS_REFERENCE_READ_UNCONFIRMED')
+    const linked = mappings.filter((row) => same(row.bonus_attribute_id, attributeId))
+    requireThat(mappingId ? linked.length === 1 && mappingMatches(linked[0]) : linked.length === 0,
+      'BONUS_CLEANUP_MAPPING_UNCONFIRMED')
+    if (mappingId) {
+      requireThat(mappingMatches(await provider.get(MAPPING, mappingId)), 'BONUS_CLEANUP_MAPPING_UNCONFIRMED')
+      report.deletesAttempted += 1
+      await provider.remove(MAPPING, mappingId)
+      requireThat(await provider.get(MAPPING, mappingId) === null, 'BONUS_MAPPING_DELETE_UNCONFIRMED')
+      report.removed += 1
+    }
+    const [remainingMappings, remainingRatings, currentAttribute] = await Promise.all([
+      listAll(provider, MAPPING), listAll(provider, RATING_MAPPING), provider.get(ATTRIBUTE, attributeId)
+    ])
+    requireReferenceFields(remainingRatings)
+    requireThat(remainingMappings.every((row) => idOf(row.bonus_attribute_id)) &&
+      !remainingMappings.some((row) => same(row.bonus_attribute_id, attributeId)) &&
+      !remainingRatings.some((row) => referencesAttribute(row, attributeId)) && attributeMatches(currentAttribute),
+    'BONUS_CLEANUP_REFERENCES_CHANGED')
+    report.deletesAttempted += 1
+    await provider.remove(ATTRIBUTE, attributeId)
+    requireThat(await provider.get(ATTRIBUTE, attributeId) === null, 'BONUS_ATTRIBUTE_DELETE_UNCONFIRMED')
+    report.removed += 1
+    report.cleanup = 'PASS'
+  } catch (error) {
+    report.cleanupFailure = failureCode(error)
+  }
+  return report
+}
 
 // Runs only the candidate's server persistence function against the provider.
 // It does not certify HTTP authentication, browser submission or cross-owner denial.
@@ -124,44 +173,10 @@ export const runBonusWriteCertification = async ({ provider, userId, runKey, ver
   }
 
   if (report.createsAttempted) {
-    report.cleanup = 'UNCONFIRMED'
-    try {
-      requireThat(attributeId && (!mappingAttempted || mappingId), 'BONUS_CLEANUP_ID_UNCONFIRMED')
-      const [attribute, mappings, ratingMappings] = await Promise.all([
-        provider.get(ATTRIBUTE, attributeId), listAll(provider, MAPPING), listAll(provider, RATING_MAPPING)
-      ])
-      requireThat(attributeMatches(attribute), 'BONUS_CLEANUP_PROVENANCE_UNCONFIRMED')
-      requireReferenceFields(ratingMappings)
-      requireThat(!ratingMappings.some((row) => referencesAttribute(row, attributeId)), 'BONUS_FIXTURE_IS_REFERENCED')
-      requireThat(mappings.every((row) => idOf(row.bonus_attribute_id)), 'BONUS_REFERENCE_READ_UNCONFIRMED')
-      const linked = mappings.filter((row) => same(row.bonus_attribute_id, attributeId))
-      requireThat(mappingId ? linked.length === 1 && mappingMatches(linked[0]) : linked.length === 0,
-        'BONUS_CLEANUP_MAPPING_UNCONFIRMED')
-      if (mappingId) {
-        requireThat(mappingMatches(await provider.get(MAPPING, mappingId)), 'BONUS_CLEANUP_MAPPING_UNCONFIRMED')
-        report.deletesAttempted += 1
-        await provider.remove(MAPPING, mappingId)
-        requireThat(await provider.get(MAPPING, mappingId) === null, 'BONUS_MAPPING_DELETE_UNCONFIRMED')
-        report.removed += 1
-      }
-      // Re-check references and provenance immediately before the parent delete.
-      // This bounded fixture test does not certify concurrent provider atomicity.
-      const [remainingMappings, remainingRatings, currentAttribute] = await Promise.all([
-        listAll(provider, MAPPING), listAll(provider, RATING_MAPPING), provider.get(ATTRIBUTE, attributeId)
-      ])
-      requireReferenceFields(remainingRatings)
-      requireThat(remainingMappings.every((row) => idOf(row.bonus_attribute_id)) &&
-        !remainingMappings.some((row) => same(row.bonus_attribute_id, attributeId)) &&
-        !remainingRatings.some((row) => referencesAttribute(row, attributeId)) && attributeMatches(currentAttribute),
-      'BONUS_CLEANUP_REFERENCES_CHANGED')
-      report.deletesAttempted += 1
-      await provider.remove(ATTRIBUTE, attributeId)
-      requireThat(await provider.get(ATTRIBUTE, attributeId) === null, 'BONUS_ATTRIBUTE_DELETE_UNCONFIRMED')
-      report.removed += 1
-      report.cleanup = 'PASS'
-    } catch (error) {
-      report.cleanupFailure = failureCode(error)
-    }
+    if (!attributeId || (mappingAttempted && !mappingId)) {
+      report.cleanup = 'UNCONFIRMED'
+      report.cleanupFailure = 'BONUS_CLEANUP_ID_UNCONFIRMED'
+    } else await cleanupBonusTestFixture({ provider, userId, attributeId, mappingId, categoryId, description, report })
   }
   if (primaryFailure) report.failure = primaryFailure
   report.status = !primaryFailure && report.cleanup === 'PASS' ? 'PASS' : report.createsAttempted ? 'FAIL' : 'BLOCKED'

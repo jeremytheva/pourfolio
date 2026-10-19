@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Bonus persistence verified; mapping cleanup mismatch under read-only investigation"
+stage: "Bonus persistence verified; reviewed exact-fixture cleanup in progress"
 gate: Release
 execution_state: VALIDATING
 current_work:
@@ -42,7 +42,7 @@ wip:
 evidence:
   observed_main_commit: "7c030b43b415eaf8567ecb305caa5296b3f37e39"
   current_candidate_commit: null
-  latest_validated_commit: "89064711f9ed2badfc057d0dcbf15085266b9ff7"
+  latest_validated_commit: "73ad6364c6ac83cd7c54404b08aeb2535665792b"
   latest_deployed_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
   latest_runtime_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
   latest_browser_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
@@ -54,8 +54,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "89064711f9ed2badfc057d0dcbf15085266b9ff7"
-last_updated: "2026-10-19T21:47:19Z"
+last_verified_commit: "73ad6364c6ac83cd7c54404b08aeb2535665792b"
+last_updated: "2026-10-19T21:53:02Z"
 ---
 
 # STATUS.md

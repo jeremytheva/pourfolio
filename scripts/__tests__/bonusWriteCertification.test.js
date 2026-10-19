@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { DEPLOYED_COLLECTIONS as C } from '../../src/data/contract.js'
-import { runBonusWriteCertification } from '../bonus-write-certification-lib.js'
+import { cleanupBonusTestFixture, runBonusWriteCertification } from '../bonus-write-certification-lib.js'
 
 const userId = 'test-owner-private'
 const runKey = 'bonus-12345678-1234-4234-8234-123456789abc'
@@ -48,6 +48,18 @@ const fixture = (options = {}) => {
     }
   }
   return { rows, calls, provider, run: (overrides = {}) => runBonusWriteCertification({ provider, userId, runKey, ...overrides }) }
+}
+
+for (const invalid of [{ attributeId: '201/other' }, { description: 'An ordinary existing attribute' }]) {
+  test(`reviewed cleanup rejects invalid scope ${Object.keys(invalid)[0]} before reads or deletes`, async () => {
+    const f = fixture()
+    const report = { deletesAttempted: 0, removed: 0 }
+    await cleanupBonusTestFixture({ provider: f.provider, userId, attributeId: '201', mappingId: '501', categoryId: 10,
+      description: `Pourfolio release QA ${runKey}`, report, ...invalid })
+    assert.equal(report.cleanupFailure, 'BONUS_CLEANUP_SCOPE_UNCONFIRMED')
+    assert.equal(report.deletesAttempted, 0)
+    assert.deepEqual(f.calls, [])
+  })
 }
 
 test('candidate persistence and reload pass, then only its two acknowledged rows are removed child-first', async () => {

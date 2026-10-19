@@ -90,7 +90,30 @@ AES-256-GCM with a purpose-specific HKDF key derived from the existing
 protected data credential. That inspection receipt is **not** original-create
 acknowledgement or automatic deletion authority. Six crypto integrity tests
 and the unresolved-fixture guard pass; **36** focused cases pass locally.
-Canonical acceptance and read-only inspection of this follow-up are pending.
+Canonical Node 22 acceptance at `73ad6364` passed **888** tests with
+15 provider skips. The first inspection did not run because a new status
+blocker incorrectly referred to closed #503; it was corrected to open PR
+#651 with live retained evidence. The subsequent read-only
+[inspection 39330415649](https://github.com/jeremytheva/pourfolio/actions/runs/39330415649)
+found exactly one private QA candidate, one category mapping, consistent
+list/direct records, point value 0.7 and **zero** rating references. No
+provider data writes occurred. The immediate cleanup mismatch was not
+reproduced; a consistency delay is an inference, not a proven provider cause.
+
+The agent reviewed this unique fixture against the only data-writing run
+of the newly introduced random-nonce test. The earlier runs made zero data
+writes, and the actual creation run acknowledged and verified both records.
+`docs/evidence/bonus-fixture-recovery-39329607548.json` binds that review to
+the encrypted exact inspection snapshot. `[bonus-fixture-cleanup]` requests
+only this reviewed recovery: authenticate the same account, decrypt and
+validate the snapshot, require unchanged owner/value/nonce/FKs and a visible
+Overall category, then apply the same complete-reference/child-first checks.
+All creates/updates and unrelated or repeated deletes are disabled. At most
+two exact deletes can occur, with fresh absence verification after each.
+This explicit reviewed operation does not convert arbitrary inspection or
+unknown historical rows into automatic cleanup authority. The source
+refactor preserves the original guards; all **38** focused cases pass locally.
+The protected recovery and its exact-head canonical validation are pending.
 
 The earlier retained form-test bonus, 81 absent global values and historical
 rating/cellar records are outside this fixture scope. HTTP/browser create,
