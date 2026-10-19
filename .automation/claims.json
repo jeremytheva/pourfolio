@@ -1,31 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "rating-delete-review-20261019-1792373045992-integration",
-      "workstream": "catalogue",
-      "issue": 154,
-      "pr": null,
-      "surfaces": [
-        "STATUS.md",
-        "repo:integration"
-      ],
-      "acquiredAt": "2026-10-19T01:24:05.992Z",
-      "expiresAt": "2026-10-19T01:54:05.992Z"
-    },
-    "ratings": {
-      "owner": "rating-delete-review-20261019-1792373045992",
-      "workstream": "ratings",
-      "issue": 503,
-      "pr": 650,
-      "surfaces": [
-        "api/rating-data-proxy.js",
-        "api/nocodebackend/__tests__/ratingDeletion.test.js",
-        "docs/nocodebackend/schema-mapping.md",
-        "docs/nocodebackend/rating-workflow-certification.md"
-      ],
-      "acquiredAt": "2026-10-19T01:24:05.992Z",
-      "expiresAt": "2026-10-19T01:54:05.992Z"
-    }
-  }
+  "claims": {}
 }
