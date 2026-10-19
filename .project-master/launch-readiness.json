@@ -104,7 +104,9 @@
       "test_refs": [
         "e2e/core-flow.spec.js",
         "e2e/rating-breakdown-sharing.spec.js",
-        "release-check/connected.spec.js"
+        "release-check/connected.spec.js",
+        "scripts/__tests__/liveRatingIntegrityAudit.test.js",
+        "api/_lib/__tests__/catalogueTombstoneMetrics.test.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",
@@ -136,7 +138,9 @@
         "scripts/*Bonus*"
       ],
       "test_refs": [
-        "e2e/bonus-attributes.spec.js"
+        "e2e/bonus-attributes.spec.js",
+        "api/_lib/__tests__/bonusAttributeCreation.test.js",
+        "scripts/__tests__/liveBonusRatingMappingAudit.test.js"
       ],
       "evidence_refs": [
         "docs/BONUS_ATTRIBUTES.md",
@@ -169,7 +173,8 @@
       "test_refs": [
         "e2e/core-flow.spec.js",
         "e2e/global-search.spec.js",
-        "release-check/catalogue-readonly.spec.js"
+        "release-check/catalogue-readonly.spec.js",
+        "api/_lib/__tests__/catalogueTombstoneMetrics.test.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",
