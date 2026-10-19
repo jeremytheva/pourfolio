@@ -16,10 +16,12 @@
         "scripts/__tests__/bonusCertificationOwner.test.js",
         "scripts/inspect-bonus-write-fixture.js",
         "scripts/bonus-fixture-receipt.js",
-        "scripts/__tests__/bonusFixtureReceipt.test.js"
+        "scripts/__tests__/bonusFixtureReceipt.test.js",
+        "scripts/cleanup-bonus-write-fixture.js",
+        "docs/evidence/bonus-fixture-recovery-39329607548.json"
       ],
       "acquiredAt": "2026-10-19T21:26:25.645Z",
-      "expiresAt": "2026-10-19T22:04:39.253Z"
+      "expiresAt": "2026-10-19T22:21:44.990Z"
     },
     "catalogue": {
       "owner": "bonus-provider-test-1792445185645-catalogue",
@@ -32,7 +34,7 @@
         "docs/evidence/github-issue-state.json"
       ],
       "acquiredAt": "2026-10-19T21:26:25.645Z",
-      "expiresAt": "2026-10-19T22:04:39.253Z"
+      "expiresAt": "2026-10-19T22:21:44.990Z"
     }
   }
 }
