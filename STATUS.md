@@ -22,7 +22,7 @@ next_actions:
   - "Use merged #664 commit as the source baseline; preserve the incomplete rating deletion and 966 ownerless cellar history records as separate release blockers."
 blockers:
   - scope: bonus_fixture_cleanup_unconfirmed
-    issue: 503
+    issue: 651
     detail: "Current-instance candidate persistence and reload passed, but the full mapping check rejected cleanup; one acknowledged attribute/mapping fixture remains, with zero deletes attempted. Read-only diagnosis is active."
   - scope: rating_idempotency_provider_migration
     issue: 165
@@ -86,7 +86,10 @@ adds a separate read-only inspection with all provider writes disabled.
 It reports structural/list-vs-direct-read comparisons and encrypts private
 recovery candidate details; that candidate receipt is not automatic delete
 authority. All **36** focused cases pass locally (Node 24 diagnostic).
-Canonical acceptance and the protected inspection are pending. Keep #651
+The first inspection was NOT_RUN because the documentation guard detected
+that its new blocker referenced closed issue #503 without retained evidence.
+The blocker now correctly references open PR #651 with fresh issue-state
+evidence; canonical acceptance and the read-only inspection are pending. Keep #651
 open until the mapping mismatch and verified cleanup are resolved; broader
 browser/rating-use/A/B and concurrency gates remain distinct.
 
