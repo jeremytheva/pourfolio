@@ -46,7 +46,7 @@ validation:
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: BLOCKED
+  ci: FAIL
   runtime: UNVERIFIED
 last_verified_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
 last_updated: "2026-10-19T03:37:00Z"
