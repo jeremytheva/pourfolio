@@ -182,7 +182,7 @@ The structure and application path are deployed. #422 remains open until product
 | `submission_state` | Non-null enum/string limited to `pending`, `complete`, `failed`, `deleting`, or `deleted`; server write only. `deleting` and `deleted` are excluded from every history and aggregate read. |
 | `submission_version` | Non-null non-negative integer, initially `0`; incremented exactly once by every conditional workflow-state transition. |
 | `expected_score_count`, `expected_bonus_count` | Non-negative integers fixed from validated input and used to prevent premature duplicate success. |
-| `deleted_at` | Nullable server timestamp. Set only with the terminal `deleting -> deleted` transition after owner-scoped child reconciliation succeeds. |
+| `deleted_at` | Nullable server timestamp. Set only with the terminal `deleting -> deleted` transition after owner-scoped child reconciliation succeeds. Send the same UTC `YYYY-MM-DD HH:mm:ss` provider format used for `date_rated`, through the shared rating timestamp formatter. |
 
 The supplied database does not contain a rating-notes field. The launch form therefore does not pretend to persist review text. Adding notes requires an approved schema change and migration.
 

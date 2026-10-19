@@ -3,18 +3,18 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Initial source fixes integrated; connected launch gates remain"
+stage: "Terminal rating-delete failure isolated; provider timestamp repair"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Continue #503/#165 connected rating/provider evidence after the validated initial source batch; retain privacy/session/cellar certification and Brew launch exclusion."
+  objective: "Certify controlled rating creation and terminal deletion on the repaired deployment recorded in PR #650; keep #503/#165 and privacy/session/cellar gates open."
   issue: 503
   pr: null
   branch: null
 next_actions:
-  - "Run #449 guarded connected cellar CRUD/ownership checks only with supported isolated fixtures and verified cleanup; source/runtime-read evidence does not close mutable acceptance."
-  - "Reconcile #637 final integration/deployment from its PR, then continue the connected launch gates; preserve Brew launch exclusion."
-  - "Continue #503 deletion diagnosis only through the active ratings claimant; source repairs do not supersede the retained live failure."
+  - "Use #650's final integration/deployment evidence for a controlled disposable create/delete retest; require HTTP 204, terminal state, absent children, repeat-delete stability and verified cleanup. Keep the 19 October live failure retained until replaced by actual passing evidence."
+  - "Continue #503/#165 through the active ratings claimant; timestamp-format source acceptance does not certify the provider's uniqueness, conditional updates, immutable dates or recovery guarantees."
+  - "Run #449 guarded connected cellar CRUD/ownership checks only with supported isolated fixtures and verified cleanup."
   - "Run supported connected #422 profile privacy/revocation and distinct-account certification; keep unsupported rows pending."
   - "Prepare #165 provider migration, uniqueness, backup/restore and approval evidence without irreversible mutation."
   - "Complete #577 using supported account-session credentials; database Secret Keys are not login passwords."
@@ -35,12 +35,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "6db82263a6c59fb9f9121af676e25b66b954acaf"
+  observed_main_commit: "2c8d88e8f8d466e8adc26c1a44d5a9814ca18033"
   current_candidate_commit: null
-  latest_validated_commit: "650f1cf3e7525cccbcc21af2b38cf1bfc69dc439"
-  latest_deployed_commit: "6db82263a6c59fb9f9121af676e25b66b954acaf"
-  latest_runtime_verified_commit: "6db82263a6c59fb9f9121af676e25b66b954acaf"
-  latest_browser_verified_commit: "650f1cf3e7525cccbcc21af2b38cf1bfc69dc439"
+  latest_validated_commit: "78501ec93d1b9d55a1c266a81b1957dd44f58f37"
+  latest_deployed_commit: "2c8d88e8f8d466e8adc26c1a44d5a9814ca18033"
+  latest_runtime_verified_commit: "2c8d88e8f8d466e8adc26c1a44d5a9814ca18033"
+  latest_browser_verified_commit: "78501ec93d1b9d55a1c266a81b1957dd44f58f37"
 validation:
   governance: PASS
   lint: PASS
@@ -48,9 +48,9 @@ validation:
   tests: PASS
   build: PASS
   ci: PASS
-  runtime: VERIFIED
-last_verified_commit: "650f1cf3e7525cccbcc21af2b38cf1bfc69dc439"
-last_updated: "2026-10-19T01:05:53Z"
+  runtime: UNVERIFIED
+last_verified_commit: "78501ec93d1b9d55a1c266a81b1957dd44f58f37"
+last_updated: "2026-10-19T01:29:00Z"
 ---
 
 # STATUS.md
@@ -59,7 +59,63 @@ Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
 
-### Current handoff — 19 October 2026 UTC
+### Latest rating-delete investigation — 19 October 2026 UTC
+
+The owner's fresh failed delete is now correlated with production evidence:
+01:20:27 UTC / 12:20:27 Sydney, release
+`2c8d88e8f8d466e8adc26c1a44d5a9814ca18033`, correlation
+`46d8017c-43a3-4305-bcec-838725f0f43a`, 4xx, controlled stage
+`mark_rating_deleted`. The break is the final managed-parent update after the
+child-removal verification code. This is stronger evidence than the prior
+unlocated delete failure, but it is not a fresh read of the affected parent or
+children and does not reveal the provider's rejected field. The frontend save
+succeeded according to the owner; complete connected submission certification
+is not inferred from that report.
+
+PR #650 reuses the existing UTC provider timestamp formatter for `deleted_at`.
+Creation already writes `date_rated` as `YYYY-MM-DD HH:mm:ss`; deletion instead
+sent an ISO string with `T`, milliseconds and `Z`. This concrete source
+inconsistency is the leading explanation for the final-step rejection. It is
+not presented as a provider-confirmed root cause or passing live deletion.
+Two strict timestamp/retry regressions fail on the original source and pass
+after correction; the focused 39-case run passed locally on Node 24 as diagnostic
+evidence only. The cases also cover unrelated-owner preservation, omission of
+the original tasting date from delete writes, resume after a terminal-write
+failure and repeat-delete timestamp stability. A provider trigger's actual
+`date_rated` behaviour remains a #165 connected gate.
+
+Source head `78501ec93d1b9d55a1c266a81b1957dd44f58f37` passed Node 22
+canonical acceptance in run
+[39185342167](https://github.com/jeremytheva/pourfolio/actions/runs/39185342167):
+793 passed, 15 provider-gated skips and zero failures, including composed
+contracts/lint/audit/build/security checks. Dependency Review and CodeQL run
+`39185342394` passed. All 149 browser/accessibility cases passed on this source
+head in the same acceptance run.
+READY preview `dpl_GpLih8cBpQHeLM8MiwFs8YesLLEg` returned HTTP 200 health
+with the exact source SHA. Final handoff-head acceptance and actual integration/
+deployment belong in #650; historical source evidence must not qualify a later
+head automatically. At this dated snapshot, #650 is the sole ordinary
+implementation PR; dependency PRs #645/#646/#647 remain separate. The final
+launch candidate is not frozen and remains null.
+
+PR #637 is merged as `2c8d88e8`. Its final accepted head `61002a00` and exact
+main run `39184032984` passed canonical/browser acceptance. Production health/
+readiness matched that merge before this reported deletion attempt. The latest
+runtime evidence field identifies that bounded read/configuration observation;
+`runtime: UNVERIFIED` here explicitly reflects the unresolved delete flow.
+The earlier launch-fix handoff below is retained history, not the current queue.
+
+**Live deletion remains FAIL / public launch NO-GO.** A failed final update can
+leave a managed rating in `deleting`, already excluded from history. Disappearance
+alone is not HTTP 204, terminal deletion or recovery evidence. Use the existing
+controlled isolated-fixture protocol for a fresh create/delete/repeat/owner-
+isolation retest on the repaired SHA, with before/after counts and cleanup.
+Do not reconstruct removed children or change historical/provider data as a
+substitute for this test. No live rating mutation or provider/schema migration
+was performed by this review. #503/#165/#144/#422/#577 and #449's connected
+acceptance remain open. Brew remains contained and launch-excluded.
+
+### Earlier launch-fix handoff — 19 October 2026 UTC
 
 PR #639 is merged as `6db82263a6c59fb9f9121af676e25b66b954acaf`.
 Ranking pagination preserves global rank and results focus; a removed later

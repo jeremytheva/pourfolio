@@ -7,6 +7,36 @@ attempt below is retained as a failed/blocked attempt, not current completion
 evidence. Latest results and remaining boundaries belong in `STATUS.md` and
 the linked pull requests.
 
+### 19 October 2026 terminal-delete investigation
+
+A fresh production delete failed at 01:20:27 UTC (12:20:27 Sydney) on
+`2c8d88e8f8d466e8adc26c1a44d5a9814ca18033`, with correlation
+`46d8017c-43a3-4305-bcec-838725f0f43a`, a 4xx status class and controlled stage
+`mark_rating_deleted`. This narrows the break to the final managed-parent
+update, after child-removal verification. It does not independently establish
+the current provider row state or a specific field-level rejection reason.
+The user's frontend submission succeeded; that observation is not a complete
+connected create/retry certification.
+
+The final update used an ISO timestamp (`T`, milliseconds and `Z`) while rating
+creation already used the shared UTC provider format `YYYY-MM-DD HH:mm:ss`.
+Deletion now reuses that existing formatter. This is a source correction for a
+concrete wire-format inconsistency and the leading explanation for the observed
+rejection, not proof that the live provider accepted the repaired request.
+Regression coverage requires the provider timestamp format, preserves the
+original tasting date in the write payload, and verifies resume/repeated-delete
+behaviour after the terminal write fails. Mocked checks do not certify a live
+provider trigger's timestamp behaviour or replace #165's immutable-date gate.
+
+Keep the observed delete **FAIL** until a fresh controlled retest on the repaired
+SHA returns 204 and verifies the terminal tombstone, absence of score/bonus
+children, stable repeated deletion and owner isolation. A rating disappearing
+from history can result from the earlier `deleting` transition and does not prove
+terminal deletion. Use the existing isolated-fixture and cleanup protocol below;
+do not recreate or backfill the affected user's removed children.
+
+### Retained 8 October repair and general acceptance protocol
+
 The 8 October failed-delete/author-link/breakdown repair is deployed through
 PR #631. Source validation and 140 mocked browser/accessibility cases pass;
 connected production run `37753349432` passed 12 baseline cases but skipped the

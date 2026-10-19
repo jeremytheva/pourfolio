@@ -927,7 +927,7 @@ const deleteRating = async (id, response, user) => {
       throw deletionConflict('The rating changed during deletion. Please reload and try again.')
     }
     workflowStage = 'mark_rating_deleted'
-    await dataProvider.update(COLLECTIONS.ratings, ratingId, { submission_state: 'deleted', submission_version: version + 1, deleted_at: new Date().toISOString() })
+    await dataProvider.update(COLLECTIONS.ratings, ratingId, { submission_state: 'deleted', submission_version: version + 1, deleted_at: providerDateTime() })
     workflowStage = 'verify_rating_deleted'
     await verifyDeletionState(ratingId, user.id, 'deleted', version + 1)
   }
