@@ -36,6 +36,25 @@ stored values, not an automatic mapping failure or authorisation to guess
 their intended points. A `REVIEW_REQUIRED` inventory needs investigation of
 invalid/out-of-range values before release.
 
+### Read-only existing private mapping capability preflight
+
+The connected bonus audit now inspects the existing private Overall
+attribute/category mapping when one is already present. It performs
+strict `GET` readback of the stored attribute and category mapping
+against their paginated inventory, checking persisted identity, owner,
+description, numeric point value and mapping foreign keys. Its output is
+a status only, without IDs, account identifiers or private point values.
+
+`EXISTING_PRIVATE_PAIR_READBACK_OK` is evidence that **existing**
+provider records can be read consistently by ID. If no suitable private
+pair exists, `INCONCLUSIVE_NO_PRIVATE_OVERALL_PAIR` must not be
+misrepresented as PASS. `READBACK_MISMATCH` or
+`READBACK_UNAVAILABLE` blocks certification and requires investigation.
+The audit disables provider mutations and makes no fixtures. Even a
+successful read-only preflight **does not** certify private create,
+concurrent duplicate handling, second-account authorization, rating use,
+mapping cleanup or backup/restore.
+
 Connected certification still requires a disposable owner-created attribute
 with a non-default value (for example `0.7`), server attribute
 write/readback, exact persisted category mapping readback, rating use,
