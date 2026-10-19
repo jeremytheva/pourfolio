@@ -1,0 +1,295 @@
+{
+  "schema_version": 1,
+  "template": {
+    "id": "launch-readiness",
+    "version": "1.0.0",
+    "adoption": "adapted"
+  },
+  "project": "Pourfolio — beer-first launch",
+  "goal_source": "PROJECT.md",
+  "readiness_source": "docs/LAUNCH_READINESS.md",
+  "tracked_roots": [
+    "api/",
+    "server/",
+    "src/",
+    "scripts/",
+    "e2e/",
+    "release-check/",
+    ".github/",
+    "package.json"
+  ],
+  "requirements": [
+    {
+      "id": "PF-LAUNCH-AUTH",
+      "goal": "Users authenticate and sessions, limits and revocation remain secure",
+      "acceptance": "Connected sign-in, session expiry/revocation and failure/rate-limit behaviour pass against launch backend",
+      "source": "PROJECT.md#current-launch-outcome",
+      "applicability": "required",
+      "criticality": "blocking",
+      "issue_refs": [
+        "#577",
+        "#144"
+      ],
+      "change_paths": [
+        "api/**auth**",
+        "api/**/session*",
+        "api/**/rateLimit*",
+        "src/**/Auth*",
+        "src/**/Login*",
+        "server/**"
+      ],
+      "test_refs": [
+        "e2e/authentication.spec.js",
+        "release-check/connected.spec.js"
+      ],
+      "evidence_refs": [
+        "docs/LAUNCH_READINESS.md#current-launch-checklist",
+        "docs/TESTING.md#connected-staging-release-check"
+      ]
+    },
+    {
+      "id": "PF-LAUNCH-PROVIDER",
+      "goal": "NoCodeBackend contract, migrations and data-integrity guarantees are certified",
+      "acceptance": "Approved migration/restore, uniqueness, provider negative cases and schema snapshot are verified",
+      "source": "ROADMAP.md#phase-1--canonical-backend-contract",
+      "applicability": "required",
+      "criticality": "blocking",
+      "issue_refs": [
+        "#165",
+        "#144"
+      ],
+      "change_paths": [
+        "api/_lib/**provider*",
+        "api/_lib/**rating*",
+        "data/**",
+        "scripts/*schema*",
+        "scripts/*baseline*",
+        "docs/nocodebackend/**"
+      ],
+      "test_refs": [
+        "scripts/audit-rating-migration-evidence.js",
+        "release-check/connected.spec.js"
+      ],
+      "evidence_refs": [
+        "docs/LAUNCH_READINESS.md#current-launch-checklist",
+        "docs/nocodebackend/connected-policy-certification.md"
+      ]
+    },
+    {
+      "id": "PF-LAUNCH-RATING",
+      "goal": "Rating creation, viewing, retry and terminal deletion preserve integrity",
+      "acceptance": "Exact-candidate connected create/retry/delete, terminal parent and child cleanup, concurrency and negative cases pass",
+      "source": "PROJECT.md#purpose",
+      "applicability": "required",
+      "criticality": "blocking",
+      "issue_refs": [
+        "#503",
+        "#165"
+      ],
+      "change_paths": [
+        "api/**rating*",
+        "api/**ratings*",
+        "src/**/Rating*",
+        "e2e/*rating*",
+        "release-check/*rating*",
+        "scripts/*rating*"
+      ],
+      "test_refs": [
+        "e2e/core-flow.spec.js",
+        "e2e/rating-breakdown-sharing.spec.js",
+        "release-check/connected.spec.js"
+      ],
+      "evidence_refs": [
+        "docs/LAUNCH_READINESS.md#current-launch-checklist",
+        "docs/nocodebackend/rating-workflow-certification.md"
+      ]
+    },
+    {
+      "id": "PF-LAUNCH-BONUS",
+      "goal": "Bonus attribute values are the persisted attribute-specific values, not fabricated defaults",
+      "acceptance": "Rendering, mapping, persistence and deletion/retry behaviour preserve exact point values against the appropriate provider table",
+      "source": "docs/BONUS_ATTRIBUTES.md",
+      "applicability": "required",
+      "criticality": "blocking",
+      "issue_refs": [
+        "#503"
+      ],
+      "change_paths": [
+        "api/**bonus*",
+        "api/**Bonus*",
+        "src/**/Bonus*",
+        "src/**/bonus*",
+        "e2e/bonus-attributes.spec.js",
+        "scripts/*bonus*"
+      ],
+      "test_refs": [
+        "e2e/bonus-attributes.spec.js"
+      ],
+      "evidence_refs": [
+        "docs/BONUS_ATTRIBUTES.md",
+        "docs/LAUNCH_READINESS.md#current-launch-checklist"
+      ]
+    },
+    {
+      "id": "PF-LAUNCH-CATALOGUE",
+      "goal": "Users can discover real products, producers and stable product details",
+      "acceptance": "Real provider-backed catalogue and relationships pass search/detail/pagination and failure-recovery checks",
+      "source": "PROJECT.md#current-launch-outcome",
+      "applicability": "required",
+      "criticality": "blocking",
+      "issue_refs": [
+        "#154"
+      ],
+      "change_paths": [
+        "api/**catalogue*",
+        "api/**producer*",
+        "api/**product*",
+        "src/**/Product*",
+        "src/**/Producer*",
+        "src/**/Search*",
+        "e2e/global-search.spec.js",
+        "e2e/*product*",
+        "e2e/*brewery*"
+      ],
+      "test_refs": [
+        "e2e/core-flow.spec.js",
+        "e2e/global-search.spec.js",
+        "release-check/catalogue-readonly.spec.js"
+      ],
+      "evidence_refs": [
+        "docs/LAUNCH_READINESS.md#current-launch-checklist",
+        "docs/catalogue-response-contract.md"
+      ]
+    },
+    {
+      "id": "PF-LAUNCH-CELLAR",
+      "goal": "Owners manage only their own cellar records",
+      "acceptance": "Connected owner-scoped cellar CRUD, nullable relationships, other-user denial and cleanup pass",
+      "source": "PROJECT.md#current-launch-outcome",
+      "applicability": "required",
+      "criticality": "blocking",
+      "issue_refs": [
+        "#449"
+      ],
+      "change_paths": [
+        "api/**cellar*",
+        "src/**/Cellar*",
+        "e2e/cellar*",
+        "release-check/**cellar*"
+      ],
+      "test_refs": [
+        "e2e/core-flow.spec.js",
+        "release-check/connected.spec.js"
+      ],
+      "evidence_refs": [
+        "docs/LAUNCH_READINESS.md#current-launch-checklist",
+        "docs/TESTING.md#connected-staging-release-check"
+      ]
+    },
+    {
+      "id": "PF-LAUNCH-PRIVACY",
+      "goal": "Profile/history visibility is owner-authorised and revocable",
+      "acceptance": "Default-private, public history opt-in, revocation, copied links and distinct-account restrictions pass",
+      "source": "PROJECT.md#purpose",
+      "applicability": "required",
+      "criticality": "blocking",
+      "issue_refs": [
+        "#422"
+      ],
+      "change_paths": [
+        "api/**profile*",
+        "api/**history*",
+        "src/**/Profile*",
+        "e2e/*profile*",
+        "e2e/*history*",
+        "release-check/*profile*"
+      ],
+      "test_refs": [
+        "e2e/profile-rating-links.spec.js",
+        "release-check/profile-history-readonly.spec.js"
+      ],
+      "evidence_refs": [
+        "docs/LAUNCH_READINESS.md#current-launch-checklist",
+        "docs/TESTING.md#connected-staging-release-check"
+      ]
+    },
+    {
+      "id": "PF-LAUNCH-ACCESS",
+      "goal": "All in-scope launch journeys meet accessible responsive interaction expectations",
+      "acceptance": "Relevant browser/axe and scoped manual WCAG acceptance cover the current launch candidate",
+      "source": "docs/TESTING.md#manual-wcag-22-aa-release-record",
+      "applicability": "required",
+      "criticality": "blocking",
+      "issue_refs": [
+        "#154"
+      ],
+      "change_paths": [
+        "src/**",
+        "e2e/*accessibility*",
+        "e2e/*focus*",
+        "index.html"
+      ],
+      "test_refs": [
+        "e2e/accessibility.spec.js",
+        "e2e/owner-flow-accessibility.spec.js"
+      ],
+      "evidence_refs": [
+        "docs/LAUNCH_READINESS.md#launch-sign-off",
+        "docs/TESTING.md#manual-wcag-22-aa-release-record"
+      ]
+    },
+    {
+      "id": "PF-LAUNCH-RELEASE",
+      "goal": "The exact release candidate is independently qualified and operationally safe",
+      "acceptance": "Current commit validation, deployed SHA, connected evidence, operator ownership, rollback/restore and smoke checks pass",
+      "source": "ROADMAP.md#launch-release-gate",
+      "applicability": "required",
+      "criticality": "blocking",
+      "issue_refs": [
+        "#143",
+        "#144",
+        "#154"
+      ],
+      "change_paths": [
+        "server/**",
+        "api/_lib/telemetry.js",
+        "package.json",
+        ".github/workflows/**",
+        "docs/OPERATIONS_READINESS.md",
+        "docs/PUBLICATION_AND_RELEASE_EVIDENCE.md"
+      ],
+      "test_refs": [
+        "release-check/connected.spec.js",
+        "playwright.release.config.js"
+      ],
+      "evidence_refs": [
+        "docs/LAUNCH_READINESS.md#launch-sign-off",
+        "docs/OPERATIONS_READINESS.md",
+        "docs/PUBLICATION_AND_RELEASE_EVIDENCE.md"
+      ]
+    },
+    {
+      "id": "PF-LAUNCH-DEFERRED",
+      "goal": "Brew Done It and future social expansion remain intentionally launch excluded",
+      "acceptance": "Server-side flag and navigation containment are verified, no excluded capability exposed as ready",
+      "source": "ROADMAP.md#brew-done-it--approved-contained-and-launch-excluded",
+      "applicability": "excluded",
+      "criticality": "advisory",
+      "issue_refs": [
+        "#433"
+      ],
+      "change_paths": [
+        "src/**/Brew*",
+        "api/**brew*",
+        "scripts/check-brew-done-it-containment.js"
+      ],
+      "test_refs": [
+        "e2e/brew-done-it.spec.js"
+      ],
+      "evidence_refs": [
+        "docs/BREW_DONE_IT_READINESS.md",
+        "docs/LAUNCH_READINESS.md#brew-done-it-launch-exclusion"
+      ]
+    }
+  ]
+}
