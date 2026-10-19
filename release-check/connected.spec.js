@@ -383,7 +383,9 @@ test('rating create/history/delete uses exact cleanup identity', async ({ page }
   const product = catalogue.items[0]
   expect(product?.id).toBeTruthy()
 
-  const before = await responseJson(await page.request.get('/api/nocodebackend/ratings/mine'))
+  const beforeResponse = await page.request.get('/api/nocodebackend/ratings/mine')
+  expect(beforeResponse.status(), 'Owner history must succeed before any rating write').toBe(200)
+  const before = await responseJson(beforeResponse)
   expect(Array.isArray(before.items), 'A successful owner baseline is required before writes').toBe(true)
   const beforeIds = new Set((before.items || []).map(({ id }) => String(id)))
   await page.goto(`/products/${product.id}/rate`)
