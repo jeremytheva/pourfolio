@@ -2,7 +2,7 @@
   "schema_version": 1,
   "template": {
     "id": "launch-readiness",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "adoption": "adapted"
   },
   "project": "Pourfolio — beer-first launch",
@@ -92,12 +92,21 @@
         "src/**/Rating*",
         "e2e/*rating*",
         "release-check/*rating*",
-        "scripts/*rating*"
+        "scripts/*rating*",
+        "api/catalog-data-proxy.js",
+        "api/_lib/**/catalogueTombstone**",
+        "scripts/**/liveRating*",
+        "scripts/**/live-rating*",
+        "scripts/**/*Rating*",
+        "scripts/**/*rating*",
+        "scripts/*Rating*"
       ],
       "test_refs": [
         "e2e/core-flow.spec.js",
         "e2e/rating-breakdown-sharing.spec.js",
-        "release-check/connected.spec.js"
+        "release-check/connected.spec.js",
+        "scripts/__tests__/liveRatingIntegrityAudit.test.js",
+        "api/_lib/__tests__/catalogueTombstoneMetrics.test.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",
@@ -120,10 +129,18 @@
         "src/**/Bonus*",
         "src/**/bonus*",
         "e2e/bonus-attributes.spec.js",
-        "scripts/*bonus*"
+        "scripts/*bonus*",
+        "scripts/**/*bonus*",
+        "scripts/**/*Bonus*",
+        "scripts/**/liveBonus*",
+        "api/_lib/**/bonus*",
+        "api/_lib/**/Bonus*",
+        "scripts/*Bonus*"
       ],
       "test_refs": [
-        "e2e/bonus-attributes.spec.js"
+        "e2e/bonus-attributes.spec.js",
+        "api/_lib/__tests__/bonusAttributeCreation.test.js",
+        "scripts/__tests__/liveBonusRatingMappingAudit.test.js"
       ],
       "evidence_refs": [
         "docs/BONUS_ATTRIBUTES.md",
@@ -149,12 +166,15 @@
         "src/**/Search*",
         "e2e/global-search.spec.js",
         "e2e/*product*",
-        "e2e/*brewery*"
+        "e2e/*brewery*",
+        "api/catalog-data-proxy.js",
+        "api/**catalog**"
       ],
       "test_refs": [
         "e2e/core-flow.spec.js",
         "e2e/global-search.spec.js",
-        "release-check/catalogue-readonly.spec.js"
+        "release-check/catalogue-readonly.spec.js",
+        "api/_lib/__tests__/catalogueTombstoneMetrics.test.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",
