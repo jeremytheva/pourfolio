@@ -3,15 +3,16 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Connected audits confirm one incomplete rating deletion and 966 ownerless historical cellar records"
+stage: "Controlled rating QA and product attribute pagination repair"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Certify private cellar and bonus writes while preserving guarded recovery of legacy cellar ownership and incomplete rating deletion."
-  issue: 449
-  pr: 657
-  branch: "fix/cellar-write-persistence-verification-20261019"
+  objective: "Validate PR #660 product attribute pagination and retain bounded live rating QA alongside pending bonus/cellar provider certification."
+  issue: 154
+  pr: 660
+  branch: "fix/product-attribute-pagination-20261019"
 next_actions:
+  - "Complete exact-head acceptance and deployed read verification for #660; keep its passing disposable-tasting UI observations distinct from independent provider terminal-delete certification."
   - "Investigate one persisted rating with submission_state=complete and deleted_at set; obtain verified record/child ownership, backup, rollback and governed approval before any repair."
   - "Complete #651 guarded isolated-staging custom bonus create/readback/owner-isolation/cleanup certification before merge; 81 global bonus point values are absent and cannot be inferred."
   - "Prepare #165 uniqueness, version/conditional update and backup/restore evidence for controlled migration; retain approval boundary."
@@ -31,16 +32,16 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 2
+  open_implementation_prs: 3
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "81a4dbd0b774ecf8703fe9aae89cf3174c607c74"
+  observed_main_commit: "825a5b3034018918c513682c394e3b767eb7f480"
   current_candidate_commit: null
-  latest_validated_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
+  latest_validated_commit: "e84fe79a289176ccdd98f31aaba701015428c263"
   latest_deployed_commit: "81a4dbd0b774ecf8703fe9aae89cf3174c607c74"
-  latest_runtime_verified_commit: "2c8d88e8f8d466e8adc26c1a44d5a9814ca18033"
+  latest_runtime_verified_commit: "81a4dbd0b774ecf8703fe9aae89cf3174c607c74"
   latest_browser_verified_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
 validation:
   governance: PASS
@@ -48,10 +49,10 @@ validation:
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: FAIL
+  ci: PENDING
   runtime: UNVERIFIED
-last_verified_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
-last_updated: "2026-10-19T06:47:00Z"
+last_verified_commit: "e84fe79a289176ccdd98f31aaba701015428c263"
+last_updated: "2026-10-19T09:17:11Z"
 ---
 
 # STATUS.md
@@ -59,6 +60,56 @@ last_updated: "2026-10-19T06:47:00Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Controlled full rating journey QA — 19 October 2026, 09:08–09:16 UTC
+
+A disposable live tasting saved the five required manual scores at 4/7,
+Bonus 2/2 from six descriptors worth 2.00 points, and matching stored
+weighted/standard totals of 3.07/5. Fresh form loads correctly showed the
+explicit 0.5 global and 0.7 private values. Creating the private QA bonus
+had immediately displayed a blank 0.2 option; its persisted label/value
+were correct after reload. Existing PR #651 owns that response repair;
+its guarded provider write/isolation/cleanup gate remains pending.
+
+Deleting only the new test tasting through its exact owner-history row
+restored fresh beer totals to 4 community ratings (3.96/5) and 2 personal
+ratings (3.94/5), preserving both older personal tastings. The producer
+returned to 16 community and 8 personal completions and 9 catalogue beers.
+The deleted exact profile link safely reports unavailable. This bounded
+browser PASS does not independently establish HTTP 204, terminal provider
+state, child absence, repeated deletion or cross-account isolation, and
+does not clear the separate contradictory historical deletion below.
+One private QA bonus attribute remains because the app exposes no bonus
+delete control. No product or producer fixtures were created.
+
+The requested catalogue create/edit/delete matrix is retained in the
+[existing certification guide](docs/nocodebackend/rating-workflow-certification.md#full-rating-journey-qa--19-october-2026):
+missing-beer/new-producer forms and review work; final creation was not
+run without cleanup, correction submission is disabled, and producer
+edit/delete and beer delete controls/routes are absent.
+
+[PR #660](https://github.com/jeremytheva/pourfolio/pull/660) repairs an
+additional live finding: community attribute averages omitted the new
+4/7 scores although the individual breakdown was correct. Its score read
+was unpaged. The patch reuses the catalogue's paged reads, bounds ID batches
+and scopes broad provider responses locally. Three regressions fail on
+old source; four new cases and the focused ten-case suite pass. Local full
+Node 24 validation is dependency-blocked; exact source head `e84fe79a`
+passed canonical Node 22 `npm run platform:validate` in
+[run 39228525714](https://github.com/jeremytheva/pourfolio/actions/runs/39228525714):
+820 passed, 15 provider-gated skips, zero failures, including launch-impact,
+lint, audit, build, containment and release-security checks. Dependency
+Review and CodeQL passed. Browser/accessibility remains pending at this
+snapshot. READY preview `dpl_9MQPFH8kYxCChWnxyrrfDkmFvxr7` returned HTTP 200
+health with the exact source SHA. Final-head acceptance and production
+read verification must be recorded in #660 rather than inferred.
+
+Live health during this QA returned production `81a4dbd0`, not the newer
+observed main `825a5b30`. The runtime evidence field is bounded to those
+health/read/UI observations; `runtime: UNVERIFIED` retains the outstanding
+provider lifecycle/data-integrity gates. Three implementation PRs are open
+(#651, #657, #660); no further implementation is to be queued before
+integration. Public launch remains **NO-GO**.
 
 ### Connected cellar inventory and candidate previews — 19 October 2026, 06:47 UTC
 

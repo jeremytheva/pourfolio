@@ -1,5 +1,52 @@
 # Rating workflow staging certification
 
+## Full rating journey QA — 19 October 2026
+
+The controlled browser journey used one explicitly disposable tasting of an
+existing beer, with optional Design/Burp skipped, all five required manual
+scores set to 4/7, and six bonus selections worth 2.00 points in total.
+The review and freshly loaded stored breakdown agreed: Bonus 2/2 and
+weighted/standard score 3.07/5. A 1.80-point selection produced Bonus 1/2;
+reselecting the removed 0.2 attribute restored Bonus 2/2.
+
+The new tasting was removed through its exact owner-history row at about
+09:08 UTC (20:08 Sydney). Fresh product reads restored the baseline of
+4 community ratings (3.96/5) and 2 personal ratings (3.94/5), with both
+older personal tastings preserved. A fresh producer profile restored
+16 community and 8 personal completions, with 9 catalogue beers. Revisiting
+the deleted tasting's exact profile link showed the safe unavailable message.
+These are **passing browser observations for this disposable tasting**, not
+independently captured HTTP 204, direct provider terminal-parent/child absence,
+repeat-delete, concurrency or second-account isolation certification. The
+separate contradictory historical deletion finding below remains unresolved.
+
+| Requested step | Observed result |
+| --- | --- |
+| Search for existing or missing beer | Existing beer resolves; unique QA search returns no matches and prefills the missing-beer form. |
+| Add beer and link an existing/new producer | Name/style/ABV/IBU, producer search/new-producer choice, duplicate check and final review work. Final creation NOT_RUN: catalogue fixture cleanup is unavailable. |
+| Edit beer | Correct identity and proposed IBU diff reach review; moderation submission is intentionally disabled. Persistence BLOCKED. |
+| Edit/delete producer; delete beer | No governed application controls/routes exist; NOT_RUN. No catalogue records were created or deleted. |
+| Create bonus attribute | A private QA attribute persisted with description and 0.7 points. The immediate response rendered a blank 0.2 option; a fresh form correctly rendered the stored description and 0.7. PR #651 addresses this response/readback defect. |
+| Stored bonus values and thresholds | Existing global 0.5 and private QA 0.7 render correctly on reload; mixed values total correctly and cross the 2-point threshold. The 81 missing global values remain a separate data-source gap. |
+| Rate, review, save and view breakdown | PASS for this controlled tasting, five manual scores, derived Bonus and all six selected descriptors. |
+| Exact profile link and delete | PASS for selected row, UI removal, fresh aggregate restoration and safe unavailable link; provider terminal/child proof remains pending. |
+| Producer totals after cleanup | PASS: original community/personal counts restored. |
+| Community attribute averages | FAIL on the original source: saved 4/7 scores were visible in the individual breakdown but absent from attribute averages. The unpaged score read is replaced with the existing paged/batched catalogue convention. |
+
+The single private QA bonus attribute remains because the application has no
+owner-scoped bonus deletion control. No additional bonus fixtures were created.
+Do not treat the retained QA attribute or missing catalogue cleanup as a fully
+completed teardown. Do not invent the missing global point values from the
+0.2 fallback or migrate historical/provider records as part of this QA.
+
+The product-attribute source repair must read every score page, scope each
+75-ID batch locally, preserve completed/tombstone filtering and fail on an
+unavailable later page instead of publishing a partial average. Three new
+regressions failed on the original source and pass after correction; a fourth
+preserves incomplete/tombstone exclusion. The focused 10-test Node 24 run is
+diagnostic only; exact-head Node 22 canonical/browser validation and deployed
+read verification must be recorded separately in the associated PR.
+
 ## Step-by-step acceptance and certification guide
 
 Use the GitHub browser workflow; a local clone is not required. The historical
