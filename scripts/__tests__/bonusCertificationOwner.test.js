@@ -4,7 +4,8 @@ import { resolveBonusCertificationOwner } from '../bonus-certification-owner.js'
 
 const environment = {
   BONUS_CERTIFICATION_BASE_URL: 'https://pourfolio-test-jeremythevas-projects.vercel.app',
-  BONUS_CERTIFICATION_SHA: 'a'.repeat(40),
+  BONUS_CERTIFICATION_AUTH_SHA: 'a'.repeat(40),
+  BONUS_CERTIFICATION_SHA: 'c'.repeat(40),
   RELEASE_OWNER_EMAIL: 'Owner@example.test', RELEASE_OWNER_PASSWORD: 'private-login-password'
 }
 const fixture = (options = {}) => {
@@ -17,8 +18,8 @@ const fixture = (options = {}) => {
       assert.equal(init.headers.cookie, undefined)
       assert.equal(init.headers.authorization, undefined)
       return new Response(JSON.stringify({ status: 'ready',
-        release: { commitSha: options.wrongSha ? 'b'.repeat(40) : environment.BONUS_CERTIFICATION_SHA, environment: 'preview' },
-        checks: { dataProvider: 'ok' } }), { status: 200 })
+        release: { commitSha: options.wrongSha ? 'b'.repeat(40) : environment.BONUS_CERTIFICATION_AUTH_SHA, environment: 'preview' },
+        checks: { dataProvider: 'ok' } }), { status: options.readinessStatus || 200 })
     }
     assert.equal(url.origin, environment.BONUS_CERTIFICATION_BASE_URL)
     assert.equal(url.pathname.startsWith('/api/nocodebackend/auth/'), true)
@@ -56,7 +57,8 @@ test('missing both owner configurations blocks before any request and exposes na
 
 test('release authentication resolves the session owner and signs out before returning its ID', async () => {
   const f = fixture()
-  assert.deepEqual(await f.run(), { id: 'verified-private-owner', source: 'verified-release-session' })
+  assert.deepEqual(await f.run(), { id: 'verified-private-owner', source: 'verified-release-session',
+    authCommit: environment.BONUS_CERTIFICATION_AUTH_SHA })
   assert.deepEqual(f.calls.map((call) => call.action), ['readiness', 'email', 'get-session', 'sign-out'])
   assert.deepEqual(JSON.parse(f.calls[1].init.body), {
     email: 'Owner@example.test', password: 'private-login-password'
@@ -74,6 +76,12 @@ test('an unapproved deployment URL receives no request or credentials', async ()
   await assert.rejects(f.run({ ...environment, BONUS_CERTIFICATION_BASE_URL: 'https://other.example' }),
     (error) => error.code === 'BONUS_TEST_OWNER_TARGET_UNVERIFIED')
   assert.equal(f.calls.length, 0)
+})
+
+test('unverified release access records its HTTP status and sends no account credentials', async () => {
+  const f = fixture({ readinessStatus: 401 })
+  await assert.rejects(f.run(), (error) => error.code === 'BONUS_TEST_OWNER_TARGET_UNVERIFIED' && error.targetStatus === 401)
+  assert.deepEqual(f.calls.map((call) => call.action), ['readiness'])
 })
 
 for (const [name, options, code] of [

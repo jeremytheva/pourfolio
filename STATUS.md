@@ -38,7 +38,7 @@ wip:
 evidence:
   observed_main_commit: "7c030b43b415eaf8567ecb305caa5296b3f37e39"
   current_candidate_commit: null
-  latest_validated_commit: "8a3c0f16a64bf39bff8e770edaede2cbe3085e23"
+  latest_validated_commit: "fdfc5e85fc20067926afe602c6d54a3069bb22ae"
   latest_deployed_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
   latest_runtime_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
   latest_browser_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
@@ -50,8 +50,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "8a3c0f16a64bf39bff8e770edaede2cbe3085e23"
-last_updated: "2026-10-19T21:39:09Z"
+last_verified_commit: "fdfc5e85fc20067926afe602c6d54a3069bb22ae"
+last_updated: "2026-10-19T21:42:34Z"
 ---
 
 # STATUS.md
@@ -69,8 +69,15 @@ are present. The exact-SHA app preview has configured auth and passed
 health/readiness. The test now uses that normal application sign-in boundary
 after verifying its approved origin and exact candidate SHA. It verifies
 the resulting account and signs out before writes; no auth key is copied
-out of the deployment. All **28** focused tests pass locally. The latest
-source/provider run is pending; no test fixture has been created so far.
+out of the deployment. All **28** focused tests pass locally. Candidate `fdfc5e85` subsequently passed 880 canonical tests / 15 gated
+skips, then stopped before writes because the worker could not verify
+preview readiness. The Vercel-authenticated read returned the exact SHA,
+but the worker retained no status detail. The current worker adds safe
+HTTP diagnostics and pins the observed public auth release `90c86fd1`
+(21:41 UTC health/readiness) separately from the provider-test candidate.
+It uses that released app only to establish account identity. The 29
+focused tests pass locally; canonical/provider execution is pending.
+No test fixture has been created so far.
 
 ### Protected bonus test owner resolution — 20 October 2026 Sydney
 

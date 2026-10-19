@@ -26,12 +26,14 @@ if (missing.length || !guarded) {
       cleanup: 'NOT_RUN', createsAttempted: 0, deletesAttempted: 0,
       failure: allowed.includes(error?.code) ? error.code : 'BONUS_TEST_OWNER_UNCONFIRMED',
       ...(error?.missing ? { missing: error.missing } : {}),
+      ...(error?.code === 'BONUS_TEST_OWNER_TARGET_UNVERIFIED' ? { targetStatus: error.targetStatus ?? null } : {}),
       ...(error?.sessionCleanup ? { sessionCleanup: error.sessionCleanup } : {}) }
   }
   if (owner) {
     report = await runBonusWriteCertification({ provider: dataProvider,
       userId: owner.id, runKey: `bonus-${randomUUID()}` })
     report.ownerSource = owner.source
+    if (owner.authCommit) report.authCommit = owner.authCommit
   }
 }
 report.candidateCommit = /^[a-f0-9]{40}$/.test(sha) ? sha : null

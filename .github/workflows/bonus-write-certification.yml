@@ -43,7 +43,10 @@ jobs:
           NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
           NOCODEBACKEND_CONTRACT_USER_ID: ${{ secrets.NOCODEBACKEND_CONTRACT_USER_ID }}
-          BONUS_CERTIFICATION_BASE_URL: https://pourfolio-git-fix-bonus-point-pers-936c9e-jeremythevas-projects.vercel.app
+          # Account identity uses the verified current public auth release;
+          # provider persistence uses this workflow's checked-out candidate.
+          BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
+          BONUS_CERTIFICATION_AUTH_SHA: 90c86fd13873b51a9025f4e3481dc594eef95a80
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
       - name: Retain redacted provider evidence

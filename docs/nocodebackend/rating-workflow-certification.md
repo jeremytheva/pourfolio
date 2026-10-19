@@ -33,7 +33,10 @@ It requires the existing protected provider configuration and either
 `NOCODEBACKEND_CONTRACT_USER_ID`, or the protected
 `RELEASE_OWNER_EMAIL` / `RELEASE_OWNER_PASSWORD` configuration. When the ID
 is absent, the worker first uses the existing release-target verifier to
-check the approved Pourfolio deployment origin and exact checked-out SHA.
+check the approved Pourfolio deployment origin and explicitly pinned auth
+release SHA (`BONUS_CERTIFICATION_AUTH_SHA`). That auth deployment is only
+used to establish account identity; `BONUS_CERTIFICATION_SHA` separately
+identifies the candidate persistence implementation run in the worker.
 Only then does it sign in through the app's normal same-origin auth route,
 verify the resulting session's ID and matching email with the application's
 session parser, and sign out before any data write. Credentials/cookies
@@ -45,7 +48,10 @@ before any provider write. A branch push containing
 `[connected-bonus-write]` or a manual workflow dispatch requests this bounded
 run under the protected environment. It does not enable the broader isolated
 provider contract or schema mutation. The report contains statuses/counts and
-the candidate SHA, excluding record IDs, owner identity and description.
+the candidate SHA and, when applicable, the verified auth release SHA,
+excluding record IDs, owner identity and description. The workflow pins the
+currently observed public auth release; if that deployment changes, recheck
+readiness and update the explicit auth pin before requesting another run.
 
 A PASS qualifies this candidate's provider create/readback/reload/unused-fixture
 cleanup only. HTTP authentication/204 semantics, browser submission/rating use,
@@ -84,6 +90,19 @@ with zero creates/deletes. The final owner resolver therefore reuses normal
 application sign-in plus the existing release-origin/SHA verifier, as the
 established connected browser checks do. All **28** focused tests pass
 locally; this follow-up's canonical and protected execution remain pending.
+
+Candidate `fdfc5e85` passed **880** canonical Node 22 tests (15 gated
+skips). The worker stopped before writes at
+`BONUS_TEST_OWNER_TARGET_UNVERIFIED` in
+[run 39329182424](https://github.com/jeremytheva/pourfolio/actions/runs/39329182424).
+Authenticated Vercel readiness confirmed that preview SHA, but worker preview
+access was not independently qualified; no specific HTTP status was retained.
+The follow-up records safe target HTTP diagnostics and pins the observed
+public auth release `90c86fd13873b51a9025f4e3481dc594eef95a80` separately
+from the provider test candidate. Public health and readiness both returned
+that production SHA on 19 October at 21:41 UTC. This grants no preview access
+and makes no claim that the candidate is deployed publicly. All **29**
+focused tests pass locally; canonical/provider execution is pending.
 
 ## Custom bonus point-value persistence verification (PR #651)
 
