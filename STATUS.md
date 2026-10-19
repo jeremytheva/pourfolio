@@ -36,7 +36,7 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
+  observed_main_commit: "f7f27dcf004d2ed59a7a0366455a064619414487"
   current_candidate_commit: null
   latest_validated_commit: "e52b630e57375eb71a7bed5500b688934911bff2"
   latest_deployed_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
@@ -59,6 +59,35 @@ last_updated: "2026-10-19T09:49:00Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Bonus creation identity/compensation safety — 19 October 2026
+
+PR #651 is based on current main `f7f27dcf`; prior head `0c3dc02d`
+passed canonical Node 22 validation (849 passed, 15 provider skips), all 151
+browser/accessibility cases and CodeQL in run 39237600200. PR #657 is likewise
+reconciled, at `ad41c594` with 853 passed / 15 skips and 151 browser cases.
+Both remain open, blocked on connected write/isolation/cleanup evidence.
+
+Review found that #651's automatic compensating DELETE could remove an older
+owned bonus attribute if a create response echoed that existing ID. The
+correction requires the existing successful catalogue baseline, rejects known
+or malformed IDs before mapping, and removes automatic destructive compensation.
+Ownership and absence from a baseline do not prove creation provenance. Failed
+writes can leave a partial item for governed recovery; they are not safely
+cleaned up merely because an error was returned. Six focused regression cases
+failed on the prior source; all 15 focused cases pass locally on Node 24 after
+the correction. This is diagnostic only; new exact-head canonical acceptance
+must be checked in #651. No live records or supplied source files were changed.
+
+PR #662 merged as `f7f27dcf004d2ed59a7a0366455a064619414487` after final
+head `e8c154df` passed 828 source tests / 15 skips and all 151 browser cases,
+Dependency Review and CodeQL (run 39232880890). Vercel reported deployment rate
+limiting; fresh production health remained at `90c86fd1`. Do not claim a new
+runtime deployment or provider certification from these test-only results.
+One private QA bonus fixture, 81 absent global values, missing catalogue
+lifecycle controls and contradictory historical deletion remain unresolved.
+Public launch remains **NO-GO**. No more live bonus fixtures without verified
+isolation and cleanup. Two ordinary implementation PRs remain (#651/#657).
 
 ### Connected rating driver and cleanup repair — 19 October 2026
 

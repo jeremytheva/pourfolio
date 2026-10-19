@@ -48,7 +48,9 @@ const fixture = ({
   return { provider, calls }
 }
 
-const persist = (provider) => persistBonusWithCategory({ userId: 'owner-1', input, categoryId: 10, provider })
+const persist = (provider, existingAttributeIds = new Set(['1', '2'])) => persistBonusWithCategory({
+  userId: 'owner-1', input, categoryId: 10, provider, existingAttributeIds
+})
 const actions = (calls) => calls.map(({ action, collection }) => [action, collection])
 
 test('bonus creation verifies both persisted attribute and category mapping before acknowledging', async () => {
@@ -73,16 +75,15 @@ for (const mismatch of [
   { name: 'provider changed point value', storedPointValue: '0.20' },
   { name: 'different description', storedDescription: 'Other attribute' }
 ]) {
-  test(`bonus creation rejects ${mismatch.name} before mapping and compensates verified private attribute`, async () => {
+  test(`bonus creation rejects ${mismatch.name} without deleting an ambiguously identified attribute`, async () => {
     const { provider, calls } = fixture(mismatch)
     await assert.rejects(
       persist(provider),
       (error) => error.status === 502 && error.code === 'BONUS_ATTRIBUTE_PERSISTENCE_MISMATCH'
     )
     assert.deepEqual(actions(calls), [
-      ['create', ATTRIBUTE], ['get', ATTRIBUTE], ['remove', ATTRIBUTE]
+      ['create', ATTRIBUTE], ['get', ATTRIBUTE]
     ])
-    assert.equal(calls[2].id, 91)
   })
 }
 
@@ -90,6 +91,30 @@ test('bonus creation does not delete an unverified cross-owner record', async ()
   const { provider, calls } = fixture({ storedOwner: 'owner-2' })
   await assert.rejects(persist(provider), (error) => error.code === 'BONUS_ATTRIBUTE_PERSISTENCE_MISMATCH')
   assert.deepEqual(actions(calls), [['create', ATTRIBUTE], ['get', ATTRIBUTE]])
+})
+
+test('a create acknowledgement echoing an existing owned ID cannot authorise mapping or deletion', async () => {
+  for (const storedDescription of [input.description, 'An older private attribute']) {
+    const { provider, calls } = fixture({ storedDescription })
+    await assert.rejects(persist(provider, new Set(['91'])), (error) => error.code === 'BONUS_ATTRIBUTE_IDENTITY_UNCONFIRMED')
+    assert.deepEqual(actions(calls), [['create', ATTRIBUTE]])
+  }
+})
+
+test('missing pre-write identity baseline prevents any provider mutation', async () => {
+  const { provider, calls } = fixture()
+  await assert.rejects(persistBonusWithCategory({ userId: 'owner-1', input, categoryId: 10, provider }),
+    (error) => error.code === 'BONUS_ATTRIBUTE_IDENTITY_UNCONFIRMED')
+  assert.deepEqual(calls, [])
+})
+
+test('malformed create IDs never authorise readback, mapping or deletion', async () => {
+  for (const id of ['091', '91/other', -1, 0, Number.MAX_SAFE_INTEGER + 1, {}, null]) {
+    const { provider, calls } = fixture()
+    provider.create = async () => { calls.push({ action: 'create', collection: ATTRIBUTE }); return { id } }
+    await assert.rejects(persist(provider), (error) => error.code === 'BONUS_ATTRIBUTE_IDENTITY_UNCONFIRMED')
+    assert.deepEqual(actions(calls), [['create', ATTRIBUTE]])
+  }
 })
 
 test('bonus creation does not delete when attribute readback fails before owner verification', async () => {

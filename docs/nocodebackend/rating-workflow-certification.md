@@ -10,14 +10,20 @@ and numeric `point_value`, then creates and reads back the
 requesting user, Overall category ID and newly created attribute ID before
 the route acknowledges HTTP 201. Either unverified write fails closed.
 
-Compensation can delete the newly created attribute only after its owner is
-verified **and before any mapping write has been attempted**. Once the mapping
-write starts, a timeout, ambiguous create result, incorrect mapping readback
-or unavailable read may conceal a committed relationship. In that situation
-the route must not blindly delete either record. The potential partial pair
-must be investigated and cleaned up with a guarded, account-verified
-provider recovery procedure. An unverified ID or read failure must
-**never** trigger deletion of a possibly unrelated account's record.
+The caller supplies the IDs from its successful pre-write visible catalogue
+read. A missing baseline, malformed create ID or ID already in that baseline
+fails with `BONUS_ATTRIBUTE_IDENTITY_UNCONFIRMED`, before readback or mapping.
+A canonical positive ID absent from the baseline is still not proof that this
+request created it: another request may have created it concurrently. Owner
+verification proves access, not creation provenance.
+
+No failed bonus create automatically deletes an attribute or category mapping.
+The earlier owner-verified compensating DELETE could remove an older private
+attribute if the provider echoed its ID. That destructive compensation is
+removed. Value/description/owner mismatch, lost response, unreadable row and
+ambiguous mapping writes fail closed and may leave an unconfirmed partial item
+for guarded, backed-up provider recovery. This is not a successful teardown;
+never retry a non-idempotent create or guess a cleanup ID to conceal it.
 
 The historical export contains 82 bonus attributes, of which 81 have null/
 blank `point_value`; the single explicit value is `0.50`. The existing
