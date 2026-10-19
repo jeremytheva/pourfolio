@@ -28,7 +28,7 @@ test('live audit records contradictory completed and timestamped rows without ex
 })
 
 test('unmarked complete ratings remain in both history and live audit eligibility', () => {
-  const rows = [{ id: 1, submission_state: 'complete', total_weighted: 0, deleted_at: null }]
+  const rows = [{ id: 1, submission_state: 'complete', total_weighted: 0.1, deleted_at: null }]
   const result = classifyCompletedRatings(rows)
   assert.equal(result.contradictoryCompletionCount, 0)
   assert.deepEqual(result.completed, rows.filter(isCompletedRating))
