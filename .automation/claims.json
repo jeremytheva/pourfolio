@@ -5,7 +5,7 @@
       "owner": "rating-release-journey-1792402613024-ratings",
       "workstream": "ratings",
       "issue": 165,
-      "pr": null,
+      "pr": 662,
       "surfaces": [
         "release-check/connected.spec.js",
         "release-check/ratingJourney.js",
