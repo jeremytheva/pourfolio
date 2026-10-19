@@ -1,31 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "ratings": {
-      "owner": "bonus-readback-preflight-20261019-1792383478387",
-      "workstream": "ratings",
-      "issue": 165,
-      "pr": 651,
-      "surfaces": [
-        "scripts/audit-live-bonus-rating-mapping.js",
-        "scripts/__tests__/liveBonusRatingMappingAudit.test.js",
-        "docs/nocodebackend/rating-workflow-certification.md"
-      ],
-      "acquiredAt": "2026-10-19T04:17:58.387Z",
-      "expiresAt": "2026-10-19T04:52:58.387Z"
-    },
-    "catalogue": {
-      "owner": "cellar-persistence-qa-20261019-1792384008028",
-      "workstream": "catalogue",
-      "issue": 449,
-      "pr": null,
-      "surfaces": [
-        "api/cellar-data-proxy.js",
-        "api/_lib/__tests__/cellarPersistence.test.js",
-        "docs/nocodebackend/cellar-workflow-certification.md"
-      ],
-      "acquiredAt": "2026-10-19T04:26:48.028Z",
-      "expiresAt": "2026-10-19T05:03:48.028Z"
-    }
-  }
+  "claims": {}
 }
