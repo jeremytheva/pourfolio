@@ -8,8 +8,7 @@
       "pr": 651,
       "surfaces": [
         "runtime:ratings-qa",
-        "runtime:bonus-qa",
-        "docs/nocodebackend/rating-workflow-certification.md"
+        "runtime:bonus-qa"
       ],
       "acquiredAt": "2026-10-19T09:07:47.055Z",
       "expiresAt": "2026-10-19T09:37:47.055Z"
@@ -17,11 +16,15 @@
     "catalogue": {
       "owner": "full-rating-resume-1792400867055-catalogue",
       "workstream": "catalogue",
-      "issue": 449,
+      "issue": 154,
       "pr": null,
       "surfaces": [
         "STATUS.md",
-        "repo:integration"
+        "repo:integration",
+        "api/catalog-data-proxy.js",
+        "api/nocodebackend/__tests__/catalogueRatingInsights.test.js",
+        "api/__tests__/catalogueRatingState.test.js",
+        "docs/nocodebackend/rating-workflow-certification.md"
       ],
       "acquiredAt": "2026-10-19T09:07:47.055Z",
       "expiresAt": "2026-10-19T09:37:47.055Z"
