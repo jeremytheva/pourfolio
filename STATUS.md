@@ -15,7 +15,9 @@ next_actions:
   - "Investigate one persisted rating with submission_state=complete and deleted_at set; obtain verified record/child ownership, backup, rollback and governed approval before any repair."
   - "Complete #651 guarded isolated-staging custom bonus create/readback/owner-isolation/cleanup certification before merge; 81 global bonus point values are absent and cannot be inferred."
   - "Prepare #165 uniqueness, version/conditional update and backup/restore evidence for controlled migration; retain approval boundary."
-  - "Review #657: new cellar create/edit/delete source checks passed, but connected controlled writes, two-account ownership and safe cleanup are NOT_RUN; obtain isolated fixtures before merge."\n  - "For the 966 ownerless historical cellar rows, establish provenance and a backed-up, reviewed migration or archival decision; do not assign users by inference."\n  - "Run #422/#577 distinct-session privacy and authorization checks when supported staging sessions are available."
+  - "Review #657: new cellar create/edit/delete source checks passed, but connected controlled writes, two-account ownership and safe cleanup are NOT_RUN; obtain isolated fixtures before merge."
+  - "For the 966 ownerless historical cellar rows, establish provenance and a backed-up, reviewed migration or archival decision; do not assign users by inference."
+  - "Run #422/#577 distinct-session privacy and authorization checks when supported staging sessions are available."
   - "Use merged #656 commit as source baseline; preserve the one incomplete rating deletion and ownerless cellar history findings as explicit data gates."
 blockers:
   - scope: rating_idempotency_provider_migration
