@@ -40,7 +40,12 @@
         "release-check/cellarCleanup.js",
         "release-check/connected.spec.js",
         "scripts/__tests__/liveCellarIntegrityAudit.test.js",
-        "scripts/audit-live-cellar-integrity.js"
+        "scripts/audit-live-cellar-integrity.js",
+        "scripts/cellar-write-certification-lib.js",
+        "scripts/run-cellar-write-certification.js",
+        "scripts/__tests__/cellarWriteCertification.test.js",
+        ".github/workflows/cellar-write-certification.yml",
+        "docs/nocodebackend/connected-policy-certification.md"
       ],
       "acquiredAt": "2026-10-19T22:28:54.345Z",
       "expiresAt": "2026-10-19T22:58:54.345Z"
