@@ -231,11 +231,14 @@ const main = async () => {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {
-  process.stderr.write(`${JSON.stringify({
-    status: 'BLOCKED',
-    mode: 'read-only',
-    error: error?.message || 'Connected rating integrity audit failed.',
-    stage: error?.auditStage || null,
-    providerStatus: error?.providerStatus ?? null,
-    providerCode: error?.providerCode || null
-  })}\n`)\n    process.exitCode = 1\n  })\n}\n
+    process.stderr.write(`${JSON.stringify({
+      status: 'BLOCKED',
+      mode: 'read-only',
+      error: error?.message || 'Connected rating integrity audit failed.',
+      stage: error?.auditStage || null,
+      providerStatus: error?.providerStatus ?? null,
+      providerCode: error?.providerCode || null
+    })}\n`)
+    process.exitCode = 1
+  })
+}
