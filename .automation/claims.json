@@ -1,31 +1,16 @@
 {
   "version": 1,
   "claims": {
-    "ratings": {
-      "owner": "full-rating-resume-1792400867055-ratings",
-      "workstream": "ratings",
-      "issue": 165,
-      "pr": 651,
-      "surfaces": [
-        "runtime:ratings-qa",
-        "runtime:bonus-qa"
-      ],
-      "acquiredAt": "2026-10-19T09:07:47.055Z",
-      "expiresAt": "2026-10-19T09:37:47.055Z"
-    },
     "catalogue": {
       "owner": "full-rating-resume-1792400867055-catalogue",
       "workstream": "catalogue",
       "issue": 154,
-      "pr": 660,
+      "pr": 661,
       "surfaces": [
         "STATUS.md",
         "repo:integration",
-        "api/catalog-data-proxy.js",
-        "api/nocodebackend/__tests__/catalogueRatingInsights.test.js",
-        "api/__tests__/catalogueRatingState.test.js",
-        "docs/nocodebackend/rating-workflow-certification.md",
-        "docs/LAUNCH_READINESS.md"
+        "docs/LAUNCH_READINESS.md",
+        "docs/nocodebackend/rating-workflow-certification.md"
       ],
       "acquiredAt": "2026-10-19T09:07:47.055Z",
       "expiresAt": "2026-10-19T09:37:47.055Z"
