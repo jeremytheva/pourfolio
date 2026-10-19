@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict'
+import { pathToFileURL } from 'node:url'
 import { COLLECTIONS } from '../src/data/contract.js'
 import { completedRatingTotal } from '../src/lib/completedRatingContract.js'
 import { dataProvider } from '../api/_lib/dataProvider.js'
 import { __testables as ratingWorkflow } from '../api/rating-data-proxy.js'
 import { __testables as catalogue } from '../api/catalog-data-proxy.js'
+import { isCompletedRating } from '../api/_lib/ratingHistoryRecords.js'
 
 const MAX_PAGES = 1000
 const PAGE_SIZE = 100
@@ -101,15 +103,26 @@ const roundedAverage = (values) => values.length
   ? Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2))
   : null
 
+
+export const classifyCompletedRatings = (ratings) => {
+  const completed = ratings.filter(isCompletedRating)
+  // A record with both a completion state and a deletion timestamp is not a
+  // visible completed tasting. Count it separately: excluding it from the
+  // expected history is correct, but the contradictory stored state still
+  // requires a provider lifecycle review.
+  const tombstonedCompleteRows = ratings.filter((rating) =>
+    rating?.submission_state === 'complete' && Boolean(rating?.deleted_at)
+  )
+  return { completed, contradictoryCompletionCount: tombstonedCompleteRows.length }
+}
+
 const main = async () => {
   requireReadOnlyMode()
   disableMutations()
 
   const ratings = await readStage('ratings_inventory', () => listAll(COLLECTIONS.ratings))
   const userIds = [...new Set(ratings.map((rating) => String(rating.user_id || '').trim()).filter(Boolean))].sort()
-  const completed = ratings.filter((rating) =>
-    rating.submission_state === 'complete' && completedRatingTotal(rating.total_weighted) !== null
-  )
+  const { completed, contradictoryCompletionCount } = classifyCompletedRatings(ratings)
   const completedByUser = new Map()
   const completedByProduct = new Map()
 
@@ -139,7 +152,17 @@ const main = async () => {
 
     const actualIds = (response.body?.items || []).map(({ id }) => String(id)).sort()
     const expectedIds = (completedByUser.get(userId) || []).map(({ id }) => String(id)).sort()
-    assert.deepEqual(actualIds, expectedIds, 'personal history must equal the owner complete-rating set')
+    if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
+      const actual = new Set(actualIds)
+      const expected = new Set(expectedIds)
+      const missing = expectedIds.filter((id) => !actual.has(id)).length
+      const unexpected = actualIds.filter((id) => !expected.has(id)).length
+      const error = new Error(
+        `Personal completed-history mismatch: expected ${expectedIds.length}, actual ${actualIds.length}, missing ${missing}, unexpected ${unexpected}.`
+      )
+      error.auditStage = 'personal_history_projection'
+      throw error
+    }
 
     const planById = new Map(first.map((item) => [String(item.ratingId), item]))
     for (const item of response.body?.items || []) {
@@ -189,8 +212,9 @@ const main = async () => {
   }, {})
 
   process.stdout.write(`${JSON.stringify({
-    status: 'PASS',
+    status: contradictoryCompletionCount ? 'REVIEW_REQUIRED' : 'PASS',
     mode: 'read-only',
+    contradictoryCompletionCount,
     ratingsExamined: ratings.length,
     ownersExamined: userIds.length,
     plansExamined: examinedByPlans,
@@ -202,9 +226,11 @@ const main = async () => {
     bonusMappingVerification,
     stateCounts
   })}\n`)
+  if (contradictoryCompletionCount) process.exitCode = 2
 }
 
-main().catch((error) => {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
   process.stderr.write(`${JSON.stringify({
     status: 'BLOCKED',
     mode: 'read-only',
@@ -212,6 +238,4 @@ main().catch((error) => {
     stage: error?.auditStage || null,
     providerStatus: error?.providerStatus ?? null,
     providerCode: error?.providerCode || null
-  })}\n`)
-  process.exitCode = 1
-})
+  })}\n`)\n    process.exitCode = 1\n  })\n}\n
