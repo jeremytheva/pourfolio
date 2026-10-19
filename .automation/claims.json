@@ -1,32 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "ratings": {
-      "owner": "bonus-source-sync-20261019-1792417042948",
-      "workstream": "ratings",
-      "issue": 165,
-      "pr": 651,
-      "surfaces": [
-        "api/_lib/__tests__/bonusAttributeCreation.test.js",
-        "api/bonus-attribute-data-proxy.js",
-        "docs/nocodebackend/rating-workflow-certification.md",
-        "scripts/__tests__/liveBonusRatingMappingAudit.test.js",
-        "scripts/audit-live-bonus-rating-mapping.js"
-      ],
-      "acquiredAt": "2026-10-19T13:37:22.948Z",
-      "expiresAt": "2026-10-19T14:07:22.948Z"
-    },
-    "catalogue": {
-      "owner": "producer-reviewed-integration-20261019-1792416464420",
-      "workstream": "catalogue",
-      "issue": 441,
-      "pr": 664,
-      "surfaces": [
-        "repo:integration",
-        "STATUS.md"
-      ],
-      "acquiredAt": "2026-10-19T13:27:44.420Z",
-      "expiresAt": "2026-10-19T13:52:44.420Z"
-    }
-  }
+  "claims": {}
 }
