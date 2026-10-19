@@ -64,12 +64,50 @@ cannot substitute for these provider rows. Any failed readback requiring
 manual cleanup must be reconciled before marking a write run complete.
 
 
+
 ## Step-by-step acceptance and certification guide
 
 Use the GitHub browser workflow; a local clone is not required. The historical
 attempt below is retained as a failed/blocked attempt, not current completion
 evidence. Latest results and remaining boundaries belong in `STATUS.md` and
 the linked pull requests.
+
+### Exact connected terminal-delete evidence — 19 October 2026
+
+The isolated **read-only** [rating audit run 39196833869](https://github.com/jeremytheva/pourfolio/actions/runs/39196833869)
+examined 627 provider ratings and reported one parent with contradictory
+`complete` plus nonempty `deleted_at` state. The global child census
+found **one surviving `rating_scores` row, zero rating-bonus mappings
+for that parent, no mismatched child owners and no child owner missing**.
+A source unit test or the frontend hiding the rating cannot clear that
+finding: the parent and score remain inconsistent after the partial delete.
+
+The audit returned `REVIEW_REQUIRED` / exit 2 by design, and did not
+write to the provider. Terminal delete is therefore still a **FAIL**
+for live-data integrity. Any governed repair must verify the actual
+owner and exact parent/score relationship, retain a recoverable snapshot,
+verify provider conditional update/cleanup semantics, document rollback
+and obtain the necessary approval before touching either record. Do not
+guess which row should be recreated or deleted from aggregate counts.
+
+### Read-only contradictory deletion child census (PR #655)
+
+A `complete` rating with a nonempty `deleted_at` is excluded from
+personal history and community scoring but is **not** a verified terminal
+deletion. The connected rating audit now scans the full paginated score
+inventory and existing rating-bonus mapping inventory, then reports only
+aggregate counts of contradictory parents, any surviving score/bonus
+children, absent children, mismatched ownership and missing child owners.
+It outputs no rating IDs, user IDs or individual score values.
+
+An empty child census is insufficient to declare delete success; the
+parent still needs a correctly verified terminal lifecycle transition.
+Any surviving children or ownership conflicts require investigation.
+The audit runs with provider writes disabled, records `REVIEW_REQUIRED`
+until the contradiction is resolved, and does **not** perform deletion,
+repair, schema migration or backfill. Governed recovery still requires
+an account-verified read of affected records, documented snapshot/restore,
+rollback/cleanup and appropriate approval before any mutation.
 
 ### 19 October 2026 terminal-delete investigation
 

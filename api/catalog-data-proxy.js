@@ -8,6 +8,7 @@ import { canonicalRatingKey, ratingDimension } from '../src/lib/ratingFormulaV1.
 import { requireSessionUser } from './_lib/authSession.js'
 import { loadBonusCatalogue } from './_lib/bonusAttributeCatalogue.js'
 import { dataProvider } from './_lib/dataProvider.js'
+import { isCompletedRating } from './_lib/ratingHistoryRecords.js'
 import {
   CATEGORY_FIELDS,
   PRODUCT_FIELDS,
@@ -152,9 +153,6 @@ const hydrateProducts = async (products) => {
     }
   })
 }
-
-const isCompletedRating = (rating) =>
-  rating?.submission_state === 'complete' && completedRatingTotal(rating?.total_weighted) !== null
 
 const buildRatingInsights = async (ratings) => {
   const acceptedRatings = ratings

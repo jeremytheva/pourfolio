@@ -3,21 +3,20 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Terminal rating-delete failure isolated; provider timestamp repair"
+stage: "Tombstone-aware community scoring deployed; one inconsistent provider rating remains for review"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Certify controlled rating creation and terminal deletion on the repaired deployment recorded in PR #650; keep #503/#165 and privacy/session/cellar gates open."
-  issue: 503
-  pr: null
-  branch: null
+  objective: "Safely disposition one contradictory completed/deleted rating, complete connected bonus write and rating/cellar/privacy certification, and retain provider migration gates."
+  issue: 165
+  pr: 651
+  branch: "fix/bonus-point-persistence-readback-20261019"
 next_actions:
-  - "Use #650's final integration/deployment evidence for a controlled disposable create/delete retest; require HTTP 204, terminal state, absent children, repeat-delete stability and verified cleanup. Keep the 19 October live failure retained until replaced by actual passing evidence."
-  - "Continue #503/#165 through the active ratings claimant; timestamp-format source acceptance does not certify the provider's uniqueness, conditional updates, immutable dates or recovery guarantees."
-  - "Run #449 guarded connected cellar CRUD/ownership checks only with supported isolated fixtures and verified cleanup."
-  - "Run supported connected #422 profile privacy/revocation and distinct-account certification; keep unsupported rows pending."
-  - "Prepare #165 provider migration, uniqueness, backup/restore and approval evidence without irreversible mutation."
-  - "Complete #577 using supported account-session credentials; database Secret Keys are not login passwords."
+  - "Investigate one persisted rating with submission_state=complete and deleted_at set; obtain verified record/child ownership, backup, rollback and governed approval before any repair."
+  - "Complete #651 guarded isolated-staging custom bonus create/readback/owner-isolation/cleanup certification before merge; 81 global bonus point values are absent and cannot be inferred."
+  - "Prepare #165 uniqueness, version/conditional update and backup/restore evidence for controlled migration; retain approval boundary."
+  - "Run #449 guarded cellar/catalogue test and #422/#577 distinct-session privacy checks when supported staging fixtures are available."
+  - "Use the deployed #652 commit as the source baseline, retain failing connected data finding as a release gate, and rerun release certification only after verified provider remediation."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
@@ -35,22 +34,22 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "2c8d88e8f8d466e8adc26c1a44d5a9814ca18033"
+  observed_main_commit: "85bf9b2a65737ebe76ff2d0e2e94b5b101c0c7b6"
   current_candidate_commit: null
-  latest_validated_commit: "78501ec93d1b9d55a1c266a81b1957dd44f58f37"
-  latest_deployed_commit: "2c8d88e8f8d466e8adc26c1a44d5a9814ca18033"
+  latest_validated_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
+  latest_deployed_commit: "85bf9b2a65737ebe76ff2d0e2e94b5b101c0c7b6"
   latest_runtime_verified_commit: "2c8d88e8f8d466e8adc26c1a44d5a9814ca18033"
-  latest_browser_verified_commit: "78501ec93d1b9d55a1c266a81b1957dd44f58f37"
+  latest_browser_verified_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
 validation:
   governance: PASS
   lint: PASS
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: PASS
+  ci: FAIL
   runtime: UNVERIFIED
-last_verified_commit: "78501ec93d1b9d55a1c266a81b1957dd44f58f37"
-last_updated: "2026-10-19T01:29:00Z"
+last_verified_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
+last_updated: "2026-10-19T03:37:00Z"
 ---
 
 # STATUS.md
@@ -58,6 +57,123 @@ last_updated: "2026-10-19T01:29:00Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Concurrent launch-readiness traceability integration — 19 October 2026, 03:37 UTC
+
+PR #653 merged as `85bf9b2a65737ebe76ff2d0e2e94b5b101c0c7b6`
+after the tombstone fix. It adds a launch-readiness traceability
+pilot without changing the rating/cellars provider records. The
+newer `main` deployment `dpl_5VuYEejL47yGEgiDKkCQJHrxgbZH`
+is READY and matches that SHA; authenticated release certification
+and its independent exact-head validation remain separate evidence
+requirements. The source acceptance for the tombstone scoring fix
+remains at the earlier merged PR #652 head and read-only audit,
+not automatically inherited by #653.
+
+### Deployed tombstone scoring repair; outstanding provider state — 19 October 2026, 03:34 UTC
+
+PR [#652](https://github.com/jeremytheva/pourfolio/pull/652)
+merged as `d233a7e39f7c643df3a04900066d8ba3e8a83c73`.
+It replaces the catalogue's duplicate, tombstone-unaware completion rule
+with the shared history predicate. Production deployment
+`dpl_49Z9yhWwzyMKdmhvotHuPAkEPW98` is **READY** and its GitHub
+provenance matches that exact merge SHA. This is deployment metadata
+evidence, **not** an independently verified authenticated HTTP/write test.
+
+The [PR source acceptance run 39194592481](https://github.com/jeremytheva/pourfolio/actions/runs/39194592481)
+passed Node 22 canonical `npm run platform:validate` (802 passed,
+15 provider-gated skips, zero test failures), all 149 browser/accessibility
+tests, Dependency Review and CodeQL at exact source head `fbd367eb`.
+The merged main run
+[39194986241](https://github.com/jeremytheva/pourfolio/actions/runs/39194986241)
+passed canonical source/browser checks, but the **overall GitHub run is
+FAILED for an actual connected provider data-integrity finding**.
+It must not be described as a fully passing release or dismissed as an
+empty diagnostic workflow.
+
+On [read-only run 39194588209](https://github.com/jeremytheva/pourfolio/actions/runs/39194588209)
+the connected audit reported 627 ratings, 574 eligible completions,
+1,744 verified singular bonus relationships and owner/history/product
+population agreement after the source correction. It returned
+`REVIEW_REQUIRED` / exit 2 because **one** stored rating still has
+`submission_state=complete` and a nonempty `deleted_at`. This
+contradiction remains a separate **live provider data-integrity and
+terminal-delete certification** gate. Do not mutate, remove, backfill,
+or silently reclassify the row without verified owner/child state,
+approved snapshot/restore/recovery authority and a cleanup protocol.
+The source change merely excludes the tombstoned record from
+community metrics.
+
+PR [#651](https://github.com/jeremytheva/pourfolio/pull/651)
+is the sole open implementation PR; its source acceptance and
+read-only bonus mapping audit passed, but controlled isolated-staging
+custom `point_value` create/readback/second-account denial/cleanup
+remain **NOT_RUN**. Live bonus attributes: 83 total (82 global,
+one private), 81 blank/null point values, only one explicit global
+value (`0.5`), zero malformed values. Legacy display fallback
+`0.2` is not proof of intended values for the missing records;
+do not invent data or backfill them. Dependency PRs #645/#646/#647
+remain separate.
+
+**Launch NO-GO.** Issue #503 is closed as implemented source work;
+provider migration/certification #165/#144, profile/privacy #422,
+distinct release sessions #577 and connected cellar/catalogue #449
+retain separate evidence gates. Later plans should pick independent
+provider-safe work instead of repeatedly reopening closed #503 or
+inventing custom bonus values.
+
+
+### Live read-only continuation — 19 October 2026, 03:20 UTC
+
+The default branch is `d82a991e`; PR #650 is merged and the issue
+#503 is **closed**. This issue state does not independently certify all live
+create, delete, retry, owner-isolation or historical-read cases. The later
+connected acceptance remains blocked under #165/#144/#422/#449/#577.
+
+PR #651 (unmerged) adds custom bonus creation persistence readback and
+redacted point-value auditing. Exact head `7f5f81f0` passed canonical
+Node 22 validation, browser/accessibility, Dependency Review and CodeQL.
+Its read-only connected run
+[39193252116](https://github.com/jeremytheva/pourfolio/actions/runs/39193252116)
+**passed the bonus mapping audit**: 1,744 rating bonus mappings all use the
+singular `bonus_attribute_id` field; 83 current bonus attributes
+(82 global, one private), 81 blank/null `point_value`, two explicit,
+zero malformed. Exactly one global explicit value is `0.5`. The second
+explicit value belongs to a private record, whose value is intentionally
+not exposed in audit output. The observed `0.2` fallback is explained by
+absent persisted values, not a confirmed display-only regression. The
+missing individual point assignments must not be invented. No provider
+records were changed.
+
+The same read-only run failed its owner-rating equality assertion. Source
+investigation found that this audit counted `complete` rows with a
+non-null `deleted_at`, while production visibility correctly uses
+`isCompletedRating` and excludes tombstoned rows. PR #652 updates the
+audit to use the canonical predicate while still counting contradictory
+`complete`/tombstoned rows as a separate review concern. An initial
+connected rerun on #652 moved past the owner-history comparison but failed
+the **product population check**: a scoped product response reported two
+completed ratings/average 4 versus the global snapshot's one/average
+4.45. A later redacted diagnostic on
+[run 39194094480](https://github.com/jeremytheva/pourfolio/actions/runs/39194094480)
+found **one** eligible rating in both global and provider-filtered reads
+but **two** in the product response. Source review identified the immediate
+cause: `api/catalog-data-proxy.js` defined a local `isCompletedRating`
+that omitted the `deleted_at` exclusion enforced by
+`api/_lib/ratingHistoryRecords.js`. This allowed a timestamped deleted
+rating with a residual `complete` lifecycle state to enter product and
+producer aggregates. PR #652 removes the duplicate rule, imports the
+canonical tombstone-aware helper and adds product/producer regression tests.
+The exact-head connected rerun is pending; no stored rating was altered.
+The underlying inconsistent `complete` + `deleted_at` row still needs
+a separately governed recovery decision, not a silent repair.
+
+Source-only/browser passing does not certify provider write semantics.
+Connected destructive tests, historical repairs and provider schema
+mutation are not authorised by these read-only audits. Public launch
+remains **NO-GO**. `STATUS.md` prior dated sections are preserved as
+investigation history and must not override these newer facts.
+
 
 ### Latest rating-delete investigation — 19 October 2026 UTC
 
