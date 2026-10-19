@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Live read-only certification exposed missing bonus values and a rating population discrepancy"
+stage: "Tombstoned completed rating included in catalogue aggregates; #652 fixes shared predicate"
 gate: Release
 execution_state: READY
 current_work:
@@ -12,7 +12,7 @@ current_work:
   pr: 652
   branch: "fix/live-rating-audit-completion-parity-20261019"
 next_actions:
-  - "Investigate the connected owner/global/product rating population discrepancy with redacted read-only evidence from #652; do not infer data edits or mark history certified."
+  - "Validate #652 tombstone-aware product and producer aggregates with the full source suite and connected read-only rating audit; preserve actual provider inconsistency and deletion certification gates."
   - "Review #651 source acceptance and actual provider point-value readout; guarded disposable write/readback/cleanup remains required before custom bonus create is certified."
   - "Prepare #165 uniqueness, version/conditional update and backup/restore evidence for controlled migration; retain approval boundary."
   - "Run #449 guarded cellar/catalogue test and #422/#577 distinct-session privacy checks when supported staging fixtures are available."
@@ -89,9 +89,19 @@ audit to use the canonical predicate while still counting contradictory
 connected rerun on #652 moved past the owner-history comparison but failed
 the **product population check**: a scoped product response reported two
 completed ratings/average 4 versus the global snapshot's one/average
-4.45. This could reflect live read/pagination drift or a genuine provider
-population discrepancy; it is **not** yet root-caused. PR #652 adds a
-redacted scoped-versus-global diagnostic, pending a fresh exact-head run.
+4.45. A later redacted diagnostic on
+[run 39194094480](https://github.com/jeremytheva/pourfolio/actions/runs/39194094480)
+found **one** eligible rating in both global and provider-filtered reads
+but **two** in the product response. Source review identified the immediate
+cause: `api/catalog-data-proxy.js` defined a local `isCompletedRating`
+that omitted the `deleted_at` exclusion enforced by
+`api/_lib/ratingHistoryRecords.js`. This allowed a timestamped deleted
+rating with a residual `complete` lifecycle state to enter product and
+producer aggregates. PR #652 removes the duplicate rule, imports the
+canonical tombstone-aware helper and adds product/producer regression tests.
+The exact-head connected rerun is pending; no stored rating was altered.
+The underlying inconsistent `complete` + `deleted_at` row still needs
+a separately governed recovery decision, not a silent repair.
 
 Source-only/browser passing does not certify provider write semantics.
 Connected destructive tests, historical repairs and provider schema
