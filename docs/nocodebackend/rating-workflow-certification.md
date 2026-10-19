@@ -147,6 +147,29 @@ cover partial recovery, delayed readback without repeated deletes, and a
 foreign replacement. All **41** focused cases pass locally. Exact-head
 canonical validation and parent-only recovery are pending.
 
+**Verified teardown:** [run 39331752492](https://github.com/jeremytheva/pourfolio/actions/runs/39331752492)
+at `b36ad771b9eb361faa851073fabae2e93e6bce32` passed **893** canonical
+Node 22 tests (15 provider-gated skips) and returned cleanup PASS. The exact
+old mapping was confirmed absent before any mutation; the only remaining
+parent was deleted once and its first fresh GET confirmed absence. Across
+this fixture's lifecycle there were **two creates and two exact deletes**
+(one child in the earlier recovery, one parent here), with no mutation retry.
+No fixture from this run remains. Existing historical/earlier QA records were
+outside the operation. Browser/accessibility, Dependency Review and CodeQL
+also passed for this source candidate. The application handler blob
+`4429268eca2d05fe5c4a28b581e5dbf8a339fe2c` is unchanged from the live
+persistence/reload test; subsequent changes are test/recovery tooling and
+evidence, not a different application persistence implementation.
+
+Future bounded runs now retain AES-GCM-encrypted, atomic recovery checkpoints
+before each create and immediately after each canonical new acknowledgement.
+A failed initial checkpoint prevents all provider writes. A lost response
+preserves exact nonce/known-ID intent without authorising guessed cleanup.
+The final encrypted checkpoint records the result. No IDs, nonce or account
+identity enters the public report. Three new focused cases verify these
+operational lessons; **44** focused tests pass locally. This receipt-only
+follow-up requests no new provider writes and awaits canonical validation.
+
 ## Custom bonus point-value persistence verification (PR #651)
 
 Creating a private Overall bonus attribute must not return success on the

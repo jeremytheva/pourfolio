@@ -108,7 +108,7 @@ export const cleanupBonusTestFixture = async ({ provider, userId, attributeId, m
 
 // Runs only the candidate's server persistence function against the provider.
 // It does not certify HTTP authentication, browser submission or cross-owner denial.
-export const runBonusWriteCertification = async ({ provider, userId, runKey, verify = async () => {} }) => {
+export const runBonusWriteCertification = async ({ provider, userId, runKey, verify = async () => {}, checkpoint = async () => {} }) => {
   const report = {
     version: 1, mode: 'current-instance-bounded-bonus-write', status: 'BLOCKED',
     persistence: 'NOT_RUN', reload: 'NOT_RUN', cleanup: 'NOT_RUN',
@@ -123,6 +123,9 @@ export const runBonusWriteCertification = async ({ provider, userId, runKey, ver
   let primaryFailure
   const description = `Pourfolio release QA ${runKey}`
   const input = { description, point_value: 0.7 }
+  const saveCheckpoint = (stage) => checkpoint({ version: 1, provenance: 'candidate-create-checkpoint', stage,
+    userId, runKey, description, categoryId, attributeId, mappingId, mappingAttempted,
+    createsAttempted: report.createsAttempted })
   const attributeMatches = (row) => row && same(row.id, attributeId) && same(row.user_id, userId) && row.description === description
   const mappingMatches = (row) => row && same(row.id, mappingId) && same(row.user_id, userId) &&
     same(row.category_id, categoryId) && same(row.bonus_attribute_id, attributeId)
@@ -155,8 +158,9 @@ export const runBonusWriteCertification = async ({ provider, userId, runKey, ver
             same(body.user_id, userId) && same(body.category_id, categoryId) &&
             same(body.bonus_attribute_id, attributeId) && Object.keys(body).length === 3,
           'BONUS_MUTATION_SCOPE_REJECTED')
-          mappingAttempted = true
         }
+        await saveCheckpoint(collection === ATTRIBUTE ? 'before-attribute-create' : 'before-mapping-create')
+        if (collection === MAPPING) mappingAttempted = true
         report.createsAttempted += 1
         const result = await provider.create(collection, body)
         const id = idOf(first(result)?.id)
@@ -164,6 +168,7 @@ export const runBonusWriteCertification = async ({ provider, userId, runKey, ver
         requireThat(id && !baseline.has(id), 'BONUS_CREATE_ID_UNCONFIRMED')
         if (collection === ATTRIBUTE) attributeId = id
         else mappingId = id
+        await saveCheckpoint(collection === ATTRIBUTE ? 'attribute-acknowledged' : 'mapping-acknowledged')
         return result
       },
       async get(collection, id) {

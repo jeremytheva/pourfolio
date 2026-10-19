@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Bonus child absence verified; reviewed parent-only cleanup in progress"
+stage: "Bonus persistence and fixture cleanup verified; final PR validation"
 gate: Release
 execution_state: VALIDATING
 current_work:
@@ -12,18 +12,15 @@ current_work:
   pr: 651
   branch: "fix/bonus-point-persistence-readback-20261019"
 next_actions:
-  - "Inspect the retained #651 bonus fixture without writes; resolve the mapping-list mismatch and verify exact cleanup before another create test."
+  - "Complete #651 final source/deployment acceptance and integration review using verified provider persistence, reload and exact cleanup evidence; retain the separate HTTP/browser/A-B/concurrency release rows."
   - "Investigate one persisted rating with submission_state=complete and deleted_at set; obtain verified record/child ownership, backup, rollback and governed approval before any repair."
-  - "Complete #651 exact-candidate current-instance custom bonus create/readback/second-account-denial/cleanup only after a verified, bounded owner-safe cleanup path exists; 81 stored point values remain absent and must not be guessed."
+  - "Certify current-candidate bonus HTTP/browser creation, rating use and second-account denial; provider persistence and exact fixture cleanup are verified. The 81 absent stored values must not be guessed."
   - "Prepare #165 uniqueness, version/conditional update and backup/restore evidence for controlled migration; retain approval boundary."
   - "Certify #657 exact-candidate cellar create/edit/delete, owner A/B denial and verified fixture cleanup on the authorised current instance when safe rollback and release-account sessions are established."
   - "For the 966 ownerless historical cellar rows, establish provenance and a backed-up, reviewed migration or archival decision; do not assign users by inference."
   - "Run #422/#577 distinct-session privacy and authorization checks with supported release accounts; current-instance testing is authorised but does not replace account separation."
   - "Use merged #664 commit as the source baseline; preserve the incomplete rating deletion and 966 ownerless cellar history records as separate release blockers."
 blockers:
-  - scope: bonus_fixture_cleanup_unconfirmed
-    issue: 651
-    detail: "Current-instance candidate persistence and reload passed, but the full mapping check rejected cleanup; one acknowledged attribute/mapping fixture remains, with zero deletes attempted. Read-only diagnosis is active."
   - scope: rating_idempotency_provider_migration
     issue: 165
     detail: "Durable idempotency requires irreversible provider schema/constraint and existing-data migration work. Provider-supported migration/backfill, backup/restore proof and the governed approval package are required before mutation."
@@ -42,7 +39,7 @@ wip:
 evidence:
   observed_main_commit: "7c030b43b415eaf8567ecb305caa5296b3f37e39"
   current_candidate_commit: null
-  latest_validated_commit: "344715e90ab5742941f5959d3bdf2e3b0fcc25d5"
+  latest_validated_commit: "b36ad771b9eb361faa851073fabae2e93e6bce32"
   latest_deployed_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
   latest_runtime_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
   latest_browser_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
@@ -54,8 +51,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "344715e90ab5742941f5959d3bdf2e3b0fcc25d5"
-last_updated: "2026-10-19T21:59:50Z"
+last_verified_commit: "b36ad771b9eb361faa851073fabae2e93e6bce32"
+last_updated: "2026-10-19T22:04:13Z"
 ---
 
 # STATUS.md
@@ -64,40 +61,38 @@ Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
 
-### Bonus persistence verified; fixture cleanup under read-only investigation — 20 October 2026 Sydney
+### Bonus create/readback and exact fixture cleanup verified — 20 October 2026 Sydney
 
-PR #651 candidate `89064711` passed **881** canonical Node 22 tests with
-15 provider-gated skips. The exact-SHA preview is READY and health passed.
-[Protected run 39329607548](https://github.com/jeremytheva/pourfolio/actions/runs/39329607548)
-verified the release account through normal sign-in on the pinned current
-public auth release `90c86fd1`; the worker did not need its auth service key.
-That release only established identity; the worker executed the candidate's
-actual persistence function against the authorised current instance.
+PR #651 has current-instance **provider persistence PASS, independent reload
+PASS and reviewed cleanup PASS**. Candidate `89064711` saved and reloaded the
+private 0.7 attribute and its category mapping. The initial full-list cleanup
+mismatch stopped all deletes. Read-only investigation then established exact
+provenance, consistent list/direct reads and no rating use. A child DELETE
+initially had unconfirmed readback; later full-list, normal and uncached
+reads proved absence. The final [run 39331752492](https://github.com/jeremytheva/pourfolio/actions/runs/39331752492)
+at `b36ad771` deleted only the remaining parent once, with immediate verified
+absence and cleanup PASS. **Two total creates, two exact deletes, no mutation
+retry; no fixture from this run remains.** The mechanism of delayed mapping
+readback remains unproven and is not hidden by the successful recovery.
 
-**Persistence PASS and fresh reload PASS** for one private 0.7 attribute
-and its category mapping. The complete mapping-list cleanup preflight then
-failed `BONUS_CLEANUP_MAPPING_UNCONFIRMED`. **Two creates, zero deletes**;
-the acknowledged fixture remains. No blind retry, guessed cleanup or
-historical-data operation is authorised by this result. Earlier failed
-configuration/provenance checks made no data writes.
+`b36ad771` passed canonical Node 22 validation (**893 tests**, 15 provider
+skips), browser/accessibility, Dependency Review and CodeQL. Its application
+handler blob is identical to the actual live persistence test; subsequent
+changes affect only tooling/evidence. The final operational correction keeps
+encrypted atomic create intents and acknowledgements for future recovery;
+a failed initial checkpoint prevents writes. All **44** focused tests pass
+locally. This receipt-only follow-up makes no provider write request and
+awaits final canonical/deployment acceptance and PR readiness review.
 
-The follow-up blocks fresh test writes while a prior QA fixture exists and
-adds a separate read-only inspection with all provider writes disabled.
-It reports structural/list-vs-direct-read comparisons and encrypts private
-recovery candidate details; that candidate receipt is not automatic delete
-authority. All **36** focused cases pass locally (Node 24 diagnostic).
-The first inspection was NOT_RUN because the documentation guard detected
-that its new blocker referenced closed issue #503 without retained evidence.
-The blocker now correctly references open PR #651 with fresh issue-state
-evidence; canonical acceptance and the read-only inspection are pending. Keep #651
-open until the mapping mismatch and verified cleanup are resolved; broader
-browser/rating-use/A/B and concurrency gates remain distinct.
-
-The original retained QA attribute, 81 missing historical point values,
-contradictory historical rating and 966 ownerless cellar rows remain separate.
-No shared catalogue fixture or schema change occurred. PR #657 remains open
-at reconciled `17c21767`; its connected write/isolation checks remain NOT_RUN.
-Public launch remains **NO-GO**. Current-instance approval remains active.
+The worker authenticated the designated account on the pinned public auth
+release `90c86fd1`; the provider test ran candidate source separately. This
+is direct server persistence/teardown evidence. HTTP/browser creation and
+rating use, distinct-account denial and concurrency remain separate launch
+checks. No public rollout or full workflow certificate is claimed yet.
+The original earlier QA bonus, 81 absent global point values, contradictory
+historical rating and 966 ownerless cellar rows remain separate. PR #657 is
+open at `17c21767`. Public launch remains **NO-GO**; current-instance approval
+remains active and no new owner permission is needed for routine verification.
 
 ### Producer profile integration and current-instance certification — 19 October 2026, 13:29 UTC
 

@@ -141,6 +141,39 @@ test('an unresolved earlier fixture blocks a fresh test before all writes', asyn
   assert.deepEqual(f.calls, [])
 })
 
+test('recovery checkpoints retain the exact nonce and acknowledged IDs around each create', async () => {
+  const f = fixture()
+  const snapshots = []
+  const result = await f.run({ checkpoint: async (value) => { snapshots.push(structuredClone(value)) } })
+  assert.equal(result.status, 'PASS')
+  assert.deepEqual(snapshots.map((row) => [row.stage, row.attributeId, row.mappingId]), [
+    ['before-attribute-create', null, null], ['attribute-acknowledged', '201', null],
+    ['before-mapping-create', '201', null], ['mapping-acknowledged', '201', '501']
+  ])
+  assert.equal(snapshots.every((row) => row.runKey === runKey && row.userId === userId), true)
+})
+
+test('a failed initial receipt checkpoint prevents all provider writes', async () => {
+  const f = fixture()
+  const result = await f.run({ checkpoint: async () => { throw fail('BONUS_RECEIPT_WRITE_UNCONFIRMED') } })
+  assert.equal(result.status, 'BLOCKED')
+  assert.equal(result.failure, 'BONUS_RECEIPT_WRITE_UNCONFIRMED')
+  assert.equal(result.createsAttempted, 0)
+  assert.deepEqual(f.calls, [])
+})
+
+test('a lost mapping response leaves the exact attribute acknowledgement and mapping intent in recovery checkpoints', async () => {
+  const f = fixture({ lostResponse: M })
+  const snapshots = []
+  const result = await f.run({ checkpoint: async (value) => { snapshots.push(structuredClone(value)) } })
+  assert.equal(result.cleanup, 'UNCONFIRMED')
+  assert.equal(result.deletesAttempted, 0)
+  assert.equal(snapshots.at(-1).stage, 'before-mapping-create')
+  assert.equal(snapshots.at(-1).attributeId, '201')
+  assert.equal(snapshots.at(-1).mappingId, null)
+  assert.equal(snapshots.at(-1).runKey, runKey)
+})
+
 test('a failed later verification still cleans only the acknowledged fixture and preserves the error code', async () => {
   const f = fixture()
   const result = await f.run({ verify: async () => { throw fail('POST_SAVE_VERIFICATION_FAILED') } })

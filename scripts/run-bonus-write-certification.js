@@ -1,9 +1,10 @@
 import { randomUUID } from 'node:crypto'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, rename, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { dataProvider } from '../api/_lib/dataProvider.js'
 import { runBonusWriteCertification } from './bonus-write-certification-lib.js'
 import { resolveBonusCertificationOwner } from './bonus-certification-owner.js'
+import { sealBonusFixtureReceipt } from './bonus-fixture-receipt.js'
 
 const required = ['NOCODEBACKEND_SECRET_KEY', 'NOCODEBACKEND_INSTANCE']
 const missing = required.filter((name) => !process.env[name]?.trim())
@@ -30,8 +31,31 @@ if (missing.length || !guarded) {
       ...(error?.sessionCleanup ? { sessionCleanup: error.sessionCleanup } : {}) }
   }
   if (owner) {
+    let lastSnapshot
+    const receiptPath = path.resolve('artifacts/bonus-write-certification/create-receipt.json')
+    const checkpoint = async (snapshot) => {
+      try {
+        const encryptedReceipt = sealBonusFixtureReceipt({ ...snapshot, candidateCommit: sha,
+          workflowRun: process.env.GITHUB_RUN_ID || null }, process.env.NOCODEBACKEND_SECRET_KEY)
+        await mkdir(path.dirname(receiptPath), { recursive: true })
+        await writeFile(`${receiptPath}.tmp`, JSON.stringify(encryptedReceipt, null, 2) + '\n')
+        await rename(`${receiptPath}.tmp`, receiptPath)
+        lastSnapshot = snapshot
+      } catch {
+        throw Object.assign(new Error('BONUS_RECEIPT_WRITE_UNCONFIRMED'), { code: 'BONUS_RECEIPT_WRITE_UNCONFIRMED' })
+      }
+    }
     report = await runBonusWriteCertification({ provider: dataProvider,
-      userId: owner.id, runKey: `bonus-${randomUUID()}` })
+      userId: owner.id, runKey: `bonus-${randomUUID()}`, checkpoint })
+    if (lastSnapshot) {
+      try {
+        await checkpoint({ ...lastSnapshot, stage: 'finished', resultStatus: report.status, cleanup: report.cleanup })
+        report.recoveryReceipt = 'RETAINED_ENCRYPTED'
+      } catch {
+        report.recoveryReceipt = 'FINAL_CHECKPOINT_UNCONFIRMED'
+        report.status = 'FAIL'
+      }
+    }
     report.ownerSource = owner.source
     if (owner.authCommit) report.authCommit = owner.authCommit
   }
