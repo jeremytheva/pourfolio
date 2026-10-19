@@ -113,7 +113,17 @@ two exact deletes can occur, with fresh absence verification after each.
 This explicit reviewed operation does not convert arbitrary inspection or
 unknown historical rows into automatic cleanup authority. The source
 refactor preserves the original guards; all **38** focused cases pass locally.
-The protected recovery and its exact-head canonical validation are pending.
+The protected recovery result follows.
+Recovery [run 39330931236](https://github.com/jeremytheva/pourfolio/actions/runs/39330931236)
+at `0cb5ea3b` passed **890** canonical tests (15 skips), then issued one
+exact child DELETE. Its immediate GET still returned the mapping, so the
+same absence guard failed `BONUS_MAPPING_DELETE_UNCONFIRMED`. The parent
+DELETE was never attempted; **no removal is confirmed**. Do not repeat the
+mutation. The next operation is read-only: compare the retained exact IDs
+against full lists, normal direct reads and uncached GETs, retaining only
+safe HTTP/cache status flags. No endpoint/permission/schema change is
+justified until that evidence distinguishes stale reads from failed deletion.
+
 
 The earlier retained form-test bonus, 81 absent global values and historical
 rating/cellar records are outside this fixture scope. HTTP/browser create,
