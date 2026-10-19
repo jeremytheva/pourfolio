@@ -1,24 +1,24 @@
 ---
 project: Pourfolio
-portfolio_state: VALIDATING
+portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Brewery ranking pagination validation"
-gate: Change
-execution_state: VALIDATING
+stage: "Producer ranking pagination acceptance"
+gate: Release
+execution_state: READY
 current_work:
-  objective: "Validate the bounded brewery ranking pagination repair while preserving separate launch/provider blockers."
+  objective: "Complete existing PR #639 producer-ranking pagination and removed-page recovery with current-main acceptance; retain the connected rating/provider/privacy gates."
   issue: 441
-  pr: null
-  branch: fix/producer-ranking-pagination-20261014
+  pr: 639
+  branch: "fix/producer-ranking-pagination-20261014"
 next_actions:
-  - "Obtain exact-head canonical npm run platform:validate and Playwright ranking/browser/accessibility evidence for the producer pagination branch; create a normal PR when connector creation permits."
-  - "Continue only evidence-based #429 cleanup or other independent launch work; preserve live Settings/RateBeer preferences and contained future components."
-  - "Retest the repaired production flows with an eligible completed-owner fixture and an opted-in distinct public author; keep unavailable connected rows pending."
-  - "Run bounded connected #422 profile certification where existing credentials and cleanup safeguards support it; leave unsupported rows explicitly pending."
-  - "Prepare #165 migration evidence within the reversible boundary; do not cross the irreversible provider boundary without the governed approval package."
-  - "Continue #577 credential certification when supported user/admin account-session credentials are available."
-  - "Continue provider-gated #449 work only when backing lookup/moderation contracts become verifiable; otherwise use #429 cleanup or other independent launch work."
+  - "Run #449 guarded connected cellar CRUD/ownership checks only with supported isolated fixtures and verified cleanup; source/runtime-read evidence does not close mutable acceptance."
+  - "Resolve #639's material producer-pagination reviews and reconcile its exact head with current main before integration."
+  - "Reconcile #637's stale NOT_RUN body with successful exact-head runs 38828882651/38828876697 and material reviews; preserve Brew launch exclusion."
+  - "Continue #503 deletion diagnosis only through the active ratings claimant; source repairs do not supersede the retained live failure."
+  - "Run supported connected #422 profile privacy/revocation and distinct-account certification; keep unsupported rows pending."
+  - "Prepare #165 provider migration, uniqueness, backup/restore and approval evidence without irreversible mutation."
+  - "Complete #577 using supported account-session credentials; database Secret Keys are not login passwords."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
@@ -31,36 +31,261 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 0
+  open_implementation_prs: 2
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "4a574823e0f2d184a3a6bea51bdd914dfe421c7c"
-  current_candidate_commit: "3c660045621c7a382ee45d25525e6d160e0984ff"
-  latest_validated_commit: "97d29d2d7f3e185e6dbe986f9c40a5039bea5ef7"
-  latest_deployed_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
-  latest_runtime_verified_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
-  latest_browser_verified_commit: "97d29d2d7f3e185e6dbe986f9c40a5039bea5ef7"
+  observed_main_commit: "c6bde59aae98c6b117b208e90252cc2c84d69386"
+  current_candidate_commit: null
+  latest_validated_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
+  latest_deployed_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
+  latest_runtime_verified_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
+  latest_browser_verified_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
 validation:
-  governance: NOT_RUN
+  governance: PASS
   lint: NOT_RUN
   typecheck: NOT_APPLICABLE
   tests: NOT_RUN
-  build: PASS
-  ci: NOT_RUN
+  build: NOT_RUN
+  ci: PENDING
   runtime: UNVERIFIED
-last_verified_commit: "2263fee494a6098937629c8ef8ee74135f3f258e"
-last_updated: "2026-10-15T06:36:07Z"
+last_verified_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
+last_updated: "2026-10-19T00:57:43Z"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 15 October 2026 (Australia/Sydney)
+Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
 
-**15 October 2026 producer pagination update:** The independent ranking-page defect is corrected on `fix/producer-ranking-pagination-20261014` at source commit `3c660045621c7a382ee45d25525e6d160e0984ff`. The patch adds server-backed rankings navigation beyond the first 24 entries, global rank numbering, accessible focus restoration and a new 25-entry Playwright regression. Vercel preview deployment `dpl_6Qx7VegZVKe6sMXFBheNuJASf5K2` is READY for this exact source commit and its Vite build passed. The connector rejected PR creation before GitHub accepted it; no PR exists. Canonical `npm run platform:validate` and Playwright were **NOT RUN** for this branch. Do not merge or claim browser/connected/provider certification until current-head validation and review evidence are obtained. The previous live rating deletion failure remains unresolved and venue functionality remains unavailable.
+### Current implementation — existing PR #639
+
+The producer pagination branch is reconciled with main `c6bde59a` and retains
+the existing global ranks, bounded pages and results-focus behaviour. A 400 on
+a later ranking page now returns to page one, preventing a trapped retry after
+the qualifying cohort shrinks. Transient failures retain the requested page,
+focus the error, and restore results focus after retry. Deterministic browser
+regressions cover pagination, removed-page recovery and transient retry.
+
+Current-head canonical/browser/preview acceptance is pending and must be
+recorded in PR #639 before integration. The evidence SHA fields retain
+the prior independently verified source-bearing release, rather than assigning
+that evidence to this unpublished branch. PR #649 has merged the scoring and
+readiness contract documentation as `c6bde59a`; it is no longer an open WIP slot.
+Public launch remains **NO-GO** and connected/provider acceptance remains open.
+
+### Initial launch implementation completed — 19 October 2026 UTC
+
+Public launch remains **NO-GO**. The launch-plan implementation has begun:
+
+- PR #644 integrated the reviewed plan and exact-candidate pilot requalification
+  rule as `1d16a879ca1f6cc9fe067e307d0b5cc318389d12`.
+- PR #648 integrated strict cellar input validation as
+  `a3080c31ac7c0dd9d905225a09df4ffe215d6f4c`. Impossible dates, unsafe
+  numeric/text/identity coercions and ambiguous Gift values now fail before
+  provider mutations. Valid zero/null/decimal values, real calendar dates,
+  owner-derived identity and capability gates are preserved.
+- Exact pre-merge head `fe176181cb15cd2e33c6868d8fd11b2bedc00620`
+  passed run `39181874327`: Node 22 canonical acceptance (791 passed,
+  15 provider-gated skips, zero failures), 140 browser/accessibility cases,
+  Dependency Review, CodeQL and matching READY preview, with no unresolved
+  review threads.
+- Exact merged main `a3080c31` independently passed run
+  [39182153493](https://github.com/jeremytheva/pourfolio/actions/runs/39182153493):
+  canonical job `117836995508` (791 passed, 15 skipped) and browser job
+  `117836995258` (140 passed). Connected rating/bonus jobs skipped.
+- Production deployment `dpl_2Rq9NCWuqmRG7RgMaHiR3KjsnEvd` is READY at
+  that merge SHA. On 19 October at approximately 00:46 UTC, public health and
+  readiness returned HTTP 200 with matching provenance, configured auth/data/
+  shared-limiter indicators and `dataProvider: ok`. An anonymous cellar GET
+  returned HTTP 401. These prove bounded deployed/read/denial behaviour, not
+  authenticated cellar mutation or two-account certification.
+
+The existing scoring guide now describes the implemented v2 totals, derived
+Bonus, standard/comparison field meaning, personalised/default weights and
+PPP/Scaled Score semantics, with v1 retained as historical. It explicitly
+distinguishes the settings UI's fixed Bonus allocation from the formula boundary
+without changing either. The operations guide now describes the implemented
+public health/readiness responses and their actual limits; dedicated monitor
+authentication/throttling, alert delivery, restore and operator assignments are
+not invented or marked complete. This is documentation reconciliation only.
+
+The evidence fields refer to the exact source-bearing `a3080c31` release
+observed above. The final launch candidate has not been frozen, so
+`current_candidate_commit` remains null. Any later documentation head has its
+own PR acceptance and must not be inferred to be runtime/provider certification
+from this source-bearing snapshot.
+
+At this verified snapshot, ordinary implementation PRs #637/#639 remain open;
+dependency PRs #645/#646/#647 are separate. Keep the repository limit and
+reconcile live state at the next execution. Catalogue owns integration/STATUS;
+the bounded producer claim owns only the existing pagination source and tests.
+Other workstream code and schedules are unchanged.
+
+Next: continue #503 with a fresh correlated isolated deletion fixture where
+supported; a seven-day Vercel query was outside Hobby retention and the corrected
+30-minute rating-error query found no matching log, which does not clear the
+retained failure. If session/fixture/provider boundaries prevent that execution,
+continue #639's existing review corrections or reversible #165 evidence
+preparation. #165 migration/uniqueness/restore/approval, #422 profile privacy/
+revocation, #577 account-session evidence and #449 connected CRUD remain open.
+No live rating/cellar mutation, provider schema change, public capability
+enablement or production launch approval was performed.
+
+No owner action is required for the completed source/documentation work.
+Escalate only a concrete unavailable external prerequisite or the established
+irreversible-change/release approval after reversible preparation.
+
+
+### Retained cellar implementation checkpoint — 19 October 2026 UTC
+
+PR #644 merged as `1d16a879ca1f6cc9fe067e307d0b5cc318389d12` after
+exact head `0f23a48f3f5aa543978b1cffb9a6ac828c755a2e` passed canonical
+Node 22 acceptance (783 passed, 15 gated skips), 140 browser/accessibility cases,
+CodeQL, Dependency Review and matching READY preview. Both material review
+threads were resolved. Fresh production health/readiness matched the merge SHA
+after integration with configured auth/data/shared limiting and a bounded
+`dataProvider: ok` read. No connected write/privacy gate was closed.
+
+The catalogue execution recovered the existing unpublished
+`fix/cellar-write-validation` branch, previously at `86070fc2`, instead of
+creating duplicate work. Its four attempted commits were reconciled with current
+main. The older attempt's rejection of all unknown fields and zero quantity
+conflicted with the accepted current allowlist/zero-value contract; those
+unapproved assertions are replaced by explicit preservation and immutable-input
+regressions. Its valid strict date/Gift intent is retained, completed with typed
+numeric/text/product checks, and reconciled through a history-preserving merge.
+
+PR [#648](https://github.com/jeremytheva/pourfolio/pull/648) implements the #449 fix and rejects impossible date rollovers, numeric dates, ambiguous
+Gift strings and unsupported Boolean/array/object field types. Real date-only
+values, leap days, decimal form strings, zero values, nullable optional fields,
+server-owned identity and existing relationship gates remain supported. Invalid
+creates and updates reject with HTTP 400 before provider mutation. Dates are
+calendar values, not implicitly timezone-shifted timestamps.
+
+Six new regressions failed against the original source before the repair;
+focused policy/gateway/service tests pass locally on Node 24.19.0. This is
+bounded source evidence, not the required Node 22 canonical or browser gate.
+The final published branch head is the candidate; `current_candidate_commit`
+remains null until an exact observed head is recorded, rather than inventing a
+self-referential commit. Full current-head acceptance is NOT_RUN pending the
+trusted Node 22 executor.
+
+#503 diagnosis inspected the available Vercel error-log path: a seven-day query
+was refused because Hobby retention does not cover that window; a corrected
+30-minute production rating-error query returned no matching logs. This neither
+reproduces nor clears the retained deletion failure. A fresh correlated failure
+still needs supported sessions and safe isolated fixtures. #165/#422/#577
+provider/session/recovery gates remain open; no live rating/cellar write or
+schema change occurred.
+
+
+### Retained plan-review handoff — 19 October 2026 UTC
+
+The owner instructed implementation of the launch plan. Public launch remains
+**NO-GO**. Existing plan PR [#644](https://github.com/jeremytheva/pourfolio/pull/644)
+is being completed before another implementation PR is opened. Its two review
+findings are addressed in source: every pilot repair returns to stage E's exact-SHA
+source/browser/connected/deployment qualification, and this durable handoff now
+reflects the current main/deployment and queue. Current revision checks remain
+pending until executed; `fa5429d` below is the previously validated PR head,
+not evidence for later edits.
+
+Fresh production checks on 19 October at approximately 00:29 UTC returned HTTP
+200 for health and readiness, matching `acd8633494066c66e2d882d7317009669397de39`
+and production deployment `dpl_8t1QfZgSXtPCZ6bTdCdF2ypVypeQ`. Canonical
+auth/data configuration and shared limiter presence were reported; readiness
+returned `dataProvider: ok`. This is bounded configuration/provider-read evidence.
+
+PR #644 head `fa5429d2e1a87009c837bef606875e2be2311e51` passed exact-head
+run [39120312656](https://github.com/jeremytheva/pourfolio/actions/runs/39120312656):
+Release gate job `117654406873` and browser/accessibility job `117654406724`
+completed their substantive steps successfully, with Dependency Review, CodeQL
+and preview deployment success. Connected rating/bonus jobs skipped. A changed
+head requires fresh acceptance; no provider/write/privacy certification is inferred.
+
+Current ordinary implementation WIP is three: #644, #639 and #637, stack depth
+zero. Dependency PRs #645/#646/#647 are separate from implementation WIP and
+supersede the older dependency snapshot below. #639 still has material recovery
+and candidate-provenance reviews. #637 exact-head validation runs
+`38828882651`/`38828876697` report success; its old NOT_RUN body needs
+reconciliation with executed jobs and reviews before integration. Brew remains
+launch-excluded.
+
+The first independent code outcome is #449 strict cellar validation. The current
+sanitiser accepts impossible calendar dates and coerces unsupported JSON
+types. Repair it with create/update regressions, preserving documented zero/null
+semantics and ownership/capability gates. #503's latest live deletion failure
+remains unresolved. Diagnosis and connected writes still need supported sessions
+and safe isolated fixtures; #165 irreversible provider guarantees/restore/approval
+and #422/#577 certification remain separate gates. No owner action is needed to
+perform the reversible source work.
+
+The catalogue execution acquired and read back a fresh bounded integration/file
+claim after reconciling the expired ledger and existing PR/main state. Other
+workstream code and task schedules are unchanged.
+
+## Retained launch verification — 15 October 2026 UTC
+
+Current work: continue the remaining beer-first launch gates. **Public launch
+remains NO-GO**; production configuration/readiness proof is narrower than
+connected rating/privacy certification.
+
+PR [#642](https://github.com/jeremytheva/pourfolio/pull/642) is merged as
+`0bd208bf10618d6a04bc46628af9ad23973e4618`. It repairs all three launch-review
+findings: Vercel-only forwarding-header trust, persisted profile save readback,
+and provider deadlines that include response bodies. The launch checklist now
+maps current scope, owners and evidence while preserving dated historical records.
+
+The exact final pre-merge head `830debd65814e3265fed167572f95fe95e1d366d`
+passed canonical Node 22.23.3 validation: 783 tests passed, 15 provider-gated skips,
+zero failures, composed lint/audit/build/contract/security checks, all 140
+browser/accessibility cases, CodeQL and Dependency Review. Evidence is in run
+[38750535282](https://github.com/jeremytheva/pourfolio/actions/runs/38750535282)
+(release job `116475449411`, browser job `116475449686`). Independent source
+review found no material outstanding issue; review-thread readback was empty.
+
+Production `dpl_ETme4rrb1mXomtqaHCcse2wa1mAs` is READY. Public
+`https://brew-buds-mobile-app-design-3577.vercel.app/api/health` returned HTTP
+200 with merged SHA `0bd208bf10618d6a04bc46628af9ad23973e4618` and configured
+auth/data/rate limiting; `/api/readiness` returned HTTP 200 with the same SHA
+and `dataProvider: ok` on 15 October 2026 at 14:24 UTC. This verifies deployment,
+configuration and a bounded provider read, not connected owner writes or privacy
+revocation. The exact merged SHA's separate source/browser CI is additional
+evidence, not assumed from the pre-merge head.
+
+No provider migration or live rating/cellar write was performed. Connected
+rating/bonus jobs skipped; private preview endpoint probes hit deployment
+authentication and supply no application-authorisation evidence. The latest
+retained live rating deletion FAILED. #165 migration/uniqueness/restore/approval,
+#422 connected profile/privacy/cross-owner checks and #577 supported account-session
+evidence remain open. Follow `docs/LAUNCH_READINESS.md` for the current launch gates.
+
+The expired integration lease was recovered only after fresh main/PR/STATUS
+reconciliation and CAS readback. #642's merged branch was automatically removed.
+At the post-#642 snapshot, ordinary implementation PRs #637 and #639 remain open
+alongside dependency PRs #635/#636, with no dependent stack. A documentation-only
+follow-up reconciles this evidence; it does not add a feature or provider claim.
+The separate ratings workstream owns #503 and its gateway/tests; the launch repair
+did not change those files. Preserve Brew exclusion and resolve material #639
+reviews before integration. No owner decision is required for the completed fixes.
+
+## Live integration and automation reconciliation (snapshot before #641 integration, 15 October 2026 UTC)
+
+Verified against GitHub and Vercel for this reliability change:
+
+- `main`: [`75133ff7`](https://github.com/jeremytheva/pourfolio/commit/75133ff7f29aa69a0bdaf173b2f549afcdde179b), the already-merged paginated Overall/Style Scaled Score work. Vercel production deployment `dpl_HfPe1frkgrFoFgEy5yxZ24tBVzDS` reported **READY** at that SHA; this is deployment evidence only, not independent runtime or connected provider certification. Old runtime-verified and source/browser-validated SHAs remain separately recorded in the front matter and history.
+- Existing implementation PRs: [#637](https://github.com/jeremytheva/pourfolio/pull/637) (Brew Done It initial read recovery; exact-head canonical/browser evidence **NOT_RUN** as reported in PR) and [#639](https://github.com/jeremytheva/pourfolio/pull/639) (producer ranking pagination; source/browser/CodeQL/preview PASS previously recorded for head `863995a`, needs base/review recheck). Two Dependabot PRs [#635](https://github.com/jeremytheva/pourfolio/pull/635), [#636](https://github.com/jeremytheva/pourfolio/pull/636) are not implementation WIP.
+- Reliability PR [#641](https://github.com/jeremytheva/pourfolio/pull/641) was the third implementation PR at the diagnostic snapshot. Its exact-head validation subsequently passed 747 of 762 Node tests (15 provider-gated skips), 140 browser/accessibility tests, build, CodeQL and Dependency Review on `c40ba1c592141f76691ae97325648d27d735216d`; preview `dpl_CTFxv55X2dFmAoeNxJYCf1Jckz7h` was READY. A dedicated live GitHub smoke test acquired a lease, verified a 409 stale-SHA rejection, preserved the original claimant and released cleanly. The front matter is the **post-integration handoff target**; refresh `observed_main_commit` to the actual merge SHA after integration, not a guessed value.
+- Four enabled ChatGPT hourly tasks (rating at :00, Brew at :15, producer/venue at :30, catalogue + integration at :45) previously had conflicting authority over rating, brewery, shared docs and merges. Existing schedules remain enabled and staggered; ownership is split by workstream and the catalogue/product-launch task is the only integration/merge/`STATUS.md` authority. The coordination ledger was established at branch `automation/coordination`, `.automation/claims.json` (initial commit `37218c68`). Claims are bounded, content-SHA-fenced and recoverable; runner execution evidence must still be gathered before declaring the entire upgrade complete.
+- GitHub connector can create branches, files and PRs in the current session; previous failed scheduled writes have no accessible execution failure logs/error codes in the scheduler snapshot. Their exact cause is **UNVERIFIED**, not evidence that the current connector is unhealthy. GitHub Actions recent release gate and browser jobs on `main` completed, while provider jobs were skipped. A previous *live rating deletion* failure remains a **genuine unresolved product defect**, not an orchestrator diagnosis.
+- Separate `automation/coordination` branch initially caused a READY preview deployment. After the Vercel ignored-build command was scoped to that branch, the two later claim-update deployments (`dpl_CCr4NBZRikjEYGYUf2WWKzTV9LBG` and `dpl_D4S7mmAeie8PX7hJ3VJwGeRxPCox`) were CANCELED as intended. Production `main` and regular PR builds remained available.
+
+**Immediate sequence:** finish #641 source/canonical validation and coordination smoke exercise, then re-evaluate #639 and #637 exact-head acceptance without inventing provider tests. Resolve material findings and integrate eligible PRs through the single integration task. Continue rating deletion diagnostics under #503 separately. Keep #165 schema mutation and other provider/security release gates intact. No owner action is established solely by this audit.
+
+## Retained earlier release handoff — 9 October 2026
 
 **Gate:** Release. **State:** READY for independent maintenance and reversible
 evidence preparation. The evidence fields pin the inspected production and
@@ -242,3 +467,4 @@ The available repository tools cannot attach/detach ChatGPT Project sources. The
 ## Validation limitations
 
 Source and production read evidence do not by themselves prove every provider write/permission boundary. #422 must retain unsupported connected rows as pending until they are exercised against the provider with safe cleanup. #165 remains separately blocked at an irreversible schema migration boundary, and #577 remains limited by the available account-session credential contract.
+

@@ -16,7 +16,7 @@ test('telemetry uses the documented field allowlist only', () => {
     'environment', 'route_template', 'method', 'status_class', 'duration_ms',
     'event_name', 'deployment', 'commit', 'region', 'correlation_id',
     'provider_status', 'provider_operation', 'provider_error_kind',
-    'provider_request_shape'
+    'provider_request_shape', 'workflow_stage'
   ])
   const serialised = JSON.stringify(createTelemetryEvent({
     environment: 'production', route_template: '/api/nocodebackend/:resource', method: 'POST',
@@ -24,7 +24,7 @@ test('telemetry uses the documented field allowlist only', () => {
     deployment: 'candidate.example.test', commit: 'abc123', region: 'syd1',
     correlation_id: 'sentinel-correlation-id', provider_status: '400',
     provider_operation: 'create/ratings', provider_error_kind: 'http_status',
-    provider_request_shape: 'product_id:number,user_id:string', ...SENTINELS
+    provider_request_shape: 'product_id:number,user_id:string', workflow_stage: 'delete_rating_child', ...SENTINELS
   }))
   assert.deepEqual(JSON.parse(serialised), {
     environment: 'production', route_template: '/api/nocodebackend/:resource', method: 'POST',
@@ -32,7 +32,7 @@ test('telemetry uses the documented field allowlist only', () => {
     deployment: 'candidate.example.test', commit: 'abc123', region: 'syd1',
     correlation_id: 'sentinel-correlation-id', provider_status: '400',
     provider_operation: 'create/ratings', provider_error_kind: 'http_status',
-    provider_request_shape: 'product_id:number,user_id:string'
+    provider_request_shape: 'product_id:number,user_id:string', workflow_stage: 'delete_rating_child'
   })
   for (const sentinel of Object.values(SENTINELS)) assert.equal(serialised.includes(sentinel), false)
 })

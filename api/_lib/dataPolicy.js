@@ -187,13 +187,37 @@ export const projectBrewDoneItRound = (record, viewerId) => {
 
 const asOptionalNumber = (value, { integer = false, min, max } = {}) => {
   if (value === undefined || value === null || value === '') return null
-  const number = Number(value)
+  if (typeof value !== 'number' && typeof value !== 'string') throw new Error('A numeric field is invalid.')
+  const text = typeof value === 'string' ? value.trim() : null
+  if (text === '') return null
+  if (text !== null && !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(text)) {
+    throw new Error('A numeric field is invalid.')
+  }
+  const number = Number(text ?? value)
   if (!Number.isFinite(number) || (integer && !Number.isInteger(number))) {
     throw new Error('A numeric field is invalid.')
   }
   if (min !== undefined && number < min) throw new Error('A numeric field is below its allowed minimum.')
   if (max !== undefined && number > max) throw new Error('A numeric field is above its allowed maximum.')
   return number
+}
+
+const cellarReceivedDate = (value) => {
+  if (value === null || value === '') return null
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || value.startsWith('0000-')) {
+    throw new Error('Date received is invalid.')
+  }
+  const date = new Date(`${value}T00:00:00.000Z`)
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+    throw new Error('Date received is invalid.')
+  }
+  return value
+}
+
+const cellarGiftFlag = (value) => {
+  if (value === null || value === '' || value === false || value === 0 || value === '0') return 0
+  if (value === true || value === 1 || value === '1') return 1
+  throw new Error('Gift flag is invalid.')
 }
 
 export const sanitiseProfileUpdates = (input) => {
@@ -220,11 +244,14 @@ const rejectUnverifiedCellarRelationship = (field, value) => {
 }
 
 export const sanitiseCellarInput = (input, { partial = false } = {}) => {
-  const result = pickFields(input, CELLAR_EDITABLE_FIELDS) || {}
+  const result = pickFields(requirePlainObject(input), CELLAR_EDITABLE_FIELDS) || {}
 
   if (result.product_id === undefined) {
     if (!partial) throw new Error('A product is required.')
   } else {
+    if (typeof result.product_id !== 'string' && typeof result.product_id !== 'number') {
+      throw new Error('Product identifier is invalid.')
+    }
     result.product_id = positiveId(result.product_id, 'Product identifier')
   }
 
@@ -236,19 +263,16 @@ export const sanitiseCellarInput = (input, { partial = false } = {}) => {
   if (result.mls !== undefined) result.mls = asOptionalNumber(result.mls, { integer: true, min: 0, max: 100000 })
   if (result.purchase_price !== undefined) result.purchase_price = asOptionalNumber(result.purchase_price, { min: 0, max: 1000000 })
   if (result.retail_price !== undefined) result.retail_price = asOptionalNumber(result.retail_price, { min: 0, max: 1000000 })
-  if (result.gift !== undefined) result.gift = result.gift ? 1 : 0
+  if (result.gift !== undefined) result.gift = cellarGiftFlag(result.gift)
 
   for (const field of ['container', 'gift_from', 'notes']) {
     if (result[field] !== undefined && result[field] !== null) {
-      result[field] = String(result[field]).trim().slice(0, 255)
+      if (typeof result[field] !== 'string') throw new Error('A text field is invalid.')
+      result[field] = result[field].trim().slice(0, 255)
     }
   }
 
-  if (result.date_received !== undefined && result.date_received !== null && result.date_received !== '') {
-    const date = new Date(result.date_received)
-    if (Number.isNaN(date.getTime())) throw new Error('Date received is invalid.')
-    result.date_received = date.toISOString().slice(0, 10)
-  }
+  if (result.date_received !== undefined) result.date_received = cellarReceivedDate(result.date_received)
 
   return result
 }

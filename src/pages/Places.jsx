@@ -30,6 +30,7 @@ function Places() {
   const resultsHeadingRef = useRef(null)
   const focusResultsAfterPage = useRef(false)
   const rankingResultsHeadingRef = useRef(null)
+  const rankingErrorRef = useRef(null)
   const focusRankingResultsAfterPage = useRef(false)
 
   useEffect(() => {
@@ -79,6 +80,11 @@ function Places() {
       })
       .catch((error) => {
         if (!active) return
+        if (error.status === 400 && rankingPageNumber > 1) {
+          focusRankingResultsAfterPage.current = true
+          setRankingPageNumber(1)
+          return
+        }
         focusRankingResultsAfterPage.current = false
         setRankingPage(EMPTY_BREWERY_PAGE)
         setRankingError(error.message || 'Brewery rankings could not be loaded.')
@@ -96,6 +102,7 @@ function Places() {
   }, [breweryStatus])
 
   useEffect(() => {
+    if (rankingStatus === 'error') rankingErrorRef.current?.focus()
     if (rankingStatus === 'ready' && focusRankingResultsAfterPage.current) {
       focusRankingResultsAfterPage.current = false
       rankingResultsHeadingRef.current?.focus()
@@ -191,7 +198,7 @@ function Places() {
               <h3 id="brewery-rankings-heading" ref={rankingResultsHeadingRef} tabIndex={-1} className="text-lg font-semibold text-gray-900 focus:outline-none">Brewery rankings</h3>
               <p className="mt-1 max-w-3xl text-sm text-gray-600">Based only on completed product ratings for beers attributed to each brewery. This does not rate brewery service, staff, venue experience or business quality.</p>
               {rankingStatus === 'loading' && <p className="mt-4 text-sm text-gray-600" role="status">Loading brewery rankings…</p>}
-              {rankingStatus === 'error' && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4" role="alert"><p className="font-semibold text-red-900">Brewery rankings could not be loaded.</p><p className="mt-1 text-sm text-red-900">{rankingError}</p><button type="button" onClick={() => setRankingReloadKey((value) => value + 1)} className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-900">Try again</button></div>}
+              {rankingStatus === 'error' && <div ref={rankingErrorRef} tabIndex={-1} className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 focus:outline-none focus:ring-2 focus:ring-red-400" role="alert"><p className="font-semibold text-red-900">Brewery rankings could not be loaded.</p><p className="mt-1 text-sm text-red-900">{rankingError}</p><button type="button" onClick={() => { focusRankingResultsAfterPage.current = true; setRankingReloadKey((value) => value + 1) }} className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-900">Try again</button></div>}
               {rankingStatus === 'ready' && (
                 <>
                   <p className="mt-3 text-sm text-gray-600">Qualification: at least {rankingPage.minimumRatings} completed ratings across at least {rankingPage.minimumRatedBeers} distinct rated beers.</p>

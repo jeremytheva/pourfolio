@@ -270,6 +270,24 @@ are set by the server.
 
 The gateway accepts the supplied schema fields through an explicit allowlist. `user_id` is always derived from the session. Quantities and monetary values cannot be negative.
 
+Cellar create and partial-update bodies must be objects. Numeric fields accept
+finite numbers or decimal/scientific numeric form strings within their existing
+bounds; Boolean, array, object, hexadecimal and non-finite values are rejected.
+Explicit zero remains zero, optional null/blank numeric values normalise to null,
+and omitted partial-update fields remain unchanged. Text fields accept strings
+or null rather than coercing nested values into text. Product identifiers accept
+positive numeric/string identifiers, never arrays or objects.
+
+`date_received` writes use a real `YYYY-MM-DD` calendar date, including valid
+leap days. Impossible dates, numeric epochs, locale dates and timestamps are
+rejected rather than rolled over or shifted between timezones. Null or empty
+values normalise to null; creation retains its existing current-date default
+when no date is supplied, while a partial update may explicitly clear the date.
+`gift` accepts Boolean values or explicit zero/one wire values (`0`, `1`, `'0'`,
+`'1'`); null/empty values mean false. Strings such as `'false'` and arbitrary
+truthy values are invalid. Unsupported writes return HTTP 400 before provider
+create/update calls. Ownership is still verified before a partial update.
+
 `sharing_series_id` and `series_version_id` are optional. When not applicable they must be `NULL`; zero and fabricated identifiers are rejected. A rating does not require a sharing series or edition.
 
 ## Proposed Brew Done It persistent contract (not yet deployed)
