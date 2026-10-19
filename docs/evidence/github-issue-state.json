@@ -12,7 +12,8 @@
     {
       "number": 577,
       "title": "Plan connected user/admin authentication and authorization certification",
-      "state": "open"
+      "state": "open",
+      "observed_at": "2026-10-19T22:27:53Z"
     },
     {
       "number": 224,
@@ -48,6 +49,20 @@
       "number": 449,
       "title": "Launch — user beer add/edit workflow and cellar backend alignment",
       "state": "open"
+    },
+    {
+      "number": 651,
+      "title": "fix(bonus): verify persisted values and certify bounded fixture cleanup",
+      "state": "closed",
+      "observed_at": "2026-10-19T22:27:53Z",
+      "kind": "pull_request",
+      "merged": true
+    },
+    {
+      "number": 503,
+      "title": "Restore durable rating workflow after live schema migration",
+      "state": "closed",
+      "observed_at": "2026-10-19T21:48:52.601Z"
     }
   ]
 }

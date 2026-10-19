@@ -1,5 +1,281 @@
 # Rating workflow staging certification
 
+## Merged bonus release and production smoke — 20 October 2026 Sydney
+
+PR #651 merged as `4019c90e5ba342b654361109b0fe8896117f18c4` after final
+candidate `cf9a972cc03cdd78cb091cc661745084c1761f7c` passed
+[Node 22 validation 39332306413](https://github.com/jeremytheva/pourfolio/actions/runs/39332306413):
+896 source tests, 15 gated skips, 155 browser/accessibility cases, Dependency
+Review and CodeQL. Production `dpl_6ZymFxn4dysG2hMeSBzPF5LRt1bj` is READY.
+Public `https://brew-buds-mobile-app-design-3577.vercel.app/api/health`
+and `/api/readiness` returned HTTP 200 and that exact merged SHA, with
+authentication, data and rate limiting configured. The workflow auth pin
+now matches this observed production release; the older auth SHA in the
+historical runs below remains accurate.
+
+Authenticated non-writing checks verified search, product details/history
+and the producer's unrated-beer filter. In the nine-step rating form, five
+required scores of 4/7, skipped Design/Burp and six bonus selections produced
+2.00 points, Bonus 2/2 and 3.07/5. Stored global 0.5/private 0.7 rendered
+correctly and summed to 1.20 before the remaining four selections. The draft
+was discarded; totals remained four community/two personal ratings, with
+existing links preserved. No new rating or attribute was submitted.
+
+[Main run 39332757207](https://github.com/jeremytheva/pourfolio/actions/runs/39332757207)
+passed source/browser and read-only bonus checks: 83 attributes (82 global,
+one earlier private QA), 81 absent values, one explicit global 0.5 and
+1,738 mappings using the certified singular field. The separate rating audit
+failed on the known historical completed/deleted parent and surviving score
+child; no repair was attempted. The earlier manual private 0.7 QA record is
+outside this test's random fixture scope.
+
+The bounded provider result below remains persistence/reload/unused-fixture
+cleanup PASS: two creates, two exact deletes, no mutation retry, no fixture
+from that run remains. HTTP/browser custom creation/rating use, distinct-account
+denial and concurrency are separate pending checks. Public launch is NO-GO.
+
+## Bounded current-instance bonus persistence test
+
+The owner approved the current instance for testing on 19 October 2026 at
+22:51 Sydney. The protected `bonus-write-certification.yml` workflow now runs
+the candidate's `persistBonusWithCategory` function directly against the
+configured provider. It uses the existing `staging-release` credential
+boundary; that environment name does not assert database isolation.
+
+The test takes a paginated baseline, reuses an existing visible Overall
+category, and permits exactly one private attribute at 0.7 plus one category
+mapping. A random run identifier in the description, canonical new IDs,
+baseline exclusion, exact ownership and foreign-key checks establish the
+fixture scope. Fresh reads verify decimal value persistence and the mapping.
+The existing server persistence implementation is exercised from the checked
+out commit; a Vercel deployment is not required for this narrower provider
+test.
+
+Cleanup uses only acknowledged IDs. It first verifies the private owner and
+exact random description, checks the complete category/rating references and
+rejects any existing rating use or unexpected mapping. It removes the verified
+category mapping, proves its absence, rechecks references and provenance, then
+removes the attribute and proves its absence. At most two creates and two
+deletes are attempted. Old/global/other-owner records cannot be cleanup targets.
+Lost responses, missing identity, changed ownership/references or unreadable
+state leave cleanup UNCONFIRMED and fail the run; no create retry, guessed
+deletion or history-difference sweep is allowed. Earlier retained QA records
+are never selected for removal.
+
+The workflow first runs canonical validation and verifies the checked-out SHA.
+It requires the existing protected provider configuration and either
+`NOCODEBACKEND_CONTRACT_USER_ID`, or the protected
+`RELEASE_OWNER_EMAIL` / `RELEASE_OWNER_PASSWORD` configuration. When the ID
+is absent, the worker first uses the existing release-target verifier to
+check the approved Pourfolio deployment origin and explicitly pinned auth
+release SHA (`BONUS_CERTIFICATION_AUTH_SHA`). That auth deployment is only
+used to establish account identity; `BONUS_CERTIFICATION_SHA` separately
+identifies the candidate persistence implementation run in the worker.
+Only then does it sign in through the app's normal same-origin auth route,
+verify the resulting session's ID and matching email with the application's
+session parser, and sign out before any data write. Credentials/cookies
+stay in worker memory. The deployment keeps its auth service key server-side;
+the test worker does not need a copy. Rejected, mismatched or unconfirmed
+sessions and incorrect deployment provenance block writes. Database keys
+are never used as user passwords. Missing both owner configurations blocks
+before any provider write. A branch push containing
+`[connected-bonus-write]` or a manual workflow dispatch requests this bounded
+run under the protected environment. It does not enable the broader isolated
+provider contract or schema mutation. The report contains statuses/counts and
+the candidate SHA and, when applicable, the verified auth release SHA,
+excluding record IDs, owner identity and description. The workflow pins the
+currently observed public auth release; if that deployment changes, recheck
+readiness and update the explicit auth pin before requesting another run.
+
+A PASS qualifies this candidate's provider create/readback/reload/unused-fixture
+cleanup only. HTTP authentication/204 semantics, browser submission/rating use,
+second-account denial and concurrent atomicity retain their separate release
+checks. Public launch remains NO-GO. Current-instance approval supersedes older
+separate-database prerequisites, while #165 migration and historical recovery
+approval requirements remain intact.
+
+### Executed current-instance result — 20 October 2026 Sydney
+
+[Protected run 39329607548](https://github.com/jeremytheva/pourfolio/actions/runs/39329607548)
+executed candidate `89064711f9ed2badfc057d0dcbf15085266b9ff7` after
+**881** canonical Node 22 tests passed (15 provider-gated skips). The
+current public auth release `90c86fd13873b51a9025f4e3481dc594eef95a80`
+established the designated release account through a verified session.
+It is distinct from the candidate persistence implementation. Preview
+`dpl_E4dFnZBYhHVDKcvAez4FzVA5TCzm` is READY and HTTP 200 health returned
+the candidate SHA. Earlier configuration/provenance preflights made zero
+data writes and are retained in their run reports.
+
+**Persistence PASS; independent reload PASS; cleanup UNCONFIRMED.**
+Two creates were attempted and acknowledged. The unused private 0.7
+attribute and its requested category mapping were read back correctly.
+The subsequent full mapping-list check failed with
+`BONUS_CLEANUP_MAPPING_UNCONFIRMED`; **zero deletes were attempted**.
+The attribute and acknowledged mapping remain. Do not create another
+fixture, guess deletion IDs or treat this as a successful lifecycle test.
+
+The candidate now blocks new writes while any earlier test-owned random
+bonus fixture is unresolved. The separate `[bonus-fixture-inspect]` mode
+runs a read-only structural inspection: all provider mutation methods are
+disabled. It compares full-list mappings with direct reads for the uniquely
+identified test-account QA candidate and counts rating references. It emits
+no private IDs/descriptions; the recovery candidate is encrypted using
+AES-256-GCM with a purpose-specific HKDF key derived from the existing
+protected data credential. That inspection receipt is **not** original-create
+acknowledgement or automatic deletion authority. Six crypto integrity tests
+and the unresolved-fixture guard pass; **36** focused cases pass locally.
+Canonical Node 22 acceptance at `73ad6364` passed **888** tests with
+15 provider skips. The first inspection did not run because a new status
+blocker incorrectly referred to closed #503; it was corrected to open PR
+#651 with live retained evidence. The subsequent read-only
+[inspection 39330415649](https://github.com/jeremytheva/pourfolio/actions/runs/39330415649)
+found exactly one private QA candidate, one category mapping, consistent
+list/direct records, point value 0.7 and **zero** rating references. No
+provider data writes occurred. The immediate cleanup mismatch was not
+reproduced; a consistency delay is an inference, not a proven provider cause.
+
+The agent reviewed this unique fixture against the only data-writing run
+of the newly introduced random-nonce test. The earlier runs made zero data
+writes, and the actual creation run acknowledged and verified both records.
+`docs/evidence/bonus-fixture-recovery-39329607548.json` binds that review to
+the encrypted exact inspection snapshot. `[bonus-fixture-cleanup]` requests
+only this reviewed recovery: authenticate the same account, decrypt and
+validate the snapshot, require unchanged owner/value/nonce/FKs and a visible
+Overall category, then apply the same complete-reference/child-first checks.
+All creates/updates and unrelated or repeated deletes are disabled. At most
+two exact deletes can occur, with fresh absence verification after each.
+This explicit reviewed operation does not convert arbitrary inspection or
+unknown historical rows into automatic cleanup authority. The source
+refactor preserves the original guards; all **38** focused cases pass locally.
+The protected recovery result follows.
+Recovery [run 39330931236](https://github.com/jeremytheva/pourfolio/actions/runs/39330931236)
+at `0cb5ea3b` passed **890** canonical tests (15 skips), then issued one
+exact child DELETE. Its immediate GET still returned the mapping, so the
+same absence guard failed `BONUS_MAPPING_DELETE_UNCONFIRMED`. The parent
+DELETE was never attempted; **no removal is confirmed**. Do not repeat the
+mutation. The next operation is read-only: compare the retained exact IDs
+against full lists, normal direct reads and uncached GETs, retaining only
+safe HTTP/cache status flags. No endpoint/permission/schema change is
+justified until that evidence distinguishes stale reads from failed deletion.
+
+
+The earlier retained form-test bonus, 81 absent global values and historical
+rating/cellar records are outside this fixture scope. HTTP/browser create,
+rating use, A/B denial and concurrency remain independent launch checks.
+
+The subsequent read-only [run 39331390621](https://github.com/jeremytheva/pourfolio/actions/runs/39331390621)
+at `344715e9` passed **890** canonical tests / 15 skips and confirmed the
+reviewed mapping absent from the complete list, normal direct GET and
+uncached GET (HTTP 404). The parent remained present at 0.7 with no category
+or rating references. The DELETE therefore took effect by this later
+observation; cache-vs-replication/commit delay remains unproven. The documented
+[provider DELETE route](https://app.nocodebackend.com/help/en/rest-api)
+matches the adapter, so no endpoint or permission change was made.
+
+The reviewed recovery now requires the old child to be absent and permits
+**only one parent DELETE**, through the original exact encrypted receipt.
+It repeats only readback (maximum six GETs with bounded delay), never a
+mutation. Unchanged fixture data and complete references are rechecked; a
+foreign replacement immediately stops verification. Three new focused tests
+cover partial recovery, delayed readback without repeated deletes, and a
+foreign replacement. All **41** focused cases pass locally. Exact-head
+canonical validation and parent-only recovery are pending.
+
+**Verified teardown:** [run 39331752492](https://github.com/jeremytheva/pourfolio/actions/runs/39331752492)
+at `b36ad771b9eb361faa851073fabae2e93e6bce32` passed **893** canonical
+Node 22 tests (15 provider-gated skips) and returned cleanup PASS. The exact
+old mapping was confirmed absent before any mutation; the only remaining
+parent was deleted once and its first fresh GET confirmed absence. Across
+this fixture's lifecycle there were **two creates and two exact deletes**
+(one child in the earlier recovery, one parent here), with no mutation retry.
+No fixture from this run remains. Existing historical/earlier QA records were
+outside the operation. Browser/accessibility, Dependency Review and CodeQL
+also passed for this source candidate. The application handler blob
+`4429268eca2d05fe5c4a28b581e5dbf8a339fe2c` is unchanged from the live
+persistence/reload test; subsequent changes are test/recovery tooling and
+evidence, not a different application persistence implementation.
+
+Future bounded runs now retain AES-GCM-encrypted, atomic recovery checkpoints
+before each create and immediately after each canonical new acknowledgement.
+A failed initial checkpoint prevents all provider writes. A lost response
+preserves exact nonce/known-ID intent without authorising guessed cleanup.
+The final encrypted checkpoint records the result. No IDs, nonce or account
+identity enters the public report. Three new focused cases verify these
+operational lessons; **44** focused tests pass locally. This receipt-only
+follow-up requests no new provider writes and awaits canonical validation.
+
+## Custom bonus point-value persistence verification (PR #651)
+
+Creating a private Overall bonus attribute must not return success on the
+strength of a NoCodeBackend create ID alone. The server reads the saved
+`bonus_attributes` row back, verifies the persisted ID, owner, description
+and numeric `point_value`, then creates and reads back the
+`bonus_attribute_category_mapping` row. The mapping must persist the
+requesting user, Overall category ID and newly created attribute ID before
+the route acknowledges HTTP 201. Either unverified write fails closed.
+
+The caller supplies the IDs from its successful pre-write visible catalogue
+read. A missing baseline, malformed create ID or ID already in that baseline
+fails with `BONUS_ATTRIBUTE_IDENTITY_UNCONFIRMED`, before readback or mapping.
+A canonical positive ID absent from the baseline is still not proof that this
+request created it: another request may have created it concurrently. Owner
+verification proves access, not creation provenance.
+
+No failed bonus create automatically deletes an attribute or category mapping.
+The earlier owner-verified compensating DELETE could remove an older private
+attribute if the provider echoed its ID. That destructive compensation is
+removed. Value/description/owner mismatch, lost response, unreadable row and
+ambiguous mapping writes fail closed and may leave an unconfirmed partial item
+for guarded, backed-up provider recovery. This is not a successful teardown;
+never retry a non-idempotent create or guess a cleanup ID to conceal it.
+
+The historical export contains 82 bonus attributes, of which 81 have null/
+blank `point_value`; the single explicit value is `0.50`. The existing
+legacy `0.2` display/scoring fallback remains intentional for absent stored
+values. This change does **not** invent historical point allocations or
+backfill provider records. Current production data must be re-read before
+any proposed corrective migration.
+
+The existing **read-only** connected mapping audit now also reports a
+redacted inventory of actual provider `point_value` fields: global/private
+row counts, explicit/missing/invalid values and aggregate point-value counts
+for global attributes only. It does not log descriptions, individual IDs or
+account identifiers, backfill missing values or treat the legacy fallback as
+provider-persisted data. `LEGACY_FALLBACK_PRESENT` is evidence of missing
+stored values, not an automatic mapping failure or authorisation to guess
+their intended points. A `REVIEW_REQUIRED` inventory needs investigation of
+invalid/out-of-range values before release.
+
+### Read-only existing private mapping capability preflight
+
+The connected bonus audit now inspects the existing private Overall
+attribute/category mapping when one is already present. It performs
+strict `GET` readback of the stored attribute and category mapping
+against their paginated inventory, checking persisted identity, owner,
+description, numeric point value and mapping foreign keys. Its output is
+a status only, without IDs, account identifiers or private point values.
+
+`EXISTING_PRIVATE_PAIR_READBACK_OK` is evidence that **existing**
+provider records can be read consistently by ID. If no suitable private
+pair exists, `INCONCLUSIVE_NO_PRIVATE_OVERALL_PAIR` must not be
+misrepresented as PASS. `READBACK_MISMATCH` or
+`READBACK_UNAVAILABLE` blocks certification and requires investigation.
+The audit disables provider mutations and makes no fixtures. Even a
+successful read-only preflight **does not** certify private create,
+concurrent duplicate handling, second-account authorization, rating use,
+mapping cleanup or backup/restore.
+
+Connected certification still requires a disposable owner-created attribute
+with a non-default value (for example `0.7`), server attribute
+write/readback, exact persisted category mapping readback, rating use,
+reload, exact provider query, denial from a second account, and verified
+cleanup. A passing source test or preview
+cannot substitute for these provider rows. Any failed readback requiring
+manual cleanup must be reconciled before marking a write run complete.
+
+
+
+
 ## Connected rating test driver and cleanup identity
 
 The cleanup-guarded release test uses the same seven-card rating journey as

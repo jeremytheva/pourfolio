@@ -1,0 +1,60 @@
+name: Bounded current-instance cellar certification
+
+on:
+  push:
+    branches:
+      - fix/cellar-write-persistence-verification-20261019
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bounded-current-instance-cellar-certification
+  cancel-in-progress: false
+
+jobs:
+  certify:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-cellar-write]')
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Validate the candidate before provider writes
+        run: npm run platform:validate
+      - name: Verify the checked-out candidate
+        run: test "$(git rev-parse HEAD)" = "$CELLAR_CERTIFICATION_SHA"
+        env:
+          CELLAR_CERTIFICATION_SHA: ${{ github.sha }}
+      - name: Verify bounded candidate cellar gateway persistence
+        run: node scripts/run-cellar-write-certification.js
+        env:
+          CELLAR_CERTIFICATION_SHA: ${{ github.sha }}
+          CELLAR_CERTIFICATION_CONFIRMATION: RUN CURRENT INSTANCE CELLAR TEST
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          # Only normal application sessions establish owner identity. The
+          # checked-out gateway, not the auth release, performs provider CRUD.
+          BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
+          BONUS_CERTIFICATION_AUTH_SHA: 4019c90e5ba342b654361109b0fe8896117f18c4
+          RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
+          RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
+          RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}
+          RELEASE_OTHER_PASSWORD: ${{ secrets.RELEASE_OTHER_PASSWORD }}
+      - name: Retain encrypted recovery and redacted results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bounded-cellar-${{ github.sha }}
+          path: artifacts/cellar-write-certification/
+          if-no-files-found: warn
+          retention-days: 30

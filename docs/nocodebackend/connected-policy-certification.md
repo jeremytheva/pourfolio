@@ -7,7 +7,53 @@ environment and schema snapshot as the structural SQL audit. Store secrets,
 session material and unredacted user data only in the approved private evidence
 store.
 
-## Current execution status
+## Current-instance cellar candidate verification — 20 October 2026 Sydney
+
+The owner authorised the current instance for bounded reversible tests.
+Existing PR #657 is being reconciled with merged main `36ce8ffe`; no
+historical ownership is inferred or changed. The new explicit
+`[connected-cellar-write]` workflow runs canonical Node 22 validation and
+asserts the checked-out SHA before accessing protected credentials.
+
+The worker reuses the existing normal same-origin release sign-in,
+get-session and sign-out verifier on pinned public auth release `4019c90e`.
+It uses the release owner and, if configured, distinct other-account
+credentials; configuration reports contain booleans only. Database keys
+are never login passwords. A configured contract user ID cannot substitute
+for session verification. Missing, incomplete, rejected or same-identity
+sessions block before writes; an absent second account leaves its row
+NOT_RUN and the overall result PARTIAL.
+
+The checked-out `routeCellarRequest` runs against the real provider in an
+isolated serial worker. The provider adapter permits at most one create,
+one update and one delete, restricted to a single acknowledged new fixture.
+It checks a complete paginated baseline and blocks a new run while an earlier
+owned random fixture is unresolved. An encrypted atomic intent and canonical
+ID acknowledgement are retained using the existing receipt cryptography,
+with an explicit cellar payload kind. Unknown/lost create responses never
+authorise a history-difference deletion or mutation retry.
+
+The candidate gateway must return stored quantity, nullable relationships
+and false/true gift values, then independently reload them. When the second
+normal account is verified, its owner-scoped list must omit the fixture and
+its update/delete must be denied with unchanged provider readback. An
+additional actor-bound mutation guard prevents a defective policy probe
+from actually modifying the fixture as the other account. Cleanup requires
+the exact new ID, original owner/product/random marker, fresh owner-visible
+confirmation, the candidate deletion acknowledgement and independent
+full-list/direct absence. Existing and ownerless rows cannot be targets.
+
+This is candidate gateway/persistence/policy evidence, **not** HTTP/session
+middleware or browser-submission certification. Those remain in the existing
+connected-release matrix. Twelve focused regressions cover normal cleanup,
+identity/configuration boundaries, replayed/lost create responses, wrong-owner
+readback, update/delete failures, checkpoint failure and a broken policy
+probe. Local diagnostic tests pass; canonical/current-instance outcomes are
+pending and must be recorded from their actual run. No provider request has
+been made by this preparation. Public launch remains NO-GO; the 966 historical
+ownerless cellar rows and #165 recovery/migration boundary are unchanged.
+
+## Retained execution status
 
 ### October 2026 credential-boundary update
 

@@ -1,0 +1,88 @@
+name: Bounded current-instance bonus certification
+
+on:
+  push:
+    branches:
+      - fix/bonus-point-persistence-readback-20261019
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bounded-current-instance-bonus-certification
+  cancel-in-progress: false
+
+jobs:
+  certify:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-bonus-write]') || contains(github.event.head_commit.message, '[bonus-fixture-inspect]') || contains(github.event.head_commit.message, '[bonus-fixture-cleanup]')
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Validate candidate before provider writes
+        run: npm run platform:validate
+      - name: Verify the checked-out candidate
+        run: test "$(git rev-parse HEAD)" = "$BONUS_CERTIFICATION_SHA"
+        env:
+          BONUS_CERTIFICATION_SHA: ${{ github.sha }}
+      - name: Run the bounded bonus persistence and cleanup check
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-bonus-write]')
+        run: node scripts/run-bonus-write-certification.js
+        env:
+          BONUS_CERTIFICATION_SHA: ${{ github.sha }}
+          BONUS_CERTIFICATION_CONFIRMATION: RUN CURRENT INSTANCE BONUS TEST
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NOCODEBACKEND_CONTRACT_USER_ID: ${{ secrets.NOCODEBACKEND_CONTRACT_USER_ID }}
+          # Account identity uses the verified current public auth release;
+          # provider persistence uses this workflow's checked-out candidate.
+          BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
+          BONUS_CERTIFICATION_AUTH_SHA: 4019c90e5ba342b654361109b0fe8896117f18c4
+          RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
+          RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
+      - name: Inspect the retained fixture without data writes
+        if: contains(github.event.head_commit.message, '[bonus-fixture-inspect]')
+        run: node scripts/inspect-bonus-write-fixture.js
+        env:
+          BONUS_CERTIFICATION_SHA: ${{ github.sha }}
+          BONUS_INSPECTION_CONFIRMATION: INSPECT CURRENT INSTANCE BONUS FIXTURE
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NOCODEBACKEND_CONTRACT_USER_ID: ${{ secrets.NOCODEBACKEND_CONTRACT_USER_ID }}
+          BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
+          BONUS_CERTIFICATION_AUTH_SHA: 4019c90e5ba342b654361109b0fe8896117f18c4
+          RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
+          RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
+      - name: Clean up only the reviewed exact test fixture
+        if: contains(github.event.head_commit.message, '[bonus-fixture-cleanup]')
+        run: node scripts/cleanup-bonus-write-fixture.js
+        env:
+          BONUS_CERTIFICATION_SHA: ${{ github.sha }}
+          BONUS_RECOVERY_CONFIRMATION: CLEAN UP THE VERIFIED BONUS TEST FIXTURE
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          NOCODEBACKEND_CONTRACT_USER_ID: ${{ secrets.NOCODEBACKEND_CONTRACT_USER_ID }}
+          BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
+          BONUS_CERTIFICATION_AUTH_SHA: 4019c90e5ba342b654361109b0fe8896117f18c4
+          RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
+          RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
+      - name: Retain redacted provider evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bounded-bonus-${{ github.sha }}
+          path: artifacts/bonus-write-certification/
+          if-no-files-found: warn
+          retention-days: 30
