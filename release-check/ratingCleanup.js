@@ -28,19 +28,23 @@ export const withRatingCleanup = async ({ productId, beforeIds, submit, verify, 
     await verify(submitted.body, createdId)
   } catch (error) {
     verificationError = error
-    throw error
-  } finally {
-    if (createdId) {
-      try {
-        assert.equal(await remove(createdId), 204, 'The exact tasting delete must return HTTP 204.')
-        assert.equal(await remove(createdId), 204, 'Repeated exact tasting deletion must remain HTTP 204.')
-        const history = await readHistory()
-        assert.equal(Array.isArray(history?.items), true, 'Cleanup history must be a successful owner read.')
-        assert.equal(history.items.some((item) => String(item.id) === createdId), false, 'The test tasting remains in owner history.')
-      } catch (cleanupError) {
-        if (verificationError) throw new AggregateError([verificationError, cleanupError], 'Rating verification and cleanup both failed.')
-        throw cleanupError
-      }
+  }
+
+  let cleanupError = null
+  if (createdId) {
+    try {
+      assert.equal(await remove(createdId), 204, 'The exact tasting delete must return HTTP 204.')
+      assert.equal(await remove(createdId), 204, 'Repeated exact tasting deletion must remain HTTP 204.')
+      const history = await readHistory()
+      assert.equal(Array.isArray(history?.items), true, 'Cleanup history must be a successful owner read.')
+      assert.equal(history.items.some((item) => String(item.id) === createdId), false, 'The test tasting remains in owner history.')
+    } catch (error) {
+      cleanupError = error
     }
   }
+  if (verificationError && cleanupError) {
+    throw new AggregateError([verificationError, cleanupError], 'Rating verification and cleanup both failed.', { cause: verificationError })
+  }
+  if (verificationError) throw verificationError
+  if (cleanupError) throw cleanupError
 }
