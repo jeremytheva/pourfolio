@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Bonus persistence verified; exact child deletion readback unconfirmed"
+stage: "Bonus child absence verified; reviewed parent-only cleanup in progress"
 gate: Release
 execution_state: VALIDATING
 current_work:
@@ -42,7 +42,7 @@ wip:
 evidence:
   observed_main_commit: "7c030b43b415eaf8567ecb305caa5296b3f37e39"
   current_candidate_commit: null
-  latest_validated_commit: "0cb5ea3b4886850e2021bd6e9da04599b1b783b4"
+  latest_validated_commit: "344715e90ab5742941f5959d3bdf2e3b0fcc25d5"
   latest_deployed_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
   latest_runtime_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
   latest_browser_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
@@ -54,8 +54,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "0cb5ea3b4886850e2021bd6e9da04599b1b783b4"
-last_updated: "2026-10-19T21:56:46Z"
+last_verified_commit: "344715e90ab5742941f5959d3bdf2e3b0fcc25d5"
+last_updated: "2026-10-19T21:59:50Z"
 ---
 
 # STATUS.md

@@ -44,15 +44,28 @@ const requireReferenceFields = (rows) => requireThat(rows.every((row) =>
 
 // Both the original test and explicitly reviewed recovery use the same exact
 // ownership, nonce and full-reference guards. This helper never creates rows.
-export const cleanupBonusTestFixture = async ({ provider, userId, attributeId, mappingId, categoryId, description, report }) => {
+export const cleanupBonusTestFixture = async ({ provider, userId, attributeId, mappingId, categoryId, description, report,
+  allowAbsentMapping = false, settleAttempts = 1, wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms)) }) => {
   const attributeMatches = (row) => row && same(row.id, attributeId) && same(row.user_id, userId) && row.description === description
   const mappingMatches = (row) => row && same(row.id, mappingId) && same(row.user_id, userId) &&
     same(row.category_id, categoryId) && same(row.bonus_attribute_id, attributeId)
   report.cleanup = 'UNCONFIRMED'
+  report.absenceReadAttempts = { mapping: 0, attribute: 0 }
+  const confirmAbsent = async (collection, id, key, matches) => {
+    for (let attempt = 0; attempt < settleAttempts; attempt += 1) {
+      const row = await provider.get(collection, id)
+      report.absenceReadAttempts[key] += 1
+      if (row === null) return true
+      if (!matches(row)) return false
+      if (attempt + 1 < settleAttempts) await wait(250 * (2 ** attempt))
+    }
+    return false
+  }
   try {
     requireThat(idOf(attributeId) && (!mappingId || idOf(mappingId)) && idOf(categoryId) &&
       typeof userId === 'string' && userId.trim() === userId && userId.length > 0 &&
-      /^Pourfolio release QA bonus-[a-f0-9-]{36}$/.test(description || '') && report.deletesAttempted === 0,
+      /^Pourfolio release QA bonus-[a-f0-9-]{36}$/.test(description || '') && report.deletesAttempted === 0 &&
+      Number.isSafeInteger(settleAttempts) && settleAttempts >= 1 && settleAttempts <= 6,
     'BONUS_CLEANUP_SCOPE_UNCONFIRMED')
     const [attribute, mappings, ratingMappings] = await Promise.all([
       provider.get(ATTRIBUTE, attributeId), listAll(provider, MAPPING), listAll(provider, RATING_MAPPING)
@@ -62,13 +75,16 @@ export const cleanupBonusTestFixture = async ({ provider, userId, attributeId, m
     requireThat(!ratingMappings.some((row) => referencesAttribute(row, attributeId)), 'BONUS_FIXTURE_IS_REFERENCED')
     requireThat(mappings.every((row) => idOf(row.bonus_attribute_id)), 'BONUS_REFERENCE_READ_UNCONFIRMED')
     const linked = mappings.filter((row) => same(row.bonus_attribute_id, attributeId))
-    requireThat(mappingId ? linked.length === 1 && mappingMatches(linked[0]) : linked.length === 0,
+    const mappingAbsent = Boolean(mappingId && allowAbsentMapping && linked.length === 0 &&
+      await provider.get(MAPPING, mappingId) === null)
+    requireThat(mappingId ? mappingAbsent || linked.length === 1 && mappingMatches(linked[0]) : linked.length === 0,
       'BONUS_CLEANUP_MAPPING_UNCONFIRMED')
-    if (mappingId) {
+    if (mappingAbsent) report.priorMappingAbsence = 'CONFIRMED'
+    if (mappingId && !mappingAbsent) {
       requireThat(mappingMatches(await provider.get(MAPPING, mappingId)), 'BONUS_CLEANUP_MAPPING_UNCONFIRMED')
       report.deletesAttempted += 1
       await provider.remove(MAPPING, mappingId)
-      requireThat(await provider.get(MAPPING, mappingId) === null, 'BONUS_MAPPING_DELETE_UNCONFIRMED')
+      requireThat(await confirmAbsent(MAPPING, mappingId, 'mapping', mappingMatches), 'BONUS_MAPPING_DELETE_UNCONFIRMED')
       report.removed += 1
     }
     const [remainingMappings, remainingRatings, currentAttribute] = await Promise.all([
@@ -81,7 +97,7 @@ export const cleanupBonusTestFixture = async ({ provider, userId, attributeId, m
     'BONUS_CLEANUP_REFERENCES_CHANGED')
     report.deletesAttempted += 1
     await provider.remove(ATTRIBUTE, attributeId)
-    requireThat(await provider.get(ATTRIBUTE, attributeId) === null, 'BONUS_ATTRIBUTE_DELETE_UNCONFIRMED')
+    requireThat(await confirmAbsent(ATTRIBUTE, attributeId, 'attribute', attributeMatches), 'BONUS_ATTRIBUTE_DELETE_UNCONFIRMED')
     report.removed += 1
     report.cleanup = 'PASS'
   } catch (error) {

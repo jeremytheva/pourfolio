@@ -129,6 +129,24 @@ The earlier retained form-test bonus, 81 absent global values and historical
 rating/cellar records are outside this fixture scope. HTTP/browser create,
 rating use, A/B denial and concurrency remain independent launch checks.
 
+The subsequent read-only [run 39331390621](https://github.com/jeremytheva/pourfolio/actions/runs/39331390621)
+at `344715e9` passed **890** canonical tests / 15 skips and confirmed the
+reviewed mapping absent from the complete list, normal direct GET and
+uncached GET (HTTP 404). The parent remained present at 0.7 with no category
+or rating references. The DELETE therefore took effect by this later
+observation; cache-vs-replication/commit delay remains unproven. The documented
+[provider DELETE route](https://app.nocodebackend.com/help/en/rest-api)
+matches the adapter, so no endpoint or permission change was made.
+
+The reviewed recovery now requires the old child to be absent and permits
+**only one parent DELETE**, through the original exact encrypted receipt.
+It repeats only readback (maximum six GETs with bounded delay), never a
+mutation. Unchanged fixture data and complete references are rechecked; a
+foreign replacement immediately stops verification. Three new focused tests
+cover partial recovery, delayed readback without repeated deletes, and a
+foreign replacement. All **41** focused cases pass locally. Exact-head
+canonical validation and parent-only recovery are pending.
+
 ## Custom bonus point-value persistence verification (PR #651)
 
 Creating a private Overall bonus attribute must not return success on the

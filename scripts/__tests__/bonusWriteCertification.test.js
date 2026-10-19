@@ -62,6 +62,56 @@ for (const invalid of [{ attributeId: '201/other' }, { description: 'An ordinary
   })
 }
 
+test('reviewed partial recovery proves the old child absent and deletes only its unchanged parent', async () => {
+  const f = fixture()
+  f.rows[A].push({ id: 201, user_id: userId, description: `Pourfolio release QA ${runKey}`, point_value: 0.7 })
+  const report = { deletesAttempted: 0, removed: 0 }
+  await cleanupBonusTestFixture({ provider: f.provider, userId, attributeId: '201', mappingId: '501', categoryId: 10,
+    description: `Pourfolio release QA ${runKey}`, report, allowAbsentMapping: true })
+  assert.equal(report.cleanup, 'PASS')
+  assert.equal(report.priorMappingAbsence, 'CONFIRMED')
+  assert.equal(report.removed, 1)
+  assert.deepEqual(f.calls, [['delete', A, '201']])
+})
+
+test('bounded stale readback retries only reads and never repeats a delete', async () => {
+  const f = fixture()
+  const attribute = { id: 201, user_id: userId, description: `Pourfolio release QA ${runKey}`, point_value: 0.7 }
+  f.rows[A].push(attribute)
+  const originalGet = f.provider.get
+  let staleReads = 0
+  f.provider.get = async (collection, id) => {
+    const row = await originalGet(collection, id)
+    if (collection === A && String(id) === '201' && row === null && staleReads++ < 2) return { ...attribute }
+    return row
+  }
+  const report = { deletesAttempted: 0, removed: 0 }
+  await cleanupBonusTestFixture({ provider: f.provider, userId, attributeId: '201', mappingId: '501', categoryId: 10,
+    description: attribute.description, report, allowAbsentMapping: true, settleAttempts: 3, wait: async () => {} })
+  assert.equal(report.cleanup, 'PASS')
+  assert.equal(report.absenceReadAttempts.attribute, 3)
+  assert.deepEqual(f.calls, [['delete', A, '201']])
+})
+
+test('bounded readback does not accept a foreign replacement record as the old fixture', async () => {
+  const f = fixture()
+  const description = `Pourfolio release QA ${runKey}`
+  f.rows[A].push({ id: 201, user_id: userId, description, point_value: 0.7 })
+  const originalGet = f.provider.get
+  f.provider.get = async (collection, id) => {
+    const row = await originalGet(collection, id)
+    return collection === A && String(id) === '201' && row === null
+      ? { id: 201, user_id: 'another-owner', description } : row
+  }
+  const report = { deletesAttempted: 0, removed: 0 }
+  await cleanupBonusTestFixture({ provider: f.provider, userId, attributeId: '201', mappingId: '501', categoryId: 10,
+    description, report, allowAbsentMapping: true, settleAttempts: 3, wait: async () => {} })
+  assert.equal(report.cleanup, 'UNCONFIRMED')
+  assert.equal(report.absenceReadAttempts.attribute, 1)
+  assert.equal(report.cleanupFailure, 'BONUS_ATTRIBUTE_DELETE_UNCONFIRMED')
+  assert.deepEqual(f.calls, [['delete', A, '201']])
+})
+
 test('candidate persistence and reload pass, then only its two acknowledged rows are removed child-first', async () => {
   const f = fixture()
   const baseline = structuredClone(f.rows)

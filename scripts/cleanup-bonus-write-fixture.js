@@ -29,7 +29,7 @@ try {
     dataProvider.get(C.bonusAttributes, attribute.id), dataProvider.get(C.bonusAttributeCategoryMappings, mapping.id)
   ])
   requireThat(['id', 'user_id', 'description', 'point_value'].every((key) => same(attribute[key], currentAttribute?.[key])) &&
-    ['id', 'user_id', 'category_id', 'bonus_attribute_id'].every((key) => same(mapping[key], currentMapping?.[key])),
+    currentMapping === null,
   'BONUS_RECOVERY_RECORD_CHANGED')
   const categories = await readAllBonusCertificationRows(dataProvider, C.bonusAttributeCategories)
   requireThat(categories.some((row) => same(row.id, mapping.category_id) &&
@@ -37,7 +37,7 @@ try {
     (!String(row.user_id ?? '').trim() || same(row.user_id, owner.id))), 'BONUS_RECOVERY_CATEGORY_UNCONFIRMED')
   for (const action of ['create', 'update', 'compareAndSet']) dataProvider[action] = async () => { throw new Error('BONUS_RECOVERY_WRITE_REJECTED') }
   const remove = dataProvider.remove.bind(dataProvider)
-  const allowed = new Set([`${C.bonusAttributes}:${attribute.id}`, `${C.bonusAttributeCategoryMappings}:${mapping.id}`])
+  const allowed = new Set([`${C.bonusAttributes}:${attribute.id}`])
   dataProvider.remove = async (collection, id) => {
     const key = `${collection}:${id}`
     requireThat(allowed.delete(key), 'BONUS_RECOVERY_SCOPE_REJECTED')
@@ -45,7 +45,7 @@ try {
   }
   await cleanupBonusTestFixture({ provider: dataProvider, userId: owner.id,
     attributeId: attribute.id, mappingId: mapping.id, categoryId: mapping.category_id,
-    description: attribute.description, report })
+    description: attribute.description, report, allowAbsentMapping: true, settleAttempts: 6 })
   report.status = report.cleanup === 'PASS' ? 'PASS' : report.deletesAttempted ? 'FAIL' : 'BLOCKED'
   report.ownerSource = owner.source
   report.authCommit = owner.authCommit
