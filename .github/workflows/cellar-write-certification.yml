@@ -46,7 +46,7 @@ jobs:
           # Only normal application sessions establish owner identity. The
           # checked-out gateway, not the auth release, performs provider CRUD.
           BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
-          BONUS_CERTIFICATION_AUTH_SHA: 4019c90e5ba342b654361109b0fe8896117f18c4
+          BONUS_CERTIFICATION_AUTH_SHA: 36ce8ffef482a9044e1e9f35da03214f46b7e1d5
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
           RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}

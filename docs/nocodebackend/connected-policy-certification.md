@@ -16,7 +16,7 @@ historical ownership is inferred or changed. The new explicit
 asserts the checked-out SHA before accessing protected credentials.
 
 The worker reuses the existing normal same-origin release sign-in,
-get-session and sign-out verifier on pinned public auth release `4019c90e`.
+get-session and sign-out verifier on pinned public auth release `36ce8ffe`.
 It uses the release owner and, if configured, distinct other-account
 credentials; configuration reports contain booleans only. Database keys
 are never login passwords. A configured contract user ID cannot substitute
@@ -63,7 +63,15 @@ The independent owner-only run uses the explicit
 `RUN CURRENT INSTANCE OWNER CELLAR TEST` confirmation. It still runs all
 baseline, receipt, mutation-count and cleanup safeguards. Full scope keeps
 the stricter two-account prerequisite. An owner-only result cannot close
-isolation or HTTP/browser rows; its actual outcome is pending. Public launch remains NO-GO; the 966 historical
+isolation or HTTP/browser rows; its actual outcome is pending. Owner-only
+[run 39336261726](https://github.com/jeremytheva/pourfolio/actions/runs/39336261726)
+at `eb596d00` passed **936** source tests (15 skips), then stopped before
+writes because the public release had advanced after #666. Readiness returned
+HTTP 200 but the pinned SHA differed. **Zero creates, updates or deletes.**
+Production `dpl_A7oW24YPMjLr8EYsZewXWYqJgeWa` is READY at
+`36ce8ffef482a9044e1e9f35da03214f46b7e1d5`; public readiness independently
+returned that SHA. The explicit pin is updated to that observed release.
+This is deployment reconciliation, not a retry of an attempted data mutation. Public launch remains NO-GO; the 966 historical
 ownerless cellar rows and #165 recovery/migration boundary are unchanged.
 
 ## Retained execution status
