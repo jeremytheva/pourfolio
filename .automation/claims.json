@@ -1,18 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "ratings": {
-      "owner": "manual-rating-integrity-20261019-1792378248311",
-      "workstream": "ratings",
-      "issue": 503,
-      "pr": null,
-      "surfaces": [
-        "api/bonus-attribute-data-proxy.js",
-        "api/_lib/__tests__/bonusAttributeCreation.test.js",
-        "docs/nocodebackend/rating-workflow-certification.md"
-      ],
-      "acquiredAt": "2026-10-19T02:50:48.311Z",
-      "expiresAt": "2026-10-19T03:20:48.311Z"
-    }
-  }
+  "claims": {}
 }
