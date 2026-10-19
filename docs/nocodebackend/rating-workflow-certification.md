@@ -1,5 +1,41 @@
 # Rating workflow staging certification
 
+## Connected rating test driver and cleanup identity
+
+The cleanup-guarded release test uses the same seven-card rating journey as
+the current application. Design, Burp and zero-weight manual dimensions are
+explicitly skipped; required dimensions receive 4/7, with each next heading
+awaited. Burp is a 0–1 optional extra, so the old universal `1 out of 7`
+selector could not finish the live form. The final heading is **All bonus
+attributes**, not **Bonus attributes**. The shared driver selects one existing
+bonus descriptor at its stored value and reaches review without creating a
+custom attribute or submitting implicitly. Browser regressions exercise the
+real renderer at default and personalised zero-weight settings.
+
+Before submission, the test requires a successful owner-history baseline.
+It captures the canonical rating ID directly from an HTTP 201 save response,
+requires the expected product, `duplicate: false`, a canonical ID and an ID
+absent from that baseline, then retains it before navigation/history checks.
+A subsequent assertion failure still invokes exact-ID cleanup. Concurrent
+new history entries are never inferred to be this test's deletion targets.
+A replay, pre-existing ID, wrong product, malformed or unconfirmed response
+must not authorise guessed cleanup.
+
+The guarded check now requires HTTP 204 for deletion and repeated deletion,
+then a fresh successful owner-history read excluding the exact test ID.
+It preserves both verification and cleanup errors if both occur. These checks
+do not independently inspect provider parent/child rows or certify atomicity.
+A failed/lost save response may have committed an unidentified partial record;
+that case remains **cleanup UNCONFIRMED**, fails the test and must be inspected
+under the existing provider-safe recovery protocol. No automatic submit retry
+or broad history-difference deletion is allowed.
+
+The explicit `RUN CLEANUP-GUARDED RELEASE WRITES` gate remains unchanged.
+Source and mocked-browser acceptance of this driver are not a connected
+write certificate. The bonus-create cleanup/isolation boundary under #651,
+terminal provider deletion under #165 and historical contradictory row remain
+open. Do not create another production bonus fixture to bypass these gates.
+
 ## Full rating journey QA — 19 October 2026
 
 The controlled browser journey used one explicitly disposable tasting of an

@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Rating QA and community attribute repair deployed; bonus/provider gates retained"
+stage: "Connected rating test repaired and source-validated; isolated write/provider gates retained"
 gate: Release
 execution_state: READY
 current_work:
@@ -36,10 +36,10 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
+  observed_main_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
   current_candidate_commit: null
-  latest_validated_commit: "f8c08446795c8974ad84db053a32d470cac63013"
-  latest_deployed_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
+  latest_validated_commit: "e52b630e57375eb71a7bed5500b688934911bff2"
+  latest_deployed_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
   latest_runtime_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
   latest_browser_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
 validation:
@@ -50,8 +50,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "f8c08446795c8974ad84db053a32d470cac63013"
-last_updated: "2026-10-19T09:22:56Z"
+last_verified_commit: "e52b630e57375eb71a7bed5500b688934911bff2"
+last_updated: "2026-10-19T09:49:00Z"
 ---
 
 # STATUS.md
@@ -59,6 +59,41 @@ last_updated: "2026-10-19T09:22:56Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Connected rating driver and cleanup repair — 19 October 2026
+
+[PR #662](https://github.com/jeremytheva/pourfolio/pull/662) repairs the
+release driver's obsolete Burp selector/final heading and captures only a
+new, expected-product canonical ID from the HTTP 201 receipt before later
+assertions. Exact deletion, repeated deletion and fresh owner-history absence
+are required; unknown responses never authorize guessed deletion or retry.
+Both verification and cleanup errors are preserved. The write gate is unchanged.
+
+Source head `e52b630e57375eb71a7bed5500b688934911bff2` passed canonical
+Node 22 acceptance: 828 passed, 15 provider-gated skips, zero failures,
+all 151 browser/accessibility cases, Dependency Review and CodeQL in
+[run 39232237030](https://github.com/jeremytheva/pourfolio/actions/runs/39232237030).
+An initial lint failure was corrected without relaxing lint. The final
+follow-up adds an explicit HTTP 200 pre-write baseline assertion and this
+handoff; its own canonical checks must pass before merge. Browser evidence
+above belongs to the pinned source head, not an uncompleted later run.
+
+Protected staging environment secret/variable metadata could not be inspected:
+the GitHub connector rejected those endpoint families with its URL allowlist
+(`INVALID_ARGUMENT`). Configuration/isolation remains UNKNOWN, not missing.
+No credentials were retrieved and no alternate access path was attempted.
+The connected live write check remains NOT_RUN. No new live records were
+created or deleted in this continuation. One earlier private QA bonus attribute
+still lacks a cleanup control. #651/#657 isolated write, two-account and cleanup
+gates, missing catalogue lifecycle controls, 81 absent bonus values and the
+contradictory historical deletion remain open. Public launch remains **NO-GO**.
+
+At this snapshot three implementation PRs are open (#651, #657, #662);
+after #662 integrates, two remain. The current next target stays #651.
+Production documentation handoff #661 is deployed as `90c86fd1`; bounded
+authenticated product-read/UI evidence remains at `f48d9509`, not a new live
+write certificate. Exact final-head integration/deployment evidence belongs
+in #662.
 
 ### Product attribute repair integrated and live-read verified — 19 October 2026, 09:21 UTC
 
