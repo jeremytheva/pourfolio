@@ -87,6 +87,59 @@ export const summariseBonusPointValues = (bonusAttributes) => {
   }
 }
 
+// This is a read-only capability preflight against an already persisted
+// private attribute/Overall mapping, never an attempt to create a test row.
+// The result deliberately contains no user, record or private point values.
+export const verifyExistingPrivateBonusReadback = async ({
+  attributes, categoryMappings, categories, provider = dataProvider
+}) => {
+  const categoryById = new Map(categories.map((category) => [String(category.id), category]))
+  const attributeById = new Map(attributes.map((attribute) => [String(attribute.id), attribute]))
+  const pair = categoryMappings.find((mapping) => {
+    const attribute = attributeById.get(String(mapping.bonus_attribute_id ?? ''))
+    const category = categoryById.get(String(mapping.category_id ?? ''))
+    const owner = String(attribute?.user_id ?? '').trim()
+    const value = Number(attribute?.point_value)
+    return owner && String(mapping.user_id ?? '').trim() === owner &&
+      category && String(category.category ?? '').trim().toLocaleLowerCase() === 'overall' &&
+      (!String(category.user_id ?? '').trim() || String(category.user_id).trim() === owner) &&
+      attribute.point_value !== null && attribute.point_value !== undefined &&
+      String(attribute.point_value).trim() !== '' && Number.isFinite(value) &&
+      Number.isSafeInteger(Number(attribute.id)) && Number.isSafeInteger(Number(mapping.id))
+  })
+
+  if (!pair) {
+    return { status: 'INCONCLUSIVE_NO_PRIVATE_OVERALL_PAIR', checked: 0 }
+  }
+
+  const attribute = attributeById.get(String(pair.bonus_attribute_id))
+  let storedAttribute, storedMapping
+  try {
+    ;[storedAttribute, storedMapping] = await Promise.all([
+      provider.get(COLLECTIONS.bonusAttributes, attribute.id),
+      provider.get(COLLECTIONS.bonusAttributeCategoryMappings, pair.id)
+    ])
+  } catch {
+    return { status: 'READBACK_UNAVAILABLE', checked: 1 }
+  }
+  const attributeMatches = storedAttribute &&
+    String(storedAttribute.id) === String(attribute.id) &&
+    String(storedAttribute.user_id ?? '') === String(attribute.user_id ?? '') &&
+    String(storedAttribute.description ?? '').trim() === String(attribute.description ?? '').trim() &&
+    storedAttribute.point_value !== null && storedAttribute.point_value !== undefined &&
+    String(storedAttribute.point_value).trim() !== '' &&
+    Number(storedAttribute.point_value) === Number(attribute.point_value)
+  const mappingMatches = storedMapping &&
+    String(storedMapping.id) === String(pair.id) &&
+    String(storedMapping.user_id ?? '') === String(pair.user_id ?? '') &&
+    String(storedMapping.category_id ?? '') === String(pair.category_id ?? '') &&
+    String(storedMapping.bonus_attribute_id ?? '') === String(pair.bonus_attribute_id ?? '')
+  return {
+    status: attributeMatches && mappingMatches ? 'EXISTING_PRIVATE_PAIR_READBACK_OK' : 'READBACK_MISMATCH',
+    checked: 1
+  }
+}
+
 export const validateBonusRatingMappings = ({ mappings, bonusAttributes, ratings }) => {
   const bonusIds = new Set(bonusAttributes.map((item) => String(item.id ?? '')).filter(Boolean))
   const ratingsById = new Map(ratings.map((item) => [String(item.id ?? ''), item]))
@@ -154,13 +207,23 @@ export const runLiveBonusMappingAudit = async () => {
   requireReadOnlyMode()
   disableMutations()
 
-  const [mappings, bonusAttributes, ratings] = await Promise.all([
+  const [mappings, bonusAttributes, ratings, categoryMappings, categories] = await Promise.all([
     listAll(COLLECTIONS.bonusRatingMappings),
     listAll(COLLECTIONS.bonusAttributes),
-    listAll(COLLECTIONS.ratings)
+    listAll(COLLECTIONS.ratings),
+    listAll(COLLECTIONS.bonusAttributeCategoryMappings),
+    listAll(COLLECTIONS.bonusAttributeCategories)
   ])
 
-  return validateBonusRatingMappings({ mappings, bonusAttributes, ratings })
+  const baseline = validateBonusRatingMappings({ mappings, bonusAttributes, ratings })
+  const existingPrivateReadback = await verifyExistingPrivateBonusReadback({
+    attributes: bonusAttributes, categoryMappings, categories
+  })
+  return {
+    ...baseline,
+    status: ['READBACK_MISMATCH', 'READBACK_UNAVAILABLE'].includes(existingPrivateReadback.status) ? 'BLOCKED' : baseline.status,
+    existingPrivateReadback
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
