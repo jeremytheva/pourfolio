@@ -3,21 +3,20 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Terminal rating-delete failure isolated; provider timestamp repair"
+stage: "Live read-only certification exposed missing bonus values and a rating population discrepancy"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Certify controlled rating creation and terminal deletion on the repaired deployment recorded in PR #650; keep #503/#165 and privacy/session/cellar gates open."
-  issue: 503
-  pr: null
-  branch: null
+  objective: "Resolve the live rating population discrepancy, certify source-safe bonus point persistence and preserve blocked provider-write gates."
+  issue: 165
+  pr: 652
+  branch: "fix/live-rating-audit-completion-parity-20261019"
 next_actions:
-  - "Use #650's final integration/deployment evidence for a controlled disposable create/delete retest; require HTTP 204, terminal state, absent children, repeat-delete stability and verified cleanup. Keep the 19 October live failure retained until replaced by actual passing evidence."
-  - "Continue #503/#165 through the active ratings claimant; timestamp-format source acceptance does not certify the provider's uniqueness, conditional updates, immutable dates or recovery guarantees."
-  - "Run #449 guarded connected cellar CRUD/ownership checks only with supported isolated fixtures and verified cleanup."
-  - "Run supported connected #422 profile privacy/revocation and distinct-account certification; keep unsupported rows pending."
-  - "Prepare #165 provider migration, uniqueness, backup/restore and approval evidence without irreversible mutation."
-  - "Complete #577 using supported account-session credentials; database Secret Keys are not login passwords."
+  - "Investigate the connected owner/global/product rating population discrepancy with redacted read-only evidence from #652; do not infer data edits or mark history certified."
+  - "Review #651 source acceptance and actual provider point-value readout; guarded disposable write/readback/cleanup remains required before custom bonus create is certified."
+  - "Prepare #165 uniqueness, version/conditional update and backup/restore evidence for controlled migration; retain approval boundary."
+  - "Run #449 guarded cellar/catalogue test and #422/#577 distinct-session privacy checks when supported staging fixtures are available."
+  - "Reconcile STATUS after accepted PR integration, deployment evidence and exact commit checks."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
@@ -30,15 +29,15 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 1
+  open_implementation_prs: 2
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "2c8d88e8f8d466e8adc26c1a44d5a9814ca18033"
+  observed_main_commit: "d82a991e5578b66dfb97a344785ef0e0453b3dd3"
   current_candidate_commit: null
   latest_validated_commit: "78501ec93d1b9d55a1c266a81b1957dd44f58f37"
-  latest_deployed_commit: "2c8d88e8f8d466e8adc26c1a44d5a9814ca18033"
+  latest_deployed_commit: "d82a991e5578b66dfb97a344785ef0e0453b3dd3"
   latest_runtime_verified_commit: "2c8d88e8f8d466e8adc26c1a44d5a9814ca18033"
   latest_browser_verified_commit: "78501ec93d1b9d55a1c266a81b1957dd44f58f37"
 validation:
@@ -50,7 +49,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "78501ec93d1b9d55a1c266a81b1957dd44f58f37"
-last_updated: "2026-10-19T01:29:00Z"
+last_updated: "2026-10-19T03:20:00Z"
 ---
 
 # STATUS.md
@@ -58,6 +57,48 @@ last_updated: "2026-10-19T01:29:00Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Live read-only continuation — 19 October 2026, 03:20 UTC
+
+The default branch is `d82a991e`; PR #650 is merged and the issue
+#503 is **closed**. This issue state does not independently certify all live
+create, delete, retry, owner-isolation or historical-read cases. The later
+connected acceptance remains blocked under #165/#144/#422/#449/#577.
+
+PR #651 (unmerged) adds custom bonus creation persistence readback and
+redacted point-value auditing. Exact head `7f5f81f0` passed canonical
+Node 22 validation, browser/accessibility, Dependency Review and CodeQL.
+Its read-only connected run
+[39193252116](https://github.com/jeremytheva/pourfolio/actions/runs/39193252116)
+**passed the bonus mapping audit**: 1,744 rating bonus mappings all use the
+singular `bonus_attribute_id` field; 83 current bonus attributes
+(82 global, one private), 81 blank/null `point_value`, two explicit,
+zero malformed. Exactly one global explicit value is `0.5`. The second
+explicit value belongs to a private record, whose value is intentionally
+not exposed in audit output. The observed `0.2` fallback is explained by
+absent persisted values, not a confirmed display-only regression. The
+missing individual point assignments must not be invented. No provider
+records were changed.
+
+The same read-only run failed its owner-rating equality assertion. Source
+investigation found that this audit counted `complete` rows with a
+non-null `deleted_at`, while production visibility correctly uses
+`isCompletedRating` and excludes tombstoned rows. PR #652 updates the
+audit to use the canonical predicate while still counting contradictory
+`complete`/tombstoned rows as a separate review concern. An initial
+connected rerun on #652 moved past the owner-history comparison but failed
+the **product population check**: a scoped product response reported two
+completed ratings/average 4 versus the global snapshot's one/average
+4.45. This could reflect live read/pagination drift or a genuine provider
+population discrepancy; it is **not** yet root-caused. PR #652 adds a
+redacted scoped-versus-global diagnostic, pending a fresh exact-head run.
+
+Source-only/browser passing does not certify provider write semantics.
+Connected destructive tests, historical repairs and provider schema
+mutation are not authorised by these read-only audits. Public launch
+remains **NO-GO**. `STATUS.md` prior dated sections are preserved as
+investigation history and must not override these newer facts.
+
 
 ### Latest rating-delete investigation — 19 October 2026 UTC
 
