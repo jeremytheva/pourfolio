@@ -4,11 +4,19 @@
 
 Creating a private Overall bonus attribute must not return success on the
 strength of a NoCodeBackend create ID alone. The server reads the saved
-`bonus_attributes` row back before mapping it to Overall or acknowledging
-the requested point value. The persisted ID, account owner, description and
-numeric `point_value` must match the validated request. A wrong/missing
-value fails closed. Best-effort compensation removes the new row only after
-the readback confirms its owner: an unverified ID or read failure must
+`bonus_attributes` row back, verifies the persisted ID, owner, description
+and numeric `point_value`, then creates and reads back the
+`bonus_attribute_category_mapping` row. The mapping must persist the
+requesting user, Overall category ID and newly created attribute ID before
+the route acknowledges HTTP 201. Either unverified write fails closed.
+
+Compensation can delete the newly created attribute only after its owner is
+verified **and before any mapping write has been attempted**. Once the mapping
+write starts, a timeout, ambiguous create result, incorrect mapping readback
+or unavailable read may conceal a committed relationship. In that situation
+the route must not blindly delete either record. The potential partial pair
+must be investigated and cleaned up with a guarded, account-verified
+provider recovery procedure. An unverified ID or read failure must
 **never** trigger deletion of a possibly unrelated account's record.
 
 The historical export contains 82 bonus attributes, of which 81 have null/
@@ -29,9 +37,10 @@ their intended points. A `REVIEW_REQUIRED` inventory needs investigation of
 invalid/out-of-range values before release.
 
 Connected certification still requires a disposable owner-created attribute
-with a non-default value (for example `0.7`), server write/readback,
-category mapping, rating use, reload, exact provider query, denial from a
-second account, and verified cleanup. A passing source test or preview
+with a non-default value (for example `0.7`), server attribute
+write/readback, exact persisted category mapping readback, rating use,
+reload, exact provider query, denial from a second account, and verified
+cleanup. A passing source test or preview
 cannot substitute for these provider rows. Any failed readback requiring
 manual cleanup must be reconciled before marking a write run complete.
 
