@@ -5,7 +5,7 @@ import { persistBonusWithCategory } from '../../bonus-attribute-data-proxy.js'
 
 const input = { description: 'Personal favourite', point_value: 0.7 }
 
-const fixture = ({ storedPointValue = '0.70', storedOwner = 'owner-1', storedDescription = input.description, failMapping = false } = {}) => {
+const fixture = ({ storedPointValue = '0.70', storedOwner = 'owner-1', storedDescription = input.description, failMapping = false, readError = null } = {}) => {
   const calls = []
   const provider = {
     async create(collection, body) {
@@ -16,6 +16,7 @@ const fixture = ({ storedPointValue = '0.70', storedOwner = 'owner-1', storedDes
     },
     async get(collection, id) {
       calls.push({ action: 'get', collection, id })
+      if (readError) throw readError
       return { id, user_id: storedOwner, description: storedDescription, point_value: storedPointValue }
     },
     async remove(collection, id) {
@@ -42,7 +43,6 @@ test('bonus creation reads back the provider point value and links the saved att
 for (const mismatch of [
   { name: 'missing point value', storedPointValue: null },
   { name: 'provider changed point value', storedPointValue: '0.20' },
-  { name: 'different account', storedOwner: 'owner-2' },
   { name: 'different description', storedDescription: 'Other attribute' }
 ]) {
   test(`bonus creation rejects ${mismatch.name} without creating a category mapping`, async () => {
@@ -55,6 +55,24 @@ for (const mismatch of [
     assert.deepEqual(calls[2], { action: 'remove', collection: COLLECTIONS.bonusAttributes, id: 91 })
   })
 }
+
+test('bonus creation does not delete an unverified cross-owner record', async () => {
+  const { provider, calls } = fixture({ storedOwner: 'owner-2' })
+  await assert.rejects(
+    persistBonusWithCategory({ userId: 'owner-1', input, categoryId: 10, provider }),
+    (error) => error.status === 502 && error.code === 'BONUS_ATTRIBUTE_PERSISTENCE_MISMATCH'
+  )
+  assert.deepEqual(calls.map(({ action }) => action), ['create', 'get'])
+})
+
+test('bonus creation does not delete when provider readback fails before owner verification', async () => {
+  const { provider, calls } = fixture({ readError: Object.assign(new Error('Provider unavailable'), { status: 503 }) })
+  await assert.rejects(
+    persistBonusWithCategory({ userId: 'owner-1', input, categoryId: 10, provider }),
+    (error) => error.status === 503
+  )
+  assert.deepEqual(calls.map(({ action }) => action), ['create', 'get'])
+})
 
 test('bonus creation preserves mapping failure and compensates the new attribute', async () => {
   const { provider, calls } = fixture({ failMapping: true })
