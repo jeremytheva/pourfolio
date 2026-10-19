@@ -9,7 +9,7 @@ execution_state: READY
 current_work:
   objective: "Validate and integrate strict cellar input validation under #449; continue the remaining #503/#165/#422/#577 connected gates without assuming live certification."
   issue: 449
-  pr: null
+  pr: 648
   branch: fix/cellar-write-validation
 next_actions:
   - "Finish current-head canonical/browser/preview acceptance of the recovered fix/cellar-write-validation branch and integrate #449 strict input validation."
@@ -80,7 +80,7 @@ unapproved assertions are replaced by explicit preservation and immutable-input
 regressions. Its valid strict date/Gift intent is retained, completed with typed
 numeric/text/product checks, and reconciled through a history-preserving merge.
 
-The prepared #449 fix rejects impossible date rollovers, numeric dates, ambiguous
+PR [#648](https://github.com/jeremytheva/pourfolio/pull/648) implements the #449 fix and rejects impossible date rollovers, numeric dates, ambiguous
 Gift strings and unsupported Boolean/array/object field types. Real date-only
 values, leap days, decimal form strings, zero values, nullable optional fields,
 server-owned identity and existing relationship gates remain supported. Invalid
