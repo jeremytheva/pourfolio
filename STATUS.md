@@ -3,14 +3,14 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Dependency-correct launch continuation"
+stage: "Producer ranking pagination acceptance"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Continue the remaining rating deletion and provider/privacy certification gates; the launch plan and strict cellar repair are merged, validated and deployed."
-  issue: 503
-  pr: null
-  branch: null
+  objective: "Complete existing PR #639 producer-ranking pagination and removed-page recovery with current-main acceptance; retain the connected rating/provider/privacy gates."
+  issue: 441
+  pr: 639
+  branch: "fix/producer-ranking-pagination-20261014"
 next_actions:
   - "Run #449 guarded connected cellar CRUD/ownership checks only with supported isolated fixtures and verified cleanup; source/runtime-read evidence does not close mutable acceptance."
   - "Resolve #639's material producer-pagination reviews and reconcile its exact head with current main before integration."
@@ -36,7 +36,7 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
+  observed_main_commit: "c6bde59aae98c6b117b208e90252cc2c84d69386"
   current_candidate_commit: null
   latest_validated_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
   latest_deployed_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
@@ -44,14 +44,14 @@ evidence:
   latest_browser_verified_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
 validation:
   governance: PASS
-  lint: PASS
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PASS
-  build: PASS
-  ci: PASS
-  runtime: VERIFIED
+  tests: NOT_RUN
+  build: NOT_RUN
+  ci: PENDING
+  runtime: UNVERIFIED
 last_verified_commit: "a3080c31ac7c0dd9d905225a09df4ffe215d6f4c"
-last_updated: "2026-10-19T00:49:53Z"
+last_updated: "2026-10-19T00:57:43Z"
 ---
 
 # STATUS.md
@@ -59,6 +59,22 @@ last_updated: "2026-10-19T00:49:53Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Current implementation — existing PR #639
+
+The producer pagination branch is reconciled with main `c6bde59a` and retains
+the existing global ranks, bounded pages and results-focus behaviour. A 400 on
+a later ranking page now returns to page one, preventing a trapped retry after
+the qualifying cohort shrinks. Transient failures retain the requested page,
+focus the error, and restore results focus after retry. Deterministic browser
+regressions cover pagination, removed-page recovery and transient retry.
+
+Current-head canonical/browser/preview acceptance is pending and must be
+recorded in PR #639 before integration. The evidence SHA fields retain
+the prior independently verified source-bearing release, rather than assigning
+that evidence to this unpublished branch. PR #649 has merged the scoring and
+readiness contract documentation as `c6bde59a`; it is no longer an open WIP slot.
+Public launch remains **NO-GO** and connected/provider acceptance remains open.
 
 ### Initial launch implementation completed — 19 October 2026 UTC
 
@@ -103,10 +119,10 @@ own PR acceptance and must not be inferred to be runtime/provider certification
 from this source-bearing snapshot.
 
 At this verified snapshot, ordinary implementation PRs #637/#639 remain open;
-dependency PRs #645/#646/#647 are separate. The documentation follow-up temporarily
-uses the third slot while open. Keep the repository limit and reconcile live
-state at the next execution. The catalogue claim was narrowed to documentation/
-integration after #648, leaving other workstream code and schedules unchanged.
+dependency PRs #645/#646/#647 are separate. Keep the repository limit and
+reconcile live state at the next execution. Catalogue owns integration/STATUS;
+the bounded producer claim owns only the existing pagination source and tests.
+Other workstream code and schedules are unchanged.
 
 Next: continue #503 with a fresh correlated isolated deletion fixture where
 supported; a seven-day Vercel query was outside Hobby retention and the corrected
