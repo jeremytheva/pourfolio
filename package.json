@@ -20,6 +20,7 @@
     "check:provider-contract-transcript": "node scripts/check-provider-contract-transcript.js",
     "check:package-lock": "node scripts/check-package-lock-contract.js",
     "check:project-docs": "node scripts/check-project-documentation.js",
+    "check:launch-readiness": "node scripts/check-launch-readiness.mjs",
     "check:status-github": "node scripts/check-status-github-state.js",
     "check:data-contract": "node scripts/check-data-contract.js",
     "check:runtime": "node scripts/check-runtime-contract.js",
@@ -44,7 +45,7 @@
     "check:brew-containment": "node scripts/check-brew-done-it-containment.js",
     "check:release-security": "node scripts/check-browser-release-security.js",
     "platform:validate": "npm run validate",
-    "validate": "npm run check:package-lock && npm run check:project-docs && npm run check:data-contract && npm run check:runtime && npm run check:nocodebackend-env && npm run lint && npm test && npm run audit:production && npm run build && npm run check:bundle && npm run check:brew-containment && npm run check:release-security",
+    "validate": "npm run check:package-lock && npm run check:project-docs && npm run check:launch-readiness && npm run check:data-contract && npm run check:runtime && npm run check:nocodebackend-env && npm run lint && npm test && npm run audit:production && npm run build && npm run check:bundle && npm run check:brew-containment && npm run check:release-security",
     "audit:bonus-categories:live": "node scripts/reconcile-bonus-attribute-categories.js",
     "reconcile:bonus-categories:live": "node scripts/reconcile-bonus-attribute-categories.js --apply"
   },
