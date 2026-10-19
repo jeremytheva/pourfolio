@@ -60,49 +60,41 @@ checks. Public launch remains NO-GO. Current-instance approval supersedes older
 separate-database prerequisites, while #165 migration and historical recovery
 approval requirements remain intact.
 
-### Executed candidate evidence — 20 October 2026 Sydney
+### Executed current-instance result — 20 October 2026 Sydney
 
-Candidate `c93179379a748cbcd5d7e97ac08026d1d7404dc8` passed canonical
-Node 22 validation: **867 passed, 15 provider-gated skips, zero failures**.
-All **155** browser/accessibility cases passed in
-[run 39328073944](https://github.com/jeremytheva/pourfolio/actions/runs/39328073944).
-Preview `dpl_3LwYfKg2rvKmWrDEZfNfjXXxje4P` is READY and HTTP 200 health
-returned that exact candidate SHA with configured auth/data services.
-The [bounded provider run 39328068718](https://github.com/jeremytheva/pourfolio/actions/runs/39328068718)
-stopped at `RUNTIME_CONFIGURATION_MISSING`, specifically the absent
-`NOCODEBACKEND_CONTRACT_USER_ID`. The guard ran before provider calls:
-**zero data writes**, cleanup NOT_RUN. The retained redacted report is the
-execution evidence; this is not a persistence failure or provider PASS.
+[Protected run 39329607548](https://github.com/jeremytheva/pourfolio/actions/runs/39329607548)
+executed candidate `89064711f9ed2badfc057d0dcbf15085266b9ff7` after
+**881** canonical Node 22 tests passed (15 provider-gated skips). The
+current public auth release `90c86fd13873b51a9025f4e3481dc594eef95a80`
+established the designated release account through a verified session.
+It is distinct from the candidate persistence implementation. Preview
+`dpl_E4dFnZBYhHVDKcvAez4FzVA5TCzm` is READY and HTTP 200 health returned
+the candidate SHA. Earlier configuration/provenance preflights made zero
+data writes and are retained in their run reports.
 
-The follow-up adds verified release-session owner resolution using existing
-protected account settings. Its eleven focused ownership/credential tests
-and the fifteen fixture tests pass locally (Node 24 diagnostic). Canonical
-validation and the protected execution of this follow-up remain pending.
-No fixture was created by either the first protected run or local tests.
+**Persistence PASS; independent reload PASS; cleanup UNCONFIRMED.**
+Two creates were attempted and acknowledged. The unused private 0.7
+attribute and its requested category mapping were read back correctly.
+The subsequent full mapping-list check failed with
+`BONUS_CLEANUP_MAPPING_UNCONFIRMED`; **zero deletes were attempted**.
+The attribute and acknowledged mapping remain. Do not create another
+fixture, guess deletion IDs or treat this as a successful lifecycle test.
 
-Candidate `8a3c0f16a64bf39bff8e770edaede2cbe3085e23` passed **878**
-canonical Node 22 tests (15 gated skips). Its exact-SHA preview health and
-branch-alias readiness passed. The second protected
-[run 39328818421](https://github.com/jeremytheva/pourfolio/actions/runs/39328818421)
-confirmed that release email/password settings are present, but the worker's
-separate auth service key is absent. It stopped before all provider calls
-with zero creates/deletes. The final owner resolver therefore reuses normal
-application sign-in plus the existing release-origin/SHA verifier, as the
-established connected browser checks do. All **28** focused tests pass
-locally; this follow-up's canonical and protected execution remain pending.
+The candidate now blocks new writes while any earlier test-owned random
+bonus fixture is unresolved. The separate `[bonus-fixture-inspect]` mode
+runs a read-only structural inspection: all provider mutation methods are
+disabled. It compares full-list mappings with direct reads for the uniquely
+identified test-account QA candidate and counts rating references. It emits
+no private IDs/descriptions; the recovery candidate is encrypted using
+AES-256-GCM with a purpose-specific HKDF key derived from the existing
+protected data credential. That inspection receipt is **not** original-create
+acknowledgement or automatic deletion authority. Six crypto integrity tests
+and the unresolved-fixture guard pass; **36** focused cases pass locally.
+Canonical acceptance and read-only inspection of this follow-up are pending.
 
-Candidate `fdfc5e85` passed **880** canonical Node 22 tests (15 gated
-skips). The worker stopped before writes at
-`BONUS_TEST_OWNER_TARGET_UNVERIFIED` in
-[run 39329182424](https://github.com/jeremytheva/pourfolio/actions/runs/39329182424).
-Authenticated Vercel readiness confirmed that preview SHA, but worker preview
-access was not independently qualified; no specific HTTP status was retained.
-The follow-up records safe target HTTP diagnostics and pins the observed
-public auth release `90c86fd13873b51a9025f4e3481dc594eef95a80` separately
-from the provider test candidate. Public health and readiness both returned
-that production SHA on 19 October at 21:41 UTC. This grants no preview access
-and makes no claim that the candidate is deployed publicly. All **29**
-focused tests pass locally; canonical/provider execution is pending.
+The earlier retained form-test bonus, 81 absent global values and historical
+rating/cellar records are outside this fixture scope. HTTP/browser create,
+rating use, A/B denial and concurrency remain independent launch checks.
 
 ## Custom bonus point-value persistence verification (PR #651)
 

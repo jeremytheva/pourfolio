@@ -67,6 +67,18 @@ test('candidate persistence and reload pass, then only its two acknowledged rows
   for (const privateValue of [userId, runKey, '201', '501', 'Existing global']) assert.equal(text.includes(privateValue), false)
 })
 
+test('an unresolved earlier fixture blocks a fresh test before all writes', async () => {
+  const f = fixture()
+  f.rows[A].push({ id: 9, user_id: userId,
+    description: 'Pourfolio release QA bonus-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', point_value: 0.7 })
+  const result = await f.run()
+  assert.equal(result.status, 'BLOCKED')
+  assert.equal(result.failure, 'BONUS_PRIOR_FIXTURE_UNRESOLVED')
+  assert.equal(result.createsAttempted, 0)
+  assert.equal(result.deletesAttempted, 0)
+  assert.deepEqual(f.calls, [])
+})
+
 test('a failed later verification still cleans only the acknowledged fixture and preserves the error code', async () => {
   const f = fixture()
   const result = await f.run({ verify: async () => { throw fail('POST_SAVE_VERIFICATION_FAILED') } })

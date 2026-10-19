@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Bonus candidate validated; protected test owner resolution and bounded provider run in progress"
+stage: "Bonus persistence verified; mapping cleanup mismatch under read-only investigation"
 gate: Release
 execution_state: VALIDATING
 current_work:
@@ -12,6 +12,7 @@ current_work:
   pr: 651
   branch: "fix/bonus-point-persistence-readback-20261019"
 next_actions:
+  - "Inspect the retained #651 bonus fixture without writes; resolve the mapping-list mismatch and verify exact cleanup before another create test."
   - "Investigate one persisted rating with submission_state=complete and deleted_at set; obtain verified record/child ownership, backup, rollback and governed approval before any repair."
   - "Complete #651 exact-candidate current-instance custom bonus create/readback/second-account-denial/cleanup only after a verified, bounded owner-safe cleanup path exists; 81 stored point values remain absent and must not be guessed."
   - "Prepare #165 uniqueness, version/conditional update and backup/restore evidence for controlled migration; retain approval boundary."
@@ -20,6 +21,9 @@ next_actions:
   - "Run #422/#577 distinct-session privacy and authorization checks with supported release accounts; current-instance testing is authorised but does not replace account separation."
   - "Use merged #664 commit as the source baseline; preserve the incomplete rating deletion and 966 ownerless cellar history records as separate release blockers."
 blockers:
+  - scope: bonus_fixture_cleanup_unconfirmed
+    issue: 503
+    detail: "Current-instance candidate persistence and reload passed, but the full mapping check rejected cleanup; one acknowledged attribute/mapping fixture remains, with zero deletes attempted. Read-only diagnosis is active."
   - scope: rating_idempotency_provider_migration
     issue: 165
     detail: "Durable idempotency requires irreversible provider schema/constraint and existing-data migration work. Provider-supported migration/backfill, backup/restore proof and the governed approval package are required before mutation."
@@ -38,7 +42,7 @@ wip:
 evidence:
   observed_main_commit: "7c030b43b415eaf8567ecb305caa5296b3f37e39"
   current_candidate_commit: null
-  latest_validated_commit: "fdfc5e85fc20067926afe602c6d54a3069bb22ae"
+  latest_validated_commit: "89064711f9ed2badfc057d0dcbf15085266b9ff7"
   latest_deployed_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
   latest_runtime_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
   latest_browser_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
@@ -50,8 +54,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "fdfc5e85fc20067926afe602c6d54a3069bb22ae"
-last_updated: "2026-10-19T21:42:34Z"
+last_verified_commit: "89064711f9ed2badfc057d0dcbf15085266b9ff7"
+last_updated: "2026-10-19T21:47:19Z"
 ---
 
 # STATUS.md
@@ -60,71 +64,37 @@ Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
 
-### Application sign-in resolves the bounded test owner — 20 October 2026 Sydney
+### Bonus persistence verified; fixture cleanup under read-only investigation — 20 October 2026 Sydney
 
-The protected execution of `8a3c0f16` passed **878** canonical tests with
-15 provider skips, then stopped before any provider calls: the worker's
-`NOCODEBACKEND_AUTH_SECRET_KEY` is absent. Release email/password secrets
-are present. The exact-SHA app preview has configured auth and passed
-health/readiness. The test now uses that normal application sign-in boundary
-after verifying its approved origin and exact candidate SHA. It verifies
-the resulting account and signs out before writes; no auth key is copied
-out of the deployment. All **28** focused tests pass locally. Candidate `fdfc5e85` subsequently passed 880 canonical tests / 15 gated
-skips, then stopped before writes because the worker could not verify
-preview readiness. The Vercel-authenticated read returned the exact SHA,
-but the worker retained no status detail. The current worker adds safe
-HTTP diagnostics and pins the observed public auth release `90c86fd1`
-(21:41 UTC health/readiness) separately from the provider-test candidate.
-It uses that released app only to establish account identity. The 29
-focused tests pass locally; canonical/provider execution is pending.
-No test fixture has been created so far.
+PR #651 candidate `89064711` passed **881** canonical Node 22 tests with
+15 provider-gated skips. The exact-SHA preview is READY and health passed.
+[Protected run 39329607548](https://github.com/jeremytheva/pourfolio/actions/runs/39329607548)
+verified the release account through normal sign-in on the pinned current
+public auth release `90c86fd1`; the worker did not need its auth service key.
+That release only established identity; the worker executed the candidate's
+actual persistence function against the authorised current instance.
 
-### Protected bonus test owner resolution — 20 October 2026 Sydney
+**Persistence PASS and fresh reload PASS** for one private 0.7 attribute
+and its category mapping. The complete mapping-list cleanup preflight then
+failed `BONUS_CLEANUP_MAPPING_UNCONFIRMED`. **Two creates, zero deletes**;
+the acknowledged fixture remains. No blind retry, guessed cleanup or
+historical-data operation is authorised by this result. Earlier failed
+configuration/provenance checks made no data writes.
 
-PR #651 candidate `c9317937` passed canonical Node 22 validation
-(**867 tests**, 15 provider skips), all **155** browser/accessibility cases,
-and exact-SHA preview health. The protected provider run **39328068718**
-was **BLOCKED before all writes** because `NOCODEBACKEND_CONTRACT_USER_ID`
-was absent. No provider fixture or cleanup was attempted.
+The follow-up blocks fresh test writes while a prior QA fixture exists and
+adds a separate read-only inspection with all provider writes disabled.
+It reports structural/list-vs-direct-read comparisons and encrypts private
+recovery candidate details; that candidate receipt is not automatic delete
+authority. All **36** focused cases pass locally (Node 24 diagnostic).
+Canonical acceptance and the protected inspection are pending. Keep #651
+open until the mapping mismatch and verified cleanup are resolved; broader
+browser/rating-use/A/B and concurrency gates remain distinct.
 
-The follow-up reuses the existing protected release-account configuration
-when a contract owner ID is absent. It verifies the authenticated session's
-ID and email and signs out before enabling writes. Eleven focused tests
-cover missing configuration, rejected/mismatched sessions, redaction and
-sign-out failure; all pass alongside the fifteen fixture tests locally.
-Canonical acceptance and the next protected execution remain **PENDING**.
-Do not infer that the release-account credentials are configured until that
-worker executes. No separate instance or new database approval is required.
-The source/runtime/user-isolation and historical #165 boundaries remain
-unchanged; public launch remains **NO-GO**.
-
-### Bounded bonus provider test added to existing PR #651 — 20 October 2026 Sydney
-
-The overnight reconciliation at `221d89977412e76f276145cc21346aea3d9a560d`
-already incorporates current main `7c030b43`; no duplicate merge was made.
-The remaining fixture-cleanup dependency now has a candidate test implementation
-in the existing PR: one random private 0.7 attribute, one existing Overall
-category mapping, persisted/readback/reload verification, and child-first
-cleanup of only acknowledged, newly created, owner/nonce-verified IDs. Full
-paged reference reads protect existing ratings and unexpected mappings. Failed
-or lost responses never authorise retries or guessed deletion. Fifteen focused
-Node 24 regressions pass locally, including retained-delete acknowledgements,
-cross-owner IDs, lost responses, page failure and preservation of both errors.
-
-The protected worker uses the existing provider secret/instance and designated
-`NOCODEBACKEND_CONTRACT_USER_ID`; missing configuration blocks before writes.
-It validates the candidate before enabling the requested current-instance run.
-Source/browser/security acceptance and actual provider execution for this
-change are **PENDING** and must be recorded in PR #651. The worker directly
-exercises the candidate server persistence function; it does not establish an
-HTTP/browser/cross-account or concurrency certificate, nor deploy the app.
-No new live record has been created by implementation/local tests.
-
-Owner approval for the current instance remains active. A separate database
-is not required for this test. The previous form-only 0.5/0.7/2.00/3.07 check,
-retained earlier QA attribute, missing 81 values, contradictory historical
-rating deletion and 966 ownerless cellar rows remain separate evidence.
-PR #657 remains open. Public launch remains **NO-GO**.
+The original retained QA attribute, 81 missing historical point values,
+contradictory historical rating and 966 ownerless cellar rows remain separate.
+No shared catalogue fixture or schema change occurred. PR #657 remains open
+at reconciled `17c21767`; its connected write/isolation checks remain NOT_RUN.
+Public launch remains **NO-GO**. Current-instance approval remains active.
 
 ### Producer profile integration and current-instance certification — 19 October 2026, 13:29 UTC
 

@@ -71,6 +71,8 @@ export const runBonusWriteCertification = async ({ provider, userId, runKey, ver
     requireReferenceFields(ratingMappings)
     baselineAttributes = new Set(attributes.map((row) => String(row.id)))
     baselineMappings = new Set(mappings.map((row) => String(row.id)))
+    requireThat(!attributes.some((row) => same(row.user_id, userId) &&
+      String(row.description || '').startsWith('Pourfolio release QA bonus-')), 'BONUS_PRIOR_FIXTURE_UNRESOLVED')
     requireThat(!attributes.some((row) => row.description === description), 'BONUS_FIXTURE_ALREADY_EXISTS')
     const overall = categories.find((row) => String(row.category || '').trim().toLowerCase() === 'overall' &&
       (!String(row.user_id ?? '').trim() || same(row.user_id, userId)))
