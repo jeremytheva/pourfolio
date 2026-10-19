@@ -43,6 +43,10 @@ jobs:
           NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
           NOCODEBACKEND_CONTRACT_USER_ID: ${{ secrets.NOCODEBACKEND_CONTRACT_USER_ID }}
+          NOCODEBACKEND_AUTH_BASE_URL: https://app.nocodebackend.com/api/user-auth
+          NOCODEBACKEND_AUTH_SECRET_KEY: ${{ secrets.NOCODEBACKEND_AUTH_SECRET_KEY }}
+          RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
+          RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
       - name: Retain redacted provider evidence
         if: always()
         uses: actions/upload-artifact@v7

@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Bounded current-instance bonus provider test implemented; validation and execution pending"
+stage: "Bonus candidate validated; protected test owner resolution and bounded provider run in progress"
 gate: Release
 execution_state: VALIDATING
 current_work:
@@ -38,7 +38,7 @@ wip:
 evidence:
   observed_main_commit: "7c030b43b415eaf8567ecb305caa5296b3f37e39"
   current_candidate_commit: null
-  latest_validated_commit: "c33187dbf4e562d6e6f2d8246a97ac3cd48650ee"
+  latest_validated_commit: "c93179379a748cbcd5d7e97ac08026d1d7404dc8"
   latest_deployed_commit: "90c86fd13873b51a9025f4e3481dc594eef95a80"
   latest_runtime_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
   latest_browser_verified_commit: "f48d95090e0271557b43ee3035f01aecd05c243f"
@@ -50,8 +50,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "c33187dbf4e562d6e6f2d8246a97ac3cd48650ee"
-last_updated: "2026-10-19T21:30:38Z"
+last_verified_commit: "c93179379a748cbcd5d7e97ac08026d1d7404dc8"
+last_updated: "2026-10-19T21:36:20Z"
 ---
 
 # STATUS.md
@@ -59,6 +59,25 @@ last_updated: "2026-10-19T21:30:38Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Protected bonus test owner resolution — 20 October 2026 Sydney
+
+PR #651 candidate `c9317937` passed canonical Node 22 validation
+(**867 tests**, 15 provider skips), all **155** browser/accessibility cases,
+and exact-SHA preview health. The protected provider run **39328068718**
+was **BLOCKED before all writes** because `NOCODEBACKEND_CONTRACT_USER_ID`
+was absent. No provider fixture or cleanup was attempted.
+
+The follow-up reuses the existing protected release-account configuration
+when a contract owner ID is absent. It verifies the authenticated session's
+ID and email and signs out before enabling writes. Eleven focused tests
+cover missing configuration, rejected/mismatched sessions, redaction and
+sign-out failure; all pass alongside the fifteen fixture tests locally.
+Canonical acceptance and the next protected execution remain **PENDING**.
+Do not infer that the release-account credentials are configured until that
+worker executes. No separate instance or new database approval is required.
+The source/runtime/user-isolation and historical #165 boundaries remain
+unchanged; public launch remains **NO-GO**.
 
 ### Bounded bonus provider test added to existing PR #651 — 20 October 2026 Sydney
 

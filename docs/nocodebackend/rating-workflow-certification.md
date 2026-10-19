@@ -29,9 +29,16 @@ deletion or history-difference sweep is allowed. Earlier retained QA records
 are never selected for removal.
 
 The workflow first runs canonical validation and verifies the checked-out SHA.
-It requires the existing protected provider configuration and
-`NOCODEBACKEND_CONTRACT_USER_ID` for the designated test account. Missing
-configuration blocks before any provider write. A branch push containing
+It requires the existing protected provider configuration and either
+`NOCODEBACKEND_CONTRACT_USER_ID`, or the existing protected
+`NOCODEBACKEND_AUTH_SECRET_KEY` / `RELEASE_OWNER_EMAIL` /
+`RELEASE_OWNER_PASSWORD` configuration. When the ID is absent, the worker
+signs in through the canonical provider, verifies the resulting session's
+ID and matching email with the application's session parser, and signs out
+before any data write. Cookies and credentials stay in worker memory.
+Rejected, mismatched or unconfirmed sessions block writes; database keys
+are never used as user passwords. Missing both owner configurations blocks
+before any provider write. A branch push containing
 `[connected-bonus-write]` or a manual workflow dispatch requests this bounded
 run under the protected environment. It does not enable the broader isolated
 provider contract or schema mutation. The report contains statuses/counts and
@@ -43,6 +50,26 @@ second-account denial and concurrent atomicity retain their separate release
 checks. Public launch remains NO-GO. Current-instance approval supersedes older
 separate-database prerequisites, while #165 migration and historical recovery
 approval requirements remain intact.
+
+### Executed candidate evidence — 20 October 2026 Sydney
+
+Candidate `c93179379a748cbcd5d7e97ac08026d1d7404dc8` passed canonical
+Node 22 validation: **867 passed, 15 provider-gated skips, zero failures**.
+All **155** browser/accessibility cases passed in
+[run 39328073944](https://github.com/jeremytheva/pourfolio/actions/runs/39328073944).
+Preview `dpl_3LwYfKg2rvKmWrDEZfNfjXXxje4P` is READY and HTTP 200 health
+returned that exact candidate SHA with configured auth/data services.
+The [bounded provider run 39328068718](https://github.com/jeremytheva/pourfolio/actions/runs/39328068718)
+stopped at `RUNTIME_CONFIGURATION_MISSING`, specifically the absent
+`NOCODEBACKEND_CONTRACT_USER_ID`. The guard ran before provider calls:
+**zero data writes**, cleanup NOT_RUN. The retained redacted report is the
+execution evidence; this is not a persistence failure or provider PASS.
+
+The follow-up adds verified release-session owner resolution using existing
+protected account settings. Its eleven focused ownership/credential tests
+and the fifteen fixture tests pass locally (Node 24 diagnostic). Canonical
+validation and the protected execution of this follow-up remain pending.
+No fixture was created by either the first protected run or local tests.
 
 ## Custom bonus point-value persistence verification (PR #651)
 
