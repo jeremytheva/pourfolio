@@ -7,13 +7,13 @@ stage: "Initial source fixes integrated; connected launch gates remain"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Continue #503/#165 connected rating/provider evidence; finish the bounded existing #637 integration independently while preserving Brew launch exclusion."
+  objective: "Continue #503/#165 connected rating/provider evidence after the validated initial source batch; retain privacy/session/cellar certification and Brew launch exclusion."
   issue: 503
   pr: null
   branch: null
 next_actions:
   - "Run #449 guarded connected cellar CRUD/ownership checks only with supported isolated fixtures and verified cleanup; source/runtime-read evidence does not close mutable acceptance."
-  - "Finish existing #637 on the current main baseline with canonical/browser/preview acceptance recorded in its PR; preserve Brew launch exclusion."
+  - "Reconcile #637 final integration/deployment from its PR, then continue the connected launch gates; preserve Brew launch exclusion."
   - "Continue #503 deletion diagnosis only through the active ratings claimant; source repairs do not supersede the retained live failure."
   - "Run supported connected #422 profile privacy/revocation and distinct-account certification; keep unsupported rows pending."
   - "Prepare #165 provider migration, uniqueness, backup/restore and approval evidence without irreversible mutation."
@@ -37,20 +37,20 @@ wip:
 evidence:
   observed_main_commit: "6db82263a6c59fb9f9121af676e25b66b954acaf"
   current_candidate_commit: null
-  latest_validated_commit: "f0e2ac28f63d564c3beb1180c16d264d65eb9f53"
+  latest_validated_commit: "650f1cf3e7525cccbcc21af2b38cf1bfc69dc439"
   latest_deployed_commit: "6db82263a6c59fb9f9121af676e25b66b954acaf"
   latest_runtime_verified_commit: "6db82263a6c59fb9f9121af676e25b66b954acaf"
-  latest_browser_verified_commit: "f0e2ac28f63d564c3beb1180c16d264d65eb9f53"
+  latest_browser_verified_commit: "650f1cf3e7525cccbcc21af2b38cf1bfc69dc439"
 validation:
   governance: PASS
-  lint: NOT_RUN
+  lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: NOT_RUN
-  build: NOT_RUN
-  ci: PENDING
-  runtime: UNVERIFIED
-last_verified_commit: "f0e2ac28f63d564c3beb1180c16d264d65eb9f53"
-last_updated: "2026-10-19T01:02:24Z"
+  tests: PASS
+  build: PASS
+  ci: PASS
+  runtime: VERIFIED
+last_verified_commit: "650f1cf3e7525cccbcc21af2b38cf1bfc69dc439"
+last_updated: "2026-10-19T01:05:53Z"
 ---
 
 # STATUS.md
@@ -72,23 +72,32 @@ Node 22 canonical acceptance (791 passed, 15 provider-gated skips, zero failures
 passed. Preview health matched that exact head. Production deployment
 `dpl_ETrRSQvRryoTHECzTjApovrgAFrS` is READY at the merge SHA; public health and
 readiness matched it with HTTP 200 at approximately 01:01 UTC. These bounded
-read/configuration observations do not certify authenticated writes.
+read/configuration observations do not certify authenticated writes. The exact
+merge independently passed canonical and browser acceptance in run
+[39183390627](https://github.com/jeremytheva/pourfolio/actions/runs/39183390627).
 
 PR #649 merged scoring/readiness contract documentation as `c6bde59a`.
 At this dated snapshot, #637 is the sole ordinary implementation PR; dependency
 PRs #645/#646/#647 are separate. #637's existing six mocked browser regressions
 and recoverable list/options/statistics reads are reconciled onto this main
 baseline, including protection against older responses overwriting newer
-results and validation/normalisation of accepted statistics totals. Its previous
-NOT_RUN PR body is stale: old head `f75bd724` has passing hosted acceptance,
-but the reconciled head requires its own canonical/browser/preview acceptance
-and final review/merge checks, recorded in #637. Brew remains launch-excluded
+results and validation/normalisation of accepted statistics totals. Reconciled source head
+`650f1cf3e7525cccbcc21af2b38cf1bfc69dc439` passed run
+[39183502542](https://github.com/jeremytheva/pourfolio/actions/runs/39183502542):
+canonical Node 22 acceptance (791 passed, 15 provider-gated skips, zero failures),
+149 browser/accessibility cases including all six recovery cases, and Dependency
+Review. CodeQL run `39183502501` passed; READY preview
+`dpl_NPrTZNAiQEHgjLyEYYGrFURaw8BJ` returned HTTP 200 health with that exact SHA.
+There are no unresolved material review threads. The old NOT_RUN PR body has
+been corrected. This final handoff-only follow-up requires its own final-head
+acceptance and integration/deployment result in #637. Brew remains launch-excluded
 and policy-gated; no provider gameplay or isolation acceptance is claimed.
 
-The evidence fields distinguish the latest verified producer source head from
+The evidence fields distinguish the latest verified Brew source head from
 the actual observed production merge SHA. The final launch candidate is not
-frozen, so `current_candidate_commit` remains null. The validation block for
-this follow-up remains pending until its own exact head executes. Catalogue
+frozen, so `current_candidate_commit` remains null. The validation block describes
+the exact source-bearing evidence above; it does not transfer that evidence
+to a later documentation-only head, which has separate acceptance in #637. Catalogue
 owns only STATUS/integration; the bounded Brew claim covers its existing three
 changed source/test/readiness files. No other workstream code or schedules are
 changed.
