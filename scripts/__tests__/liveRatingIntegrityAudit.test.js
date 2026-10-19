@@ -33,3 +33,14 @@ test('unmarked complete ratings remain in both history and live audit eligibilit
   assert.equal(result.contradictoryCompletionCount, 0)
   assert.deepEqual(result.completed, rows.filter(isCompletedRating))
 })
+
+test('completion audit rejects invalid totals and preserves the exact empty-timestamp contract', () => {
+  const rows = [
+    { id: 10, submission_state: 'complete', total_weighted: 0, deleted_at: null },
+    { id: 11, submission_state: 'complete', total_weighted: 5.5, deleted_at: null },
+    { id: 12, submission_state: 'complete', total_weighted: '4.25', deleted_at: '' }
+  ]
+  const result = classifyCompletedRatings(rows)
+  assert.deepEqual(result.completed.map(({ id }) => id), [12])
+  assert.equal(result.contradictoryCompletionCount, 0)
+})
