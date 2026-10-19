@@ -1,4 +1,19 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "cellar-readonly-cert-20261019-1792392149469",
+      "workstream": "catalogue",
+      "issue": 449,
+      "pr": 657,
+      "surfaces": [
+        "scripts/audit-live-cellar-integrity.js",
+        "scripts/__tests__/liveCellarIntegrityAudit.test.js",
+        ".github/workflows/pull-request-validation.yml",
+        "docs/nocodebackend/cellar-workflow-certification.md"
+      ],
+      "acquiredAt": "2026-10-19T06:42:29.469Z",
+      "expiresAt": "2026-10-19T07:22:29.469Z"
+    }
+  }
 }
