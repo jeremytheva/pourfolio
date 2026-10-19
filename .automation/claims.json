@@ -12,7 +12,7 @@
         "runtime:catalogue-qa"
       ],
       "acquiredAt": "2026-10-19T02:03:12.214Z",
-      "expiresAt": "2026-10-19T02:33:12.214Z"
+      "expiresAt": "2026-10-19T02:41:40.621Z"
     },
     "ratings": {
       "owner": "full-rating-test-20261019-1792375392214-ratings",
@@ -21,10 +21,13 @@
       "pr": null,
       "surfaces": [
         "runtime:bonus-qa",
-        "runtime:ratings-qa"
+        "runtime:ratings-qa",
+        "api/bonus-attribute-data-proxy.js",
+        "api/_lib/__tests__/bonusAttributeWorkflow.test.js",
+        "docs/nocodebackend/rating-workflow-certification.md"
       ],
       "acquiredAt": "2026-10-19T02:03:12.214Z",
-      "expiresAt": "2026-10-19T02:33:12.214Z"
+      "expiresAt": "2026-10-19T02:41:40.621Z"
     }
   }
 }
