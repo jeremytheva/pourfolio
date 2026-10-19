@@ -1,5 +1,31 @@
 # Rating workflow staging certification
 
+## Custom bonus point-value persistence verification (PR #651)
+
+Creating a private Overall bonus attribute must not return success on the
+strength of a NoCodeBackend create ID alone. The server reads the saved
+`bonus_attributes` row back before mapping it to Overall or acknowledging
+the requested point value. The persisted ID, account owner, description and
+numeric `point_value` must match the validated request. A wrong/missing
+value fails closed. Best-effort compensation removes the new row only after
+the readback confirms its owner: an unverified ID or read failure must
+**never** trigger deletion of a possibly unrelated account's record.
+
+The historical export contains 82 bonus attributes, of which 81 have null/
+blank `point_value`; the single explicit value is `0.50`. The existing
+legacy `0.2` display/scoring fallback remains intentional for absent stored
+values. This change does **not** invent historical point allocations or
+backfill provider records. Current production data must be re-read before
+any proposed corrective migration.
+
+Connected certification still requires a disposable owner-created attribute
+with a non-default value (for example `0.7`), server write/readback,
+category mapping, rating use, reload, exact provider query, denial from a
+second account, and verified cleanup. A passing source test or preview
+cannot substitute for these provider rows. Any failed readback requiring
+manual cleanup must be reconciled before marking a write run complete.
+
+
 ## Step-by-step acceptance and certification guide
 
 Use the GitHub browser workflow; a local clone is not required. The historical
