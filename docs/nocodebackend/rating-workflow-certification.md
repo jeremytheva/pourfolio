@@ -7,6 +7,25 @@ attempt below is retained as a failed/blocked attempt, not current completion
 evidence. Latest results and remaining boundaries belong in `STATUS.md` and
 the linked pull requests.
 
+### Read-only contradictory deletion child census (PR #655)
+
+A `complete` rating with a nonempty `deleted_at` is excluded from
+personal history and community scoring but is **not** a verified terminal
+deletion. The connected rating audit now scans the full paginated score
+inventory and existing rating-bonus mapping inventory, then reports only
+aggregate counts of contradictory parents, any surviving score/bonus
+children, absent children, mismatched ownership and missing child owners.
+It outputs no rating IDs, user IDs or individual score values.
+
+An empty child census is insufficient to declare delete success; the
+parent still needs a correctly verified terminal lifecycle transition.
+Any surviving children or ownership conflicts require investigation.
+The audit runs with provider writes disabled, records `REVIEW_REQUIRED`
+until the contradiction is resolved, and does **not** perform deletion,
+repair, schema migration or backfill. Governed recovery still requires
+an account-verified read of affected records, documented snapshot/restore,
+rollback/cleanup and appropriate approval before any mutation.
+
 ### 19 October 2026 terminal-delete investigation
 
 A fresh production delete failed at 01:20:27 UTC (12:20:27 Sydney) on
