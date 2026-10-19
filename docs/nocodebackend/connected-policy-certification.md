@@ -20,9 +20,10 @@ get-session and sign-out verifier on pinned public auth release `4019c90e`.
 It uses the release owner and, if configured, distinct other-account
 credentials; configuration reports contain booleans only. Database keys
 are never login passwords. A configured contract user ID cannot substitute
-for session verification. Missing, incomplete, rejected or same-identity
-sessions block before writes; an absent second account leaves its row
-NOT_RUN and the overall result PARTIAL.
+for session verification. Full owner-and-isolation scope requires both accounts; missing, incomplete,
+rejected or same-identity sessions block before writes. The separately guarded
+owner-only scope never attempts the second account and retains its isolation
+row as NOT_RUN and the overall result PARTIAL, even if owner CRUD succeeds.
 
 The checked-out `routeCellarRequest` runs against the real provider in an
 isolated serial worker. The provider adapter permits at most one create,
@@ -45,12 +46,24 @@ full-list/direct absence. Existing and ownerless rows cannot be targets.
 
 This is candidate gateway/persistence/policy evidence, **not** HTTP/session
 middleware or browser-submission certification. Those remain in the existing
-connected-release matrix. Twelve focused regressions cover normal cleanup,
+connected-release matrix. Fifteen focused regressions cover normal cleanup,
 identity/configuration boundaries, replayed/lost create responses, wrong-owner
 readback, update/delete failures, checkpoint failure and a broken policy
-probe. Local diagnostic tests pass; canonical/current-instance outcomes are
-pending and must be recorded from their actual run. No provider request has
-been made by this preparation. Public launch remains NO-GO; the 966 historical
+probe. Local diagnostic tests pass. Initial candidate `f5228dfe` passed **933**
+canonical Node 22 source tests with 15 provider-gated skips. Protected
+[run 39335962848](https://github.com/jeremytheva/pourfolio/actions/runs/39335962848)
+stopped at `CELLAR_SECOND_ACCOUNT_CONFIGURATION_INCOMPLETE`: designated
+owner email/password are configured; second-account password is configured,
+but `RELEASE_OTHER_EMAIL` is absent from that protected configuration.
+**Zero creates, updates or deletes were attempted.** Do not guess an email
+or reinterpret a database credential.
+
+The independent owner-only run uses the explicit
+`[connected-cellar-owner-write]` selector, `owner-crud-only` scope and
+`RUN CURRENT INSTANCE OWNER CELLAR TEST` confirmation. It still runs all
+baseline, receipt, mutation-count and cleanup safeguards. Full scope keeps
+the stricter two-account prerequisite. An owner-only result cannot close
+isolation or HTTP/browser rows; its actual outcome is pending. Public launch remains NO-GO; the 966 historical
 ownerless cellar rows and #165 recovery/migration boundary are unchanged.
 
 ## Retained execution status

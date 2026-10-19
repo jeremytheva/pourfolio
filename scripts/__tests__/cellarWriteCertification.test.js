@@ -1,11 +1,31 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { runCellarWriteCertification } from '../cellar-write-certification-lib.js'
+import { cellarCertificationScope, runCellarWriteCertification } from '../cellar-write-certification-lib.js'
 import { dataProvider } from '../../api/_lib/dataProvider.js'
 import { routeCellarRequest } from '../../api/cellar-data-proxy.js'
 
 const runKey = 'cellar-12345678-1234-1234-1234-123456789abc'
 const marker = `Pourfolio release QA ${runKey}`
+
+test('default full certification blocks incomplete second-account configuration', () => {
+  assert.throws(() => cellarCertificationScope({ CELLAR_CERTIFICATION_SHA: 'c'.repeat(40),
+    CELLAR_CERTIFICATION_CONFIRMATION: 'RUN CURRENT INSTANCE CELLAR TEST',
+    RELEASE_OTHER_PASSWORD: 'private-value' }), { code: 'CELLAR_SECOND_ACCOUNT_CONFIGURATION_INCOMPLETE' })
+})
+
+test('owner-only verification requires its explicit bounded scope and matching confirmation', () => {
+  const environment = { CELLAR_CERTIFICATION_SHA: 'c'.repeat(40), CELLAR_CERTIFICATION_SCOPE: 'owner-crud-only',
+    CELLAR_CERTIFICATION_CONFIRMATION: 'RUN CURRENT INSTANCE OWNER CELLAR TEST' }
+  assert.equal(cellarCertificationScope(environment), 'owner-crud-only')
+  assert.throws(() => cellarCertificationScope({ ...environment,
+    CELLAR_CERTIFICATION_CONFIRMATION: 'RUN CURRENT INSTANCE CELLAR TEST' }), { code: 'CELLAR_EXECUTION_GUARD_MISSING' })
+})
+
+test('full certification requires both supported other-account credential fields', () => {
+  assert.equal(cellarCertificationScope({ CELLAR_CERTIFICATION_SHA: 'c'.repeat(40),
+    CELLAR_CERTIFICATION_CONFIRMATION: 'RUN CURRENT INSTANCE CELLAR TEST',
+    RELEASE_OTHER_EMAIL: 'second@example.invalid', RELEASE_OTHER_PASSWORD: 'private-value' }), 'owner-and-isolation')
+})
 const fixture = (changes = {}) => {
   const rows = [{ id: 5, product_id: 1, user_id: 'owner-a', quantity: 8, notes: 'Existing item' }]
   const calls = []

@@ -15,6 +15,18 @@ const safeCode = (error) => /^[A-Z][A-Z0-9_]{0,79}$/.test(error?.code || '')
   ? error.code : 'CELLAR_CERTIFICATION_FAILED'
 const fingerprint = (row) => JSON.stringify(Object.entries(row || {}).sort(([a], [b]) => a.localeCompare(b)))
 
+export const cellarCertificationScope = (environment) => {
+  const scope = environment.CELLAR_CERTIFICATION_SCOPE || 'owner-and-isolation'
+  const confirmation = scope === 'owner-crud-only'
+    ? 'RUN CURRENT INSTANCE OWNER CELLAR TEST' : 'RUN CURRENT INSTANCE CELLAR TEST'
+  requireThat(['owner-crud-only', 'owner-and-isolation'].includes(scope) &&
+    environment.CELLAR_CERTIFICATION_CONFIRMATION === confirmation &&
+    /^[a-f0-9]{40}$/.test(environment.CELLAR_CERTIFICATION_SHA || ''), 'CELLAR_EXECUTION_GUARD_MISSING')
+  requireThat(scope === 'owner-crud-only' || Boolean(environment.RELEASE_OTHER_EMAIL?.trim()) &&
+    Boolean(environment.RELEASE_OTHER_PASSWORD?.trim()), 'CELLAR_SECOND_ACCOUNT_CONFIGURATION_INCOMPLETE')
+  return scope
+}
+
 // This exercises the checked-out application gateway and real provider. Account
 // identities come from verified release sessions; HTTP/session middleware and
 // browser submission retain their separate connected-release checks.

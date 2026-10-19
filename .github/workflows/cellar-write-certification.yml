@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   certify:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-cellar-write]')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-cellar-write]') || contains(github.event.head_commit.message, '[connected-cellar-owner-write]')
     environment: staging-release
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -38,7 +38,8 @@ jobs:
         run: node scripts/run-cellar-write-certification.js
         env:
           CELLAR_CERTIFICATION_SHA: ${{ github.sha }}
-          CELLAR_CERTIFICATION_CONFIRMATION: RUN CURRENT INSTANCE CELLAR TEST
+          CELLAR_CERTIFICATION_SCOPE: ${{ contains(github.event.head_commit.message, '[connected-cellar-owner-write]') && 'owner-crud-only' || 'owner-and-isolation' }}
+          CELLAR_CERTIFICATION_CONFIRMATION: ${{ contains(github.event.head_commit.message, '[connected-cellar-owner-write]') && 'RUN CURRENT INSTANCE OWNER CELLAR TEST' || 'RUN CURRENT INSTANCE CELLAR TEST' }}
           NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
           NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
