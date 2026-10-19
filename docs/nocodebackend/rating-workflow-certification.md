@@ -65,6 +65,97 @@ manual cleanup must be reconciled before marking a write run complete.
 
 
 
+
+## Connected rating test driver and cleanup identity
+
+The cleanup-guarded release test uses the same seven-card rating journey as
+the current application. Design, Burp and zero-weight manual dimensions are
+explicitly skipped; required dimensions receive 4/7, with each next heading
+awaited. Burp is a 0–1 optional extra, so the old universal `1 out of 7`
+selector could not finish the live form. The final heading is **All bonus
+attributes**, not **Bonus attributes**. The shared driver selects one existing
+bonus descriptor at its stored value and reaches review without creating a
+custom attribute or submitting implicitly. Browser regressions exercise the
+real renderer at default and personalised zero-weight settings.
+
+Before submission, the test requires a successful owner-history baseline.
+It captures the canonical rating ID directly from an HTTP 201 save response,
+requires the expected product, `duplicate: false`, a canonical ID and an ID
+absent from that baseline, then retains it before navigation/history checks.
+A subsequent assertion failure still invokes exact-ID cleanup. Concurrent
+new history entries are never inferred to be this test's deletion targets.
+A replay, pre-existing ID, wrong product, malformed or unconfirmed response
+must not authorise guessed cleanup.
+
+The guarded check now requires HTTP 204 for deletion and repeated deletion,
+then a fresh successful owner-history read excluding the exact test ID.
+It preserves both verification and cleanup errors if both occur. These checks
+do not independently inspect provider parent/child rows or certify atomicity.
+A failed/lost save response may have committed an unidentified partial record;
+that case remains **cleanup UNCONFIRMED**, fails the test and must be inspected
+under the existing provider-safe recovery protocol. No automatic submit retry
+or broad history-difference deletion is allowed.
+
+The explicit `RUN CLEANUP-GUARDED RELEASE WRITES` gate remains unchanged.
+Source and mocked-browser acceptance of this driver are not a connected
+write certificate. The bonus-create cleanup/isolation boundary under #651,
+terminal provider deletion under #165 and historical contradictory row remain
+open. Do not create another production bonus fixture to bypass these gates.
+
+## Full rating journey QA — 19 October 2026
+
+The controlled browser journey used one explicitly disposable tasting of an
+existing beer, with optional Design/Burp skipped, all five required manual
+scores set to 4/7, and six bonus selections worth 2.00 points in total.
+The review and freshly loaded stored breakdown agreed: Bonus 2/2 and
+weighted/standard score 3.07/5. A 1.80-point selection produced Bonus 1/2;
+reselecting the removed 0.2 attribute restored Bonus 2/2.
+
+The new tasting was removed through its exact owner-history row at about
+09:08 UTC (20:08 Sydney). Fresh product reads restored the baseline of
+4 community ratings (3.96/5) and 2 personal ratings (3.94/5), with both
+older personal tastings preserved. A fresh producer profile restored
+16 community and 8 personal completions, with 9 catalogue beers. Revisiting
+the deleted tasting's exact profile link showed the safe unavailable message.
+These are **passing browser observations for this disposable tasting**, not
+independently captured HTTP 204, direct provider terminal-parent/child absence,
+repeat-delete, concurrency or second-account isolation certification. The
+separate contradictory historical deletion finding below remains unresolved.
+
+| Requested step | Observed result |
+| --- | --- |
+| Search for existing or missing beer | Existing beer resolves; unique QA search returns no matches and prefills the missing-beer form. |
+| Add beer and link an existing/new producer | Name/style/ABV/IBU, producer search/new-producer choice, duplicate check and final review work. Final creation NOT_RUN: catalogue fixture cleanup is unavailable. |
+| Edit beer | Correct identity and proposed IBU diff reach review; moderation submission is intentionally disabled. Persistence BLOCKED. |
+| Edit/delete producer; delete beer | No governed application controls/routes exist; NOT_RUN. No catalogue records were created or deleted. |
+| Create bonus attribute | A private QA attribute persisted with description and 0.7 points. The immediate response rendered a blank 0.2 option; a fresh form correctly rendered the stored description and 0.7. PR #651 addresses this response/readback defect. |
+| Stored bonus values and thresholds | Existing global 0.5 and private QA 0.7 render correctly on reload; mixed values total correctly and cross the 2-point threshold. The 81 missing global values remain a separate data-source gap. |
+| Rate, review, save and view breakdown | PASS for this controlled tasting, five manual scores, derived Bonus and all six selected descriptors. |
+| Exact profile link and delete | PASS for selected row, UI removal, fresh aggregate restoration and safe unavailable link; provider terminal/child proof remains pending. |
+| Producer totals after cleanup | PASS: original community/personal counts restored. |
+| Community attribute averages | FAIL on the original source: saved 4/7 scores were visible in the individual breakdown but absent from attribute averages. The unpaged score read is replaced with the existing paged/batched catalogue convention. |
+
+The single private QA bonus attribute remains because the application has no
+owner-scoped bonus deletion control. No additional bonus fixtures were created.
+Do not treat the retained QA attribute or missing catalogue cleanup as a fully
+completed teardown. Do not invent the missing global point values from the
+0.2 fallback or migrate historical/provider records as part of this QA.
+
+The product-attribute source repair must read every score page, scope each
+75-ID batch locally, preserve completed/tombstone filtering and fail on an
+unavailable later page instead of publishing a partial average. Three new
+regressions failed on the original source and pass after correction; a fourth
+preserves incomplete/tombstone exclusion. The focused 10-test Node 24 run is
+diagnostic only. PR #660 final head `f8c08446795c8974ad84db053a32d470cac63013`
+passed canonical Node 22 acceptance (820 passed, 15 gated skips, zero failures),
+all 149 browser/accessibility cases, Dependency Review and CodeQL in run
+39228933739. The merge `f48d95090e0271557b43ee3035f01aecd05c243f` is deployed;
+HTTP 200 health matched it, and a fresh authenticated product read included
+Appearance/Aroma from three scores and Mouthfeel/Flavour/Follow from four,
+preserving the 4-community/2-personal totals and older tastings. This verifies
+the existing provider paged-read integration; it does not close independent
+terminal-write, child-absence, second-account or legacy recovery gates.
+
 ## Step-by-step acceptance and certification guide
 
 Use the GitHub browser workflow; a local clone is not required. The historical
