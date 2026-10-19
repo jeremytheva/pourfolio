@@ -3,20 +3,20 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Tombstone-aware community scoring deployed; one inconsistent provider rating remains for review"
+stage: "Connected audits confirm one incomplete rating deletion and 966 ownerless historical cellar records"
 gate: Release
 execution_state: READY
 current_work:
-  objective: "Safely disposition one contradictory completed/deleted rating, complete connected bonus write and rating/cellar/privacy certification, and retain provider migration gates."
-  issue: 165
-  pr: 651
-  branch: "fix/bonus-point-persistence-readback-20261019"
+  objective: "Certify private cellar and bonus writes while preserving guarded recovery of legacy cellar ownership and incomplete rating deletion."
+  issue: 449
+  pr: 657
+  branch: "fix/cellar-write-persistence-verification-20261019"
 next_actions:
   - "Investigate one persisted rating with submission_state=complete and deleted_at set; obtain verified record/child ownership, backup, rollback and governed approval before any repair."
   - "Complete #651 guarded isolated-staging custom bonus create/readback/owner-isolation/cleanup certification before merge; 81 global bonus point values are absent and cannot be inferred."
   - "Prepare #165 uniqueness, version/conditional update and backup/restore evidence for controlled migration; retain approval boundary."
-  - "Run #449 guarded cellar/catalogue test and #422/#577 distinct-session privacy checks when supported staging fixtures are available."
-  - "Use the deployed #652 commit as the source baseline, retain failing connected data finding as a release gate, and rerun release certification only after verified provider remediation."
+  - "Review #657: new cellar create/edit/delete source checks passed, but connected controlled writes, two-account ownership and safe cleanup are NOT_RUN; obtain isolated fixtures before merge."\n  - "For the 966 ownerless historical cellar rows, establish provenance and a backed-up, reviewed migration or archival decision; do not assign users by inference."\n  - "Run #422/#577 distinct-session privacy and authorization checks when supported staging sessions are available."
+  - "Use merged #656 commit as source baseline; preserve the one incomplete rating deletion and ownerless cellar history findings as explicit data gates."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
@@ -29,15 +29,15 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 1
+  open_implementation_prs: 2
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "85bf9b2a65737ebe76ff2d0e2e94b5b101c0c7b6"
+  observed_main_commit: "81a4dbd0b774ecf8703fe9aae89cf3174c607c74"
   current_candidate_commit: null
   latest_validated_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
-  latest_deployed_commit: "85bf9b2a65737ebe76ff2d0e2e94b5b101c0c7b6"
+  latest_deployed_commit: "81a4dbd0b774ecf8703fe9aae89cf3174c607c74"
   latest_runtime_verified_commit: "2c8d88e8f8d466e8adc26c1a44d5a9814ca18033"
   latest_browser_verified_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
 validation:
@@ -49,7 +49,7 @@ validation:
   ci: FAIL
   runtime: UNVERIFIED
 last_verified_commit: "d233a7e39f7c643df3a04900066d8ba3e8a83c73"
-last_updated: "2026-10-19T03:37:00Z"
+last_updated: "2026-10-19T06:47:00Z"
 ---
 
 # STATUS.md
@@ -57,6 +57,56 @@ last_updated: "2026-10-19T03:37:00Z"
 Last materially reviewed: 19 October 2026 UTC
 
 ## AI execution gate
+
+### Connected cellar inventory and candidate previews — 19 October 2026, 06:47 UTC
+
+Read-only staging-release [run 39211690145](https://github.com/jeremytheva/pourfolio/actions/runs/39211690145)
+inventoried **967 live cellar rows** and **363 product rows**. Exactly
+**966 cellar rows have null/blank `user_id`**, and **one** row is
+owner-scoped. Zero duplicate/invalid cellar IDs, missing product
+references, bad quantities or unsupported gift flags were reported.
+The single owner-scoped cellar row passed an exact-ID GET/readback
+check. This is **`LEGACY_OWNERLESS_PRESENT` / exit 2**, not a fully
+passing cellar release certificate; source and provider reads did not
+mutate data. Missing ownership cannot be inferred or populated from
+historical exports. Determine source provenance and a governed,
+restorable archival or attribution decision before changes.
+
+[PR #657](https://github.com/jeremytheva/pourfolio/pull/657) is open
+and includes cellar create/update/delete persistence checks plus the
+read-only inventory job. At source SHA `987f1644`, Node 22
+`npm run platform:validate` passed **831** tests with **15**
+provider-gated skips, **149** browser/accessibility tests passed,
+CodeQL and Dependency Review passed, and Vercel preview
+`dpl_5hjBGfUyj5ZS9UJspwQywnW2qv5A` is **READY** on the exact
+source SHA. **Connected protected write, cross-account denial and
+cleanup are NOT_RUN**, so do not merge solely from source/preview.
+
+[PR #651](https://github.com/jeremytheva/pourfolio/pull/651)
+is the other open implementation candidate. Its source acceptance
+passed **837** tests, **15** provider-gated skips, browser and
+security checks; the latest-head `f8b354d3` preview
+`dpl_6LXxR4fhY9tPmiHQNKZm8cBe9pqx` is **READY**.
+A connected *read-only* existing private bonus attribute/mapping
+readback passed but the controlled custom-value write, owner isolation
+and cleanup remain **NOT_RUN**. Historical bonus inventory confirms
+**81 missing stored point values**; the source rating spreadsheet
+and historical export do not establish per-attribute values to safely
+backfill.
+
+[PR #656](https://github.com/jeremytheva/pourfolio/pull/656)
+merged to `main` at `81a4dbd0b774ecf8703fe9aae89cf3174c607c74`,
+with a READY deployment
+`dpl_6bD7KeXNcyKyRE9tRuaUSHiGdAtN`. Its connected
+read-only rating audit still found one
+`complete` plus `deleted_at` parent with one surviving
+`rating_scores` child, no bonus child and no cross-owner
+mismatch. No production records were modified. Recovery remains
+gated by #165 provider ownership, backup, isolated restore and
+approved rollback evidence. **Public launch NO-GO.** Continue
+unaffected work rather than treating this as permission for
+unverified provider deletion or historical user attribution.
+
 
 ### Concurrent launch-readiness traceability integration — 19 October 2026, 03:37 UTC
 
