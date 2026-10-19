@@ -20,7 +20,7 @@
     "check:provider-contract-transcript": "node scripts/check-provider-contract-transcript.js",
     "check:package-lock": "node scripts/check-package-lock-contract.js",
     "check:project-docs": "node scripts/check-project-documentation.js",
-    "check:launch-readiness": "node scripts/check-launch-readiness.mjs",
+    "check:launch-readiness": "node scripts/check-launch-readiness.mjs --verify-links",
     "check:status-github": "node scripts/check-status-github-state.js",
     "check:data-contract": "node scripts/check-data-contract.js",
     "check:runtime": "node scripts/check-runtime-contract.js",
