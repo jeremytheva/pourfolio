@@ -9,6 +9,7 @@
       "surfaces": [
         "STATUS.md",
         "api/_lib/__tests__/cellarSchemaContract.test.js",
+        "api/_lib/__tests__/cellarWriteBoundary.test.js",
         "api/_lib/dataPolicy.js",
         "api/nocodebackend/__tests__/cellarOwnership.test.js",
         "docs/LAUNCH_READINESS.md",
@@ -16,7 +17,7 @@
         "repo:integration"
       ],
       "acquiredAt": "2026-10-19T00:28:37.792Z",
-      "expiresAt": "2026-10-19T01:07:48.529Z"
+      "expiresAt": "2026-10-19T01:09:47.422Z"
     }
   }
 }
