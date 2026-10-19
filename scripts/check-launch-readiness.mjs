@@ -43,6 +43,7 @@ export function analyse(manifest, changedPaths=[], events=[]) {
   const all = new Set([...changedPaths]);
   const byId = new Map(manifest.requirements.map(r=>[r.id,r]));
   const impacts = new Map();
+  const unmappedEvents = [];
   function add(id, reason) {
     if (!byId.has(id)) throw Error('unknown requirement_id: ' + id);
     if (!impacts.has(id)) impacts.set(id, new Set());
@@ -55,6 +56,7 @@ export function analyse(manifest, changedPaths=[], events=[]) {
     if (!['defect','feature','test','deployment','scope'].includes(e.type)) throw Error('unknown event type');
     if (!Array.isArray(e.requirement_ids) || !e.requirement_ids.every(nonempty)) throw Error('event requires requirement_ids array');
     const eventRef = nonempty(e.ref) ? ' (' + e.ref + ')' : '';
+    if (e.requirement_ids.length === 0 && (!Array.isArray(e.paths) || e.paths.length === 0)) unmappedEvents.push((e.type || 'event') + eventRef);
     for (const id of e.requirement_ids) add(id,'event: ' + e.type + eventRef);
     for (const file of (e.paths || [])) {
       all.add(file);
@@ -69,8 +71,8 @@ export function analyse(manifest, changedPaths=[], events=[]) {
   });
   const unmapped = [...all].filter(p=>manifest.tracked_roots.some(root=>p===root || p.startsWith(root.endsWith('/')?root:root+'/')) && !manifest.requirements.some(r=>r.change_paths.some(g=>matches(g,p)))).sort();
   return {project:manifest.project,template:manifest.template,readiness_source:manifest.readiness_source,
-    impacted_requirements:requirements,unmapped_tracked_paths:unmapped,
-    review_required:requirements.length>0 || unmapped.length>0,
+    impacted_requirements:requirements,unmapped_tracked_paths:unmapped,unmapped_events:unmappedEvents,
+    review_required:requirements.length>0 || unmapped.length>0 || unmappedEvents.length>0,
     release_authorised:false, note:'Impact classification only. No PASS, GO, deployment or provider verification is inferred.'};
 }
 export function markdown(report) {
@@ -78,6 +80,7 @@ export function markdown(report) {
   if (!report.impacted_requirements.length) lines.push('','No mapped requirements affected by supplied changes/events.');
   for (const r of report.impacted_requirements) lines.push('', '- **' + r.id + '** (' + r.applicability + ', ' + r.criticality + '): ' + r.goal, '  - ' + r.reasons.join('; '), '  - Acceptance and evidence: ' + r.evidence_refs.join(', '));
   if (report.unmapped_tracked_paths.length) lines.push('','**Classification required for unmapped project changes:** ' + report.unmapped_tracked_paths.join(', '));
+  if (report.unmapped_events.length) lines.push('','**Link new issues/defects to launch requirement IDs or record justified exclusion:** ' + report.unmapped_events.join(', '));
   lines.push('','Source of launch decision: ' + report.readiness_source, 'A checked-in PASS or a green PR check is not a release approval.');
   return lines.join('\n');
 }
