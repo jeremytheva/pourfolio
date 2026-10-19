@@ -20,8 +20,8 @@
         "scripts/cleanup-bonus-write-fixture.js",
         "docs/evidence/bonus-fixture-recovery-39329607548.json"
       ],
-      "acquiredAt": "2026-10-19T21:26:25.645Z",
-      "expiresAt": "2026-10-19T22:21:44.990Z"
+      "acquiredAt": "2026-10-19T22:19:07.405Z",
+      "expiresAt": "2026-10-19T22:49:07.405Z"
     },
     "catalogue": {
       "owner": "bonus-provider-test-1792445185645-catalogue",
@@ -31,10 +31,11 @@
       "surfaces": [
         "STATUS.md",
         "repo:integration",
-        "docs/evidence/github-issue-state.json"
+        "docs/evidence/github-issue-state.json",
+        "docs/LAUNCH_READINESS.md"
       ],
-      "acquiredAt": "2026-10-19T21:26:25.645Z",
-      "expiresAt": "2026-10-19T22:21:44.990Z"
+      "acquiredAt": "2026-10-19T22:19:07.405Z",
+      "expiresAt": "2026-10-19T22:49:07.405Z"
     }
   }
 }
