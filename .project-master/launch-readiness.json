@@ -98,7 +98,8 @@
         "scripts/**/liveRating*",
         "scripts/**/live-rating*",
         "scripts/**/*Rating*",
-        "scripts/**/*rating*"
+        "scripts/**/*rating*",
+        "scripts/*Rating*"
       ],
       "test_refs": [
         "e2e/core-flow.spec.js",
@@ -131,7 +132,8 @@
         "scripts/**/*Bonus*",
         "scripts/**/liveBonus*",
         "api/_lib/**/bonus*",
-        "api/_lib/**/Bonus*"
+        "api/_lib/**/Bonus*",
+        "scripts/*Bonus*"
       ],
       "test_refs": [
         "e2e/bonus-attributes.spec.js"
