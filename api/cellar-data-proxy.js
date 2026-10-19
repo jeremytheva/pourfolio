@@ -65,6 +65,46 @@ const hydrateProduct = async (product) => {
   return projectProduct(product, producer, category)
 }
 
+const cellarPersistenceError = (code = 'CELLAR_PERSISTENCE_MISMATCH') => {
+  const error = new Error('The cellar change could not be verified.')
+  error.status = 502
+  error.code = code
+  return error
+}
+
+const cellarFlag = (value) => value === true || value === 1 || value === '1' || value === 'true'
+
+const matchesRequestedCellarValue = (field, actual, expected) => {
+  if (expected === null) return actual === null || actual === undefined || actual === ''
+  if (field === 'gift') return cellarFlag(actual) === cellarFlag(expected)
+  if (field === 'date_received') return typeof actual === 'string' && actual.slice(0, 10) === expected
+  if (['quantity', 'mls', 'purchase_price', 'retail_price'].includes(field)) {
+    return actual !== null && actual !== undefined && String(actual).trim() !== '' &&
+      Number.isFinite(Number(actual)) && Number(actual) === expected
+  }
+  return String(actual ?? '') === String(expected)
+}
+
+// A provider write response can echo the request even if the row was not
+// saved. Verify the persisted private record; never return a fabricated
+// merged object as an acknowledged cellar mutation.
+export const verifyPersistedCellar = async ({ provider = dataProvider, id, userId, expected }) => {
+  if (!/^[1-9]\\d*$/.test(String(id ?? ''))) throw cellarPersistenceError()
+  const stored = await provider.get(COLLECTIONS.cellar, id)
+  if (!stored || String(stored.id) !== String(id) || String(stored.user_id ?? '') !== String(userId)) {
+    throw cellarPersistenceError()
+  }
+  for (const [field, value] of Object.entries(expected)) {
+    if (!matchesRequestedCellarValue(field, stored[field], value)) throw cellarPersistenceError()
+  }
+  return stored
+}
+
+export const verifyCellarRemoved = async ({ provider = dataProvider, id }) => {
+  const persisted = await provider.get(COLLECTIONS.cellar, id)
+  if (persisted !== null && persisted !== undefined) throw cellarPersistenceError('CELLAR_DELETE_NOT_VERIFIED')
+}
+
 export const projectCellarRecord = (record, product = null) => ({
   id: record.id,
   product_id: record.product_id,
@@ -79,7 +119,7 @@ export const projectCellarRecord = (record, product = null) => ({
   series_version_id: record.series_version_id ?? null,
   purchase_location_id: record.purchase_location_id ?? null,
   purchased_by_id: record.purchased_by_id ?? null,
-  gift: Boolean(record.gift),
+  gift: cellarFlag(record.gift),
   gift_from: record.gift_from ?? null,
   bet_id: record.bet_id ?? null,
   notes: record.notes ?? '',
@@ -104,12 +144,18 @@ const createCellar = async (request, response, user) => {
     response.status(404).json({ error: 'Product not found.' })
     return
   }
-  const created = firstRecord(await dataProvider.create(COLLECTIONS.cellar, {
+  const requested = {
     ...input,
     user_id: user.id,
     date_received: input.date_received || new Date().toISOString().slice(0, 10)
-  }))
-  response.status(201).json({ item: projectCellarRecord(created, await hydrateProduct(product)) })
+  }
+  const created = firstRecord(await dataProvider.create(COLLECTIONS.cellar, requested))
+  const stored = await verifyPersistedCellar({
+    id: created?.id,
+    userId: user.id,
+    expected: requested
+  })
+  response.status(201).json({ item: projectCellarRecord(stored, await hydrateProduct(product)) })
 }
 
 const getOwnedCellarRecord = async (id, user) => {
@@ -137,15 +183,20 @@ const updateCellar = async (id, request, response, user) => {
       return
     }
   }
-  const updated = firstRecord(await dataProvider.update(COLLECTIONS.cellar, existing.id, updates))
-  const merged = { ...existing, ...updated }
-  const product = await safeProviderGet(COLLECTIONS.products, merged.product_id)
-  response.status(200).json({ item: projectCellarRecord(merged, await hydrateProduct(product)) })
+  await dataProvider.update(COLLECTIONS.cellar, existing.id, updates)
+  const stored = await verifyPersistedCellar({
+    id: existing.id,
+    userId: user.id,
+    expected: { product_id: existing.product_id, ...updates }
+  })
+  const product = await safeProviderGet(COLLECTIONS.products, stored.product_id)
+  response.status(200).json({ item: projectCellarRecord(stored, await hydrateProduct(product)) })
 }
 
 const deleteCellar = async (id, response, user) => {
   const record = await getOwnedCellarRecord(id, user)
   await dataProvider.remove(COLLECTIONS.cellar, record.id)
+  await verifyCellarRemoved({ id: record.id })
   response.status(204).end()
 }
 
@@ -203,5 +254,7 @@ export const __testables = {
   hydrateProduct,
   sanitiseCellarRequest,
   listCellar,
-  updateCellar
+  updateCellar,
+  createCellar,
+  deleteCellar
 }
