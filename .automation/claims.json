@@ -45,7 +45,9 @@
         "scripts/run-cellar-write-certification.js",
         "scripts/__tests__/cellarWriteCertification.test.js",
         ".github/workflows/cellar-write-certification.yml",
-        "docs/nocodebackend/connected-policy-certification.md"
+        "docs/nocodebackend/connected-policy-certification.md",
+        "scripts/inspect-cellar-write-fixture.js",
+        "scripts/__tests__/cellarFixtureInspection.test.js"
       ],
       "acquiredAt": "2026-10-19T22:28:54.345Z",
       "expiresAt": "2026-10-19T22:58:54.345Z"
