@@ -44,10 +44,11 @@ const diagnosticRead = async (receipt, { fresh, bust, scoped = false }) => {
   const url = new URL(`${baseUrl}/read/cellar${scoped ? '' : `/${encodeURIComponent(receipt.createdId)}`}`)
   url.searchParams.set('Instance', instance)
   if (scoped) {
-    url.searchParams.set('id', receipt.createdId)
     url.searchParams.set('notes', receipt.marker)
     url.searchParams.set('page', '1')
     url.searchParams.set('limit', '100')
+    url.searchParams.set('sort', 'id')
+    url.searchParams.set('order', 'asc')
   }
   if (bust) url.searchParams.set('_', randomUUID())
   const response = await fetch(url, { method: 'GET', redirect: 'error',
@@ -66,7 +67,8 @@ const diagnosticRead = async (receipt, { fresh, bust, scoped = false }) => {
       ? 'ABSENT' : valid && matches.length === 1 ? 'PRESENT' : 'UNCONFIRMED',
     ageSeconds: response.headers.has('age') && Number.isSafeInteger(age) && age >= 0 ? age : null,
     cacheHit: /\bhit\b/i.test([response.headers.get('x-cache'), response.headers.get('cf-cache-status')].join(' ')),
-    responseNoStore: /no-store/i.test(response.headers.get('cache-control') || '') }
+    responseNoStore: /no-store/i.test(response.headers.get('cache-control') || ''),
+    cacheParameterRejected: typeof payload?.error === 'string' && /unknown column\s+['"`]_(?:['"`]|\b)/i.test(payload.error) }
 }
 let report = { version: 1, mode: 'read-only-original-cellar-create-inspection', status: 'BLOCKED',
   createsAttempted: 0, updatesAttempted: 0, deletesAttempted: 0 }
@@ -98,6 +100,7 @@ try {
     diagnosticRead(receipt, { fresh: false, bust: false }),
     diagnosticRead(receipt, { fresh: true, bust: false }),
     diagnosticRead(receipt, { fresh: true, bust: true }),
+    diagnosticRead(receipt, { fresh: true, bust: false, scoped: true }),
     diagnosticRead(receipt, { fresh: true, bust: true, scoped: true })
   ]) : []
   report = { ...inspected.report, sourceCheckpoint, sourceRun, sourceSha, ownerSource: owner.source, authCommit: owner.authCommit,
