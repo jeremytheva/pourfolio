@@ -105,6 +105,17 @@ test('provider failure evidence retains only HTTP status, operation and field ty
   assert.ok(!JSON.stringify(result).includes('private-body'))
 })
 
+test('readback evidence retains field names and bounded counts without private values', async () => {
+  const context = fixture()
+  const report = await context.run({ route: async () => { throw Object.assign(new Error('private-value'), {
+    status: 502, code: 'CELLAR_PERSISTENCE_MISMATCH', mismatchFields: ['quantity', 'gift'],
+    readbackState: 'MISMATCH', readbackAttempts: 6, actual: 'private-value'
+  }) } })
+  assert.deepEqual(report.gatewayFailures, [{ method: 'POST', status: 502, code: 'CELLAR_PERSISTENCE_MISMATCH',
+    mismatchFields: ['gift', 'quantity'], readbackState: 'MISMATCH', readbackAttempts: 6 }])
+  assert.ok(!JSON.stringify(report).includes('private-value'))
+})
+
 test('same-account identity and malformed run keys block before writing', async () => {
   for (const options of [{ otherUserId: 'owner-a' }, { runKey: 'not-a-nonce' }]) {
     const { run, calls } = fixture()

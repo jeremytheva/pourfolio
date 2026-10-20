@@ -196,3 +196,49 @@ test('bounded deletion settlement proves absence with reads and stops on changed
   { code: 'CELLAR_DELETE_NOT_VERIFIED' })
   assert.equal(reads, 1)
 })
+
+test('cellar settlement is limited to six fresh reads and 4.75 seconds of waits', async () => {
+  let reads = 0
+  const waits = []
+  await assert.rejects(verifyPersistedCellar({ provider: { get: async () => {
+    reads += 1
+    return { ...existing, quantity: 2, gift: '0' }
+  } }, id: 54, userId: user.id, expected: { quantity: 5, gift: 1 }, attempts: 6,
+  wait: async (ms) => waits.push(ms) }), (error) => {
+    assert.deepEqual(error.mismatchFields, ['gift', 'quantity'])
+    assert.equal(error.readbackState, 'MISMATCH')
+    assert.equal(error.readbackAttempts, 6)
+    assert.ok(!JSON.stringify(error).includes(user.id))
+    return error.code === 'CELLAR_PERSISTENCE_MISMATCH'
+  })
+  assert.equal(reads, 6)
+  assert.deepEqual(waits, [250, 500, 1_000, 1_500, 1_500])
+  assert.equal(waits.reduce((sum, ms) => sum + ms, 0), 4_750)
+})
+
+test('late stored update and removal can settle on the final bounded read', async () => {
+  let reads = 0
+  const saved = await verifyPersistedCellar({ provider: { get: async () => ({ ...existing,
+    quantity: ++reads === 6 ? 5 : 2 }) }, id: 54, userId: user.id,
+  expected: { quantity: 5 }, attempts: 6, wait: async () => {} })
+  assert.equal(saved.quantity, 5)
+  reads = 0
+  await verifyCellarRemoved({ provider: { get: async () => ++reads === 6 ? null : existing },
+    id: 54, userId: user.id, attempts: 6, wait: async () => {} })
+  assert.equal(reads, 6)
+})
+
+test('invalid settlement limits and provider errors fail without extra reads or waits', async () => {
+  for (const verify of [verifyPersistedCellar, verifyCellarRemoved]) {
+    for (const attempts of [0, 7, 1.5]) {
+      await assert.rejects(verify({ provider: { get: async () => assert.fail('must not read') },
+        id: 54, userId: user.id, expected: {}, attempts, wait: async () => assert.fail('must not wait') }))
+    }
+    const failure = Object.assign(new Error('provider unavailable'), { code: 'PROVIDER_ERROR' })
+    let reads = 0
+    await assert.rejects(verify({ provider: { get: async () => { reads += 1; throw failure } },
+      id: 54, userId: user.id, expected: {}, attempts: 6, wait: async () => assert.fail('must not wait') }),
+    (error) => error === failure)
+    assert.equal(reads, 1)
+  }
+})

@@ -3,16 +3,16 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Fixture cleanup verified; certify fresh cellar readback"
+stage: "Fixture cleanup verified; certify bounded cellar readback"
 gate: Release
 execution_state: VALIDATING
 current_work:
-  objective: "Certify the corrected fresh-read cellar lifecycle with one new bounded fixture after exact inspection proved the previous fixture absent."
+  objective: "Certify a six-read bounded cellar lifecycle after receipt-bound inspection proved every earlier fixture absent."
   issue: 449
   pr: 657
   branch: "fix/cellar-write-persistence-verification-20261019"
 next_actions:
-  - "Run the corrected fresh-read cellar candidate once with a new bounded owner fixture and prove create/reload/edit/gift/null defaults plus exact cleanup."
+  - "Validate and run the six-read cellar candidate once with a new bounded owner fixture; prove create/reload/edit/gift/null defaults and exact cleanup."
   - "Validate the current candidate, verify its exact preview and integrate only when source/provider/runtime evidence supports this bounded correction."
   - "Complete #577 distinct-account checks after supported RELEASE_OTHER_EMAIL configuration is established; do not guess an identity or reuse a database key as a password."
   - "Complete bonus HTTP/browser/rating-use acceptance separately from verified persistence/reload/cleanup; do not guess 81 absent values."
@@ -36,10 +36,10 @@ wip:
 evidence:
   observed_main_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   current_candidate_commit: null
-  latest_validated_commit: "644decf506e598c0ccefa264f67f78684e4481c1"
+  latest_validated_commit: "b2a8324e69e0dcfd9eb7aebae01bba7c08916752"
   latest_deployed_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   latest_runtime_verified_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
-  latest_browser_verified_commit: "d3833cd0304520b6ac820a1beac0d24562335157"
+  latest_browser_verified_commit: "b2a8324e69e0dcfd9eb7aebae01bba7c08916752"
 validation:
   governance: PASS
   lint: PASS
@@ -48,8 +48,8 @@ validation:
   build: PASS
   ci: PENDING
   runtime: UNVERIFIED
-last_verified_commit: "644decf506e598c0ccefa264f67f78684e4481c1"
-last_updated: "2026-10-20T04:39:35Z"
+last_verified_commit: "b2a8324e69e0dcfd9eb7aebae01bba7c08916752"
+last_updated: "2026-10-20T04:56:59.826Z"
 ---
 
 # STATUS.md
@@ -58,36 +58,42 @@ Last materially reviewed: 20 October 2026 UTC
 
 ## AI execution gate
 
-### Cellar create/readback correction; prior fixture cleanup verified — 20 October 2026 Sydney
+### Cellar readback failure isolated; earlier fixtures absent — 20 October 2026 Sydney
 
-Existing PR #657 is reconciled with main `36ce8ffe`. The server now uses the
-same launch write projection as the client; unavailable lookup fields are
-omitted, lookup-only updates fail before mutation and existing links are not
-cleared. The observed provider field `series_edition_id` is recorded; the
-reference/domain `series_version_id` stays capability-gated.
+Existing PR #657 remains the single ordinary implementation PR on main
+`36ce8ffe`. Client/server write projection now agrees, unavailable lookup
+fields are omitted and the observed provider `series_edition_id` is recorded
+without enabling the reference/domain relationship.
 
-The original unacknowledged attempt left no new row. The next candidate
-`f778c2cb` passed **946** source tests (15 skips), then verified create,
-independent reload and nullable defaults. Its one edit and one DELETE had
-unconfirmed immediate readback. Receipt-bound read-only
-[run 39370389884](https://github.com/jeremytheva/pourfolio/actions/runs/39370389884)
-at `644decf5` passed **947** source tests, then proved exact fixture absence
-through normal/uncached direct, full and scoped reads. **No repeat DELETE;
-no fixture from that attempt remains.** The edit outcome is unverified, and
-the provider's delay mechanism remains unproven.
+Candidate `b2a8324e` passed **951** canonical Node 22 source tests (15 gated
+skips), all **155** browser/accessibility cases, Dependency Review and CodeQL.
+Its guarded [run 39370740463](https://github.com/jeremytheva/pourfolio/actions/runs/39370740463)
+passed create, independent reload and nullable defaults. Update and DELETE
+immediate readback still failed despite fresh-read directives and three
+reads. **One create/update/delete, no repeated mutation.**
 
-The current candidate requests fresh upstream reads and allows only three
-bounded readback attempts (100/200 ms intervals), without mutation retries.
-Wrong owner/ID and provider errors stop immediately. Its source/live acceptance
-is pending. The next guarded run may create/update/delete exactly one new
-fixture and must independently prove cleanup. Details and earlier failed
-attempts are retained in the existing
+Receipt-bound read-only [run 39371496379](https://github.com/jeremytheva/pourfolio/actions/runs/39371496379)
+at `cc441cf4` proved `ACKNOWLEDGED_FIXTURE_ABSENT`: normal/fresh exact
+reads, full lists and marker queries agree; zero new IDs outside the baseline.
+The preceding fixture was also proved absent. **No fixture from these
+attempts remains; neither DELETE was repeated.** Edit persistence is not
+proven. The provider's delay mechanism is unknown. The collection API rejects
+the diagnostic `_` query parameter, so it is not a runtime workaround.
+
+The current correction permits six fresh reads with at most **4.75 seconds**
+of deliberate waiting, within the existing 12-second client timeout budget.
+Wrong owner/ID and provider errors stop immediately; writes remain single
+attempt. Safe failure evidence records mismatched field names, read counts
+and gateway timings, never private values. **61 focused checks pass**;
+canonical and connected acceptance of this change are pending. The next
+guarded test uses one new random private fixture only after the earlier
+absence proof. Details remain in the existing
 [policy certification record](docs/nocodebackend/connected-policy-certification.md).
 
-The second account's password is configured but `RELEASE_OTHER_EMAIL` is
-absent. A/B HTTP/browser certification remains NOT_RUN. Main/production
-remain `36ce8ffe`; historical ownership, rating recovery and #165 migration
-are unchanged. Public launch remains **NO-GO**.
+`RELEASE_OTHER_EMAIL` is absent from the protected environment; distinct-
+account HTTP/browser acceptance remains NOT_RUN. Main/production are
+`36ce8ffe`; historical ownerless rows, rating recovery and #165 migration
+remain untouched. Public launch is **NO-GO**.
 
 ### Bonus release deployed and bounded production checks verified — 20 October 2026 Sydney
 
@@ -134,10 +140,8 @@ historical contradictory completed/deleted parent with **one surviving score
 child**. Frontmatter `ci: FAIL` records that provider finding independently
 of passing source checks. No repair was attempted.
 
-Existing [PR #657](https://github.com/jeremytheva/pourfolio/pull/657) is the
-single ordinary implementation PR, at `17c21767`; reconcile it with this
-main and obtain current-candidate provider/runtime evidence. Dependency PRs
-#645–#647 are separate. The earlier manual QA bonus, absent values,
+Existing PR #657 is the single ordinary implementation PR; its current state
+is recorded in the execution handoff above. Dependency PRs #645–#647 are separate. The earlier manual QA bonus, absent values,
 historical rating contradiction and **966 ownerless cellar rows** remain
 outside the completed fixture scope. Bonus HTTP/browser creation/rating use,
 distinct-account denial and concurrency remain open. Public launch is

@@ -15,6 +15,8 @@ const requireThat = (condition, code) => {
 const safeCode = (error) => /^[A-Z][A-Z0-9_]{0,79}$/.test(error?.code || '')
   ? error.code : 'CELLAR_CERTIFICATION_FAILED'
 const fingerprint = (row) => JSON.stringify(Object.entries(row || {}).sort(([a], [b]) => a.localeCompare(b)))
+const CELLAR_DIAGNOSTIC_FIELDS = new Set(['product_id', 'user_id', 'quantity', 'mls', 'container',
+  'purchase_price', 'retail_price', 'date_received', 'gift', 'gift_from', 'notes'])
 
 export const cellarCertificationScope = (environment) => {
   const scope = environment.CELLAR_CERTIFICATION_SCOPE || 'owner-and-isolation'
@@ -109,7 +111,7 @@ export const runCellarWriteCertification = async ({ provider = dataProvider, use
     giftRoundTrip: 'NOT_RUN', otherOwnerPolicy: 'NOT_RUN', cleanup: 'NOT_RUN',
     httpSessionMiddleware: 'NOT_RUN', browserSubmission: 'NOT_RUN',
     createsAttempted: 0, updatesAttempted: 0, deletesAttempted: 0, removed: 0,
-    gatewayFailures: []
+    gatewayFailures: [], gatewayTimings: []
   }
   const original = { ...dataProvider }
   const raw = { ...provider }
@@ -128,6 +130,7 @@ export const runCellarWriteCertification = async ({ provider = dataProvider, use
     deletesAttempted: report.deletesAttempted })
   const call = async (method, user, id = null, body = undefined) => {
     activeUser = user
+    const started = performance.now()
     const reply = { statusCode: null, body: null,
       status(code) { this.statusCode = code; return this },
       json(value) { this.body = value; return this }, end() { return this } }
@@ -147,9 +150,17 @@ export const runCellarWriteCertification = async ({ provider = dataProvider, use
       if (/^[a-z_][a-z0-9_]*:(?:null|array|object|string|number|boolean)(?:,[a-z_][a-z0-9_]*:(?:null|array|object|string|number|boolean))*$/.test(error.providerRequestShape || '')) {
         failure.providerRequestShape = error.providerRequestShape
       }
+      if (Array.isArray(error.mismatchFields) && error.mismatchFields.every((field) => CELLAR_DIAGNOSTIC_FIELDS.has(field))) {
+        failure.mismatchFields = [...new Set(error.mismatchFields)].sort()
+      }
+      if (['ABSENT', 'MISMATCH', 'PRESENT'].includes(error.readbackState)) failure.readbackState = error.readbackState
+      if (Number.isSafeInteger(error.readbackAttempts) && error.readbackAttempts >= 1 && error.readbackAttempts <= 6) {
+        failure.readbackAttempts = error.readbackAttempts
+      }
       if (user === userId) report.gatewayFailures.push(failure)
       return failure
     } finally {
+      if (user === userId) report.gatewayTimings.push({ method, elapsedMs: Math.round(performance.now() - started) })
       activeUser = null
     }
     return { status: reply.statusCode, body: reply.body }

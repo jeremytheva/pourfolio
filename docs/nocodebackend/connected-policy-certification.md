@@ -1,76 +1,65 @@
 # Connected provider policy certification
 
-## Fresh-header test still fails immediate readback; latest exact fixture inspection
+## Current cellar readback acceptance — 20 October 2026 Sydney
 
-[Run 39370740463](https://github.com/jeremytheva/pourfolio/actions/runs/39370740463)
-at `b2a8324e` passed **951** source tests (15 skips). Create, reload and
-nullable defaults passed, but one update and one DELETE again failed immediate
-verification even with standard fresh-read directives and bounded reads.
-**One create/update/delete; no mutation retry; latest cleanup UNCONFIRMED.**
-The fresh headers did not establish read-your-writes acceptance.
+This is candidate gateway/provider evidence, not HTTP/session-middleware or
+browser-submission certification. Earlier attempt narratives below are dated
+history; the scoped outcome here supersedes their pending statements.
 
-The next operation is read-only, explicitly bound to that attempt's encrypted
-receipt artifact `12241600938`. It compares exact normal/fresh direct and
-full/scoped reads and retains only safe HTTP/cache flags. One additional
-`_` query variant on each existing GET route probes whether a unique read URL
-is accepted and changes the observed state; this is a bounded read capability
-probe, not a deployed workaround or evidence that the provider documents
-cache invalidation. No schema, permissions, credentials or mutable endpoints
-are changed. Do not retry writes until exact fixture absence is established.
+Candidate `b2a8324e69e0dcfd9eb7aebae01bba7c08916752` passed **951**
+canonical Node 22 source tests (15 skips), all **155** browser/accessibility
+cases, Dependency Review and CodeQL. Protected
+[run 39370740463](https://github.com/jeremytheva/pourfolio/actions/runs/39370740463)
+passed create, independent reload and nullable defaults. One update returned
+`CELLAR_PERSISTENCE_MISMATCH`; one DELETE returned
+`CELLAR_DELETE_NOT_VERIFIED`. Standard no-cache headers and three reads
+with 100/200 ms waits did not establish immediate read-your-writes acceptance.
 
-## Acknowledged fixture absence verified; fresh readback correction
+Exact receipt artifact `12241600938` bound the later read-only inspection to
+the original owner, acknowledged new ID, random marker, product, baseline
+and one-create/one-update/one-delete counts.
+[Run 39371496379](https://github.com/jeremytheva/pourfolio/actions/runs/39371496379)
+at `cc441cf4d77959007f0ad8f4fb9ed37f0b1f59f5` proved
+`ACKNOWLEDGED_FIXTURE_ABSENT`. Normal/fresh direct reads returned absence;
+full and exact-marker reads found zero matches and zero new IDs outside the
+baseline. **The DELETE took effect; it was not repeated. No fixture from
+this attempt remains.** Update persistence cannot be reconstructed after
+deletion and remains unverified.
 
-Read-only [run 39370389884](https://github.com/jeremytheva/pourfolio/actions/runs/39370389884)
-at `644decf5` passed **947** canonical Node 22 tests with 15 gated skips.
-The recovered final receipt matched the exact source/owner, acknowledged new
-ID and one-create/one-update/one-delete counts. Normal and uncached direct
-reads, full lists and the exact-marker query all found the fixture absent:
-`ACKNOWLEDGED_FIXTURE_ABSENT`, zero matching markers and zero new IDs outside
-the pre-write baseline. **The previous DELETE took effect. No repeat mutation
-was made; no fixture from that attempt remains.** Its update result cannot
-be reconstructed after deletion and remains unverified.
+The preceding `f778c2cb` attempt likewise passed create/reload/defaults but
+failed immediate update/delete readback. Receipt-bound
+[run 39370389884](https://github.com/jeremytheva/pourfolio/actions/runs/39370389884)
+at `644decf5` proved its exact fixture absent with zero matching markers
+and zero new IDs. No repeated DELETE or residual fixture.
 
-The application now explicitly requests fresh provider reads for cellar
-ownership, listing and mutation verification, using `cache: no-store` and
-standard no-cache request directives. The adapter's ordinary defaults and
-other consumers remain unchanged. Freshness survives exact-read 404 fallback
-and paginated evidence reads. Each create/update/delete is still sent once.
-Only successful readbacks of the same owner/ID may settle over at most
-three reads with 100/200 ms intervals; changed ownership/ID and provider
-errors stop immediately. Missing or unchanged values never become success.
+The bounded cache-capability probe used only GET requests. Ordinary and fresh
+direct reads agreed on absence; a known-good fresh scoped query returned 200.
+Adding `_` to that same collection query returned 500/unknown column.
+**Do not use this rejected parameter as a runtime cache workaround.** No
+cache-hit, age or no-store response evidence established an underlying cache,
+replication or commit-delay mechanism. Provider cause remains unproven.
 
-Four new regressions cover read freshness/default isolation, fallback,
-read-only update settlement and exact deletion/changed-owner handling.
-The preceding delayed readbacks are observed facts; the provider's underlying
-cache/replication/commit mechanism is not proven. A fresh bounded owner-only
-lifecycle test on this corrected candidate is pending. Its new random fixture
-does not retry the prior mutations, and the older fixture's absence was
-established before requesting it.
+### Six-read correction awaiting connected acceptance
 
-## Corrected owner attempt: create/reload passed; update/delete readback unresolved
+The candidate now permits at most six fresh reads, waiting
+250/500/1000/1500/1500 ms (**4.75 seconds total**) rather than only 300 ms.
+The browser timeout remains 12 seconds; the waiting bound leaves room for
+network/authentication/hydration but does not guarantee an end-to-end deadline.
+Wrong owner/ID and provider errors stop immediately. Missing or unchanged
+values never become success. Each create/update/delete is still sent once.
 
-[Run 39369876936](https://github.com/jeremytheva/pourfolio/actions/runs/39369876936)
-at `f778c2cb` passed **946** canonical Node 22 source tests with 15 gated
-skips, then created one private new fixture through the corrected client/server
-projection. **Create PASS, independent reload PASS, nullable defaults PASS.**
-One update was attempted, but immediate readback returned
-`CELLAR_PERSISTENCE_MISMATCH`. Exact cleanup attempted one DELETE, but its
-immediate readback returned `CELLAR_DELETE_NOT_VERIFIED`.
-**One create, one update, one delete; no mutation retry.**
-Cleanup remains UNCONFIRMED, not inferred from the delete request.
+Safe failure evidence retains only allowlisted mismatched field names,
+bounded read counts, readback state and gateway elapsed milliseconds. No
+stored/requested private values or identifiers enter the plain report.
+**61 focused checks pass**, including final-read settlement, total waits,
+invalid limits, immediate provider-error failure and diagnostic redaction.
+Canonical validation and one new guarded owner-only fixture test are pending.
+Earlier fixture absence is established before requesting that test; it is
+not a retry of an earlier mutation.
 
-The encrypted final receipt now contains an acknowledged new ID and exact
-mutation counts. The read-only inspector is explicitly bound to artifact
-`12240937440` from that run and source SHA. It supports only the authenticated
-final checkpoint with matching summary counts, baseline exclusion and unchanged
-owner/product/random marker. Known-ID absence requires uncached direct, full
-and scoped reads; normal read disagreement is retained. A present fixture
-still requires exact nonce/list/direct agreement. All mutations remain disabled.
-No new fixture or repeat DELETE is requested.
-
-This evidence establishes an immediate readback failure, not whether the edit
-persisted or the delete took effect. The new read-only result is pending.
-Historical records and second-account certification remain outside scope.
+Distinct-account acceptance is separate: `RELEASE_OTHER_EMAIL` is absent.
+Historical ownerless rows, canonical catalogue writes and #165 migration are
+not changed. Public launch remains **NO-GO**.
 
 ## Original cellar create failure inspection — 20 October 2026 Sydney
 

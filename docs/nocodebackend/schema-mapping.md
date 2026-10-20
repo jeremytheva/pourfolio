@@ -307,10 +307,12 @@ inputs; non-null inputs fail before provider mutation. This does not clear
 existing provider relationships. A partial update with no supported field
 after projection returns HTTP 400. Nullable API presentation is retained.
 Cellar ownership, list and persistence/deletion verification request fresh
-upstream reads. Mutation verification permits at most three read attempts
-with 100/200 ms intervals, without repeating a create/update/delete. Changed
-ownership/ID and provider errors fail immediately. Ordinary adapter read
-defaults are preserved for other consumers.
+upstream reads. Mutation verification permits at most six read attempts
+with 250/500/1000/1500/1500 ms intervals (4.75 seconds of waits), without
+repeating a create/update/delete. Changed ownership/ID and provider errors
+fail immediately. Plain diagnostics retain field names/counts/state/timing,
+never private values. Ordinary adapter read defaults are preserved for other
+consumers. Connected acceptance of this settlement window is still pending.
 
 Enabling a real edition/location/person relationship remains separate
 provider/ownership certification; no column, historical row or schema is

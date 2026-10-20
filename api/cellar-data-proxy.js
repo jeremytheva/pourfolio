@@ -71,15 +71,20 @@ const hydrateProduct = async (product) => {
   return projectProduct(product, producer, category)
 }
 
-const cellarPersistenceError = (code = 'CELLAR_PERSISTENCE_MISMATCH') => {
+const cellarPersistenceError = (code = 'CELLAR_PERSISTENCE_MISMATCH', details = {}) => {
   const error = new Error('The cellar change could not be verified.')
   error.status = 502
   error.code = code
+  Object.assign(error, details)
   return error
 }
 
 const cellarFlag = (value) => value === true || value === 1 || value === '1' || value === 'true'
 const pauseReadback = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+const CELLAR_READBACK_ATTEMPTS = 6
+// At most 4.75 seconds of deliberate waiting; leave room inside the client's
+// 12-second timeout for authentication, provider requests and product hydration.
+const cellarReadbackDelay = (attempt) => Math.min(250 * (2 ** attempt), 1_500)
 
 const matchesRequestedCellarValue = (field, actual, expected) => {
   if (expected === null) return actual === null || actual === undefined || actual === ''
@@ -98,32 +103,37 @@ const matchesRequestedCellarValue = (field, actual, expected) => {
 export const verifyPersistedCellar = async ({ provider = dataProvider, id, userId, expected,
   attempts = 1, wait = pauseReadback }) => {
   if (!/^[1-9]\d*$/.test(String(id ?? ''))) throw cellarPersistenceError()
-  if (!Number.isSafeInteger(attempts) || attempts < 1 || attempts > 3) throw cellarPersistenceError()
+  if (!Number.isSafeInteger(attempts) || attempts < 1 || attempts > CELLAR_READBACK_ATTEMPTS) throw cellarPersistenceError()
+  let mismatchFields = []
+  let readbackState = 'ABSENT'
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const stored = await provider.get(COLLECTIONS.cellar, id, { fresh: true })
     if (stored && (String(stored.id) !== String(id) || String(stored.user_id ?? '') !== String(userId))) {
       throw cellarPersistenceError()
     }
-    if (stored && Object.entries(expected).every(([field, value]) => matchesRequestedCellarValue(field, stored[field], value))) {
-      return stored
-    }
-    if (attempt + 1 < attempts) await wait(100 * (attempt + 1))
+    mismatchFields = stored ? Object.entries(expected)
+      .filter(([field, value]) => !matchesRequestedCellarValue(field, stored[field], value))
+      .map(([field]) => field).sort() : []
+    if (stored && mismatchFields.length === 0) return stored
+    readbackState = stored ? 'MISMATCH' : 'ABSENT'
+    if (attempt + 1 < attempts) await wait(cellarReadbackDelay(attempt))
   }
-  throw cellarPersistenceError()
+  throw cellarPersistenceError('CELLAR_PERSISTENCE_MISMATCH', { mismatchFields, readbackState, readbackAttempts: attempts })
 }
 
 export const verifyCellarRemoved = async ({ provider = dataProvider, id, userId,
   attempts = 1, wait = pauseReadback }) => {
-  if (!Number.isSafeInteger(attempts) || attempts < 1 || attempts > 3) throw cellarPersistenceError('CELLAR_DELETE_NOT_VERIFIED')
+  if (!/^[1-9]\d*$/.test(String(id ?? '')) || !Number.isSafeInteger(attempts) ||
+      attempts < 1 || attempts > CELLAR_READBACK_ATTEMPTS) throw cellarPersistenceError('CELLAR_DELETE_NOT_VERIFIED')
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const persisted = await provider.get(COLLECTIONS.cellar, id, { fresh: true })
     if (persisted === null || persisted === undefined) return
     if (String(persisted.id) !== String(id) || userId !== undefined && String(persisted.user_id ?? '') !== String(userId)) {
       throw cellarPersistenceError('CELLAR_DELETE_NOT_VERIFIED')
     }
-    if (attempt + 1 < attempts) await wait(100 * (attempt + 1))
+    if (attempt + 1 < attempts) await wait(cellarReadbackDelay(attempt))
   }
-  throw cellarPersistenceError('CELLAR_DELETE_NOT_VERIFIED')
+  throw cellarPersistenceError('CELLAR_DELETE_NOT_VERIFIED', { readbackState: 'PRESENT', readbackAttempts: attempts })
 }
 
 export const projectCellarRecord = (record, product = null) => ({
@@ -175,7 +185,7 @@ const createCellar = async (request, response, user) => {
     id: created?.id,
     userId: user.id,
     expected: requested,
-    attempts: 3
+    attempts: CELLAR_READBACK_ATTEMPTS
   })
   response.status(201).json({ item: projectCellarRecord(stored, await hydrateProduct(product)) })
 }
@@ -210,7 +220,7 @@ const updateCellar = async (id, request, response, user) => {
     id: existing.id,
     userId: user.id,
     expected: { product_id: existing.product_id, ...updates },
-    attempts: 3
+    attempts: CELLAR_READBACK_ATTEMPTS
   })
   const product = await safeProviderGet(COLLECTIONS.products, stored.product_id)
   response.status(200).json({ item: projectCellarRecord(stored, await hydrateProduct(product)) })
@@ -219,7 +229,7 @@ const updateCellar = async (id, request, response, user) => {
 const deleteCellar = async (id, response, user) => {
   const record = await getOwnedCellarRecord(id, user)
   await dataProvider.remove(COLLECTIONS.cellar, record.id)
-  await verifyCellarRemoved({ id: record.id, userId: user.id, attempts: 3 })
+  await verifyCellarRemoved({ id: record.id, userId: user.id, attempts: CELLAR_READBACK_ATTEMPTS })
   response.status(204).end()
 }
 
