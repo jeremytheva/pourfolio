@@ -40,7 +40,7 @@ wip:
 evidence:
   observed_main_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   current_candidate_commit: null
-  latest_validated_commit: "fd9ee4f3a6ed9e92014f54f06962b97820de88e0"
+  latest_validated_commit: "88d07698d25d163d434dcf5fc094cdcbe3fa9727"
   latest_deployed_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   latest_runtime_verified_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   latest_browser_verified_commit: "fd9ee4f3a6ed9e92014f54f06962b97820de88e0"
@@ -52,8 +52,8 @@ validation:
   build: PASS
   ci: PENDING
   runtime: UNVERIFIED
-last_verified_commit: "fd9ee4f3a6ed9e92014f54f06962b97820de88e0"
-last_updated: "2026-10-20T05:21:11Z"
+last_verified_commit: "88d07698d25d163d434dcf5fc094cdcbe3fa9727"
+last_updated: "2026-10-20T05:25:40Z"
 ---
 
 # STATUS.md
@@ -84,7 +84,12 @@ Independent exact parent/score/bonus-child absence remains **PENDING**.
 A new opt-in read-only protected checker authenticates the normal release
 owner against pinned runtime `36ce8ffe`, disables all provider mutations,
 compares direct/full/scoped reads and verifies the unchanged old baseline.
-Seven focused regressions pass. It must not infer absence from the UI alone
+The first inspection at `88d07698` passed 962 source tests, found zero score/
+bonus children, but failed owner binding: the protected release account is
+not the browser account. No data was changed. The corrected inspector binds
+the observed signed-in public-profile link by SHA-256 fingerprint to one
+stored profile and agreeing fresh direct read, without publishing either
+profile/owner ID or substituting an account. Nine focused regressions pass. It must not infer absence from the UI alone
 or alter the unrelated historical #165 contradiction. Details are in the
 [existing rating guide](docs/nocodebackend/rating-workflow-certification.md).
 

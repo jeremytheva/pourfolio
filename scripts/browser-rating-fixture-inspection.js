@@ -1,4 +1,6 @@
+import { createHash } from 'node:crypto'
 import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../src/data/contract.js'
+import { parsePublicProfileId } from '../api/_lib/profileStore.js'
 import { completedRatingTotal } from '../src/lib/completedRatingContract.js'
 import { readAllBonusCertificationRows } from './bonus-write-certification-lib.js'
 
@@ -15,6 +17,26 @@ const roundedTotal = (row) => {
 }
 const terminalSignature = (row) => JSON.stringify(['id', 'user_id', 'product_id',
   'submission_state', 'submission_version', 'deleted_at', 'date_rated'].map((key) => String(row?.[key] ?? '')))
+
+// The browser account need not be the configured release-test account. Bind
+// its observed public profile link to one stored profile and a fresh direct
+// read; keep the public identifier and private owner ID out of plain reports.
+export const resolveBrowserRatingOwner = async ({ provider, publicProfileFingerprint }) => {
+  requireThat(/^[a-f0-9]{64}$/.test(publicProfileFingerprint || ''), 'RATING_UI_PROFILE_BINDING_UNCONFIRMED')
+  const profiles = await readAllBonusCertificationRows({ listPage: (collection, options) =>
+    provider.listPage(collection, { ...options, fresh: true }) }, COLLECTIONS.profiles)
+  const matches = profiles.filter((row) => typeof row.public_id === 'string' &&
+    createHash('sha256').update(row.public_id).digest('hex') === publicProfileFingerprint)
+  requireThat(matches.length === 1 && idOf(matches[0].id) &&
+    parsePublicProfileId(matches[0].public_id) === matches[0].public_id &&
+    typeof matches[0].user_id === 'string' && matches[0].user_id.trim() === matches[0].user_id && matches[0].user_id.length > 0,
+  'RATING_UI_PROFILE_BINDING_UNCONFIRMED')
+  const profile = matches[0]
+  const direct = await provider.get(COLLECTIONS.profiles, profile.id, { fresh: true })
+  requireThat(direct && same(direct.id, profile.id) && direct.public_id === profile.public_id &&
+    direct.user_id === profile.user_id, 'RATING_UI_PROFILE_BINDING_UNCONFIRMED')
+  return { id: profile.user_id, source: 'observed-browser-public-profile-link' }
+}
 
 // Read-only evidence for one browser-created fixture. This does not authorise
 // cleanup, infer an unknown create acknowledgement, or repair historical data.

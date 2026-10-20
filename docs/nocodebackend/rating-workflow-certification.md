@@ -28,15 +28,26 @@ creation, A/B denial, concurrency and #165 historical repair remain separate.
 
 The new read-only inspection is bound to this acknowledged UI fixture,
 original owner baseline, product, date, expected total and exact runtime.
-It authenticates the normal release owner with the existing protected
-configuration, disables create/update/compare-and-set/delete methods, and
+It verifies the target with the normal protected release session, then binds
+the actual browser owner through a SHA-256 fingerprint of the public-profile
+link observed on that signed-in owner's profile. Exactly one full-list
+profile and an agreeing fresh direct profile read must resolve the same owner.
+No account identifier is guessed or published. It disables
+create/update/compare-and-set/delete methods, and
 compares fresh direct/full parent reads, full/paged child inventories and
 scoped child queries. Only absent parent or an exact owner/product-matched
 valid terminal tombstone with **zero** score/bonus children can pass.
 Older owner totals and community/personal counts must match the baseline.
 No arbitrary history-difference cleanup is enabled. Reports contain only
 safe states/counts/commits, never owner IDs, email, cookies or private rows.
-Seven focused regressions pass; canonical/protected results are pending.
+The first [read-only run 39374455471](https://github.com/jeremytheva/pourfolio/actions/runs/39374455471)
+at `88d07698` passed **962** canonical source tests (15 skips), found **zero**
+score and bonus-mapping children, and retained a provenance failure because
+its authenticated release account was not the browser owner (zero matching
+owner baseline rows). That result did not prove the terminal parent and is
+not a deletion failure. No data mutation occurred. The corrected profile-link
+binding preserves the owner checks rather than ignoring them. Nine focused
+regressions now pass; corrected canonical/protected results are pending.
 
 The prior dated smoke below was deliberately non-writing; this section adds
 new saved-rating-use evidence without rewriting that historical scope.

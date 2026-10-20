@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { test } from 'node:test'
-import { inspectBrowserRatingFixture } from '../browser-rating-fixture-inspection.js'
+import { inspectBrowserRatingFixture, resolveBrowserRatingOwner } from '../browser-rating-fixture-inspection.js'
 
 const fixture = { kind: 'browser-created-and-deleted-rating', ratingId: '9801', productId: '1',
   dateRated: '2026-10-20', expectedTotal: 2.82, runtimeCommit: 'c'.repeat(40),
@@ -13,7 +14,8 @@ const context = () => {
     { id: '365', user_id: owner, product_id: '1', submission_state: 'complete', total_weighted: '4.36' },
     { id: '5', user_id: 'someone-else', product_id: '1', submission_state: 'complete', total_weighted: 4 },
     { id: '6', user_id: 'someone-else', product_id: '1', submission_state: 'complete', total_weighted: 4 }
-  ], rating_scores: [], bonus_attribute_rating_mapping: [] }
+  ], rating_scores: [], bonus_attribute_rating_mapping: [],
+  profiles: [{ id: '99', public_id: 'test-public-profile', user_id: owner }] }
   let reads = 0
   const provider = {
     async get(collection, id, options) { reads += 1; assert.deepEqual(options, { fresh: true }); return rows[collection].find((row) => String(row.id) === String(id)) || null },
@@ -23,6 +25,29 @@ const context = () => {
   }
   return { rows, provider, reads: () => reads, run: (changes = {}) => inspectBrowserRatingFixture({ provider, userId: owner, fixture: { ...fixture, ...changes } }) }
 }
+
+test('the observed browser public-profile fingerprint resolves a fresh owner independently of release credentials', async () => {
+  const c = context()
+  const publicProfileFingerprint = createHash('sha256').update('test-public-profile').digest('hex')
+  assert.deepEqual(await resolveBrowserRatingOwner({ provider: c.provider, publicProfileFingerprint }),
+    { id: owner, source: 'observed-browser-public-profile-link' })
+})
+
+test('ambiguous, absent, changed or invalid public-profile bindings never substitute an owner', async () => {
+  const publicProfileFingerprint = createHash('sha256').update('test-public-profile').digest('hex')
+  for (const change of ['missing', 'duplicate', 'changed']) {
+    const c = context()
+    if (change === 'missing') c.rows.profiles = []
+    if (change === 'duplicate') c.rows.profiles.push({ ...c.rows.profiles[0], id: '100' })
+    if (change === 'changed') c.provider.get = async () => ({ ...c.rows.profiles[0], user_id: 'someone-else' })
+    await assert.rejects(resolveBrowserRatingOwner({ provider: c.provider, publicProfileFingerprint }),
+      { code: 'RATING_UI_PROFILE_BINDING_UNCONFIRMED' })
+  }
+  const c = context()
+  await assert.rejects(resolveBrowserRatingOwner({ provider: c.provider, publicProfileFingerprint: '' }),
+    { code: 'RATING_UI_PROFILE_BINDING_UNCONFIRMED' })
+  assert.equal(c.reads(), 0)
+})
 
 test('browser fixture absence requires full/scoped child absence and preserved owner/community baseline', async () => {
   const c = context(), result = await c.run()
