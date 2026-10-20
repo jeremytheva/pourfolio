@@ -3,16 +3,16 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Create/reload verified; inspect exact edit/delete readback"
+stage: "Fixture cleanup verified; certify fresh cellar readback"
 gate: Release
 execution_state: VALIDATING
 current_work:
-  objective: "Resolve the acknowledged cellar fixture after one edit and one delete had unconfirmed readback; perform read-only receipt-bound inspection before further writes."
+  objective: "Certify the corrected fresh-read cellar lifecycle with one new bounded fixture after exact inspection proved the previous fixture absent."
   issue: 449
   pr: 657
   branch: "fix/cellar-write-persistence-verification-20261019"
 next_actions:
-  - "Inspect exact fixture from run 39369876936 with its original encrypted acknowledged receipt. No create or repeated DELETE while cleanup remains unconfirmed."
+  - "Run the corrected fresh-read cellar candidate once with a new bounded owner fixture and prove create/reload/edit/gift/null defaults plus exact cleanup."
   - "Validate the current candidate, verify its exact preview and integrate only when source/provider/runtime evidence supports this bounded correction."
   - "Complete #577 distinct-account checks after supported RELEASE_OTHER_EMAIL configuration is established; do not guess an identity or reuse a database key as a password."
   - "Complete bonus HTTP/browser/rating-use acceptance separately from verified persistence/reload/cleanup; do not guess 81 absent values."
@@ -36,7 +36,7 @@ wip:
 evidence:
   observed_main_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   current_candidate_commit: null
-  latest_validated_commit: "d3833cd0304520b6ac820a1beac0d24562335157"
+  latest_validated_commit: "644decf506e598c0ccefa264f67f78684e4481c1"
   latest_deployed_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   latest_runtime_verified_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   latest_browser_verified_commit: "d3833cd0304520b6ac820a1beac0d24562335157"
@@ -46,10 +46,10 @@ validation:
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: FAIL
+  ci: PENDING
   runtime: UNVERIFIED
-last_verified_commit: "1ed487f57ca0c8da03c5e2dc343637579fa2299b"
-last_updated: "2026-10-20T04:35:25Z"
+last_verified_commit: "644decf506e598c0ccefa264f67f78684e4481c1"
+last_updated: "2026-10-20T04:39:35Z"
 ---
 
 # STATUS.md
@@ -58,76 +58,36 @@ Last materially reviewed: 20 October 2026 UTC
 
 ## AI execution gate
 
-### Corrected create/reload passed; exact update/delete readback inspection — 20 October 2026 Sydney
+### Cellar create/readback correction; prior fixture cleanup verified — 20 October 2026 Sydney
 
-[Protected run 39369876936](https://github.com/jeremytheva/pourfolio/actions/runs/39369876936)
-at `f778c2cb` passed **946** source tests (15 gated skips), then verified
-create, independent reload and nullable defaults. It attempted one edit and one
-exact DELETE. Their immediate readbacks failed, so update acceptance and cleanup
-remain UNCONFIRMED. **One create, one update, one delete; no mutation retry.**
-The current operation is read-only inspection using that run's encrypted
-acknowledged fixture ID, owner/product/nonce and baseline. No new fixture or
-repeat DELETE is requested. Do not infer the provider commit outcome from an
-HTTP mutation acknowledgement. Full evidence remains in the existing policy
-certification record. Public launch remains NO-GO.
+Existing PR #657 is reconciled with main `36ce8ffe`. The server now uses the
+same launch write projection as the client; unavailable lookup fields are
+omitted, lookup-only updates fail before mutation and existing links are not
+cleared. The observed provider field `series_edition_id` is recorded; the
+reference/domain `series_version_id` stays capability-gated.
 
-### Original cellar attempt left no new fixture; server boundary corrected — 20 October 2026 Sydney
+The original unacknowledged attempt left no new row. The next candidate
+`f778c2cb` passed **946** source tests (15 skips), then verified create,
+independent reload and nullable defaults. Its one edit and one DELETE had
+unconfirmed immediate readback. Receipt-bound read-only
+[run 39370389884](https://github.com/jeremytheva/pourfolio/actions/runs/39370389884)
+at `644decf5` passed **947** source tests, then proved exact fixture absence
+through normal/uncached direct, full and scoped reads. **No repeat DELETE;
+no fixture from that attempt remains.** The edit outcome is unverified, and
+the provider's delay mechanism remains unproven.
 
-[Read-only run 39369277463](https://github.com/jeremytheva/pourfolio/actions/runs/39369277463)
-at `d3833cd0` verified the original final receipt and found **zero** matching
-fixtures and **zero** new IDs outside its complete pre-write baseline across
-normal, uncached full and scoped reads. No row from the original create was
-observed; no deletion or mutation retry was needed. Canonical Node 22 passed
-**943** tests with 15 provider-gated skips; browser/security checks passed.
+The current candidate requests fresh upstream reads and allows only three
+bounded readback attempts (100/200 ms intervals), without mutation retries.
+Wrong owner/ID and provider errors stop immediately. Its source/live acceptance
+is pending. The next guarded run may create/update/delete exactly one new
+fixture and must independently prove cleanup. Details and earlier failed
+attempts are retained in the existing
+[policy certification record](docs/nocodebackend/connected-policy-certification.md).
 
-The current server change uses the real client write projector, omitting
-unavailable lookup fields even when null. An update with no supported field
-left returns 400 before provider mutation. Existing relationships are not
-cleared. The live field inventory has `series_edition_id`, whereas the
-reference/test used `series_version_id`; the observed provider contract and
-schema mapping are reconciled without enabling lookups or changing schema.
-The original HTTP error was not retained, so its precise cause remains
-unproven.
-
-A fresh guarded owner-only lifecycle run on the corrected candidate is
-pending. It permits one create/update/delete of a new exact fixture and
-retains encrypted recovery receipts plus independent readback/cleanup.
-Cross-account HTTP/browser certification is still NOT_RUN:
-`RELEASE_OTHER_EMAIL` is absent from protected configuration.
-The source/runtime state below refers to the last accepted candidates;
-current candidate runtime remains UNVERIFIED. Public launch is NO-GO.
-
-### Cellar provider create failure; receipt-bound read-only inspection — 20 October 2026 Sydney
-
-Existing PR #657 is reconciled with main `36ce8ffe`. Candidate `1ed487f5`
-passed canonical Node 22 validation (**936** passed, 15 gated skips), all
-**155** browser/accessibility cases and Dependency Review; its exact preview
-is READY. These checks do not prove provider writes.
-
-[Protected run 39336434126](https://github.com/jeremytheva/pourfolio/actions/runs/39336434126)
-verified the designated release session, then attempted **one cellar create**.
-It returned `PROVIDER_ERROR` without a canonical new ID. **Zero updates,
-zero deletes; cleanup UNCONFIRMED.** No original HTTP status is retained.
-No mutation retry or guessed cleanup is authorised by this failure. The
-earlier configuration/provenance preflights made zero writes. The second
-account's password is configured but `RELEASE_OTHER_EMAIL` is absent.
-
-The current continuation implements a **read-only** inspection of the original
-encrypted create-intent artifact. It checks exact source/owner/nonce/product
-and pre-write baseline against normal, uncached full and scoped reads, and
-disables every provider mutation method. The first inspection recovered the artifact but rejected its final checkpoint
-before data reads; its validator is corrected without permitting writes.
-The corrected read-only outcome is pending. Full details
-remain in the existing [policy certification record](docs/nocodebackend/connected-policy-certification.md).
-The 966 historical ownerless rows, prior owned inventory and rating recovery
-remain outside the fixture scope.
-
-Main/production are `36ce8ffef482a9044e1e9f35da03214f46b7e1d5`. Public readiness returned that
-exact SHA on 20 October UTC; its application runtime is unchanged by #666.
-The bonus release and completed bonus fixture cleanup below remain valid
-bounded evidence. Current inspection validation is pending; the frontmatter
-source fields refer to the last accepted candidate `1ed487f5`. Public launch
-remains **NO-GO**.
+The second account's password is configured but `RELEASE_OTHER_EMAIL` is
+absent. A/B HTTP/browser certification remains NOT_RUN. Main/production
+remain `36ce8ffe`; historical ownership, rating recovery and #165 migration
+are unchanged. Public launch remains **NO-GO**.
 
 ### Bonus release deployed and bounded production checks verified — 20 October 2026 Sydney
 

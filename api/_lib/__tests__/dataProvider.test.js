@@ -47,6 +47,38 @@ test('list matches Swagger read route, instance query and bearer headers', async
   })
 })
 
+test('explicit fresh reads bypass caching without changing normal reads or provider credentials', async () => {
+  const requests = []
+  global.fetch = async (url, options) => {
+    requests.push({ url: String(url), options })
+    return response({ data: String(url).includes('/cellar/3') ? { id: 3 } : [] })
+  }
+  await dataProvider.get('cellar', 3, { fresh: true })
+  await dataProvider.list('cellar', { user_id: 'owner' }, { fresh: true })
+  await dataProvider.listPage('cellar', { page: 1, limit: 100, fresh: true })
+  await dataProvider.get('cellar', 3)
+  for (const { options } of requests.slice(0, 3)) {
+    assert.equal(options.cache, 'no-store')
+    assert.equal(options.headers['cache-control'], 'no-cache')
+    assert.equal(options.headers.pragma, 'no-cache')
+    assert.equal(options.headers.authorization, 'Bearer test-secret')
+  }
+  assert.equal(requests[3].options.cache, undefined)
+  assert.equal(requests[3].options.headers['cache-control'], undefined)
+})
+
+test('fresh exact-read recovery keeps cache directives on its 404 fallback', async () => {
+  const requests = []
+  global.fetch = async (url, options) => {
+    requests.push(options)
+    return String(url).includes('/cellar/3')
+      ? response({ error: 'not found' }, { status: 404 }) : response({ data: [] })
+  }
+  assert.equal(await dataProvider.get('cellar', 3, { fresh: true }), null)
+  assert.equal(requests.length, 2)
+  assert.ok(requests.every((options) => options.cache === 'no-store' && options.headers['cache-control'] === 'no-cache'))
+})
+
 test('rating child list retries a silent-empty exact read with bounded rating-scoped pagination', async () => {
   const urls = []
   global.fetch = async (url) => {

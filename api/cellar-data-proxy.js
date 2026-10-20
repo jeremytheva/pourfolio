@@ -79,6 +79,7 @@ const cellarPersistenceError = (code = 'CELLAR_PERSISTENCE_MISMATCH') => {
 }
 
 const cellarFlag = (value) => value === true || value === 1 || value === '1' || value === 'true'
+const pauseReadback = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 const matchesRequestedCellarValue = (field, actual, expected) => {
   if (expected === null) return actual === null || actual === undefined || actual === ''
@@ -94,21 +95,35 @@ const matchesRequestedCellarValue = (field, actual, expected) => {
 // A provider write response can echo the request even if the row was not
 // saved. Verify the persisted private record; never return a fabricated
 // merged object as an acknowledged cellar mutation.
-export const verifyPersistedCellar = async ({ provider = dataProvider, id, userId, expected }) => {
+export const verifyPersistedCellar = async ({ provider = dataProvider, id, userId, expected,
+  attempts = 1, wait = pauseReadback }) => {
   if (!/^[1-9]\d*$/.test(String(id ?? ''))) throw cellarPersistenceError()
-  const stored = await provider.get(COLLECTIONS.cellar, id)
-  if (!stored || String(stored.id) !== String(id) || String(stored.user_id ?? '') !== String(userId)) {
-    throw cellarPersistenceError()
+  if (!Number.isSafeInteger(attempts) || attempts < 1 || attempts > 3) throw cellarPersistenceError()
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const stored = await provider.get(COLLECTIONS.cellar, id, { fresh: true })
+    if (stored && (String(stored.id) !== String(id) || String(stored.user_id ?? '') !== String(userId))) {
+      throw cellarPersistenceError()
+    }
+    if (stored && Object.entries(expected).every(([field, value]) => matchesRequestedCellarValue(field, stored[field], value))) {
+      return stored
+    }
+    if (attempt + 1 < attempts) await wait(100 * (attempt + 1))
   }
-  for (const [field, value] of Object.entries(expected)) {
-    if (!matchesRequestedCellarValue(field, stored[field], value)) throw cellarPersistenceError()
-  }
-  return stored
+  throw cellarPersistenceError()
 }
 
-export const verifyCellarRemoved = async ({ provider = dataProvider, id }) => {
-  const persisted = await provider.get(COLLECTIONS.cellar, id)
-  if (persisted !== null && persisted !== undefined) throw cellarPersistenceError('CELLAR_DELETE_NOT_VERIFIED')
+export const verifyCellarRemoved = async ({ provider = dataProvider, id, userId,
+  attempts = 1, wait = pauseReadback }) => {
+  if (!Number.isSafeInteger(attempts) || attempts < 1 || attempts > 3) throw cellarPersistenceError('CELLAR_DELETE_NOT_VERIFIED')
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const persisted = await provider.get(COLLECTIONS.cellar, id, { fresh: true })
+    if (persisted === null || persisted === undefined) return
+    if (String(persisted.id) !== String(id) || userId !== undefined && String(persisted.user_id ?? '') !== String(userId)) {
+      throw cellarPersistenceError('CELLAR_DELETE_NOT_VERIFIED')
+    }
+    if (attempt + 1 < attempts) await wait(100 * (attempt + 1))
+  }
+  throw cellarPersistenceError('CELLAR_DELETE_NOT_VERIFIED')
 }
 
 export const projectCellarRecord = (record, product = null) => ({
@@ -133,7 +148,7 @@ export const projectCellarRecord = (record, product = null) => ({
 })
 
 const listCellar = async (response, user) => {
-  const records = normaliseList(await dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }))
+  const records = normaliseList(await dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }, { fresh: true }))
     .filter((record) => isOwnedBy(record, user.id))
   const productIds = [...new Set(records.map((record) => record.product_id).filter(Boolean).map(String))]
   const products = await Promise.all(productIds.map(async (id) => hydrateProduct(await safeProviderGet(COLLECTIONS.products, id))))
@@ -159,13 +174,14 @@ const createCellar = async (request, response, user) => {
   const stored = await verifyPersistedCellar({
     id: created?.id,
     userId: user.id,
-    expected: requested
+    expected: requested,
+    attempts: 3
   })
   response.status(201).json({ item: projectCellarRecord(stored, await hydrateProduct(product)) })
 }
 
 const getOwnedCellarRecord = async (id, user) => {
-  const record = await dataProvider.get(COLLECTIONS.cellar, parsePositiveId(id, 'Cellar identifier'))
+  const record = await dataProvider.get(COLLECTIONS.cellar, parsePositiveId(id, 'Cellar identifier'), { fresh: true })
   if (!record) {
     const error = new Error('Cellar record not found.')
     error.status = 404
@@ -193,7 +209,8 @@ const updateCellar = async (id, request, response, user) => {
   const stored = await verifyPersistedCellar({
     id: existing.id,
     userId: user.id,
-    expected: { product_id: existing.product_id, ...updates }
+    expected: { product_id: existing.product_id, ...updates },
+    attempts: 3
   })
   const product = await safeProviderGet(COLLECTIONS.products, stored.product_id)
   response.status(200).json({ item: projectCellarRecord(stored, await hydrateProduct(product)) })
@@ -202,7 +219,7 @@ const updateCellar = async (id, request, response, user) => {
 const deleteCellar = async (id, response, user) => {
   const record = await getOwnedCellarRecord(id, user)
   await dataProvider.remove(COLLECTIONS.cellar, record.id)
-  await verifyCellarRemoved({ id: record.id })
+  await verifyCellarRemoved({ id: record.id, userId: user.id, attempts: 3 })
   response.status(204).end()
 }
 

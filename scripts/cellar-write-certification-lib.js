@@ -266,8 +266,9 @@ export const runCellarWriteCertification = async ({ provider = dataProvider, use
         'CELLAR_CLEANUP_OWNER_UNCONFIRMED')
         const deleted = await call('DELETE', userId, createdId)
         requireThat(deleted.status === 204, deleted.code || 'CELLAR_DELETE_NOT_ACKNOWLEDGED')
-        const remaining = await readAllBonusCertificationRows(raw, CELLAR)
-        requireThat(await raw.get(CELLAR, createdId) === null &&
+        const remaining = await readAllBonusCertificationRows({ listPage: (collection, options) =>
+          raw.listPage(collection, { ...options, fresh: true }) }, CELLAR)
+        requireThat(await raw.get(CELLAR, createdId, { fresh: true }) === null &&
           !remaining.some((row) => same(row.id, createdId) || same(row.user_id, userId) && row.notes === marker),
         'CELLAR_CLEANUP_ABSENCE_UNCONFIRMED')
         report.cleanup = 'PASS'

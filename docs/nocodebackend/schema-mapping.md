@@ -306,6 +306,12 @@ contract. All unavailable lookup fields are omitted, including null/blank
 inputs; non-null inputs fail before provider mutation. This does not clear
 existing provider relationships. A partial update with no supported field
 after projection returns HTTP 400. Nullable API presentation is retained.
+Cellar ownership, list and persistence/deletion verification request fresh
+upstream reads. Mutation verification permits at most three read attempts
+with 100/200 ms intervals, without repeating a create/update/delete. Changed
+ownership/ID and provider errors fail immediately. Ordinary adapter read
+defaults are preserved for other consumers.
+
 Enabling a real edition/location/person relationship remains separate
 provider/ownership certification; no column, historical row or schema is
 changed by this alignment.

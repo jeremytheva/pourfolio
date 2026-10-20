@@ -1,5 +1,34 @@
 # Connected provider policy certification
 
+## Acknowledged fixture absence verified; fresh readback correction
+
+Read-only [run 39370389884](https://github.com/jeremytheva/pourfolio/actions/runs/39370389884)
+at `644decf5` passed **947** canonical Node 22 tests with 15 gated skips.
+The recovered final receipt matched the exact source/owner, acknowledged new
+ID and one-create/one-update/one-delete counts. Normal and uncached direct
+reads, full lists and the exact-marker query all found the fixture absent:
+`ACKNOWLEDGED_FIXTURE_ABSENT`, zero matching markers and zero new IDs outside
+the pre-write baseline. **The previous DELETE took effect. No repeat mutation
+was made; no fixture from that attempt remains.** Its update result cannot
+be reconstructed after deletion and remains unverified.
+
+The application now explicitly requests fresh provider reads for cellar
+ownership, listing and mutation verification, using `cache: no-store` and
+standard no-cache request directives. The adapter's ordinary defaults and
+other consumers remain unchanged. Freshness survives exact-read 404 fallback
+and paginated evidence reads. Each create/update/delete is still sent once.
+Only successful readbacks of the same owner/ID may settle over at most
+three reads with 100/200 ms intervals; changed ownership/ID and provider
+errors stop immediately. Missing or unchanged values never become success.
+
+Four new regressions cover read freshness/default isolation, fallback,
+read-only update settlement and exact deletion/changed-owner handling.
+The preceding delayed readbacks are observed facts; the provider's underlying
+cache/replication/commit mechanism is not proven. A fresh bounded owner-only
+lifecycle test on this corrected candidate is pending. Its new random fixture
+does not retry the prior mutations, and the older fixture's absence was
+established before requesting it.
+
 ## Corrected owner attempt: create/reload passed; update/delete readback unresolved
 
 [Run 39369876936](https://github.com/jeremytheva/pourfolio/actions/runs/39369876936)

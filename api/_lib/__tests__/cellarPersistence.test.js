@@ -166,3 +166,33 @@ test('lookup-only partial updates fail before provider mutation when no supporte
   assert.equal(writes, 0)
   assert.equal(reply.statusCode, null)
 })
+
+test('bounded cellar settlement retries only fresh reads and accepts the stored update', async () => {
+  let reads = 0
+  const provider = { get: async (_collection, _id, options) => {
+    assert.deepEqual(options, { fresh: true })
+    reads += 1
+    return { ...existing, quantity: reads === 1 ? 2 : 5 }
+  } }
+  const result = await verifyPersistedCellar({ provider, id: 54, userId: user.id,
+    expected: { quantity: 5 }, attempts: 3, wait: async () => {} })
+  assert.equal(result.quantity, 5)
+  assert.equal(reads, 2)
+})
+
+test('bounded deletion settlement proves absence with reads and stops on changed ownership', async () => {
+  let reads = 0
+  const provider = { get: async (_collection, _id, options) => {
+    assert.deepEqual(options, { fresh: true })
+    return ++reads === 1 ? existing : null
+  } }
+  await verifyCellarRemoved({ provider, id: 54, userId: user.id, attempts: 3, wait: async () => {} })
+  assert.equal(reads, 2)
+  reads = 0
+  await assert.rejects(verifyCellarRemoved({ provider: { get: async () => {
+    reads += 1
+    return { ...existing, user_id: 'foreign-owner' }
+  } }, id: 54, userId: user.id, attempts: 3, wait: async () => assert.fail('must not wait') }),
+  { code: 'CELLAR_DELETE_NOT_VERIFIED' })
+  assert.equal(reads, 1)
+})
