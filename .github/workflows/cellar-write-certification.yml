@@ -59,8 +59,8 @@ jobs:
         if: contains(github.event.head_commit.message, '[cellar-fixture-inspect]')
         uses: actions/download-artifact@v8
         with:
-          artifact-ids: 12240937440
-          run-id: 39369876936
+          artifact-ids: 12241600938
+          run-id: 39370740463
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/pourfolio-cellar-source
           digest-mismatch: error

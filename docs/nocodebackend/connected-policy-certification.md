@@ -1,5 +1,23 @@
 # Connected provider policy certification
 
+## Fresh-header test still fails immediate readback; latest exact fixture inspection
+
+[Run 39370740463](https://github.com/jeremytheva/pourfolio/actions/runs/39370740463)
+at `b2a8324e` passed **951** source tests (15 skips). Create, reload and
+nullable defaults passed, but one update and one DELETE again failed immediate
+verification even with standard fresh-read directives and bounded reads.
+**One create/update/delete; no mutation retry; latest cleanup UNCONFIRMED.**
+The fresh headers did not establish read-your-writes acceptance.
+
+The next operation is read-only, explicitly bound to that attempt's encrypted
+receipt artifact `12241600938`. It compares exact normal/fresh direct and
+full/scoped reads and retains only safe HTTP/cache flags. One additional
+`_` query variant on each existing GET route probes whether a unique read URL
+is accepted and changes the observed state; this is a bounded read capability
+probe, not a deployed workaround or evidence that the provider documents
+cache invalidation. No schema, permissions, credentials or mutable endpoints
+are changed. Do not retry writes until exact fixture absence is established.
+
 ## Acknowledged fixture absence verified; fresh readback correction
 
 Read-only [run 39370389884](https://github.com/jeremytheva/pourfolio/actions/runs/39370389884)

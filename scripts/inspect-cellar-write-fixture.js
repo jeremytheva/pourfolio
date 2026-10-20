@@ -1,12 +1,13 @@
 import { readFile, mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
+import { randomUUID } from 'node:crypto'
 import { dataProvider, __testables as providerConfiguration } from '../api/_lib/dataProvider.js'
 import { resolveBonusCertificationOwner } from './bonus-certification-owner.js'
 import { openBonusFixtureReceipt, sealBonusFixtureReceipt } from './bonus-fixture-receipt.js'
 import { inspectCellarCreateAttempt } from './cellar-write-certification-lib.js'
 
-const sourceSha = 'f778c2cb2b1336ca09357a5e78982a3fcc54c18d'
-const sourceRun = '39369876936'
+const sourceSha = 'b2a8324e69e0dcfd9eb7aebae01bba7c08916752'
+const sourceRun = '39370740463'
 const normalise = (payload) => {
   for (const key of ['data', 'records', 'items', 'results', 'record']) {
     if (payload?.[key] !== undefined) return payload[key]
@@ -38,6 +39,35 @@ const freshProvider = {
     return Array.isArray(payload) ? payload[0] || null : payload
   }
 }
+const diagnosticRead = async (receipt, { fresh, bust, scoped = false }) => {
+  const { baseUrl, secret, instance } = providerConfiguration.getConfiguration()
+  const url = new URL(`${baseUrl}/read/cellar${scoped ? '' : `/${encodeURIComponent(receipt.createdId)}`}`)
+  url.searchParams.set('Instance', instance)
+  if (scoped) {
+    url.searchParams.set('id', receipt.createdId)
+    url.searchParams.set('notes', receipt.marker)
+    url.searchParams.set('page', '1')
+    url.searchParams.set('limit', '100')
+  }
+  if (bust) url.searchParams.set('_', randomUUID())
+  const response = await fetch(url, { method: 'GET', redirect: 'error',
+    ...(fresh ? { cache: 'no-store' } : {}),
+    headers: { ...providerConfiguration.buildProviderHeaders({ secret }),
+      ...(fresh ? { 'cache-control': 'no-cache', pragma: 'no-cache' } : {}) },
+    signal: AbortSignal.timeout(15_000) })
+  const payload = await response.json().catch(() => undefined)
+  const value = normalise(payload)
+  const rows = Array.isArray(value) ? value : value && typeof value === 'object' ? [value] : []
+  const matches = rows.filter((row) => String(row?.id) === String(receipt.createdId))
+  const valid = response.ok && !payload?.error && payload?.success !== false && payload?.status !== 'error'
+  const age = Number(response.headers.get('age'))
+  return { fresh, bust, scoped, status: response.status,
+    recordState: response.status === 404 || valid && (value === null || scoped && matches.length === 0)
+      ? 'ABSENT' : valid && matches.length === 1 ? 'PRESENT' : 'UNCONFIRMED',
+    ageSeconds: response.headers.has('age') && Number.isSafeInteger(age) && age >= 0 ? age : null,
+    cacheHit: /\bhit\b/i.test([response.headers.get('x-cache'), response.headers.get('cf-cache-status')].join(' ')),
+    responseNoStore: /no-store/i.test(response.headers.get('cache-control') || '') }
+}
 let report = { version: 1, mode: 'read-only-original-cellar-create-inspection', status: 'BLOCKED',
   createsAttempted: 0, updatesAttempted: 0, deletesAttempted: 0 }
 try {
@@ -64,7 +94,14 @@ try {
   report.sourceCheckpoint = sourceCheckpoint
   const inspected = await inspectCellarCreateAttempt({ provider: dataProvider, freshProvider,
     userId: owner.id, receipt, summary, sourceSha })
+  const readDiagnostics = receipt.createdId ? await Promise.all([
+    diagnosticRead(receipt, { fresh: false, bust: false }),
+    diagnosticRead(receipt, { fresh: true, bust: false }),
+    diagnosticRead(receipt, { fresh: true, bust: true }),
+    diagnosticRead(receipt, { fresh: true, bust: true, scoped: true })
+  ]) : []
   report = { ...inspected.report, sourceCheckpoint, sourceRun, sourceSha, ownerSource: owner.source, authCommit: owner.authCommit,
+    readDiagnostics,
     recoverySnapshot: sealBonusFixtureReceipt(inspected.snapshot, process.env.NOCODEBACKEND_SECRET_KEY) }
 } catch (error) {
   report.failure = /^[A-Z][A-Z0-9_]{0,79}$/.test(error?.code || error?.message || '')
