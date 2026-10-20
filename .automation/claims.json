@@ -32,8 +32,8 @@
         "api/_lib/dataProvider.js",
         "api/_lib/__tests__/dataProvider.test.js"
       ],
-      "acquiredAt": "2026-10-20T04:36:21.757Z",
-      "expiresAt": "2026-10-20T05:06:21.757Z"
+      "acquiredAt": "2026-10-20T04:54:55.628Z",
+      "expiresAt": "2026-10-20T05:24:55.628Z"
     },
     "ratings": {
       "owner": "cellar-resume-1792469926719-ratings",
@@ -43,8 +43,8 @@
       "surfaces": [
         ".github/workflows/bonus-write-certification.yml"
       ],
-      "acquiredAt": "2026-10-20T04:36:21.757Z",
-      "expiresAt": "2026-10-20T05:06:21.757Z"
+      "acquiredAt": "2026-10-20T04:54:55.628Z",
+      "expiresAt": "2026-10-20T05:24:55.628Z"
     }
   }
 }
