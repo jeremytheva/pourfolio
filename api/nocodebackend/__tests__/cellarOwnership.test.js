@@ -142,8 +142,10 @@ test('cellar create and partial update persist valid form values with server-own
   assert.equal(stored.retail_price, 0)
   assert.equal(stored.date_received, '2024-02-29')
   assert.equal(stored.gift, 0)
-  assert.equal(stored.sharing_series_id, null)
-  assert.equal(stored.series_version_id, null)
+  assert.equal(Object.hasOwn(stored, 'sharing_series_id'), false)
+  assert.equal(Object.hasOwn(stored, 'series_version_id'), false)
+  assert.equal(created.body.item.sharing_series_id, null)
+  assert.equal(created.body.item.series_version_id, null)
   assert.equal(created.body.item.gift, false)
 
   const updated = createResponse()

@@ -89,8 +89,15 @@ candidate with the actual client projection and a new private random fixture.
 It retains one-create/one-update/one-delete maximums, original receipts and
 verified exact cleanup. Independent readback still checks nullable defaults
 and false/true gift values. A/B HTTP/browser rows remain NOT_RUN because the
-supported second-account email is missing. This new run is pending; the old
-failed request is not retried.
+supported second-account email is missing. The first corrected-candidate job
+[39369718436](https://github.com/jeremytheva/pourfolio/actions/runs/39369718436)
+stopped in canonical validation (**945 passed, one failed, 15 skipped**)
+before any provider runner step. An older ownership regression still required
+null gated fields in the provider payload. It now requires their omission
+and separately verifies null API presentation, preserving identity, numeric,
+date and ownership assertions. **Zero provider writes** occurred in that
+job. The updated bounded run is pending; the original failed create is not
+retried.
 
 ## Current-instance cellar candidate verification — 20 October 2026 Sydney
 
