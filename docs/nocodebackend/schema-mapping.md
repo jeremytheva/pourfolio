@@ -182,7 +182,7 @@ The structure and application path are deployed. #422 remains open until product
 | `submission_state` | Non-null enum/string limited to `pending`, `complete`, `failed`, `deleting`, or `deleted`; server write only. `deleting` and `deleted` are excluded from every history and aggregate read. |
 | `submission_version` | Non-null non-negative integer, initially `0`; incremented exactly once by every conditional workflow-state transition. |
 | `expected_score_count`, `expected_bonus_count` | Non-negative integers fixed from validated input and used to prevent premature duplicate success. |
-| `deleted_at` | Nullable server timestamp. Set only with the terminal `deleting -> deleted` transition after owner-scoped child reconciliation succeeds. |
+| `deleted_at` | Nullable server timestamp. Set only with the terminal `deleting -> deleted` transition after owner-scoped child reconciliation succeeds. Send the same UTC `YYYY-MM-DD HH:mm:ss` provider format used for `date_rated`, through the shared rating timestamp formatter. |
 
 The supplied database does not contain a rating-notes field. The launch form therefore does not pretend to persist review text. Adding notes requires an approved schema change and migration.
 
@@ -270,7 +270,55 @@ are set by the server.
 
 The gateway accepts the supplied schema fields through an explicit allowlist. `user_id` is always derived from the session. Quantities and monetary values cannot be negative.
 
-`sharing_series_id` and `series_version_id` are optional. When not applicable they must be `NULL`; zero and fabricated identifiers are rejected. A rating does not require a sharing series or edition.
+Cellar create and partial-update bodies must be objects. Numeric fields accept
+finite numbers or decimal/scientific numeric form strings within their existing
+bounds; Boolean, array, object, hexadecimal and non-finite values are rejected.
+Explicit zero remains zero, optional null/blank numeric values normalise to null,
+and omitted partial-update fields remain unchanged. Text fields accept strings
+or null rather than coercing nested values into text. Product identifiers accept
+positive numeric/string identifiers, never arrays or objects.
+
+`date_received` writes use a real `YYYY-MM-DD` calendar date, including valid
+leap days. Impossible dates, numeric epochs, locale dates and timestamps are
+rejected rather than rolled over or shifted between timezones. Null or empty
+values normalise to null; creation retains its existing current-date default
+when no date is supplied, while a partial update may explicitly clear the date.
+`gift` accepts Boolean values or explicit zero/one wire values (`0`, `1`, `'0'`,
+`'1'`); null/empty values mean false. Strings such as `'false'` and arbitrary
+truthy values are invalid. Unsupported writes return HTTP 400 before provider
+create/update calls. Ownership is still verified before a partial update.
+
+The supplied reference schema names optional `sharing_series_id` and
+`series_version_id`. Domain null/blank values still normalise to null;
+zero and fabricated identifiers are rejected. A rating does not require
+a sharing series or edition.
+
+**Observed current-instance API fields, 20 October 2026:** the receipt-bound
+read-only [run 39369277463](https://github.com/jeremytheva/pourfolio/actions/runs/39369277463)
+returned `series_edition_id`, with no `series_version_id`, across normal
+and uncached full reads. The machine contract's `cellar.provider_fields`
+now records that observed provider name. The reference/domain
+`series_version_id` remains capability-gated; it is not silently treated
+as an alias, transported to the provider or used to rewrite historical links.
+
+Launch client **and server** writes use the existing `projectCellarWrite`
+contract. All unavailable lookup fields are omitted, including null/blank
+inputs; non-null inputs fail before provider mutation. This does not clear
+existing provider relationships. A partial update with no supported field
+after projection returns HTTP 400. Nullable API presentation is retained.
+Cellar ownership, list and persistence/deletion verification request fresh
+upstream reads. Mutation verification permits at most six read attempts
+with 250/500/1000/1500/1500 ms intervals (4.75 seconds of waits), without
+repeating a create/update/delete. Changed ownership/ID and provider errors
+fail immediately. Plain diagnostics retain field names/counts/state/timing,
+never private values. Ordinary adapter read defaults are preserved for other
+consumers. Owner-only current-instance acceptance passed at `9c82e8a7` (one create,
+update and exact verified cleanup). Distinct-account and deployed HTTP/browser
+acceptance remain open; see the connected-policy certification record.
+
+Enabling a real edition/location/person relationship remains separate
+provider/ownership certification; no column, historical row or schema is
+changed by this alignment.
 
 ## Proposed Brew Done It persistent contract (not yet deployed)
 

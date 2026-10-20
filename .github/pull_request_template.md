@@ -16,6 +16,14 @@ Closes #
 
 ## Files or modules affected
 
+## Launch readiness impact
+
+- Launch requirement IDs (use exact line `Launch requirement IDs: PF-LAUNCH-...` if known), or reason none apply:
+- What acceptance/tests/evidence need reconciliation:
+- Unmapped change classification / linked defect:
+
+The Launch Readiness Impact workflow is advisory; do not assert PASS based on this mapping alone.
+
 ## Acceptance criteria verification
 
 - [ ] Criterion 1

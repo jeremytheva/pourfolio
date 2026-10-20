@@ -8,6 +8,7 @@ import { canonicalRatingKey, ratingDimension } from '../src/lib/ratingFormulaV1.
 import { requireSessionUser } from './_lib/authSession.js'
 import { loadBonusCatalogue } from './_lib/bonusAttributeCatalogue.js'
 import { dataProvider } from './_lib/dataProvider.js'
+import { isCompletedRating } from './_lib/ratingHistoryRecords.js'
 import {
   CATEGORY_FIELDS,
   PRODUCT_FIELDS,
@@ -153,9 +154,6 @@ const hydrateProducts = async (products) => {
   })
 }
 
-const isCompletedRating = (rating) =>
-  rating?.submission_state === 'complete' && completedRatingTotal(rating?.total_weighted) !== null
-
 const buildRatingInsights = async (ratings) => {
   const acceptedRatings = ratings
     .filter(isCompletedRating)
@@ -166,7 +164,15 @@ const buildRatingInsights = async (ratings) => {
 
   const ratingIds = new Set(acceptedRatings.map((rating) => rating.id))
   const [scores, attributes] = await Promise.all([
-    safeRelationshipList(COLLECTIONS.ratingScores, { 'rating_id[in]': [...ratingIds].join(',') }),
+    Promise.all(chunk([...ratingIds]).map(async (ratingChunk) => {
+      const chunkIds = new Set(ratingChunk)
+      const rows = await readAllProviderRows(COLLECTIONS.ratingScores, {
+        filters: { 'rating_id[in]': ratingChunk.join(',') }
+      })
+      // Provider filters can return a broader population. Scope each batch
+      // locally so a score cannot enter another batch or another beer.
+      return rows.filter((score) => chunkIds.has(String(score.rating_id ?? '')))
+    })).then((groups) => groups.flat()),
     safeRelationshipList(COLLECTIONS.ratingAttributes)
   ])
   const attributesById = new Map(attributes

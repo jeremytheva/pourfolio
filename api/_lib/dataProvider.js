@@ -118,20 +118,22 @@ const safeRequestShape = (body) => {
   }).join(',')
 }
 
-const providerRequest = async (path, { method = 'GET', body, filters, preserveEnvelope = false } = {}) => {
+const providerRequest = async (path, { method = 'GET', body, filters, preserveEnvelope = false, fresh = false, signal } = {}) => {
   const { baseUrl, secret, instance } = getConfiguration()
   let result
   try {
-    result = await withTimeout(async (signal) => {
+    result = await withTimeout(async (upstreamSignal) => {
       const upstream = await fetch(buildUrl(baseUrl, path, filters, instance), {
         method,
-        headers: buildProviderHeaders({ secret, body }),
+        headers: { ...buildProviderHeaders({ secret, body }),
+          ...(fresh ? { 'cache-control': 'no-cache', pragma: 'no-cache' } : {}) },
+        ...(fresh ? { cache: 'no-store' } : {}),
         body: body === undefined ? undefined : JSON.stringify(body),
-        signal
+        signal: upstreamSignal
       })
       const text = await upstream.text()
       return { upstream, payload: text ? JSON.parse(text) : null }
-    })
+    }, undefined, signal)
   } catch (cause) {
     if (['DATA_CONFIGURATION_INVALID', 'DATA_CREDENTIAL_MISSING', 'DATA_INSTANCE_MISSING'].includes(cause?.code)) throw cause
     const error = new Error(safeErrorMessage(502))
@@ -178,55 +180,57 @@ const canRecoverEmptyExactRead = (collection, filters = {}) =>
   filters.rating_id !== null &&
   filters.rating_id !== ''
 
-const recoverExactChildRead = async (collection, filters) => {
+const recoverExactChildRead = async (collection, filters, { fresh = false, signal } = {}) => {
   const rows = asList(await providerRequest(`read/${collection}`, {
-    filters: { rating_id: filters.rating_id, page: 1, limit: 100 }
+    filters: { rating_id: filters.rating_id, page: 1, limit: 100 }, fresh, signal
   }))
   return rows.filter((record) => locallyMatchesExactFilters(record, filters))
 }
 
-const listWithExactChildRecovery = async (collection, filters = {}) => {
+const listWithExactChildRecovery = async (collection, filters = {}, { fresh = false, signal } = {}) => {
   let primary
   try {
-    primary = asList(await providerRequest(`read/${collection}`, { filters }))
+    primary = asList(await providerRequest(`read/${collection}`, { filters, fresh, signal }))
   } catch (error) {
+    if (signal?.aborted) throw error
     if (!canRecoverEmptyExactRead(collection, filters) ||
         error?.code !== 'PROVIDER_ERROR' || Number(error?.status) < 500) throw error
-    return recoverExactChildRead(collection, filters)
+    return recoverExactChildRead(collection, filters, { fresh, signal })
   }
 
   if (primary.length || !canRecoverEmptyExactRead(collection, filters)) return primary
-  return recoverExactChildRead(collection, filters)
+  return recoverExactChildRead(collection, filters, { fresh, signal })
 }
 
 export const dataProvider = {
   isUniqueConflict(error) { return error?.code === 'UNIQUE_CONFLICT' },
-  async list(collection, filters = {}) {
-    return listWithExactChildRecovery(collection, filters)
+  async list(collection, filters = {}, { fresh = false, signal } = {}) {
+    return listWithExactChildRecovery(collection, filters, { fresh, signal })
   },
-  async listPage(collection, { search, page, limit, orderBy, order = 'asc', filters = {} }) {
+  async listPage(collection, { search, page, limit, orderBy, order = 'asc', filters = {}, fresh = false }, { signal } = {}) {
     const searchFilter = search && collection === 'products' ? { 'product_name[like]': search } : {}
     const payload = await providerRequest(`read/${collection}`, {
-      filters: { ...filters, ...searchFilter, page, limit, sort: orderBy, order }, preserveEnvelope: true
+      filters: { ...filters, ...searchFilter, page, limit, sort: orderBy, order }, preserveEnvelope: true, fresh, signal
     })
     return normalisePage(payload, page, limit)
   },
-  async get(collection, id) {
+  async get(collection, id, { fresh = false, signal } = {}) {
     try {
-      const payload = await providerRequest(`read/${collection}/${encodeURIComponent(id)}`)
+      const payload = await providerRequest(`read/${collection}/${encodeURIComponent(id)}`, { fresh, signal })
       return requireExpectedRecord(Array.isArray(payload) ? payload[0] || null : payload, id)
     } catch (error) {
+      if (signal?.aborted) throw providerContractError()
       if (error.status !== 404) throw error
-      const records = await this.list(collection, { id })
+      const records = await this.list(collection, { id }, { fresh, signal })
       return records.find((record) => record && String(record.id) === String(id)) || null
     }
   },
-  create(collection, body) { return providerRequest(`create/${collection}`, { method: 'POST', body }) },
-  update(collection, id, body) { return providerRequest(`update/${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body }) },
-  compareAndSet(collection, id, expectedVersion, body) {
-    return providerRequest(`update/${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body, filters: { expected_version: expectedVersion } })
+  create(collection, body, { signal } = {}) { return providerRequest(`create/${collection}`, { method: 'POST', body, signal }) },
+  update(collection, id, body, { signal } = {}) { return providerRequest(`update/${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body, signal }) },
+  compareAndSet(collection, id, expectedVersion, body, { signal } = {}) {
+    return providerRequest(`update/${collection}/${encodeURIComponent(id)}`, { method: 'PUT', body, filters: { expected_version: expectedVersion }, signal })
   },
-  remove(collection, id) { return providerRequest(`delete/${collection}/${encodeURIComponent(id)}`, { method: 'DELETE' }) }
+  remove(collection, id, { signal } = {}) { return providerRequest(`delete/${collection}/${encodeURIComponent(id)}`, { method: 'DELETE', signal }) }
 }
 
 export const __testables = {
@@ -241,4 +245,5 @@ export const __testables = {
   canRecoverEmptyExactRead,
   DEFAULT_DATA_BASE_URL: CANONICAL_DATA_BASE_URL
 }
+
 

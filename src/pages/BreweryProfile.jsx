@@ -102,7 +102,8 @@ function BreweryProfile() {
   }
 
   const { producer, products, communityStats, personalStats, productStats } = detail
-  const productStatsById = new Map(productStats.map((item) => [String(item.productId), item]))
+  const productStatsById = new Map((Array.isArray(productStats) ? productStats : [])
+    .map((item) => [String(item.productId), item]))
   const categories = [...new Set(products
     .map((product) => product.declared_category || product.category?.category_name || '')
     .filter(Boolean))]
@@ -113,8 +114,8 @@ function BreweryProfile() {
       const category = product.declared_category || product.category?.category_name || ''
       const categoryMatch = categoryFilter === 'all' || category === categoryFilter
       const stats = productStatsById.get(String(product.id))
-      const communityRated = (stats?.community.ratingCount || 0) > 0
-      const personallyRated = (stats?.personal.ratingCount || 0) > 0
+      const communityRated = (stats?.community?.ratingCount || 0) > 0
+      const personallyRated = (stats?.personal?.ratingCount || 0) > 0
       const ratedMatch = ratedFilter === 'all' ||
         (ratedFilter === 'community-rated' && communityRated) ||
         (ratedFilter === 'community-unrated' && !communityRated) ||
@@ -134,19 +135,19 @@ function BreweryProfile() {
         if (leftAbv !== rightAbv) return (rightAbv ?? 0) - (leftAbv ?? 0)
       }
       if (sortBy === 'community-score') {
-        const leftScore = leftStats?.community.averageWeighted ?? null
-        const rightScore = rightStats?.community.averageWeighted ?? null
+        const leftScore = leftStats?.community?.averageWeighted ?? null
+        const rightScore = rightStats?.community?.averageWeighted ?? null
         if (leftScore === null && rightScore !== null) return 1
         if (rightScore === null && leftScore !== null) return -1
         if (leftScore !== rightScore) return (rightScore ?? 0) - (leftScore ?? 0)
       }
       if (sortBy === 'community-count') {
-        const countDifference = (rightStats?.community.ratingCount || 0) - (leftStats?.community.ratingCount || 0)
+        const countDifference = (rightStats?.community?.ratingCount || 0) - (leftStats?.community?.ratingCount || 0)
         if (countDifference) return countDifference
       }
       if (sortBy === 'my-score') {
-        const leftScore = leftStats?.personal.averageWeighted ?? null
-        const rightScore = rightStats?.personal.averageWeighted ?? null
+        const leftScore = leftStats?.personal?.averageWeighted ?? null
+        const rightScore = rightStats?.personal?.averageWeighted ?? null
         if (leftScore === null && rightScore !== null) return 1
         if (rightScore === null && leftScore !== null) return -1
         if (leftScore !== rightScore) return (rightScore ?? 0) - (leftScore ?? 0)
@@ -271,6 +272,8 @@ function BreweryProfile() {
                 {visibleProducts.map((product) => {
                   const category = product.declared_category || product.category?.category_name || 'Beer'
                   const stats = productStatsById.get(String(product.id))
+                  const communityAverage = stats?.community?.averageWeighted
+                  const personalAverage = stats?.personal?.averageWeighted
                   return (
                     <li key={product.id}>
                       <Link to={`/products/${product.id}`} className="block h-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-amber-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2">
@@ -278,8 +281,8 @@ function BreweryProfile() {
                         <h3 className="mt-2 text-lg font-semibold text-gray-900">{product.product_name}</h3>
                         {(product.abv !== null && product.abv !== undefined) && <p className="mt-2 text-sm text-gray-600">{product.abv}% ABV</p>}
                         <div className="mt-3 border-t border-gray-100 pt-3 text-xs text-gray-600">
-                          <p>{stats?.community.averageWeighted === null ? 'No community score' : `Community ${stats.community.averageWeighted.toFixed(2)} / 5 · ${stats.community.ratingCount} ${stats.community.ratingCount === 1 ? 'rating' : 'ratings'}`}</p>
-                          {stats?.personal.averageWeighted !== null && <p className="mt-1 font-medium text-gray-800">Your score {stats.personal.averageWeighted.toFixed(2)} / 5</p>}
+                          <p>{Number.isFinite(communityAverage) ? `Community ${communityAverage.toFixed(2)} / 5 · ${stats.community.ratingCount} ${stats.community.ratingCount === 1 ? 'rating' : 'ratings'}` : 'No community score'}</p>
+                          {Number.isFinite(personalAverage) && <p className="mt-1 font-medium text-gray-800">Your score {personalAverage.toFixed(2)} / 5</p>}
                         </div>
                       </Link>
                     </li>

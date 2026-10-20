@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "originalCreateRun": "39329607548",
+  "originalCandidate": "89064711f9ed2badfc057d0dcbf15085266b9ff7",
+  "inspectionRun": "39330415649",
+  "inspectionCandidate": "73ad6364c6ac83cd7c54404b08aeb2535665792b",
+  "review": "exact-test-fixture-reviewed",
+  "reviewedAt": "2026-10-19T21:53:02.440Z",
+  "scope": "Remove only the uniquely identified private fixture from the sole data-writing run of this new test. Earlier attempts made no writes. The owner authorised current-instance lifecycle testing; this is routine fixture cleanup, not historical recovery.",
+  "basis": {
+    "originalPersistence": "PASS",
+    "originalReload": "PASS",
+    "originalCreatesAttempted": 2,
+    "originalDeletesAttempted": 0,
+    "uniqueOwnerTestFixture": 1,
+    "categoryMappingCount": 1,
+    "ratingReferenceCount": 0,
+    "listAndDirectReadsAgree": true,
+    "referenceFieldsComplete": true
+  },
+  "limits": {
+    "creates": 0,
+    "deletes": 2
+  },
+  "encryptedReceipt": {
+    "version": 1,
+    "salt": "G4gQSx8rEpPzc1B2COOk+9HfMRJz/Z1b3E8+vtFPh+c=",
+    "iv": "ZDfRPlor5oNxo4Pq",
+    "tag": "1OKEgNZ+az+VsLGLSISYQA==",
+    "data": "n83tHl8wU6sR4ATTDIZFEiKMLqIk9TKEpzggREKMwWKFpBPu82jMaTCYT2iDVoS0xSBw5tcHSQ+gj+P+dVukPO/ff3Fkc1wg9OyFTYFFbUQ2KJRBfXV5nWC3BcGipwIYwt8UyL207IIo0/jdaic5+wxECbTGGjMSex05883HzqHXdOZmemP1Y3abkq3bYzjfqMpKb31kSwAx/Ez1M7CR52VKyKo6f9bB/qMA+YgGsbWKsSXwXNskDpvvO3HL1RDT2nlrOdPkLvIQLgtyN1+oWxCK5w9g2EzHmD1NzRKnwm779APZqVU3UskPIrzGQ1/rvWI8Aw7kO81zIATOePRdFUK2rcYyyxzRvfCQUpAUp9bq7Z2TMNOw8sOpVJ6Ad4nAv0WU2GSARJJOr5xq43SRtPCNNxOLeNChBJZesl6VX5UHxz2/3RHuxOtZpT7fub4nIvrjyClZcmac6IuZFiHNU/dN8bN0yFcRUnG95IXYMgKc6938a8Ixb/Ph5i3WtJA="
+  }
+}

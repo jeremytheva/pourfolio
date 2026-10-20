@@ -1,0 +1,65 @@
+import fs from 'node:fs/promises'
+import { dataProvider } from '../api/_lib/dataProvider.js'
+import { resolveBonusCertificationOwner } from './bonus-certification-owner.js'
+import { inspectBrowserRatingFixture, resolveBrowserRatingOwner } from './browser-rating-fixture-inspection.js'
+
+// Exact fixture acknowledged in the owner browser on the pinned production
+// release. These identifiers are read targets only; no deletion is enabled.
+const fixture = Object.freeze({ kind: 'browser-created-and-deleted-rating',
+  ratingId: '630', productId: '1', dateRated: '2026-10-20', expectedTotal: 2.82,
+  runtimeCommit: '36ce8ffef482a9044e1e9f35da03214f46b7e1d5',
+  publicProfileFingerprint: 'b7f4b38143c5a01e9283fdb5d8388630d9ecf9b1e6d966de7b4cc471bdfcfb87',
+  olderRatings: [{ id: '622', total: 3.51 }, { id: '365', total: 4.36 }],
+  expectedCommunityCount: 4, expectedPersonalCount: 2, createsAttempted: 1, deletesAttempted: 1 })
+const environment = process.env
+const mode = environment.RATING_UI_INSPECTION_MODE || 'fixture-graph'
+let report = { version: 1, mode: mode === 'other-owner-read'
+  ? 'read-only-other-owner-rating-isolation' : 'read-only-browser-rating-fixture', status: 'BLOCKED',
+  createsAttempted: 0, updatesAttempted: 0, deletesAttempted: 0 }
+const blocked = async () => { throw Object.assign(new Error(), { code: 'RATING_UI_MUTATION_DISABLED' }) }
+for (const method of ['create', 'update', 'compareAndSet', 'remove']) dataProvider[method] = blocked
+try {
+  if (!['fixture-graph', 'other-owner-read'].includes(mode) ||
+      environment.RATING_UI_INSPECTION_CONFIRMATION !== 'INSPECT THE RECORDED BROWSER RATING FIXTURE' ||
+      !/^[a-f0-9]{40}$/.test(environment.RATING_UI_INSPECTION_SHA || '') ||
+      environment.BONUS_CERTIFICATION_AUTH_SHA !== fixture.runtimeCommit) {
+    throw Object.assign(new Error(), { code: 'RATING_UI_INSPECTION_GUARD_MISSING' })
+  }
+  if (['NOCODEBACKEND_SECRET_KEY', 'NOCODEBACKEND_INSTANCE'].some((name) => !environment[name]?.trim())) {
+    throw Object.assign(new Error(), { code: 'RUNTIME_CONFIGURATION_MISSING' })
+  }
+  let browserOwner
+  let readPolicy
+  const inspectSession = mode === 'other-owner-read' ? async ({ userId, readRatingBreakdown }) => {
+    browserOwner = await resolveBrowserRatingOwner({ provider: dataProvider,
+      publicProfileFingerprint: fixture.publicProfileFingerprint })
+    if (userId === browserOwner.id) {
+      readPolicy = { status: 'BLOCKED', failure: 'RATING_UI_ACCOUNTS_NOT_DISTINCT' }
+      return
+    }
+    const response = await readRatingBreakdown(fixture.olderRatings[0].id)
+    const status = response.status
+    await response.body?.cancel()
+    readPolicy = { status: [403, 404].includes(status) ? 'PASS' : 'FAIL', otherOwnerReadStatus: status }
+    if (readPolicy.status !== 'PASS') readPolicy.failure = 'RATING_UI_OTHER_OWNER_READ_NOT_DENIED'
+  } : null
+  const releaseOwner = await resolveBonusCertificationOwner({
+    environment: { ...environment, NOCODEBACKEND_CONTRACT_USER_ID: '' }, inspectSession })
+  if (mode === 'fixture-graph') {
+    browserOwner = await resolveBrowserRatingOwner({ provider: dataProvider,
+      publicProfileFingerprint: fixture.publicProfileFingerprint })
+    report = await inspectBrowserRatingFixture({ provider: dataProvider, userId: browserOwner.id, fixture })
+  } else report = { ...report, ...readPolicy }
+  report.ownerSource = browserOwner.source
+  report.releaseSessionSource = releaseOwner.source
+  report.releaseAccountMatchesBrowserOwner = releaseOwner.id === browserOwner.id
+  report.authCommit = releaseOwner.authCommit
+} catch (error) {
+  report.failure = /^[A-Z][A-Z0-9_]{0,79}$/.test(error?.code || '') ? error.code : 'RATING_UI_INSPECTION_FAILED'
+}
+report.candidateCommit = /^[a-f0-9]{40}$/.test(environment.RATING_UI_INSPECTION_SHA || '') ? environment.RATING_UI_INSPECTION_SHA : null
+report.observedAt = new Date().toISOString()
+await fs.mkdir('artifacts/browser-rating-inspection', { recursive: true })
+await fs.writeFile('artifacts/browser-rating-inspection/summary.json', `${JSON.stringify(report, null, 2)}\n`)
+process.stdout.write(`${JSON.stringify(report)}\n`)
+if (report.status !== 'PASS') process.exitCode = 2

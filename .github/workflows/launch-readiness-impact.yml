@@ -1,0 +1,31 @@
+name: Launch Readiness Impact (advisory)
+on:
+  pull_request:
+  issues:
+    types: [opened, edited, reopened, labeled]
+permissions:
+  contents: read
+jobs:
+  impact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate traceability contract
+        run: node scripts/check-launch-readiness.mjs --verify-links
+      - name: Classify PR file impacts
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git diff --name-only "$BASE_SHA" "$HEAD_SHA" > "$RUNNER_TEMP/launch-changed.txt"
+          node scripts/check-launch-readiness.mjs --changed-files "$RUNNER_TEMP/launch-changed.txt" --github-event "$GITHUB_EVENT_PATH" --markdown >> "$GITHUB_STEP_SUMMARY"
+      - name: Classify issue / defect against linked requirements
+        if: github.event_name == 'issues'
+        run: node scripts/check-launch-readiness.mjs --github-event "$GITHUB_EVENT_PATH" --markdown >> "$GITHUB_STEP_SUMMARY"

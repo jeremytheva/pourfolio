@@ -1,11 +1,527 @@
 # Rating workflow staging certification
 
+## Live browser bonus-backed tasting — 20 October 2026 Sydney
+
+Production health before/after this bounded test returned HTTP 200 and exact
+release `36ce8ffef482a9044e1e9f35da03214f46b7e1d5`. No new deployment was
+requested. The existing authenticated owner browser session was used.
+
+| Boundary | Observed result |
+| --- | --- |
+| Product 1 baseline | Four community ratings at 3.96/5; two personal at 3.94/5; older IDs 622/365 |
+| Form input | Five manual 4/7 scores; optional Design/Burp skipped |
+| Existing stored bonuses | Global Out of This World 0.5 plus earlier private QA 0.7 = 1.20 points |
+| Derived preview | Bonus 1/2; weighted/default 2.82/5; 56.43/100 |
+| Normal UI submission | One submit acknowledged new owner tasting 630; community/personal counts 5/3 |
+| Saved breakdown | Both attribute names, five 4/7 scores, Bonus 1/2 and stored standard/weighted 2.82/5 |
+| Full reload and exact profile link | PASS; same new tasting and stored score |
+| Normal owner UI deletion | One DELETE; row removed, profile count 285 to 284, focus moved to the next row |
+| Exact deleted link | Safely unavailable in owner history |
+| Restored product baseline | Four community/two personal; averages 3.96/3.94; older 622/365 links intact |
+| Independent provider parent/children | PASS: valid deleted tombstone, zero score children and zero bonus mappings; old baseline preserved |
+
+**Browser create/reload/saved-bonus-use/delete PASS. One submission, one
+DELETE, no mutation retry.** No new bonus attribute, producer, product,
+cellar record or profile setting was created/changed. The earlier private
+0.7 attribute is intentionally retained. New custom-attribute browser
+creation, A/B denial, concurrency and #165 historical repair remain separate.
+
+The new read-only inspection is bound to this acknowledged UI fixture,
+original owner baseline, product, date, expected total and exact runtime.
+It verifies the target with the normal protected release session, then binds
+the actual browser owner through a SHA-256 fingerprint of the public-profile
+link observed on that signed-in owner's profile. Exactly one full-list
+profile and an agreeing fresh direct profile read must resolve the same owner.
+No account identifier is guessed or published. It disables
+create/update/compare-and-set/delete methods, and
+compares fresh direct/full parent reads, full/paged child inventories and
+scoped child queries. Only absent parent or an exact owner/product-matched
+valid terminal tombstone with **zero** score/bonus children can pass.
+Older owner totals and community/personal counts must match the baseline.
+No arbitrary history-difference cleanup is enabled. Reports contain only
+safe states/counts/commits, never owner IDs, email, cookies or private rows.
+The first [read-only run 39374455471](https://github.com/jeremytheva/pourfolio/actions/runs/39374455471)
+at `88d07698` passed **962** canonical source tests (15 skips), found **zero**
+score and bonus-mapping children, and retained a provenance failure because
+its authenticated release account was not the browser owner (zero matching
+owner baseline rows). That result did not prove the terminal parent and is
+not a deletion failure. No data mutation occurred. The corrected profile-link
+binding preserves the owner checks rather than ignoring them. Nine focused
+regressions pass. Corrected [run 39374839839](https://github.com/jeremytheva/pourfolio/actions/runs/39374839839)
+at `31e41c3b42275a289b109a33fdf05bc2dbac1c69` passed **964** canonical
+source tests (15 skips), then independently confirmed **DELETED_TOMBSTONE**,
+**zero** full/scoped score children, **zero** full/scoped bonus mappings,
+community/personal completed counts **4/2** and preserved older owner totals.
+The authenticated release account was confirmed different from the browser
+owner. No provider mutation occurred. Artifact **12243405356**, digest
+`sha256:9cd98cef9be3779e01529d501a54867e181ea983798644bf9ccdbc8929337bd8`,
+retains only this redacted summary. All 155 browser/accessibility cases,
+Dependency Review and CodeQL passed at that source.
+
+### Cross-account read acceptance
+
+The signed-in browser owner successfully opened older tasting 622's stored
+breakdown (3.51/5). A distinct normally authenticated protected release account
+is available, so its read-denial check does not require guessing another email.
+The opt-in `[rating-ui-other-owner-read]` mode performs **one GET** to that
+same owner-only rating-breakdown endpoint within a verified release session.
+Only HTTP 403/404 qualifies; 401, 200, redirects and service failures do not.
+The response body is not logged. Profile-link owner binding and distinct
+identities are checked before the request. No data mutation or repeat graph
+inventory occurs; the session is signed out even after observer failure.
+
+The existing normal-session helper now offers an optional trusted read-only
+observer: one canonical same-origin rating GET, no arbitrary URL/body/method,
+no credential/cookie exposure and no configured-ID shortcut. Existing callers'
+default behaviour is unchanged. Four new regressions cover verified timing,
+one-read/path limits, failure/sign-out cleanup and unverified-session blocking.
+All **27** focused owner/inspection checks pass. Canonical and connected
+cross-account results remain pending. This is read isolation only; full
+A/B mutation/session lifecycle/concurrency certification is still separate.
+
+The prior dated smoke below was deliberately non-writing; this section adds
+new saved-rating-use evidence without rewriting that historical scope.
+
+
+## Merged bonus release and production smoke — 20 October 2026 Sydney
+
+PR #651 merged as `4019c90e5ba342b654361109b0fe8896117f18c4` after final
+candidate `cf9a972cc03cdd78cb091cc661745084c1761f7c` passed
+[Node 22 validation 39332306413](https://github.com/jeremytheva/pourfolio/actions/runs/39332306413):
+896 source tests, 15 gated skips, 155 browser/accessibility cases, Dependency
+Review and CodeQL. Production `dpl_6ZymFxn4dysG2hMeSBzPF5LRt1bj` is READY.
+Public `https://brew-buds-mobile-app-design-3577.vercel.app/api/health`
+and `/api/readiness` returned HTTP 200 and that exact merged SHA, with
+authentication, data and rate limiting configured. The workflow auth pin
+now matches this observed production release; the older auth SHA in the
+historical runs below remains accurate.
+
+Authenticated non-writing checks verified search, product details/history
+and the producer's unrated-beer filter. In the nine-step rating form, five
+required scores of 4/7, skipped Design/Burp and six bonus selections produced
+2.00 points, Bonus 2/2 and 3.07/5. Stored global 0.5/private 0.7 rendered
+correctly and summed to 1.20 before the remaining four selections. The draft
+was discarded; totals remained four community/two personal ratings, with
+existing links preserved. No new rating or attribute was submitted.
+
+[Main run 39332757207](https://github.com/jeremytheva/pourfolio/actions/runs/39332757207)
+passed source/browser and read-only bonus checks: 83 attributes (82 global,
+one earlier private QA), 81 absent values, one explicit global 0.5 and
+1,738 mappings using the certified singular field. The separate rating audit
+failed on the known historical completed/deleted parent and surviving score
+child; no repair was attempted. The earlier manual private 0.7 QA record is
+outside this test's random fixture scope.
+
+The bounded provider result below remains persistence/reload/unused-fixture
+cleanup PASS: two creates, two exact deletes, no mutation retry, no fixture
+from that run remains. HTTP/browser custom creation/rating use, distinct-account
+denial and concurrency are separate pending checks. Public launch is NO-GO.
+
+## Bounded current-instance bonus persistence test
+
+The owner approved the current instance for testing on 19 October 2026 at
+22:51 Sydney. The protected `bonus-write-certification.yml` workflow now runs
+the candidate's `persistBonusWithCategory` function directly against the
+configured provider. It uses the existing `staging-release` credential
+boundary; that environment name does not assert database isolation.
+
+The test takes a paginated baseline, reuses an existing visible Overall
+category, and permits exactly one private attribute at 0.7 plus one category
+mapping. A random run identifier in the description, canonical new IDs,
+baseline exclusion, exact ownership and foreign-key checks establish the
+fixture scope. Fresh reads verify decimal value persistence and the mapping.
+The existing server persistence implementation is exercised from the checked
+out commit; a Vercel deployment is not required for this narrower provider
+test.
+
+Cleanup uses only acknowledged IDs. It first verifies the private owner and
+exact random description, checks the complete category/rating references and
+rejects any existing rating use or unexpected mapping. It removes the verified
+category mapping, proves its absence, rechecks references and provenance, then
+removes the attribute and proves its absence. At most two creates and two
+deletes are attempted. Old/global/other-owner records cannot be cleanup targets.
+Lost responses, missing identity, changed ownership/references or unreadable
+state leave cleanup UNCONFIRMED and fail the run; no create retry, guessed
+deletion or history-difference sweep is allowed. Earlier retained QA records
+are never selected for removal.
+
+The workflow first runs canonical validation and verifies the checked-out SHA.
+It requires the existing protected provider configuration and either
+`NOCODEBACKEND_CONTRACT_USER_ID`, or the protected
+`RELEASE_OWNER_EMAIL` / `RELEASE_OWNER_PASSWORD` configuration. When the ID
+is absent, the worker first uses the existing release-target verifier to
+check the approved Pourfolio deployment origin and explicitly pinned auth
+release SHA (`BONUS_CERTIFICATION_AUTH_SHA`). That auth deployment is only
+used to establish account identity; `BONUS_CERTIFICATION_SHA` separately
+identifies the candidate persistence implementation run in the worker.
+Only then does it sign in through the app's normal same-origin auth route,
+verify the resulting session's ID and matching email with the application's
+session parser, and sign out before any data write. Credentials/cookies
+stay in worker memory. The deployment keeps its auth service key server-side;
+the test worker does not need a copy. Rejected, mismatched or unconfirmed
+sessions and incorrect deployment provenance block writes. Database keys
+are never used as user passwords. Missing both owner configurations blocks
+before any provider write. A branch push containing
+`[connected-bonus-write]` or a manual workflow dispatch requests this bounded
+run under the protected environment. It does not enable the broader isolated
+provider contract or schema mutation. The report contains statuses/counts and
+the candidate SHA and, when applicable, the verified auth release SHA,
+excluding record IDs, owner identity and description. The workflow pins the
+currently observed public auth release; if that deployment changes, recheck
+readiness and update the explicit auth pin before requesting another run.
+
+A PASS qualifies this candidate's provider create/readback/reload/unused-fixture
+cleanup only. HTTP authentication/204 semantics, browser submission/rating use,
+second-account denial and concurrent atomicity retain their separate release
+checks. Public launch remains NO-GO. Current-instance approval supersedes older
+separate-database prerequisites, while #165 migration and historical recovery
+approval requirements remain intact.
+
+### Executed current-instance result — 20 October 2026 Sydney
+
+[Protected run 39329607548](https://github.com/jeremytheva/pourfolio/actions/runs/39329607548)
+executed candidate `89064711f9ed2badfc057d0dcbf15085266b9ff7` after
+**881** canonical Node 22 tests passed (15 provider-gated skips). The
+current public auth release `90c86fd13873b51a9025f4e3481dc594eef95a80`
+established the designated release account through a verified session.
+It is distinct from the candidate persistence implementation. Preview
+`dpl_E4dFnZBYhHVDKcvAez4FzVA5TCzm` is READY and HTTP 200 health returned
+the candidate SHA. Earlier configuration/provenance preflights made zero
+data writes and are retained in their run reports.
+
+**Persistence PASS; independent reload PASS; cleanup UNCONFIRMED.**
+Two creates were attempted and acknowledged. The unused private 0.7
+attribute and its requested category mapping were read back correctly.
+The subsequent full mapping-list check failed with
+`BONUS_CLEANUP_MAPPING_UNCONFIRMED`; **zero deletes were attempted**.
+The attribute and acknowledged mapping remain. Do not create another
+fixture, guess deletion IDs or treat this as a successful lifecycle test.
+
+The candidate now blocks new writes while any earlier test-owned random
+bonus fixture is unresolved. The separate `[bonus-fixture-inspect]` mode
+runs a read-only structural inspection: all provider mutation methods are
+disabled. It compares full-list mappings with direct reads for the uniquely
+identified test-account QA candidate and counts rating references. It emits
+no private IDs/descriptions; the recovery candidate is encrypted using
+AES-256-GCM with a purpose-specific HKDF key derived from the existing
+protected data credential. That inspection receipt is **not** original-create
+acknowledgement or automatic deletion authority. Six crypto integrity tests
+and the unresolved-fixture guard pass; **36** focused cases pass locally.
+Canonical Node 22 acceptance at `73ad6364` passed **888** tests with
+15 provider skips. The first inspection did not run because a new status
+blocker incorrectly referred to closed #503; it was corrected to open PR
+#651 with live retained evidence. The subsequent read-only
+[inspection 39330415649](https://github.com/jeremytheva/pourfolio/actions/runs/39330415649)
+found exactly one private QA candidate, one category mapping, consistent
+list/direct records, point value 0.7 and **zero** rating references. No
+provider data writes occurred. The immediate cleanup mismatch was not
+reproduced; a consistency delay is an inference, not a proven provider cause.
+
+The agent reviewed this unique fixture against the only data-writing run
+of the newly introduced random-nonce test. The earlier runs made zero data
+writes, and the actual creation run acknowledged and verified both records.
+`docs/evidence/bonus-fixture-recovery-39329607548.json` binds that review to
+the encrypted exact inspection snapshot. `[bonus-fixture-cleanup]` requests
+only this reviewed recovery: authenticate the same account, decrypt and
+validate the snapshot, require unchanged owner/value/nonce/FKs and a visible
+Overall category, then apply the same complete-reference/child-first checks.
+All creates/updates and unrelated or repeated deletes are disabled. At most
+two exact deletes can occur, with fresh absence verification after each.
+This explicit reviewed operation does not convert arbitrary inspection or
+unknown historical rows into automatic cleanup authority. The source
+refactor preserves the original guards; all **38** focused cases pass locally.
+The protected recovery result follows.
+Recovery [run 39330931236](https://github.com/jeremytheva/pourfolio/actions/runs/39330931236)
+at `0cb5ea3b` passed **890** canonical tests (15 skips), then issued one
+exact child DELETE. Its immediate GET still returned the mapping, so the
+same absence guard failed `BONUS_MAPPING_DELETE_UNCONFIRMED`. The parent
+DELETE was never attempted; **no removal is confirmed**. Do not repeat the
+mutation. The next operation is read-only: compare the retained exact IDs
+against full lists, normal direct reads and uncached GETs, retaining only
+safe HTTP/cache status flags. No endpoint/permission/schema change is
+justified until that evidence distinguishes stale reads from failed deletion.
+
+
+The earlier retained form-test bonus, 81 absent global values and historical
+rating/cellar records are outside this fixture scope. HTTP/browser create,
+rating use, A/B denial and concurrency remain independent launch checks.
+
+The subsequent read-only [run 39331390621](https://github.com/jeremytheva/pourfolio/actions/runs/39331390621)
+at `344715e9` passed **890** canonical tests / 15 skips and confirmed the
+reviewed mapping absent from the complete list, normal direct GET and
+uncached GET (HTTP 404). The parent remained present at 0.7 with no category
+or rating references. The DELETE therefore took effect by this later
+observation; cache-vs-replication/commit delay remains unproven. The documented
+[provider DELETE route](https://app.nocodebackend.com/help/en/rest-api)
+matches the adapter, so no endpoint or permission change was made.
+
+The reviewed recovery now requires the old child to be absent and permits
+**only one parent DELETE**, through the original exact encrypted receipt.
+It repeats only readback (maximum six GETs with bounded delay), never a
+mutation. Unchanged fixture data and complete references are rechecked; a
+foreign replacement immediately stops verification. Three new focused tests
+cover partial recovery, delayed readback without repeated deletes, and a
+foreign replacement. All **41** focused cases pass locally. Exact-head
+canonical validation and parent-only recovery are pending.
+
+**Verified teardown:** [run 39331752492](https://github.com/jeremytheva/pourfolio/actions/runs/39331752492)
+at `b36ad771b9eb361faa851073fabae2e93e6bce32` passed **893** canonical
+Node 22 tests (15 provider-gated skips) and returned cleanup PASS. The exact
+old mapping was confirmed absent before any mutation; the only remaining
+parent was deleted once and its first fresh GET confirmed absence. Across
+this fixture's lifecycle there were **two creates and two exact deletes**
+(one child in the earlier recovery, one parent here), with no mutation retry.
+No fixture from this run remains. Existing historical/earlier QA records were
+outside the operation. Browser/accessibility, Dependency Review and CodeQL
+also passed for this source candidate. The application handler blob
+`4429268eca2d05fe5c4a28b581e5dbf8a339fe2c` is unchanged from the live
+persistence/reload test; subsequent changes are test/recovery tooling and
+evidence, not a different application persistence implementation.
+
+Future bounded runs now retain AES-GCM-encrypted, atomic recovery checkpoints
+before each create and immediately after each canonical new acknowledgement.
+A failed initial checkpoint prevents all provider writes. A lost response
+preserves exact nonce/known-ID intent without authorising guessed cleanup.
+The final encrypted checkpoint records the result. No IDs, nonce or account
+identity enters the public report. Three new focused cases verify these
+operational lessons; **44** focused tests pass locally. This receipt-only
+follow-up requests no new provider writes and awaits canonical validation.
+
+## Custom bonus point-value persistence verification (PR #651)
+
+Creating a private Overall bonus attribute must not return success on the
+strength of a NoCodeBackend create ID alone. The server reads the saved
+`bonus_attributes` row back, verifies the persisted ID, owner, description
+and numeric `point_value`, then creates and reads back the
+`bonus_attribute_category_mapping` row. The mapping must persist the
+requesting user, Overall category ID and newly created attribute ID before
+the route acknowledges HTTP 201. Either unverified write fails closed.
+
+The caller supplies the IDs from its successful pre-write visible catalogue
+read. A missing baseline, malformed create ID or ID already in that baseline
+fails with `BONUS_ATTRIBUTE_IDENTITY_UNCONFIRMED`, before readback or mapping.
+A canonical positive ID absent from the baseline is still not proof that this
+request created it: another request may have created it concurrently. Owner
+verification proves access, not creation provenance.
+
+No failed bonus create automatically deletes an attribute or category mapping.
+The earlier owner-verified compensating DELETE could remove an older private
+attribute if the provider echoed its ID. That destructive compensation is
+removed. Value/description/owner mismatch, lost response, unreadable row and
+ambiguous mapping writes fail closed and may leave an unconfirmed partial item
+for guarded, backed-up provider recovery. This is not a successful teardown;
+never retry a non-idempotent create or guess a cleanup ID to conceal it.
+
+The historical export contains 82 bonus attributes, of which 81 have null/
+blank `point_value`; the single explicit value is `0.50`. The existing
+legacy `0.2` display/scoring fallback remains intentional for absent stored
+values. This change does **not** invent historical point allocations or
+backfill provider records. Current production data must be re-read before
+any proposed corrective migration.
+
+The existing **read-only** connected mapping audit now also reports a
+redacted inventory of actual provider `point_value` fields: global/private
+row counts, explicit/missing/invalid values and aggregate point-value counts
+for global attributes only. It does not log descriptions, individual IDs or
+account identifiers, backfill missing values or treat the legacy fallback as
+provider-persisted data. `LEGACY_FALLBACK_PRESENT` is evidence of missing
+stored values, not an automatic mapping failure or authorisation to guess
+their intended points. A `REVIEW_REQUIRED` inventory needs investigation of
+invalid/out-of-range values before release.
+
+### Read-only existing private mapping capability preflight
+
+The connected bonus audit now inspects the existing private Overall
+attribute/category mapping when one is already present. It performs
+strict `GET` readback of the stored attribute and category mapping
+against their paginated inventory, checking persisted identity, owner,
+description, numeric point value and mapping foreign keys. Its output is
+a status only, without IDs, account identifiers or private point values.
+
+`EXISTING_PRIVATE_PAIR_READBACK_OK` is evidence that **existing**
+provider records can be read consistently by ID. If no suitable private
+pair exists, `INCONCLUSIVE_NO_PRIVATE_OVERALL_PAIR` must not be
+misrepresented as PASS. `READBACK_MISMATCH` or
+`READBACK_UNAVAILABLE` blocks certification and requires investigation.
+The audit disables provider mutations and makes no fixtures. Even a
+successful read-only preflight **does not** certify private create,
+concurrent duplicate handling, second-account authorization, rating use,
+mapping cleanup or backup/restore.
+
+Connected certification still requires a disposable owner-created attribute
+with a non-default value (for example `0.7`), server attribute
+write/readback, exact persisted category mapping readback, rating use,
+reload, exact provider query, denial from a second account, and verified
+cleanup. A passing source test or preview
+cannot substitute for these provider rows. Any failed readback requiring
+manual cleanup must be reconciled before marking a write run complete.
+
+
+
+
+## Connected rating test driver and cleanup identity
+
+The cleanup-guarded release test uses the same seven-card rating journey as
+the current application. Design, Burp and zero-weight manual dimensions are
+explicitly skipped; required dimensions receive 4/7, with each next heading
+awaited. Burp is a 0–1 optional extra, so the old universal `1 out of 7`
+selector could not finish the live form. The final heading is **All bonus
+attributes**, not **Bonus attributes**. The shared driver selects one existing
+bonus descriptor at its stored value and reaches review without creating a
+custom attribute or submitting implicitly. Browser regressions exercise the
+real renderer at default and personalised zero-weight settings.
+
+Before submission, the test requires a successful owner-history baseline.
+It captures the canonical rating ID directly from an HTTP 201 save response,
+requires the expected product, `duplicate: false`, a canonical ID and an ID
+absent from that baseline, then retains it before navigation/history checks.
+A subsequent assertion failure still invokes exact-ID cleanup. Concurrent
+new history entries are never inferred to be this test's deletion targets.
+A replay, pre-existing ID, wrong product, malformed or unconfirmed response
+must not authorise guessed cleanup.
+
+The guarded check now requires HTTP 204 for deletion and repeated deletion,
+then a fresh successful owner-history read excluding the exact test ID.
+It preserves both verification and cleanup errors if both occur. These checks
+do not independently inspect provider parent/child rows or certify atomicity.
+A failed/lost save response may have committed an unidentified partial record;
+that case remains **cleanup UNCONFIRMED**, fails the test and must be inspected
+under the existing provider-safe recovery protocol. No automatic submit retry
+or broad history-difference deletion is allowed.
+
+The explicit `RUN CLEANUP-GUARDED RELEASE WRITES` gate remains unchanged.
+Source and mocked-browser acceptance of this driver are not a connected
+write certificate. The bonus-create cleanup/isolation boundary under #651,
+terminal provider deletion under #165 and historical contradictory row remain
+open. Do not create another production bonus fixture to bypass these gates.
+
+## Full rating journey QA — 19 October 2026
+
+The controlled browser journey used one explicitly disposable tasting of an
+existing beer, with optional Design/Burp skipped, all five required manual
+scores set to 4/7, and six bonus selections worth 2.00 points in total.
+The review and freshly loaded stored breakdown agreed: Bonus 2/2 and
+weighted/standard score 3.07/5. A 1.80-point selection produced Bonus 1/2;
+reselecting the removed 0.2 attribute restored Bonus 2/2.
+
+The new tasting was removed through its exact owner-history row at about
+09:08 UTC (20:08 Sydney). Fresh product reads restored the baseline of
+4 community ratings (3.96/5) and 2 personal ratings (3.94/5), with both
+older personal tastings preserved. A fresh producer profile restored
+16 community and 8 personal completions, with 9 catalogue beers. Revisiting
+the deleted tasting's exact profile link showed the safe unavailable message.
+These are **passing browser observations for this disposable tasting**, not
+independently captured HTTP 204, direct provider terminal-parent/child absence,
+repeat-delete, concurrency or second-account isolation certification. The
+separate contradictory historical deletion finding below remains unresolved.
+
+| Requested step | Observed result |
+| --- | --- |
+| Search for existing or missing beer | Existing beer resolves; unique QA search returns no matches and prefills the missing-beer form. |
+| Add beer and link an existing/new producer | Name/style/ABV/IBU, producer search/new-producer choice, duplicate check and final review work. Final creation NOT_RUN: catalogue fixture cleanup is unavailable. |
+| Edit beer | Correct identity and proposed IBU diff reach review; moderation submission is intentionally disabled. Persistence BLOCKED. |
+| Edit/delete producer; delete beer | No governed application controls/routes exist; NOT_RUN. No catalogue records were created or deleted. |
+| Create bonus attribute | A private QA attribute persisted with description and 0.7 points. The immediate response rendered a blank 0.2 option; a fresh form correctly rendered the stored description and 0.7. PR #651 addresses this response/readback defect. |
+| Stored bonus values and thresholds | Existing global 0.5 and private QA 0.7 render correctly on reload; mixed values total correctly and cross the 2-point threshold. The 81 missing global values remain a separate data-source gap. |
+| Rate, review, save and view breakdown | PASS for this controlled tasting, five manual scores, derived Bonus and all six selected descriptors. |
+| Exact profile link and delete | PASS for selected row, UI removal, fresh aggregate restoration and safe unavailable link; provider terminal/child proof remains pending. |
+| Producer totals after cleanup | PASS: original community/personal counts restored. |
+| Community attribute averages | FAIL on the original source: saved 4/7 scores were visible in the individual breakdown but absent from attribute averages. The unpaged score read is replaced with the existing paged/batched catalogue convention. |
+
+The single private QA bonus attribute remains because the application has no
+owner-scoped bonus deletion control. No additional bonus fixtures were created.
+Do not treat the retained QA attribute or missing catalogue cleanup as a fully
+completed teardown. Do not invent the missing global point values from the
+0.2 fallback or migrate historical/provider records as part of this QA.
+
+The product-attribute source repair must read every score page, scope each
+75-ID batch locally, preserve completed/tombstone filtering and fail on an
+unavailable later page instead of publishing a partial average. Three new
+regressions failed on the original source and pass after correction; a fourth
+preserves incomplete/tombstone exclusion. The focused 10-test Node 24 run is
+diagnostic only. PR #660 final head `f8c08446795c8974ad84db053a32d470cac63013`
+passed canonical Node 22 acceptance (820 passed, 15 gated skips, zero failures),
+all 149 browser/accessibility cases, Dependency Review and CodeQL in run
+39228933739. The merge `f48d95090e0271557b43ee3035f01aecd05c243f` is deployed;
+HTTP 200 health matched it, and a fresh authenticated product read included
+Appearance/Aroma from three scores and Mouthfeel/Flavour/Follow from four,
+preserving the 4-community/2-personal totals and older tastings. This verifies
+the existing provider paged-read integration; it does not close independent
+terminal-write, child-absence, second-account or legacy recovery gates.
+
 ## Step-by-step acceptance and certification guide
 
 Use the GitHub browser workflow; a local clone is not required. The historical
 attempt below is retained as a failed/blocked attempt, not current completion
 evidence. Latest results and remaining boundaries belong in `STATUS.md` and
 the linked pull requests.
+
+### Exact connected terminal-delete evidence — 19 October 2026
+
+The isolated **read-only** [rating audit run 39196833869](https://github.com/jeremytheva/pourfolio/actions/runs/39196833869)
+examined 627 provider ratings and reported one parent with contradictory
+`complete` plus nonempty `deleted_at` state. The global child census
+found **one surviving `rating_scores` row, zero rating-bonus mappings
+for that parent, no mismatched child owners and no child owner missing**.
+A source unit test or the frontend hiding the rating cannot clear that
+finding: the parent and score remain inconsistent after the partial delete.
+
+The audit returned `REVIEW_REQUIRED` / exit 2 by design, and did not
+write to the provider. Terminal delete is therefore still a **FAIL**
+for live-data integrity. Any governed repair must verify the actual
+owner and exact parent/score relationship, retain a recoverable snapshot,
+verify provider conditional update/cleanup semantics, document rollback
+and obtain the necessary approval before touching either record. Do not
+guess which row should be recreated or deleted from aggregate counts.
+
+### Read-only contradictory deletion child census (PR #655)
+
+A `complete` rating with a nonempty `deleted_at` is excluded from
+personal history and community scoring but is **not** a verified terminal
+deletion. The connected rating audit now scans the full paginated score
+inventory and existing rating-bonus mapping inventory, then reports only
+aggregate counts of contradictory parents, any surviving score/bonus
+children, absent children, mismatched ownership and missing child owners.
+It outputs no rating IDs, user IDs or individual score values.
+
+An empty child census is insufficient to declare delete success; the
+parent still needs a correctly verified terminal lifecycle transition.
+Any surviving children or ownership conflicts require investigation.
+The audit runs with provider writes disabled, records `REVIEW_REQUIRED`
+until the contradiction is resolved, and does **not** perform deletion,
+repair, schema migration or backfill. Governed recovery still requires
+an account-verified read of affected records, documented snapshot/restore,
+rollback/cleanup and appropriate approval before any mutation.
+
+### 19 October 2026 terminal-delete investigation
+
+A fresh production delete failed at 01:20:27 UTC (12:20:27 Sydney) on
+`2c8d88e8f8d466e8adc26c1a44d5a9814ca18033`, with correlation
+`46d8017c-43a3-4305-bcec-838725f0f43a`, a 4xx status class and controlled stage
+`mark_rating_deleted`. This narrows the break to the final managed-parent
+update, after child-removal verification. It does not independently establish
+the current provider row state or a specific field-level rejection reason.
+The user's frontend submission succeeded; that observation is not a complete
+connected create/retry certification.
+
+The final update used an ISO timestamp (`T`, milliseconds and `Z`) while rating
+creation already used the shared UTC provider format `YYYY-MM-DD HH:mm:ss`.
+Deletion now reuses that existing formatter. This is a source correction for a
+concrete wire-format inconsistency and the leading explanation for the observed
+rejection, not proof that the live provider accepted the repaired request.
+Regression coverage requires the provider timestamp format, preserves the
+original tasting date in the write payload, and verifies resume/repeated-delete
+behaviour after the terminal write fails. Mocked checks do not certify a live
+provider trigger's timestamp behaviour or replace #165's immutable-date gate.
+
+Keep the observed delete **FAIL** until a fresh controlled retest on the repaired
+SHA returns 204 and verifies the terminal tombstone, absence of score/bonus
+children, stable repeated deletion and owner isolation. A rating disappearing
+from history can result from the earlier `deleting` transition and does not prove
+terminal deletion. Use the existing isolated-fixture and cleanup protocol below;
+do not recreate or backfill the affected user's removed children.
+
+### Retained 8 October repair and general acceptance protocol
 
 The 8 October failed-delete/author-link/breakdown repair is deployed through
 PR #631. Source validation and 140 mocked browser/accessibility cases pass;

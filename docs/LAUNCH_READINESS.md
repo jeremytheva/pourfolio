@@ -1,10 +1,9 @@
 # Launch readiness
 
-Last reconciled: **15 October 2026 UTC**. Source review baseline:
-[`ccb92e60aa237ce7dd0af86a56fa22347925c8b2`](https://github.com/jeremytheva/pourfolio/commit/ccb92e60aa237ce7dd0af86a56fa22347925c8b2).
-The initial checklist reconciliation added no connected-provider or migration
-certification. Subsequent bounded deployment evidence is recorded below and in
-`STATUS.md`.
+Last reconciled: **20 October 2026 UTC**. Observed main and production
+baseline: [`36ce8ffef482a9044e1e9f35da03214f46b7e1d5`](https://github.com/jeremytheva/pourfolio/commit/36ce8ffef482a9044e1e9f35da03214f46b7e1d5).
+Bounded evidence is recorded below and in `STATUS.md`; final public launch
+qualification remains open.
 
 ## Current launch decision
 
@@ -20,6 +19,12 @@ The dated July–August records later in this document are retained history;
 their results must not be presented as certification of this source baseline or
 a future release candidate.
 
+## Continuous launch-readiness traceability (Project Master pilot)
+
+The scoped traceability index at [`.project-master/launch-readiness.json`](../.project-master/launch-readiness.json) maps existing product goals, acceptance criteria and issue links to implementation/test paths and the evidence locations already owned by this document. It does **not** replace this launch checklist or duplicate its PASS/FAIL/NO-GO state.
+
+`npm run check:launch-readiness` verifies the index **and stable one-per-requirement checklist anchors**. Issue/PR event associations are derived from registered issue links or explicit `Launch requirement IDs:` lines. The advisory **Launch Readiness Impact** workflow classifies pull-request changed files and issue/defect events and publishes a GitHub step summary. The project integration authority must review affected and unmapped items, reconcile this document and linked tests/issues, and retain failed/superseded evidence before considering a requirement closed. The workflow cannot certify a connected provider, approve an irreversible migration, override retained integrity findings or authorise launch. The existing dependency-scoped blockers and NO-GO decision remain unchanged.
+
 ## Current launch checklist
 
 `PARTIAL` means some source or historical runtime evidence exists, with required
@@ -29,24 +34,29 @@ UTC interval, operator, reviewer, safe evidence reference and cleanup result.
 
 | Work / issue | Delivery owner | Retained evidence and remaining completion gate | Current result |
 | --- | --- | --- | --- |
-| Authentication and rate limits | Launch hardening; ratings owns #577 session certification | Same-origin authentication, session and limiter controls are implemented. Certify sign-up/sign-in, refresh, expiry, sign-out and revoked/invalid sessions, plus enforced local/shared authentication limits against the intended hosting proxy boundary. | **PARTIAL; current connected lifecycle/rate-limit evidence pending** |
-| Rating provider foundation — [#165](https://github.com/jeremytheva/pourfolio/issues/165) | Ratings | Application durability contracts exist. Prove provider migration/backfill, uniqueness, conditional updates, immutable rating dates, backup and isolated restore; complete the [migration evidence package](nocodebackend/rating-schema-migration-runbook.md) and obtain explicit approval before irreversible mutation. G04, G10–G12, G14–G16 and G28 remain open. | **BLOCKED at provider/approval boundary** |
-| Rating lifecycle and deletion — [#503](https://github.com/jeremytheva/pourfolio/issues/503) | Ratings | Source repairs and earlier source/browser passes do not supersede the latest retained live deletion failure in `STATUS.md`. Correlate the failed request with its provider stage, then certify create/retry/partial-write recovery/delete/concurrent operations using disposable isolated fixtures and verified cleanup. | **FAIL: retained live deletion; required connected write cases NOT_RUN** |
+| <!-- launch-requirement:PF-LAUNCH-AUTH --> Authentication and rate limits | Launch hardening; ratings owns #577 session certification | Same-origin authentication, session and limiter controls are implemented. Certify sign-up/sign-in, refresh, expiry, sign-out and revoked/invalid sessions, plus enforced local/shared authentication limits against the intended hosting proxy boundary. | **PARTIAL; current connected lifecycle/rate-limit evidence pending** |
+| <!-- launch-requirement:PF-LAUNCH-PROVIDER --> Rating provider foundation — [#165](https://github.com/jeremytheva/pourfolio/issues/165) | Ratings | Application durability contracts exist. Prove provider migration/backfill, uniqueness, conditional updates, immutable rating dates, backup and isolated restore; complete the [migration evidence package](nocodebackend/rating-schema-migration-runbook.md) and obtain explicit approval before irreversible mutation. G04, G10–G12, G14–G16 and G28 remain open. | **BLOCKED at provider/approval boundary** |
+| <!-- launch-requirement:PF-LAUNCH-RATING --> Rating lifecycle and deletion — [#503](https://github.com/jeremytheva/pourfolio/issues/503), remaining integrity [#165](https://github.com/jeremytheva/pourfolio/issues/165) | Ratings | #503 is closed. A bounded production `36ce8ffe` browser tasting saved, reloaded and was deleted once; independent `31e41c3b` inspection proved its valid deleted tombstone, zero score/bonus children and preserved baseline. A separate, read-only normal-HTTPS rating-breakdown request from a verified distinct release account returned 404 without writes. These close only their scoped rows. The historical completed/deleted parent with one surviving score child remains a confirmed #165 recovery finding. Full retry/partial-write/concurrency and permission-negative certification remains open in the existing rating guide. | **PARTIAL: bounded lifecycle/read denial PASS; historical recovery and broader integrity evidence open** |
+| <!-- launch-requirement:PF-LAUNCH-BONUS --> Bonus attribute point integrity — [PR #651](https://github.com/jeremytheva/pourfolio/pull/651) | Ratings; catalogue release integration | Merged/deployed `4019c90e`: 896 canonical source tests, 15 gated skips, 155 browser/accessibility cases. Current-instance server persistence/reload and exact fixture cleanup passed: two creates, two deletes, no mutation retry, no fixture from that run remains. Production form rendered stored global 0.5/private 0.7, their 1.20 sum, six selections at 2.00 and the expected 3.07/5 preview; draft discarded. Inventory still has 81 absent values among 83 attributes; fallback 0.2 does not establish them. A later production `36ce8ffe` browser test saved/reloaded one tasting using 0.5 + 0.7 = 1.20 points (Bonus 1/2; 2.82/5), then deleted that exact tasting once and restored counts 4/2 with old links intact. Independent `31e41c3b` inspection confirmed a valid deleted tombstone, zero score/bonus children, and the preserved baseline. New custom-attribute browser creation, A/B denial and concurrency remain open; see the [certification guide](nocodebackend/rating-workflow-certification.md). | **PARTIAL: bounded persistence/cleanup and presentation PASS; missing data and connected acceptance remain** |
 | Backend certification — [#144](https://github.com/jeremytheva/pourfolio/issues/144) | Ratings, coordinated by catalogue | Read-only production checks exist. Complete the same-state provider baseline and [connected policy matrix](nocodebackend/connected-policy-certification.md), including negative ownership/session cases, response contracts, failure recovery and cleanup. Read-only passes do not close write/permission rows. | **PARTIAL** |
-| Catalogue certification — [#154](https://github.com/jeremytheva/pourfolio/issues/154) | Catalogue; producers owns producer fixes | Browse/search/details and relationship controls are integrated. Complete connected catalogue reconciliation, provider-failure recovery and browser/accessibility evidence; resolve applicable producer-pagination findings and document which historical data is included in the launch catalogue. | **PARTIAL** |
-| Private cellar CRUD — [#449](https://github.com/jeremytheva/pourfolio/issues/449) | Catalogue | Owner-scoped source controls and launch-safe Add-to-cellar initiation exist. Certify create/read/update/delete, nullable optional relationships, second-account denial and guaranteed cleanup. Relationship-backed selectors and moderated/persisted proposals remain gated by their backing provider contracts; do not fabricate lookup identities. | **PARTIAL; required connected CRUD/ownership cases NOT_RUN** |
-| Persistent profiles and public history — [#422](https://github.com/jeremytheva/pourfolio/issues/422) | Ratings | Persistent profiles, stable `public_id` and opt-in public history are implemented. Certify provider uniqueness/default-private creation, persisted privacy changes and revocation, copied-link behaviour, cross-owner denial and recovery. Unsupported connected rows stay pending. | **PARTIAL** |
-| User/admin session certification — [#577](https://github.com/jeremytheva/pourfolio/issues/577) | Ratings | Database-key presence/provider acceptance preflight is a separate scope. Supported account-session credentials and protected execution are still required for user/admin, expired/revoked and cross-owner certification. Database Secret Keys are not login passwords. | **BLOCKED at session-evidence boundary** |
-| Current review corrections | Launch hardening (bounded shared-file claim); integration by catalogue | PR #642 implements Node-hosting forwarded-header trust, persisted profile readback and response-body deadlines. Exact source candidate `dcc55b54a487040a3e3e9a4f041ebbecc47b11fa` passed canonical Node 22 validation (783 passed, 15 provider-gated skips), 140 browser/accessibility cases, CodeQL and Dependency Review; final head `830debd65814e3265fed167572f95fe95e1d366d` passed the same required checks and merged as `0bd208bf10618d6a04bc46628af9ad23973e4618`. Production health/readiness matched that merge SHA. Connected privacy/write acceptance remains open; see `STATUS.md` and the PR. | **MERGED; source/browser and production health/readiness verified** |
-| Exact-candidate release qualification | Catalogue integration authority | Freeze the candidate; run Node 22 `npm run platform:validate`, applicable browser/accessibility and connected acceptance checks, resolve material reviews, then verify actual deployed SHA, configuration, readiness and critical journeys. Historical passes do not qualify a new candidate. | **NOT_RUN for the final launch candidate** |
+| <!-- launch-requirement:PF-LAUNCH-CATALOGUE --> Catalogue certification — [#154](https://github.com/jeremytheva/pourfolio/issues/154) | Catalogue; producers owns producer fixes | Browse/search/details and relationship controls are integrated. Authenticated production `4019c90e` search, product statistics/history, producer profile and the previously failing unrated-beer filter passed without writes. Producer fix #664 and attribute averages #660 are integrated. Complete connected catalogue reconciliation, provider-failure recovery and applicable import/provenance decisions. | **PARTIAL** |
+| <!-- launch-requirement:PF-LAUNCH-CELLAR --> Private cellar CRUD — [#449](https://github.com/jeremytheva/pourfolio/issues/449) | Catalogue | Guarded PR #657 source `9c82e8a7` passed owner create/reload/edit/gift/null-defaults/exact cleanup against the current instance: one create/update/delete, no mutation retry or residual fixture. This invoked the checked-out gateway after authenticating the owner; it did not qualify HTTP/session middleware or a deployed browser submission. Other-account email remains absent. New gift-validation and shared-deadline corrections are under validation; preceding `c41a4a01` passed 970 canonical tests (15 gated skips) and 155 browser cases. READY Git previews `c41a4a01` and `0f717e39` returned matching HTTP 200 health/readiness, superseding the old manual quota block, but do not qualify owner HTTP/browser CRUD or the changed candidate. See the [policy record](nocodebackend/connected-policy-certification.md). Capability-gated relationships/proposals and historical ownerless rows remain unchanged. | **PARTIAL: bounded owner CRUD/cleanup PASS; latest fix qualification, isolation and deployed acceptance pending** |
+| <!-- launch-requirement:PF-LAUNCH-PRIVACY --> Persistent profiles and public history — [#422](https://github.com/jeremytheva/pourfolio/issues/422) | Ratings | Persistent profiles, stable `public_id` and opt-in public history are implemented. Certify provider uniqueness/default-private creation, persisted privacy changes and revocation, copied-link behaviour, cross-owner denial and recovery. Unsupported connected rows stay pending. | **PARTIAL** |
+| User/admin session certification — [#577](https://github.com/jeremytheva/pourfolio/issues/577) | Ratings | The certification adapter/protected runner is merged; database-key preflight is separate from supported account sessions. The one distinct-account rating read denial above does not establish the full user/admin, expired/revoked or cellar/profile matrix. Protected execution and a supported second release account remain required; the retained run reports `RELEASE_OTHER_EMAIL` absent. Database Secret Keys are not login passwords. | **PARTIAL; remaining rows blocked at session-evidence boundary** |
+| Current review corrections | Launch hardening (bounded shared-file claim); integration by catalogue | PR #642's header-trust, profile-readback and body-deadline corrections merged with passing canonical/browser/security checks and matching production health/readiness. PR #657 now adds strict persisted gift flags, one shared 10-second cellar write deadline and reload-before-writing guidance for uncertain outcomes. Its changed candidate still needs canonical Node 22, browser and runtime qualification; earlier source/provider/preview passes do not qualify it. Connected privacy/write acceptance remains open; see `STATUS.md` and the PR. | **PR #642 MERGED; PR #657 VALIDATING; connected acceptance open** |
+| <!-- launch-requirement:PF-LAUNCH-ACCESS --> Launch accessibility acceptance | Launch hardening; catalogue integrates | Use current-candidate Playwright/axe checks for all launch routes and complete the applicable mobile/desktop and supported screen-reader manual checklist. A prior source/browser pass is not fresh production-equivalent certification. | **PARTIAL; current release acceptance pending** |
+| <!-- launch-requirement:PF-LAUNCH-RELEASE --> Exact-candidate release qualification | Catalogue integration authority | Observed main/production `36ce8ffe` is READY at `dpl_A7oW24YPMjLr8EYsZewXWYqJgeWa`; public health/readiness returned HTTP 200 with that exact SHA. Earlier bounded source/browser, catalogue smoke and newer rating fixture evidence remain scoped to their recorded candidates. PR #657 is not yet integrated/qualified, and the historical parent/score contradiction remains under #165. Freeze and qualify the final launch candidate with all connected acceptance and operations evidence. | **PARTIAL release evidence; final launch qualification NOT_RUN** |
 | Publication and operations | Catalogue coordinates; `@jeremytheva` accountable for assigning named operators/reviewers | Reconcile current evidence against [publication](PUBLICATION_AND_RELEASE_EVIDENCE.md), [configuration](launch-configuration-evidence.md) and [operations](OPERATIONS_READINESS.md) procedures: reviewed public documents, support/alert ownership, safe logs, monitoring, credential handling, backup/restore and deployment rollback. No new remote verification is claimed here. | **PENDING current release evidence** |
 
-The retained connected runs in `STATUS.md` passed 12 baseline cases and skipped
-four required history/write cases. Those skips, including rating/cellar writes
-and distinct-account history checks, remain open; they cannot be converted into
-passes by a source test or by creating production fixtures outside the write
-gate. Use two distinct supported accounts and an isolated provider environment
-for controlled writes, retaining before/after evidence and exact cleanup identity.
+The earlier connected runs in `STATUS.md` passed 12 baseline cases and skipped
+four required history/write cases. Later bounded rating and owner-cellar checks
+above supersede only the rows they exercised; broader session, isolation,
+retry and deployed acceptance remains open. Source tests and historical skips
+cannot certify those rows. Use two distinct supported accounts for isolation checks. The owner authorised
+the current instance for bounded reversible testing; a separate database is not
+a prerequisite for those fixtures. Retain deterministic preflight, exact new
+identities, before/after evidence and verified cleanup. Historical repair,
+irreversible schema changes and backup/restore approval remain separate gates.
 
 ## Delivery and evidence ownership
 
@@ -97,6 +107,8 @@ governed capabilities.
 
 ## Brew Done It launch exclusion
 
+<!-- launch-requirement:PF-LAUNCH-DEFERRED -->
+
 - [x] Source includes an authenticated, guarded `/brew-done-it` direct route for
   controlled testing, while production-facing primary navigation stays hidden.
 - [x] The game gateway requires explicit server-side
@@ -117,6 +129,167 @@ hidden navigation, bundled test surface and explicit backend policy contract.
 Repeat canonical validation and applicable browser/accessibility checks on the
 exact candidate; static containment evidence alone does not certify gameplay
 or deployed policy.
+
+## Launch execution plan — 18 October 2026
+
+### Reviewed position
+
+The recommended path is to finish the existing beer-first release, qualify one
+candidate and run a controlled pilot before public launch. Public launch remains
+**NO-GO**. New feature growth and a hosting/framework migration are not prerequisites.
+
+Live review baseline:
+`acd8633494066c66e2d882d7317009669397de39`. Production deployment
+`dpl_8t1QfZgSXtPCZ6bTdCdF2ypVypeQ` reports READY at that SHA. Public health
+and readiness returned HTTP 200 at approximately 10:33 UTC on 18 October with
+matching provenance, configured authentication/data/shared rate limiting and
+`dataProvider: ok`. This verifies configuration and a bounded read, not owner writes.
+
+Exact-main run [38752087946](https://github.com/jeremytheva/pourfolio/actions/runs/38752087946)
+executed canonical acceptance (job `116480799187`: 783 passed, 15 skipped,
+zero failed, plus composed contract/lint/audit/build/security checks) and 140
+browser/accessibility cases (job `116480799367`). Connected rating-integrity
+and bonus-mapping jobs skipped. Required connected rows remain open.
+
+### Dependency-ordered delivery
+
+| Stage | Required work | Exit criterion |
+| --- | --- | --- |
+| A — Baseline | Confirm release/data scope, current claims and existing PR evidence. Reuse #503/#165/#144/#154/#449/#422/#577 and existing release documents. | One bounded queue and dated evidence baseline; no duplicate launch backlog. |
+| B — Rating/provider integrity | Correlate the #503 deletion failure, fix the verified operation, complete #165 provider authority/restore/approval prerequisites and certify the approved write path under #144. | Connected create, identical/lost-response retry, changed-payload rejection, partial-child recovery, concurrency, historical/current deletion and cleanup pass. |
+| C — Core journeys/data | Repair cellar validation under #449; certify sessions/rate limits, catalogue, score calculations, history/breakdowns, profile privacy/revocation and owner isolation using two distinct accounts. Reconcile data actually included at launch. | Every required connected journey passes with evidence and cleanup; no required skip or unresolved integrity/privacy defect. |
+| D — Publication/operations | Complete the existing publication/configuration/operations procedures, support contacts, named operators/backups, monitoring/redaction, provider restore and deployment rollback. Reconcile dated scope/prose. | Effective reviewed public documents, exercised support/alert routes and demonstrated compatible recovery. |
+| E — Candidate qualification | Freeze one SHA after fixes/public content integrate; execute canonical/browser/connected acceptance and verify actual production SHA, configuration, schema state and failure paths. | Dated release decision with complete exact-candidate evidence and no material unresolved reviews. |
+| F — Pilot/public release | After B–E pass, invite a small representative group and observe repeat use. Every pilot repair freezes a new candidate and returns to E for canonical, browser, connected and deployment requalification before resuming the pilot or recording GO. | Pilot acceptance and public release approval refer to the same final qualified candidate. |
+
+A can start immediately. B diagnosis, C reversible fixes/read-only preparation
+and D can progress independently where dependencies and verified claims permit.
+E waits for B–D. A pilot never waives integrity, privacy or recovery requirements.
+Recommended pilot observation is 10–20 invited adults over 7–14 days; this is not
+a promised launch date or a newly scheduled automation. Every pilot repair returns
+to E: freeze the new SHA, rerun canonical source, browser/accessibility and required
+connected acceptance, and verify the new deployment/configuration before resuming
+pilot acceptance or recording GO. Evidence for the pre-repair SHA cannot qualify
+the repaired candidate.
+
+### First implementation slices
+
+1. **#503 — deletion diagnosis:** use an isolated disposable fixture reproducing
+   the affected historical/managed shape, or a separately authorised controlled
+   retest. Capture release SHA, safe request ID, failing provider stage/status
+   and before/after counts. Add a focused regression and fix the verified cause.
+   PR #638's diagnostic logging is not itself evidence that deletion works.
+2. **#449 — strict cellar validation:** the reviewed production sanitiser
+   `api/_lib/dataPolicy.js` reproducibly accepts `date_received: "2026-02-30"`
+   as `2026-03-02`, numeric date `0` as `1970-01-01`,
+   `quantity: true` as `1`, and `gift: "false"` as `1`.
+   Reject impossible dates and unsupported JSON types before provider I/O while
+   preserving accepted valid-zero, optional-null and numeric-form semantics.
+   Cover both creates and partial updates.
+3. **#165/#144 — provider evidence:** #503 records workflow columns as deployed.
+   Establish actual fields and guarantees from a fresh consistent baseline;
+   do not repeat deployed changes blindly or equate column presence with
+   uniqueness/conditional-update/backfill/recovery certification. Complete the
+   existing provider-supported mechanism, isolated restore and explicit
+   irreversible-change approval package before the remaining provider work.
+   Keep the public reconciliation boundary unavailable until its governed gate.
+4. **#422/#577 — privacy/session certification:** supported login credentials
+   and two distinct sessions must prove default-private creation, uniqueness,
+   stable public identity, persisted edits/opt-in, copied links, revocation and
+   cross-owner denial. Database Secret Keys are not login passwords.
+
+### Required journey coverage
+
+Use the existing release harness and record exact candidate, environment,
+UTC interval, operator, result, safe evidence reference and cleanup for each row.
+
+- Supported registration/sign-in, session refresh/expiry/revocation/sign-out,
+  enabled email/OTP delivery and local/shared auth limits at the actual proxy boundary.
+- Catalogue browse/search/no results, deterministic full pagination, stable direct
+  product links, collaboration/category integrity and provider failure recovery.
+- Current scoring contract: personalised/default weights, zero-weight omissions,
+  derived Bonus, optional Design/Burp, stored historical totals, PPP price/volume
+  boundaries and Overall/Style Scaled Score ties/multi-page populations.
+- Reliable new/historical owner history across reload and a new session/device;
+  exact own/other-author links and actual recorded component/descriptor breakdowns.
+  Never reconstruct past ratings from today's weighting settings.
+- Default-private profile/history, opt-in and immediate revocation, copied-link
+  behaviour, second-account privacy and update denial, no stale private content.
+- Owner cellar CRUD, optional relationships without a series, valid primitives,
+  Gift/Gift-from clearing, invalid-input rejection and verified fixture cleanup.
+- Missing-beer/correction initiation truthfully respects persistence/image/lookup
+  capability gates. Do not imply an unavailable proposal was saved.
+- Connected Safari/iPhone and Android/Chromium smoke, keyboard, screen reader,
+  200% zoom, narrow screens, slow-network and accessible error/retry behaviour.
+
+### Source-data and documentation findings
+
+Fresh read-only repository audits against the supplied historical files produced:
+
+- **Catalogue BLOCKED:** 350 products, 159 producers and 331 categories with 209
+  finding records. These include missing references, category ancestry/cycles,
+  duplicate sort-key rows and encoding. Counts overlap.
+- **Historical SQL BLOCKED:** 34 structural findings against the current target.
+  The old export does not prove those fields are absent from the live provider.
+- **Cross-reference BLOCKED:** 53 findings using the supplied workbook's
+  `Ready_Ratings` (593 rows) and `Cellar_Staging` (399 rows), paired with the
+  product/producer CSVs: 29 product-to-producer, 14 rating-to-product and 10
+  cellar-to-product occurrences. Keep this exact-input result separate from
+  the older retained 46-occurrence/41-task remediation record.
+- The workbook retains 604 source ratings (593 marked ready, 11 excluded),
+  4,177 uploadable scores (15 excluded), 69 unmatched bonus selections across
+  10 variants, and 399 prepared cellar entries without verified owners or
+  confirmed destination IDs. Readiness labels do not establish completed import.
+
+These inputs are not evidenced as a same-state current-provider export. Certify
+a fresh launch catalogue/history snapshot. Recommend keeping unimported,
+unreconciled candidates separate from the first release dataset; this does not
+authorise deleting or hiding existing live history. Any bulk import still needs
+reviewed mappings, identity evidence, dry run, idempotent rerun and restore proof.
+
+Update existing specialist documents rather than adding competing authorities:
+
+- `docs/RATING_FORMULA_V1.md` describes historical v1 weights including
+  Design/Burp, while `src/lib/ratingFormulaV1.js` declares v2 and current core
+  weights (Appearance 10%, Aroma 10%, Mouthfeel 20%, Flavour 25%, Follow 25%,
+  Bonus 10%). Reconcile accepted personalisation/Bonus, scale, rounding and
+  historical semantics without rewriting historical totals.
+- `docs/OPERATIONS_READINESS.md` still describes provider readiness as deferred.
+  Reconcile it with the implemented endpoint and retain actual safety/evidence limits.
+- `src/data/publicDocuments.js` still contains RC draft/not-effective content,
+  unapproved operator details and no approved public support contact. Complete
+  the existing required independent publication review and workable support,
+  access/correction/deletion process. Future self-service account lifecycle
+  remains distinct from current privacy obligations and is not silently added.
+
+### Queue, ownership and release boundaries
+
+Catalogue remains sole integration/release/shared-status authority. Ratings,
+producers and Brew retain their scopes. Use verified bounded claims, ordinary
+PRs, at most three implementation PRs and stack depth two.
+
+At review, #637 and #639 were the two open implementation PRs; #635/#636 were
+dependency PRs. #639 has unresolved recovery and candidate-provenance reviews.
+#637's body is stale: exact-head runs `38828882651`/`38828876697` report
+successful validation. Inspect executed jobs/reviews and reconcile the body
+before integration. Brew remains outside the launch critical path. Do not add
+routine major dependency upgrades solely because a PR exists.
+
+The repository describes four scheduler workstreams, but the private task lookup
+exposed none in this review session. Verify authoritative task visibility,
+execution capability and recent outcomes before relying on unattended work.
+This is a visibility limitation, not proof that no tasks exist; avoid duplicates.
+
+Keep Brew Done It excluded/policy-disabled, and preserve existing deferred
+social/venue/business/geography/photo/non-beer gates. No new feature phase or
+hosting move is needed. Vercel is the currently verified target; BonoHost would
+need its own target-specific evidence if selected.
+
+Jeremy need not manage routine engineering. Escalate only concrete unavailable
+credentials/provider capabilities, irreversible-change approval, ambiguous
+historical identity decisions, necessary named external assignments and the
+public release decision after reversible preparation. Do not request blanket
+permission to begin.
 
 ## Retained source-hardening record — July–August 2026
 
@@ -473,3 +646,4 @@ owner-boundary failure, inconsistent rating data, incompatible API/schema,
 failed critical journey, health/configuration regression, missing safe logs, or
 an unrouteable P0/P1 alert. The authorised release manager may close the window
 only after recording a `retain` decision and reviewer concurrence.
+

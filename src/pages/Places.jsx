@@ -21,6 +21,7 @@ function Places() {
   const [reloadKey, setReloadKey] = useState(0)
   const [breweryView, setBreweryView] = useState('directory')
   const [rankingPage, setRankingPage] = useState(EMPTY_BREWERY_PAGE)
+  const [rankingPageNumber, setRankingPageNumber] = useState(1)
   const [rankingStatus, setRankingStatus] = useState('idle')
   const [rankingError, setRankingError] = useState('')
   const [rankingReloadKey, setRankingReloadKey] = useState(0)
@@ -28,6 +29,9 @@ function Places() {
   const errorRef = useRef(null)
   const resultsHeadingRef = useRef(null)
   const focusResultsAfterPage = useRef(false)
+  const rankingResultsHeadingRef = useRef(null)
+  const rankingErrorRef = useRef(null)
+  const focusRankingResultsAfterPage = useRef(false)
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -68,7 +72,7 @@ function Places() {
     let active = true
     setRankingStatus('loading')
     setRankingError('')
-    producerService.listProducerRankingPage({ page: 1, limit: BREWERY_PAGE_SIZE })
+    producerService.listProducerRankingPage({ page: rankingPageNumber, limit: BREWERY_PAGE_SIZE })
       .then((payload) => {
         if (!active) return
         setRankingPage(payload)
@@ -76,11 +80,18 @@ function Places() {
       })
       .catch((error) => {
         if (!active) return
+        if (error.status === 400 && rankingPageNumber > 1) {
+          focusRankingResultsAfterPage.current = true
+          setRankingPageNumber(1)
+          return
+        }
+        focusRankingResultsAfterPage.current = false
+        setRankingPage(EMPTY_BREWERY_PAGE)
         setRankingError(error.message || 'Brewery rankings could not be loaded.')
         setRankingStatus('error')
       })
     return () => { active = false }
-  }, [activeTab, breweryView, rankingReloadKey])
+  }, [activeTab, breweryView, rankingPageNumber, rankingReloadKey])
 
   useEffect(() => {
     if (breweryStatus === 'error') errorRef.current?.focus()
@@ -89,6 +100,14 @@ function Places() {
       resultsHeadingRef.current?.focus()
     }
   }, [breweryStatus])
+
+  useEffect(() => {
+    if (rankingStatus === 'error') rankingErrorRef.current?.focus()
+    if (rankingStatus === 'ready' && focusRankingResultsAfterPage.current) {
+      focusRankingResultsAfterPage.current = false
+      rankingResultsHeadingRef.current?.focus()
+    }
+  }, [rankingStatus])
 
   const activateTab = (tabId) => {
     setActiveTab(tabId)
@@ -112,6 +131,11 @@ function Places() {
   const changePage = (nextPage) => {
     focusResultsAfterPage.current = true
     setPage(nextPage)
+  }
+
+  const changeRankingPage = (nextPage) => {
+    focusRankingResultsAfterPage.current = true
+    setRankingPageNumber(nextPage)
   }
 
   return (
@@ -171,25 +195,47 @@ function Places() {
 
           {breweryView === 'rankings' ? (
             <div className="mt-5" aria-labelledby="brewery-rankings-heading">
-              <h3 id="brewery-rankings-heading" className="text-lg font-semibold text-gray-900">Brewery rankings</h3>
+              <h3 id="brewery-rankings-heading" ref={rankingResultsHeadingRef} tabIndex={-1} className="text-lg font-semibold text-gray-900 focus:outline-none">Brewery rankings</h3>
               <p className="mt-1 max-w-3xl text-sm text-gray-600">Based only on completed product ratings for beers attributed to each brewery. This does not rate brewery service, staff, venue experience or business quality.</p>
               {rankingStatus === 'loading' && <p className="mt-4 text-sm text-gray-600" role="status">Loading brewery rankings…</p>}
-              {rankingStatus === 'error' && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4" role="alert"><p className="font-semibold text-red-900">Brewery rankings could not be loaded.</p><p className="mt-1 text-sm text-red-900">{rankingError}</p><button type="button" onClick={() => setRankingReloadKey((value) => value + 1)} className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-900">Try again</button></div>}
+              {rankingStatus === 'error' && <div ref={rankingErrorRef} tabIndex={-1} className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 focus:outline-none focus:ring-2 focus:ring-red-400" role="alert"><p className="font-semibold text-red-900">Brewery rankings could not be loaded.</p><p className="mt-1 text-sm text-red-900">{rankingError}</p><button type="button" onClick={() => { focusRankingResultsAfterPage.current = true; setRankingReloadKey((value) => value + 1) }} className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-900">Try again</button></div>}
               {rankingStatus === 'ready' && (
                 <>
                   <p className="mt-3 text-sm text-gray-600">Qualification: at least {rankingPage.minimumRatings} completed ratings across at least {rankingPage.minimumRatedBeers} distinct rated beers.</p>
+                  <p className="mt-2 text-sm text-gray-600" role="status" aria-live="polite">{rankingPage.total === 0 ? 'No qualifying breweries.' : `Showing ${(rankingPage.page - 1) * rankingPage.pageSize + 1}–${(rankingPage.page - 1) * rankingPage.pageSize + rankingPage.items.length} of ${rankingPage.total} ranked breweries.`}</p>
                   {rankingPage.items.length === 0 ? <p className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">No breweries currently meet the ranking sample threshold.</p> : (
                     <ol className="mt-4 space-y-3">
                       {rankingPage.items.map((item, index) => (
                         <li key={item.producer.id}>
                           <Link to={`/breweries/${item.producer.id}`} className="flex items-center gap-4 rounded-lg border border-gray-200 p-4 hover:border-amber-300 hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2">
-                            <span className="w-8 text-center text-lg font-bold text-amber-800" aria-label={`Rank ${index + 1}`}>{index + 1}</span>
+                            <span className="w-8 text-center text-lg font-bold text-amber-800" aria-label={`Rank ${(rankingPage.page - 1) * rankingPage.pageSize + index + 1}`}>{(rankingPage.page - 1) * rankingPage.pageSize + index + 1}</span>
                             <span className="min-w-0 flex-1"><span className="block font-semibold text-gray-900">{item.producer.producer_name}</span><span className="mt-1 block text-sm text-gray-600">{item.ratingCount} ratings · {item.ratedBeerCount} rated beers · {item.catalogueBeerCount} catalogue beers</span></span>
                             <span className="text-right font-semibold text-gray-900">{item.averageWeighted.toFixed(2)} / 5</span>
                           </Link>
                         </li>
                       ))}
                     </ol>
+                  )}
+                  {rankingPage.totalPages > 1 && (
+                    <nav className="mt-6 flex items-center justify-between border-t border-gray-200 pt-4" aria-label="Brewery ranking pages">
+                      <button
+                        type="button"
+                        disabled={rankingPageNumber <= 1}
+                        onClick={() => changeRankingPage(Math.max(1, rankingPageNumber - 1))}
+                        className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Previous
+                      </button>
+                      <span className="text-sm text-gray-600" aria-current="page">Page {rankingPage.page} of {rankingPage.totalPages}</span>
+                      <button
+                        type="button"
+                        disabled={rankingPageNumber >= rankingPage.totalPages}
+                        onClick={() => changeRankingPage(Math.min(rankingPage.totalPages, rankingPageNumber + 1))}
+                        className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Next
+                      </button>
+                    </nav>
                   )}
                   <div className="mt-5 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700"><strong>Unavailable dimensions:</strong> geography requires verified producer geography; lifecycle filters require #444; managed business profiles require #437. Pourfolio does not infer these fields.</div>
                 </>

@@ -15,7 +15,7 @@ const OptimizedBeerCard = memo(function OptimizedBeerCard({ product }) {
       to={`/products/${product.id}`}
       className="group block rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"
     >
-      <article className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow group-hover:shadow-md">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow group-hover:shadow-md">
         <img
           src={product.product_image || FALLBACK_IMAGE}
           alt={hasProductImage ? `${product.product_name} by ${producer}` : ''}
@@ -45,9 +45,10 @@ const OptimizedBeerCard = memo(function OptimizedBeerCard({ product }) {
             <SafeIcon icon={FiArrowRight} className="ml-2 h-4 w-4" />
           </span>
         </div>
-      </article>
+      </div>
     </Link>
   )
 })
 
 export default OptimizedBeerCard
+

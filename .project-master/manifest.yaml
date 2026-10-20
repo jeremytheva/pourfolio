@@ -1,0 +1,13 @@
+schema_version: 1
+master_repository: jeremytheva/project-master
+master_standard_version: 1.0.0
+
+templates:
+  launch-readiness:
+    version: 1.1.0
+    adoption: adapted
+
+notes:
+  - "Project scope remains in PROJECT.md; launch evidence and sign-off remain in docs/LAUNCH_READINESS.md."
+  - "The JSON index maps requirements to existing documents, PRs/issues, paths and tests; it never certifies PASS."
+  - "Master updates require reviewed project adoption, not automatic overwrite."
