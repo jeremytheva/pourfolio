@@ -5,6 +5,11 @@ on:
     branches:
       - fix/cellar-write-persistence-verification-20261019
   workflow_dispatch:
+    inputs:
+      auth_release_sha:
+        description: Exact currently deployed auth release commit (40 lowercase hex characters)
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -50,7 +55,7 @@ jobs:
           # Only normal application sessions establish owner identity. The
           # checked-out gateway, not the auth release, performs provider CRUD.
           BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
-          BONUS_CERTIFICATION_AUTH_SHA: 36ce8ffef482a9044e1e9f35da03214f46b7e1d5
+          BONUS_CERTIFICATION_AUTH_SHA: ${{ inputs.auth_release_sha || '36ce8ffef482a9044e1e9f35da03214f46b7e1d5' }}
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
           RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}
@@ -75,7 +80,7 @@ jobs:
           NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
           BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
-          BONUS_CERTIFICATION_AUTH_SHA: 36ce8ffef482a9044e1e9f35da03214f46b7e1d5
+          BONUS_CERTIFICATION_AUTH_SHA: ${{ inputs.auth_release_sha || '36ce8ffef482a9044e1e9f35da03214f46b7e1d5' }}
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
       - name: Retain encrypted recovery and redacted results
@@ -86,3 +91,4 @@ jobs:
           path: artifacts/cellar-write-certification/
           if-no-files-found: warn
           retention-days: 30
+
