@@ -43,14 +43,14 @@ evidence:
   latest_browser_verified_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
 validation:
   governance: PASS
-  lint: PENDING
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PENDING
-  build: PENDING
+  tests: NOT_RUN
+  build: NOT_RUN
   ci: PENDING
   runtime: UNVERIFIED
 last_verified_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
-last_updated: "2026-10-20T23:34:00Z"
+last_updated: "2026-10-20T23:32:00Z"
 ---
 
 # STATUS.md
