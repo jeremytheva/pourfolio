@@ -3,15 +3,16 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Owner cellar lifecycle verified; deployment quota blocks runtime acceptance"
+stage: "Browser bonus-backed rating lifecycle verified; exact backend graph inspection pending"
 gate: Release
-execution_state: BLOCKED
+execution_state: VALIDATING
 current_work:
-  objective: "Verify and integrate the source-validated, owner-certified cellar fix once Vercel deployment capacity returns."
+  objective: "Independently verify terminal parent/zero children after one live bonus-backed browser tasting was saved and deleted; retain the separate cellar deployment quota boundary."
   issue: 449
   pr: 657
   branch: "fix/cellar-write-persistence-verification-20261019"
 next_actions:
+  - "Run the protected read-only inspection of the exact new browser rating; prove terminal parent, zero score/bonus children and preserved old owner/community baseline. Do not repeat rating submission or deletion."
   - "After Vercel deployment capacity returns, deploy the accepted cellar candidate to the existing project and verify its exact SHA/runtime before integration. Do not retry the quota rejection or bypass billing/limits."
   - "Preserve current source/browser and bounded owner-provider evidence; no new fixture or repeated mutation is needed for documentation-only follow-up."
   - "Complete #577 distinct-account checks after supported RELEASE_OTHER_EMAIL configuration is established; do not guess an identity or reuse a database key as a password."
@@ -39,20 +40,20 @@ wip:
 evidence:
   observed_main_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   current_candidate_commit: null
-  latest_validated_commit: "9c82e8a7018b8266f5cbef4f749982e9f3f9dd01"
+  latest_validated_commit: "fd9ee4f3a6ed9e92014f54f06962b97820de88e0"
   latest_deployed_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   latest_runtime_verified_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
-  latest_browser_verified_commit: "9c82e8a7018b8266f5cbef4f749982e9f3f9dd01"
+  latest_browser_verified_commit: "fd9ee4f3a6ed9e92014f54f06962b97820de88e0"
 validation:
   governance: PASS
   lint: PASS
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: FAIL
+  ci: PENDING
   runtime: UNVERIFIED
-last_verified_commit: "9c82e8a7018b8266f5cbef4f749982e9f3f9dd01"
-last_updated: "2026-10-20T05:02:44Z"
+last_verified_commit: "fd9ee4f3a6ed9e92014f54f06962b97820de88e0"
+last_updated: "2026-10-20T05:21:11Z"
 ---
 
 # STATUS.md
@@ -60,6 +61,32 @@ last_updated: "2026-10-20T05:02:44Z"
 Last materially reviewed: 20 October 2026 UTC
 
 ## AI execution gate
+
+### Bonus-backed browser rating saved/reloaded/deleted — 20 October 2026 Sydney
+
+The unchanged deployed production `36ce8ffe` was used for one normal
+authenticated browser tasting of product 1. Five required dimensions were
+4/7; Design/Burp were skipped. Existing stored global **0.5** and private
+**0.7** bonuses summed to **1.20**, derived Bonus **1/2** and preview
+**2.82/5 (56.43/100)**. One submission saved a newly acknowledged tasting,
+with both selected attribute names, recorded Bonus 1/2 and stored standard/
+weighted **2.82/5**. A full reload and its exact owner-profile link passed.
+
+Only that new tasting was deleted, once. The exact link became safely
+unavailable; the profile count fell 285 to 284. Product community/personal
+counts returned **5/3 → 4/2**, averages **3.96/3.94**, and old tastings
+622/365 remained. **Browser lifecycle PASS, one submit/one DELETE, no retry.**
+No new custom attribute was created; the earlier private 0.7 is retained.
+This is saved-rating use of stored bonus values, not a new custom-creation
+or second-account/concurrency certificate.
+
+Independent exact parent/score/bonus-child absence remains **PENDING**.
+A new opt-in read-only protected checker authenticates the normal release
+owner against pinned runtime `36ce8ffe`, disables all provider mutations,
+compares direct/full/scoped reads and verifies the unchanged old baseline.
+Seven focused regressions pass. It must not infer absence from the UI alone
+or alter the unrelated historical #165 contradiction. Details are in the
+[existing rating guide](docs/nocodebackend/rating-workflow-certification.md).
 
 ### Cellar owner lifecycle verified; deployment capacity blocked — 20 October 2026 Sydney
 
@@ -80,8 +107,8 @@ the provider's underlying delay mechanism remains unknown.
 
 Overall certification is deliberately **PARTIAL**, not PASS:
 `RELEASE_OTHER_EMAIL` is absent, so distinct-account isolation remains NOT_RUN.
-The runner exits 2 for that non-PASS scope; `ci: FAIL` retains it independently
-of passing source/browser and owner-provider evidence. HTTP/session middleware
+The runner exits 2 for that non-PASS scope; that failed certification job is
+retained independently of passing source/browser and owner-provider evidence. HTTP/session middleware
 and deployed browser submission are also NOT_RUN, not inferred from invoking
 the checked-out gateway.
 

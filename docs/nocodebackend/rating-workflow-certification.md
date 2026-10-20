@@ -1,5 +1,47 @@
 # Rating workflow staging certification
 
+## Live browser bonus-backed tasting — 20 October 2026 Sydney
+
+Production health before/after this bounded test returned HTTP 200 and exact
+release `36ce8ffef482a9044e1e9f35da03214f46b7e1d5`. No new deployment was
+requested. The existing authenticated owner browser session was used.
+
+| Boundary | Observed result |
+| --- | --- |
+| Product 1 baseline | Four community ratings at 3.96/5; two personal at 3.94/5; older IDs 622/365 |
+| Form input | Five manual 4/7 scores; optional Design/Burp skipped |
+| Existing stored bonuses | Global Out of This World 0.5 plus earlier private QA 0.7 = 1.20 points |
+| Derived preview | Bonus 1/2; weighted/default 2.82/5; 56.43/100 |
+| Normal UI submission | One submit acknowledged new owner tasting 630; community/personal counts 5/3 |
+| Saved breakdown | Both attribute names, five 4/7 scores, Bonus 1/2 and stored standard/weighted 2.82/5 |
+| Full reload and exact profile link | PASS; same new tasting and stored score |
+| Normal owner UI deletion | One DELETE; row removed, profile count 285 to 284, focus moved to the next row |
+| Exact deleted link | Safely unavailable in owner history |
+| Restored product baseline | Four community/two personal; averages 3.96/3.94; older 622/365 links intact |
+| Independent provider parent/children | PENDING exact read-only inspection |
+
+**Browser create/reload/saved-bonus-use/delete PASS. One submission, one
+DELETE, no mutation retry.** No new bonus attribute, producer, product,
+cellar record or profile setting was created/changed. The earlier private
+0.7 attribute is intentionally retained. New custom-attribute browser
+creation, A/B denial, concurrency and #165 historical repair remain separate.
+
+The new read-only inspection is bound to this acknowledged UI fixture,
+original owner baseline, product, date, expected total and exact runtime.
+It authenticates the normal release owner with the existing protected
+configuration, disables create/update/compare-and-set/delete methods, and
+compares fresh direct/full parent reads, full/paged child inventories and
+scoped child queries. Only absent parent or an exact owner/product-matched
+valid terminal tombstone with **zero** score/bonus children can pass.
+Older owner totals and community/personal counts must match the baseline.
+No arbitrary history-difference cleanup is enabled. Reports contain only
+safe states/counts/commits, never owner IDs, email, cookies or private rows.
+Seven focused regressions pass; canonical/protected results are pending.
+
+The prior dated smoke below was deliberately non-writing; this section adds
+new saved-rating-use evidence without rewriting that historical scope.
+
+
 ## Merged bonus release and production smoke — 20 October 2026 Sydney
 
 PR #651 merged as `4019c90e5ba342b654361109b0fe8896117f18c4` after final

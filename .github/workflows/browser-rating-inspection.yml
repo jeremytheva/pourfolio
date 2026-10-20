@@ -1,0 +1,55 @@
+name: Read-only browser rating fixture inspection
+
+on:
+  push:
+    branches:
+      - fix/cellar-write-persistence-verification-20261019
+
+permissions:
+  contents: read
+
+concurrency:
+  group: read-only-browser-rating-fixture-inspection
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    if: contains(github.event.head_commit.message, '[rating-ui-fixture-inspect]')
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Validate the reviewed inspection source
+        run: npm run platform:validate
+      - name: Verify the checked-out source
+        run: test "$(git rev-parse HEAD)" = "$RATING_UI_INSPECTION_SHA"
+        env:
+          RATING_UI_INSPECTION_SHA: ${{ github.sha }}
+      - name: Inspect the exact browser-created rating without data writes
+        run: node scripts/inspect-browser-rating-fixture.js
+        env:
+          RATING_UI_INSPECTION_SHA: ${{ github.sha }}
+          RATING_UI_INSPECTION_CONFIRMATION: INSPECT THE RECORDED BROWSER RATING FIXTURE
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
+          BONUS_CERTIFICATION_AUTH_SHA: 36ce8ffef482a9044e1e9f35da03214f46b7e1d5
+          RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
+          RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
+      - name: Retain only the redacted inspection summary
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-rating-inspection-${{ github.sha }}
+          path: artifacts/browser-rating-inspection/
+          if-no-files-found: warn
+          retention-days: 30
