@@ -1,5 +1,40 @@
 # Connected provider policy certification
 
+## Original cellar create failure inspection — 20 October 2026 Sydney
+
+Candidate `1ed487f57ca0c8da03c5e2dc343637579fa2299b` passed
+[Node 22 validation 39336438805](https://github.com/jeremytheva/pourfolio/actions/runs/39336438805)
+with **936** source tests, 15 provider-gated skips and all **155**
+browser/accessibility cases. Its exact Vercel preview
+`dpl_4aG7NKPN6MAyvQZnXkcgUqXhhmqV` is READY; runtime acceptance remains
+separate.
+
+The owner-only protected [run 39336434126](https://github.com/jeremytheva/pourfolio/actions/runs/39336434126)
+authenticated the normal designated account against verified public release
+`36ce8ffe`, then attempted **one create**. The provider returned
+`PROVIDER_ERROR` before a canonical ID acknowledgement. **No update or delete
+was attempted; cleanup remains UNCONFIRMED.** The original HTTP status was
+not retained by the runner, so no provider rejection, persistence or absence
+is inferred. Do not retry this mutation or discover a deletion target by
+history difference.
+
+The read-only `[cellar-fixture-inspect]` mode downloads only artifact
+`12226084071` from that exact run, verifies its download digest, and decrypts
+the original create-intent receipt inside the protected worker. It validates
+the candidate, owner, random marker, product and complete pre-write ID
+baseline. Normal full-list, uncached full-list and uncached exact-marker
+reads distinguish an exact fixture from no new row or ambiguous state.
+A present candidate additionally requires fresh direct/list agreement.
+All provider mutation methods are disabled. Private IDs/marker/owner are
+retained only in an encrypted snapshot, never the redacted report.
+
+A no-match result is accepted only with **zero** new IDs outside the original
+baseline. An unexpected new row, owner/product mismatch or inconsistent reads
+remains REVIEW_REQUIRED. This inspection never authorises deletion by itself.
+Its actual outcome is pending. Four inspection regressions pass locally.
+The incomplete second-account configuration and historical ownership/migration
+boundaries remain separate. Public launch is NO-GO.
+
 This report is the connected half of the Phase 1 evidence model. It certifies
 provider policies and workflow behaviour that a structural SQL export cannot
 establish. It must describe the same immutable release candidate, provider

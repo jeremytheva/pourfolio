@@ -27,6 +27,49 @@ export const cellarCertificationScope = (environment) => {
   return scope
 }
 
+export const inspectCellarCreateAttempt = async ({ provider, freshProvider, userId, receipt, summary, sourceSha }) => {
+  requireThat(/^[a-f0-9]{40}$/.test(sourceSha || '') && summary?.candidateCommit === sourceSha &&
+    summary.createsAttempted === 1 && summary.updatesAttempted === 0 && summary.deletesAttempted === 0 &&
+    receipt?.version === 1 && receipt.kind === 'cellar-create-checkpoint' && receipt.candidateCommit === sourceSha &&
+    receipt.stage === 'create-intent' && receipt.createdId === null && receipt.createsAttempted === 0 &&
+    receipt.userId === userId && /^cellar-[a-f0-9-]{36}$/.test(receipt.runKey || '') &&
+    receipt.marker === `Pourfolio release QA ${receipt.runKey}` && idOf(receipt.productId) &&
+    Array.isArray(receipt.baselineIds) && receipt.baselineIds.every(idOf) &&
+    new Set(receipt.baselineIds.map(String)).size === receipt.baselineIds.length,
+  'CELLAR_INSPECTION_SOURCE_UNCONFIRMED')
+  const [normal, fresh, scoped] = await Promise.all([
+    readAllBonusCertificationRows(provider, CELLAR),
+    readAllBonusCertificationRows(freshProvider, CELLAR),
+    readAllBonusCertificationRows({ listPage: (collection, options) =>
+      freshProvider.listPage(collection, { ...options, filters: { notes: receipt.marker } }) }, CELLAR)
+  ])
+  const select = (rows) => rows.filter((row) => row.notes === receipt.marker)
+  const normalMatches = select(normal), freshMatches = select(fresh), scopedMatches = select(scoped)
+  const baseline = new Set(receipt.baselineIds.map(String))
+  const newRows = fresh.filter((row) => !baseline.has(String(row.id)))
+  const report = { version: 1, mode: 'read-only-original-cellar-create-inspection', status: 'REVIEW_REQUIRED',
+    createsAttempted: 0, updatesAttempted: 0, deletesAttempted: 0,
+    normalMatches: normalMatches.length, uncachedFullMatches: freshMatches.length,
+    uncachedScopedMatches: scopedMatches.length, newRowsOutsideBaseline: newRows.length,
+    availableFields: [...new Set(fresh.flatMap(Object.keys))].sort(), fixtureState: 'UNCONFIRMED' }
+  let fixture = null
+  if (normalMatches.length === 0 && freshMatches.length === 0 && scopedMatches.length === 0 && newRows.length === 0) {
+    report.status = 'INSPECTED'
+    report.fixtureState = 'NO_NEW_FIXTURE_OBSERVED'
+  } else if (normalMatches.length === 1 && freshMatches.length === 1 && scopedMatches.length === 1) {
+    fixture = freshMatches[0]
+    const direct = await freshProvider.get(CELLAR, fixture.id)
+    report.originalOwnerProductMatch = same(fixture.user_id, userId) && same(fixture.product_id, receipt.productId)
+    report.newCanonicalId = Boolean(idOf(fixture.id)) && !baseline.has(String(fixture.id))
+    report.listDirectAgreement = [normalMatches[0], scopedMatches[0], direct].every((row) => fingerprint(row) === fingerprint(fixture))
+    if (report.originalOwnerProductMatch && report.newCanonicalId && report.listDirectAgreement) {
+      report.status = 'INSPECTED'
+      report.fixtureState = 'EXACT_NONCE_FIXTURE_PRESENT'
+    }
+  }
+  return { report, snapshot: { provenance: 'read-only-original-create-inspection', sourceSha, receipt, fixture } }
+}
+
 // This exercises the checked-out application gateway and real provider. Account
 // identities come from verified release sessions; HTTP/session middleware and
 // browser submission retain their separate connected-release checks.

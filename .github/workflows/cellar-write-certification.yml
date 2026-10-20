@@ -15,7 +15,10 @@ concurrency:
 
 jobs:
   certify:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-cellar-write]') || contains(github.event.head_commit.message, '[connected-cellar-owner-write]')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-cellar-write]') || contains(github.event.head_commit.message, '[connected-cellar-owner-write]') || contains(github.event.head_commit.message, '[cellar-fixture-inspect]')
+    permissions:
+      contents: read
+      actions: read
     environment: staging-release
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -35,6 +38,7 @@ jobs:
         env:
           CELLAR_CERTIFICATION_SHA: ${{ github.sha }}
       - name: Verify bounded candidate cellar gateway persistence
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-cellar-write]') || contains(github.event.head_commit.message, '[connected-cellar-owner-write]')
         run: node scripts/run-cellar-write-certification.js
         env:
           CELLAR_CERTIFICATION_SHA: ${{ github.sha }}
@@ -51,6 +55,29 @@ jobs:
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
           RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}
           RELEASE_OTHER_PASSWORD: ${{ secrets.RELEASE_OTHER_PASSWORD }}
+      - name: Read the encrypted receipt from the sole data-writing attempt
+        if: contains(github.event.head_commit.message, '[cellar-fixture-inspect]')
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: 12226084071
+          run-id: 39336434126
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/pourfolio-cellar-source
+          digest-mismatch: error
+      - name: Inspect original fixture state without provider writes
+        if: contains(github.event.head_commit.message, '[cellar-fixture-inspect]')
+        run: node scripts/inspect-cellar-write-fixture.js
+        env:
+          CELLAR_CERTIFICATION_SHA: ${{ github.sha }}
+          CELLAR_INSPECTION_CONFIRMATION: INSPECT THE ORIGINAL CELLAR CREATE ATTEMPT
+          CELLAR_SOURCE_DIRECTORY: ${{ runner.temp }}/pourfolio-cellar-source
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+          BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
+          BONUS_CERTIFICATION_AUTH_SHA: 36ce8ffef482a9044e1e9f35da03214f46b7e1d5
+          RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
+          RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
       - name: Retain encrypted recovery and redacted results
         if: always()
         uses: actions/upload-artifact@v7

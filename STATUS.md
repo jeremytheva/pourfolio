@@ -3,20 +3,20 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Bonus release verified; current-instance cellar certification"
+stage: "Inspect original cellar create outcome before further writes"
 gate: Release
-execution_state: IMPLEMENTING
+execution_state: VALIDATING
 current_work:
-  objective: "Reconcile and certify existing cellar persistence PR #657 on the authorised current instance, preserving historical ownership and migration boundaries."
+  objective: "Resolve the original unacknowledged cellar create through read-only receipt-bound inspection, then correct and certify the actual application flow."
   issue: 449
   pr: 657
   branch: "fix/cellar-write-persistence-verification-20261019"
 next_actions:
-  - "Reconcile existing #657 with current main, validate the latest candidate and certify bounded cellar create/edit/delete, nullable relationships, owner isolation and exact fixture cleanup on the authorised current instance."
-  - "Complete #577 distinct-account session and permission checks with supported release accounts; the designated owner session is verified, while second-account configuration remains to be established."
-  - "Certify bonus HTTP/browser creation and rating use, distinct-account denial and concurrency separately from the verified server persistence/reload/cleanup result; do not guess 81 absent point values."
-  - "Prepare #165 historical rating repair and uniqueness/conditional-update migration evidence, including exact ownership, backup, isolated restore and rollback; obtain governed approval before irreversible changes."
-  - "Establish provenance and a backed-up reviewed migration or archival decision for the 966 ownerless historical cellar rows; do not assign users by inference."
+  - "Inspect original cellar run 39336434126 using its encrypted create receipt; no new write or guessed deletion until its provider outcome is established."
+  - "Correct the actual cellar input/provider boundary and certify one bounded owner CRUD fixture with exact cleanup on the authorised current instance."
+  - "Complete #577 distinct-account checks after supported RELEASE_OTHER_EMAIL configuration is established; do not guess an identity or reuse a database key as a password."
+  - "Complete bonus HTTP/browser/rating-use acceptance separately from verified persistence/reload/cleanup; do not guess 81 absent values."
+  - "Prepare #165 historical rating recovery and #449 cellar provenance evidence with backup/restore/rollback; preserve irreversible migration approval."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
@@ -34,12 +34,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "4019c90e5ba342b654361109b0fe8896117f18c4"
-  current_candidate_commit: "17c21767b43eed5e5c4db70f8db0acadbba61f68"
-  latest_validated_commit: "4019c90e5ba342b654361109b0fe8896117f18c4"
-  latest_deployed_commit: "4019c90e5ba342b654361109b0fe8896117f18c4"
-  latest_runtime_verified_commit: "4019c90e5ba342b654361109b0fe8896117f18c4"
-  latest_browser_verified_commit: "4019c90e5ba342b654361109b0fe8896117f18c4"
+  observed_main_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
+  current_candidate_commit: null
+  latest_validated_commit: "1ed487f57ca0c8da03c5e2dc343637579fa2299b"
+  latest_deployed_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
+  latest_runtime_verified_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
+  latest_browser_verified_commit: "1ed487f57ca0c8da03c5e2dc343637579fa2299b"
 validation:
   governance: PASS
   lint: PASS
@@ -48,15 +48,45 @@ validation:
   build: PASS
   ci: FAIL
   runtime: VERIFIED
-last_verified_commit: "4019c90e5ba342b654361109b0fe8896117f18c4"
-last_updated: "2026-10-19T22:27:53Z"
+last_verified_commit: "1ed487f57ca0c8da03c5e2dc343637579fa2299b"
+last_updated: "2026-10-20T04:20:12Z"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 19 October 2026 UTC
+Last materially reviewed: 20 October 2026 UTC
 
 ## AI execution gate
+
+### Cellar provider create failure; receipt-bound read-only inspection — 20 October 2026 Sydney
+
+Existing PR #657 is reconciled with main `36ce8ffe`. Candidate `1ed487f5`
+passed canonical Node 22 validation (**936** passed, 15 gated skips), all
+**155** browser/accessibility cases and Dependency Review; its exact preview
+is READY. These checks do not prove provider writes.
+
+[Protected run 39336434126](https://github.com/jeremytheva/pourfolio/actions/runs/39336434126)
+verified the designated release session, then attempted **one cellar create**.
+It returned `PROVIDER_ERROR` without a canonical new ID. **Zero updates,
+zero deletes; cleanup UNCONFIRMED.** No original HTTP status is retained.
+No mutation retry or guessed cleanup is authorised by this failure. The
+earlier configuration/provenance preflights made zero writes. The second
+account's password is configured but `RELEASE_OTHER_EMAIL` is absent.
+
+The current continuation implements a **read-only** inspection of the original
+encrypted create-intent artifact. It checks exact source/owner/nonce/product
+and pre-write baseline against normal, uncached full and scoped reads, and
+disables every provider mutation method. Its outcome is pending. Full details
+remain in the existing [policy certification record](docs/nocodebackend/connected-policy-certification.md).
+The 966 historical ownerless rows, prior owned inventory and rating recovery
+remain outside the fixture scope.
+
+Main/production are `36ce8ffef482a9044e1e9f35da03214f46b7e1d5`. Public readiness returned that
+exact SHA on 20 October UTC; its application runtime is unchanged by #666.
+The bonus release and completed bonus fixture cleanup below remain valid
+bounded evidence. Current inspection validation is pending; the frontmatter
+source fields refer to the last accepted candidate `1ed487f5`. Public launch
+remains **NO-GO**.
 
 ### Bonus release deployed and bounded production checks verified — 20 October 2026 Sydney
 
