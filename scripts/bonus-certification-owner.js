@@ -5,9 +5,13 @@ const fail = (code, extra = {}) => Object.assign(new Error(code), { code, ...ext
 
 // Reuse the application's normal sign-in boundary and the existing release
 // provenance verifier. Credentials and cookies remain in the protected worker.
-export const resolveBonusCertificationOwner = async ({ environment = process.env, fetchImpl = fetch } = {}) => {
+export const resolveBonusCertificationOwner = async ({ environment = process.env, fetchImpl = fetch, inspectSession = null } = {}) => {
+  if (inspectSession !== null && typeof inspectSession !== 'function') throw fail('BONUS_TEST_OWNER_INSPECTION_INVALID')
   const configuredId = environment.NOCODEBACKEND_CONTRACT_USER_ID?.trim()
-  if (configuredId) return { id: configuredId, source: 'configured-contract-user' }
+  if (configuredId) {
+    if (inspectSession) throw fail('BONUS_TEST_OWNER_SESSION_REQUIRED')
+    return { id: configuredId, source: 'configured-contract-user' }
+  }
 
   const required = ['BONUS_CERTIFICATION_BASE_URL', 'BONUS_CERTIFICATION_AUTH_SHA', 'RELEASE_OWNER_EMAIL', 'RELEASE_OWNER_PASSWORD']
   const missing = required.filter((name) => !environment[name]?.trim())
@@ -64,6 +68,26 @@ export const resolveBonusCertificationOwner = async ({ environment = process.env
   } catch (error) {
     failure = ['BONUS_TEST_OWNER_AUTH_REJECTED', 'BONUS_TEST_OWNER_SESSION_UNCONFIRMED'].includes(error?.code)
       ? error : fail('BONUS_TEST_OWNER_AUTH_UNAVAILABLE')
+  }
+
+  if (!failure && inspectSession) {
+    try {
+      let reads = 0
+      // A trusted read-only observer gets one exact same-origin rating GET,
+      // never credentials/cookies, arbitrary URLs, mutation methods or bodies.
+      await inspectSession(Object.freeze({ userId: user.id, readRatingBreakdown: async (id) => {
+        if (!['string', 'number'].includes(typeof id) || !/^[1-9]\d*$/.test(String(id)) ||
+            typeof id === 'number' && !Number.isSafeInteger(id) || reads !== 0) {
+          throw fail('BONUS_TEST_OWNER_READ_SCOPE_UNCONFIRMED')
+        }
+        reads += 1
+        return boundedFetch(new URL(`${origin}/api/nocodebackend/ratings/${encodeURIComponent(id)}/breakdown`), {
+          method: 'GET', redirect: 'error', headers: { accept: 'application/json', origin, cookie }
+        })
+      } }))
+    } catch {
+      failure = fail('BONUS_TEST_OWNER_INSPECTION_FAILED')
+    }
   }
 
   if (cookie) {

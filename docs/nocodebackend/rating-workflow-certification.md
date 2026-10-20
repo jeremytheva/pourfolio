@@ -18,7 +18,7 @@ requested. The existing authenticated owner browser session was used.
 | Normal owner UI deletion | One DELETE; row removed, profile count 285 to 284, focus moved to the next row |
 | Exact deleted link | Safely unavailable in owner history |
 | Restored product baseline | Four community/two personal; averages 3.96/3.94; older 622/365 links intact |
-| Independent provider parent/children | PENDING exact read-only inspection |
+| Independent provider parent/children | PASS: valid deleted tombstone, zero score children and zero bonus mappings; old baseline preserved |
 
 **Browser create/reload/saved-bonus-use/delete PASS. One submission, one
 DELETE, no mutation retry.** No new bonus attribute, producer, product,
@@ -47,7 +47,37 @@ its authenticated release account was not the browser owner (zero matching
 owner baseline rows). That result did not prove the terminal parent and is
 not a deletion failure. No data mutation occurred. The corrected profile-link
 binding preserves the owner checks rather than ignoring them. Nine focused
-regressions now pass; corrected canonical/protected results are pending.
+regressions pass. Corrected [run 39374839839](https://github.com/jeremytheva/pourfolio/actions/runs/39374839839)
+at `31e41c3b42275a289b109a33fdf05bc2dbac1c69` passed **964** canonical
+source tests (15 skips), then independently confirmed **DELETED_TOMBSTONE**,
+**zero** full/scoped score children, **zero** full/scoped bonus mappings,
+community/personal completed counts **4/2** and preserved older owner totals.
+The authenticated release account was confirmed different from the browser
+owner. No provider mutation occurred. Artifact **12243405356**, digest
+`sha256:9cd98cef9be3779e01529d501a54867e181ea983798644bf9ccdbc8929337bd8`,
+retains only this redacted summary. All 155 browser/accessibility cases,
+Dependency Review and CodeQL passed at that source.
+
+### Cross-account read acceptance
+
+The signed-in browser owner successfully opened older tasting 622's stored
+breakdown (3.51/5). A distinct normally authenticated protected release account
+is available, so its read-denial check does not require guessing another email.
+The opt-in `[rating-ui-other-owner-read]` mode performs **one GET** to that
+same owner-only rating-breakdown endpoint within a verified release session.
+Only HTTP 403/404 qualifies; 401, 200, redirects and service failures do not.
+The response body is not logged. Profile-link owner binding and distinct
+identities are checked before the request. No data mutation or repeat graph
+inventory occurs; the session is signed out even after observer failure.
+
+The existing normal-session helper now offers an optional trusted read-only
+observer: one canonical same-origin rating GET, no arbitrary URL/body/method,
+no credential/cookie exposure and no configured-ID shortcut. Existing callers'
+default behaviour is unchanged. Four new regressions cover verified timing,
+one-read/path limits, failure/sign-out cleanup and unverified-session blocking.
+All **27** focused owner/inspection checks pass. Canonical and connected
+cross-account results remain pending. This is read isolation only; full
+A/B mutation/session lifecycle/concurrency certification is still separate.
 
 The prior dated smoke below was deliberately non-writing; this section adds
 new saved-rating-use evidence without rewriting that historical scope.

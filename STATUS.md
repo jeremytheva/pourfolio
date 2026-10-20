@@ -3,25 +3,22 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Browser bonus-backed rating lifecycle verified; exact backend graph inspection pending"
+stage: "Browser rating lifecycle and backend cleanup verified; cross-account read acceptance pending"
 gate: Release
 execution_state: VALIDATING
 current_work:
-  objective: "Independently verify terminal parent/zero children after one live bonus-backed browser tasting was saved and deleted; retain the separate cellar deployment quota boundary."
+  objective: "Verify one cross-account read denial, then integrate the validated cellar correction using the now-READY exact preview and qualify production."
   issue: 449
   pr: 657
   branch: "fix/cellar-write-persistence-verification-20261019"
 next_actions:
-  - "Run the protected read-only inspection of the exact new browser rating; prove terminal parent, zero score/bonus children and preserved old owner/community baseline. Do not repeat rating submission or deletion."
-  - "After Vercel deployment capacity returns, deploy the accepted cellar candidate to the existing project and verify its exact SHA/runtime before integration. Do not retry the quota rejection or bypass billing/limits."
+  - "Run the protected one-GET cross-account rating-read probe using the observed browser identity and distinct configured release session; no data write or repeated graph inspection."
+  - "Complete latest-head validation/review and integrate PR #657: existing Git preview 31e41c3b is READY with exact health/readiness. Verify the resulting production SHA and deployed cellar HTTP/browser lifecycle; do not create duplicate deployments."
   - "Preserve current source/browser and bounded owner-provider evidence; no new fixture or repeated mutation is needed for documentation-only follow-up."
   - "Complete #577 distinct-account checks after supported RELEASE_OTHER_EMAIL configuration is established; do not guess an identity or reuse a database key as a password."
   - "Complete bonus HTTP/browser/rating-use acceptance separately from verified persistence/reload/cleanup; do not guess 81 absent values."
   - "Prepare #165 historical rating recovery and #449 cellar provenance evidence with backup/restore/rollback; preserve irreversible migration approval."
 blockers:
-  - scope: cellar_candidate_deployment_capacity
-    issue: 449
-    detail: "Vercel rejected exact-candidate preview creation with HTTP 402 api-deployments-free-per-day (more than 100, retryAfter 86400) at 2026-10-20T05:00Z. Existing main/production remain 36ce8ffe; no new candidate deployment was created. Do not change billing, force deployment or bypass limits."
   - scope: rating_idempotency_provider_migration
     issue: 165
     detail: "Durable idempotency requires irreversible provider schema/constraint and existing-data migration work. Provider-supported migration/backfill, backup/restore proof and the governed approval package are required before mutation."
@@ -40,10 +37,10 @@ wip:
 evidence:
   observed_main_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   current_candidate_commit: null
-  latest_validated_commit: "88d07698d25d163d434dcf5fc094cdcbe3fa9727"
-  latest_deployed_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
-  latest_runtime_verified_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
-  latest_browser_verified_commit: "fd9ee4f3a6ed9e92014f54f06962b97820de88e0"
+  latest_validated_commit: "31e41c3b42275a289b109a33fdf05bc2dbac1c69"
+  latest_deployed_commit: "31e41c3b42275a289b109a33fdf05bc2dbac1c69"
+  latest_runtime_verified_commit: "31e41c3b42275a289b109a33fdf05bc2dbac1c69"
+  latest_browser_verified_commit: "31e41c3b42275a289b109a33fdf05bc2dbac1c69"
 validation:
   governance: PASS
   lint: PASS
@@ -52,8 +49,8 @@ validation:
   build: PASS
   ci: PENDING
   runtime: UNVERIFIED
-last_verified_commit: "88d07698d25d163d434dcf5fc094cdcbe3fa9727"
-last_updated: "2026-10-20T05:25:40Z"
+last_verified_commit: "31e41c3b42275a289b109a33fdf05bc2dbac1c69"
+last_updated: "2026-10-20T05:34:40Z"
 ---
 
 # STATUS.md
@@ -80,17 +77,22 @@ No new custom attribute was created; the earlier private 0.7 is retained.
 This is saved-rating use of stored bonus values, not a new custom-creation
 or second-account/concurrency certificate.
 
-Independent exact parent/score/bonus-child absence remains **PENDING**.
-A new opt-in read-only protected checker authenticates the normal release
-owner against pinned runtime `36ce8ffe`, disables all provider mutations,
-compares direct/full/scoped reads and verifies the unchanged old baseline.
-The first inspection at `88d07698` passed 962 source tests, found zero score/
-bonus children, but failed owner binding: the protected release account is
-not the browser account. No data was changed. The corrected inspector binds
-the observed signed-in public-profile link by SHA-256 fingerprint to one
-stored profile and agreeing fresh direct read, without publishing either
-profile/owner ID or substituting an account. Nine focused regressions pass. It must not infer absence from the UI alone
-or alter the unrelated historical #165 contradiction. Details are in the
+Independent [run 39374839839](https://github.com/jeremytheva/pourfolio/actions/runs/39374839839)
+at `31e41c3b` passed **964** source tests (15 skips), then confirmed a valid
+**DELETED_TOMBSTONE**, **zero** score children, **zero** bonus mappings,
+preserved older totals and complete counts **4/2**. Full and scoped fresh
+reads agree. Browser owner binding uses a fingerprint of the public-profile
+link observed in the signed-in UI, one stored profile and an agreeing fresh
+direct profile read. The preceding wrong-release-owner inspection is
+retained, not treated as a deletion failure. Neither inspection wrote data.
+
+The configured release account is genuinely distinct from this browser
+owner. The owner can read old tasting 622's recorded breakdown (3.51/5).
+A separate one-GET normal-HTTPS cross-account read probe is now pending.
+It accepts only 403/404, never 401, does not log the response body, keeps
+cookies in worker memory and signs out even after failure. **27 focused
+checks pass**. It does not repeat the parent/child graph inspection or
+test mutation denial against old data. Details remain in the
 [existing rating guide](docs/nocodebackend/rating-workflow-certification.md).
 
 ### Cellar owner lifecycle verified; deployment capacity blocked — 20 October 2026 Sydney
@@ -99,7 +101,7 @@ Existing [PR #657](https://github.com/jeremytheva/pourfolio/pull/657) is the
 single ordinary implementation PR. Accepted application source
 `9c82e8a7018b8266f5cbef4f749982e9f3f9dd01` passed **955** canonical Node 22 tests (15
 provider-gated skips), all **155** browser/accessibility cases, Dependency
-Review and CodeQL. Documentation-only follow-up does not change that handler.
+Review and CodeQL. Later verification-only changes do not change that handler.
 
 Protected [run 39372350379](https://github.com/jeremytheva/pourfolio/actions/runs/39372350379)
 at 04:58:48 UTC passed **create, independent reload, edit, nullable defaults,
@@ -117,14 +119,17 @@ retained independently of passing source/browser and owner-provider evidence. HT
 and deployed browser submission are also NOT_RUN, not inferred from invoking
 the checked-out gateway.
 
-Vercel rejected exact-candidate preview creation at 05:00 UTC with **HTTP 402,
-`api-deployments-free-per-day`**, more than 100 deployments and
-`retryAfter: 86400`. No new preview was created; no CLI/billing/limit bypass
-or repeated request followed. Earlier input validation rejected the unsupported
-literal preview target before creation; the corrected default-preview request
-reached this quota boundary. **Integration remains pending exact-candidate
-deployment/runtime evidence.** Main and verified production remain
-`36ce8ffef482a9044e1e9f35da03214f46b7e1d5`.
+The manual API request at 05:00 UTC was rejected with HTTP 402
+`api-deployments-free-per-day`; no CLI/force/billing workaround followed.
+The existing Git pipeline subsequently produced READY preview
+`dpl_68LuHgZHqiGcvR6TzE2d28fTxeJ3` for exact `31e41c3b`.
+At 05:33 UTC its health/readiness returned HTTP 200, that exact SHA,
+configured auth/data/rate limiting and data-provider OK. **The earlier
+preview-capacity blocker is superseded by this observed existing deployment.**
+No new deployment request was made. Main/production still remain
+`36ce8ffef482a9044e1e9f35da03214f46b7e1d5`; latest-head review/integration
+and post-merge production qualification are next. Deployed cellar HTTP/
+browser acceptance remains separate from its passing candidate provider test.
 
 Both earlier acknowledged fixtures and the original unacknowledged attempt
 were inspected; none remains and no DELETE was repeated. The collection API

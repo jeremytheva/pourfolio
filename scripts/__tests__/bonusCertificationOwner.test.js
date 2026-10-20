@@ -22,6 +22,15 @@ const fixture = (options = {}) => {
         checks: { dataProvider: 'ok' } }), { status: options.readinessStatus || 200 })
     }
     assert.equal(url.origin, environment.BONUS_CERTIFICATION_BASE_URL)
+    if (action === 'breakdown') {
+      assert.equal(options.allowRatingRead, true)
+      assert.equal(url.pathname, '/api/nocodebackend/ratings/622/breakdown')
+      assert.equal(init.method, 'GET')
+      assert.equal(init.body, undefined)
+      assert.equal(init.redirect, 'error')
+      assert.equal(init.headers.cookie, 'test-session=private-cookie')
+      return new Response('{"error":"private-response-body"}', { status: 403 })
+    }
     assert.equal(url.pathname.startsWith('/api/nocodebackend/auth/'), true)
     assert.equal(init.headers.origin, environment.BONUS_CERTIFICATION_BASE_URL)
     assert.equal(init.headers.authorization, undefined)
@@ -38,7 +47,8 @@ const fixture = (options = {}) => {
     if (action === 'sign-out') return new Response('{}', { status: options.signoutStatus || 200 })
     throw new Error('Unexpected request')
   }
-  return { calls, run: (env = environment) => resolveBonusCertificationOwner({ environment: env, fetchImpl }) }
+  return { calls, run: (env = environment, inspectSession = null) =>
+    resolveBonusCertificationOwner({ environment: env, fetchImpl, inspectSession }) }
 }
 
 test('a configured contract owner requires no authentication calls', async () => {
@@ -110,4 +120,53 @@ test('a wrong account plus sign-out failure preserves both safe failure facts', 
   const f = fixture({ session: { user: { id: 'foreign-owner', email: 'other@example.test' } }, signoutStatus: 503 })
   await assert.rejects(f.run(), (error) => error.code === 'BONUS_TEST_OWNER_SESSION_UNCONFIRMED' &&
     error.sessionCleanup === 'UNCONFIRMED')
+})
+
+test('verified-session inspection can issue one same-origin rating GET before guaranteed sign-out', async () => {
+  const f = fixture({ allowRatingRead: true })
+  let status
+  const result = await f.run(environment, async ({ userId, readRatingBreakdown }) => {
+    assert.equal(userId, 'verified-private-owner')
+    const response = await readRatingBreakdown('622')
+    status = response.status
+    await response.body.cancel()
+  })
+  assert.equal(status, 403)
+  assert.deepEqual(f.calls.map((call) => call.action), ['readiness', 'email', 'get-session', 'breakdown', 'sign-out'])
+  assert.ok(!JSON.stringify(result).includes('private-cookie'))
+  assert.ok(!JSON.stringify(result).includes('private-login-password'))
+})
+
+test('the inspection reader rejects arbitrary URLs, malformed IDs and repeated requests', async () => {
+  const f = fixture({ allowRatingRead: true })
+  await f.run(environment, async ({ readRatingBreakdown }) => {
+    for (const id of ['0', 'https://other.example', '622?anything=true']) {
+      await assert.rejects(readRatingBreakdown(id), { code: 'BONUS_TEST_OWNER_READ_SCOPE_UNCONFIRMED' })
+    }
+    const response = await readRatingBreakdown('622')
+    await response.body.cancel()
+    await assert.rejects(readRatingBreakdown('622'), { code: 'BONUS_TEST_OWNER_READ_SCOPE_UNCONFIRMED' })
+  })
+  assert.equal(f.calls.filter((call) => call.action === 'breakdown').length, 1)
+})
+
+test('inspection failure still signs out and preserves separate unconfirmed-session cleanup', async () => {
+  for (const signoutStatus of [200, 503]) {
+    const f = fixture({ signoutStatus })
+    await assert.rejects(f.run(environment, async () => { throw new Error('private-cookie private-response-body') }),
+      (error) => error.code === 'BONUS_TEST_OWNER_INSPECTION_FAILED' &&
+        !error.message.includes('private-cookie') && (signoutStatus !== 503 || error.sessionCleanup === 'UNCONFIRMED'))
+    assert.equal(f.calls.at(-1).action, 'sign-out')
+  }
+})
+
+test('unverified/configured-only owners cannot run a session observer', async () => {
+  const rejected = fixture({ sessionStatus: 401 })
+  await assert.rejects(rejected.run(environment, async () => assert.fail('must not inspect')),
+    { code: 'BONUS_TEST_OWNER_SESSION_UNCONFIRMED' })
+  const configured = fixture()
+  await assert.rejects(configured.run({ NOCODEBACKEND_CONTRACT_USER_ID: 'configured-owner' }, async () => {}),
+    { code: 'BONUS_TEST_OWNER_SESSION_REQUIRED' })
+  await assert.rejects(configured.run(environment, 'invalid'), { code: 'BONUS_TEST_OWNER_INSPECTION_INVALID' })
+  assert.equal(configured.calls.length, 0)
 })

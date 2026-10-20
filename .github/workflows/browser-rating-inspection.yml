@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   inspect:
-    if: contains(github.event.head_commit.message, '[rating-ui-fixture-inspect]')
+    if: contains(github.event.head_commit.message, '[rating-ui-fixture-inspect]') || contains(github.event.head_commit.message, '[rating-ui-other-owner-read]')
     environment: staging-release
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -38,6 +38,7 @@ jobs:
         env:
           RATING_UI_INSPECTION_SHA: ${{ github.sha }}
           RATING_UI_INSPECTION_CONFIRMATION: INSPECT THE RECORDED BROWSER RATING FIXTURE
+          RATING_UI_INSPECTION_MODE: ${{ contains(github.event.head_commit.message, '[rating-ui-other-owner-read]') && 'other-owner-read' || 'fixture-graph' }}
           NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
           NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}

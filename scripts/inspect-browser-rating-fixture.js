@@ -12,12 +12,15 @@ const fixture = Object.freeze({ kind: 'browser-created-and-deleted-rating',
   olderRatings: [{ id: '622', total: 3.51 }, { id: '365', total: 4.36 }],
   expectedCommunityCount: 4, expectedPersonalCount: 2, createsAttempted: 1, deletesAttempted: 1 })
 const environment = process.env
-let report = { version: 1, mode: 'read-only-browser-rating-fixture', status: 'BLOCKED',
+const mode = environment.RATING_UI_INSPECTION_MODE || 'fixture-graph'
+let report = { version: 1, mode: mode === 'other-owner-read'
+  ? 'read-only-other-owner-rating-isolation' : 'read-only-browser-rating-fixture', status: 'BLOCKED',
   createsAttempted: 0, updatesAttempted: 0, deletesAttempted: 0 }
 const blocked = async () => { throw Object.assign(new Error(), { code: 'RATING_UI_MUTATION_DISABLED' }) }
 for (const method of ['create', 'update', 'compareAndSet', 'remove']) dataProvider[method] = blocked
 try {
-  if (environment.RATING_UI_INSPECTION_CONFIRMATION !== 'INSPECT THE RECORDED BROWSER RATING FIXTURE' ||
+  if (!['fixture-graph', 'other-owner-read'].includes(mode) ||
+      environment.RATING_UI_INSPECTION_CONFIRMATION !== 'INSPECT THE RECORDED BROWSER RATING FIXTURE' ||
       !/^[a-f0-9]{40}$/.test(environment.RATING_UI_INSPECTION_SHA || '') ||
       environment.BONUS_CERTIFICATION_AUTH_SHA !== fixture.runtimeCommit) {
     throw Object.assign(new Error(), { code: 'RATING_UI_INSPECTION_GUARD_MISSING' })
@@ -25,10 +28,28 @@ try {
   if (['NOCODEBACKEND_SECRET_KEY', 'NOCODEBACKEND_INSTANCE'].some((name) => !environment[name]?.trim())) {
     throw Object.assign(new Error(), { code: 'RUNTIME_CONFIGURATION_MISSING' })
   }
-  const releaseOwner = await resolveBonusCertificationOwner({ environment: { ...environment, NOCODEBACKEND_CONTRACT_USER_ID: '' } })
-  const browserOwner = await resolveBrowserRatingOwner({ provider: dataProvider,
-    publicProfileFingerprint: fixture.publicProfileFingerprint })
-  report = await inspectBrowserRatingFixture({ provider: dataProvider, userId: browserOwner.id, fixture })
+  let browserOwner
+  let readPolicy
+  const inspectSession = mode === 'other-owner-read' ? async ({ userId, readRatingBreakdown }) => {
+    browserOwner = await resolveBrowserRatingOwner({ provider: dataProvider,
+      publicProfileFingerprint: fixture.publicProfileFingerprint })
+    if (userId === browserOwner.id) {
+      readPolicy = { status: 'BLOCKED', failure: 'RATING_UI_ACCOUNTS_NOT_DISTINCT' }
+      return
+    }
+    const response = await readRatingBreakdown(fixture.olderRatings[0].id)
+    const status = response.status
+    await response.body?.cancel()
+    readPolicy = { status: [403, 404].includes(status) ? 'PASS' : 'FAIL', otherOwnerReadStatus: status }
+    if (readPolicy.status !== 'PASS') readPolicy.failure = 'RATING_UI_OTHER_OWNER_READ_NOT_DENIED'
+  } : null
+  const releaseOwner = await resolveBonusCertificationOwner({
+    environment: { ...environment, NOCODEBACKEND_CONTRACT_USER_ID: '' }, inspectSession })
+  if (mode === 'fixture-graph') {
+    browserOwner = await resolveBrowserRatingOwner({ provider: dataProvider,
+      publicProfileFingerprint: fixture.publicProfileFingerprint })
+    report = await inspectBrowserRatingFixture({ provider: dataProvider, userId: browserOwner.id, fixture })
+  } else report = { ...report, ...readPolicy }
   report.ownerSource = browserOwner.source
   report.releaseSessionSource = releaseOwner.source
   report.releaseAccountMatchesBrowserOwner = releaseOwner.id === browserOwner.id
