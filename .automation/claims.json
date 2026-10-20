@@ -1,30 +1,8 @@
 {
   "version": 1,
   "claims": {
-    "ratings": {
-      "owner": "bonus-provider-test-1792445185645-ratings",
-      "workstream": "ratings",
-      "issue": 503,
-      "pr": 651,
-      "surfaces": [
-        "scripts/bonus-write-certification-lib.js",
-        "scripts/run-bonus-write-certification.js",
-        "scripts/__tests__/bonusWriteCertification.test.js",
-        ".github/workflows/bonus-write-certification.yml",
-        "docs/nocodebackend/rating-workflow-certification.md",
-        "scripts/bonus-certification-owner.js",
-        "scripts/__tests__/bonusCertificationOwner.test.js",
-        "scripts/inspect-bonus-write-fixture.js",
-        "scripts/bonus-fixture-receipt.js",
-        "scripts/__tests__/bonusFixtureReceipt.test.js",
-        "scripts/cleanup-bonus-write-fixture.js",
-        "docs/evidence/bonus-fixture-recovery-39329607548.json"
-      ],
-      "acquiredAt": "2026-10-19T22:28:54.345Z",
-      "expiresAt": "2026-10-19T22:58:54.345Z"
-    },
     "catalogue": {
-      "owner": "bonus-provider-test-1792445185645-catalogue",
+      "owner": "cellar-resume-1792469926719-catalogue",
       "workstream": "catalogue",
       "issue": 449,
       "pr": 657,
@@ -49,8 +27,19 @@
         "scripts/inspect-cellar-write-fixture.js",
         "scripts/__tests__/cellarFixtureInspection.test.js"
       ],
-      "acquiredAt": "2026-10-19T22:28:54.345Z",
-      "expiresAt": "2026-10-19T22:58:54.345Z"
+      "acquiredAt": "2026-10-20T04:18:46.719Z",
+      "expiresAt": "2026-10-20T04:48:46.719Z"
+    },
+    "ratings": {
+      "owner": "cellar-resume-1792469926719-ratings",
+      "workstream": "ratings",
+      "issue": 577,
+      "pr": 657,
+      "surfaces": [
+        ".github/workflows/bonus-write-certification.yml"
+      ],
+      "acquiredAt": "2026-10-20T04:18:46.719Z",
+      "expiresAt": "2026-10-20T04:48:46.719Z"
     }
   }
 }
