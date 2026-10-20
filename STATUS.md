@@ -80,8 +80,10 @@ This records the verified application baseline before the handoff's workflow/
 documentation commit. Verify that resulting deployment separately; do not
 infer a connected launch PASS from a documentation or workflow-input merge.
 
-The cellar/bonus manual workflows now require `auth_release_sha`; their
-preflight checks exact auth provenance before login or any write. Eight
+The cellar/bonus manual workflows now require `auth_release_sha`; session-based
+certification checks exact auth provenance before login or mutation. The bonus
+configured-contract-user path remains provider-only evidence and supplies no
+session proof. Eight
 release-target tests and parsing of both workflows/five SHA pins passed.
 No connected run or provider write was repeated for this handoff.
 
