@@ -14,7 +14,6 @@ const OptimizedBeerCard = memo(function OptimizedBeerCard({ product }) {
     <Link
       to={`/products/${product.id}`}
       className="group block rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"
-      aria-label={`View ${product.product_name}`}
     >
       <article className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow group-hover:shadow-md">
         <img
