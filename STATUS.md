@@ -3,20 +3,21 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Bonus release verified; current-instance cellar certification"
+stage: "Cellar persistence and shared write deadline review fixes validating"
 gate: Release
-execution_state: IMPLEMENTING
+execution_state: VALIDATING
 current_work:
-  objective: "Reconcile and certify existing cellar persistence PR #657 on the authorised current instance, preserving historical ownership and migration boundaries."
+  objective: "Qualify PR #657 persisted-gift and shared write deadline corrections, verify the exact preview and integrate only with sufficient runtime evidence."
   issue: 449
   pr: 657
   branch: "fix/cellar-write-persistence-verification-20261019"
 next_actions:
-  - "Reconcile existing #657 with current main, validate the latest candidate and certify bounded cellar create/edit/delete, nullable relationships, owner isolation and exact fixture cleanup on the authorised current instance."
-  - "Complete #577 distinct-account session and permission checks with supported release accounts; the designated owner session is verified, while second-account configuration remains to be established."
-  - "Certify bonus HTTP/browser creation and rating use, distinct-account denial and concurrency separately from the verified server persistence/reload/cleanup result; do not guess 81 absent point values."
-  - "Prepare #165 historical rating repair and uniqueness/conditional-update migration evidence, including exact ownership, backup, isolated restore and rollback; obtain governed approval before irreversible changes."
-  - "Establish provenance and a backed-up reviewed migration or archival decision for the 966 ownerless historical cellar rows; do not assign users by inference."
+  - "Qualify latest #657 gift-flag and shared write deadline fixes; retain the completed one-GET cross-account rating read and avoid repeating it."
+  - "Complete latest-head validation/review and integrate PR #657: existing Git preview 31e41c3b is READY with exact health/readiness. Verify the resulting production SHA and deployed cellar HTTP/browser lifecycle; do not create duplicate deployments."
+  - "Preserve current source/browser and bounded owner-provider evidence; no new fixture or repeated mutation is needed for documentation-only follow-up."
+  - "Complete #577 distinct-account checks after supported RELEASE_OTHER_EMAIL configuration is established; do not guess an identity or reuse a database key as a password."
+  - "Complete bonus HTTP/browser/rating-use acceptance separately from verified persistence/reload/cleanup; do not guess 81 absent values."
+  - "Prepare #165 historical rating recovery and #449 cellar provenance evidence with backup/restore/rollback; preserve irreversible migration approval."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
@@ -34,29 +35,191 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "4019c90e5ba342b654361109b0fe8896117f18c4"
-  current_candidate_commit: "17c21767b43eed5e5c4db70f8db0acadbba61f68"
-  latest_validated_commit: "4019c90e5ba342b654361109b0fe8896117f18c4"
-  latest_deployed_commit: "4019c90e5ba342b654361109b0fe8896117f18c4"
-  latest_runtime_verified_commit: "4019c90e5ba342b654361109b0fe8896117f18c4"
-  latest_browser_verified_commit: "4019c90e5ba342b654361109b0fe8896117f18c4"
+  observed_main_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
+  current_candidate_commit: null
+  latest_validated_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
+  latest_deployed_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
+  latest_runtime_verified_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
+  latest_browser_verified_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
 validation:
   governance: PASS
-  lint: PASS
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PASS
-  build: PASS
-  ci: FAIL
-  runtime: VERIFIED
-last_verified_commit: "4019c90e5ba342b654361109b0fe8896117f18c4"
-last_updated: "2026-10-19T22:27:53Z"
+  tests: NOT_RUN
+  build: NOT_RUN
+  ci: PENDING
+  runtime: UNVERIFIED
+last_verified_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
+last_updated: "2026-10-20T23:37:00Z"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 19 October 2026 UTC
+Last materially reviewed: 20 October 2026 UTC
 
 ## AI execution gate
+
+### Shared cellar write deadline review correction — 20 October 2026 UTC
+
+Independent review found that six readbacks plus their 4.75 seconds of waits
+could exceed the browser's 12-second timeout after a write had committed. A
+single 10-second mutation deadline now starts before session authentication
+and covers preflight, mutation, fresh readback, 404 fallback, settlement waits
+and optional product enrichment. Cancellation prevents later work; only reads
+may repeat. Unconfirmed writes return `CELLAR_WRITE_UNVERIFIED`, and the client
+instructs the owner to reload and check the cellar before another change.
+Provider cancellation does not undo a committed mutation; no automatic mutation
+retry or idempotency guarantee is introduced.
+
+All 82 focused cellar, provider, authentication, timeout and client transport
+tests passed locally on Node 24, including fake-clock coverage across slow auth,
+mutation, readback and enrichment, stalled response bodies, shared 404 fallback,
+cancelled waits and zero mutation retries. Canonical Node 22 validation and
+browser coverage for this changed candidate remain pending.
+
+Preceding gift-fix head `c41a4a01` passed canonical validation (970 tests,
+15 gated skips, no failures), 155 browser/accessibility cases and security
+checks. Its Git preview `dpl_BXzY4Lca4K9zfjcD3z8sCatjBHUX` is READY;
+health and readiness returned HTTP 200 with exact `c41a4a01` at 23:28 UTC.
+This proves that preceding preview's identity/readiness only, not the new
+deadline correction or connected cellar HTTP/browser acceptance. No new
+provider writes were performed. Public launch remains **NO-GO**.
+
+The launch-readiness check passed. Its changed-path report maps cellar, auth,
+provider evidence and client accessibility; unmatched shared `dataProvider`
+and `httpSecurity` modules/tests are deliberately classified under
+PF-LAUNCH-CELLAR, PF-LAUNCH-AUTH and PF-LAUNCH-PROVIDER for deadline propagation.
+The existing launch checklist and open connected gates remain authoritative.
+
+Broader review also reproduced a cleanup provenance gap: a stale owner-list
+baseline and an older acknowledged row could satisfy ID/product-only checks.
+The connected release fixture now uses a random run marker, preserved through
+create/update/reload, required in the receipt and fresh owner reads, and checked
+again immediately before its single DELETE. Missing/changed markers, duplicate
+IDs and pre-existing markers fail closed without deletion. This source
+correction does not rerun a connected fixture or qualify A/B isolation.
+
+The existing development dependency PR #647 exposed a catalogue link accessible
+name mismatch with upgraded axe. Its one-line correction removes the redundant
+label so visible card text determines the link name. Exact-head canonical and
+browser coverage is pending in that existing PR; no check was suppressed.
+
+### Cellar review and verified cross-account rating read — 20 October 2026 UTC
+
+Review of PR #657 at `c150488490493a6314da351c164f5c54c6a41d41` reproduced
+one false-success edge: any unrecognised persisted gift value was coerced to
+false, so an invalid provider value could acknowledge a requested false save.
+Verification now accepts only supported boolean encodings before comparing the
+requested gift flag. Two regressions cover malformed/missing stored flags and
+supported true/false encodings; all 19 focused cellar cases passed locally on
+Node 24. The changed candidate still requires canonical Node 22 and exact
+preview/runtime qualification; earlier live CRUD evidence is not rerun or
+upgraded by these source tests.
+
+The reviewed preceding head `c1504884` passed canonical Node 22 validation:
+968 tests passed, 15 provider-gated skips, zero failures, all 155 browser/
+accessibility cases, CodeQL and Dependency Review. This is preceding-head
+evidence, not a claim that the new gift correction is already deployed.
+
+Protected read-only run
+[39375645164](https://github.com/jeremytheva/pourfolio/actions/runs/39375645164)
+(job `118473051991`) completed at 05:35 UTC on `c1504884`: a verified release
+session distinct from the browser owner made one normal-HTTPS request to the
+owner's existing rating breakdown and received **404**. The report is **PASS**,
+with zero creates/updates/deletes and no response-body disclosure. This closes
+that bounded rating-read denial only; cellar mutation isolation, revoked/expired
+sessions, profile privacy and the broader #577 matrix remain pending. Do not
+repeat that request merely to refresh documentation.
+
+The older manual 402 quota note in the PR description was superseded by the
+READY Git preview recorded below. Fresh inspection confirmed existing preview
+`dpl_68LuHgZHqiGcvR6TzE2d28fTxeJ3` belongs to `31e41c3b`; it cannot certify
+a changed application head. Current production remains `36ce8ffe` and fresh
+public health/readiness both returned HTTP 200 with that exact SHA. No provider
+write or new deployment request was performed during this review. The expired
+catalogue lease was recovered only after fresh branch/main/claim reconciliation.
+Public launch remains **NO-GO**.
+
+### Bonus-backed browser rating saved/reloaded/deleted — 20 October 2026 Sydney
+
+The unchanged deployed production `36ce8ffe` was used for one normal
+authenticated browser tasting of product 1. Five required dimensions were
+4/7; Design/Burp were skipped. Existing stored global **0.5** and private
+**0.7** bonuses summed to **1.20**, derived Bonus **1/2** and preview
+**2.82/5 (56.43/100)**. One submission saved a newly acknowledged tasting,
+with both selected attribute names, recorded Bonus 1/2 and stored standard/
+weighted **2.82/5**. A full reload and its exact owner-profile link passed.
+
+Only that new tasting was deleted, once. The exact link became safely
+unavailable; the profile count fell 285 to 284. Product community/personal
+counts returned **5/3 → 4/2**, averages **3.96/3.94**, and old tastings
+622/365 remained. **Browser lifecycle PASS, one submit/one DELETE, no retry.**
+No new custom attribute was created; the earlier private 0.7 is retained.
+This is saved-rating use of stored bonus values, not a new custom-creation
+or second-account/concurrency certificate.
+
+Independent [run 39374839839](https://github.com/jeremytheva/pourfolio/actions/runs/39374839839)
+at `31e41c3b` passed **964** source tests (15 skips), then confirmed a valid
+**DELETED_TOMBSTONE**, **zero** score children, **zero** bonus mappings,
+preserved older totals and complete counts **4/2**. Full and scoped fresh
+reads agree. Browser owner binding uses a fingerprint of the public-profile
+link observed in the signed-in UI, one stored profile and an agreeing fresh
+direct profile read. The preceding wrong-release-owner inspection is
+retained, not treated as a deletion failure. Neither inspection wrote data.
+
+The configured release account is genuinely distinct from this browser
+owner. The owner can read old tasting 622's recorded breakdown (3.51/5).
+A separate one-GET normal-HTTPS cross-account read probe is now pending.
+It accepts only 403/404, never 401, does not log the response body, keeps
+cookies in worker memory and signs out even after failure. **27 focused
+checks pass**. It does not repeat the parent/child graph inspection or
+test mutation denial against old data. Details remain in the
+[existing rating guide](docs/nocodebackend/rating-workflow-certification.md).
+
+### Cellar owner lifecycle verified; deployment capacity blocked — 20 October 2026 Sydney
+
+Existing [PR #657](https://github.com/jeremytheva/pourfolio/pull/657) is the
+single ordinary implementation PR. Accepted application source
+`9c82e8a7018b8266f5cbef4f749982e9f3f9dd01` passed **955** canonical Node 22 tests (15
+provider-gated skips), all **155** browser/accessibility cases, Dependency
+Review and CodeQL. Later verification-only changes do not change that handler.
+
+Protected [run 39372350379](https://github.com/jeremytheva/pourfolio/actions/runs/39372350379)
+at 04:58:48 UTC passed **create, independent reload, edit, nullable defaults,
+false/true gift values and exact cleanup**. Exactly **one create, one update,
+one DELETE** were sent; independent fresh direct/full reads confirmed absence.
+No fixture from this run remains. Edit/delete gateway calls took approximately
+1.94/1.92 seconds. Six fresh reads with at most 4.75 seconds of waits resolved
+the previously observed immediate-readback failure in this bounded test;
+the provider's underlying delay mechanism remains unknown.
+
+Overall certification is deliberately **PARTIAL**, not PASS:
+`RELEASE_OTHER_EMAIL` is absent, so distinct-account isolation remains NOT_RUN.
+The runner exits 2 for that non-PASS scope; that failed certification job is
+retained independently of passing source/browser and owner-provider evidence. HTTP/session middleware
+and deployed browser submission are also NOT_RUN, not inferred from invoking
+the checked-out gateway.
+
+The manual API request at 05:00 UTC was rejected with HTTP 402
+`api-deployments-free-per-day`; no CLI/force/billing workaround followed.
+The existing Git pipeline subsequently produced READY preview
+`dpl_68LuHgZHqiGcvR6TzE2d28fTxeJ3` for exact `31e41c3b`.
+At 05:33 UTC its health/readiness returned HTTP 200, that exact SHA,
+configured auth/data/rate limiting and data-provider OK. **The earlier
+preview-capacity blocker is superseded by this observed existing deployment.**
+No new deployment request was made. Main/production still remain
+`36ce8ffef482a9044e1e9f35da03214f46b7e1d5`; latest-head review/integration
+and post-merge production qualification are next. Deployed cellar HTTP/
+browser acceptance remains separate from its passing candidate provider test.
+
+Both earlier acknowledged fixtures and the original unacknowledged attempt
+were inspected; none remains and no DELETE was repeated. The collection API
+rejects `_`; it is not a deployed workaround. Lookup projection and the
+observed `series_edition_id` contract are corrected without enabling gated
+relationships. Historical ownerless rows, catalogue writes and #165 migration
+remain untouched. Detailed results are retained in the existing
+[policy certification record](docs/nocodebackend/connected-policy-certification.md).
+Public launch remains **NO-GO**.
 
 ### Bonus release deployed and bounded production checks verified — 20 October 2026 Sydney
 
@@ -103,10 +266,8 @@ historical contradictory completed/deleted parent with **one surviving score
 child**. Frontmatter `ci: FAIL` records that provider finding independently
 of passing source checks. No repair was attempted.
 
-Existing [PR #657](https://github.com/jeremytheva/pourfolio/pull/657) is the
-single ordinary implementation PR, at `17c21767`; reconcile it with this
-main and obtain current-candidate provider/runtime evidence. Dependency PRs
-#645–#647 are separate. The earlier manual QA bonus, absent values,
+Existing PR #657 is the single ordinary implementation PR; its current state
+is recorded in the execution handoff above. Dependency PRs #645–#647 are separate. The earlier manual QA bonus, absent values,
 historical rating contradiction and **966 ownerless cellar rows** remain
 outside the completed fixture scope. Bonus HTTP/browser creation/rating use,
 distinct-account denial and concurrency remain open. Public launch is
@@ -983,4 +1144,5 @@ The available repository tools cannot attach/detach ChatGPT Project sources. The
 ## Validation limitations
 
 Source and production read evidence do not by themselves prove every provider write/permission boundary. #422 must retain unsupported connected rows as pending until they are exercised against the provider with safe cleanup. #165 remains separately blocked at an irreversible schema migration boundary, and #577 remains limited by the available account-session credential contract.
+
 

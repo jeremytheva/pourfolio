@@ -288,7 +288,37 @@ when no date is supplied, while a partial update may explicitly clear the date.
 truthy values are invalid. Unsupported writes return HTTP 400 before provider
 create/update calls. Ownership is still verified before a partial update.
 
-`sharing_series_id` and `series_version_id` are optional. When not applicable they must be `NULL`; zero and fabricated identifiers are rejected. A rating does not require a sharing series or edition.
+The supplied reference schema names optional `sharing_series_id` and
+`series_version_id`. Domain null/blank values still normalise to null;
+zero and fabricated identifiers are rejected. A rating does not require
+a sharing series or edition.
+
+**Observed current-instance API fields, 20 October 2026:** the receipt-bound
+read-only [run 39369277463](https://github.com/jeremytheva/pourfolio/actions/runs/39369277463)
+returned `series_edition_id`, with no `series_version_id`, across normal
+and uncached full reads. The machine contract's `cellar.provider_fields`
+now records that observed provider name. The reference/domain
+`series_version_id` remains capability-gated; it is not silently treated
+as an alias, transported to the provider or used to rewrite historical links.
+
+Launch client **and server** writes use the existing `projectCellarWrite`
+contract. All unavailable lookup fields are omitted, including null/blank
+inputs; non-null inputs fail before provider mutation. This does not clear
+existing provider relationships. A partial update with no supported field
+after projection returns HTTP 400. Nullable API presentation is retained.
+Cellar ownership, list and persistence/deletion verification request fresh
+upstream reads. Mutation verification permits at most six read attempts
+with 250/500/1000/1500/1500 ms intervals (4.75 seconds of waits), without
+repeating a create/update/delete. Changed ownership/ID and provider errors
+fail immediately. Plain diagnostics retain field names/counts/state/timing,
+never private values. Ordinary adapter read defaults are preserved for other
+consumers. Owner-only current-instance acceptance passed at `9c82e8a7` (one create,
+update and exact verified cleanup). Distinct-account and deployed HTTP/browser
+acceptance remain open; see the connected-policy certification record.
+
+Enabling a real edition/location/person relationship remains separate
+provider/ownership certification; no column, historical row or schema is
+changed by this alignment.
 
 ## Proposed Brew Done It persistent contract (not yet deployed)
 

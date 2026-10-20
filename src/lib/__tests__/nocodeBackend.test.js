@@ -4,6 +4,11 @@ import test from 'node:test'
 import { normalizeProviders } from '../nocodeBackend.js'
 
 const safeProviders = { emailPassword: true, emailOtp: false, google: false }
+const mockWindowTimers = (context) => {
+  const previousWindow = globalThis.window
+  globalThis.window = { setTimeout, clearTimeout }
+  context.after(() => { globalThis.window = previousWindow })
+}
 
 test('normalises aliases in each authoritative provider response shape', () => {
   const entries = [
@@ -169,5 +174,75 @@ test('apiRequest converts transport failure into the safe connection error', asy
   } finally {
     globalThis.window = previousWindow
     globalThis.fetch = previousFetch
+  }
+})
+
+test('unconfirmed cellar mutations require a reload after transport failure and are never retried', async (context) => {
+  const { apiRequest } = await import('../nocodeBackend.js')
+  mockWindowTimers(context)
+  let calls = 0
+  let failure
+  context.mock.method(globalThis, 'fetch', async () => {
+    calls += 1
+    throw failure
+  })
+
+  for (const [path, method] of [['/cellar', 'POST'], ['/cellar/54', 'PUT'], ['/cellar/54?check=1', 'DELETE']]) {
+    for (failure of [new DOMException('aborted', 'AbortError'), new TypeError('private transport detail')]) {
+      const before = calls
+      await assert.rejects(apiRequest(path, { method, body: { quantity: 1 } }), (error) => {
+        assert.equal(error.name, 'ApiError')
+        assert.equal(error.code, 'CELLAR_WRITE_UNVERIFIED')
+        assert.match(error.message, /Reload your cellar and check it before making another change/)
+        assert.equal(error.message.includes('try again'), false)
+        assert.equal(error.message.includes('private transport detail'), false)
+        return true
+      })
+      assert.equal(calls - before, 1)
+    }
+  }
+})
+
+test('cellar uncertainty guidance leaves read, unrelated route and authentication errors unchanged', async (context) => {
+  const { apiRequest, authRequest } = await import('../nocodeBackend.js')
+  mockWindowTimers(context)
+  context.mock.method(globalThis, 'fetch', async () => { throw new DOMException('aborted', 'AbortError') })
+
+  for (const [operation, path, method] of [
+    [apiRequest, '/cellar', 'GET'],
+    [apiRequest, '/cellar/54', 'GET'],
+    [apiRequest, '/cellar/54/actions', 'POST'],
+    [apiRequest, '/cellar-export', 'POST'],
+    [apiRequest, '/ratings/submit', 'POST'],
+    [authRequest, '/cellar', 'POST']
+  ]) {
+    await assert.rejects(operation(path, { method }), (error) => {
+      assert.equal(error.code, null)
+      assert.equal(error.message, 'The request timed out. Please try again.')
+      return true
+    })
+  }
+})
+
+test('cellar persistence errors preserve evidence and direct the user to check before another write', async (context) => {
+  const { apiRequest } = await import('../nocodeBackend.js')
+  mockWindowTimers(context)
+  let code
+  let calls = 0
+  context.mock.method(globalThis, 'fetch', async () => {
+    calls += 1
+    return new Response(JSON.stringify({ error: 'Please try again.', code, requestId: 'cellar-request-123' }), { status: 502 })
+  })
+
+  for (code of ['CELLAR_WRITE_UNVERIFIED', 'CELLAR_PERSISTENCE_MISMATCH', 'CELLAR_DELETE_NOT_VERIFIED']) {
+    const before = calls
+    await assert.rejects(apiRequest('/cellar/54', { method: 'PUT', body: { quantity: 2 } }), (error) => {
+      assert.equal(error.code, code)
+      assert.equal(error.status, 502)
+      assert.equal(error.requestId, 'cellar-request-123')
+      assert.match(error.message, /Reload your cellar and check it before making another change/)
+      return true
+    })
+    assert.equal(calls - before, 1)
   }
 })

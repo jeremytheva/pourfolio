@@ -1,8 +1,10 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
+import { randomUUID } from 'node:crypto'
 import { requiredEnvironment, responseJson, signIn, signOut } from './support.js'
 import { completeRatingCards } from './ratingJourney.js'
 import { withRatingCleanup } from './ratingCleanup.js'
+import { withCellarCleanup } from './cellarCleanup.js'
 
 const ownerCredentials = requiredEnvironment([
   'RELEASE_OWNER_EMAIL',
@@ -423,48 +425,71 @@ test('rating create/history/delete uses exact cleanup identity', async ({ page }
   })
 })
 
-test('cellar CRUD and cross-account ownership boundaries use guaranteed cleanup', async ({ browser, page }) => {
+test('cellar CRUD and cross-account ownership boundaries use exact verified cleanup', async ({ browser, page }) => {
   test.skip(!destructiveEnabled, `Requires RELEASE_DESTRUCTIVE_CONFIRMATION=${DESTRUCTIVE_CONFIRMATION}`)
   const otherCredentials = requiredEnvironment(['RELEASE_OTHER_EMAIL', 'RELEASE_OTHER_PASSWORD'])
 
   await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD, { reuseSession: true })
   const catalogue = await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1')
+  expect(catalogue.status()).toBe(200)
   const product = (await responseJson(catalogue)).items[0]
   expect(product?.id).toBeTruthy()
 
-  let cellarItemId = null
-  try {
-    const created = await page.request.post('/api/nocodebackend/cellar', { data: {
-      product_id: product.id, quantity: 1, container: 'release-check', notes: 'redacted automated evidence'
-    } })
-    expect(created.status()).toBe(201)
-    const cellarItem = (await responseJson(created)).item
-    cellarItemId = cellarItem.id
-
-    const updated = await page.request.put(`/api/nocodebackend/cellar/${cellarItemId}`, { data: { quantity: 2, notes: 'release-check updated' } })
-    expect(updated.ok()).toBeTruthy()
-
-    const ownerCellar = await responseJson(await page.request.get('/api/nocodebackend/cellar'))
-    expect(ownerCellar.items.map(({ id }) => String(id))).toContain(String(cellarItemId))
-
-    const otherContext = await browser.newContext()
-    try {
-      const otherPage = await otherContext.newPage()
-      await signIn(otherPage, otherCredentials.RELEASE_OTHER_EMAIL, otherCredentials.RELEASE_OTHER_PASSWORD)
-      expect([403, 404]).toContain((await otherPage.request.get(`/api/nocodebackend/cellar/${cellarItemId}`)).status())
-      expect((await otherPage.request.put(`/api/nocodebackend/cellar/${cellarItemId}`, { data: { quantity: 99 } })).status()).toBe(403)
-      expect((await otherPage.request.delete(`/api/nocodebackend/cellar/${cellarItemId}`)).status()).toBe(403)
-      const otherCellar = await responseJson(await otherPage.request.get('/api/nocodebackend/cellar'))
-      expect(otherCellar.items.map(({ id }) => String(id))).not.toContain(String(cellarItemId))
-    } finally {
-      await otherContext.close()
-    }
-  } finally {
-    if (cellarItemId) {
-      const cleanup = await page.request.delete(`/api/nocodebackend/cellar/${encodeURIComponent(cellarItemId)}`)
-      expect(cleanup.ok(), 'release cellar cleanup must succeed').toBeTruthy()
-    }
+  const marker = `Pourfolio release QA cellar-${randomUUID()}`
+  const readOwnerCellar = async () => {
+    const response = await page.request.get('/api/nocodebackend/cellar')
+    return { status: response.status(), body: response.status() === 200 ? await responseJson(response) : null }
   }
+
+  await withCellarCleanup({
+    productId: product.id,
+    marker,
+    readOwnerCellar,
+    submit: async () => {
+      const response = await page.request.post('/api/nocodebackend/cellar', { data: {
+        product_id: product.id, quantity: 1, container: 'release-check', notes: marker
+      } })
+      return { status: response.status(), body: response.status() === 201 ? await responseJson(response) : null }
+    },
+    verify: async (_receipt, createdId) => {
+      const updated = await page.request.put(`/api/nocodebackend/cellar/${encodeURIComponent(createdId)}`, {
+        data: { quantity: 2, notes: marker }
+      })
+      expect(updated.status()).toBe(200)
+      const saved = (await responseJson(updated)).item
+      expect(String(saved?.id) === createdId).toBe(true)
+      expect(Number(saved?.quantity)).toBe(2)
+      expect(saved?.notes === marker).toBe(true)
+
+      const afterUpdate = await readOwnerCellar()
+      expect(afterUpdate.status).toBe(200)
+      const ownerItem = afterUpdate.body?.items?.find(({ id }) => String(id) === createdId)
+      expect(ownerItem).toBeTruthy()
+      expect(Number(ownerItem.quantity)).toBe(2)
+      expect(ownerItem.notes === marker).toBe(true)
+
+      const otherContext = await browser.newContext()
+      try {
+        const otherPage = await otherContext.newPage()
+        await signIn(otherPage, otherCredentials.RELEASE_OTHER_EMAIL, otherCredentials.RELEASE_OTHER_PASSWORD)
+        expect([403, 404]).toContain((await otherPage.request.get(`/api/nocodebackend/cellar/${createdId}`)).status())
+        expect((await otherPage.request.put(`/api/nocodebackend/cellar/${createdId}`, {
+          data: { quantity: 99 }
+        })).status()).toBe(403)
+        expect((await otherPage.request.delete(`/api/nocodebackend/cellar/${createdId}`)).status()).toBe(403)
+        const otherResponse = await otherPage.request.get('/api/nocodebackend/cellar')
+        expect(otherResponse.status()).toBe(200)
+        const otherCellar = await responseJson(otherResponse)
+        expect(otherCellar.items.some(({ id }) => String(id) === createdId)).toBe(false)
+      } finally {
+        await otherContext.close()
+      }
+    },
+    remove: async (createdId) => {
+      const result = await page.request.delete(`/api/nocodebackend/cellar/${encodeURIComponent(createdId)}`)
+      return result.status()
+    }
+  })
 })
 
 test('expired session returns every protected direct route to sign-in', async ({ page }) => {
@@ -498,3 +523,4 @@ test('axe has no serious or critical violations on every reachable launch page',
     await context.close()
   }
 })
+

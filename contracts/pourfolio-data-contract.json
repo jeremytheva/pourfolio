@@ -194,7 +194,7 @@
         "retail_price",
         "date_received",
         "sharing_series_id",
-        "series_version_id",
+        "series_edition_id",
         "purchase_location_id",
         "purchased_by_id",
         "gift",

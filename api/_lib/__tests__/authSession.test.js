@@ -107,3 +107,45 @@ test('completed session bodies clear the timeout and malformed JSON remains unau
   await assert.rejects(requireSessionUser({ headers: {} }), { status: 401 })
 })
 
+test('caller cancellation aborts session body reads before the upstream timeout', async (context) => {
+  configureSession(context)
+  const caller = new AbortController()
+  let requestSignal, bodyStarted
+  const reading = new Promise((resolve) => { bodyStarted = resolve })
+  context.mock.method(globalThis, 'fetch', async (_url, { signal }) => {
+    requestSignal = signal
+    return {
+      ok: true,
+      json: () => new Promise((_resolve, reject) => {
+        signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+        bodyStarted()
+      })
+    }
+  })
+  const pending = requireSessionUser({ headers: {} }, { signal: caller.signal })
+  const rejected = assert.rejects(pending, { name: 'AbortError' })
+  await reading
+  caller.abort()
+  assert.equal(requestSignal.aborted, true)
+  await rejected
+})
+
+test('an expired caller prevents session fetch and cannot acknowledge a late user body', async (context) => {
+  configureSession(context)
+  const caller = new AbortController()
+  caller.abort()
+  context.mock.method(globalThis, 'fetch', async () => assert.fail('cancelled authentication must not fetch'))
+  await assert.rejects(requireSessionUser({ headers: {} }, { signal: caller.signal }), { name: 'AbortError' })
+
+  const lateCaller = new AbortController()
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => {
+      lateCaller.abort()
+      return { user: { id: 'late-user' } }
+    }
+  })
+  await assert.rejects(requireSessionUser({ headers: {} }, { signal: lateCaller.signal }), { name: 'AbortError' })
+})
+
+

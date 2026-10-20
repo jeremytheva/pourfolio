@@ -1,5 +1,179 @@
 # Connected provider policy certification
 
+## Cellar deadline review correction — 20 October 2026 UTC
+
+Source review identified that read-count/wait limits alone did not bound
+elapsed request time: slow reads could outlast the browser after a mutation.
+The reviewed correction applies one 10-second deadline before authentication
+through preflight, write, readback/fallback, settlement waits and enrichment.
+Cancellation stops subsequent work and never retries a mutation. A safe
+`CELLAR_WRITE_UNVERIFIED` outcome asks the owner to reload and check the cellar
+before another change; aborting a provider request does not undo its write.
+
+All 82 relevant tests passed locally on Node 24, with independent review of
+the integrated correction. Exact-head canonical Node 22, browser and deployment
+qualification are pending. Preceding head `c41a4a01` passed 970 canonical tests
+(15 gated skips), all 155 browser cases, and exact preview health/readiness
+at 23:28 UTC. It cannot certify this changed deadline correction.
+
+The guarded owner-only lifecycle and distinct-account rating GET below remain
+bounded historical evidence. No connected mutation was repeated for this
+review. Cellar HTTP/browser lifecycle, cellar A/B denial, session negative
+cases and the broader policy matrix remain unqualified. Public launch is NO-GO.
+
+The connected release test's cleanup now also requires a unique random marker
+in the create receipt and fresh owner readback, preserved through updates and
+rechecked immediately before DELETE. An incomplete baseline or stale historical
+receipt cannot alone authorise deletion. Fifteen pure cleanup regressions pass;
+this provenance correction has not executed a live fixture.
+
+## Cellar owner lifecycle verified — 20 October 2026 Sydney
+
+Accepted application source `9c82e8a7018b8266f5cbef4f749982e9f3f9dd01` passed
+**955** canonical Node 22 source tests with 15 provider-gated skips, all
+**155** browser/accessibility cases, Dependency Review and CodeQL.
+[Canonical/browser run 39372354455](https://github.com/jeremytheva/pourfolio/actions/runs/39372354455)
+is separate from the guarded current-instance run below. Documentation-only
+follow-up does not alter the tested handler.
+
+Protected [run 39372350379](https://github.com/jeremytheva/pourfolio/actions/runs/39372350379),
+observed **2026-10-20T04:58:48.880Z**, authenticated the normal owner session
+against exact public auth release `36ce8ffe`, then invoked the checked-out
+candidate gateway against the authorised current instance.
+
+| Bounded owner-provider check | Result |
+| --- | --- |
+| Create and independently reload one new private fixture | PASS |
+| Client/server projection and nullable lookup defaults | PASS |
+| Edit quantity 1 to 2 and gift false to true; independent stored readback | PASS |
+| Exact owner/nonce/product-bound DELETE and fresh direct/full absence | PASS |
+| Mutation counts | One create, one update, one DELETE; zero repeated mutations |
+| Residual fixture | None; cleanup PASS |
+| Other-account isolation | NOT_RUN — protected `RELEASE_OTHER_EMAIL` absent |
+| HTTP/session middleware; deployed browser submission | NOT_RUN — separate acceptance scope |
+
+Observed gateway times were **335 ms create, 1,939 ms edit and 1,916 ms
+delete**, with owner-list reads 61/62 ms. These exclude session middleware
+and browser transport, so they are not full end-to-end latency certification.
+No gateway failures occurred. Summary plus encrypted recovery receipt are
+retained in artifact **12241497964**,
+`bounded-cellar-9c82e8a7018b8266f5cbef4f749982e9f3f9dd01`, digest
+`sha256:d45d69067da751b528bd2c82a8fad1811950c7e5997e74eaac736e803646debd`.
+Private IDs, marker, owner and baseline remain encrypted.
+
+The overall result is intentionally **PARTIAL**, and the runner exits 2 for
+any non-PASS result. This preserves the missing A/B evidence rather than
+turning owner-only success into full policy certification. The password
+configuration exists but the other email does not. Configure the supported
+`RELEASE_OTHER_EMAIL` in GitHub's protected `staging-release` environment;
+do not guess an identity or use a database key as a login password.
+
+### Readback correction and retained failures
+
+The earlier `f778c2cb` and `b2a8324e` candidates passed create/reload/defaults
+but failed immediate update/delete verification. Standard no-cache headers
+and three reads with 100/200 ms waits did not establish read-your-writes
+acceptance. Each attempt sent one create/update/delete, without mutation
+retry. Receipt-bound read-only
+[runs 39370389884](https://github.com/jeremytheva/pourfolio/actions/runs/39370389884)
+and [39371496379](https://github.com/jeremytheva/pourfolio/actions/runs/39371496379)
+proved both exact fixtures absent, with zero marker matches/new IDs outside
+their baselines. **Neither DELETE was repeated; no earlier fixture remains.**
+The original unacknowledged create likewise left no observed new row.
+Earlier edit persistence cannot be reconstructed after deletion.
+
+The accepted correction permits at most six fresh reads, waiting
+250/500/1000/1500/1500 ms (**4.75 seconds maximum deliberate waiting**).
+The client timeout remains 12 seconds. Changed owner/ID and provider errors
+stop immediately; missing or unchanged values never become success.
+Mutations are still sent once. Safe failure evidence allows field names,
+bounded counts/state and gateway timings, not private values. **61 focused
+regressions pass**, including late settlement, wait/attempt limits, immediate
+provider-error failure and diagnostic redaction.
+
+The diagnostic `_` parameter was rejected by the collection API with
+500/unknown column and is not a runtime workaround. No response age/cache
+evidence proves cache, replication or commit-delay cause. Only the observed
+immediate mismatch and later successful bounded settlement are established.
+The preceding timestamp-format failure in run 39372282956 occurred before
+any provider write; the corrected candidate is the one certified above.
+
+### Exact-candidate deployment remains blocked
+
+The existing Vercel team/project/Git connection and exact candidate were
+checked. No automatic preview existed for the accepted source. The first
+explicit create request was rejected with HTTP 400 for a literal preview
+target, without creation. The corrected request used the documented default
+preview target, the existing Git connection and exact accepted SHA, without
+forcing a new build or changing project settings. Vercel rejected it at
+**2026-10-20T05:00Z** with **HTTP 402 payment_required**,
+`api-deployments-free-per-day`, **more than 100** and
+`retryAfter: 86400`. **No new deployment was created.** No CLI/force/new
+project/billing workaround was attempted; deployment capacity is an external
+boundary. Resume the exact-candidate preview/runtime check only after the
+limit resets or the owner independently changes the plan.
+
+PR #657 remains open pending that runtime evidence; main and verified
+production remain `36ce8ffef482a9044e1e9f35da03214f46b7e1d5`.
+Distinct-account, HTTP/browser, historical ownership/recovery and #165
+migration acceptance remain separate. Public launch remains **NO-GO**.
+The dated narratives below retain historical details, not current pending
+fixture state.
+
+## Original cellar create failure inspection — 20 October 2026 Sydney
+
+Candidate `1ed487f57ca0c8da03c5e2dc343637579fa2299b` passed
+[Node 22 validation 39336438805](https://github.com/jeremytheva/pourfolio/actions/runs/39336438805)
+with **936** source tests, 15 provider-gated skips and all **155**
+browser/accessibility cases. Its exact Vercel preview
+`dpl_4aG7NKPN6MAyvQZnXkcgUqXhhmqV` is READY; runtime acceptance remains
+separate.
+
+The owner-only protected [run 39336434126](https://github.com/jeremytheva/pourfolio/actions/runs/39336434126)
+authenticated the normal designated account against verified public release
+`36ce8ffe`, then attempted **one create**. The provider returned
+`PROVIDER_ERROR` before a canonical ID acknowledgement. **No update or delete
+was attempted; cleanup remains UNCONFIRMED.** The original HTTP status was
+not retained by the runner, so no provider rejection, persistence or absence
+is inferred. Do not retry this mutation or discover a deletion target by
+history difference.
+
+The read-only `[cellar-fixture-inspect]` mode downloads only artifact
+`12226084071` from that exact run, verifies its download digest, and decrypts
+the original create-intent receipt inside the protected worker. It validates
+the candidate, owner, random marker, product and complete pre-write ID
+baseline. Normal full-list, uncached full-list and uncached exact-marker
+reads distinguish an exact fixture from no new row or ambiguous state.
+A present candidate additionally requires fresh direct/list agreement.
+All provider mutation methods are disabled. Private IDs/marker/owner are
+retained only in an encrypted snapshot, never the redacted report.
+
+A no-match result is accepted only with **zero** new IDs outside the original
+baseline. An unexpected new row, owner/product mismatch or inconsistent reads
+remains REVIEW_REQUIRED. This inspection never authorises deletion by itself.
+The first
+[inspection run 39369039191](https://github.com/jeremytheva/pourfolio/actions/runs/39369039191)
+successfully downloaded and digest-verified the original artifact, then stopped
+at `CELLAR_INSPECTION_SOURCE_UNCONFIRMED` before provider inspection: the
+validator accepted only the initial intent, while the original runner always
+retains its final `finished` checkpoint. The correction accepts that exact
+unacknowledged final state only with one create attempt, zero updates/deletes,
+no acknowledged ID and the unchanged source/owner/marker/product/baseline.
+Safe checkpoint flags are retained for diagnosis. No provider write occurred.
+Five inspection regressions now pass locally; the new result is pending.
+
+A separate test-fidelity correction now uses the actual client
+`projectCellarWrite` contract before the candidate gateway. The client omits
+six unavailable relationship fields on the wire; independent readback still
+requires their nullable defaults. The earlier test sent those fields directly.
+This discrepancy is established from source, **not** a proven explanation
+for the original provider error. Future owner failures retain only safe
+HTTP status, operation and field-type diagnostics. Seventeen write-runner
+regressions pass locally. This read-only request does not run the corrected
+write test.
+The incomplete second-account configuration and historical ownership/migration
+boundaries remain separate. Public launch is NO-GO.
+
 This report is the connected half of the Phase 1 evidence model. It certifies
 provider policies and workflow behaviour that a structural SQL export cannot
 establish. It must describe the same immutable release candidate, provider
@@ -7,7 +181,105 @@ environment and schema snapshot as the structural SQL audit. Store secrets,
 session material and unredacted user data only in the approved private evidence
 store.
 
-## Current execution status
+### Confirmed original-attempt outcome and corrected write boundary
+
+Read-only [run 39369277463](https://github.com/jeremytheva/pourfolio/actions/runs/39369277463)
+at `d3833cd0` passed canonical Node 22 validation (**943** tests, 15 skips),
+then inspected the original authenticated final receipt: one attempted create,
+no acknowledged ID, zero updates/deletes, matching source and owner.
+Normal full, uncached full and uncached exact-marker reads all found **zero**
+matching fixtures and **zero new IDs outside the original baseline**:
+`NO_NEW_FIXTURE_OBSERVED`. The inspection itself made zero writes.
+No deletion or mutation retry was needed.
+
+The live API field inventory includes `series_edition_id` and lacks the
+reference `series_version_id` sent by the initial test. This establishes
+a provider/reference mismatch; the unretained original HTTP error does not
+prove its precise cause. The current server correction reuses the existing
+client write projector after sanitisation, omitting gated lookup fields
+before create/update and rejecting an otherwise empty update. It does not
+rename domain relationships, clear existing links, enable lookups or change
+schema. The machine provider-field contract and schema mapping record the
+observed field name, while the older reference remains explicitly gated.
+Three server regressions prove omission, preserved existing relationships
+and pre-mutation rejection of a lookup-only update.
+
+A fresh, explicitly guarded owner-only test now exercises this corrected
+candidate with the actual client projection and a new private random fixture.
+It retains one-create/one-update/one-delete maximums, original receipts and
+verified exact cleanup. Independent readback still checks nullable defaults
+and false/true gift values. A/B HTTP/browser rows remain NOT_RUN because the
+supported second-account email is missing. This new run is pending; the old
+failed request is not retried.
+
+## Current-instance cellar candidate verification — 20 October 2026 Sydney
+
+The owner authorised the current instance for bounded reversible tests.
+Existing PR #657 is being reconciled with merged main `36ce8ffe`; no
+historical ownership is inferred or changed. The new explicit
+`[connected-cellar-write]` workflow runs canonical Node 22 validation and
+asserts the checked-out SHA before accessing protected credentials.
+
+The worker reuses the existing normal same-origin release sign-in,
+get-session and sign-out verifier on pinned public auth release `36ce8ffe`.
+It uses the release owner and, if configured, distinct other-account
+credentials; configuration reports contain booleans only. Database keys
+are never login passwords. A configured contract user ID cannot substitute
+for session verification. Full owner-and-isolation scope requires both accounts; missing, incomplete,
+rejected or same-identity sessions block before writes. The separately guarded
+owner-only scope never attempts the second account and retains its isolation
+row as NOT_RUN and the overall result PARTIAL, even if owner CRUD succeeds.
+
+The checked-out `routeCellarRequest` runs against the real provider in an
+isolated serial worker. The provider adapter permits at most one create,
+one update and one delete, restricted to a single acknowledged new fixture.
+It checks a complete paginated baseline and blocks a new run while an earlier
+owned random fixture is unresolved. An encrypted atomic intent and canonical
+ID acknowledgement are retained using the existing receipt cryptography,
+with an explicit cellar payload kind. Unknown/lost create responses never
+authorise a history-difference deletion or mutation retry.
+
+The candidate gateway must return stored quantity, nullable relationships
+and false/true gift values, then independently reload them. When the second
+normal account is verified, its owner-scoped list must omit the fixture and
+its update/delete must be denied with unchanged provider readback. An
+additional actor-bound mutation guard prevents a defective policy probe
+from actually modifying the fixture as the other account. Cleanup requires
+the exact new ID, original owner/product/random marker, fresh owner-visible
+confirmation, the candidate deletion acknowledgement and independent
+full-list/direct absence. Existing and ownerless rows cannot be targets.
+
+This is candidate gateway/persistence/policy evidence, **not** HTTP/session
+middleware or browser-submission certification. Those remain in the existing
+connected-release matrix. Fifteen focused regressions cover normal cleanup,
+identity/configuration boundaries, replayed/lost create responses, wrong-owner
+readback, update/delete failures, checkpoint failure and a broken policy
+probe. Local diagnostic tests pass. Initial candidate `f5228dfe` passed **933**
+canonical Node 22 source tests with 15 provider-gated skips. Protected
+[run 39335962848](https://github.com/jeremytheva/pourfolio/actions/runs/39335962848)
+stopped at `CELLAR_SECOND_ACCOUNT_CONFIGURATION_INCOMPLETE`: designated
+owner email/password are configured; second-account password is configured,
+but `RELEASE_OTHER_EMAIL` is absent from that protected configuration.
+**Zero creates, updates or deletes were attempted.** Do not guess an email
+or reinterpret a database credential.
+
+The independent owner-only run uses the explicit
+`[connected-cellar-owner-write]` selector, `owner-crud-only` scope and
+`RUN CURRENT INSTANCE OWNER CELLAR TEST` confirmation. It still runs all
+baseline, receipt, mutation-count and cleanup safeguards. Full scope keeps
+the stricter two-account prerequisite. An owner-only result cannot close
+isolation or HTTP/browser rows; its actual outcome is pending. Owner-only
+[run 39336261726](https://github.com/jeremytheva/pourfolio/actions/runs/39336261726)
+at `eb596d00` passed **936** source tests (15 skips), then stopped before
+writes because the public release had advanced after #666. Readiness returned
+HTTP 200 but the pinned SHA differed. **Zero creates, updates or deletes.**
+Production `dpl_A7oW24YPMjLr8EYsZewXWYqJgeWa` is READY at
+`36ce8ffef482a9044e1e9f35da03214f46b7e1d5`; public readiness independently
+returned that SHA. The explicit pin is updated to that observed release.
+This is deployment reconciliation, not a retry of an attempted data mutation. Public launch remains NO-GO; the 966 historical
+ownerless cellar rows and #165 recovery/migration boundary are unchanged.
+
+## Retained execution status
 
 ### October 2026 credential-boundary update
 

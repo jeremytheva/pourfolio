@@ -1,5 +1,88 @@
 # Rating workflow staging certification
 
+## Live browser bonus-backed tasting — 20 October 2026 Sydney
+
+Production health before/after this bounded test returned HTTP 200 and exact
+release `36ce8ffef482a9044e1e9f35da03214f46b7e1d5`. No new deployment was
+requested. The existing authenticated owner browser session was used.
+
+| Boundary | Observed result |
+| --- | --- |
+| Product 1 baseline | Four community ratings at 3.96/5; two personal at 3.94/5; older IDs 622/365 |
+| Form input | Five manual 4/7 scores; optional Design/Burp skipped |
+| Existing stored bonuses | Global Out of This World 0.5 plus earlier private QA 0.7 = 1.20 points |
+| Derived preview | Bonus 1/2; weighted/default 2.82/5; 56.43/100 |
+| Normal UI submission | One submit acknowledged new owner tasting 630; community/personal counts 5/3 |
+| Saved breakdown | Both attribute names, five 4/7 scores, Bonus 1/2 and stored standard/weighted 2.82/5 |
+| Full reload and exact profile link | PASS; same new tasting and stored score |
+| Normal owner UI deletion | One DELETE; row removed, profile count 285 to 284, focus moved to the next row |
+| Exact deleted link | Safely unavailable in owner history |
+| Restored product baseline | Four community/two personal; averages 3.96/3.94; older 622/365 links intact |
+| Independent provider parent/children | PASS: valid deleted tombstone, zero score children and zero bonus mappings; old baseline preserved |
+
+**Browser create/reload/saved-bonus-use/delete PASS. One submission, one
+DELETE, no mutation retry.** No new bonus attribute, producer, product,
+cellar record or profile setting was created/changed. The earlier private
+0.7 attribute is intentionally retained. New custom-attribute browser
+creation, A/B denial, concurrency and #165 historical repair remain separate.
+
+The new read-only inspection is bound to this acknowledged UI fixture,
+original owner baseline, product, date, expected total and exact runtime.
+It verifies the target with the normal protected release session, then binds
+the actual browser owner through a SHA-256 fingerprint of the public-profile
+link observed on that signed-in owner's profile. Exactly one full-list
+profile and an agreeing fresh direct profile read must resolve the same owner.
+No account identifier is guessed or published. It disables
+create/update/compare-and-set/delete methods, and
+compares fresh direct/full parent reads, full/paged child inventories and
+scoped child queries. Only absent parent or an exact owner/product-matched
+valid terminal tombstone with **zero** score/bonus children can pass.
+Older owner totals and community/personal counts must match the baseline.
+No arbitrary history-difference cleanup is enabled. Reports contain only
+safe states/counts/commits, never owner IDs, email, cookies or private rows.
+The first [read-only run 39374455471](https://github.com/jeremytheva/pourfolio/actions/runs/39374455471)
+at `88d07698` passed **962** canonical source tests (15 skips), found **zero**
+score and bonus-mapping children, and retained a provenance failure because
+its authenticated release account was not the browser owner (zero matching
+owner baseline rows). That result did not prove the terminal parent and is
+not a deletion failure. No data mutation occurred. The corrected profile-link
+binding preserves the owner checks rather than ignoring them. Nine focused
+regressions pass. Corrected [run 39374839839](https://github.com/jeremytheva/pourfolio/actions/runs/39374839839)
+at `31e41c3b42275a289b109a33fdf05bc2dbac1c69` passed **964** canonical
+source tests (15 skips), then independently confirmed **DELETED_TOMBSTONE**,
+**zero** full/scoped score children, **zero** full/scoped bonus mappings,
+community/personal completed counts **4/2** and preserved older owner totals.
+The authenticated release account was confirmed different from the browser
+owner. No provider mutation occurred. Artifact **12243405356**, digest
+`sha256:9cd98cef9be3779e01529d501a54867e181ea983798644bf9ccdbc8929337bd8`,
+retains only this redacted summary. All 155 browser/accessibility cases,
+Dependency Review and CodeQL passed at that source.
+
+### Cross-account read acceptance
+
+The signed-in browser owner successfully opened older tasting 622's stored
+breakdown (3.51/5). A distinct normally authenticated protected release account
+is available, so its read-denial check does not require guessing another email.
+The opt-in `[rating-ui-other-owner-read]` mode performs **one GET** to that
+same owner-only rating-breakdown endpoint within a verified release session.
+Only HTTP 403/404 qualifies; 401, 200, redirects and service failures do not.
+The response body is not logged. Profile-link owner binding and distinct
+identities are checked before the request. No data mutation or repeat graph
+inventory occurs; the session is signed out even after observer failure.
+
+The existing normal-session helper now offers an optional trusted read-only
+observer: one canonical same-origin rating GET, no arbitrary URL/body/method,
+no credential/cookie exposure and no configured-ID shortcut. Existing callers'
+default behaviour is unchanged. Four new regressions cover verified timing,
+one-read/path limits, failure/sign-out cleanup and unverified-session blocking.
+All **27** focused owner/inspection checks pass. Canonical and connected
+cross-account results remain pending. This is read isolation only; full
+A/B mutation/session lifecycle/concurrency certification is still separate.
+
+The prior dated smoke below was deliberately non-writing; this section adds
+new saved-rating-use evidence without rewriting that historical scope.
+
+
 ## Merged bonus release and production smoke — 20 October 2026 Sydney
 
 PR #651 merged as `4019c90e5ba342b654361109b0fe8896117f18c4` after final

@@ -55,7 +55,7 @@ export const buildSessionHeaders = (request, secret) => ({
   cookie: request.headers?.cookie || ''
 })
 
-export const requireSessionUser = async (request) => {
+export const requireSessionUser = async (request, { signal } = {}) => {
   let secret
   try {
     secret = resolveAuthCredential().value
@@ -70,18 +70,18 @@ export const requireSessionUser = async (request) => {
     throw error
   }
 
-  const { upstream, payload } = await withTimeout(async (signal) => {
+  const { upstream, payload } = await withTimeout(async (upstreamSignal) => {
     const upstream = await fetch(buildSessionUrl(), {
       method: 'GET',
       headers: buildSessionHeaders(request, secret),
-      signal
+      signal: upstreamSignal
     })
     const payload = upstream.ok ? await upstream.json().catch((error) => {
-      if (signal.aborted) throw error
+      if (upstreamSignal.aborted) throw error
       return null
     }) : null
     return { upstream, payload }
-  })
+  }, undefined, signal)
 
   if (!upstream.ok) {
     const error = new Error('Authentication is required.')
@@ -105,4 +105,5 @@ export const __testables = {
   configuredInstance,
   requireConfiguredInstance
 }
+
 
