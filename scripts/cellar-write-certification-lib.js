@@ -1,6 +1,7 @@
 import { dataProvider } from '../api/_lib/dataProvider.js'
 import { routeCellarRequest, verifyPersistedCellar } from '../api/cellar-data-proxy.js'
 import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../src/data/contract.js'
+import { projectCellarWrite } from '../src/services/cellarWriteContract.js'
 import { readAllBonusCertificationRows } from './bonus-write-certification-lib.js'
 
 const CELLAR = COLLECTIONS.cellar
@@ -28,10 +29,12 @@ export const cellarCertificationScope = (environment) => {
 }
 
 export const inspectCellarCreateAttempt = async ({ provider, freshProvider, userId, receipt, summary, sourceSha }) => {
+  const unacknowledgedStage = receipt?.stage === 'create-intent' && receipt.createsAttempted === 0 ||
+    receipt?.stage === 'finished' && receipt.createsAttempted === 1
   requireThat(/^[a-f0-9]{40}$/.test(sourceSha || '') && summary?.candidateCommit === sourceSha &&
     summary.createsAttempted === 1 && summary.updatesAttempted === 0 && summary.deletesAttempted === 0 &&
     receipt?.version === 1 && receipt.kind === 'cellar-create-checkpoint' && receipt.candidateCommit === sourceSha &&
-    receipt.stage === 'create-intent' && receipt.createdId === null && receipt.createsAttempted === 0 &&
+    unacknowledgedStage && receipt.createdId === null && receipt.updatesAttempted === 0 && receipt.deletesAttempted === 0 &&
     receipt.userId === userId && /^cellar-[a-f0-9-]{36}$/.test(receipt.runKey || '') &&
     receipt.marker === `Pourfolio release QA ${receipt.runKey}` && idOf(receipt.productId) &&
     Array.isArray(receipt.baselineIds) && receipt.baselineIds.every(idOf) &&
@@ -81,7 +84,8 @@ export const runCellarWriteCertification = async ({ provider = dataProvider, use
     create: 'NOT_RUN', reload: 'NOT_RUN', update: 'NOT_RUN', nullableRelationships: 'NOT_RUN',
     giftRoundTrip: 'NOT_RUN', otherOwnerPolicy: 'NOT_RUN', cleanup: 'NOT_RUN',
     httpSessionMiddleware: 'NOT_RUN', browserSubmission: 'NOT_RUN',
-    createsAttempted: 0, updatesAttempted: 0, deletesAttempted: 0, removed: 0
+    createsAttempted: 0, updatesAttempted: 0, deletesAttempted: 0, removed: 0,
+    gatewayFailures: []
   }
   const original = { ...dataProvider }
   const raw = { ...provider }
@@ -91,6 +95,7 @@ export const runCellarWriteCertification = async ({ provider = dataProvider, use
   let productId = null
   let primaryFailure = null
   let activeUser = null
+  let stage = 'preflight'
   const belongsToFixture = (row) => row && createdId && same(row.id, createdId) &&
     same(row.user_id, userId) && same(row.product_id, productId) && row.notes === marker
   const save = (stage) => checkpoint({ version: 1, kind: 'cellar-create-checkpoint', stage,
@@ -105,7 +110,21 @@ export const runCellarWriteCertification = async ({ provider = dataProvider, use
     try {
       await route({ method, query: { path: id ? ['cellar', id] : ['cellar'] }, body }, reply, { id: user })
     } catch (error) {
-      return { status: error.status || 500, code: safeCode(error) }
+      const failure = { method, status: error.status || 500, code: safeCode(error) }
+      if (Number.isInteger(error.providerStatus) && error.providerStatus >= 400 && error.providerStatus < 600) {
+        failure.providerStatus = error.providerStatus
+      }
+      if (/^(create|update|delete)\/cellar$/.test(error.providerOperation || '')) {
+        failure.providerOperation = error.providerOperation
+      }
+      if (['error_field', 'success_false', 'status_error', 'http_status'].includes(error.providerErrorKind)) {
+        failure.providerErrorKind = error.providerErrorKind
+      }
+      if (/^[a-z_][a-z0-9_]*:(?:null|array|object|string|number|boolean)(?:,[a-z_][a-z0-9_]*:(?:null|array|object|string|number|boolean))*$/.test(error.providerRequestShape || '')) {
+        failure.providerRequestShape = error.providerRequestShape
+      }
+      if (user === userId) report.gatewayFailures.push(failure)
+      return failure
     } finally {
       activeUser = null
     }
@@ -165,10 +184,15 @@ export const runCellarWriteCertification = async ({ provider = dataProvider, use
     const requested = { product_id: productId, quantity: 1, gift: 0, notes: marker,
       sharing_series_id: null, series_version_id: null, location_id: null,
       purchase_location_id: null, purchased_by_id: null, bet_id: null }
-    const created = await call('POST', userId, null, requested)
+    // Use the real client contract: unavailable relationship fields are omitted
+    // on the wire. Independent stored readback still checks their null defaults.
+    const projected = projectCellarWrite(requested, { requireProduct: true })
+    stage = 'create'
+    const created = await call('POST', userId, null, projected)
     requireThat(created.status === 201 && same(created.body?.item?.id, createdId),
       created.code || 'CELLAR_CREATE_NOT_ACKNOWLEDGED')
     report.create = 'PASS'
+    stage = 'reload'
     const reloaded = await verifyPersistedCellar({ provider: raw, id: createdId, userId,
       expected: requested })
     requireThat(belongsToFixture(reloaded) && created.body.item.gift === false, 'CELLAR_RELOAD_UNCONFIRMED')
@@ -179,6 +203,7 @@ export const runCellarWriteCertification = async ({ provider = dataProvider, use
     report.reload = 'PASS'
     report.nullableRelationships = 'PASS'
 
+    stage = 'update'
     const updated = await call('PUT', userId, createdId, { quantity: 2, gift: 1 })
     requireThat(updated.status === 200 && Number(updated.body?.item?.quantity) === 2 &&
       updated.body.item.gift === true, updated.code || 'CELLAR_UPDATE_NOT_ACKNOWLEDGED')
@@ -188,6 +213,7 @@ export const runCellarWriteCertification = async ({ provider = dataProvider, use
     report.giftRoundTrip = 'PASS'
 
     if (otherUserId) {
+      stage = 'other-owner-policy'
       const before = fingerprint(await raw.get(CELLAR, createdId))
       const otherList = await call('GET', otherUserId)
       requireThat(otherList.status === 200 && Array.isArray(otherList.body?.items) &&
@@ -203,6 +229,7 @@ export const runCellarWriteCertification = async ({ provider = dataProvider, use
     }
   } catch (error) {
     primaryFailure = safeCode(error)
+    report.failureStage = stage
   } finally {
     if (report.createsAttempted) report.cleanup = 'UNCONFIRMED'
     if (createdId) {

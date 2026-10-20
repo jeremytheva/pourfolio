@@ -49,7 +49,7 @@ validation:
   ci: FAIL
   runtime: VERIFIED
 last_verified_commit: "1ed487f57ca0c8da03c5e2dc343637579fa2299b"
-last_updated: "2026-10-20T04:20:12Z"
+last_updated: "2026-10-20T04:22:55Z"
 ---
 
 # STATUS.md
@@ -76,7 +76,9 @@ account's password is configured but `RELEASE_OTHER_EMAIL` is absent.
 The current continuation implements a **read-only** inspection of the original
 encrypted create-intent artifact. It checks exact source/owner/nonce/product
 and pre-write baseline against normal, uncached full and scoped reads, and
-disables every provider mutation method. Its outcome is pending. Full details
+disables every provider mutation method. The first inspection recovered the artifact but rejected its final checkpoint
+before data reads; its validator is corrected without permitting writes.
+The corrected read-only outcome is pending. Full details
 remain in the existing [policy certification record](docs/nocodebackend/connected-policy-certification.md).
 The 966 historical ownerless rows, prior owned inventory and rating recovery
 remain outside the fixture scope.

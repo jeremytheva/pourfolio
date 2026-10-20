@@ -51,9 +51,20 @@ try {
   const summary = JSON.parse(await readFile(path.join(directory, 'summary.json'), 'utf8'))
   const encrypted = JSON.parse(await readFile(path.join(directory, 'create-receipt.json'), 'utf8'))
   const receipt = openBonusFixtureReceipt(encrypted, process.env.NOCODEBACKEND_SECRET_KEY)
+  const sourceCheckpoint = {
+    stage: ['create-intent', 'create-acknowledged', 'update-intent', 'delete-intent', 'finished'].includes(receipt?.stage)
+      ? receipt.stage : 'UNRECOGNISED',
+    candidateMatches: receipt?.candidateCommit === sourceSha,
+    ownerMatches: receipt?.userId === owner.id,
+    acknowledgedIdPresent: receipt?.createdId !== null && receipt?.createdId !== undefined,
+    createsAttempted: Number.isSafeInteger(receipt?.createsAttempted) ? receipt.createsAttempted : null,
+    updatesAttempted: Number.isSafeInteger(receipt?.updatesAttempted) ? receipt.updatesAttempted : null,
+    deletesAttempted: Number.isSafeInteger(receipt?.deletesAttempted) ? receipt.deletesAttempted : null
+  }
+  report.sourceCheckpoint = sourceCheckpoint
   const inspected = await inspectCellarCreateAttempt({ provider: dataProvider, freshProvider,
     userId: owner.id, receipt, summary, sourceSha })
-  report = { ...inspected.report, sourceRun, sourceSha, ownerSource: owner.source, authCommit: owner.authCommit,
+  report = { ...inspected.report, sourceCheckpoint, sourceRun, sourceSha, ownerSource: owner.source, authCommit: owner.authCommit,
     recoverySnapshot: sealBonusFixtureReceipt(inspected.snapshot, process.env.NOCODEBACKEND_SECRET_KEY) }
 } catch (error) {
   report.failure = /^[A-Z][A-Z0-9_]{0,79}$/.test(error?.code || error?.message || '')

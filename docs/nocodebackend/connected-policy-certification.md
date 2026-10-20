@@ -31,7 +31,26 @@ retained only in an encrypted snapshot, never the redacted report.
 A no-match result is accepted only with **zero** new IDs outside the original
 baseline. An unexpected new row, owner/product mismatch or inconsistent reads
 remains REVIEW_REQUIRED. This inspection never authorises deletion by itself.
-Its actual outcome is pending. Four inspection regressions pass locally.
+The first
+[inspection run 39369039191](https://github.com/jeremytheva/pourfolio/actions/runs/39369039191)
+successfully downloaded and digest-verified the original artifact, then stopped
+at `CELLAR_INSPECTION_SOURCE_UNCONFIRMED` before provider inspection: the
+validator accepted only the initial intent, while the original runner always
+retains its final `finished` checkpoint. The correction accepts that exact
+unacknowledged final state only with one create attempt, zero updates/deletes,
+no acknowledged ID and the unchanged source/owner/marker/product/baseline.
+Safe checkpoint flags are retained for diagnosis. No provider write occurred.
+Five inspection regressions now pass locally; the new result is pending.
+
+A separate test-fidelity correction now uses the actual client
+`projectCellarWrite` contract before the candidate gateway. The client omits
+six unavailable relationship fields on the wire; independent readback still
+requires their nullable defaults. The earlier test sent those fields directly.
+This discrepancy is established from source, **not** a proven explanation
+for the original provider error. Future owner failures retain only safe
+HTTP status, operation and field-type diagnostics. Seventeen write-runner
+regressions pass locally. This read-only request does not run the corrected
+write test.
 The incomplete second-account configuration and historical ownership/migration
 boundaries remain separate. Public launch is NO-GO.
 

@@ -4,7 +4,8 @@ import { inspectCellarCreateAttempt } from '../cellar-write-certification-lib.js
 
 const sourceSha = 'a'.repeat(40)
 const receipt = { version: 1, kind: 'cellar-create-checkpoint', candidateCommit: sourceSha,
-  stage: 'create-intent', createdId: null, createsAttempted: 0, userId: 'owner-a', productId: '1',
+  stage: 'create-intent', createdId: null, createsAttempted: 0, updatesAttempted: 0, deletesAttempted: 0,
+  userId: 'owner-a', productId: '1',
   runKey: 'cellar-12345678-1234-1234-1234-123456789abc',
   marker: 'Pourfolio release QA cellar-12345678-1234-1234-1234-123456789abc', baselineIds: ['5'] }
 const summary = { candidateCommit: sourceSha, createsAttempted: 1, updatesAttempted: 0, deletesAttempted: 0 }
@@ -32,6 +33,16 @@ test('exact original random marker requires new ID, owner/product and three-way 
   assert.equal(snapshot.fixture.id, 6)
   assert.ok(!JSON.stringify(report).includes(receipt.marker))
   assert.ok(!JSON.stringify(report).includes('owner-a'))
+})
+
+test('the original final checkpoint can confirm an unacknowledged attempt without inventing a new ID', async () => {
+  const { report } = await inspect([{ id: 5 }], { receipt: { ...receipt, stage: 'finished', createsAttempted: 1 } })
+  assert.equal(report.status, 'INSPECTED')
+  assert.equal(report.fixtureState, 'NO_NEW_FIXTURE_OBSERVED')
+  for (const changes of [{ updatesAttempted: 1 }, { deletesAttempted: 1 }, { createdId: '6' }]) {
+    await assert.rejects(inspect([], { receipt: { ...receipt, stage: 'finished', createsAttempted: 1, ...changes } }),
+      { code: 'CELLAR_INSPECTION_SOURCE_UNCONFIRMED' })
+  }
 })
 
 test('missing nonce on a new row, foreign owner and conflicting reads remain unconfirmed', async () => {

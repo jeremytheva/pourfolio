@@ -73,6 +73,38 @@ test('missing second account retains a partial outcome without inventing ownersh
   assert.equal(result.cleanup, 'PASS')
 })
 
+test('the live candidate test uses the real client projection and still verifies nullable defaults', async () => {
+  const context = fixture()
+  const create = context.provider.create.bind(context.provider)
+  let sent
+  context.provider.create = async (collection, body) => { sent = { ...body }; return create(collection, body) }
+  const result = await context.run()
+  assert.equal(result.status, 'PASS')
+  assert.equal(result.nullableRelationships, 'PASS')
+  for (const field of ['sharing_series_id', 'series_version_id', 'location_id', 'purchase_location_id', 'purchased_by_id', 'bet_id']) {
+    assert.equal(Object.hasOwn(sent, field), false)
+  }
+  assert.equal(sent.quantity, 1)
+  assert.equal(sent.gift, 0)
+})
+
+test('provider failure evidence retains only HTTP status, operation and field types', async () => {
+  const context = fixture({ create: async () => { throw Object.assign(new Error('private-cookie private-body'), {
+    status: 502, code: 'PROVIDER_ERROR', providerStatus: 400, providerOperation: 'create/cellar',
+    providerErrorKind: 'error_field', providerRequestShape: 'gift:number,notes:string,user_id:string',
+    payload: { error: 'private-body' }, cookie: 'private-cookie'
+  }) } })
+  const result = await context.run()
+  assert.equal(result.failureStage, 'create')
+  assert.deepEqual(result.gatewayFailures, [{ method: 'POST', status: 502, code: 'PROVIDER_ERROR',
+    providerStatus: 400, providerOperation: 'create/cellar', providerErrorKind: 'error_field',
+    providerRequestShape: 'gift:number,notes:string,user_id:string' }])
+  assert.equal(result.createsAttempted, 1)
+  assert.equal(result.deletesAttempted, 0)
+  assert.ok(!JSON.stringify(result).includes('private-cookie'))
+  assert.ok(!JSON.stringify(result).includes('private-body'))
+})
+
 test('same-account identity and malformed run keys block before writing', async () => {
   for (const options of [{ otherUserId: 'owner-a' }, { runKey: 'not-a-nonce' }]) {
     const { run, calls } = fixture()
