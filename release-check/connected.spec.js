@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
+import { randomUUID } from 'node:crypto'
 import { requiredEnvironment, responseJson, signIn, signOut } from './support.js'
 import { completeRatingCards } from './ratingJourney.js'
 import { withRatingCleanup } from './ratingCleanup.js'
@@ -434,6 +435,7 @@ test('cellar CRUD and cross-account ownership boundaries use exact verified clea
   const product = (await responseJson(catalogue)).items[0]
   expect(product?.id).toBeTruthy()
 
+  const marker = `Pourfolio release QA cellar-${randomUUID()}`
   const readOwnerCellar = async () => {
     const response = await page.request.get('/api/nocodebackend/cellar')
     return { status: response.status(), body: response.status() === 200 ? await responseJson(response) : null }
@@ -441,28 +443,30 @@ test('cellar CRUD and cross-account ownership boundaries use exact verified clea
 
   await withCellarCleanup({
     productId: product.id,
+    marker,
     readOwnerCellar,
     submit: async () => {
       const response = await page.request.post('/api/nocodebackend/cellar', { data: {
-        product_id: product.id, quantity: 1, container: 'release-check', notes: 'redacted automated evidence'
+        product_id: product.id, quantity: 1, container: 'release-check', notes: marker
       } })
       return { status: response.status(), body: response.status() === 201 ? await responseJson(response) : null }
     },
     verify: async (_receipt, createdId) => {
       const updated = await page.request.put(`/api/nocodebackend/cellar/${encodeURIComponent(createdId)}`, {
-        data: { quantity: 2, notes: 'release-check updated' }
+        data: { quantity: 2, notes: marker }
       })
       expect(updated.status()).toBe(200)
       const saved = (await responseJson(updated)).item
-      expect(String(saved?.id)).toBe(createdId)
+      expect(String(saved?.id) === createdId).toBe(true)
       expect(Number(saved?.quantity)).toBe(2)
-      expect(saved?.notes).toBe('release-check updated')
+      expect(saved?.notes === marker).toBe(true)
 
       const afterUpdate = await readOwnerCellar()
       expect(afterUpdate.status).toBe(200)
       const ownerItem = afterUpdate.body?.items?.find(({ id }) => String(id) === createdId)
       expect(ownerItem).toBeTruthy()
       expect(Number(ownerItem.quantity)).toBe(2)
+      expect(ownerItem.notes === marker).toBe(true)
 
       const otherContext = await browser.newContext()
       try {
@@ -476,7 +480,7 @@ test('cellar CRUD and cross-account ownership boundaries use exact verified clea
         const otherResponse = await otherPage.request.get('/api/nocodebackend/cellar')
         expect(otherResponse.status()).toBe(200)
         const otherCellar = await responseJson(otherResponse)
-        expect(otherCellar.items.map(({ id }) => String(id))).not.toContain(createdId)
+        expect(otherCellar.items.some(({ id }) => String(id) === createdId)).toBe(false)
       } finally {
         await otherContext.close()
       }
@@ -519,3 +523,4 @@ test('axe has no serious or critical violations on every reachable launch page',
     await context.close()
   }
 })
+

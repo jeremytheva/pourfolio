@@ -50,7 +50,7 @@ validation:
   ci: PENDING
   runtime: UNVERIFIED
 last_verified_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
-last_updated: "2026-10-20T23:32:00Z"
+last_updated: "2026-10-20T23:37:00Z"
 ---
 
 # STATUS.md
@@ -90,6 +90,19 @@ provider evidence and client accessibility; unmatched shared `dataProvider`
 and `httpSecurity` modules/tests are deliberately classified under
 PF-LAUNCH-CELLAR, PF-LAUNCH-AUTH and PF-LAUNCH-PROVIDER for deadline propagation.
 The existing launch checklist and open connected gates remain authoritative.
+
+Broader review also reproduced a cleanup provenance gap: a stale owner-list
+baseline and an older acknowledged row could satisfy ID/product-only checks.
+The connected release fixture now uses a random run marker, preserved through
+create/update/reload, required in the receipt and fresh owner reads, and checked
+again immediately before its single DELETE. Missing/changed markers, duplicate
+IDs and pre-existing markers fail closed without deletion. This source
+correction does not rerun a connected fixture or qualify A/B isolation.
+
+The existing development dependency PR #647 exposed a catalogue link accessible
+name mismatch with upgraded axe. Its one-line correction removes the redundant
+label so visible card text determines the link name. Exact-head canonical and
+browser coverage is pending in that existing PR; no check was suppressed.
 
 ### Cellar review and verified cross-account rating read — 20 October 2026 UTC
 

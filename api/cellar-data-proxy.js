@@ -301,14 +301,14 @@ export default async function handler(request, response) {
     }
     if (isMutation) await withTimeout(run, CELLAR_WRITE_TIMEOUT_MS)
     else await run()
-  } catch (error) {
-    if (isMutation && (requestSignal?.aborted ||
-        ['CELLAR_PERSISTENCE_MISMATCH', 'CELLAR_DELETE_NOT_VERIFIED'].includes(error.code))) {
-      error = Object.assign(new Error('The cellar change could not be confirmed. Reload your cellar and check it before making another change.'), {
+  } catch (cause) {
+    const error = isMutation && (requestSignal?.aborted ||
+        ['CELLAR_PERSISTENCE_MISMATCH', 'CELLAR_DELETE_NOT_VERIFIED'].includes(cause.code))
+      ? Object.assign(new Error('The cellar change could not be confirmed. Reload your cellar and check it before making another change.'), {
         status: 502,
         code: 'CELLAR_WRITE_UNVERIFIED'
       })
-    }
+      : cause
     const status = Number(error.status) >= 400 && Number(error.status) < 600 ? Number(error.status) : 500
     if (status >= 500) {
       writeTelemetryError(runtimeTelemetry({

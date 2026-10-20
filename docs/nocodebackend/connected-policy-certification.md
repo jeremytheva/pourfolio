@@ -21,6 +21,12 @@ bounded historical evidence. No connected mutation was repeated for this
 review. Cellar HTTP/browser lifecycle, cellar A/B denial, session negative
 cases and the broader policy matrix remain unqualified. Public launch is NO-GO.
 
+The connected release test's cleanup now also requires a unique random marker
+in the create receipt and fresh owner readback, preserved through updates and
+rechecked immediately before DELETE. An incomplete baseline or stale historical
+receipt cannot alone authorise deletion. Fifteen pure cleanup regressions pass;
+this provenance correction has not executed a live fixture.
+
 ## Cellar owner lifecycle verified — 20 October 2026 Sydney
 
 Accepted application source `9c82e8a7018b8266f5cbef4f749982e9f3f9dd01` passed
