@@ -29,7 +29,9 @@
         "file:src/components/OptimizedBeerCard.jsx",
         "file:src/components/ProductTastingHistory.jsx",
         "file:e2e/profile-rating-links.spec.js",
-        "file:e2e/rating-breakdown-sharing.spec.js"
+        "file:e2e/rating-breakdown-sharing.spec.js",
+        "file:package.json",
+        "file:package-lock.json"
       ],
       "acquiredAt": "2026-10-20T23:19:48.000Z",
       "expiresAt": "2026-10-21T00:00:00.000Z"
