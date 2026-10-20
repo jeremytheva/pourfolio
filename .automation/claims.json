@@ -27,7 +27,9 @@
         "scripts/inspect-browser-rating-fixture.js",
         "scripts/__tests__/browserRatingFixtureInspection.test.js",
         ".github/workflows/browser-rating-inspection.yml",
-        "provider:profiles:read-only-fixture-owner-binding"
+        "provider:profiles:read-only-fixture-owner-binding",
+        "scripts/bonus-certification-owner.js",
+        "scripts/__tests__/bonusCertificationOwner.test.js"
       ],
       "acquiredAt": "2026-10-20T05:23:35.359Z",
       "expiresAt": "2026-10-20T05:53:35.359Z"
