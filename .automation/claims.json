@@ -9,7 +9,10 @@
       "surfaces": [
         "file:api/cellar-data-proxy.js",
         "file:api/_lib/__tests__/cellarPersistence.test.js",
-        "pr:657"
+        "pr:657",
+        "repo:integration",
+        "file:STATUS.md",
+        "file:docs/nocodebackend/connected-policy-certification.md"
       ],
       "acquiredAt": "2026-10-20T23:19:48.000Z",
       "expiresAt": "2026-10-20T23:49:48.000Z"
