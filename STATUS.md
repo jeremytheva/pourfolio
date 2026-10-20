@@ -3,16 +3,16 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Browser rating lifecycle and backend cleanup verified; cross-account read acceptance pending"
+stage: "Cellar review fix validating; bounded rating cross-account read verified"
 gate: Release
 execution_state: VALIDATING
 current_work:
-  objective: "Verify one cross-account read denial, then integrate the validated cellar correction using the now-READY exact preview and qualify production."
+  objective: "Validate the reviewed persisted-gift correction in existing PR #657, verify its exact preview, integrate and qualify production without expanding connected evidence claims."
   issue: 449
   pr: 657
   branch: "fix/cellar-write-persistence-verification-20261019"
 next_actions:
-  - "Run the protected one-GET cross-account rating-read probe using the observed browser identity and distinct configured release session; no data write or repeated graph inspection."
+  - "Qualify the latest #657 source and exact preview after its persisted gift-flag review correction; retain the completed one-GET cross-account rating read and avoid repeating it."
   - "Complete latest-head validation/review and integrate PR #657: existing Git preview 31e41c3b is READY with exact health/readiness. Verify the resulting production SHA and deployed cellar HTTP/browser lifecycle; do not create duplicate deployments."
   - "Preserve current source/browser and bounded owner-provider evidence; no new fixture or repeated mutation is needed for documentation-only follow-up."
   - "Complete #577 distinct-account checks after supported RELEASE_OTHER_EMAIL configuration is established; do not guess an identity or reuse a database key as a password."
@@ -37,10 +37,10 @@ wip:
 evidence:
   observed_main_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   current_candidate_commit: null
-  latest_validated_commit: "31e41c3b42275a289b109a33fdf05bc2dbac1c69"
+  latest_validated_commit: "c150488490493a6314da351c164f5c54c6a41d41"
   latest_deployed_commit: "31e41c3b42275a289b109a33fdf05bc2dbac1c69"
   latest_runtime_verified_commit: "31e41c3b42275a289b109a33fdf05bc2dbac1c69"
-  latest_browser_verified_commit: "31e41c3b42275a289b109a33fdf05bc2dbac1c69"
+  latest_browser_verified_commit: "c150488490493a6314da351c164f5c54c6a41d41"
 validation:
   governance: PASS
   lint: PASS
@@ -50,7 +50,7 @@ validation:
   ci: PENDING
   runtime: UNVERIFIED
 last_verified_commit: "31e41c3b42275a289b109a33fdf05bc2dbac1c69"
-last_updated: "2026-10-20T05:34:40Z"
+last_updated: "2026-10-20T23:23:00Z"
 ---
 
 # STATUS.md
@@ -58,6 +58,42 @@ last_updated: "2026-10-20T05:34:40Z"
 Last materially reviewed: 20 October 2026 UTC
 
 ## AI execution gate
+
+### Cellar review and verified cross-account rating read — 20 October 2026 UTC
+
+Review of PR #657 at `c150488490493a6314da351c164f5c54c6a41d41` reproduced
+one false-success edge: any unrecognised persisted gift value was coerced to
+false, so an invalid provider value could acknowledge a requested false save.
+Verification now accepts only supported boolean encodings before comparing the
+requested gift flag. Two regressions cover malformed/missing stored flags and
+supported true/false encodings; all 19 focused cellar cases passed locally on
+Node 24. The changed candidate still requires canonical Node 22 and exact
+preview/runtime qualification; earlier live CRUD evidence is not rerun or
+upgraded by these source tests.
+
+The reviewed preceding head `c1504884` passed canonical Node 22 validation:
+968 tests passed, 15 provider-gated skips, zero failures, all 155 browser/
+accessibility cases, CodeQL and Dependency Review. This is preceding-head
+evidence, not a claim that the new gift correction is already deployed.
+
+Protected read-only run
+[39375645164](https://github.com/jeremytheva/pourfolio/actions/runs/39375645164)
+(job `118473051991`) completed at 05:35 UTC on `c1504884`: a verified release
+session distinct from the browser owner made one normal-HTTPS request to the
+owner's existing rating breakdown and received **404**. The report is **PASS**,
+with zero creates/updates/deletes and no response-body disclosure. This closes
+that bounded rating-read denial only; cellar mutation isolation, revoked/expired
+sessions, profile privacy and the broader #577 matrix remain pending. Do not
+repeat that request merely to refresh documentation.
+
+The older manual 402 quota note in the PR description was superseded by the
+READY Git preview recorded below. Fresh inspection confirmed existing preview
+`dpl_68LuHgZHqiGcvR6TzE2d28fTxeJ3` belongs to `31e41c3b`; it cannot certify
+a changed application head. Current production remains `36ce8ffe` and fresh
+public health/readiness both returned HTTP 200 with that exact SHA. No provider
+write or new deployment request was performed during this review. The expired
+catalogue lease was recovered only after fresh branch/main/claim reconciliation.
+Public launch remains **NO-GO**.
 
 ### Bonus-backed browser rating saved/reloaded/deleted — 20 October 2026 Sydney
 
@@ -1063,4 +1099,5 @@ The available repository tools cannot attach/detach ChatGPT Project sources. The
 ## Validation limitations
 
 Source and production read evidence do not by themselves prove every provider write/permission boundary. #422 must retain unsupported connected rows as pending until they are exercised against the provider with safe cleanup. #165 remains separately blocked at an irreversible schema migration boundary, and #577 remains limited by the available account-session credential contract.
+
 

@@ -88,7 +88,12 @@ const cellarReadbackDelay = (attempt) => Math.min(250 * (2 ** attempt), 1_500)
 
 const matchesRequestedCellarValue = (field, actual, expected) => {
   if (expected === null) return actual === null || actual === undefined || actual === ''
-  if (field === 'gift') return cellarFlag(actual) === cellarFlag(expected)
+  if (field === 'gift') {
+    // Unknown provider values must not confirm that a requested false flag
+    // persisted merely because the display projection treats them as false.
+    return [true, false, 1, 0, '1', '0', 'true', 'false'].includes(actual) &&
+      cellarFlag(actual) === cellarFlag(expected)
+  }
   if (field === 'date_received') return typeof actual === 'string' && actual.slice(0, 10) === expected
   if (['quantity', 'mls', 'purchase_price', 'retail_price'].includes(field)) {
     return actual !== null && actual !== undefined && String(actual).trim() !== '' &&
@@ -291,3 +296,4 @@ export const __testables = {
   createCellar,
   deleteCellar
 }
+

@@ -129,6 +129,28 @@ test('cellar missing-row readback and persisted false gift strings do not fabric
   assert.equal(projectCellarRecord({ id: 1, product_id: 2, gift: false }).gift, false)
 })
 
+test('cellar save verification rejects malformed or absent stored gift flags', async () => {
+  for (const gift of ['invalid-provider-flag', 2, '2', {}, [], null, undefined, '']) {
+    const provider = { get: async () => ({ ...existing, gift }) }
+    await assert.rejects(
+      verifyPersistedCellar({ provider, id: existing.id, userId: user.id, expected: { gift: 0 } }),
+      (error) => error.code === 'CELLAR_PERSISTENCE_MISMATCH' &&
+        error.mismatchFields.length === 1 && error.mismatchFields[0] === 'gift'
+    )
+  }
+})
+
+test('cellar save verification accepts supported persisted true and false encodings', async () => {
+  for (const gift of [true, false, 1, 0, '1', '0', 'true', 'false']) {
+    const expected = [true, 1, '1', 'true'].includes(gift) ? 1 : 0
+    const provider = { get: async () => ({ ...existing, gift }) }
+    const saved = await verifyPersistedCellar({
+      provider, id: existing.id, userId: user.id, expected: { gift: expected }
+    })
+    assert.equal(saved.gift, gift)
+  }
+})
+
 test('direct null lookup inputs use the client write projection rather than unavailable provider columns', async () => {
   let sent
   dataProvider.create = async (_collection, body) => { sent = body; return { id: 54 } }
@@ -242,3 +264,4 @@ test('invalid settlement limits and provider errors fail without extra reads or 
     assert.equal(reads, 1)
   }
 })
+
