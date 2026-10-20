@@ -1,6 +1,14 @@
 const DATA_API_BASE_URL = '/api/nocodebackend'
 const AUTH_API_BASE_URL = '/api/nocodebackend/auth'
 const REQUEST_TIMEOUT_MS = 12_000
+const CELLAR_WRITE_UNVERIFIED_MESSAGE = 'The cellar change could not be confirmed. Reload your cellar and check it before making another change.'
+const CELLAR_UNVERIFIED_CODES = new Set([
+  'CELLAR_WRITE_UNVERIFIED', 'CELLAR_PERSISTENCE_MISMATCH', 'CELLAR_DELETE_NOT_VERIFIED'
+])
+
+const isCellarMutation = (baseUrl, path, method) => baseUrl === DATA_API_BASE_URL &&
+  ['POST', 'PUT', 'DELETE'].includes(String(method).toUpperCase()) &&
+  /^\/cellar(?:\/[^/]+)?\/?$/.test(String(path).split(/[?#]/, 1)[0])
 
 const PROVIDER_ALIASES = {
   emailPassword: ['emailPassword', 'email_password', 'email-password', 'password', 'credentials', 'email'],
@@ -36,12 +44,13 @@ const parsePayload = async (response) => {
   }
 }
 
-const fetchWithTimeout = async (url, options) => {
+const fetchWithTimeout = async (url, options, cellarMutation = false) => {
   const controller = new AbortController()
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
   try {
     return await fetch(url, { ...options, signal: controller.signal })
   } catch (error) {
+    if (cellarMutation) throw new ApiError(CELLAR_WRITE_UNVERIFIED_MESSAGE, { code: 'CELLAR_WRITE_UNVERIFIED' })
     if (error.name === 'AbortError') throw new ApiError('The request timed out. Please try again.')
     throw new ApiError('The service could not be reached. Please check your connection and try again.')
   } finally {
@@ -50,9 +59,11 @@ const fetchWithTimeout = async (url, options) => {
 }
 
 const request = async (baseUrl, path, options = {}) => {
+  const method = options.method || 'GET'
+  const cellarMutation = isCellarMutation(baseUrl, path, method)
   const response = await fetchWithTimeout(`${baseUrl}${path}`, {
     credentials: 'include',
-    method: options.method || 'GET',
+    method,
     headers: {
       accept: 'application/json',
       ...(options.body === undefined ? {} : { 'content-type': 'application/json' })
@@ -62,11 +73,14 @@ const request = async (baseUrl, path, options = {}) => {
       : typeof options.body === 'string'
         ? options.body
         : JSON.stringify(options.body)
-  })
+  }, cellarMutation)
   const payload = await parsePayload(response)
 
   if (!response.ok || payload?.error || payload?.status === 'error') {
-    throw new ApiError(payload?.error || payload?.message || 'The request could not be completed.', {
+    const message = cellarMutation && CELLAR_UNVERIFIED_CODES.has(payload?.code)
+      ? CELLAR_WRITE_UNVERIFIED_MESSAGE
+      : payload?.error || payload?.message || 'The request could not be completed.'
+    throw new ApiError(message, {
       status: response.status,
       requestId: payload?.requestId || response.headers.get('x-request-id'),
       code: payload?.code || null
@@ -248,3 +262,4 @@ export const nocodeBackend = {
 }
 
 export default nocodeBackend
+

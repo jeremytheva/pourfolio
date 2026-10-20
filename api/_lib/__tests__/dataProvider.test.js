@@ -279,3 +279,106 @@ test('provider completion clears its timeout and malformed JSON retains the safe
   await assert.rejects(dataProvider.list('products'), { status: 502, code: 'PROVIDER_ERROR' })
 })
 
+test('the exact-read 404 fallback shares the caller deadline rather than restarting it', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout'] })
+  const caller = new AbortController()
+  const signals = []
+  let bodyStarted
+  const reading = new Promise((resolve) => { bodyStarted = resolve })
+  const deadline = setTimeout(() => caller.abort(new Error('private cancellation detail')), 200)
+  global.fetch = async (_url, { signal }) => {
+    signals.push(signal)
+    if (signals.length === 1) {
+      context.mock.timers.tick(150)
+      return response({ error: 'not found' }, { status: 404 })
+    }
+    return {
+      ok: true, status: 200,
+      text: () => new Promise((_resolve, reject) => {
+        signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+        bodyStarted()
+      })
+    }
+  }
+  const pending = dataProvider.get('cellar', 3, { fresh: true, signal: caller.signal })
+  const rejected = assert.rejects(pending, {
+    status: 502, code: 'PROVIDER_ERROR', message: 'The upstream service could not complete the request.'
+  })
+  await reading
+  assert.equal(signals.length, 2)
+  context.mock.timers.tick(49)
+  assert.equal(signals[1].aborted, false)
+  context.mock.timers.tick(1)
+  assert.equal(signals[1].aborted, true)
+  await rejected
+  clearTimeout(deadline)
+})
+
+for (const status of [200, 500]) {
+  test(`exact-child recovery after ${status} retains caller cancellation`, async () => {
+    const caller = new AbortController()
+    let requests = 0, recoveryStarted
+    const reading = new Promise((resolve) => { recoveryStarted = resolve })
+    global.fetch = async (_url, { signal }) => {
+      requests += 1
+      if (requests === 1) return response(status === 200 ? { data: [] } : { error: 'read failed' }, { status })
+      return {
+        ok: true, status: 200,
+        text: () => new Promise((_resolve, reject) => {
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+          recoveryStarted()
+        })
+      }
+    }
+    const pending = dataProvider.list('rating_scores', { rating_id: 42, user_id: 'owner' }, { signal: caller.signal })
+    const rejected = assert.rejects(pending, { status: 502, code: 'PROVIDER_ERROR' })
+    await reading
+    caller.abort()
+    await rejected
+    assert.equal(requests, 2)
+  })
+}
+
+test('an already cancelled caller prevents every provider mutation and read without leaking its reason', async () => {
+  const caller = new AbortController()
+  caller.abort(new Error('private cancellation detail'))
+  const options = { signal: caller.signal }
+  global.fetch = async () => assert.fail('cancelled provider calls must not fetch')
+  for (const operation of [
+    () => dataProvider.create('cellar', { product_id: 1 }, options),
+    () => dataProvider.update('cellar', 3, { quantity: 2 }, options),
+    () => dataProvider.compareAndSet('cellar', 3, 4, { version: 5 }, options),
+    () => dataProvider.remove('cellar', 3, options),
+    () => dataProvider.get('cellar', 3, options),
+    () => dataProvider.list('cellar', { user_id: 'owner' }, options),
+    () => dataProvider.listPage('cellar', { page: 1, limit: 100 }, options)
+  ]) {
+    await assert.rejects(operation(), {
+      status: 502, code: 'PROVIDER_ERROR', message: 'The upstream service could not complete the request.'
+    })
+  }
+})
+
+test('cancellation during an error body prevents 404 and exact-child recovery fetches', async () => {
+  for (const [collection, status, operation] of [
+    ['cellar', 404, (options) => dataProvider.get('cellar', 3, options)],
+    ['rating_scores', 500, (options) => dataProvider.list('rating_scores', { rating_id: 42 }, options)]
+  ]) {
+    const caller = new AbortController()
+    let requests = 0
+    global.fetch = async () => {
+      requests += 1
+      return {
+        ok: false, status,
+        text: async () => {
+          caller.abort()
+          return JSON.stringify({ error: `private ${collection} error` })
+        }
+      }
+    }
+    await assert.rejects(operation({ signal: caller.signal }), { status: 502, code: 'PROVIDER_ERROR' })
+    assert.equal(requests, 1)
+  }
+})
+
+

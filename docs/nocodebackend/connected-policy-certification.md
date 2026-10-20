@@ -1,5 +1,26 @@
 # Connected provider policy certification
 
+## Cellar deadline review correction — 20 October 2026 UTC
+
+Source review identified that read-count/wait limits alone did not bound
+elapsed request time: slow reads could outlast the browser after a mutation.
+The reviewed correction applies one 10-second deadline before authentication
+through preflight, write, readback/fallback, settlement waits and enrichment.
+Cancellation stops subsequent work and never retries a mutation. A safe
+`CELLAR_WRITE_UNVERIFIED` outcome asks the owner to reload and check the cellar
+before another change; aborting a provider request does not undo its write.
+
+All 82 relevant tests passed locally on Node 24, with independent review of
+the integrated correction. Exact-head canonical Node 22, browser and deployment
+qualification are pending. Preceding head `c41a4a01` passed 970 canonical tests
+(15 gated skips), all 155 browser cases, and exact preview health/readiness
+at 23:28 UTC. It cannot certify this changed deadline correction.
+
+The guarded owner-only lifecycle and distinct-account rating GET below remain
+bounded historical evidence. No connected mutation was repeated for this
+review. Cellar HTTP/browser lifecycle, cellar A/B denial, session negative
+cases and the broader policy matrix remain unqualified. Public launch is NO-GO.
+
 ## Cellar owner lifecycle verified — 20 October 2026 Sydney
 
 Accepted application source `9c82e8a7018b8266f5cbef4f749982e9f3f9dd01` passed

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { afterEach, test } from 'node:test'
 import { dataProvider } from '../dataProvider.js'
-import { projectCellarRecord, verifyPersistedCellar, verifyCellarRemoved, __testables } from '../../cellar-data-proxy.js'
+import handler, { projectCellarRecord, verifyPersistedCellar, verifyCellarRemoved, __testables } from '../../cellar-data-proxy.js'
 import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../../../src/data/contract.js'
 
 const original = { ...dataProvider }
@@ -11,6 +11,7 @@ const product = { id: 12, product_name: 'Fixture beer', producer_id: null, produ
 const existing = { id: 54, user_id: 'owner-a', product_id: 12, quantity: 2, date_received: '2026-10-15', gift: '0' }
 const response = () => ({
   statusCode: null, body: null,
+  setHeader() { return this },
   status(code) { this.statusCode = code; return this },
   json(body) { this.body = body; return this },
   end() { return this }
@@ -263,5 +264,106 @@ test('invalid settlement limits and provider errors fail without extra reads or 
     (error) => error === failure)
     assert.equal(reads, 1)
   }
+})
+
+for (const phase of ['authentication', 'mutation', 'readback', 'hydration']) {
+  test(`one cellar write deadline includes slow ${phase} and never retries the mutation`, async (context) => {
+    for (const [key, value] of Object.entries({
+      NOCODEBACKEND_INSTANCE: 'test-instance',
+      NOCODEBACKEND_AUTH_SECRET_KEY: 'test-auth-secret',
+      NOCODEBACKEND_AUTH_BASE_URL: 'https://app.nocodebackend.com/api/user-auth'
+    })) {
+      const previous = process.env[key]
+      process.env[key] = value
+      context.after(() => {
+        if (previous === undefined) delete process.env[key]
+        else process.env[key] = previous
+      })
+    }
+    context.mock.timers.enable({ apis: ['setTimeout'] })
+    let startStall, stalledSignal, writes = 0, reads = 0
+    const stalled = new Promise((resolve) => { startStall = resolve })
+    const stall = (signal) => new Promise((_resolve, reject) => {
+      stalledSignal = signal
+      signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+      startStall()
+    })
+    context.mock.method(globalThis, 'fetch', async (_url, { signal }) => ({
+      ok: true,
+      json: async () => {
+        if (phase === 'authentication') return stall(signal)
+        context.mock.timers.tick(3_000)
+        return { user }
+      }
+    }))
+    dataProvider.get = async (collection, _id, { signal }) => {
+      reads += 1
+      if (collection === COLLECTIONS.products) {
+        context.mock.timers.tick(1_000)
+        return { ...product, producer_id: phase === 'hydration' ? 8 : null }
+      }
+      if (collection === COLLECTIONS.cellar) {
+        if (phase === 'readback') return stall(signal)
+        return existing
+      }
+      return stall(signal)
+    }
+    dataProvider.create = async (_collection, _body, { signal }) => {
+      writes += 1
+      if (phase === 'mutation') return stall(signal)
+      context.mock.timers.tick(1_000)
+      return { id: existing.id }
+    }
+    const reply = response()
+    const pending = handler({ method: 'POST', headers: {}, query: { path: ['cellar'] },
+      body: { product_id: 12, quantity: 2, date_received: '2026-10-15' } }, reply)
+    await stalled
+    const remaining = phase === 'authentication' ? 10_000 : phase === 'mutation' ? 6_000 : 5_000
+    context.mock.timers.tick(remaining - 1)
+    assert.equal(reply.statusCode, null)
+    assert.equal(stalledSignal.aborted, false)
+    context.mock.timers.tick(1)
+    await pending
+    assert.equal(stalledSignal.aborted, true)
+    assert.equal(reply.statusCode, 502)
+    assert.equal(reply.body.code, 'CELLAR_WRITE_UNVERIFIED')
+    assert.match(reply.body.error, /Reload your cellar and check it before making another change/)
+    assert.equal(writes, phase === 'authentication' ? 0 : 1)
+    const readsAtDeadline = reads
+    context.mock.timers.tick(20_000)
+    assert.equal(reads, readsAtDeadline)
+    assert.equal(writes, phase === 'authentication' ? 0 : 1)
+  })
+}
+
+test('cellar readback deadline cancels settlement waiting before another read', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout'] })
+  const controller = new AbortController()
+  let reads = 0, firstRead
+  const reading = new Promise((resolve) => { firstRead = resolve })
+  const pending = verifyPersistedCellar({
+    provider: { get: async () => { reads += 1; firstRead(); return existing } },
+    id: 54, userId: user.id, expected: { quantity: 5 }, attempts: 6, signal: controller.signal
+  })
+  const rejected = assert.rejects(pending, { name: 'AbortError' })
+  await reading
+  controller.abort()
+  await rejected
+  context.mock.timers.tick(10_000)
+  assert.equal(reads, 1)
+})
+
+test('expired cellar request cannot start a mutation or acknowledge a late readback', async () => {
+  const controller = new AbortController()
+  controller.abort()
+  dataProvider.create = async () => assert.fail('must not write')
+  dataProvider.get = async () => assert.fail('must not read')
+  await assert.rejects(__testables.createCellar({ body: {} }, response(), user,
+    { signal: controller.signal }), { name: 'AbortError' })
+  const late = new AbortController()
+  await assert.rejects(verifyPersistedCellar({
+    provider: { get: async () => { late.abort(); return existing } },
+    id: 54, userId: user.id, expected: {}, signal: late.signal
+  }), { name: 'AbortError' })
 })
 

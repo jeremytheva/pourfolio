@@ -3,16 +3,16 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Cellar review fix validating; bounded rating cross-account read verified"
+stage: "Cellar persistence and shared write deadline review fixes validating"
 gate: Release
 execution_state: VALIDATING
 current_work:
-  objective: "Validate the reviewed persisted-gift correction in existing PR #657, verify its exact preview, integrate and qualify production without expanding connected evidence claims."
+  objective: "Qualify PR #657 persisted-gift and shared write deadline corrections, verify the exact preview and integrate only with sufficient runtime evidence."
   issue: 449
   pr: 657
   branch: "fix/cellar-write-persistence-verification-20261019"
 next_actions:
-  - "Qualify the latest #657 source and exact preview after its persisted gift-flag review correction; retain the completed one-GET cross-account rating read and avoid repeating it."
+  - "Qualify latest #657 gift-flag and shared write deadline fixes; retain the completed one-GET cross-account rating read and avoid repeating it."
   - "Complete latest-head validation/review and integrate PR #657: existing Git preview 31e41c3b is READY with exact health/readiness. Verify the resulting production SHA and deployed cellar HTTP/browser lifecycle; do not create duplicate deployments."
   - "Preserve current source/browser and bounded owner-provider evidence; no new fixture or repeated mutation is needed for documentation-only follow-up."
   - "Complete #577 distinct-account checks after supported RELEASE_OTHER_EMAIL configuration is established; do not guess an identity or reuse a database key as a password."
@@ -37,20 +37,20 @@ wip:
 evidence:
   observed_main_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   current_candidate_commit: null
-  latest_validated_commit: "c150488490493a6314da351c164f5c54c6a41d41"
-  latest_deployed_commit: "31e41c3b42275a289b109a33fdf05bc2dbac1c69"
-  latest_runtime_verified_commit: "31e41c3b42275a289b109a33fdf05bc2dbac1c69"
-  latest_browser_verified_commit: "c150488490493a6314da351c164f5c54c6a41d41"
+  latest_validated_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
+  latest_deployed_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
+  latest_runtime_verified_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
+  latest_browser_verified_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
 validation:
   governance: PASS
-  lint: PASS
+  lint: PENDING
   typecheck: NOT_APPLICABLE
-  tests: PASS
-  build: PASS
+  tests: PENDING
+  build: PENDING
   ci: PENDING
   runtime: UNVERIFIED
-last_verified_commit: "31e41c3b42275a289b109a33fdf05bc2dbac1c69"
-last_updated: "2026-10-20T23:23:00Z"
+last_verified_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
+last_updated: "2026-10-20T23:34:00Z"
 ---
 
 # STATUS.md
@@ -58,6 +58,38 @@ last_updated: "2026-10-20T23:23:00Z"
 Last materially reviewed: 20 October 2026 UTC
 
 ## AI execution gate
+
+### Shared cellar write deadline review correction — 20 October 2026 UTC
+
+Independent review found that six readbacks plus their 4.75 seconds of waits
+could exceed the browser's 12-second timeout after a write had committed. A
+single 10-second mutation deadline now starts before session authentication
+and covers preflight, mutation, fresh readback, 404 fallback, settlement waits
+and optional product enrichment. Cancellation prevents later work; only reads
+may repeat. Unconfirmed writes return `CELLAR_WRITE_UNVERIFIED`, and the client
+instructs the owner to reload and check the cellar before another change.
+Provider cancellation does not undo a committed mutation; no automatic mutation
+retry or idempotency guarantee is introduced.
+
+All 82 focused cellar, provider, authentication, timeout and client transport
+tests passed locally on Node 24, including fake-clock coverage across slow auth,
+mutation, readback and enrichment, stalled response bodies, shared 404 fallback,
+cancelled waits and zero mutation retries. Canonical Node 22 validation and
+browser coverage for this changed candidate remain pending.
+
+Preceding gift-fix head `c41a4a01` passed canonical validation (970 tests,
+15 gated skips, no failures), 155 browser/accessibility cases and security
+checks. Its Git preview `dpl_BXzY4Lca4K9zfjcD3z8sCatjBHUX` is READY;
+health and readiness returned HTTP 200 with exact `c41a4a01` at 23:28 UTC.
+This proves that preceding preview's identity/readiness only, not the new
+deadline correction or connected cellar HTTP/browser acceptance. No new
+provider writes were performed. Public launch remains **NO-GO**.
+
+The launch-readiness check passed. Its changed-path report maps cellar, auth,
+provider evidence and client accessibility; unmatched shared `dataProvider`
+and `httpSecurity` modules/tests are deliberately classified under
+PF-LAUNCH-CELLAR, PF-LAUNCH-AUTH and PF-LAUNCH-PROVIDER for deadline propagation.
+The existing launch checklist and open connected gates remain authoritative.
 
 ### Cellar review and verified cross-account rating read — 20 October 2026 UTC
 

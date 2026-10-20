@@ -6,7 +6,8 @@ import {
   enforceRateLimit,
   getClientAddress,
   isSameOriginRequest,
-  requestBodySize
+  requestBodySize,
+  withTimeout
 } from '../httpSecurity.js'
 
 test('same-origin browser requests are accepted', () => {
@@ -105,3 +106,49 @@ test('expired local buckets are cleaned and attacker-generated state is bounded'
     __resetRateLimitsForTests()
   }
 })
+
+test('caller cancellation prevents starting work and rejects a late successful result', async () => {
+  const alreadyAborted = new AbortController()
+  alreadyAborted.abort()
+  await assert.rejects(withTimeout(() => assert.fail('cancelled work must not start'),
+    undefined, alreadyAborted.signal), { name: 'AbortError' })
+
+  const caller = new AbortController()
+  await assert.rejects(withTimeout(async (signal) => {
+    caller.abort()
+    assert.equal(signal.aborted, true)
+    return 'a result from work that ignored cancellation'
+  }, undefined, caller.signal), { name: 'AbortError' })
+})
+
+test('a caller deadline cancels running work before the per-operation timeout', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout'] })
+  const caller = new AbortController()
+  let requestSignal
+  const deadline = setTimeout(() => caller.abort(), 50)
+  const pending = withTimeout((signal) => {
+    requestSignal = signal
+    return new Promise((_resolve, reject) => {
+      signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+    })
+  }, 1_000, caller.signal)
+  const rejected = assert.rejects(pending, { name: 'AbortError' })
+  context.mock.timers.tick(49)
+  assert.equal(requestSignal.aborted, false)
+  context.mock.timers.tick(1)
+  assert.equal(requestSignal.aborted, true)
+  await rejected
+  clearTimeout(deadline)
+})
+
+test('completed work detaches from later caller cancellation', async () => {
+  const caller = new AbortController()
+  let completedSignal
+  assert.equal(await withTimeout(async (signal) => {
+    completedSignal = signal
+    return 'complete'
+  }, undefined, caller.signal), 'complete')
+  caller.abort()
+  assert.equal(completedSignal.aborted, false)
+})
+

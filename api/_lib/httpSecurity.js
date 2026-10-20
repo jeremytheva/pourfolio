@@ -91,14 +91,21 @@ export const enforceOrigin = (request, response) => {
   return false
 }
 
-export const withTimeout = async (operation, timeoutMs = UPSTREAM_TIMEOUT_MS) => {
+export const withTimeout = async (operation, timeoutMs = UPSTREAM_TIMEOUT_MS, outerSignal) => {
   const controller = new AbortController()
+  const abortFromCaller = () => controller.abort(outerSignal.reason)
+  if (outerSignal?.aborted) abortFromCaller()
+  else outerSignal?.addEventListener('abort', abortFromCaller, { once: true })
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
 
   try {
-    return await operation(controller.signal)
+    controller.signal.throwIfAborted()
+    const result = await operation(controller.signal)
+    controller.signal.throwIfAborted()
+    return result
   } finally {
     clearTimeout(timeout)
+    outerSignal?.removeEventListener('abort', abortFromCaller)
   }
 }
 
@@ -114,3 +121,4 @@ export const safeErrorMessage = (status) => {
 
 export const __resetRateLimitsForTests = () => rateLimitBuckets.clear()
 export const __rateLimitBucketCountForTests = () => rateLimitBuckets.size
+
