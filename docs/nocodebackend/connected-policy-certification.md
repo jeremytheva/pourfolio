@@ -1,5 +1,30 @@
 # Connected provider policy certification
 
+## Corrected owner attempt: create/reload passed; update/delete readback unresolved
+
+[Run 39369876936](https://github.com/jeremytheva/pourfolio/actions/runs/39369876936)
+at `f778c2cb` passed **946** canonical Node 22 source tests with 15 gated
+skips, then created one private new fixture through the corrected client/server
+projection. **Create PASS, independent reload PASS, nullable defaults PASS.**
+One update was attempted, but immediate readback returned
+`CELLAR_PERSISTENCE_MISMATCH`. Exact cleanup attempted one DELETE, but its
+immediate readback returned `CELLAR_DELETE_NOT_VERIFIED`.
+**One create, one update, one delete; no mutation retry.**
+Cleanup remains UNCONFIRMED, not inferred from the delete request.
+
+The encrypted final receipt now contains an acknowledged new ID and exact
+mutation counts. The read-only inspector is explicitly bound to artifact
+`12240937440` from that run and source SHA. It supports only the authenticated
+final checkpoint with matching summary counts, baseline exclusion and unchanged
+owner/product/random marker. Known-ID absence requires uncached direct, full
+and scoped reads; normal read disagreement is retained. A present fixture
+still requires exact nonce/list/direct agreement. All mutations remain disabled.
+No new fixture or repeat DELETE is requested.
+
+This evidence establishes an immediate readback failure, not whether the edit
+persisted or the delete took effect. The new read-only result is pending.
+Historical records and second-account certification remain outside scope.
+
 ## Original cellar create failure inspection — 20 October 2026 Sydney
 
 Candidate `1ed487f57ca0c8da03c5e2dc343637579fa2299b` passed
@@ -89,15 +114,8 @@ candidate with the actual client projection and a new private random fixture.
 It retains one-create/one-update/one-delete maximums, original receipts and
 verified exact cleanup. Independent readback still checks nullable defaults
 and false/true gift values. A/B HTTP/browser rows remain NOT_RUN because the
-supported second-account email is missing. The first corrected-candidate job
-[39369718436](https://github.com/jeremytheva/pourfolio/actions/runs/39369718436)
-stopped in canonical validation (**945 passed, one failed, 15 skipped**)
-before any provider runner step. An older ownership regression still required
-null gated fields in the provider payload. It now requires their omission
-and separately verifies null API presentation, preserving identity, numeric,
-date and ownership assertions. **Zero provider writes** occurred in that
-job. The updated bounded run is pending; the original failed create is not
-retried.
+supported second-account email is missing. This new run is pending; the old
+failed request is not retried.
 
 ## Current-instance cellar candidate verification — 20 October 2026 Sydney
 

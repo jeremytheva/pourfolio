@@ -3,16 +3,16 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Cellar write boundary aligned; guarded owner CRUD certification"
+stage: "Create/reload verified; inspect exact edit/delete readback"
 gate: Release
 execution_state: VALIDATING
 current_work:
-  objective: "Certify the corrected client/server cellar write projection and exact fixture cleanup after receipt-bound reads found no new row from the original failed create."
+  objective: "Resolve the acknowledged cellar fixture after one edit and one delete had unconfirmed readback; perform read-only receipt-bound inspection before further writes."
   issue: 449
   pr: 657
   branch: "fix/cellar-write-persistence-verification-20261019"
 next_actions:
-  - "Run one new bounded owner cellar CRUD fixture with the corrected write projection and exact cleanup; original-attempt receipt inspection found no new row and required no deletion."
+  - "Inspect exact fixture from run 39369876936 with its original encrypted acknowledged receipt. No create or repeated DELETE while cleanup remains unconfirmed."
   - "Validate the current candidate, verify its exact preview and integrate only when source/provider/runtime evidence supports this bounded correction."
   - "Complete #577 distinct-account checks after supported RELEASE_OTHER_EMAIL configuration is established; do not guess an identity or reuse a database key as a password."
   - "Complete bonus HTTP/browser/rating-use acceptance separately from verified persistence/reload/cleanup; do not guess 81 absent values."
@@ -46,10 +46,10 @@ validation:
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: PENDING
+  ci: FAIL
   runtime: UNVERIFIED
 last_verified_commit: "1ed487f57ca0c8da03c5e2dc343637579fa2299b"
-last_updated: "2026-10-20T04:27:57Z"
+last_updated: "2026-10-20T04:35:25Z"
 ---
 
 # STATUS.md
@@ -57,6 +57,19 @@ last_updated: "2026-10-20T04:27:57Z"
 Last materially reviewed: 20 October 2026 UTC
 
 ## AI execution gate
+
+### Corrected create/reload passed; exact update/delete readback inspection — 20 October 2026 Sydney
+
+[Protected run 39369876936](https://github.com/jeremytheva/pourfolio/actions/runs/39369876936)
+at `f778c2cb` passed **946** source tests (15 gated skips), then verified
+create, independent reload and nullable defaults. It attempted one edit and one
+exact DELETE. Their immediate readbacks failed, so update acceptance and cleanup
+remain UNCONFIRMED. **One create, one update, one delete; no mutation retry.**
+The current operation is read-only inspection using that run's encrypted
+acknowledged fixture ID, owner/product/nonce and baseline. No new fixture or
+repeat DELETE is requested. Do not infer the provider commit outcome from an
+HTTP mutation acknowledgement. Full evidence remains in the existing policy
+certification record. Public launch remains NO-GO.
 
 ### Original cellar attempt left no new fixture; server boundary corrected — 20 October 2026 Sydney
 

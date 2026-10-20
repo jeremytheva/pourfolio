@@ -39,10 +39,26 @@ test('the original final checkpoint can confirm an unacknowledged attempt withou
   const { report } = await inspect([{ id: 5 }], { receipt: { ...receipt, stage: 'finished', createsAttempted: 1 } })
   assert.equal(report.status, 'INSPECTED')
   assert.equal(report.fixtureState, 'NO_NEW_FIXTURE_OBSERVED')
-  for (const changes of [{ updatesAttempted: 1 }, { deletesAttempted: 1 }, { createdId: '6' }]) {
+  for (const changes of [{ updatesAttempted: 1 }, { deletesAttempted: 1 }, { createdId: '5' }]) {
     await assert.rejects(inspect([], { receipt: { ...receipt, stage: 'finished', createsAttempted: 1, ...changes } }),
       { code: 'CELLAR_INSPECTION_SOURCE_UNCONFIRMED' })
   }
+})
+
+test('a known new fixture is absent only after uncached direct, full and marker reads agree', async () => {
+  const acknowledgedReceipt = { ...receipt, stage: 'finished', createsAttempted: 1, updatesAttempted: 1,
+    deletesAttempted: 1, createdId: '6' }
+  const result = await inspect([{ id: 5 }], { receipt: acknowledgedReceipt,
+    summary: { ...summary, updatesAttempted: 1, deletesAttempted: 1 } })
+  assert.equal(result.report.fixtureState, 'ACKNOWLEDGED_FIXTURE_ABSENT')
+  assert.equal(result.report.normalDirectState, 'ABSENT')
+  assert.equal(result.report.uncachedDirectState, 'ABSENT')
+  assert.equal(result.report.deletesAttempted, 0)
+  const disagreeing = provider([{ id: 5 }])
+  disagreeing.get = async () => row
+  const unresolved = await inspect([{ id: 5 }], { receipt: acknowledgedReceipt,
+    summary: { ...summary, updatesAttempted: 1, deletesAttempted: 1 }, freshProvider: disagreeing })
+  assert.equal(unresolved.report.status, 'REVIEW_REQUIRED')
 })
 
 test('missing nonce on a new row, foreign owner and conflicting reads remain unconfirmed', async () => {

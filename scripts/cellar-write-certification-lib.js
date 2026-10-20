@@ -31,10 +31,15 @@ export const cellarCertificationScope = (environment) => {
 export const inspectCellarCreateAttempt = async ({ provider, freshProvider, userId, receipt, summary, sourceSha }) => {
   const unacknowledgedStage = receipt?.stage === 'create-intent' && receipt.createsAttempted === 0 ||
     receipt?.stage === 'finished' && receipt.createsAttempted === 1
+  const acknowledged = Boolean(idOf(receipt?.createdId))
+  const finishedAcknowledged = acknowledged && receipt?.stage === 'finished' && receipt.createsAttempted === 1 &&
+    receipt.updatesAttempted === summary?.updatesAttempted && receipt.deletesAttempted === summary?.deletesAttempted &&
+    [0, 1].includes(receipt.updatesAttempted) && [0, 1].includes(receipt.deletesAttempted)
   requireThat(/^[a-f0-9]{40}$/.test(sourceSha || '') && summary?.candidateCommit === sourceSha &&
-    summary.createsAttempted === 1 && summary.updatesAttempted === 0 && summary.deletesAttempted === 0 &&
+    summary.createsAttempted === 1 &&
     receipt?.version === 1 && receipt.kind === 'cellar-create-checkpoint' && receipt.candidateCommit === sourceSha &&
-    unacknowledgedStage && receipt.createdId === null && receipt.updatesAttempted === 0 && receipt.deletesAttempted === 0 &&
+    (finishedAcknowledged || unacknowledgedStage && receipt.createdId === null && receipt.updatesAttempted === 0 &&
+      receipt.deletesAttempted === 0 && summary.updatesAttempted === 0 && summary.deletesAttempted === 0) &&
     receipt.userId === userId && /^cellar-[a-f0-9-]{36}$/.test(receipt.runKey || '') &&
     receipt.marker === `Pourfolio release QA ${receipt.runKey}` && idOf(receipt.productId) &&
     Array.isArray(receipt.baselineIds) && receipt.baselineIds.every(idOf) &&
@@ -49,6 +54,7 @@ export const inspectCellarCreateAttempt = async ({ provider, freshProvider, user
   const select = (rows) => rows.filter((row) => row.notes === receipt.marker)
   const normalMatches = select(normal), freshMatches = select(fresh), scopedMatches = select(scoped)
   const baseline = new Set(receipt.baselineIds.map(String))
+  requireThat(!acknowledged || !baseline.has(String(receipt.createdId)), 'CELLAR_INSPECTION_SOURCE_UNCONFIRMED')
   const newRows = fresh.filter((row) => !baseline.has(String(row.id)))
   const report = { version: 1, mode: 'read-only-original-cellar-create-inspection', status: 'REVIEW_REQUIRED',
     createsAttempted: 0, updatesAttempted: 0, deletesAttempted: 0,
@@ -56,7 +62,24 @@ export const inspectCellarCreateAttempt = async ({ provider, freshProvider, user
     uncachedScopedMatches: scopedMatches.length, newRowsOutsideBaseline: newRows.length,
     availableFields: [...new Set(fresh.flatMap(Object.keys))].sort(), fixtureState: 'UNCONFIRMED' }
   let fixture = null
-  if (normalMatches.length === 0 && freshMatches.length === 0 && scopedMatches.length === 0 && newRows.length === 0) {
+  let acknowledgedAbsent = false
+  if (acknowledged) {
+    const [normalDirect, freshDirect] = await Promise.all([
+      provider.get(CELLAR, receipt.createdId), freshProvider.get(CELLAR, receipt.createdId)
+    ])
+    report.normalDirectState = normalDirect === null ? 'ABSENT' : same(normalDirect?.id, receipt.createdId) ? 'PRESENT' : 'UNCONFIRMED'
+    report.uncachedDirectState = freshDirect === null ? 'ABSENT' : same(freshDirect?.id, receipt.createdId) ? 'PRESENT' : 'UNCONFIRMED'
+    acknowledgedAbsent = freshDirect === null && !fresh.some((row) => same(row.id, receipt.createdId)) &&
+      freshMatches.length === 0 && scopedMatches.length === 0
+    if (freshDirect && same(freshDirect.id, receipt.createdId)) {
+      report.updatedQuantityMatches = Number(freshDirect.quantity) === 2
+      report.updatedGiftMatches = freshDirect.gift === true || freshDirect.gift === 1 || freshDirect.gift === '1'
+    }
+  }
+  if (acknowledgedAbsent) {
+    report.status = 'INSPECTED'
+    report.fixtureState = 'ACKNOWLEDGED_FIXTURE_ABSENT'
+  } else if (!acknowledged && normalMatches.length === 0 && freshMatches.length === 0 && scopedMatches.length === 0 && newRows.length === 0) {
     report.status = 'INSPECTED'
     report.fixtureState = 'NO_NEW_FIXTURE_OBSERVED'
   } else if (normalMatches.length === 1 && freshMatches.length === 1 && scopedMatches.length === 1) {
@@ -64,6 +87,7 @@ export const inspectCellarCreateAttempt = async ({ provider, freshProvider, user
     const direct = await freshProvider.get(CELLAR, fixture.id)
     report.originalOwnerProductMatch = same(fixture.user_id, userId) && same(fixture.product_id, receipt.productId)
     report.newCanonicalId = Boolean(idOf(fixture.id)) && !baseline.has(String(fixture.id))
+      && (!acknowledged || same(fixture.id, receipt.createdId))
     report.listDirectAgreement = [normalMatches[0], scopedMatches[0], direct].every((row) => fingerprint(row) === fingerprint(fixture))
     if (report.originalOwnerProductMatch && report.newCanonicalId && report.listDirectAgreement) {
       report.status = 'INSPECTED'

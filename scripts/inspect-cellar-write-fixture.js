@@ -5,8 +5,8 @@ import { resolveBonusCertificationOwner } from './bonus-certification-owner.js'
 import { openBonusFixtureReceipt, sealBonusFixtureReceipt } from './bonus-fixture-receipt.js'
 import { inspectCellarCreateAttempt } from './cellar-write-certification-lib.js'
 
-const sourceSha = '1ed487f57ca0c8da03c5e2dc343637579fa2299b'
-const sourceRun = '39336434126'
+const sourceSha = 'f778c2cb2b1336ca09357a5e78982a3fcc54c18d'
+const sourceRun = '39369876936'
 const normalise = (payload) => {
   for (const key of ['data', 'records', 'items', 'results', 'record']) {
     if (payload?.[key] !== undefined) return payload[key]
