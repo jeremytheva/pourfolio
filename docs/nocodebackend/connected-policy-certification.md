@@ -61,6 +61,37 @@ environment and schema snapshot as the structural SQL audit. Store secrets,
 session material and unredacted user data only in the approved private evidence
 store.
 
+### Confirmed original-attempt outcome and corrected write boundary
+
+Read-only [run 39369277463](https://github.com/jeremytheva/pourfolio/actions/runs/39369277463)
+at `d3833cd0` passed canonical Node 22 validation (**943** tests, 15 skips),
+then inspected the original authenticated final receipt: one attempted create,
+no acknowledged ID, zero updates/deletes, matching source and owner.
+Normal full, uncached full and uncached exact-marker reads all found **zero**
+matching fixtures and **zero new IDs outside the original baseline**:
+`NO_NEW_FIXTURE_OBSERVED`. The inspection itself made zero writes.
+No deletion or mutation retry was needed.
+
+The live API field inventory includes `series_edition_id` and lacks the
+reference `series_version_id` sent by the initial test. This establishes
+a provider/reference mismatch; the unretained original HTTP error does not
+prove its precise cause. The current server correction reuses the existing
+client write projector after sanitisation, omitting gated lookup fields
+before create/update and rejecting an otherwise empty update. It does not
+rename domain relationships, clear existing links, enable lookups or change
+schema. The machine provider-field contract and schema mapping record the
+observed field name, while the older reference remains explicitly gated.
+Three server regressions prove omission, preserved existing relationships
+and pre-mutation rejection of a lookup-only update.
+
+A fresh, explicitly guarded owner-only test now exercises this corrected
+candidate with the actual client projection and a new private random fixture.
+It retains one-create/one-update/one-delete maximums, original receipts and
+verified exact cleanup. Independent readback still checks nullable defaults
+and false/true gift values. A/B HTTP/browser rows remain NOT_RUN because the
+supported second-account email is missing. This new run is pending; the old
+failed request is not retried.
+
 ## Current-instance cellar candidate verification — 20 October 2026 Sydney
 
 The owner authorised the current instance for bounded reversible tests.

@@ -3,17 +3,17 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Inspect original cellar create outcome before further writes"
+stage: "Cellar write boundary aligned; guarded owner CRUD certification"
 gate: Release
 execution_state: VALIDATING
 current_work:
-  objective: "Resolve the original unacknowledged cellar create through read-only receipt-bound inspection, then correct and certify the actual application flow."
+  objective: "Certify the corrected client/server cellar write projection and exact fixture cleanup after receipt-bound reads found no new row from the original failed create."
   issue: 449
   pr: 657
   branch: "fix/cellar-write-persistence-verification-20261019"
 next_actions:
-  - "Inspect original cellar run 39336434126 using its encrypted create receipt; no new write or guessed deletion until its provider outcome is established."
-  - "Correct the actual cellar input/provider boundary and certify one bounded owner CRUD fixture with exact cleanup on the authorised current instance."
+  - "Run one new bounded owner cellar CRUD fixture with the corrected write projection and exact cleanup; original-attempt receipt inspection found no new row and required no deletion."
+  - "Validate the current candidate, verify its exact preview and integrate only when source/provider/runtime evidence supports this bounded correction."
   - "Complete #577 distinct-account checks after supported RELEASE_OTHER_EMAIL configuration is established; do not guess an identity or reuse a database key as a password."
   - "Complete bonus HTTP/browser/rating-use acceptance separately from verified persistence/reload/cleanup; do not guess 81 absent values."
   - "Prepare #165 historical rating recovery and #449 cellar provenance evidence with backup/restore/rollback; preserve irreversible migration approval."
@@ -36,20 +36,20 @@ wip:
 evidence:
   observed_main_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   current_candidate_commit: null
-  latest_validated_commit: "1ed487f57ca0c8da03c5e2dc343637579fa2299b"
+  latest_validated_commit: "d3833cd0304520b6ac820a1beac0d24562335157"
   latest_deployed_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   latest_runtime_verified_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
-  latest_browser_verified_commit: "1ed487f57ca0c8da03c5e2dc343637579fa2299b"
+  latest_browser_verified_commit: "d3833cd0304520b6ac820a1beac0d24562335157"
 validation:
   governance: PASS
   lint: PASS
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: FAIL
-  runtime: VERIFIED
+  ci: PENDING
+  runtime: UNVERIFIED
 last_verified_commit: "1ed487f57ca0c8da03c5e2dc343637579fa2299b"
-last_updated: "2026-10-20T04:22:55Z"
+last_updated: "2026-10-20T04:27:57Z"
 ---
 
 # STATUS.md
@@ -57,6 +57,32 @@ last_updated: "2026-10-20T04:22:55Z"
 Last materially reviewed: 20 October 2026 UTC
 
 ## AI execution gate
+
+### Original cellar attempt left no new fixture; server boundary corrected — 20 October 2026 Sydney
+
+[Read-only run 39369277463](https://github.com/jeremytheva/pourfolio/actions/runs/39369277463)
+at `d3833cd0` verified the original final receipt and found **zero** matching
+fixtures and **zero** new IDs outside its complete pre-write baseline across
+normal, uncached full and scoped reads. No row from the original create was
+observed; no deletion or mutation retry was needed. Canonical Node 22 passed
+**943** tests with 15 provider-gated skips; browser/security checks passed.
+
+The current server change uses the real client write projector, omitting
+unavailable lookup fields even when null. An update with no supported field
+left returns 400 before provider mutation. Existing relationships are not
+cleared. The live field inventory has `series_edition_id`, whereas the
+reference/test used `series_version_id`; the observed provider contract and
+schema mapping are reconciled without enabling lookups or changing schema.
+The original HTTP error was not retained, so its precise cause remains
+unproven.
+
+A fresh guarded owner-only lifecycle run on the corrected candidate is
+pending. It permits one create/update/delete of a new exact fixture and
+retains encrypted recovery receipts plus independent readback/cleanup.
+Cross-account HTTP/browser certification is still NOT_RUN:
+`RELEASE_OTHER_EMAIL` is absent from protected configuration.
+The source/runtime state below refers to the last accepted candidates;
+current candidate runtime remains UNVERIFIED. Public launch is NO-GO.
 
 ### Cellar provider create failure; receipt-bound read-only inspection — 20 October 2026 Sydney
 

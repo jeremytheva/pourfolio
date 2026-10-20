@@ -1,5 +1,6 @@
 import crypto from 'node:crypto'
 import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../src/data/contract.js'
+import { projectCellarWrite } from '../src/services/cellarWriteContract.js'
 import { requireSessionUser } from './_lib/authSession.js'
 import { dataProvider } from './_lib/dataProvider.js'
 import {
@@ -39,7 +40,12 @@ const parsePositiveId = (value, label = 'Record identifier') => {
 
 const sanitiseCellarRequest = (input, options) => {
   try {
-    return sanitiseCellarInput(input, options)
+    // Apply the same provider-facing projection as the launch client. Gated
+    // lookup fields may be absent/null in the domain but are not writable.
+    return projectCellarWrite(sanitiseCellarInput(input, options), {
+      requireProduct: !options?.partial,
+      requireAtLeastOne: Boolean(options?.partial)
+    })
   } catch (error) {
     if (!error.status) error.status = 400
     throw error

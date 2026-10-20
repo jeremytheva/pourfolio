@@ -128,3 +128,41 @@ test('cellar missing-row readback and persisted false gift strings do not fabric
   assert.equal(projectCellarRecord({ id: 1, product_id: 2, gift: '1' }).gift, true)
   assert.equal(projectCellarRecord({ id: 1, product_id: 2, gift: false }).gift, false)
 })
+
+test('direct null lookup inputs use the client write projection rather than unavailable provider columns', async () => {
+  let sent
+  dataProvider.create = async (_collection, body) => { sent = body; return { id: 54 } }
+  dataProvider.get = async (collection) => collection === COLLECTIONS.products ? product : existing
+  const reply = response()
+  await __testables.createCellar({ body: { product_id: 12, quantity: 2, date_received: '2026-10-15',
+    location_id: null, sharing_series_id: null, series_version_id: null, purchase_location_id: null,
+    purchased_by_id: null, bet_id: null } }, reply, user)
+  assert.equal(reply.statusCode, 201)
+  for (const field of ['location_id', 'sharing_series_id', 'series_version_id', 'purchase_location_id', 'purchased_by_id', 'bet_id']) {
+    assert.equal(Object.hasOwn(sent, field), false)
+    assert.equal(reply.body.item[field], null)
+  }
+})
+
+test('partial updates omit unavailable null lookup fields without clearing existing provider relationships', async () => {
+  let sent
+  let reads = 0
+  dataProvider.get = async (collection) => collection === COLLECTIONS.products ? product
+    : ++reads === 1 ? existing : { ...existing, quantity: '5', series_edition_id: 18 }
+  dataProvider.update = async (_collection, _id, body) => { sent = body; return { id: 54 } }
+  const reply = response()
+  await __testables.updateCellar(54, { body: { quantity: 5, series_version_id: null } }, reply, user)
+  assert.equal(reply.statusCode, 200)
+  assert.deepEqual(sent, { quantity: 5 })
+})
+
+test('lookup-only partial updates fail before provider mutation when no supported field remains', async () => {
+  let writes = 0
+  dataProvider.get = async () => existing
+  dataProvider.update = async () => { writes += 1 }
+  const reply = response()
+  await assert.rejects(__testables.updateCellar(54, { body: { series_version_id: null } }, reply, user),
+    (error) => error.status === 400)
+  assert.equal(writes, 0)
+  assert.equal(reply.statusCode, null)
+})
