@@ -1,65 +1,97 @@
 # Connected provider policy certification
 
-## Current cellar readback acceptance — 20 October 2026 Sydney
+## Cellar owner lifecycle verified — 20 October 2026 Sydney
 
-This is candidate gateway/provider evidence, not HTTP/session-middleware or
-browser-submission certification. Earlier attempt narratives below are dated
-history; the scoped outcome here supersedes their pending statements.
+Accepted application source `9c82e8a7018b8266f5cbef4f749982e9f3f9dd01` passed
+**955** canonical Node 22 source tests with 15 provider-gated skips, all
+**155** browser/accessibility cases, Dependency Review and CodeQL.
+[Canonical/browser run 39372354455](https://github.com/jeremytheva/pourfolio/actions/runs/39372354455)
+is separate from the guarded current-instance run below. Documentation-only
+follow-up does not alter the tested handler.
 
-Candidate `b2a8324e69e0dcfd9eb7aebae01bba7c08916752` passed **951**
-canonical Node 22 source tests (15 skips), all **155** browser/accessibility
-cases, Dependency Review and CodeQL. Protected
-[run 39370740463](https://github.com/jeremytheva/pourfolio/actions/runs/39370740463)
-passed create, independent reload and nullable defaults. One update returned
-`CELLAR_PERSISTENCE_MISMATCH`; one DELETE returned
-`CELLAR_DELETE_NOT_VERIFIED`. Standard no-cache headers and three reads
-with 100/200 ms waits did not establish immediate read-your-writes acceptance.
+Protected [run 39372350379](https://github.com/jeremytheva/pourfolio/actions/runs/39372350379),
+observed **2026-10-20T04:58:48.880Z**, authenticated the normal owner session
+against exact public auth release `36ce8ffe`, then invoked the checked-out
+candidate gateway against the authorised current instance.
 
-Exact receipt artifact `12241600938` bound the later read-only inspection to
-the original owner, acknowledged new ID, random marker, product, baseline
-and one-create/one-update/one-delete counts.
-[Run 39371496379](https://github.com/jeremytheva/pourfolio/actions/runs/39371496379)
-at `cc441cf4d77959007f0ad8f4fb9ed37f0b1f59f5` proved
-`ACKNOWLEDGED_FIXTURE_ABSENT`. Normal/fresh direct reads returned absence;
-full and exact-marker reads found zero matches and zero new IDs outside the
-baseline. **The DELETE took effect; it was not repeated. No fixture from
-this attempt remains.** Update persistence cannot be reconstructed after
-deletion and remains unverified.
+| Bounded owner-provider check | Result |
+| --- | --- |
+| Create and independently reload one new private fixture | PASS |
+| Client/server projection and nullable lookup defaults | PASS |
+| Edit quantity 1 to 2 and gift false to true; independent stored readback | PASS |
+| Exact owner/nonce/product-bound DELETE and fresh direct/full absence | PASS |
+| Mutation counts | One create, one update, one DELETE; zero repeated mutations |
+| Residual fixture | None; cleanup PASS |
+| Other-account isolation | NOT_RUN — protected `RELEASE_OTHER_EMAIL` absent |
+| HTTP/session middleware; deployed browser submission | NOT_RUN — separate acceptance scope |
 
-The preceding `f778c2cb` attempt likewise passed create/reload/defaults but
-failed immediate update/delete readback. Receipt-bound
-[run 39370389884](https://github.com/jeremytheva/pourfolio/actions/runs/39370389884)
-at `644decf5` proved its exact fixture absent with zero matching markers
-and zero new IDs. No repeated DELETE or residual fixture.
+Observed gateway times were **335 ms create, 1,939 ms edit and 1,916 ms
+delete**, with owner-list reads 61/62 ms. These exclude session middleware
+and browser transport, so they are not full end-to-end latency certification.
+No gateway failures occurred. Summary plus encrypted recovery receipt are
+retained in artifact **12241497964**,
+`bounded-cellar-9c82e8a7018b8266f5cbef4f749982e9f3f9dd01`, digest
+`sha256:d45d69067da751b528bd2c82a8fad1811950c7e5997e74eaac736e803646debd`.
+Private IDs, marker, owner and baseline remain encrypted.
 
-The bounded cache-capability probe used only GET requests. Ordinary and fresh
-direct reads agreed on absence; a known-good fresh scoped query returned 200.
-Adding `_` to that same collection query returned 500/unknown column.
-**Do not use this rejected parameter as a runtime cache workaround.** No
-cache-hit, age or no-store response evidence established an underlying cache,
-replication or commit-delay mechanism. Provider cause remains unproven.
+The overall result is intentionally **PARTIAL**, and the runner exits 2 for
+any non-PASS result. This preserves the missing A/B evidence rather than
+turning owner-only success into full policy certification. The password
+configuration exists but the other email does not. Configure the supported
+`RELEASE_OTHER_EMAIL` in GitHub's protected `staging-release` environment;
+do not guess an identity or use a database key as a login password.
 
-### Six-read correction awaiting connected acceptance
+### Readback correction and retained failures
 
-The candidate now permits at most six fresh reads, waiting
-250/500/1000/1500/1500 ms (**4.75 seconds total**) rather than only 300 ms.
-The browser timeout remains 12 seconds; the waiting bound leaves room for
-network/authentication/hydration but does not guarantee an end-to-end deadline.
-Wrong owner/ID and provider errors stop immediately. Missing or unchanged
-values never become success. Each create/update/delete is still sent once.
+The earlier `f778c2cb` and `b2a8324e` candidates passed create/reload/defaults
+but failed immediate update/delete verification. Standard no-cache headers
+and three reads with 100/200 ms waits did not establish read-your-writes
+acceptance. Each attempt sent one create/update/delete, without mutation
+retry. Receipt-bound read-only
+[runs 39370389884](https://github.com/jeremytheva/pourfolio/actions/runs/39370389884)
+and [39371496379](https://github.com/jeremytheva/pourfolio/actions/runs/39371496379)
+proved both exact fixtures absent, with zero marker matches/new IDs outside
+their baselines. **Neither DELETE was repeated; no earlier fixture remains.**
+The original unacknowledged create likewise left no observed new row.
+Earlier edit persistence cannot be reconstructed after deletion.
 
-Safe failure evidence retains only allowlisted mismatched field names,
-bounded read counts, readback state and gateway elapsed milliseconds. No
-stored/requested private values or identifiers enter the plain report.
-**61 focused checks pass**, including final-read settlement, total waits,
-invalid limits, immediate provider-error failure and diagnostic redaction.
-Canonical validation and one new guarded owner-only fixture test are pending.
-Earlier fixture absence is established before requesting that test; it is
-not a retry of an earlier mutation.
+The accepted correction permits at most six fresh reads, waiting
+250/500/1000/1500/1500 ms (**4.75 seconds maximum deliberate waiting**).
+The client timeout remains 12 seconds. Changed owner/ID and provider errors
+stop immediately; missing or unchanged values never become success.
+Mutations are still sent once. Safe failure evidence allows field names,
+bounded counts/state and gateway timings, not private values. **61 focused
+regressions pass**, including late settlement, wait/attempt limits, immediate
+provider-error failure and diagnostic redaction.
 
-Distinct-account acceptance is separate: `RELEASE_OTHER_EMAIL` is absent.
-Historical ownerless rows, canonical catalogue writes and #165 migration are
-not changed. Public launch remains **NO-GO**.
+The diagnostic `_` parameter was rejected by the collection API with
+500/unknown column and is not a runtime workaround. No response age/cache
+evidence proves cache, replication or commit-delay cause. Only the observed
+immediate mismatch and later successful bounded settlement are established.
+The preceding timestamp-format failure in run 39372282956 occurred before
+any provider write; the corrected candidate is the one certified above.
+
+### Exact-candidate deployment remains blocked
+
+The existing Vercel team/project/Git connection and exact candidate were
+checked. No automatic preview existed for the accepted source. The first
+explicit create request was rejected with HTTP 400 for a literal preview
+target, without creation. The corrected request used the documented default
+preview target, the existing Git connection and exact accepted SHA, without
+forcing a new build or changing project settings. Vercel rejected it at
+**2026-10-20T05:00Z** with **HTTP 402 payment_required**,
+`api-deployments-free-per-day`, **more than 100** and
+`retryAfter: 86400`. **No new deployment was created.** No CLI/force/new
+project/billing workaround was attempted; deployment capacity is an external
+boundary. Resume the exact-candidate preview/runtime check only after the
+limit resets or the owner independently changes the plan.
+
+PR #657 remains open pending that runtime evidence; main and verified
+production remain `36ce8ffef482a9044e1e9f35da03214f46b7e1d5`.
+Distinct-account, HTTP/browser, historical ownership/recovery and #165
+migration acceptance remain separate. Public launch remains **NO-GO**.
+The dated narratives below retain historical details, not current pending
+fixture state.
 
 ## Original cellar create failure inspection — 20 October 2026 Sydney
 

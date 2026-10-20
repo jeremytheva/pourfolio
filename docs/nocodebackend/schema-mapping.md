@@ -312,7 +312,9 @@ with 250/500/1000/1500/1500 ms intervals (4.75 seconds of waits), without
 repeating a create/update/delete. Changed ownership/ID and provider errors
 fail immediately. Plain diagnostics retain field names/counts/state/timing,
 never private values. Ordinary adapter read defaults are preserved for other
-consumers. Connected acceptance of this settlement window is still pending.
+consumers. Owner-only current-instance acceptance passed at `9c82e8a7` (one create,
+update and exact verified cleanup). Distinct-account and deployed HTTP/browser
+acceptance remain open; see the connected-policy certification record.
 
 Enabling a real edition/location/person relationship remains separate
 provider/ownership certification; no column, historical row or schema is

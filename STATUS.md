@@ -3,21 +3,24 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Fixture cleanup verified; certify bounded cellar readback"
+stage: "Owner cellar lifecycle verified; deployment quota blocks runtime acceptance"
 gate: Release
-execution_state: VALIDATING
+execution_state: BLOCKED
 current_work:
-  objective: "Certify a six-read bounded cellar lifecycle after receipt-bound inspection proved every earlier fixture absent."
+  objective: "Verify and integrate the source-validated, owner-certified cellar fix once Vercel deployment capacity returns."
   issue: 449
   pr: 657
   branch: "fix/cellar-write-persistence-verification-20261019"
 next_actions:
-  - "Validate and run the six-read cellar candidate once with a new bounded owner fixture; prove create/reload/edit/gift/null defaults and exact cleanup."
-  - "Validate the current candidate, verify its exact preview and integrate only when source/provider/runtime evidence supports this bounded correction."
+  - "After Vercel deployment capacity returns, deploy the accepted cellar candidate to the existing project and verify its exact SHA/runtime before integration. Do not retry the quota rejection or bypass billing/limits."
+  - "Preserve current source/browser and bounded owner-provider evidence; no new fixture or repeated mutation is needed for documentation-only follow-up."
   - "Complete #577 distinct-account checks after supported RELEASE_OTHER_EMAIL configuration is established; do not guess an identity or reuse a database key as a password."
   - "Complete bonus HTTP/browser/rating-use acceptance separately from verified persistence/reload/cleanup; do not guess 81 absent values."
   - "Prepare #165 historical rating recovery and #449 cellar provenance evidence with backup/restore/rollback; preserve irreversible migration approval."
 blockers:
+  - scope: cellar_candidate_deployment_capacity
+    issue: 449
+    detail: "Vercel rejected exact-candidate preview creation with HTTP 402 api-deployments-free-per-day (more than 100, retryAfter 86400) at 2026-10-20T05:00Z. Existing main/production remain 36ce8ffe; no new candidate deployment was created. Do not change billing, force deployment or bypass limits."
   - scope: rating_idempotency_provider_migration
     issue: 165
     detail: "Durable idempotency requires irreversible provider schema/constraint and existing-data migration work. Provider-supported migration/backfill, backup/restore proof and the governed approval package are required before mutation."
@@ -36,20 +39,20 @@ wip:
 evidence:
   observed_main_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   current_candidate_commit: null
-  latest_validated_commit: "b2a8324e69e0dcfd9eb7aebae01bba7c08916752"
+  latest_validated_commit: "9c82e8a7018b8266f5cbef4f749982e9f3f9dd01"
   latest_deployed_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
   latest_runtime_verified_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
-  latest_browser_verified_commit: "b2a8324e69e0dcfd9eb7aebae01bba7c08916752"
+  latest_browser_verified_commit: "9c82e8a7018b8266f5cbef4f749982e9f3f9dd01"
 validation:
   governance: PASS
   lint: PASS
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: PENDING
+  ci: FAIL
   runtime: UNVERIFIED
-last_verified_commit: "b2a8324e69e0dcfd9eb7aebae01bba7c08916752"
-last_updated: "2026-10-20T04:56:59Z"
+last_verified_commit: "9c82e8a7018b8266f5cbef4f749982e9f3f9dd01"
+last_updated: "2026-10-20T05:02:44Z"
 ---
 
 # STATUS.md
@@ -58,42 +61,47 @@ Last materially reviewed: 20 October 2026 UTC
 
 ## AI execution gate
 
-### Cellar readback failure isolated; earlier fixtures absent — 20 October 2026 Sydney
+### Cellar owner lifecycle verified; deployment capacity blocked — 20 October 2026 Sydney
 
-Existing PR #657 remains the single ordinary implementation PR on main
-`36ce8ffe`. Client/server write projection now agrees, unavailable lookup
-fields are omitted and the observed provider `series_edition_id` is recorded
-without enabling the reference/domain relationship.
+Existing [PR #657](https://github.com/jeremytheva/pourfolio/pull/657) is the
+single ordinary implementation PR. Accepted application source
+`9c82e8a7018b8266f5cbef4f749982e9f3f9dd01` passed **955** canonical Node 22 tests (15
+provider-gated skips), all **155** browser/accessibility cases, Dependency
+Review and CodeQL. Documentation-only follow-up does not change that handler.
 
-Candidate `b2a8324e` passed **951** canonical Node 22 source tests (15 gated
-skips), all **155** browser/accessibility cases, Dependency Review and CodeQL.
-Its guarded [run 39370740463](https://github.com/jeremytheva/pourfolio/actions/runs/39370740463)
-passed create, independent reload and nullable defaults. Update and DELETE
-immediate readback still failed despite fresh-read directives and three
-reads. **One create/update/delete, no repeated mutation.**
+Protected [run 39372350379](https://github.com/jeremytheva/pourfolio/actions/runs/39372350379)
+at 04:58:48 UTC passed **create, independent reload, edit, nullable defaults,
+false/true gift values and exact cleanup**. Exactly **one create, one update,
+one DELETE** were sent; independent fresh direct/full reads confirmed absence.
+No fixture from this run remains. Edit/delete gateway calls took approximately
+1.94/1.92 seconds. Six fresh reads with at most 4.75 seconds of waits resolved
+the previously observed immediate-readback failure in this bounded test;
+the provider's underlying delay mechanism remains unknown.
 
-Receipt-bound read-only [run 39371496379](https://github.com/jeremytheva/pourfolio/actions/runs/39371496379)
-at `cc441cf4` proved `ACKNOWLEDGED_FIXTURE_ABSENT`: normal/fresh exact
-reads, full lists and marker queries agree; zero new IDs outside the baseline.
-The preceding fixture was also proved absent. **No fixture from these
-attempts remains; neither DELETE was repeated.** Edit persistence is not
-proven. The provider's delay mechanism is unknown. The collection API rejects
-the diagnostic `_` query parameter, so it is not a runtime workaround.
+Overall certification is deliberately **PARTIAL**, not PASS:
+`RELEASE_OTHER_EMAIL` is absent, so distinct-account isolation remains NOT_RUN.
+The runner exits 2 for that non-PASS scope; `ci: FAIL` retains it independently
+of passing source/browser and owner-provider evidence. HTTP/session middleware
+and deployed browser submission are also NOT_RUN, not inferred from invoking
+the checked-out gateway.
 
-The current correction permits six fresh reads with at most **4.75 seconds**
-of deliberate waiting, within the existing 12-second client timeout budget.
-Wrong owner/ID and provider errors stop immediately; writes remain single
-attempt. Safe failure evidence records mismatched field names, read counts
-and gateway timings, never private values. **61 focused checks pass**;
-canonical and connected acceptance of this change are pending. The next
-guarded test uses one new random private fixture only after the earlier
-absence proof. Details remain in the existing
+Vercel rejected exact-candidate preview creation at 05:00 UTC with **HTTP 402,
+`api-deployments-free-per-day`**, more than 100 deployments and
+`retryAfter: 86400`. No new preview was created; no CLI/billing/limit bypass
+or repeated request followed. Earlier input validation rejected the unsupported
+literal preview target before creation; the corrected default-preview request
+reached this quota boundary. **Integration remains pending exact-candidate
+deployment/runtime evidence.** Main and verified production remain
+`36ce8ffef482a9044e1e9f35da03214f46b7e1d5`.
+
+Both earlier acknowledged fixtures and the original unacknowledged attempt
+were inspected; none remains and no DELETE was repeated. The collection API
+rejects `_`; it is not a deployed workaround. Lookup projection and the
+observed `series_edition_id` contract are corrected without enabling gated
+relationships. Historical ownerless rows, catalogue writes and #165 migration
+remain untouched. Detailed results are retained in the existing
 [policy certification record](docs/nocodebackend/connected-policy-certification.md).
-
-`RELEASE_OTHER_EMAIL` is absent from the protected environment; distinct-
-account HTTP/browser acceptance remains NOT_RUN. Main/production are
-`36ce8ffe`; historical ownerless rows, rating recovery and #165 migration
-remain untouched. Public launch is **NO-GO**.
+Public launch remains **NO-GO**.
 
 ### Bonus release deployed and bounded production checks verified — 20 October 2026 Sydney
 
