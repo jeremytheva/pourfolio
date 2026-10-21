@@ -20,6 +20,22 @@
       ],
       "acquiredAt": "2026-10-20T05:23:35.359Z",
       "expiresAt": "2026-10-20T05:53:35.359Z"
+    },
+    "catalogue": {
+      "owner": "mvp-continue-20261021T0611-8osshwf",
+      "workstream": "catalogue",
+      "issue": 154,
+      "pr": 645,
+      "surfaces": [
+        "repo:integration",
+        "pr:645",
+        "file:package.json",
+        "file:package-lock.json",
+        "file:STATUS.md",
+        "file:docs/LAUNCH_READINESS.md"
+      ],
+      "acquiredAt": "2026-10-21T06:11:20.000Z",
+      "expiresAt": "2026-10-21T06:41:20.000Z"
     }
   }
 }
