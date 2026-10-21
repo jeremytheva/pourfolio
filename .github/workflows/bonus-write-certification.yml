@@ -5,6 +5,11 @@ on:
     branches:
       - fix/bonus-point-persistence-readback-20261019
   workflow_dispatch:
+    inputs:
+      auth_release_sha:
+        description: Exact currently deployed auth release commit (40 lowercase hex characters)
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -47,7 +52,7 @@ jobs:
           # Account identity uses the verified current public auth release;
           # provider persistence uses this workflow's checked-out candidate.
           BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
-          BONUS_CERTIFICATION_AUTH_SHA: 36ce8ffef482a9044e1e9f35da03214f46b7e1d5
+          BONUS_CERTIFICATION_AUTH_SHA: ${{ inputs.auth_release_sha || '36ce8ffef482a9044e1e9f35da03214f46b7e1d5' }}
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
       - name: Inspect the retained fixture without data writes
@@ -61,7 +66,7 @@ jobs:
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
           NOCODEBACKEND_CONTRACT_USER_ID: ${{ secrets.NOCODEBACKEND_CONTRACT_USER_ID }}
           BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
-          BONUS_CERTIFICATION_AUTH_SHA: 36ce8ffef482a9044e1e9f35da03214f46b7e1d5
+          BONUS_CERTIFICATION_AUTH_SHA: ${{ inputs.auth_release_sha || '36ce8ffef482a9044e1e9f35da03214f46b7e1d5' }}
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
       - name: Clean up only the reviewed exact test fixture
@@ -75,7 +80,7 @@ jobs:
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
           NOCODEBACKEND_CONTRACT_USER_ID: ${{ secrets.NOCODEBACKEND_CONTRACT_USER_ID }}
           BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
-          BONUS_CERTIFICATION_AUTH_SHA: 36ce8ffef482a9044e1e9f35da03214f46b7e1d5
+          BONUS_CERTIFICATION_AUTH_SHA: ${{ inputs.auth_release_sha || '36ce8ffef482a9044e1e9f35da03214f46b7e1d5' }}
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
       - name: Retain redacted provider evidence
@@ -86,3 +91,4 @@ jobs:
           path: artifacts/bonus-write-certification/
           if-no-files-found: warn
           retention-days: 30
+

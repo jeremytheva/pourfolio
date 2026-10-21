@@ -1,56 +1,54 @@
 ---
 project: Pourfolio
 portfolio_state: READY
-execution_slot: VERIFYING
+execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Cellar persistence and shared write deadline review fixes validating"
+stage: "Source corrections integrated; connected certification waiting"
 gate: Release
-execution_state: VALIDATING
+execution_state: BLOCKED
 current_work:
-  objective: "Qualify PR #657 persisted-gift and shared write deadline corrections, verify the exact preview and integrate only with sufficient runtime evidence."
-  issue: 449
-  pr: 657
-  branch: "fix/cellar-write-persistence-verification-20261019"
+  objective: "Complete remaining session/isolation certification after supported second-account configuration, preserving the separate provider recovery gate."
+  issue: 577
+  pr: null
+  branch: "main"
 next_actions:
-  - "Qualify latest #657 gift-flag and shared write deadline fixes; retain the completed one-GET cross-account rating read and avoid repeating it."
-  - "Complete latest-head validation/review and integrate PR #657: existing Git preview 31e41c3b is READY with exact health/readiness. Verify the resulting production SHA and deployed cellar HTTP/browser lifecycle; do not create duplicate deployments."
-  - "Preserve current source/browser and bounded owner-provider evidence; no new fixture or repeated mutation is needed for documentation-only follow-up."
-  - "Complete #577 distinct-account checks after supported RELEASE_OTHER_EMAIL configuration is established; do not guess an identity or reuse a database key as a password."
-  - "Complete bonus HTTP/browser/rating-use acceptance separately from verified persistence/reload/cleanup; do not guess 81 absent values."
-  - "Prepare #165 historical rating recovery and #449 cellar provenance evidence with backup/restore/rollback; preserve irreversible migration approval."
+  - "Configure supported RELEASE_OTHER_EMAIL in protected staging-release to match the existing release-account password, then certify the exact release's guarded cellar HTTP/browser lifecycle and distinct-account/session matrix."
+  - "Use the required auth_release_sha input for future cellar/bonus manual runs; verify the exact auth deployment before login or mutation. Do not repeat the completed one-GET rating denial solely for documentation."
+  - "Resume the existing #165 package only after tenant/version-specific provider mechanism, backup and isolated restore evidence is available; retain approval before irreversible migration or historical repair."
+  - "Complete the remaining bonus, profile, catalogue and manual operations acceptance with bounded evidence; preserve 81 missing bonus values and 966 ownerless cellar rows until governed provenance decisions exist."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
     detail: "Durable idempotency requires irreversible provider schema/constraint and existing-data migration work. Provider-supported migration/backfill, backup/restore proof and the governed approval package are required before mutation."
   - scope: user_admin_connected_session_certification
     issue: 577
-    detail: "Provider-level user/admin session and authorisation certification remains pending. Database Secret Keys cannot be treated as login passwords; protected application release-account sessions are a separate evidence scope."
+    detail: "The retained run reports RELEASE_OTHER_EMAIL absent. Configure that supported account securely in staging-release, matching its existing password, before the remaining session/cross-owner matrix. Database Secret Keys are not login passwords."
 requires_owner_decision: false
 owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 1
-  dependent_stack_depth: 1
+  open_implementation_prs: 0
+  dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "36ce8ffef482a9044e1e9f35da03214f46b7e1d5"
+  observed_main_commit: "2e9186fb82320a2253645be7b806f93141d9940c"
   current_candidate_commit: null
-  latest_validated_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
-  latest_deployed_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
-  latest_runtime_verified_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
-  latest_browser_verified_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
+  latest_validated_commit: "0ef8f4e4a190090343c2dc99925af457466e4ada"
+  latest_deployed_commit: "2e9186fb82320a2253645be7b806f93141d9940c"
+  latest_runtime_verified_commit: "2e9186fb82320a2253645be7b806f93141d9940c"
+  latest_browser_verified_commit: "0ef8f4e4a190090343c2dc99925af457466e4ada"
 validation:
   governance: PASS
-  lint: NOT_RUN
+  lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: NOT_RUN
-  build: NOT_RUN
-  ci: PENDING
-  runtime: UNVERIFIED
-last_verified_commit: "c41a4a01a1d5b00b1dd02250f415998a9aa8a601"
-last_updated: "2026-10-20T23:37:00Z"
+  tests: PASS
+  build: PASS
+  ci: PASS
+  runtime: VERIFIED
+last_verified_commit: "2e9186fb82320a2253645be7b806f93141d9940c"
+last_updated: "2026-10-20T23:54:35Z"
 ---
 
 # STATUS.md
@@ -58,6 +56,54 @@ last_updated: "2026-10-20T23:37:00Z"
 Last materially reviewed: 20 October 2026 UTC
 
 ## AI execution gate
+
+### Review fixes integrated; connected qualification waiting — 20 October 2026 UTC
+
+[PR #657](https://github.com/jeremytheva/pourfolio/pull/657) merged as
+`27abe18b492d35397a2f0799b7be2d14cdf92548` after canonical Node 22 validation
+(994 tests passed, 15 gated skips), all 155 browser/accessibility cases and
+security checks. It fixes persisted gift verification, the shared 10-second
+write deadline and nonce-bound fixture cleanup. Its production deployment
+`dpl_8zU9UWCuTLDszx3fAbZ4AsCKHEb6` returned matching HTTP 200 health/readiness.
+
+The upgraded axe checks in [PR #647](https://github.com/jeremytheva/pourfolio/pull/647)
+exposed catalogue/history link-name defects. Accepted source
+`0ef8f4e4a190090343c2dc99925af457466e4ada` passed canonical Node 22, browser/accessibility and
+security validation after correcting natural names and the card structure.
+Current production `2e9186fb82320a2253645be7b806f93141d9940c`, deployment
+`dpl_9zkzbvefVVNNbmUJUg2F1eu6sRoH`, is READY with matching HTTP 200 health/readiness.
+This is source/browser and deployment readiness evidence, not connected owner
+CRUD or complete release certification. No ordinary implementation PR remains;
+runtime maintenance PRs #645/#646 are non-blocking and deferred.
+
+This records the verified application baseline before the handoff's workflow/
+documentation commit. Verify that resulting deployment separately; do not
+infer a connected launch PASS from a documentation or workflow-input merge.
+
+The cellar/bonus manual workflows now require `auth_release_sha`; session-based
+certification checks exact auth provenance before login or mutation. The bonus
+configured-contract-user path remains provider-only evidence and supplies no
+session proof. Eight
+release-target tests and parsing of both workflows/five SHA pins passed.
+No connected run or provider write was repeated for this handoff.
+
+Retained evidence remains scoped: one distinct-account rating GET returned
+404 without data writes; do not repeat it merely to refresh documentation.
+Owner cellar source `9c82e8a7` passed guarded direct-gateway CRUD and cleanup,
+but overall certification remains PARTIAL: HTTP/session/browser and cellar
+A/B denial are NOT_RUN. Historical #165 recovery, 966 ownerless cellar rows,
+81 absent bonus values and manual operations/restore gates remain open.
+
+**Public launch remains NO-GO.** The next external action is to configure
+`RELEASE_OTHER_EMAIL` securely in protected `staging-release`, using the
+supported account matching the existing password. Then run the exact-release,
+guarded fixture/session matrix. The existing #165 migration package still
+requires provider authority and isolated restore proof before approval; a new
+plan or premature migration approval request does not replace that evidence.
+
+The following dated checkpoints are retained history. Their former pending
+candidates, deployment blocks and active PRs are superseded only by the scoped
+current handoff above.
 
 ### Shared cellar write deadline review correction — 20 October 2026 UTC
 
@@ -1144,5 +1190,6 @@ The available repository tools cannot attach/detach ChatGPT Project sources. The
 ## Validation limitations
 
 Source and production read evidence do not by themselves prove every provider write/permission boundary. #422 must retain unsupported connected rows as pending until they are exercised against the provider with safe cleanup. #165 remains separately blocked at an irreversible schema migration boundary, and #577 remains limited by the available account-session credential contract.
+
 
 
