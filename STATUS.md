@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Source corrections integrated; connected certification waiting"
+stage: "React patch integrated; connected certification waiting"
 gate: Release
 execution_state: BLOCKED
 current_work:
@@ -22,7 +22,7 @@ blockers:
     detail: "Durable idempotency requires irreversible provider schema/constraint and existing-data migration work. Provider-supported migration/backfill, backup/restore proof and the governed approval package are required before mutation."
   - scope: user_admin_connected_session_certification
     issue: 577
-    detail: "The retained run reports RELEASE_OTHER_EMAIL absent. Configure that supported account securely in staging-release, matching its existing password, before the remaining session/cross-owner matrix. Database Secret Keys are not login passwords."
+    detail: "The retained run reports RELEASE_OTHER_EMAIL absent; its current protected configuration remains unconfirmed. Configure or confirm the supported account securely in staging-release, matching its existing password, before the remaining session/cross-owner matrix. Database Secret Keys are not login passwords."
 requires_owner_decision: false
 owner_decision:
   question: null
@@ -33,12 +33,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "2e9186fb82320a2253645be7b806f93141d9940c"
+  observed_main_commit: "e1501f3be39ec4a9740db6305b07f00c2d193fb9"
   current_candidate_commit: null
-  latest_validated_commit: "0ef8f4e4a190090343c2dc99925af457466e4ada"
-  latest_deployed_commit: "2e9186fb82320a2253645be7b806f93141d9940c"
-  latest_runtime_verified_commit: "2e9186fb82320a2253645be7b806f93141d9940c"
-  latest_browser_verified_commit: "0ef8f4e4a190090343c2dc99925af457466e4ada"
+  latest_validated_commit: "63da5fae73406b8310320d44a70436abbfdf9813"
+  latest_deployed_commit: "e1501f3be39ec4a9740db6305b07f00c2d193fb9"
+  latest_runtime_verified_commit: "e1501f3be39ec4a9740db6305b07f00c2d193fb9"
+  latest_browser_verified_commit: "63da5fae73406b8310320d44a70436abbfdf9813"
 validation:
   governance: PASS
   lint: PASS
@@ -47,15 +47,51 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "2e9186fb82320a2253645be7b806f93141d9940c"
-last_updated: "2026-10-20T23:54:35Z"
+last_verified_commit: "e1501f3be39ec4a9740db6305b07f00c2d193fb9"
+last_updated: "2026-10-21T06:21:00Z"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 20 October 2026 UTC
+Last materially reviewed: 21 October 2026 UTC
 
 ## AI execution gate
+
+### React maintenance and containment documentation — 21 October 2026 UTC
+
+PR #645 updated matched React/React DOM packages from 19.3.0 to 19.3.1 and
+merged as `e1501f3be39ec4a9740db6305b07f00c2d193fb9`. Integrated source
+`63da5fae` passed canonical Node 22.23.3 validation: 994 tests, 15 gated skips,
+zero failures, all 155 browser/accessibility cases, CodeQL and Dependency
+Review. The production dependency audit found zero vulnerabilities. This is
+routine runtime maintenance, not evidence of an exposed RSC vulnerability or
+a closed connected launch gate.
+
+Production `dpl_5fo1aWPp5zuw5FhMCGDEBGsej1Yt` is READY. Public health and
+readiness returned HTTP 200 with exact `e1501f3b` at 06:19 UTC. The prior
+`9f57fec3` handoff was independently verified before integration; its bounded
+30-minute production query returned no error/fatal log groups. This does not
+qualify monitoring, alert ownership or service-level objectives.
+
+The known valid `GET /api/nocodebackend/brew-done-it/games` returned HTTP 404
+with the application route-not-found response at 06:19 UTC. This is one
+read-only denial consistent with the deployed policy gate, not proof of the
+literal environment value or connected gameplay. Security/testing prose now
+matches the controlled protected browser route, hidden navigation and actual
+source-presence/policy checks. No flag, route or game capability was changed;
+Brew Done It remains launch-excluded.
+
+Issue #449 is closed for delivered cellar source work; the wider connected
+HTTP/browser/isolation rows remain partial. No owner fixture, prior rating
+denial, schema change or provider write was repeated. The second-account
+configuration remains unconfirmed; #165 recovery/provider authority and the
+manual operations gates remain open. Public launch remains **NO-GO**.
+
+Only maintenance PR #646 remains deferred: Framer Motion has no importer in
+the current launch entry's static/lazy import graph, and its old-base tests
+do not qualify a current merge. This checkpoint records the application
+baseline before the documentation commit; verify that resulting deployment
+separately.
 
 ### Review fixes integrated; connected qualification waiting — 20 October 2026 UTC
 
@@ -1190,6 +1226,7 @@ The available repository tools cannot attach/detach ChatGPT Project sources. The
 ## Validation limitations
 
 Source and production read evidence do not by themselves prove every provider write/permission boundary. #422 must retain unsupported connected rows as pending until they are exercised against the provider with safe cleanup. #165 remains separately blocked at an irreversible schema migration boundary, and #577 remains limited by the available account-session credential contract.
+
 
 
 
