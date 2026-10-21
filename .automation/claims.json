@@ -1,23 +1,6 @@
 {
   "version": 1,
   "claims": {
-    "catalogue": {
-      "owner": "mvp-review-20261020T2320-htrwwbp",
-      "workstream": "catalogue",
-      "issue": 577,
-      "pr": 667,
-      "surfaces": [
-        "repo:integration",
-        "file:STATUS.md",
-        "file:docs/LAUNCH_READINESS.md",
-        "file:.github/workflows/cellar-write-certification.yml",
-        "file:.github/workflows/bonus-write-certification.yml",
-        "branch:fix/certification-current-auth-release-20261020",
-        "pr:667"
-      ],
-      "acquiredAt": "2026-10-20T23:19:48.000Z",
-      "expiresAt": "2026-10-21T00:20:00.000Z"
-    },
     "ratings": {
       "owner": "bonus-rating-browser-1792473022621-ratings",
       "workstream": "ratings",
