@@ -20,22 +20,6 @@
       ],
       "acquiredAt": "2026-10-20T05:23:35.359Z",
       "expiresAt": "2026-10-20T05:53:35.359Z"
-    },
-    "catalogue": {
-      "owner": "current-cellar-browser-1792621619058",
-      "workstream": "catalogue",
-      "issue": 577,
-      "pr": 669,
-      "surfaces": [
-        "repo:integration",
-        "STATUS.md",
-        "docs/LAUNCH_READINESS.md",
-        "docs/nocodebackend/connected-policy-certification.md",
-        "browser:cellar-lifecycle-verification",
-        "provider:cellar:bounded-owner-fixture"
-      ],
-      "acquiredAt": "2026-10-21T22:26:59.058Z",
-      "expiresAt": "2026-10-21T22:56:59.058Z"
     }
   }
 }
