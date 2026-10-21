@@ -25,16 +25,14 @@
       "owner": "mvp-continue-20261021T0611-8osshwf",
       "workstream": "catalogue",
       "issue": 154,
-      "pr": 645,
+      "pr": null,
       "surfaces": [
         "repo:integration",
-        "pr:645",
-        "file:package.json",
-        "file:package-lock.json",
         "file:STATUS.md",
         "file:docs/LAUNCH_READINESS.md",
         "file:docs/SECURITY.md",
-        "file:docs/TESTING.md"
+        "file:docs/TESTING.md",
+        "branch:docs/launch-continuation-20261021"
       ],
       "acquiredAt": "2026-10-21T06:11:20.000Z",
       "expiresAt": "2026-10-21T06:41:20.000Z"
