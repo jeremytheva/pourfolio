@@ -32,7 +32,9 @@
         "file:package.json",
         "file:package-lock.json",
         "file:STATUS.md",
-        "file:docs/LAUNCH_READINESS.md"
+        "file:docs/LAUNCH_READINESS.md",
+        "file:docs/SECURITY.md",
+        "file:docs/TESTING.md"
       ],
       "acquiredAt": "2026-10-21T06:11:20.000Z",
       "expiresAt": "2026-10-21T06:41:20.000Z"
