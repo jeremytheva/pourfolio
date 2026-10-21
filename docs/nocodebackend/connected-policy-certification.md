@@ -1,5 +1,46 @@
 # Connected provider policy certification
 
+## Deployed owner cellar browser lifecycle — 21 October 2026 UTC
+
+**Bounded owner lifecycle PASS; overall policy certification remains PARTIAL.**
+The owner-authorised current instance was used through the existing signed-in
+browser session, not a mocked API or direct provider gateway.
+
+| Evidence boundary | Observed result |
+| --- | --- |
+| Exact production | `50a104541b73e3eae9b9ac912c781b7e1d4cd274`, READY deployment `dpl_3kT9Ecf7LmN4MGrsNcpU4Jk3u5oT`; public health/readiness HTTP 200 at 22:25 UTC |
+| Existing source/browser baseline | Node 22.23.3 run [39555891885](https://github.com/jeremytheva/pourfolio/actions/runs/39555891885): 994 passed, 15 gated skips; 155 browser/accessibility passed |
+| Normal browser create, 22:28 UTC | One new product-1 item with a unique notes marker; saved acknowledgement and independent full cellar reload |
+| Create field persistence | Quantity 1, 330 mL, Can, prices 12.34/15.67, date, false gift and marker read back in the reopened editor |
+| Gift dependency before submission | Entered synthetic donor cleared when Gift was switched off; confirmed by reopening the conditional field before the one create |
+| Normal browser edit, 22:29 UTC | One update to quantity 2, 500 mL, Bottle, true gift/synthetic donor and marker-preserving notes |
+| Edit persistence | Acknowledgement, full reload and reopened editor confirmed changed fields and preserved both prices/date |
+| Owner search | Notes-marker search returned exactly the acknowledged new item |
+| Exact cleanup, 22:30 UTC | Fresh marker and DOM item-control identity matched the new item before one confirmed DELETE; filtered results became empty and focus returned to the heading |
+| Post-delete reload | Original count restored 1 → 2 → 1; original product-374 item, quantity, volume, container, date and notes unchanged |
+| Mutation budget | One add submission, one edit submission and one confirmed deletion; no retry |
+| Broader provider/isolation scope | Full independent provider-inventory audit NOT_RUN for this browser exercise; cellar A/B, forged/expired/revoked sessions and other policy rows remain NOT_RUN |
+
+The browser called the normal same-origin client/service/gateway path. The
+deployed handler verifies persisted owner/fields and fresh absence within its
+shared write deadline; full UI reloads independently confirmed the visible
+state. This is evidence for the owner HTTP/browser journey only, not a fresh
+provider snapshot, two-account mutation-denial proof, timing guarantee,
+concurrency certification or public launch qualification.
+
+The earlier guarded direct-gateway lifecycle and read-only rating denial below
+remain historical evidence with their original scope. The retained runner
+reported `RELEASE_OTHER_EMAIL` absent; its current protected configuration is
+unconfirmed because the connector does not support that metadata endpoint.
+Configure or confirm the supported account securely before the remaining
+matrix; do not repeat the completed owner fixture merely for documentation.
+No historical cellar/rating/catalogue repair, bonus-value backfill or #165
+migration was attempted. **Public launch remains NO-GO.**
+
+The dated sections below retain earlier failures and pending-at-the-time
+claims; this deployed result and merged #657 supersede only their specific
+owner browser/deployment rows.
+
 ## Cellar deadline review correction — 20 October 2026 UTC
 
 Source review identified that read-count/wait limits alone did not bound
@@ -98,27 +139,23 @@ immediate mismatch and later successful bounded settlement are established.
 The preceding timestamp-format failure in run 39372282956 occurred before
 any provider write; the corrected candidate is the one certified above.
 
-### Exact-candidate deployment remains blocked
+### Historical manual deployment quota rejection — superseded
 
-The existing Vercel team/project/Git connection and exact candidate were
-checked. No automatic preview existed for the accepted source. The first
-explicit create request was rejected with HTTP 400 for a literal preview
-target, without creation. The corrected request used the documented default
-preview target, the existing Git connection and exact accepted SHA, without
-forcing a new build or changing project settings. Vercel rejected it at
-**2026-10-20T05:00Z** with **HTTP 402 payment_required**,
-`api-deployments-free-per-day`, **more than 100** and
-`retryAfter: 86400`. **No new deployment was created.** No CLI/force/new
-project/billing workaround was attempted; deployment capacity is an external
-boundary. Resume the exact-candidate preview/runtime check only after the
-limit resets or the owner independently changes the plan.
+At **2026-10-20T05:00Z**, the exact candidate and existing Vercel team/project/Git
+connection were checked. The first explicit create request returned HTTP 400
+for a literal preview target. The corrected default-preview request returned
+**HTTP 402 payment_required**, `api-deployments-free-per-day`, more than 100
+and `retryAfter: 86400`. Neither created a deployment. No CLI, force, new
+project or billing workaround followed.
 
-PR #657 remains open pending that runtime evidence; main and verified
-production remain `36ce8ffef482a9044e1e9f35da03214f46b7e1d5`.
-Distinct-account, HTTP/browser, historical ownership/recovery and #165
-migration acceptance remain separate. Public launch remains **NO-GO**.
-The dated narratives below retain historical details, not current pending
-fixture state.
+This is retained failure history, not an active deployment-capacity claim.
+The normal Git integration subsequently produced READY preview
+`dpl_68LuHgZHqiGcvR6TzE2d28fTxeJ3` at `31e41c3b`. PR #657 later merged
+as `27abe18b492d35397a2f0799b7be2d14cdf92548`; current verified production
+and bounded owner browser evidence are recorded above at `50a10454`.
+No quota-reset explanation is inferred. Distinct-account, historical
+ownership/recovery and #165 migration acceptance remain separate.
+Public launch remains **NO-GO**.
 
 ## Original cellar create failure inspection — 20 October 2026 Sydney
 
@@ -448,3 +485,4 @@ request-ledger row, invariant row and cleanup query above is populated from the
 same connected staging run and independently approved. The Phase 1 launch
 decision is `PASS` only when this connected report and its matching structural
 SQL audit both report zero blockers.
+

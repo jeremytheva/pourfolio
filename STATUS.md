@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "React patch integrated; connected certification waiting"
+stage: "Deployed cellar owner browser lifecycle verified; isolation certification waiting"
 gate: Release
 execution_state: BLOCKED
 current_work:
@@ -12,7 +12,7 @@ current_work:
   pr: null
   branch: "main"
 next_actions:
-  - "Configure supported RELEASE_OTHER_EMAIL in protected staging-release to match the existing release-account password, then certify the exact release's guarded cellar HTTP/browser lifecycle and distinct-account/session matrix."
+  - "Configure or confirm supported RELEASE_OTHER_EMAIL in protected staging-release to match its existing password, then complete the exact-release distinct-account/session matrix. The bounded owner cellar browser lifecycle at 50a10454 is complete; do not repeat it solely to refresh evidence."
   - "Use the required auth_release_sha input for future cellar/bonus manual runs; verify the exact auth deployment before login or mutation. Do not repeat the completed one-GET rating denial solely for documentation."
   - "Resume the existing #165 package only after tenant/version-specific provider mechanism, backup and isolated restore evidence is available; retain approval before irreversible migration or historical repair."
   - "Complete the remaining bonus, profile, catalogue and manual operations acceptance with bounded evidence; preserve 81 missing bonus values and 966 ownerless cellar rows until governed provenance decisions exist."
@@ -33,12 +33,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "e1501f3be39ec4a9740db6305b07f00c2d193fb9"
+  observed_main_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
   current_candidate_commit: null
-  latest_validated_commit: "63da5fae73406b8310320d44a70436abbfdf9813"
-  latest_deployed_commit: "e1501f3be39ec4a9740db6305b07f00c2d193fb9"
-  latest_runtime_verified_commit: "e1501f3be39ec4a9740db6305b07f00c2d193fb9"
-  latest_browser_verified_commit: "63da5fae73406b8310320d44a70436abbfdf9813"
+  latest_validated_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
+  latest_deployed_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
+  latest_runtime_verified_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
+  latest_browser_verified_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
 validation:
   governance: PASS
   lint: PASS
@@ -47,8 +47,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "e1501f3be39ec4a9740db6305b07f00c2d193fb9"
-last_updated: "2026-10-21T06:21:00Z"
+last_verified_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
+last_updated: "2026-10-21T22:33:00Z"
 ---
 
 # STATUS.md
@@ -56,6 +56,46 @@ last_updated: "2026-10-21T06:21:00Z"
 Last materially reviewed: 21 October 2026 UTC
 
 ## AI execution gate
+
+### Current-instance cellar browser lifecycle verified — 21 October 2026 UTC
+
+Production `50a104541b73e3eae9b9ac912c781b7e1d4cd274` is READY at
+`dpl_3kT9Ecf7LmN4MGrsNcpU4Jk3u5oT`. Public health/readiness returned
+HTTP 200 with that exact SHA at 22:25 UTC. Its existing canonical Node 22.23.3
+run [39555891885](https://github.com/jeremytheva/pourfolio/actions/runs/39555891885)
+passed 994 tests, 15 gated skips and all 155 browser/accessibility cases.
+These existing checks were inspected, not rerun by the browser exercise.
+
+At 22:28–22:30 UTC, the existing signed-in owner used normal production UI
+for one new, uniquely tagged cellar item of product 1. Add acknowledgement
+and a full cellar reload passed. The editor independently showed the stored
+quantity, 330 mL, Can, prices 12.34/15.67, date and false gift flag. Before
+submission, turning Gift off cleared its donor field.
+
+One edit changed quantity to 2, volume to 500 mL, container to Bottle,
+gift to true with a synthetic donor, and notes while preserving the marker.
+Acknowledgement, a full reload and the reopened editor confirmed every
+changed field and both unchanged prices. Marker search isolated one item.
+Only that acknowledged item was deleted, once. The filtered list became
+empty and focus moved to the cellar heading; a full reload restored the
+original one-item baseline, including the unchanged product 374 entry.
+**One add submission, one edit submission, one confirmed deletion; no
+mutation retry and no remaining browser-visible test item.**
+
+This closes the bounded deployed owner HTTP/browser lifecycle row, not the
+whole policy matrix. No separate full provider-inventory audit was performed
+for this browser exercise. Cellar A/B denial, expired/forged/revoked sessions,
+profile privacy and broader release evidence remain open under #577/#422.
+The retained release runner lacked `RELEASE_OTHER_EMAIL`; current protected
+configuration could not be inspected through the connector's supported
+metadata endpoint, so it remains unconfirmed, not newly proved absent.
+Configure/confirm the supported account securely; do not disclose credentials
+in chat or reuse database Secret Keys as passwords.
+
+No existing cellar/rating row, catalogue record, historical ownership, missing
+bonus value or #165 migration was changed. Public launch remains **NO-GO**.
+The detailed scoped result is retained in the existing
+[policy record](docs/nocodebackend/connected-policy-certification.md).
 
 ### React maintenance and containment documentation — 21 October 2026 UTC
 
@@ -1226,6 +1266,7 @@ The available repository tools cannot attach/detach ChatGPT Project sources. The
 ## Validation limitations
 
 Source and production read evidence do not by themselves prove every provider write/permission boundary. #422 must retain unsupported connected rows as pending until they are exercised against the provider with safe cleanup. #165 remains separately blocked at an irreversible schema migration boundary, and #577 remains limited by the available account-session credential contract.
+
 
 
 
