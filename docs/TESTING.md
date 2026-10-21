@@ -44,13 +44,14 @@ The validation pipeline runs:
 
 Production source maps are disabled.
 
-`npm run check:brew-containment` runs after the production build and fails if
-`src/App.jsx` or primary navigation references Brew Done It, if the generated
-browser bundle contains its route or product name, or if tracked normal
-environment configuration sets `BREW_DONE_IT_POLICY_ENABLED`. The gateway's
-unset-flag behaviour remains covered separately by the Node policy tests; the
-Playwright containment and accessibility specifications remain required and
-cannot be replaced by this static check.
+`npm run check:brew-containment` runs after the production build. It requires
+the Brew Done It page import and route path in `src/App.jsx`, its browser bundle
+surface, hidden production navigation and the v3 server policy-gate contract.
+It also rejects explicit `false` defaults in `vercel.json` and `.env.example`;
+it does not prohibit all game references or flag settings. This static check
+does not verify the deployed flag state or connected gameplay. Unset-flag denial
+remains covered separately by Node policy tests; applicable Playwright and
+accessibility coverage remains required.
 
 ## Current automated coverage
 
@@ -429,3 +430,4 @@ Send JSON:
 Run it only through a Vercel-authenticated/protected Preview deployment. The response contains configuration booleans and capability statuses only. A healthy Secret-Key preflight is expected to return `overall: INCONCLUSIVE` while `accountSessionAuthentication` remains `SETUP_REQUIRED`: database Secret Keys prove server-to-server provider access, not user login sessions.
 
 Do not treat this result as #144 connected policy completion. Session identity, cross-owner authorization and revoked/expired-session evidence require supported account login credentials. The endpoint performs no mutation, no cleanup-sensitive action, no #165 schema work and no `/ratings/reconcile` call.
+

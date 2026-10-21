@@ -2,19 +2,20 @@
 
 ## Contained game surface
 
-Brew Done It is not present in browser routing or navigation. Direct route
-requests use the launch catch-all and cannot load its client service or trigger
-game API traffic. Independently, the dedicated Brew Done It gateway fails closed
-for every game path unless the server-only `BREW_DONE_IT_POLICY_ENABLED` value is
-exactly `true`. The flag must remain unset in normal environments and must never
-be published with a `VITE_` prefix. Enabling the gateway alone does not make the
-feature a supported product surface.
+Brew Done It has a protected `/brew-done-it` browser route for controlled
+authenticated testing and is absent from production-facing navigation and CTAs.
+The v3 server gateway returns 404 before session authentication or provider
+access unless the server-only `BREW_DONE_IT_POLICY_ENABLED` flag is explicitly
+enabled. Keep the flag unset in normal production configuration and never
+expose it through `VITE_`. A browser route or enabled gateway does not establish
+public readiness.
 
-[ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) approves a
-persistent cross-device model, but the provider collections remain deferred.
-Contained source may implement the approved boundary before deployment; it must
-not be made reachable until the schema, permissions, secret projection and
-connected two-device evidence are certified.
+[ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) and
+[ADR 0006](DECISIONS/0006-adopt-brew-done-it-deduction-board.md) approve the
+persistent architecture and deduction model. Public enablement still requires
+separate provider schema/permission, secret-projection/privacy, two-device,
+recovery and accessibility certification followed by a reviewed enablement
+change. The game remains excluded from the beer-first launch.
 
 ## Brew Done It trust boundary
 
@@ -230,3 +231,4 @@ Before launch:
 6. Verify edge rate limits, alerting, backup restore and incident response.
 
 Report vulnerabilities using GitHub’s private security-advisory flow. Do not open a public issue containing exploit details, credentials or personal data.
+
