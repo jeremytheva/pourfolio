@@ -25,7 +25,7 @@
       "owner": "current-cellar-browser-1792621619058",
       "workstream": "catalogue",
       "issue": 577,
-      "pr": null,
+      "pr": 669,
       "surfaces": [
         "repo:integration",
         "STATUS.md",
