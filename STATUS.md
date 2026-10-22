@@ -3,16 +3,16 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Deployed cellar owner browser lifecycle verified; isolation certification waiting"
+stage: "Second release account rejected at sign-in; isolation waiting"
 gate: Release
 execution_state: BLOCKED
 current_work:
-  objective: "Complete remaining session/isolation certification after supported second-account configuration, preserving the separate provider recovery gate."
+  objective: "Resume bounded cellar isolation only after the second release account's supported login credentials are corrected securely."
   issue: 577
   pr: null
   branch: "main"
 next_actions:
-  - "Configure or confirm supported RELEASE_OTHER_EMAIL in protected staging-release to match its existing password, then complete the exact-release distinct-account/session matrix. The bounded owner cellar browser lifecycle at 50a10454 is complete; do not repeat it solely to refresh evidence."
+  - "Correct RELEASE_OTHER_PASSWORD in protected staging-release to match the approved RELEASE_OTHER_EMAIL account; confirm that account can sign in to the current instance. The owner account authenticated successfully. Then run one guarded two-account certification using the fresh exact production SHA."
   - "Use the required auth_release_sha input for future cellar/bonus manual runs; verify the exact auth deployment before login or mutation. Do not repeat the completed one-GET rating denial solely for documentation."
   - "Resume the existing #165 package only after tenant/version-specific provider mechanism, backup and isolated restore evidence is available; retain approval before irreversible migration or historical repair."
   - "Complete the remaining bonus, profile, catalogue and manual operations acceptance with bounded evidence; preserve 81 missing bonus values and 966 ownerless cellar rows until governed provenance decisions exist."
@@ -22,7 +22,7 @@ blockers:
     detail: "Durable idempotency requires irreversible provider schema/constraint and existing-data migration work. Provider-supported migration/backfill, backup/restore proof and the governed approval package are required before mutation."
   - scope: user_admin_connected_session_certification
     issue: 577
-    detail: "The retained run reports RELEASE_OTHER_EMAIL absent; its current protected configuration remains unconfirmed. Configure or confirm the supported account securely in staging-release, matching its existing password, before the remaining session/cross-owner matrix. Database Secret Keys are not login passwords."
+    detail: "Run 39732649601 authenticates and signs out the owner, then receives HTTP 401 for the other account's sign-in. All four secrets are present. Correct the second account's supported login credentials securely; no provider data was created, updated or deleted."
 requires_owner_decision: false
 owner_decision:
   question: null
@@ -33,11 +33,11 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
+  observed_main_commit: "0c048ca8e5082479d39bdd67f4060af2c336f73c"
   current_candidate_commit: null
-  latest_validated_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
-  latest_deployed_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
-  latest_runtime_verified_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
+  latest_validated_commit: "d7b0307f99dffc9ea967654952e022af07441840"
+  latest_deployed_commit: "0c048ca8e5082479d39bdd67f4060af2c336f73c"
+  latest_runtime_verified_commit: "0c048ca8e5082479d39bdd67f4060af2c336f73c"
   latest_browser_verified_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
 validation:
   governance: PASS
@@ -47,15 +47,65 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
-last_updated: "2026-10-21T22:33:00Z"
+last_verified_commit: "d7b0307f99dffc9ea967654952e022af07441840"
+last_updated: "2026-10-22T06:17:00Z"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 21 October 2026 UTC
+Last materially reviewed: 22 October 2026 UTC
 
 ## AI execution gate
+
+### Second-account HTTP 401 isolated without data writes — 22 October 2026 UTC
+
+The guarded diagnostic [run 39732649601](https://github.com/jeremytheva/pourfolio/actions/runs/39732649601)
+at exact source `d7b0307f99dffc9ea967654952e022af07441840` verified current
+production auth release `0c048ca8`, authenticated the owner and confirmed its
+session/sign-out, then stopped at the other account's sign-in with HTTP 401.
+At `2026-10-22T06:14:29.195Z`, the redacted report identifies
+`authAccount: other`, `authStage: sign-in`, `authStatus: 401`; all four account
+secrets are configured. Zero creates, updates or deletes were attempted;
+cleanup NOT_RUN and no fixture was created. No unchanged credential retry follows.
+
+[PR #670](https://github.com/jeremytheva/pourfolio/pull/670)'s reporting correction
+passed canonical Node 22 validation: 1,005 passed, 15 gated skips, zero failures,
+all 155 browser/accessibility cases, CodeQL and Dependency Review.
+Exact preview `dpl_9pfywxutGKD82JQJxjfHYs8C7QtV` is READY. These are source/
+diagnostic results; cellar A/B and the wider HTTP/session/privacy matrix remain
+NOT_RUN. The supported next owner action is to correct `RELEASE_OTHER_PASSWORD`
+securely for the configured second account and confirm its ordinary sign-in.
+Database Secret Keys must never replace login passwords. No secret value
+belongs in chat, repository evidence or artifacts.
+
+This checkpoint records the accepted diagnostic source before integration;
+verify the resulting main deployment separately. The bounded owner browser
+lifecycle remains complete and public launch remains **NO-GO**.
+
+### Second-account secret configuration and earlier failed attempt — 22 October 2026 UTC
+
+The owner-supplied `RELEASE_OTHER_EMAIL` was saved under Environment secrets
+in `staging-release`; the existing plain variable was left unchanged. Protected
+[run 39725188768, attempt 2](https://github.com/jeremytheva/pourfolio/actions/runs/39725188768/attempts/2)
+on exact `0c048ca8` confirmed all four account credential fields configured.
+Canonical Node 22 validation passed 994 tests, 15 gated skips and zero failures.
+The connected step then stopped with `BONUS_TEST_OWNER_AUTH_REJECTED` at
+05:58:51 UTC: zero creates, updates or deletes; cleanup NOT_RUN. The shared
+helper's old code is used for either account and did not retain the HTTP status,
+so this result does not establish which account failed or why.
+
+The existing runner now records only the static account role (`owner`/`other`),
+authentication stage and HTTP status, plus unconfirmed session cleanup when
+applicable. Credentials, cookies, user IDs and response bodies stay private.
+Twenty-nine focused tests passed locally on Node 24, including both worker
+failure paths, zero provider writes and redacted retained output. The canonical
+Node 22 and guarded diagnostic results above supersede their former pending state.
+Exact public health/readiness returned HTTP 200 for `0c048ca8` at 05:57 UTC;
+this source-only diagnostic correction does not change deployed app policy.
+The prior owner browser lifecycle remains complete. Public launch is **NO-GO**.
+
+This checkpoint supersedes the older missing-email handoff below; no rating,
+catalogue, historical ownership, missing bonus value or #165 migration changed.
 
 ### Current-instance cellar browser lifecycle verified — 21 October 2026 UTC
 

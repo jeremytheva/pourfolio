@@ -39,6 +39,7 @@ export const resolveBonusCertificationOwner = async ({ environment = process.env
   let cookie = ''
   let user
   let failure
+  let authStage = 'sign-in'
   const request = (action, method, body) => {
     const url = new URL(`${origin}/api/nocodebackend/auth/${action}`)
     return boundedFetch(url, {
@@ -55,19 +56,20 @@ export const resolveBonusCertificationOwner = async ({ environment = process.env
     const headers = signedIn.headers.getSetCookie?.() || []
     const cookies = headers.length ? headers : String(signedIn.headers.get('set-cookie') || '').split(/,(?=\s*[^;,\s]+=)/)
     cookie = cookies.map((value) => value.split(';', 1)[0].trim()).filter(Boolean).join('; ')
-    if (!signedIn.ok) throw fail('BONUS_TEST_OWNER_AUTH_REJECTED')
-    if (!cookie) throw fail('BONUS_TEST_OWNER_SESSION_UNCONFIRMED')
+    if (!signedIn.ok) throw fail('BONUS_TEST_OWNER_AUTH_REJECTED', { authStage, authStatus: signedIn.status })
+    if (!cookie) throw fail('BONUS_TEST_OWNER_SESSION_UNCONFIRMED', { authStage, authStatus: signedIn.status })
     // A login response ID alone is insufficient: verify the resulting session.
+    authStage = 'get-session'
     const session = await request('get-session', 'GET')
-    if (!session.ok) throw fail('BONUS_TEST_OWNER_SESSION_UNCONFIRMED')
+    if (!session.ok) throw fail('BONUS_TEST_OWNER_SESSION_UNCONFIRMED', { authStage, authStatus: session.status })
     user = extractSessionUser(await session.json().catch(() => null))
     if (!user || user.id.trim() !== user.id || !user.id ||
       typeof user.email !== 'string' || user.email.trim().toLowerCase() !== email.toLowerCase()) {
-      throw fail('BONUS_TEST_OWNER_SESSION_UNCONFIRMED')
+      throw fail('BONUS_TEST_OWNER_SESSION_UNCONFIRMED', { authStage, authStatus: session.status })
     }
   } catch (error) {
     failure = ['BONUS_TEST_OWNER_AUTH_REJECTED', 'BONUS_TEST_OWNER_SESSION_UNCONFIRMED'].includes(error?.code)
-      ? error : fail('BONUS_TEST_OWNER_AUTH_UNAVAILABLE')
+      ? error : fail('BONUS_TEST_OWNER_AUTH_UNAVAILABLE', { authStage })
   }
 
   if (!failure && inspectSession) {
@@ -92,9 +94,11 @@ export const resolveBonusCertificationOwner = async ({ environment = process.env
 
   if (cookie) {
     try {
-      if (!(await request('sign-out', 'POST', {})).ok) throw fail('BONUS_TEST_OWNER_SIGNOUT_UNCONFIRMED')
-    } catch {
-      failure ||= fail('BONUS_TEST_OWNER_SIGNOUT_UNCONFIRMED')
+      const signedOut = await request('sign-out', 'POST', {})
+      if (!signedOut.ok) throw fail('BONUS_TEST_OWNER_SIGNOUT_UNCONFIRMED', { authStage: 'sign-out', authStatus: signedOut.status })
+    } catch (error) {
+      failure ||= fail('BONUS_TEST_OWNER_SIGNOUT_UNCONFIRMED', { authStage: 'sign-out',
+        ...(Number.isInteger(error?.authStatus) ? { authStatus: error.authStatus } : {}) })
       failure.sessionCleanup = 'UNCONFIRMED'
     }
   }

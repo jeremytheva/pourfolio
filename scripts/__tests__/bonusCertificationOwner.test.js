@@ -1,5 +1,11 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { execFile } from 'node:child_process'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { promisify } from 'node:util'
 import { resolveBonusCertificationOwner } from '../bonus-certification-owner.js'
 
 const environment = {
@@ -122,6 +128,42 @@ test('a wrong account plus sign-out failure preserves both safe failure facts', 
     error.sessionCleanup === 'UNCONFIRMED')
 })
 
+for (const [name, options, stage, status] of [
+  ['rejected password login', { loginStatus: 401 }, 'sign-in', 401],
+  ['rate-limited login', { loginStatus: 429 }, 'sign-in', 429],
+  ['unavailable auth gateway', { loginStatus: 503 }, 'sign-in', 503],
+  ['missing login cookie', { noCookie: true }, 'sign-in', 200],
+  ['rejected session', { sessionStatus: 401 }, 'get-session', 401],
+  ['wrong session identity', { session: { user: { id: 'foreign-owner', email: 'other@example.test' } } }, 'get-session', 200],
+  ['rejected sign-out', { signoutStatus: 503 }, 'sign-out', 503]
+]) {
+  test(`${name} retains only the safe authentication stage and HTTP status`, async () => {
+    const f = fixture(options)
+    await assert.rejects(f.run(), (error) => {
+      assert.equal(error.authStage, stage)
+      assert.equal(error.authStatus, status)
+      const serialized = JSON.stringify(error)
+      for (const value of [...Object.values(environment), 'private-cookie', 'Sensitive provider error']) {
+        assert.equal(serialized.includes(value), false)
+      }
+      return true
+    })
+    assert.equal(f.calls.filter(({ action }) => action === 'email').length, 1)
+  })
+}
+
+test('a transport failure has a stage but never invents an HTTP status', async () => {
+  const f = fixture({ unavailable: true })
+  await assert.rejects(f.run(), (error) => error.authStage === 'sign-in' &&
+    !Object.hasOwn(error, 'authStatus') && error.code === 'BONUS_TEST_OWNER_AUTH_UNAVAILABLE')
+})
+
+test('session rejection and failed sign-out retain the primary failure and separate cleanup fact', async () => {
+  const f = fixture({ sessionStatus: 401, signoutStatus: 503 })
+  await assert.rejects(f.run(), (error) => error.authStage === 'get-session' && error.authStatus === 401 &&
+    error.sessionCleanup === 'UNCONFIRMED')
+})
+
 test('verified-session inspection can issue one same-origin rating GET before guaranteed sign-out', async () => {
   const f = fixture({ allowRatingRead: true })
   let status
@@ -170,3 +212,64 @@ test('unverified/configured-only owners cannot run a session observer', async ()
   await assert.rejects(configured.run(environment, 'invalid'), { code: 'BONUS_TEST_OWNER_INSPECTION_INVALID' })
   assert.equal(configured.calls.length, 0)
 })
+
+for (const rejectedAccount of ['owner', 'other']) {
+  test(`cellar worker identifies a rejected ${rejectedAccount} without data writes or private output`, async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'pourfolio-auth-report-'))
+    const preload = `
+      let logins = 0
+      globalThis.fetch = async (input) => {
+        const path = new URL(input).pathname
+        if (path === '/api/readiness') return new Response(JSON.stringify({ status: 'ready',
+          release: { commitSha: 'a'.repeat(40), environment: 'production' }, checks: { dataProvider: 'ok' } }))
+        if (path === '/api/nocodebackend/auth/sign-in/email') {
+          logins += 1
+          if (logins === ${rejectedAccount === 'owner' ? 1 : 2}) return new Response('private-response-body', { status: 401 })
+          if (logins !== 1) throw new Error('No authentication retry is allowed')
+          return new Response('{}', { headers: { 'set-cookie': 'session=private-cookie; HttpOnly' } })
+        }
+        if (path === '/api/nocodebackend/auth/get-session') return new Response(JSON.stringify({
+          user: { id: 'private-owner-id', email: 'owner@example.test' } }))
+        if (path === '/api/nocodebackend/auth/sign-out') return new Response('{}')
+        throw new Error('No provider request is allowed before both accounts authenticate')
+      }
+    `
+    try {
+      let stdout
+      try {
+        await promisify(execFile)(process.execPath, ['--import', `data:text/javascript,${encodeURIComponent(preload)}`,
+          fileURLToPath(new URL('../run-cellar-write-certification.js', import.meta.url))], {
+          cwd: directory,
+          env: {
+            CELLAR_CERTIFICATION_SHA: 'c'.repeat(40), CELLAR_CERTIFICATION_CONFIRMATION: 'RUN CURRENT INSTANCE CELLAR TEST',
+            NOCODEBACKEND_SECRET_KEY: 'private-provider-key', NOCODEBACKEND_INSTANCE: 'private-instance',
+            BONUS_CERTIFICATION_BASE_URL: 'https://brew-buds-mobile-app-design-3577.vercel.app',
+            BONUS_CERTIFICATION_AUTH_SHA: 'a'.repeat(40), RELEASE_OWNER_EMAIL: 'owner@example.test',
+            RELEASE_OWNER_PASSWORD: 'private-owner-password', RELEASE_OTHER_EMAIL: 'other@example.test',
+            RELEASE_OTHER_PASSWORD: 'private-other-password'
+          }
+        })
+        assert.fail('The blocked worker must exit 2')
+      } catch (error) {
+        assert.equal(error.code, 2)
+        stdout = error.stdout
+        assert.equal(error.stderr, '')
+      }
+      const report = JSON.parse(stdout)
+      assert.equal(report.status, 'BLOCKED')
+      assert.equal(report.failure, 'BONUS_TEST_OWNER_AUTH_REJECTED')
+      assert.equal(report.authAccount, rejectedAccount)
+      assert.equal(report.authStage, 'sign-in')
+      assert.equal(report.authStatus, 401)
+      assert.deepEqual([report.createsAttempted, report.updatesAttempted, report.deletesAttempted], [0, 0, 0])
+      assert.equal(report.cleanup, 'NOT_RUN')
+      const retained = await readFile(join(directory, 'artifacts/cellar-write-certification/summary.json'), 'utf8')
+      assert.deepEqual(JSON.parse(retained), report)
+      for (const value of ['owner@example.test', 'other@example.test', 'private-']) {
+        assert.equal((stdout + retained).includes(value), false)
+      }
+    } finally {
+      await rm(directory, { recursive: true, force: true })
+    }
+  })
+}
