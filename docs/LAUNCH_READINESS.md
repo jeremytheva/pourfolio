@@ -1,9 +1,23 @@
 # Launch readiness
 
-Last reconciled: **21 October 2026 UTC**. Observed application and production
-baseline: [`50a104541b73e3eae9b9ac912c781b7e1d4cd274`](https://github.com/jeremytheva/pourfolio/commit/50a104541b73e3eae9b9ac912c781b7e1d4cd274).
+Last reconciled: **22 October 2026 UTC**. Observed application and production
+baseline: [`0c048ca8e5082479d39bdd67f4060af2c336f73c`](https://github.com/jeremytheva/pourfolio/commit/0c048ca8e5082479d39bdd67f4060af2c336f73c).
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
+
+The second-account email secret is now present. The protected follow-up stopped
+at account authentication with zero data writes; the former shared error does
+not identify an account or HTTP status. Account-specific reporting is being
+validated before the remaining guarded isolation check. This corrects the
+configuration handoff and improves diagnostics; it closes no connected auth,
+cellar-isolation, privacy or release acceptance criterion. See the existing
+[policy record](nocodebackend/connected-policy-certification.md).
+
+The impact check maps the shared bonus-auth helper and provider evidence;
+`scripts/run-cellar-write-certification.js` is deliberately classified under
+PF-LAUNCH-AUTH, PF-LAUNCH-CELLAR and PF-LAUNCH-RELEASE for its account-specific
+preflight report. No application policy, stored bonus value or provider schema
+changes in this diagnostic correction.
 
 ## Current launch decision
 

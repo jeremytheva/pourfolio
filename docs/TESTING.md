@@ -415,6 +415,16 @@ it.
 
 ## Protected user/admin credential certification
 
+The guarded cellar runner's account-authentication failures identify only the
+static `authAccount` (`owner` or `other`), `authStage` (`sign-in`, `get-session`
+or `sign-out`) and observed HTTP `authStatus`. A transport failure has no
+invented HTTP status. `sessionCleanup: UNCONFIRMED` is retained independently
+when sign-out fails. These fields distinguish a rejected account from a gateway
+or rate-limit failure without recording emails, passwords, cookies, user IDs
+or response bodies. No account or provider mutation is retried automatically.
+See the [existing policy record](nocodebackend/connected-policy-certification.md)
+for the latest configuration and bounded-run evidence.
+
 Issue #577 provides a read-only Vercel Preview certification at:
 
 `POST /api/certification/user-admin`
