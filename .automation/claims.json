@@ -20,6 +20,29 @@
       ],
       "acquiredAt": "2026-10-20T05:23:35.359Z",
       "expiresAt": "2026-10-20T05:53:35.359Z"
+    },
+    "catalogue": {
+      "owner": "account-auth-diagnostics-1792649036936",
+      "workstream": "catalogue",
+      "issue": 577,
+      "pr": null,
+      "surfaces": [
+        "repo:integration",
+        "scripts/bonus-certification-owner.js",
+        "scripts/__tests__/bonusCertificationOwner.test.js",
+        "scripts/run-cellar-write-certification.js",
+        "scripts/cellar-write-certification-lib.js",
+        "scripts/__tests__/cellarWriteCertification.test.js",
+        ".github/workflows/cellar-write-certification.yml",
+        "STATUS.md",
+        "docs/TESTING.md",
+        "docs/LAUNCH_READINESS.md",
+        "docs/nocodebackend/connected-policy-certification.md",
+        "workflow:cellar-write-certification",
+        "provider:cellar:bounded-owner-fixture"
+      ],
+      "acquiredAt": "2026-10-22T06:03:56.936Z",
+      "expiresAt": "2026-10-22T06:33:56.936Z"
     }
   }
 }
