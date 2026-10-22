@@ -20,6 +20,23 @@
       ],
       "acquiredAt": "2026-10-20T05:23:35.359Z",
       "expiresAt": "2026-10-20T05:53:35.359Z"
+    },
+    "catalogue": {
+      "owner": "approved-two-account-1792644935492",
+      "workstream": "catalogue",
+      "issue": 577,
+      "pr": null,
+      "surfaces": [
+        "repo:integration",
+        "STATUS.md",
+        "docs/LAUNCH_READINESS.md",
+        "docs/nocodebackend/connected-policy-certification.md",
+        "provider:cellar:bounded-owner-fixture",
+        "workflow:cellar-write-certification",
+        "workflow:connected-release-check"
+      ],
+      "acquiredAt": "2026-10-22T04:55:35.492Z",
+      "expiresAt": "2026-10-22T05:25:35.492Z"
     }
   }
 }
