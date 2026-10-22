@@ -5,12 +5,13 @@ baseline: [`0c048ca8e5082479d39bdd67f4060af2c336f73c`](https://github.com/jeremy
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
 
-The second-account email secret is now present. The protected follow-up stopped
-at account authentication with zero data writes; the former shared error does
-not identify an account or HTTP status. Account-specific reporting is being
-validated before the remaining guarded isolation check. This corrects the
-configuration handoff and improves diagnostics; it closes no connected auth,
-cellar-isolation, privacy or release acceptance criterion. See the existing
+The second-account email secret is now present. The guarded diagnostic confirmed
+primary-owner sign-in/session/sign-out, then received HTTP 401 at the second
+account's sign-in with zero data writes. The account-specific correction passed
+canonical validation (1,005 passed, 15 gated skips), all 155 browser/accessibility
+cases and security checks. Correct the second account's supported credentials
+securely before the remaining guarded isolation check. This closes no complete
+connected auth, cellar-isolation, privacy or release acceptance criterion. See the existing
 [policy record](nocodebackend/connected-policy-certification.md).
 
 The impact check maps the shared bonus-auth helper and provider evidence;

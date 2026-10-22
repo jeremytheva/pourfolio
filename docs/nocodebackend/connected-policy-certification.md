@@ -1,5 +1,37 @@
 # Connected provider policy certification
 
+## Second release account sign-in rejected with HTTP 401 — 22 October 2026 UTC
+
+Protected [run 39732649601](https://github.com/jeremytheva/pourfolio/actions/runs/39732649601),
+job `119670986240`, used exact reviewed source
+`d7b0307f99dffc9ea967654952e022af07441840` and production auth release
+`0c048ca8e5082479d39bdd67f4060af2c336f73c`. Readiness matched before account
+credentials were sent. The primary owner authenticated, resolved its expected
+session identity and signed out successfully; execution reached the second
+account and received **HTTP 401 at sign-in**.
+
+At `2026-10-22T06:14:29.195Z`, the report is **BLOCKED** with
+`BONUS_TEST_OWNER_AUTH_REJECTED`, `authAccount: other`, `authStage: sign-in`,
+`authStatus: 401`, all four credential fields configured and zero creates,
+updates or deletes. Cleanup is NOT_RUN because no fixture exists. No credential
+retry, reset or account creation was attempted. Correct the second account's
+supported credentials securely in `staging-release` before another guarded run;
+the HTTP response does not establish which stored field is incorrect.
+
+Canonical Node 22 validation passed 1,005 tests, 15 gated skips and zero failures.
+[Source/browser run 39732448136](https://github.com/jeremytheva/pourfolio/actions/runs/39732448136)
+passed all 155 browser/accessibility cases and Dependency Review; CodeQL passed.
+Exact diagnostic preview `dpl_9pfywxutGKD82JQJxjfHYs8C7QtV` is READY.
+Redacted artifact `12406021371` (465 bytes) has digest
+`sha256:613ec99483798038a8674ac45b6b9699ac9f47a7ba5b1ec6922a940b81949077`.
+
+This proves the primary account's supported authentication and classifies the
+second-account break. It provides no new cellar CRUD/isolation, expired/forged/
+revoked-session or profile privacy PASS. The existing owner browser lifecycle
+and prior bounded rating denial are retained without repetition. #165,
+historical records and stored bonus values are unchanged. **Overall policy
+certification remains PARTIAL; public launch remains NO-GO.**
+
 ## Account configuration and rejected sign-in — 22 October 2026 UTC
 
 The supplied `RELEASE_OTHER_EMAIL` is now an Environment secret in protected
@@ -23,7 +55,7 @@ an allowlisted `authStage`, numeric `authStatus` and `sessionCleanup` only when
 unconfirmed. It does not retain response bodies or private account/session data,
 retry authentication, bypass session validation or relax any mutation guard.
 Both worker rejection paths and redaction passed focused local Node 24 tests;
-canonical validation and one guarded follow-up remain pending. Existing owner
+the canonical validation and guarded follow-up are recorded above. Existing owner
 browser evidence below is not repeated or upgraded by this change.
 **Overall policy certification remains PARTIAL; public launch remains NO-GO.**
 
