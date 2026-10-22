@@ -20,6 +20,19 @@
       ],
       "acquiredAt": "2026-10-20T05:23:35.359Z",
       "expiresAt": "2026-10-20T05:53:35.359Z"
+    },
+    "catalogue": {
+      "owner": "email-secret-certification-1792648637785",
+      "workstream": "catalogue",
+      "issue": 577,
+      "pr": null,
+      "surfaces": [
+        "provider:cellar:bounded-owner-fixture",
+        "workflow:cellar-write-certification",
+        "github:staging-release:RELEASE_OTHER_EMAIL"
+      ],
+      "acquiredAt": "2026-10-22T05:57:17.785Z",
+      "expiresAt": "2026-10-22T06:27:17.785Z"
     }
   }
 }
