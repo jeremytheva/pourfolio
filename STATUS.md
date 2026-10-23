@@ -1,18 +1,17 @@
 ---
 project: Pourfolio
 portfolio_state: READY
-execution_slot: VERIFYING
+execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Retiring unused browser-local privacy prototype"
+stage: "Obsolete privacy prototype retired; second-account isolation waiting"
 gate: Release
-execution_state: VALIDATING
+execution_state: BLOCKED
 current_work:
-  objective: "Remove the unreferenced privacy-settings prototype while preserving server-backed profile sharing and stored choices."
-  issue: 429
+  objective: "Resume bounded cellar isolation only after the second release account's supported login credentials are corrected securely."
+  issue: 577
   pr: null
-  branch: "chore/429-retire-local-privacy-prototype"
+  branch: "main"
 next_actions:
-  - "Validate and integrate the bounded #429 retirement with exact-head Node 22/browser evidence; preserve active profile policy and all provider/browser data."
   - "Correct RELEASE_OTHER_PASSWORD in protected staging-release to match the approved RELEASE_OTHER_EMAIL account; confirm that account can sign in to the current instance. The owner account authenticated successfully. Then run one guarded two-account certification using the fresh exact production SHA."
   - "Use the required auth_release_sha input for future cellar/bonus manual runs; verify the exact auth deployment before login or mutation. Do not repeat the completed one-GET rating denial solely for documentation."
   - "Resume the existing #165 package only after tenant/version-specific provider mechanism, backup and isolated restore evidence is available; retain approval before irreversible migration or historical repair."
@@ -29,27 +28,27 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 1
+  open_implementation_prs: 0
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
   observed_main_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
   current_candidate_commit: null
-  latest_validated_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
+  latest_validated_commit: "733f0d4a40e659c076e0cbd97aa597da385c293a"
   latest_deployed_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
   latest_runtime_verified_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
   latest_browser_verified_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
 validation:
-  governance: NOT_RUN
-  lint: NOT_RUN
+  governance: PASS
+  lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: NOT_RUN
-  build: NOT_RUN
-  ci: PENDING
-  runtime: UNVERIFIED
-last_verified_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
-last_updated: "2026-10-23T09:18:00Z"
+  tests: PASS
+  build: PASS
+  ci: PASS
+  runtime: VERIFIED
+last_verified_commit: "733f0d4a40e659c076e0cbd97aa597da385c293a"
+last_updated: "2026-10-23T09:24:00Z"
 ---
 
 # STATUS.md
@@ -77,8 +76,21 @@ and provider data are neither migrated nor deleted; source is recoverable in Git
 
 A deterministic browser regression retains legacy public-sharing flags while
 the server-private profile remains unchecked, saves `rating_history_public: false`
-and remains private after reload. Exact-head canonical Node 22 and full browser
-validation are pending for this changed slice. Broader #429 audit remains open.
+and remains private after reload. Accepted source
+`733f0d4a40e659c076e0cbd97aa597da385c293a` passed canonical Node 22.23.3:
+1,007 tests, 15 gated skips, no failures, zero production vulnerabilities;
+all 158 browser/accessibility cases passed, including the new legacy-storage
+regression. Run 39931167620, release job 120339517148 and browser job
+120339517374, plus CodeQL/Dependency Review, retain that evidence. Exact preview
+`dpl_EgrmFDUxrWAwBJ511oQWhoau47Qs` is READY and returned matching HTTP 200
+readiness/provider OK at 09:23:17 UTC.
+
+This handoff is prepared for integration of [PR #673](https://github.com/jeremytheva/pourfolio/pull/673)
+and records the accepted source before the final documentation commit/merge.
+The final head must pass its own canonical/browser checks; PR #673 retains those
+results and the subsequent deployment identity/readiness. The impact guard maps
+PRIVACY, DEFERRED, ACCESS and RELEASE with no unmapped changed source paths.
+No connected profile setting was changed or certified. Broader #429 audit remains open.
 Second-account HTTP 401, #165 recovery and connected #422 privacy certification
 remain blocked at their existing boundaries. Public launch remains **NO-GO**.
 
