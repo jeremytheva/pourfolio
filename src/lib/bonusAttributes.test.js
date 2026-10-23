@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   BONUS_ATTRIBUTE_DEFAULT_POINT_VALUE,
+  bonusPointValueLabel,
   bonusScoreFromPoints,
   categoryMatchesRatingKey,
   matchesBonusSearch,
@@ -26,6 +27,23 @@ test('legacy null point values use the default without changing stored provider 
     { id: 1, point_value: null },
     { id: 2, point_value: 0.5 }
   ], ['1', '2']), 0.7)
+})
+
+test('bonus labels disclose the existing fallback for missing or invalid stored values', () => {
+  for (const point_value of [undefined, null, '', 'not-a-number', NaN, Infinity]) {
+    const attribute = Object.freeze({ id: 1, point_value })
+    assert.equal(bonusPointValueLabel(attribute), '+0.2 bonus points (default; no stored value)')
+    assert.equal(selectedBonusPointTotal([attribute], ['1']), 0.2)
+  }
+  assert.equal(bonusPointValueLabel(null), '+0.2 bonus points (default; no stored value)')
+})
+
+test('bonus labels preserve stored zero, default-valued rows and two-decimal precision', () => {
+  for (const [point_value, expected] of [[0, '0'], ['0.00', '0'], [0.2, '0.2'], ['0.50', '0.5'], [0.25, '0.25'], ['0.75', '0.75']]) {
+    const attribute = Object.freeze({ id: 1, point_value })
+    assert.equal(bonusPointValueLabel(attribute), `+${expected} bonus points`)
+    assert.equal(selectedBonusPointTotal([attribute], ['1', '1']), Number(expected))
+  }
 })
 
 test('selected bonus attributes contribute only once even when an ID is repeated by category projections', () => {

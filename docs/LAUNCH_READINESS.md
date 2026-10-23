@@ -14,6 +14,13 @@ securely before the remaining guarded isolation check. This closes no complete
 connected auth, cellar-isolation, privacy or release acceptance criterion. See the existing
 [policy record](nocodebackend/connected-policy-certification.md).
 
+Issue #671 makes the existing bonus-value fallback explicit in both pickers and
+preserves two-decimal stored-value presentation. It changes no scoring policy
+or provider data. Source/browser validation is required for the changed head;
+81 missing global values, custom-creation/isolation acceptance and the current
+second-account HTTP 401 remain separate open gates. This presentation correction
+does not close PF-LAUNCH-BONUS, PF-LAUNCH-ACCESS or PF-LAUNCH-RELEASE.
+
 The impact check maps the shared bonus-auth helper and provider evidence;
 `scripts/run-cellar-write-certification.js` is deliberately classified under
 PF-LAUNCH-AUTH, PF-LAUNCH-CELLAR and PF-LAUNCH-RELEASE for its account-specific

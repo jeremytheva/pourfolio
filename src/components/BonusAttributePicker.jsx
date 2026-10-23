@@ -4,22 +4,21 @@ import {
   BONUS_ATTRIBUTE_MAX_POINT_VALUE,
   BONUS_ATTRIBUTE_MIN_POINT_VALUE,
   BONUS_ATTRIBUTE_POINT_STEP,
+  bonusPointValueLabel,
   bonusScoreFromPoints,
   categoryMatchesRatingKey,
-  effectiveBonusPointValue,
   matchesBonusSearch,
   normaliseBonusCategoryKey,
   selectedBonusPointTotal
 } from '../lib/bonusAttributes.js'
 
 function BonusOption({ attribute, checked, onToggle }) {
-  const points = effectiveBonusPointValue(attribute)
   return (
     <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${checked ? 'border-amber-600 bg-amber-50' : 'border-gray-200 bg-white'}`}>
       <input type="checkbox" checked={checked} onChange={() => onToggle(String(attribute.id))} className="mt-1 h-5 w-5 accent-amber-700" />
       <span className="min-w-0 flex-1">
         <span className="block font-medium text-gray-900">{attribute.description}</span>
-        <span className="mt-0.5 block text-xs text-gray-500">+{points.toFixed(1)} bonus points</span>
+        <span className="mt-0.5 block text-xs text-gray-500">{bonusPointValueLabel(attribute)}</span>
       </span>
     </label>
   )

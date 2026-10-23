@@ -51,7 +51,7 @@ const bonusCategories = [
   { key: 'overall', name: 'Overall' }
 ]
 
-export const installMockApi = async (page) => {
+export const installMockApi = async (page, { bonusAttributeRows = bonusAttributes } = {}) => {
   let brewRound = null
   let brewGame = null
   let guessCount = 0
@@ -224,7 +224,7 @@ export const installMockApi = async (page) => {
         { id: 8, attribute_name: 'Design', is_scored: 0, weighting: 0 },
         { id: 9, attribute_name: 'Burp', is_scored: 0, weighting: 0 }
       ],
-      bonusAttributes,
+      bonusAttributes: bonusAttributeRows,
       bonusCategories,
       bonusDefaultPointValue: 0.2
     })

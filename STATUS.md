@@ -1,17 +1,18 @@
 ---
 project: Pourfolio
 portfolio_state: READY
-execution_slot: WAITING
+execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Second release account rejected at sign-in; isolation waiting"
+stage: "Explicit bonus default labels — source/browser validation"
 gate: Release
-execution_state: BLOCKED
+execution_state: VALIDATING
 current_work:
-  objective: "Resume bounded cellar isolation only after the second release account's supported login credentials are corrected securely."
-  issue: 577
+  objective: "Distinguish stored bonus values from the existing 0.2 default without changing scoring or provider data."
+  issue: 671
   pr: null
-  branch: "main"
+  branch: "fix/bonus-value-default-labels"
 next_actions:
+  - "Validate and integrate #671 explicit bonus default labels with exact-head canonical Node 22 and browser/accessibility evidence; retain all connected launch gates."
   - "Correct RELEASE_OTHER_PASSWORD in protected staging-release to match the approved RELEASE_OTHER_EMAIL account; confirm that account can sign in to the current instance. The owner account authenticated successfully. Then run one guarded two-account certification using the fresh exact production SHA."
   - "Use the required auth_release_sha input for future cellar/bonus manual runs; verify the exact auth deployment before login or mutation. Do not repeat the completed one-GET rating denial solely for documentation."
   - "Resume the existing #165 package only after tenant/version-specific provider mechanism, backup and isolated restore evidence is available; retain approval before irreversible migration or historical repair."
@@ -28,34 +29,58 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 0
+  open_implementation_prs: 1
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "0c048ca8e5082479d39bdd67f4060af2c336f73c"
+  observed_main_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
   current_candidate_commit: null
-  latest_validated_commit: "d7b0307f99dffc9ea967654952e022af07441840"
-  latest_deployed_commit: "0c048ca8e5082479d39bdd67f4060af2c336f73c"
-  latest_runtime_verified_commit: "0c048ca8e5082479d39bdd67f4060af2c336f73c"
+  latest_validated_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
+  latest_deployed_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
+  latest_runtime_verified_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
   latest_browser_verified_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
 validation:
-  governance: PASS
-  lint: PASS
+  governance: NOT_RUN
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PASS
-  build: PASS
-  ci: PASS
-  runtime: VERIFIED
-last_verified_commit: "d7b0307f99dffc9ea967654952e022af07441840"
-last_updated: "2026-10-22T06:17:00Z"
+  tests: NOT_RUN
+  build: NOT_RUN
+  ci: PENDING
+  runtime: UNVERIFIED
+last_verified_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
+last_updated: "2026-10-23T06:06:00Z"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 22 October 2026 UTC
+Last materially reviewed: 23 October 2026 (Australia/Sydney)
 
 ## AI execution gate
+
+### Explicit bonus default labels — 23 October 2026 (Australia/Sydney)
+
+Issue #671 addresses the owner's confusion between a stored descriptor value
+and the historical 0.2 fallback. Both bonus pickers now use one shared label:
+missing/non-numeric values explicitly say `default; no stored value`, while
+stored zero, 0.2 and two-decimal values retain their actual effective amount.
+Selection, server-authoritative scoring, custom creation and provider data are
+unchanged. Focused unit and deterministic keyboard/browser/axe regressions
+cover both pickers, mixed totals and one-count multi-category selection.
+
+Canonical Node 22 and full browser validation for this changed candidate are
+pending; prior `cb311c0b` evidence is not a PASS for the new source. That merged
+baseline passed 1,005 canonical tests (15 gated skips) and 155 browser checks,
+deployed as `dpl_4hKmuuRg5Hy9G9cRA4GK7KmXwz9P`, and returned exact-SHA HTTP 200
+health/readiness. This checkpoint records that observed baseline before the
+new presentation change is integrated; verify its resulting deployment separately.
+
+No connected credential retry or provider mutation was performed. The latest
+guarded run remains 39732649601: owner sign-in/session/sign-out passed, other
+sign-in returned HTTP 401, zero data writes. Correct the matching second-account
+password securely before resuming isolation. The 81 missing global point values,
+historical #165 recovery and manual operations gates remain open. Public launch
+remains **NO-GO**.
 
 ### Second-account HTTP 401 isolated without data writes — 22 October 2026 UTC
 
