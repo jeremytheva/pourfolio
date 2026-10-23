@@ -1,18 +1,17 @@
 ---
 project: Pourfolio
 portfolio_state: READY
-execution_slot: VERIFYING
+execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Explicit bonus default labels — source/browser validation"
+stage: "Bonus default labels validated; second-account isolation waiting"
 gate: Release
-execution_state: VALIDATING
+execution_state: BLOCKED
 current_work:
-  objective: "Distinguish stored bonus values from the existing 0.2 default without changing scoring or provider data."
-  issue: 671
+  objective: "Resume bounded cellar isolation only after the second release account's supported login credentials are corrected securely."
+  issue: 577
   pr: null
-  branch: "fix/bonus-value-default-labels"
+  branch: "main"
 next_actions:
-  - "Validate and integrate #671 explicit bonus default labels with exact-head canonical Node 22 and browser/accessibility evidence; retain all connected launch gates."
   - "Correct RELEASE_OTHER_PASSWORD in protected staging-release to match the approved RELEASE_OTHER_EMAIL account; confirm that account can sign in to the current instance. The owner account authenticated successfully. Then run one guarded two-account certification using the fresh exact production SHA."
   - "Use the required auth_release_sha input for future cellar/bonus manual runs; verify the exact auth deployment before login or mutation. Do not repeat the completed one-GET rating denial solely for documentation."
   - "Resume the existing #165 package only after tenant/version-specific provider mechanism, backup and isolated restore evidence is available; retain approval before irreversible migration or historical repair."
@@ -29,27 +28,27 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 1
+  open_implementation_prs: 0
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
   observed_main_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
   current_candidate_commit: null
-  latest_validated_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
+  latest_validated_commit: "ec4e2610b78139f1a4ab4499c9cfe31948501b5b"
   latest_deployed_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
   latest_runtime_verified_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
   latest_browser_verified_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
 validation:
-  governance: NOT_RUN
-  lint: NOT_RUN
+  governance: PASS
+  lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: NOT_RUN
-  build: NOT_RUN
-  ci: PENDING
-  runtime: UNVERIFIED
-last_verified_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
-last_updated: "2026-10-23T06:06:00Z"
+  tests: PASS
+  build: PASS
+  ci: PASS
+  runtime: VERIFIED
+last_verified_commit: "ec4e2610b78139f1a4ab4499c9cfe31948501b5b"
+last_updated: "2026-10-23T06:13:00Z"
 ---
 
 # STATUS.md
@@ -68,12 +67,24 @@ Selection, server-authoritative scoring, custom creation and provider data are
 unchanged. Focused unit and deterministic keyboard/browser/axe regressions
 cover both pickers, mixed totals and one-count multi-category selection.
 
-Canonical Node 22 and full browser validation for this changed candidate are
-pending; prior `cb311c0b` evidence is not a PASS for the new source. That merged
-baseline passed 1,005 canonical tests (15 gated skips) and 155 browser checks,
-deployed as `dpl_4hKmuuRg5Hy9G9cRA4GK7KmXwz9P`, and returned exact-SHA HTTP 200
-health/readiness. This checkpoint records that observed baseline before the
-new presentation change is integrated; verify its resulting deployment separately.
+[PR #672](https://github.com/jeremytheva/pourfolio/pull/672)'s accepted source
+`ec4e2610b78139f1a4ab4499c9cfe31948501b5b` passed canonical Node 22.23.3
+validation: 1,007 tests passed, 15 gated skips and no failures; all 156 browser/
+accessibility cases passed. Run 39909653874 includes release job 120269420987
+and browser job 120269421237. Production audit found zero vulnerabilities;
+CodeQL and Dependency Review passed. Exact preview
+`dpl_9ybf6sEzBqBg5RHKU5HKn2YdTbiH` is READY and returned matching HTTP 200
+readiness/provider OK at 06:09:28 UTC. The expanded final regression additionally
+checks desktop/mobile layout and overflow. That final head must pass its own
+canonical/browser gates before integration; PR #672 retains those results.
+
+The impact guard maps BONUS, ACCESS and RELEASE; unmapped `e2e/mockApi.js` is
+deliberately classified under BONUS/ACCESS for its optional bonus fixture rows.
+This integration handoff records accepted source before the final commit and
+merge, not a new connected PASS. Observed production `cb311c0b` remains READY
+and returned exact-SHA HTTP 200 health/readiness at 06:06 UTC. Verify the resulting
+merged deployment separately. Wider connected browser evidence remains at its
+recorded earlier candidates; do not repeat completed owner fixtures.
 
 No connected credential retry or provider mutation was performed. The latest
 guarded run remains 39732649601: owner sign-in/session/sign-out passed, other

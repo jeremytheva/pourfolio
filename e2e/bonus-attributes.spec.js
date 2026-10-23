@@ -112,39 +112,43 @@ test('custom Overall bonus attribute is created, selected and contributes immedi
   await expect(page.getByText('1 / 2', { exact: true })).toBeVisible()
 })
 
-test('stored bonus values and explicit defaults remain distinct across both pickers', async ({ page }) => {
-  await installMockApi(page, { bonusAttributeRows: [
-    { id: 10, description: 'Missing legacy value', point_value: null, category_keys: ['aroma', 'overall'] },
-    { id: 11, description: 'Stored quarter point', point_value: '0.25', category_keys: ['aroma', 'overall'] },
-    { id: 12, description: 'Stored default amount', point_value: 0.2, category_keys: ['overall'] },
-    { id: 13, description: 'Stored zero', point_value: 0, category_keys: ['overall'] }
-  ] })
-  await page.goto('/products/4/rate')
-  await page.getByRole('button', { name: 'Skip this attribute' }).click()
-  await page.getByRole('button', { name: 'Appearance: 4 out of 7' }).click()
+for (const viewport of [{ name: 'desktop', width: 1280, height: 900 }, { name: 'mobile', width: 390, height: 844 }]) {
+  test(`stored bonus values and explicit defaults remain distinct across both pickers (${viewport.name})`, async ({ page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height })
+    await installMockApi(page, { bonusAttributeRows: [
+      { id: 10, description: 'Missing legacy value', point_value: null, category_keys: ['aroma', 'overall'] },
+      { id: 11, description: 'Stored quarter point', point_value: '0.25', category_keys: ['aroma', 'overall'] },
+      { id: 12, description: 'Stored default amount', point_value: 0.2, category_keys: ['overall'] },
+      { id: 13, description: 'Stored zero', point_value: 0, category_keys: ['overall'] }
+    ] })
+    await page.goto('/products/4/rate')
+    await page.getByRole('button', { name: 'Skip this attribute' }).click()
+    await page.getByRole('button', { name: 'Appearance: 4 out of 7' }).click()
 
-  const defaultName = 'Missing legacy value +0.2 bonus points (default; no stored value)'
-  const storedName = 'Stored quarter point +0.25 bonus points'
-  const missing = page.getByRole('checkbox', { name: defaultName, exact: true })
-  await expect(missing).toBeVisible()
-  await missing.focus()
-  await page.keyboard.press('Space')
-  await expect(missing).toBeChecked()
-  await page.getByRole('checkbox', { name: storedName, exact: true }).check()
-  await page.getByRole('button', { name: 'Aroma: 4 out of 7' }).click()
-  await page.getByRole('button', { name: 'Mouthfeel: 4 out of 7' }).click()
-  await page.getByRole('button', { name: 'Flavour: 4 out of 7' }).click()
-  await page.getByRole('button', { name: 'Follow: 4 out of 7' }).click()
-  await page.getByRole('button', { name: 'Skip this attribute' }).click()
+    const defaultName = 'Missing legacy value +0.2 bonus points (default; no stored value)'
+    const storedName = 'Stored quarter point +0.25 bonus points'
+    const missing = page.getByRole('checkbox', { name: defaultName, exact: true })
+    await expect(missing).toBeVisible()
+    await missing.focus()
+    await page.keyboard.press('Space')
+    await expect(missing).toBeChecked()
+    await page.getByRole('checkbox', { name: storedName, exact: true }).check()
+    await page.getByRole('button', { name: 'Aroma: 4 out of 7' }).click()
+    await page.getByRole('button', { name: 'Mouthfeel: 4 out of 7' }).click()
+    await page.getByRole('button', { name: 'Flavour: 4 out of 7' }).click()
+    await page.getByRole('button', { name: 'Follow: 4 out of 7' }).click()
+    await page.getByRole('button', { name: 'Skip this attribute' }).click()
 
-  await expect(page.getByRole('checkbox', { name: defaultName, exact: true })).toBeChecked()
-  await expect(page.getByRole('checkbox', { name: storedName, exact: true })).toBeChecked()
-  await expect(page.getByRole('checkbox', { name: 'Stored default amount +0.2 bonus points', exact: true })).toBeVisible()
-  await expect(page.getByRole('checkbox', { name: 'Stored zero +0 bonus points', exact: true })).toBeVisible()
-  await expect(page.getByText('0.45', { exact: true })).toBeVisible()
+    await expect(page.getByRole('checkbox', { name: defaultName, exact: true })).toBeChecked()
+    await expect(page.getByRole('checkbox', { name: storedName, exact: true })).toBeChecked()
+    await expect(page.getByRole('checkbox', { name: 'Stored default amount +0.2 bonus points', exact: true })).toBeVisible()
+    await expect(page.getByRole('checkbox', { name: 'Stored zero +0 bonus points', exact: true })).toBeVisible()
+    await expect(page.getByText('0.45', { exact: true })).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 
-  const result = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
-    .analyze()
-  expect(result.violations.filter(({ impact }) => ['serious', 'critical'].includes(impact))).toEqual([])
-})
+    const result = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+      .analyze()
+    expect(result.violations.filter(({ impact }) => ['serious', 'critical'].includes(impact))).toEqual([])
+  })
+}
