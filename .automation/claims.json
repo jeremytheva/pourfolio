@@ -24,7 +24,7 @@
     "catalogue": {
       "owner": "bonus-value-labels-1792735344895",
       "workstream": "catalogue",
-      "issue": null,
+      "issue": 671,
       "pr": null,
       "surfaces": [
         "repo:integration",
@@ -34,7 +34,8 @@
         "e2e/bonus-attributes.spec.js",
         "docs/BONUS_ATTRIBUTES.md",
         "docs/LAUNCH_READINESS.md",
-        "STATUS.md"
+        "STATUS.md",
+        "e2e/mockApi.js"
       ],
       "acquiredAt": "2026-10-23T06:02:24.895Z",
       "expiresAt": "2026-10-23T06:32:24.895Z"
