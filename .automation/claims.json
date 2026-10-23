@@ -1,32 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "launch-rating-primitives-1792756555867-zr4ggk",
-      "workstream": "catalogue",
-      "issue": 165,
-      "pr": 674,
-      "surfaces": [
-        ".project-master/launch-readiness.json",
-        "STATUS.md",
-        "api/__tests__/ratingDataProxy.test.js",
-        "api/_lib/__tests__/ratingBreakdownHistory.test.js",
-        "api/_lib/ratingBreakdown.js",
-        "docs/LAUNCH_READINESS.md",
-        "docs/nocodebackend/rating-workflow-certification.md",
-        "repo:integration",
-        "repo:pr:674",
-        "repo:ratings:numeric-primitives",
-        "scripts/__tests__/liveRatingIntegrityAudit.test.js",
-        "src/lib/completedRatingContract.js",
-        "src/lib/completedRatingContract.test.js",
-        "src/lib/ratingFormulaV1.js",
-        "src/lib/ratingFormulaV1.test.js",
-        "src/utils/__tests__/ratingSubmission.test.js",
-        "src/utils/ratingSubmission.js"
-      ],
-      "acquiredAt": "2026-10-23T12:03:30.566Z",
-      "expiresAt": "2026-10-23T12:33:30.566Z"
-    }
-  }
+  "claims": {}
 }
