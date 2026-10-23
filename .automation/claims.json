@@ -20,6 +20,27 @@
       ],
       "acquiredAt": "2026-10-20T05:23:35.359Z",
       "expiresAt": "2026-10-20T05:53:35.359Z"
+    },
+    "catalogue": {
+      "owner": "owner-session-certification-1792750732477",
+      "workstream": "catalogue",
+      "issue": 144,
+      "pr": null,
+      "surfaces": [
+        "repo:integration",
+        "scripts/bonus-certification-owner.js",
+        "scripts/run-owner-session-certification.js",
+        "scripts/__tests__/bonusCertificationOwner.test.js",
+        ".github/workflows/connected-release-check.yml",
+        "release-check/connected.spec.js",
+        "docs/TESTING.md",
+        "docs/nocodebackend/connected-policy-certification.md",
+        "docs/LAUNCH_READINESS.md",
+        "STATUS.md",
+        "provider:auth:bounded-owner-session"
+      ],
+      "acquiredAt": "2026-10-23T10:18:52.477Z",
+      "expiresAt": "2026-10-23T10:48:52.477Z"
     }
   }
 }
