@@ -1,4 +1,25 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "launch-numeric-20261023T2312-9tppl06",
+      "workstream": "catalogue",
+      "issue": 165,
+      "pr": null,
+      "surfaces": [
+        "repo:integration",
+        "file:api/rating-data-proxy.js",
+        "file:api/cellar-data-proxy.js",
+        "file:api/catalog-data-proxy.js",
+        "file:api/__tests__/ratingDataProxy.test.js",
+        "file:api/__tests__/catalogDataProxy.test.js",
+        "file:api/_lib/__tests__/cellarPersistence.test.js",
+        "file:STATUS.md",
+        "file:docs/LAUNCH_READINESS.md",
+        "branch:fix/persisted-numeric-validation-20261023"
+      ],
+      "acquiredAt": "2026-10-23T23:12:22.000Z",
+      "expiresAt": "2026-10-23T23:42:22.000Z"
+    }
+  }
 }
