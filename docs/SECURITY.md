@@ -217,7 +217,18 @@ routing path merely because its older tests still exist for regression history.
 
 ## Photos and deferred features
 
-Photo upload, privacy controls, chat, social sharing, events, venues, producer claims and administration are disabled in launch routing. They require their own permission, retention, moderation, validation and deletion controls before reactivation.
+Photo upload, broader buddy/cellar/activity sharing controls, chat, social sharing,
+events, venues, producer claims and administration are disabled in launch routing.
+They require their own permission, retention, moderation, validation and deletion
+controls before reactivation.
+
+The active owner profile's `Share my rating history` opt-in is persisted through
+`profileService` and enforced by the server-backed profile policy under ADR 0003.
+The unreferenced `PrivacySettings.jsx` prototype, which saved only browser-local
+preferences, is retired. Existing `localStorage.privacySettings` values are not
+read as sharing authority, migrated to the provider or cleared. Removing dead
+UI does not alter any owner's stored privacy choice or certify connected privacy
+behaviour; #422 retains that acceptance gate.
 
 ## Production proof required
 

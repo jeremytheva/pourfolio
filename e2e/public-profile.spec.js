@@ -31,6 +31,27 @@ test.beforeEach(async ({ page }) => {
   await installMockApi(page)
 })
 
+test('legacy local privacy flags cannot override or publish a server-private profile', async ({ page }) => {
+  const legacy = JSON.stringify({ profileVisibleToPublic: true, ratingsVisibleToPublic: true, cellarVisibleToPublic: true })
+  await page.addInitScript((value) => localStorage.setItem('privacySettings', value), legacy)
+  await page.goto('/profile')
+
+  const sharing = page.getByRole('checkbox', { name: 'Share my rating history' })
+  await expect(sharing).not.toBeChecked()
+  await page.getByLabel('Display name').fill('Still private')
+  const update = page.waitForRequest((request) => new URL(request.url()).pathname === '/api/nocodebackend/profile' && request.method() === 'PUT')
+  await page.getByRole('button', { name: 'Save profile', exact: true }).click()
+  expect((await update).postDataJSON()).toEqual({
+    name: 'Still private', description: '', avatar_url: '', rating_history_public: false
+  })
+  await expect(page.getByText('Profile saved.', { exact: true })).toBeVisible()
+
+  await page.reload()
+  await expect(page.getByLabel('Display name')).toHaveValue('Still private')
+  await expect(sharing).not.toBeChecked()
+  expect(await page.evaluate(() => localStorage.getItem('privacySettings'))).toBe(legacy)
+})
+
 test('public user profile shows only the opted-in rated-beer history projection', async ({ page }) => {
   await page.route(`**/api/nocodebackend/profiles/${publicProfileId}?**`, (route) => route.fulfill({
     status: 200,

@@ -40,6 +40,20 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
+The bounded #429 cleanup retires only the unreferenced browser-local privacy
+prototype. The active profile's server-backed sharing opt-in is unchanged.
+A deterministic regression checks that old local-storage public flags cannot
+override a server-private profile, opt it in on save or replace the persisted
+value after reload. Accepted source `733f0d4a` passed canonical Node 22.23.3
+validation (1,007 passed, 15 gated skips), all 158 browser/accessibility cases,
+CodeQL and Dependency Review. Exact preview `dpl_EgrmFDUxrWAwBJ511oQWhoau47Qs`
+returned matching HTTP 200 readiness/provider OK at 23 October 09:23:17 UTC.
+PR #673 owns final-head validation and resulting deployment verification;
+this checkpoint does not infer those from preceding-head results. The impact
+guard maps PRIVACY, DEFERRED, ACCESS and RELEASE with no unmapped source paths.
+This does not qualify connected #422 privacy,
+second-account sessions, provider recovery or final public launch.
+
 **NO-GO for public launch.** The beer-first application is implemented, but
 required provider, rating-integrity, privacy and release evidence remains open.
 Continue dependency-safe fixes and reversible evidence preparation. An existing

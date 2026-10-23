@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Bonus default labels validated; second-account isolation waiting"
+stage: "Obsolete privacy prototype retired; second-account isolation waiting"
 gate: Release
 execution_state: BLOCKED
 current_work:
@@ -33,11 +33,11 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
+  observed_main_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
   current_candidate_commit: null
-  latest_validated_commit: "ec4e2610b78139f1a4ab4499c9cfe31948501b5b"
-  latest_deployed_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
-  latest_runtime_verified_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
+  latest_validated_commit: "733f0d4a40e659c076e0cbd97aa597da385c293a"
+  latest_deployed_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
+  latest_runtime_verified_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
   latest_browser_verified_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
 validation:
   governance: PASS
@@ -47,8 +47,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "ec4e2610b78139f1a4ab4499c9cfe31948501b5b"
-last_updated: "2026-10-23T06:13:00Z"
+last_verified_commit: "733f0d4a40e659c076e0cbd97aa597da385c293a"
+last_updated: "2026-10-23T09:24:00Z"
 ---
 
 # STATUS.md
@@ -56,6 +56,43 @@ last_updated: "2026-10-23T06:13:00Z"
 Last materially reviewed: 23 October 2026 (Australia/Sydney)
 
 ## AI execution gate
+
+### Bounded #429 privacy prototype retirement — 23 October 2026 (Australia/Sydney)
+
+Fresh main `e1a855f9a939a0bb2cf276ad0014f27dd3a8d611` passed its post-merge
+canonical and all 157 browser/accessibility checks (run 39910743410). Its existing
+production deployment is READY with exact health/readiness and the prior normal
+browser label/arithmetic evidence in PR #672. No completed rating/cellar fixture
+or unchanged failed login was repeated.
+
+The next independent #429 audit proved `src/components/PrivacySettings.jsx`
+has no source, server, script, test or route consumer; repository search matched
+only its own declaration/export, and no dynamic import glob loads it. Its save
+handler persists only `localStorage.privacySettings`, not an application policy.
+Only that obsolete 216-line component is retired. `Profile.jsx`, `profileService`,
+server profile policy, rating Settings, approved contained modules, account
+lifecycle foundations and Framer Motion remain unchanged. Existing local-storage
+and provider data are neither migrated nor deleted; source is recoverable in Git.
+
+A deterministic browser regression retains legacy public-sharing flags while
+the server-private profile remains unchecked, saves `rating_history_public: false`
+and remains private after reload. Accepted source
+`733f0d4a40e659c076e0cbd97aa597da385c293a` passed canonical Node 22.23.3:
+1,007 tests, 15 gated skips, no failures, zero production vulnerabilities;
+all 158 browser/accessibility cases passed, including the new legacy-storage
+regression. Run 39931167620, release job 120339517148 and browser job
+120339517374, plus CodeQL/Dependency Review, retain that evidence. Exact preview
+`dpl_EgrmFDUxrWAwBJ511oQWhoau47Qs` is READY and returned matching HTTP 200
+readiness/provider OK at 09:23:17 UTC.
+
+This handoff is prepared for integration of [PR #673](https://github.com/jeremytheva/pourfolio/pull/673)
+and records the accepted source before the final documentation commit/merge.
+The final head must pass its own canonical/browser checks; PR #673 retains those
+results and the subsequent deployment identity/readiness. The impact guard maps
+PRIVACY, DEFERRED, ACCESS and RELEASE with no unmapped changed source paths.
+No connected profile setting was changed or certified. Broader #429 audit remains open.
+Second-account HTTP 401, #165 recovery and connected #422 privacy certification
+remain blocked at their existing boundaries. Public launch remains **NO-GO**.
 
 ### Explicit bonus default labels — 23 October 2026 (Australia/Sydney)
 
