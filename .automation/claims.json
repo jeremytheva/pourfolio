@@ -20,25 +20,6 @@
       ],
       "acquiredAt": "2026-10-20T05:23:35.359Z",
       "expiresAt": "2026-10-20T05:53:35.359Z"
-    },
-    "catalogue": {
-      "owner": "bonus-value-labels-1792735344895",
-      "workstream": "catalogue",
-      "issue": 671,
-      "pr": 672,
-      "surfaces": [
-        "repo:integration",
-        "src/components/BonusAttributePicker.jsx",
-        "src/lib/bonusAttributes.js",
-        "src/lib/bonusAttributes.test.js",
-        "e2e/bonus-attributes.spec.js",
-        "docs/BONUS_ATTRIBUTES.md",
-        "docs/LAUNCH_READINESS.md",
-        "STATUS.md",
-        "e2e/mockApi.js"
-      ],
-      "acquiredAt": "2026-10-23T06:02:24.895Z",
-      "expiresAt": "2026-10-23T06:32:24.895Z"
     }
   }
 }
