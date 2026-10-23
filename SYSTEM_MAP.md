@@ -141,7 +141,10 @@ prices are excluded. See [ADR 0003](docs/DECISIONS/0003-public-user-profiles-and
 
 `Settings.jsx` is the reachable rating-preference screen; `settingsManager.js`
 also serves `RateBeer.jsx`. The unused legacy `ProfileSettings.jsx` is retired,
-not replaced with another preference or profile implementation. Deferred
+as is the unreferenced local-storage-only `PrivacySettings.jsx` prototype.
+The profile's existing server-backed sharing opt-in remains authoritative;
+legacy browser `privacySettings` values are ignored, not migrated or purged.
+Neither retirement introduces another preference or profile implementation. Deferred
 event/venue components and their shared helpers remain contained and retained.
 
 These are implemented source contracts, not completed connected provider

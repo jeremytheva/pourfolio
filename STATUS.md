@@ -1,17 +1,18 @@
 ---
 project: Pourfolio
 portfolio_state: READY
-execution_slot: WAITING
+execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Bonus default labels validated; second-account isolation waiting"
+stage: "Retiring unused browser-local privacy prototype"
 gate: Release
-execution_state: BLOCKED
+execution_state: VALIDATING
 current_work:
-  objective: "Resume bounded cellar isolation only after the second release account's supported login credentials are corrected securely."
-  issue: 577
+  objective: "Remove the unreferenced privacy-settings prototype while preserving server-backed profile sharing and stored choices."
+  issue: 429
   pr: null
-  branch: "main"
+  branch: "chore/429-retire-local-privacy-prototype"
 next_actions:
+  - "Validate and integrate the bounded #429 retirement with exact-head Node 22/browser evidence; preserve active profile policy and all provider/browser data."
   - "Correct RELEASE_OTHER_PASSWORD in protected staging-release to match the approved RELEASE_OTHER_EMAIL account; confirm that account can sign in to the current instance. The owner account authenticated successfully. Then run one guarded two-account certification using the fresh exact production SHA."
   - "Use the required auth_release_sha input for future cellar/bonus manual runs; verify the exact auth deployment before login or mutation. Do not repeat the completed one-GET rating denial solely for documentation."
   - "Resume the existing #165 package only after tenant/version-specific provider mechanism, backup and isolated restore evidence is available; retain approval before irreversible migration or historical repair."
@@ -28,27 +29,27 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 0
+  open_implementation_prs: 1
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
+  observed_main_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
   current_candidate_commit: null
-  latest_validated_commit: "ec4e2610b78139f1a4ab4499c9cfe31948501b5b"
-  latest_deployed_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
-  latest_runtime_verified_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
+  latest_validated_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
+  latest_deployed_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
+  latest_runtime_verified_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
   latest_browser_verified_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
 validation:
-  governance: PASS
-  lint: PASS
+  governance: NOT_RUN
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PASS
-  build: PASS
-  ci: PASS
-  runtime: VERIFIED
-last_verified_commit: "ec4e2610b78139f1a4ab4499c9cfe31948501b5b"
-last_updated: "2026-10-23T06:13:00Z"
+  tests: NOT_RUN
+  build: NOT_RUN
+  ci: PENDING
+  runtime: UNVERIFIED
+last_verified_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
+last_updated: "2026-10-23T09:18:00Z"
 ---
 
 # STATUS.md
@@ -56,6 +57,30 @@ last_updated: "2026-10-23T06:13:00Z"
 Last materially reviewed: 23 October 2026 (Australia/Sydney)
 
 ## AI execution gate
+
+### Bounded #429 privacy prototype retirement — 23 October 2026 (Australia/Sydney)
+
+Fresh main `e1a855f9a939a0bb2cf276ad0014f27dd3a8d611` passed its post-merge
+canonical and all 157 browser/accessibility checks (run 39910743410). Its existing
+production deployment is READY with exact health/readiness and the prior normal
+browser label/arithmetic evidence in PR #672. No completed rating/cellar fixture
+or unchanged failed login was repeated.
+
+The next independent #429 audit proved `src/components/PrivacySettings.jsx`
+has no source, server, script, test or route consumer; repository search matched
+only its own declaration/export, and no dynamic import glob loads it. Its save
+handler persists only `localStorage.privacySettings`, not an application policy.
+Only that obsolete 216-line component is retired. `Profile.jsx`, `profileService`,
+server profile policy, rating Settings, approved contained modules, account
+lifecycle foundations and Framer Motion remain unchanged. Existing local-storage
+and provider data are neither migrated nor deleted; source is recoverable in Git.
+
+A deterministic browser regression retains legacy public-sharing flags while
+the server-private profile remains unchecked, saves `rating_history_public: false`
+and remains private after reload. Exact-head canonical Node 22 and full browser
+validation are pending for this changed slice. Broader #429 audit remains open.
+Second-account HTTP 401, #165 recovery and connected #422 privacy certification
+remain blocked at their existing boundaries. Public launch remains **NO-GO**.
 
 ### Explicit bonus default labels — 23 October 2026 (Australia/Sydney)
 

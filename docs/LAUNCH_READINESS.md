@@ -40,6 +40,14 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
+The bounded #429 cleanup retires only the unreferenced browser-local privacy
+prototype. The active profile's server-backed sharing opt-in is unchanged.
+A deterministic regression checks that old local-storage public flags cannot
+override a server-private profile, opt it in on save or replace the persisted
+value after reload. Canonical validation and browser checks for this slice are
+required before integration. This does not qualify connected #422 privacy,
+second-account sessions, provider recovery or final public launch.
+
 **NO-GO for public launch.** The beer-first application is implemented, but
 required provider, rating-integrity, privacy and release evidence remains open.
 Continue dependency-safe fixes and reversible evidence preparation. An existing
