@@ -2,45 +2,27 @@
   "version": 1,
   "claims": {
     "ratings": {
-      "owner": "bonus-rating-browser-1792473022621-ratings",
+      "owner": "launch-rating-primitives-1792756555867-zr4ggk",
       "workstream": "ratings",
-      "issue": 577,
-      "pr": 657,
-      "surfaces": [
-        "provider:ratings:bounded-owner-fixture",
-        "browser:rating-bonus-verification",
-        "docs/nocodebackend/rating-workflow-certification.md",
-        "scripts/browser-rating-fixture-inspection.js",
-        "scripts/inspect-browser-rating-fixture.js",
-        "scripts/__tests__/browserRatingFixtureInspection.test.js",
-        ".github/workflows/browser-rating-inspection.yml",
-        "provider:profiles:read-only-fixture-owner-binding",
-        "scripts/bonus-certification-owner.js",
-        "scripts/__tests__/bonusCertificationOwner.test.js"
-      ],
-      "acquiredAt": "2026-10-20T05:23:35.359Z",
-      "expiresAt": "2026-10-20T05:53:35.359Z"
-    },
-    "catalogue": {
-      "owner": "owner-session-certification-1792750732477",
-      "workstream": "catalogue",
-      "issue": 144,
+      "issue": 165,
       "pr": null,
       "surfaces": [
-        "repo:integration",
-        "scripts/bonus-certification-owner.js",
-        "scripts/run-owner-session-certification.js",
-        "scripts/__tests__/bonusCertificationOwner.test.js",
-        ".github/workflows/connected-release-check.yml",
-        "release-check/connected.spec.js",
-        "docs/TESTING.md",
-        "docs/nocodebackend/connected-policy-certification.md",
-        "docs/LAUNCH_READINESS.md",
-        "STATUS.md",
-        "provider:auth:bounded-owner-session"
+        ".project-master/launch-readiness.json",
+        "api/__tests__/ratingDataProxy.test.js",
+        "api/_lib/__tests__/ratingBreakdownHistory.test.js",
+        "api/_lib/ratingBreakdown.js",
+        "docs/nocodebackend/rating-workflow-certification.md",
+        "repo:ratings:numeric-primitives",
+        "scripts/__tests__/liveRatingIntegrityAudit.test.js",
+        "src/lib/completedRatingContract.js",
+        "src/lib/completedRatingContract.test.js",
+        "src/lib/ratingFormulaV1.js",
+        "src/lib/ratingFormulaV1.test.js",
+        "src/utils/__tests__/ratingSubmission.test.js",
+        "src/utils/ratingSubmission.js"
       ],
-      "acquiredAt": "2026-10-23T10:18:52.477Z",
-      "expiresAt": "2026-10-23T10:48:52.477Z"
+      "acquiredAt": "2026-10-23T11:55:55.867Z",
+      "expiresAt": "2026-10-23T12:25:55.867Z"
     }
   }
 }
