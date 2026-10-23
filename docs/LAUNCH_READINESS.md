@@ -1,7 +1,7 @@
 # Launch readiness
 
-Last reconciled: **22 October 2026 UTC**. Observed application and production
-baseline: [`0c048ca8e5082479d39bdd67f4060af2c336f73c`](https://github.com/jeremytheva/pourfolio/commit/0c048ca8e5082479d39bdd67f4060af2c336f73c).
+Last reconciled: **23 October 2026 UTC**. Observed application and production
+baseline: [`593b6010a60ca4a09e83102b0a958a56a84d09d8`](https://github.com/jeremytheva/pourfolio/commit/593b6010a60ca4a09e83102b0a958a56a84d09d8).
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
 
@@ -39,6 +39,21 @@ preflight report. No application policy, stored bonus value or provider schema
 changes in this diagnostic correction.
 
 ## Current launch decision
+
+[PR #674](https://github.com/jeremytheva/pourfolio/pull/674) rejects raw boolean,
+array and object rating values before numeric conversion, excludes malformed
+stored totals from completion, and marks unsupported historical components
+incomplete. Accepted source `a85de85d` passed canonical Node 22.23.3 validation
+(1,014 passed, 15 gated skips, zero failures/vulnerabilities), all 158 browser/
+accessibility cases, Dependency Review and CodeQL. Exact preview
+`dpl_3itSFcGixzaE7tjBn7yQFuYRvBz5` returned matching HTTP 200 health/readiness
+and provider OK at 23 October 12:05 UTC. This is bounded source/runtime evidence
+for RATING, PROVIDER and ACCESS; it does not certify connected rating writes,
+privacy or recovery. The final documentation head and resulting production
+deployment require their own verification in the same PR. Current production
+`593b6010` returned matching public health/readiness at 12:05 UTC. No provider
+data was changed; the second-account HTTP 401 and all retained launch gates
+remain open.
 
 The bounded #429 cleanup retires only the unreferenced browser-local privacy
 prototype. The active profile's server-backed sharing opt-in is unchanged.

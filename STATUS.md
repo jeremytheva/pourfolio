@@ -33,12 +33,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
+  observed_main_commit: "593b6010a60ca4a09e83102b0a958a56a84d09d8"
   current_candidate_commit: null
-  latest_validated_commit: "733f0d4a40e659c076e0cbd97aa597da385c293a"
-  latest_deployed_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
-  latest_runtime_verified_commit: "e1a855f9a939a0bb2cf276ad0014f27dd3a8d611"
-  latest_browser_verified_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
+  latest_validated_commit: "a85de85d07181df2a0fad51e9e5eeb775b29dadd"
+  latest_deployed_commit: "593b6010a60ca4a09e83102b0a958a56a84d09d8"
+  latest_runtime_verified_commit: "593b6010a60ca4a09e83102b0a958a56a84d09d8"
+  latest_browser_verified_commit: "a85de85d07181df2a0fad51e9e5eeb775b29dadd"
 validation:
   governance: PASS
   lint: PASS
@@ -47,8 +47,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "733f0d4a40e659c076e0cbd97aa597da385c293a"
-last_updated: "2026-10-23T09:24:00Z"
+last_verified_commit: "a85de85d07181df2a0fad51e9e5eeb775b29dadd"
+last_updated: "2026-10-23T12:06:00Z"
 ---
 
 # STATUS.md
@@ -56,6 +56,39 @@ last_updated: "2026-10-23T09:24:00Z"
 Last materially reviewed: 23 October 2026 (Australia/Sydney)
 
 ## AI execution gate
+
+### Rating numeric-validation correction — 23 October 2026 (Australia/Sydney)
+
+[PR #674](https://github.com/jeremytheva/pourfolio/pull/674) repairs a reproduced
+source defect: boolean and array components could become numeric scores before
+validation, and malformed stored totals could enter history/aggregate completion.
+Raw value types are now checked before conversion; numeric DECIMAL strings and
+zero Bonus/Burp remain valid. Historical components with unsupported types or
+fractional values are omitted with the existing incomplete indicator. No
+provider row, schema, missing bonus value or historical ownership was changed.
+
+Accepted source `a85de85d07181df2a0fad51e9e5eeb775b29dadd` passed canonical
+Node 22.23.3 validation: 1,014 tests passed, 15 provider-gated skips and zero
+failures/vulnerabilities. All 158 browser/accessibility cases passed. PR run
+39950402101 retains release job 120403171976 and browser job 120403172188;
+Dependency Review, CodeQL and launch-impact checks passed. Published tree
+`b6ab4c540e89572e9f27e8d0a728aa1fd23b42d2` matches the locally validated tree.
+Exact preview `dpl_3itSFcGixzaE7tjBn7yQFuYRvBz5` is READY; health/readiness
+returned HTTP 200 with matching source SHA and provider OK at 12:05 UTC.
+
+Existing production `593b6010` is READY; the public alias returned matching
+health/readiness HTTP 200 at 12:05 UTC. This handoff records the accepted source
+before the final documentation commit/merge. PR #674 retains final-head checks
+and the resulting deployment verification; earlier-head results cannot certify
+that final head. Launch impact maps RATING, PROVIDER and ACCESS with no unmapped
+tracked paths. Local Chromium download was truncated; the hosted browser run
+supplies actual browser evidence rather than treating installation as a pass.
+
+The next connected priority remains correcting the second release account's
+supported login credentials before bounded isolation certification. No unchanged
+HTTP 401 retry, connected fixture, migration or historical repair was attempted.
+#165 provider/recovery, #422 privacy, missing data and manual operations gates
+remain open. Public launch remains **NO-GO**.
 
 ### Bounded #429 privacy prototype retirement — 23 October 2026 (Australia/Sydney)
 
