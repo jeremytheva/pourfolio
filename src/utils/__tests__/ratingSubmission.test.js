@@ -28,6 +28,19 @@ test('score 1 is a valid required structured score', () => {
   assert.deepEqual(result.scores.map((score) => score.attribute_score), [1])
 })
 
+test('submission validates raw component types before numeric conversion', () => {
+  const weights = { appearance: 1, aroma: 0, mouthfeel: 0, flavour: 0, follow: 0, bonus: 0 }
+  for (const attributeId of [2, 1, 7, 8]) {
+    for (const score of [true, false, [1], [], {}, { valueOf: () => 1 }, '   ']) {
+      const scores = [{ attributeId: 2, score: attributeId === 2 ? score : 7 }]
+      if (attributeId !== 2) scores.push({ attributeId, score })
+      assert.throws(() => validateRatingScores(scores, attributes, weights), /must be an integer/)
+    }
+  }
+  const result = validateRatingScores([{ attributeId: 2, score: '7.00' }, { attributeId: 8, score: '0' }], attributes, weights)
+  assert.deepEqual(result.scores, [{ attribute_id: 2, attribute_score: 7 }, { attribute_id: 8, attribute_score: 0 }])
+})
+
 test('every positively weighted attribute is required', () => {
   assert.throws(
     () => validateRatingScores([{ attributeId: 2, score: 5 }], attributes),

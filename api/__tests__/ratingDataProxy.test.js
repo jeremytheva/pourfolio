@@ -158,6 +158,22 @@ const submitMaximum = async (response, weights = defaultWeights) => __testables.
   }
 }, response, { id: 'user-1' }, 'test-request')
 
+test('malformed JSON component types cannot create a rating parent or children', async () => {
+  for (const attributeId of [2, 1, 8]) {
+    for (const score of [true, false, [1], [], {}, '   ']) {
+      const provider = durableProvider()
+      await withProviderMocks(provider.mocks, async () => {
+        await assert.rejects(__testables.submitRating({ body: {
+          productId: 4, submissionId: 1700000000000001,
+          scores: maximumScores.map((entry) => entry.attributeId === attributeId ? { ...entry, score } : entry),
+          weights: defaultWeights, bonusAttributeIds: maximumBonusIds
+        } }, responseHarness(), { id: 'user-1' }, 'test-request'), /must be an integer/)
+        assert.deepEqual(Object.values(provider.state).map((rows) => rows.length), [0, 0, 0])
+      })
+    }
+  }
+})
+
 test('submitRating ignores browser totals and Bonus, persists server-derived five-point totals and replays idempotently', async () => {
   const provider = durableProvider()
 

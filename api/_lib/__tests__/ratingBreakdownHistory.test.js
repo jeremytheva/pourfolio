@@ -76,6 +76,35 @@ test('missing definitions and invalid component values are marked incomplete wit
   assert.deepEqual(await loadRatingBreakdown(rating()), { scores: [], selected_attributes: [], incomplete: false })
 })
 
+test('breakdowns omit coerced and fractional scores without inventing recorded values', async () => {
+  for (const value of [true, false, [1], [], {}, { valueOf: () => 1 }, '   ', 1.5]) {
+    const rows = breakdownRows()
+    rows[COLLECTIONS.ratingScores][0].attribute_score = value
+    install(rows)
+    const result = await loadRatingBreakdown(rating())
+    assert.equal(result.incomplete, true)
+    assert.deepEqual(result.scores.map((score) => score.name), ['Design', 'Bonus', 'Burp'])
+    assert.deepEqual(result.selected_attributes, [{ description: 'Balanced like a trapeze artist' }])
+  }
+})
+
+test('owner, shared profile and product history exclude malformed totals consistently', async () => {
+  const valid = { ...rating(1), total_weighted: '4.25' }
+  const malformed = [true, false, [4], [], {}, '   '].map((total_weighted, index) => ({
+    ...rating(index + 2), total_weighted
+  }))
+  install({ [COLLECTIONS.ratings]: [valid, ...malformed], [COLLECTIONS.profiles]: [profile()] })
+  const history = await loadPublicRatingHistory(owner)
+  assert.deepEqual(history.ratings.map(({ id }) => id), [1])
+  assert.deepEqual(history.summary, { count: 1, average: 4.25 })
+  const shared = await loadSharedProductRatings('4', 'viewer')
+  assert.deepEqual(shared.items.map(({ id }) => id), [1])
+  assert.equal(shared.total, 1)
+  const result = response()
+  await __testables.listUserRatings(result, { id: owner }, { query: { product_id: '4' } })
+  assert.deepEqual(result.body.items.map(({ id }) => id), [1])
+})
+
 test('private breakdown rejects another account and incomplete/deleted parents before reading children', async () => {
   for (const parent of [rating(1, 'other-owner'), { ...rating(), submission_state: 'deleting' }, { ...rating(), deleted_at: '2026-10-08' }]) {
     const calls = install({ [COLLECTIONS.ratings]: [parent] })

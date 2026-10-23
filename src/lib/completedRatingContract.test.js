@@ -20,6 +20,14 @@ test('completed rating totals are greater than zero and at most five', () => {
   assert.equal(completedRatingTotal(5.01), null)
 })
 
+test('completed totals reject values that only become numbers through coercion', () => {
+  for (const value of [true, false, [4], [], {}, Object(4), { valueOf: () => 4 }, 4n, Symbol('4'), '   ']) {
+    assert.equal(completedRatingTotal(value), null)
+    assert.equal(distributionBucketForRating(value), null)
+  }
+  assert.equal(completedRatingTotal(' 4.25 '), 4.25)
+})
+
 test('distribution uses ten explicit half-point ranges without integer rounding', () => {
   assert.equal(RATING_DISTRIBUTION_BUCKETS.length, 10)
   assert.deepEqual(RATING_DISTRIBUTION_BUCKETS[0], {

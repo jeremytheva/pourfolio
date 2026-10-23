@@ -45,6 +45,14 @@ test('completion audit rejects invalid totals and preserves the exact empty-time
   assert.equal(result.contradictoryCompletionCount, 0)
 })
 
+test('live integrity audit does not certify coerced booleans or array totals as complete', () => {
+  const rows = [true, false, [4], [], {}, '   '].map((total_weighted, index) => ({
+    id: index + 1, submission_state: 'complete', total_weighted, deleted_at: null
+  }))
+  rows.push({ id: 10, submission_state: 'complete', total_weighted: '4.00', deleted_at: null })
+  assert.deepEqual(classifyCompletedRatings(rows).completed.map(({ id }) => id), [10])
+})
+
 test('deleted timestamp excludes a complete row even when its recorded weighted score is otherwise valid', () => {
   const records = [
     { id: 40, submission_state: 'complete', total_weighted: '4.45', deleted_at: null },
