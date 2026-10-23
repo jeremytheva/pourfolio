@@ -65,6 +65,12 @@ export const selectedBonusPointTotal = (bonusAttributes, selectedIds) => {
 
 export const effectiveBonusPointValue = (attribute) => normaliseBonusPointValue(attribute?.point_value)
 
+export const bonusPointValueLabel = (attribute) => {
+  const storedValue = normaliseBonusPointValue(attribute?.point_value, { fallback: null })
+  const points = storedValue ?? BONUS_ATTRIBUTE_DEFAULT_POINT_VALUE
+  return `+${points} bonus points${storedValue === null ? ' (default; no stored value)' : ''}`
+}
+
 export const categoryMatchesRatingKey = (categoryName, ratingKey) => {
   const categoryKey = normaliseBonusCategoryKey(categoryName)
   const target = normaliseBonusCategoryKey(ratingKey)

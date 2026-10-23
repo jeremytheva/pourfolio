@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Second release account rejected at sign-in; isolation waiting"
+stage: "Bonus default labels validated; second-account isolation waiting"
 gate: Release
 execution_state: BLOCKED
 current_work:
@@ -33,11 +33,11 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "0c048ca8e5082479d39bdd67f4060af2c336f73c"
+  observed_main_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
   current_candidate_commit: null
-  latest_validated_commit: "d7b0307f99dffc9ea967654952e022af07441840"
-  latest_deployed_commit: "0c048ca8e5082479d39bdd67f4060af2c336f73c"
-  latest_runtime_verified_commit: "0c048ca8e5082479d39bdd67f4060af2c336f73c"
+  latest_validated_commit: "ec4e2610b78139f1a4ab4499c9cfe31948501b5b"
+  latest_deployed_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
+  latest_runtime_verified_commit: "cb311c0b827582dbf05c352c5819584ffc6b1780"
   latest_browser_verified_commit: "50a104541b73e3eae9b9ac912c781b7e1d4cd274"
 validation:
   governance: PASS
@@ -47,15 +47,51 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "d7b0307f99dffc9ea967654952e022af07441840"
-last_updated: "2026-10-22T06:17:00Z"
+last_verified_commit: "ec4e2610b78139f1a4ab4499c9cfe31948501b5b"
+last_updated: "2026-10-23T06:13:00Z"
 ---
 
 # STATUS.md
 
-Last materially reviewed: 22 October 2026 UTC
+Last materially reviewed: 23 October 2026 (Australia/Sydney)
 
 ## AI execution gate
+
+### Explicit bonus default labels — 23 October 2026 (Australia/Sydney)
+
+Issue #671 addresses the owner's confusion between a stored descriptor value
+and the historical 0.2 fallback. Both bonus pickers now use one shared label:
+missing/non-numeric values explicitly say `default; no stored value`, while
+stored zero, 0.2 and two-decimal values retain their actual effective amount.
+Selection, server-authoritative scoring, custom creation and provider data are
+unchanged. Focused unit and deterministic keyboard/browser/axe regressions
+cover both pickers, mixed totals and one-count multi-category selection.
+
+[PR #672](https://github.com/jeremytheva/pourfolio/pull/672)'s accepted source
+`ec4e2610b78139f1a4ab4499c9cfe31948501b5b` passed canonical Node 22.23.3
+validation: 1,007 tests passed, 15 gated skips and no failures; all 156 browser/
+accessibility cases passed. Run 39909653874 includes release job 120269420987
+and browser job 120269421237. Production audit found zero vulnerabilities;
+CodeQL and Dependency Review passed. Exact preview
+`dpl_9ybf6sEzBqBg5RHKU5HKn2YdTbiH` is READY and returned matching HTTP 200
+readiness/provider OK at 06:09:28 UTC. The expanded final regression additionally
+checks desktop/mobile layout and overflow. That final head must pass its own
+canonical/browser gates before integration; PR #672 retains those results.
+
+The impact guard maps BONUS, ACCESS and RELEASE; unmapped `e2e/mockApi.js` is
+deliberately classified under BONUS/ACCESS for its optional bonus fixture rows.
+This integration handoff records accepted source before the final commit and
+merge, not a new connected PASS. Observed production `cb311c0b` remains READY
+and returned exact-SHA HTTP 200 health/readiness at 06:06 UTC. Verify the resulting
+merged deployment separately. Wider connected browser evidence remains at its
+recorded earlier candidates; do not repeat completed owner fixtures.
+
+No connected credential retry or provider mutation was performed. The latest
+guarded run remains 39732649601: owner sign-in/session/sign-out passed, other
+sign-in returned HTTP 401, zero data writes. Correct the matching second-account
+password securely before resuming isolation. The 81 missing global point values,
+historical #165 recovery and manual operations gates remain open. Public launch
+remains **NO-GO**.
 
 ### Second-account HTTP 401 isolated without data writes — 22 October 2026 UTC
 

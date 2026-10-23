@@ -17,6 +17,14 @@ The supplied Tasting Paddle rating workbook records multiple bonus descriptors f
 
 The supplied `bonus_attributes` data contains historical rows whose `point_value` is blank. This feature does not mutate those source rows. A blank historical value receives an effective value of `0.2` when used in rating calculation; an existing stored numeric value is preserved.
 
+Both rating-card and final bonus pickers explicitly label this fallback as
+`+0.2 bonus points (default; no stored value)`. A stored `0.2` is not a fallback
+and receives no default label. Stored values display the same two-decimal
+precision supported by the shared normalisation (for example, `0.25` is not
+rounded to `0.3` in the picker). This presentation does not backfill missing
+provider values or change the scoring rule. Authoritative per-descriptor values
+are still required before the missing historical data can be corrected.
+
 ## Category authority and canonical model
 
 Provider category rows and `bonus_attribute_category_mapping` remain authoritative at runtime. The frontend must not contain a duplicate hard-coded descriptor catalogue.

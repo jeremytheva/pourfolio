@@ -14,6 +14,24 @@ securely before the remaining guarded isolation check. This closes no complete
 connected auth, cellar-isolation, privacy or release acceptance criterion. See the existing
 [policy record](nocodebackend/connected-policy-certification.md).
 
+Issue #671 makes the existing bonus-value fallback explicit in both pickers and
+preserves two-decimal stored-value presentation. It changes no scoring policy
+or provider data. Accepted source `ec4e2610` passed canonical Node 22 validation
+(1,007 tests, 15 gated skips) and 156 deterministic browser/accessibility cases.
+Final-head desktop/mobile regression validation and deployment evidence remain
+required in PR #672; no preceding-head result is promoted to final-head PASS.
+81 missing global values, custom-creation/isolation acceptance and the current
+second-account HTTP 401 remain separate open gates. This presentation correction
+does not close PF-LAUNCH-BONUS, PF-LAUNCH-ACCESS or PF-LAUNCH-RELEASE.
+
+The launch-impact guard maps those three requirements. The optional bonus rows
+in `e2e/mockApi.js` are deliberately classified under BONUS/ACCESS rather than
+changing runtime/provider authority. Exact preview `dpl_9ybf6sEzBqBg5RHKU5HKn2YdTbiH`
+returned matching HTTP 200 readiness for `ec4e2610` at 23 October 06:09:28 UTC;
+production `cb311c0b` returned exact health/readiness at 06:06 UTC. This handoff
+records the accepted source before integration; verify the resulting deployment
+separately. Connected isolation, recovery and final launch acceptance remain open.
+
 The impact check maps the shared bonus-auth helper and provider evidence;
 `scripts/run-cellar-write-certification.js` is deliberately classified under
 PF-LAUNCH-AUTH, PF-LAUNCH-CELLAR and PF-LAUNCH-RELEASE for its account-specific
