@@ -1,5 +1,28 @@
 # Rating workflow staging certification
 
+## Rating numeric-input correction — 23 October 2026 Sydney
+
+Source review of main `593b6010a60ca4a09e83102b0a958a56a84d09d8`
+reproduced a type-coercion defect: `true` became score 1 and `[4]` became
+score 4 in both structured submission validation and completed-rating totals.
+Historical breakdowns also accepted coerced or fractional component values.
+
+The shared formula and submission boundary now validate original value types
+before conversion. Only finite numbers and non-blank numeric strings may be
+scores; component scores must also be integers in their dimension's range.
+Valid DECIMAL strings, positive totals through 5 and numeric zero Bonus/Burp
+values retain their existing behaviour. Invalid historical component values
+are omitted with `incomplete: true`; invalid totals do not enter owner/shared
+history, rating distributions or the live integrity audit's completion set.
+
+Regression coverage exercises malformed JSON submission values with zero
+provider writes, owner/public-profile/product history parity, breakdown
+projection and audit eligibility. This is a source correction, not evidence
+that malformed records exist in the connected provider. No stored rating,
+bonus value, historical ownership or provider schema is changed. Connected
+privacy/session, #165 provider/recovery and final release gates remain open;
+public launch remains **NO-GO**. The PR retains exact-head validation evidence.
+
 ## Live browser bonus-backed tasting — 20 October 2026 Sydney
 
 Production health before/after this bounded test returned HTTP 200 and exact

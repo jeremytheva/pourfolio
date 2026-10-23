@@ -25,12 +25,14 @@ export async function loadRatingBreakdown(rating) {
   let incomplete = false
   for (const row of scores) {
     const attribute = await definition(COLLECTIONS.ratingAttributes, row.attribute_id)
-    const score = row.attribute_score === null || row.attribute_score === '' ? NaN : Number(row.attribute_score)
+    const rawScore = row.attribute_score
+    const score = typeof rawScore === 'number' || (typeof rawScore === 'string' && rawScore.trim())
+      ? Number(rawScore) : NaN
     if (!visibleDefinition(attribute, rating.user_id) || String(attribute.id) !== String(row.attribute_id) ||
         !String(attribute.attribute_name || '').trim() || attributes.has(String(row.attribute_id))) { incomplete = true; continue }
     const key = canonicalRatingKey(attribute.attribute_name)
     const scale = key === 'bonus' ? 2 : key === 'burp' ? 1 : 7
-    if (!Number.isFinite(score) || score < (['bonus', 'burp'].includes(key) ? 0 : 1) || score > scale) { incomplete = true; continue }
+    if (!Number.isInteger(score) || score < (['bonus', 'burp'].includes(key) ? 0 : 1) || score > scale) { incomplete = true; continue }
     attributes.add(String(row.attribute_id))
     projected.push({ name: named(attribute.attribute_name).slice(0, 255), score, scale,
       scored: !['design', 'burp'].includes(key) && ![false, 0, '0'].includes(attribute.is_scored) })

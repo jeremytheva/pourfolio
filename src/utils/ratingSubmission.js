@@ -56,12 +56,12 @@ export const validateRatingScores = (scores, attributes, weights = DEFAULT_RATIN
 
     const rawValue = score?.score ?? score?.attribute_score
     if (rawValue === undefined || rawValue === null || rawValue === '') continue
-    const value = Number(rawValue)
-    if (normaliseRatingDimension(attribute.key, value) === null) {
+    if (normaliseRatingDimension(attribute.key, rawValue) === null) {
       const range = attribute.key === 'bonus' ? '0 to 2' : attribute.key === 'burp' ? '0 or 1' : '1 to 7'
       throw new Error(`${attribute.attribute_name || attribute.key} must be an integer from ${range}.`)
     }
 
+    const value = Number(rawValue)
     scoreValues[attribute.key] = value
     normalisedScores.push({ attribute_id: attribute.id, attribute_score: value })
   }

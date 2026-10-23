@@ -47,6 +47,8 @@ export function ratingDimension(value) {
 }
 
 export function normaliseRatingDimension(key, value) {
+  if ((typeof value !== 'number' && typeof value !== 'string') ||
+      (typeof value === 'string' && !value.trim())) return null
   const dimension = ratingDimension(key)
   const number = Number(value)
   if (!dimension || !Number.isFinite(number) || !Number.isInteger(number)) return null

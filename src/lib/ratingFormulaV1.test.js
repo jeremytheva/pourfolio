@@ -36,6 +36,18 @@ const complete = {
 }
 
 describe('Pourfolio Rating Formula v2', () => {
+  it('rejects coerced component values while retaining numeric form strings and zero extras', () => {
+    for (const value of [true, false, [1], [], {}, Object(1), { valueOf: () => 1 }, 1n, Symbol('1'), '   ']) {
+      for (const key of ['appearance', 'bonus', 'burp']) {
+        assert.equal(normaliseRatingDimension(key, value), null)
+        assert.equal(calculateRatingTotals({ ...complete, [key]: value }), null)
+      }
+    }
+    assert.equal(normaliseRatingDimension('appearance', '7.00'), 1)
+    assert.equal(normaliseRatingDimension('bonus', '0'), 0)
+    assert.equal(normaliseRatingDimension('burp', 0), 0)
+  })
+
   it('uses the approved default weights and excludes Design and Burp', () => {
     assert.equal(POURFOLIO_RATING_FORMULA_VERSION, 'v2')
     assert.deepEqual(DEFAULT_RATING_WEIGHTS, {

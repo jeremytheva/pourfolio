@@ -20,7 +20,7 @@ export const RATING_DISTRIBUTION_BUCKETS = Object.freeze(
 )
 
 export const completedRatingTotal = (value) => {
-  if (value === null || value === undefined) return null
+  if (typeof value !== 'number' && typeof value !== 'string') return null
   if (typeof value === 'string' && value.trim() === '') return null
   const number = Number(value)
   return Number.isFinite(number) && number > COMPLETED_RATING_MIN_EXCLUSIVE && number <= COMPLETED_RATING_MAX_INCLUSIVE
