@@ -25,7 +25,7 @@
       "owner": "bonus-value-labels-1792735344895",
       "workstream": "catalogue",
       "issue": 671,
-      "pr": null,
+      "pr": 672,
       "surfaces": [
         "repo:integration",
         "src/components/BonusAttributePicker.jsx",
