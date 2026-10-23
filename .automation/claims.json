@@ -25,7 +25,7 @@
       "owner": "privacy-prototype-cleanup-1792747029655",
       "workstream": "catalogue",
       "issue": 429,
-      "pr": null,
+      "pr": 673,
       "surfaces": [
         "repo:integration",
         "src/components/PrivacySettings.jsx",
