@@ -118,8 +118,8 @@
     },
     {
       "id": "PF-LAUNCH-BONUS",
-      "goal": "Bonus attribute values are the persisted attribute-specific values, not fabricated defaults",
-      "acceptance": "Rendering, mapping, persistence and deletion/retry behaviour preserve exact point values against the appropriate provider table",
+      "goal": "Bonus attribute point values are authoritative persisted values for every launch-selectable descriptor",
+      "acceptance": "Authoritative reviewed exact-ID backfill and post-write verification leave no missing launch-selectable values; existing values, private rows and historical rating totals are preserved; connected creation/isolation/retry/deletion pass",
       "source": "docs/BONUS_ATTRIBUTES.md",
       "applicability": "required",
       "criticality": "blocking",
@@ -143,7 +143,8 @@
       "test_refs": [
         "e2e/bonus-attributes.spec.js",
         "api/_lib/__tests__/bonusAttributeCreation.test.js",
-        "scripts/__tests__/liveBonusRatingMappingAudit.test.js"
+        "scripts/__tests__/liveBonusRatingMappingAudit.test.js",
+        "scripts/__tests__/bonusPointPlanAudit.test.js"
       ],
       "evidence_refs": [
         "docs/BONUS_ATTRIBUTES.md",

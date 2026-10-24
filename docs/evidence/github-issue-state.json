@@ -1,5 +1,5 @@
 {
-  "captured_at": "2026-10-04T21:16:00Z",
+  "captured_at": "2026-10-24T22:36:46.902Z",
   "repository": "jeremytheva/pourfolio",
   "source": "GitHub connected inspection",
   "scope": "retained issue-state evidence for current blocker and continuity drift checks; refresh with npm run check:status-github -- --write-issue-evidence",
@@ -7,54 +7,62 @@
     {
       "number": 165,
       "title": "Deploy rating idempotency schema before enabling reconciliation",
-      "state": "open"
+      "state": "open",
+      "observed_at": "2026-10-24T22:36:46.902Z"
     },
     {
       "number": 577,
       "title": "Plan connected user/admin authentication and authorization certification",
-      "state": "open",
-      "observed_at": "2026-10-19T22:27:53Z"
+      "state": "closed",
+      "observed_at": "2026-10-24T22:36:46.902Z"
     },
     {
       "number": 224,
       "title": "Restore current-main Vercel production deployment evidence",
-      "state": "closed"
+      "state": "closed",
+      "observed_at": "2026-10-24T22:36:46.902Z"
     },
     {
       "number": 225,
       "title": "Restore NoCodeBackend data API authorization",
-      "state": "closed"
+      "state": "closed",
+      "observed_at": "2026-10-24T22:36:46.902Z"
     },
     {
       "number": 143,
       "title": "PF-P0-01 — Harden the governed delivery path",
-      "state": "open"
+      "state": "open",
+      "observed_at": "2026-10-24T22:36:46.902Z"
     },
     {
       "number": 144,
       "title": "PF-P1-01 — Certify the canonical backend contract",
-      "state": "open"
+      "state": "open",
+      "observed_at": "2026-10-24T22:36:46.902Z"
     },
     {
       "number": 154,
       "title": "PF-P3-01 — Prove dependable beer discovery",
-      "state": "open"
+      "state": "open",
+      "observed_at": "2026-10-24T22:36:46.902Z"
     },
     {
       "number": 429,
       "title": "Prune obsolete and unreachable code before release",
-      "state": "open"
+      "state": "open",
+      "observed_at": "2026-10-24T22:36:46.902Z"
     },
     {
       "number": 449,
       "title": "Launch — user beer add/edit workflow and cellar backend alignment",
-      "state": "open"
+      "state": "closed",
+      "observed_at": "2026-10-24T22:36:46.902Z"
     },
     {
       "number": 651,
       "title": "fix(bonus): verify persisted values and certify bounded fixture cleanup",
       "state": "closed",
-      "observed_at": "2026-10-19T22:27:53Z",
+      "observed_at": "2026-10-24T22:36:46.902Z",
       "kind": "pull_request",
       "merged": true
     },
@@ -62,7 +70,13 @@
       "number": 503,
       "title": "Restore durable rating workflow after live schema migration",
       "state": "closed",
-      "observed_at": "2026-10-19T21:48:52.601Z"
+      "observed_at": "2026-10-24T22:36:46.902Z"
+    },
+    {
+      "number": 422,
+      "title": "Provider migration: deploy persistent profiles and opt-in public rating history",
+      "state": "open",
+      "observed_at": "2026-10-24T22:36:46.902Z"
     }
   ]
 }

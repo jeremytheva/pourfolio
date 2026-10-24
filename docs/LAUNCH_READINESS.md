@@ -1,7 +1,8 @@
 # Launch readiness
 
-Last reconciled: **23 October 2026 UTC**. Observed application and production
-baseline: [`593b6010a60ca4a09e83102b0a958a56a84d09d8`](https://github.com/jeremytheva/pourfolio/commit/593b6010a60ca4a09e83102b0a958a56a84d09d8).
+Last reconciled: **24 October 2026 UTC**. Integrated source and READY deployment
+metadata: [`70c3a18982db276b89a5c8c7b26048d58f854e1a`](https://github.com/jeremytheva/pourfolio/commit/70c3a18982db276b89a5c8c7b26048d58f854e1a). The anonymous 24 October 23:00 UTC HTTP result below verifies that exact source;
+READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
 
@@ -40,6 +41,122 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
+### Adopted public MVP execution — 24 October 2026 UTC
+
+The owner selected a readiness-gated public MVP on the existing Vercel production
+URL, with verified bonus point-value backfill required before launch. Keep the
+login-first product and existing host. This decision does not approve invented
+point values, irreversible provider migration or public release before the gates.
+
+The initial 24 October inspection confirmed main `c679192a`. Its post-merge run
+[39951489367](https://github.com/jeremytheva/pourfolio/actions/runs/39951489367)
+contains substantive passing Release gate job `120406768104` and Browser and
+accessibility job `120406768386`; connected rating, bonus and cellar jobs skipped.
+Authenticated Vercel metadata confirms production deployment
+`dpl_4DjMJaywW2bMkyWGNrrqGEEewXGz` READY at that exact SHA, with the intended
+alias `brew-buds-mobile-app-design-3577.vercel.app`. PR #674 records matching
+production health/readiness at 23 October 12:13 UTC. This review did not repeat
+those HTTP probes or connected writes. A clean anonymous probe was unavailable
+before receiving an HTTP response, so public access was then UNVERIFIED; the later hosted anonymous check below
+supersedes that initial NOT_RUN. Project protection metadata is not proof of
+visitor access.
+
+The source review also reproduced stale rating completion overwriting a
+concurrent deletion in an in-memory interleaving. Current transitions use
+unconditional updates. A separate observed-terminal retry can recreate children
+before rejecting the deleted parent. Source containment must not be represented
+as provider-certified distributed concurrency. #165 must prove conditional parent
+transitions and prevent late child writes through a certified atomic/fenced graph
+workflow. More reads, an unverified `expected_version` query or an expiring
+process/distributed lock do not establish those guarantees.
+
+Live issues #503, #449 and #577 are closed implementation work; their broader
+connected acceptance remains tracked by #165/#144/#154/#422 and this checklist.
+The newer guarded run still reports all four account fields present and second
+sign-in HTTP 401. Correct the supported second-account password securely rather
+than reopening adapter implementation or retrying unchanged credentials.
+
+
+### Anonymous production HTTP entry — 24 October 2026 23:00 UTC
+
+The plain anonymous probe in run
+[40140884697](https://github.com/jeremytheva/pourfolio/actions/runs/40140884697),
+job `121012212054`, passed all eight fixed URLs: login, five public documents,
+health and readiness returned same-origin HTTP 200 without credentials, cookies
+or bypass headers. Both API responses identified production
+`70c3a18982db276b89a5c8c7b26048d58f854e1a`; readiness reported provider OK.
+Authenticated metadata independently identifies the same READY production SHA.
+
+This closes only the HTTP_ENTRY_ONLY reachability/provenance check for that
+version. It supersedes the initial local NOT_RUN result, and shows why protection
+metadata alone could not determine visitor access. It does not approve draft
+legal/support content, prove rendered browser accessibility, establish session/
+owner writes or certify a later deployment. Final-head/source checks and any
+subsequent exact deployment require their own evidence. Public launch remains
+**NO-GO**.
+
+### Integrated source preparations — 24 October 2026 UTC
+
+PR #676 merged as `5c2bbd6b21f58222fd5546a4be226553925c7063`.
+Accepted head `bd3987b6e1369e643aa23f0a5c9b11ddc3a284a6` passed canonical
+Node 22, all browser/accessibility, CodeQL and Dependency Review in run
+[40140190510](https://github.com/jeremytheva/pourfolio/actions/runs/40140190510).
+Twelve added gateway cases cover observed-terminal replay/transition/hydration/
+recovery and continued pending/failed retry. Independent review found no material
+defect. Exact preview `dpl_3U2iy5gFJp29mdyyghAqzH3xTPXL` was READY;
+this is deployment metadata, not a new connected or runtime HTTP PASS.
+
+PR #677 merged as `70c3a18982db276b89a5c8c7b26048d58f854e1a`.
+The resulting production deployment `dpl_945KiC6zYa98V3wKzsbVD8JqHhcv` is READY at that
+exact SHA by authenticated metadata; no HTTP or owner-write PASS is inferred.
+Accepted head `d5fbe87a750e9340b14b6af26dc182f22ab32a1c` passed canonical
+Node 22, browser/accessibility, CodeQL and Dependency Review in run
+[40140477704](https://github.com/jeremytheva/pourfolio/actions/runs/40140477704).
+Eleven focused cases include exact decimal-cent conflicts, existing explicit
+value preservation, private-data exclusion, byte fingerprints and refusal of
+write flags. Independent review identified and verified the precision correction.
+Exact preview `dpl_3GT1yUSiMsiFnHx44ZxVmEApHMPJ` was READY.
+
+The new offline `scripts/audit-bonus-point-plan.js` accepts a supplied reviewed
+JSON plan and complete provider snapshot. Run `--mode preflight` before governed
+backfill, then `--mode verify` with a fresh post-write snapshot. It reports
+SOURCE_ONLY counts, static blockers and SHA-256 fingerprints; it does not fetch,
+write or independently certify the supplied source/reviewer/completeness assertions.
+It cannot prove private-row preservation across an external mutation without
+the separate before/after evidence. Authoritative allocation and actual backfill,
+provider atomicity/recovery, account isolation and public GO remain uncompleted.
+
+The existing validation workflow now has an opt-in `[public-access]` push
+diagnostic using plain anonymous GETs to the fixed production login, public
+documents and health/readiness URLs. It has no credentials, bypass headers,
+checkout or token permissions. It verifies same-origin HTML and matching
+production provenance/readiness without logging bodies. HTTP_ENTRY_ONLY does
+not certify legal content, browser accessibility, sessions or owner writes.
+
+### Fresh read-only provider inventory — 24 October 2026 UTC
+
+Run [40139643089](https://github.com/jeremytheva/pourfolio/actions/runs/40139643089)
+at source `e597f10d739c1c425f62b6ce1e195cc69a2065af` executed the existing
+protected read-only audits. No `--apply`, historical repair, schema change,
+account login or connected fixture write was enabled.
+
+- Rating job `121008518999` returned REVIEW_REQUIRED: 628 ratings examined,
+  one completed/deleted contradiction with one surviving score child. It exited
+  2 to retain that #165 finding; this is not a new source-validation failure.
+- Cellar job `121008519140` returned LEGACY_OWNERLESS_PRESENT: 967 rows,
+  966 ownerless and one existing owned-row readback OK. It exited 2; ownerless
+  rows remain excluded and no owners were assigned.
+- Bonus mapping job `121008519154` passed the singular `bonus_attribute_id`
+  contract for 1,738 mappings. Point inventory remains 83 attributes: 82 global,
+  one private, two explicit values and 81 missing/blank. The sole explicit
+  global value remains 0.50. Mapping PASS does not satisfy verified point backfill.
+- Source Release gate `121008519160` and Browser/accessibility
+  `121008519161` passed for this head. New commits still need their own
+  source/browser qualification; these read-only provider results do not qualify
+  sessions, concurrent writes, recovery or public launch.
+
+### Retained bounded source/runtime evidence — 23 October 2026 UTC
+
 [PR #674](https://github.com/jeremytheva/pourfolio/pull/674) rejects raw boolean,
 array and object rating values before numeric conversion, excludes malformed
 stored totals from completion, and marks unsupported historical components
@@ -50,8 +167,8 @@ accessibility cases, Dependency Review and CodeQL. Exact preview
 and provider OK at 23 October 12:05 UTC. This is bounded source/runtime evidence
 for RATING, PROVIDER and ACCESS; it does not certify connected rating writes,
 privacy or recovery. The final documentation head and resulting production
-deployment require their own verification in the same PR. Current production
-`593b6010` returned matching public health/readiness at 12:05 UTC. No provider
+deployment require their own verification in the same PR. The then-current production
+`593b6010` returned matching public health/readiness at 23 October 12:05 UTC. No provider
 data was changed; the second-account HTTP 401 and all retained launch gates
 remain open.
 
@@ -96,18 +213,18 @@ UTC interval, operator, reviewer, safe evidence reference and cleanup result.
 
 | Work / issue | Delivery owner | Retained evidence and remaining completion gate | Current result |
 | --- | --- | --- | --- |
-| <!-- launch-requirement:PF-LAUNCH-AUTH --> Authentication and rate limits | Launch hardening; ratings owns #577 session certification | Same-origin authentication, session and limiter controls are implemented. Certify sign-up/sign-in, refresh, expiry, sign-out and revoked/invalid sessions, plus enforced local/shared authentication limits against the intended hosting proxy boundary. | **PARTIAL; current connected lifecycle/rate-limit evidence pending** |
+| <!-- launch-requirement:PF-LAUNCH-AUTH --> Authentication and rate limits | Launch hardening; ratings owns remaining #144 session certification (#577 adapter closed) | Same-origin authentication, session and limiter controls are implemented. Certify sign-up/sign-in, refresh, expiry, sign-out and revoked/invalid sessions, plus enforced local/shared authentication limits against the intended hosting proxy boundary. | **PARTIAL; current connected lifecycle/rate-limit evidence pending** |
 | <!-- launch-requirement:PF-LAUNCH-PROVIDER --> Rating provider foundation — [#165](https://github.com/jeremytheva/pourfolio/issues/165) | Ratings | Application durability contracts exist. Prove provider migration/backfill, uniqueness, conditional updates, immutable rating dates, backup and isolated restore; complete the [migration evidence package](nocodebackend/rating-schema-migration-runbook.md) and obtain explicit approval before irreversible mutation. G04, G10–G12, G14–G16 and G28 remain open. | **BLOCKED at provider/approval boundary** |
 | <!-- launch-requirement:PF-LAUNCH-RATING --> Rating lifecycle and deletion — [#503](https://github.com/jeremytheva/pourfolio/issues/503), remaining integrity [#165](https://github.com/jeremytheva/pourfolio/issues/165) | Ratings | #503 is closed. A bounded production `36ce8ffe` browser tasting saved, reloaded and was deleted once; independent `31e41c3b` inspection proved its valid deleted tombstone, zero score/bonus children and preserved baseline. A separate, read-only normal-HTTPS rating-breakdown request from a verified distinct release account returned 404 without writes. These close only their scoped rows. The historical completed/deleted parent with one surviving score child remains a confirmed #165 recovery finding. Full retry/partial-write/concurrency and permission-negative certification remains open in the existing rating guide. | **PARTIAL: bounded lifecycle/read denial PASS; historical recovery and broader integrity evidence open** |
-| <!-- launch-requirement:PF-LAUNCH-BONUS --> Bonus attribute point integrity — [PR #651](https://github.com/jeremytheva/pourfolio/pull/651) | Ratings; catalogue release integration | Merged/deployed `4019c90e`: 896 canonical source tests, 15 gated skips, 155 browser/accessibility cases. Current-instance server persistence/reload and exact fixture cleanup passed: two creates, two deletes, no mutation retry, no fixture from that run remains. Production form rendered stored global 0.5/private 0.7, their 1.20 sum, six selections at 2.00 and the expected 3.07/5 preview; draft discarded. Inventory still has 81 absent values among 83 attributes; fallback 0.2 does not establish them. A later production `36ce8ffe` browser test saved/reloaded one tasting using 0.5 + 0.7 = 1.20 points (Bonus 1/2; 2.82/5), then deleted that exact tasting once and restored counts 4/2 with old links intact. Independent `31e41c3b` inspection confirmed a valid deleted tombstone, zero score/bonus children, and the preserved baseline. New custom-attribute browser creation, A/B denial and concurrency remain open; see the [certification guide](nocodebackend/rating-workflow-certification.md). | **PARTIAL: bounded persistence/cleanup and presentation PASS; missing data and connected acceptance remain** |
+| <!-- launch-requirement:PF-LAUNCH-BONUS --> Bonus attribute point integrity — [PR #651](https://github.com/jeremytheva/pourfolio/pull/651) | Ratings; catalogue release integration | Merged/deployed `4019c90e`: 896 canonical source tests, 15 gated skips, 155 browser/accessibility cases. Current-instance server persistence/reload and exact fixture cleanup passed: two creates, two deletes, no mutation retry, no fixture from that run remains. Production form rendered stored global 0.5/private 0.7, their 1.20 sum, six selections at 2.00 and the expected 3.07/5 preview; draft discarded. Inventory still has 81 absent values among 83 attributes; fallback 0.2 does not establish them. A later production `36ce8ffe` browser test saved/reloaded one tasting using 0.5 + 0.7 = 1.20 points (Bonus 1/2; 2.82/5), then deleted that exact tasting once and restored counts 4/2 with old links intact. Independent `31e41c3b` inspection confirmed a valid deleted tombstone, zero score/bonus children, and the preserved baseline. Owner decision on 24 October requires authoritative stored values for every launch-selectable descriptor. Refresh inventory; complete exact-ID/value reviewed backfill, dry run, bounded write/readback and historical-total preservation. A labelled 0.2 fallback is insufficient. New custom-attribute browser creation, A/B denial and concurrency remain open; see the [certification guide](nocodebackend/rating-workflow-certification.md). | **PARTIAL: bounded persistence/cleanup and presentation PASS; verified backfill and connected acceptance required** |
 | Backend certification — [#144](https://github.com/jeremytheva/pourfolio/issues/144) | Ratings, coordinated by catalogue | Read-only production checks exist. Complete the same-state provider baseline and [connected policy matrix](nocodebackend/connected-policy-certification.md), including negative ownership/session cases, response contracts, failure recovery and cleanup. Read-only passes do not close write/permission rows. | **PARTIAL** |
 | <!-- launch-requirement:PF-LAUNCH-CATALOGUE --> Catalogue certification — [#154](https://github.com/jeremytheva/pourfolio/issues/154) | Catalogue; producers owns producer fixes | Browse/search/details and relationship controls are integrated. Authenticated production `4019c90e` search, product statistics/history, producer profile and the previously failing unrated-beer filter passed without writes. Producer fix #664 and attribute averages #660 are integrated. Complete connected catalogue reconciliation, provider-failure recovery and applicable import/provenance decisions. | **PARTIAL** |
-| <!-- launch-requirement:PF-LAUNCH-CELLAR --> Private cellar CRUD — [#449](https://github.com/jeremytheva/pourfolio/issues/449) | Catalogue | #449 source work and PR #657 are merged. Current production `50a10454` is READY with matching health/readiness, 994 canonical tests (15 gated skips) and 155 browser/accessibility passes. At 21 October 22:28–22:30 UTC, the normal signed-in owner browser added one tagged item, fully reloaded, edited quantity/volume/container/gift/notes, fully reloaded and verified prices/date, searched by marker and deleted only that item once. The full post-delete reload restored the unchanged original one-item baseline. One add/edit/delete, no retry. This closes the bounded deployed owner HTTP/browser row; a separate provider-inventory audit was not run. Cellar A/B denial and the broader session matrix remain open; current second-account setup is unconfirmed. See the [policy record](nocodebackend/connected-policy-certification.md). Historical ownerless rows and gated catalogue/relationship capabilities are untouched. | **PARTIAL: deployed owner browser lifecycle/cleanup PASS; isolation and broader policy acceptance pending** |
+| <!-- launch-requirement:PF-LAUNCH-CELLAR --> Private cellar CRUD — [#449](https://github.com/jeremytheva/pourfolio/issues/449) | Catalogue | #449 source work and PR #657 are merged. Retained 21 October production `50a10454` was READY with matching health/readiness, 994 canonical tests (15 gated skips) and 155 browser/accessibility passes. At 21 October 22:28–22:30 UTC, the normal signed-in owner browser added one tagged item, fully reloaded, edited quantity/volume/container/gift/notes, fully reloaded and verified prices/date, searched by marker and deleted only that item once. The full post-delete reload restored the unchanged original one-item baseline. One add/edit/delete, no retry. This closes the bounded deployed owner HTTP/browser row; a separate provider-inventory audit was not run. Cellar A/B denial and the broader session matrix remain open; current second-account setup is unconfirmed. See the [policy record](nocodebackend/connected-policy-certification.md). Historical ownerless rows and gated catalogue/relationship capabilities are untouched. | **PARTIAL: deployed owner browser lifecycle/cleanup PASS; isolation and broader policy acceptance pending** |
 | <!-- launch-requirement:PF-LAUNCH-PRIVACY --> Persistent profiles and public history — [#422](https://github.com/jeremytheva/pourfolio/issues/422) | Ratings | Persistent profiles, stable `public_id` and opt-in public history are implemented. Certify provider uniqueness/default-private creation, persisted privacy changes and revocation, copied-link behaviour, cross-owner denial and recovery. Unsupported connected rows stay pending. | **PARTIAL** |
-| User/admin session certification — [#577](https://github.com/jeremytheva/pourfolio/issues/577) | Ratings | The adapter/protected runner is merged. One distinct-account rating read denial does not establish the full user/admin, expired/revoked or cellar/profile matrix. Configure `RELEASE_OTHER_EMAIL` securely in protected `staging-release`, matching the existing supported account password. Cellar/bonus manual workflows now require `auth_release_sha`. Session-based certification verifies exact auth provenance before login/write; the configured-contract-user bonus path remains provider-only evidence without session proof. Eight release-target tests and both workflows' five SHA pins passed source checks, with no connected rerun. Database Secret Keys are not login passwords. | **PARTIAL; remaining rows blocked at session-evidence boundary** |
+| User/admin session certification — [#577](https://github.com/jeremytheva/pourfolio/issues/577) | Ratings | The adapter/protected runner is merged. One distinct-account rating read denial does not establish the full user/admin, expired/revoked or cellar/profile matrix. #577 adapter implementation is closed; remaining certification is under #144/#422. All four account fields are present. Correct `RELEASE_OTHER_PASSWORD` securely in protected `staging-release` to match the approved `RELEASE_OTHER_EMAIL` account; do not retry unchanged HTTP 401 credentials. Cellar/bonus manual workflows now require `auth_release_sha`. Session-based certification verifies exact auth provenance before login/write; the configured-contract-user bonus path remains provider-only evidence without session proof. Eight release-target tests and both workflows' five SHA pins passed source checks, with no connected rerun. Database Secret Keys are not login passwords. | **PARTIAL; remaining rows blocked at session-evidence boundary** |
 | Current review corrections | Launch hardening (bounded shared-file claim); integration by catalogue | PR #642's header-trust, profile-readback and body-deadline corrections are integrated. PR #657's persisted gift, shared 10-second deadline, uncertain-outcome guidance and cleanup guards merged with passing canonical/browser/security checks. PR #647 accepted source `0ef8f4e4a190090343c2dc99925af457466e4ada` passed the same gates after resolving upgraded-axe catalogue/history names and card structure. PR #645 subsequently updated matched React/React DOM to 19.3.1; integrated source `63da5fae` passed 994 canonical tests (15 gated skips), all 155 browser cases and security checks. This is maintenance, not a demonstrated RSC vulnerability fix. Production identity/readiness is verified below; connected privacy/write acceptance remains open. | **Source corrections integrated and validated; connected acceptance open** |
 | <!-- launch-requirement:PF-LAUNCH-ACCESS --> Launch accessibility acceptance | Launch hardening; catalogue integrates | Accepted React-patch source `63da5fae73406b8310320d44a70436abbfdf9813` passed the upgraded Playwright/axe suite after catalogue/history accessible-name and card-structure corrections. Complete production-equivalent mobile/desktop and supported screen-reader manual acceptance for the final launch candidate. Source/browser passes do not establish those manual connected results. | **PARTIAL: source/browser PASS; final connected/manual acceptance pending** |
-| <!-- launch-requirement:PF-LAUNCH-RELEASE --> Exact-candidate release qualification | Catalogue integration authority | Production `50a104541b73e3eae9b9ac912c781b7e1d4cd274` is READY at `dpl_3kT9Ecf7LmN4MGrsNcpU4Jk3u5oT`; public health/readiness returned HTTP 200 with that exact SHA at 21 October 22:25 UTC. Existing canonical Node 22.23.3 run 39555891885 passed 994 tests, 15 gated skips and 155 browser/accessibility cases. The bounded deployed owner cellar browser lifecycle and exact cleanup passed at 22:28–22:30 UTC. Earlier catalogue/rating results retain their recorded candidates; historical parent/score recovery remains under #165. This evidence-only handoff changes no application source; verify its resulting deployment separately. Final distinct-account/session and operations qualification remain open. | **PARTIAL release evidence; final launch qualification NOT_RUN** |
+| <!-- launch-requirement:PF-LAUNCH-RELEASE --> Exact-candidate release qualification | Catalogue integration authority | Source preparations #676/#677 are merged at `70c3a189`; production `dpl_945KiC6zYa98V3wKzsbVD8JqHhcv` reports READY at that SHA. Their exact accepted heads passed canonical/browser/security checks. The original `c679192a` source/browser and 23 October HTTP evidence remains retained. Fresh read-only inventory still requires rating recovery, verified bonus values and ownerless-row exclusion. Anonymous HTTP entry passed at `70c3a189`; complete rendered-browser, distinct-account/privacy and operations acceptance for the final candidate. | **PARTIAL; final public release remains NO-GO** |
 | Publication and operations | Catalogue coordinates; `@jeremytheva` accountable for assigning named operators/reviewers | Reconcile current evidence against [publication](PUBLICATION_AND_RELEASE_EVIDENCE.md), [configuration](launch-configuration-evidence.md) and [operations](OPERATIONS_READINESS.md) procedures: reviewed public documents, support/alert ownership, safe logs, monitoring, credential handling, backup/restore and deployment rollback. No new remote verification is claimed here. | **PENDING current release evidence** |
 
 The earlier connected runs in `STATUS.md` passed 12 baseline cases and skipped
@@ -199,73 +316,64 @@ Repeat canonical validation and applicable browser/accessibility checks on the
 exact candidate; static containment evidence alone does not certify gameplay
 or deployed policy.
 
-## Launch execution plan — 18 October 2026
+## Launch execution plan — 24 October 2026 UTC
 
-### Reviewed position
-
-The recommended path is to finish the existing beer-first release, qualify one
-candidate and run a controlled pilot before public launch. Public launch remains
-**NO-GO**. New feature growth and a hosting/framework migration are not prerequisites.
-
-Live review baseline:
-`acd8633494066c66e2d882d7317009669397de39`. Production deployment
-`dpl_8t1QfZgSXtPCZ6bTdCdF2ypVypeQ` reports READY at that SHA. Public health
-and readiness returned HTTP 200 at approximately 10:33 UTC on 18 October with
-matching provenance, configured authentication/data/shared rate limiting and
-`dataProvider: ok`. This verifies configuration and a bounded read, not owner writes.
-
-Exact-main run [38752087946](https://github.com/jeremytheva/pourfolio/actions/runs/38752087946)
-executed canonical acceptance (job `116480799187`: 783 passed, 15 skipped,
-zero failed, plus composed contract/lint/audit/build/security checks) and 140
-browser/accessibility cases (job `116480799367`). Connected rating-integrity
-and bonus-mapping jobs skipped. Required connected rows remain open.
+This supersedes the 18 October next-action list. #503 deletion repair, #449
+strict cellar validation and #577 adapter implementation are already integrated;
+do not recreate them or rerun completed fixtures solely for documentation.
 
 ### Dependency-ordered delivery
 
 | Stage | Required work | Exit criterion |
 | --- | --- | --- |
-| A — Baseline | Confirm release/data scope, current claims and existing PR evidence. Reuse #503/#165/#144/#154/#449/#422/#577 and existing release documents. | One bounded queue and dated evidence baseline; no duplicate launch backlog. |
-| B — Rating/provider integrity | Correlate the #503 deletion failure, fix the verified operation, complete #165 provider authority/restore/approval prerequisites and certify the approved write path under #144. | Connected create, identical/lost-response retry, changed-payload rejection, partial-child recovery, concurrency, historical/current deletion and cleanup pass. |
-| C — Core journeys/data | Repair cellar validation under #449; certify sessions/rate limits, catalogue, score calculations, history/breakdowns, profile privacy/revocation and owner isolation using two distinct accounts. Reconcile data actually included at launch. | Every required connected journey passes with evidence and cleanup; no required skip or unresolved integrity/privacy defect. |
-| D — Publication/operations | Complete the existing publication/configuration/operations procedures, support contacts, named operators/backups, monitoring/redaction, provider restore and deployment rollback. Reconcile dated scope/prose. | Effective reviewed public documents, exercised support/alert routes and demonstrated compatible recovery. |
-| E — Candidate qualification | Freeze one SHA after fixes/public content integrate; execute canonical/browser/connected acceptance and verify actual production SHA, configuration, schema state and failure paths. | Dated release decision with complete exact-candidate evidence and no material unresolved reviews. |
-| F — Pilot/public release | After B–E pass, invite a small representative group and observe repeat use. Every pilot repair freezes a new candidate and returns to E for canonical, browser, connected and deployment requalification before resuming the pilot or recording GO. | Pilot acceptance and public release approval refer to the same final qualified candidate. |
+| A — Baseline | Reconcile exact main, deployed SHA, existing claims/PRs and live issue states. Preserve the existing requirement anchors and evidence authorities. | One current queue with implementation separated from provider/runtime acceptance. |
+| B — Integrity | Under #165, reconcile the actual provider schema/write contract, correct terminal retries, prove atomic/versioned parent and child workflow guarantees, and prepare the existing migration/recovery package. | Restorable consistent baseline, isolated restore and approved irreversible work; connected duplicate/lost-response retry, partial-child recovery, concurrency, deletion and cleanup pass. |
+| C — Journeys/data | Correct the second account's supported credentials; complete #144/#422 session, rate-limit, cellar/profile/bonus isolation and #154 catalogue certification. Require authoritative bonus backfill; preserve ownerless cellar exclusion. | Every required connected row passes; no missing launch-selectable point value, inferred owner, unverified required relationship or leftover fixture. |
+| D — Publication/operations | Finish reviewed public documents, monitored support, named operators/backups, safe logs/alerts, configuration, anonymous production access, restore and deployment rollback. | Reviewed effective content and exercised support/alert/recovery routes; production entry is public while application routes remain authenticated. |
+| E — Qualification | Freeze one candidate after fixes, public content and data work. Run Node 22 canonical, browser, connected and manual acceptance; verify exact deployment/configuration/provider state. | No material unresolved defect or required skip; dated reviewed evidence identifies the same candidate and cleanup outcome. |
+| F — Pilot/public | Observe 10–20 adult participants over 7–14 days after B–E pass. Prepare accurate onboarding, limitations and release notes; announce broadly only after GO. | All critical journeys exercised without unresolved P0/P1 defects, integrity/privacy failures or missing operational acceptance. |
 
-A can start immediately. B diagnosis, C reversible fixes/read-only preparation
-and D can progress independently where dependencies and verified claims permit.
-E waits for B–D. A pilot never waives integrity, privacy or recovery requirements.
-Recommended pilot observation is 10–20 invited adults over 7–14 days; this is not
-a promised launch date or a newly scheduled automation. Every pilot repair returns
-to E: freeze the new SHA, rerun canonical source, browser/accessibility and required
-connected acceptance, and verify the new deployment/configuration before resuming
-pilot acceptance or recording GO. Evidence for the pre-repair SHA cannot qualify
-the repaired candidate.
+B diagnosis/source containment, C safe preparation and D can proceed in parallel
+under verified bounded claims. Full C/E qualification waits for applicable
+provider guarantees. The pilot never waives integrity, privacy or recovery gates.
+Any repair creates a new candidate and returns to E before pilot/public acceptance.
+No fixed public launch date is promised.
 
-### First implementation slices
+### Verified bonus backfill
 
-1. **#503 — deletion diagnosis:** use an isolated disposable fixture reproducing
-   the affected historical/managed shape, or a separately authorised controlled
-   retest. Capture release SHA, safe request ID, failing provider stage/status
-   and before/after counts. Add a focused regression and fix the verified cause.
-   PR #638's diagnostic logging is not itself evidence that deletion works.
-2. **#449 — strict cellar validation:** the reviewed production sanitiser
-   `api/_lib/dataPolicy.js` reproducibly accepts `date_received: "2026-02-30"`
-   as `2026-03-02`, numeric date `0` as `1970-01-01`,
-   `quantity: true` as `1`, and `gift: "false"` as `1`.
-   Reject impossible dates and unsupported JSON types before provider I/O while
-   preserving accepted valid-zero, optional-null and numeric-form semantics.
-   Cover both creates and partial updates.
-3. **#165/#144 — provider evidence:** #503 records workflow columns as deployed.
-   Establish actual fields and guarantees from a fresh consistent baseline;
-   do not repeat deployed changes blindly or equate column presence with
-   uniqueness/conditional-update/backfill/recovery certification. Complete the
-   existing provider-supported mechanism, isolated restore and explicit
-   irreversible-change approval package before the remaining provider work.
-   Keep the public reconciliation boundary unavailable until its governed gate.
-4. **#422/#577 — privacy/session certification:** supported login credentials
-   and two distinct sessions must prove default-private creation, uniqueness,
-   stable public identity, persisted edits/opt-in, copied links, revocation and
-   cross-owner denial. Database Secret Keys are not login passwords.
+Refresh the retained 83-attribute/81-missing inventory against the current
+instance. Obtain a source-backed exact-ID/descriptor/value allocation and
+independent review; neither the old spreadsheet reference nor the 0.2 fallback
+establishes absent values. Use a read-only complete plan preflight, immutable
+snapshot/source fingerprints, exact permitted fill counts and a recovery path.
+Preserve existing explicit values, private attributes and historical rating
+totals. Apply only when the actual provider write mechanism and bounded
+concurrency/recovery controls are evidenced. Verify exact readback and zero
+missing values in the launch-selectable set. Source-tool or mapping-audit PASS
+alone cannot close PF-LAUNCH-BONUS. Without authoritative values, remain NO-GO.
+
+### External inputs and release constraints
+
+The repository operator must securely correct the second account's password in
+protected `staging-release`; passwords and database secrets do not belong in
+issues/chat. Use current exact `auth_release_sha` for session-backed runs.
+Provider-supported migration and isolated recovery evidence remain prerequisites
+for irreversible work. Named privacy/legal, technical, support and backup owners
+must accept their roles and exercise private escalation routes before GO.
+
+Use the existing Vercel production URL for launch. Verify public login and policy
+pages with a clean browser without authenticated share links or bypass headers.
+Keep previews protected and application routes login-required. BonoHost,
+guest catalogue browsing, broader social expansion and Brew Done It enablement
+are not launch dependencies. Self-service account export/deletion remains
+future-phase; required privacy obligations need an evidenced support process.
+
+After qualified promotion, run direct-route, auth, catalogue, rating/history,
+cellar/profile and health/readiness smoke checks against the deployed SHA.
+Observe all six operations indicators for at least 60 minutes after the final
+successful smoke check. Roll back immediately on ownership/privacy failure,
+inconsistent rating data, failed critical journey, incompatible schema/API or
+unrouteable critical alert. Record retain/rollback and reviewer concurrence.
 
 ### Required journey coverage
 

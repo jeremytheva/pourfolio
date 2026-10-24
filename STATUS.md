@@ -3,26 +3,30 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Obsolete privacy prototype retired; second-account isolation waiting"
+stage: "Launch source preparations integrated; external provider, data and operations gates open"
 gate: Release
 execution_state: BLOCKED
 current_work:
-  objective: "Resume bounded cellar isolation only after the second release account's supported login credentials are corrected securely."
-  issue: 577
+  objective: "Obtain authoritative bonus allocations and supported second-account access; complete the existing #165 provider/recovery package before final release qualification."
+  issue: 144
   pr: null
   branch: "main"
 next_actions:
-  - "Correct RELEASE_OTHER_PASSWORD in protected staging-release to match the approved RELEASE_OTHER_EMAIL account; confirm that account can sign in to the current instance. The owner account authenticated successfully. Then run one guarded two-account certification using the fresh exact production SHA."
-  - "Use the required auth_release_sha input for future cellar/bonus manual runs; verify the exact auth deployment before login or mutation. Do not repeat the completed one-GET rating denial solely for documentation."
-  - "Resume the existing #165 package only after tenant/version-specific provider mechanism, backup and isolated restore evidence is available; retain approval before irreversible migration or historical repair."
-  - "Complete the remaining bonus, profile, catalogue and manual operations acceptance with bounded evidence; preserve 81 missing bonus values and 966 ownerless cellar rows until governed provenance decisions exist."
+  - "Terminal-rating containment and the read-only point-plan auditor are integrated in #676/#677; retain the distributed concurrency boundary under #165 and use the existing evidence package."
+  - "Obtain authoritative exact-ID bonus values and complete reviewed bounded backfill with post-write verification; labelled defaults do not satisfy the selected launch gate."
+  - "Correct RELEASE_OTHER_PASSWORD securely, then complete distinct-account session/cellar/profile certification with the current exact auth_release_sha; no unchanged HTTP 401 retry."
+  - "Complete #165 provider mechanism, consistent snapshot and isolated restore evidence before irreversible migration or historical repair; then close #144/#154 acceptance."
+  - "Complete publication, monitored support, named operations owners, anonymous production access and final exact-candidate release qualification."
 blockers:
   - scope: rating_idempotency_provider_migration
     issue: 165
-    detail: "Durable idempotency requires irreversible provider schema/constraint and existing-data migration work. Provider-supported migration/backfill, backup/restore proof and the governed approval package are required before mutation."
-  - scope: user_admin_connected_session_certification
-    issue: 577
-    detail: "Run 39732649601 authenticates and signs out the owner, then receives HTTP 401 for the other account's sign-in. All four secrets are present. Correct the second account's supported login credentials securely; no provider data was created, updated or deleted."
+    detail: "Unconditional parent transitions and late child writes lack certified distributed integrity. Provider uniqueness/atomic workflow, consistent backup, isolated restore and approval for irreversible changes remain required."
+  - scope: connected_backend_and_bonus_values
+    issue: 144
+    detail: "The second account sign-in returns HTTP 401 with all four fields present. Authoritative bonus allocations, governed backfill, remaining connected policy and recovery evidence are unavailable; #577 implementation is closed."
+  - scope: persistent_profile_privacy
+    issue: 422
+    detail: "Provider uniqueness/default-private creation, persisted opt-in/revocation, copied links and cross-owner denial still need connected certification."
 requires_owner_decision: false
 owner_decision:
   question: null
@@ -33,29 +37,156 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "593b6010a60ca4a09e83102b0a958a56a84d09d8"
+  observed_main_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
   current_candidate_commit: null
-  latest_validated_commit: "a85de85d07181df2a0fad51e9e5eeb775b29dadd"
-  latest_deployed_commit: "593b6010a60ca4a09e83102b0a958a56a84d09d8"
-  latest_runtime_verified_commit: "593b6010a60ca4a09e83102b0a958a56a84d09d8"
-  latest_browser_verified_commit: "a85de85d07181df2a0fad51e9e5eeb775b29dadd"
+  latest_validated_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
+  latest_deployed_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
+  latest_runtime_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
+  latest_browser_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
 validation:
   governance: PASS
   lint: PASS
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: PASS
+  ci: PENDING
   runtime: VERIFIED
-last_verified_commit: "a85de85d07181df2a0fad51e9e5eeb775b29dadd"
-last_updated: "2026-10-23T12:06:00Z"
+last_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
+last_updated: "2026-10-24T23:03:59Z"
+
 ---
 
 # STATUS.md
 
-Last materially reviewed: 23 October 2026 (Australia/Sydney)
+Last materially reviewed: 24 October 2026 UTC
 
 ## AI execution gate
+
+### Adopted public MVP launch preparation — 24 October 2026 UTC
+
+The owner approved the reviewed readiness-gated public MVP on the existing Vercel
+URL and selected verified bonus point-value backfill as a prerequisite. Keep the
+current login-first scope. Do not publish a fixed date, infer missing values or
+assign ownerless cellar rows.
+
+The initial 24 October baseline was `c679192abb1de594d9268a4b85751db93cf6e768`;
+source preparations #676/#677 have since integrated as `70c3a189`.
+Post-merge run [39951489367](https://github.com/jeremytheva/pourfolio/actions/runs/39951489367)
+has substantive passing Release gate job `120406768104` and Browser and
+accessibility job `120406768386`; connected rating/bonus/cellar jobs skipped.
+Authenticated Vercel metadata confirms production
+`dpl_4DjMJaywW2bMkyWGNrrqGEEewXGz` READY at that SHA. PR #674 retains
+23 October 12:13 UTC exact production health/readiness. The frontmatter's evidence fields now identify the integrated `70c3a189`
+source/runtime baseline, with exact source and bounded HTTP evidence below;
+they do not infer final preparation-branch or owner-write qualification.
+New source/documentation changes need their own exact-head canonical/browser
+results retained in their PRs. Launch reconciliation is PR #675; its first
+hosted check caught a fractional-second timestamp outside the governed status
+format. The timestamp is corrected without weakening the guard; the replacement
+head requires a complete fresh run. No connected write or fresh HTTP pass is inferred.
+
+The review reproduced a stale completion overwriting concurrent deletion using
+the unchanged transition function and in-memory provider snapshots. It also
+reproduced observed-terminal retry child creation before an eventual error.
+Implement the latter containment independently; #165 still requires certified
+conditional parent transitions plus prevention of in-flight late child writes.
+The existing compare-and-set method, sequential readback and expiring locks do
+not establish distributed graph integrity.
+
+Closed #503/#449/#577 implementation must not be recreated. Remaining connected
+acceptance belongs to #165/#144/#154/#422. The current second-account boundary is
+run 39732649601: all four fields present, owner lifecycle passed, other sign-in
+HTTP 401, zero writes. Authoritative bonus allocation was not found in the
+repository or targeted source search; no fallback is converted into stored truth.
+
+The local filesystem is read-only, including /tmp, so source work uses bounded
+GitHub branches and the repository's hosted Node 22 executor. An anonymous HTTP
+probe was unavailable before receiving a response; public access was initially
+UNVERIFIED, distinct from READY deployment metadata; the later hosted result
+above now verifies HTTP entry at exact production `70c3a189`. No source change qualifies
+privacy/legal, monitoring, support ownership, restore or public launch.
+Public launch remains **NO-GO**.
+
+
+### Anonymous production HTTP entry — 24 October 2026 23:00 UTC
+
+The plain anonymous probe in run
+[40140884697](https://github.com/jeremytheva/pourfolio/actions/runs/40140884697),
+job `121012212054`, passed all eight fixed URLs: login, five public documents,
+health and readiness returned same-origin HTTP 200 without credentials, cookies
+or bypass headers. Both API responses identified production
+`70c3a18982db276b89a5c8c7b26048d58f854e1a`; readiness reported provider OK.
+Authenticated metadata independently identifies the same READY production SHA.
+
+This closes only the HTTP_ENTRY_ONLY reachability/provenance check for that
+version. It supersedes the initial local NOT_RUN result, and shows why protection
+metadata alone could not determine visitor access. It does not approve draft
+legal/support content, prove rendered browser accessibility, establish session/
+owner writes or certify a later deployment. Final-head/source checks and any
+subsequent exact deployment require their own evidence. Public launch remains
+**NO-GO**.
+
+### Integrated source preparations — 24 October 2026 UTC
+
+PR #676 merged as `5c2bbd6b21f58222fd5546a4be226553925c7063`.
+Accepted head `bd3987b6e1369e643aa23f0a5c9b11ddc3a284a6` passed canonical
+Node 22, all browser/accessibility, CodeQL and Dependency Review in run
+[40140190510](https://github.com/jeremytheva/pourfolio/actions/runs/40140190510).
+Twelve added gateway cases cover observed-terminal replay/transition/hydration/
+recovery and continued pending/failed retry. Independent review found no material
+defect. Exact preview `dpl_3U2iy5gFJp29mdyyghAqzH3xTPXL` was READY;
+this is deployment metadata, not a new connected or runtime HTTP PASS.
+
+PR #677 merged as `70c3a18982db276b89a5c8c7b26048d58f854e1a`.
+Resulting production deployment `dpl_945KiC6zYa98V3wKzsbVD8JqHhcv` is READY at that SHA
+by authenticated metadata. Post-merge canonical job `121011699590` and browser job `121011699720`
+both passed in run 40140717106. The anonymous HTTP_ENTRY_ONLY evidence above
+verifies the same runtime SHA without qualifying owner writes or recovery.
+Accepted head `d5fbe87a750e9340b14b6af26dc182f22ab32a1c` passed canonical
+Node 22, browser/accessibility, CodeQL and Dependency Review in run
+[40140477704](https://github.com/jeremytheva/pourfolio/actions/runs/40140477704).
+Eleven focused cases include exact decimal-cent conflicts, existing explicit
+value preservation, private-data exclusion, byte fingerprints and refusal of
+write flags. Independent review identified and verified the precision correction.
+Exact preview `dpl_3GT1yUSiMsiFnHx44ZxVmEApHMPJ` was READY.
+
+The new offline `scripts/audit-bonus-point-plan.js` accepts a supplied reviewed
+JSON plan and complete provider snapshot. Run `--mode preflight` before governed
+backfill, then `--mode verify` with a fresh post-write snapshot. It reports
+SOURCE_ONLY counts, static blockers and SHA-256 fingerprints; it does not fetch,
+write or independently certify the supplied source/reviewer/completeness assertions.
+It cannot prove private-row preservation across an external mutation without
+the separate before/after evidence. Authoritative allocation and actual backfill,
+provider atomicity/recovery, account isolation and public GO remain uncompleted.
+
+The existing validation workflow now has an opt-in `[public-access]` push
+diagnostic using plain anonymous GETs to the fixed production login, public
+documents and health/readiness URLs. It has no credentials, bypass headers,
+checkout or token permissions. It verifies same-origin HTML and matching
+production provenance/readiness without logging bodies. HTTP_ENTRY_ONLY does
+not certify legal content, browser accessibility, sessions or owner writes.
+
+### Fresh read-only provider inventory — 24 October 2026 UTC
+
+Run [40139643089](https://github.com/jeremytheva/pourfolio/actions/runs/40139643089)
+at source `e597f10d739c1c425f62b6ce1e195cc69a2065af` executed the existing
+protected read-only audits. No `--apply`, historical repair, schema change,
+account login or connected fixture write was enabled.
+
+- Rating job `121008518999` returned REVIEW_REQUIRED: 628 ratings examined,
+  one completed/deleted contradiction with one surviving score child. It exited
+  2 to retain that #165 finding; this is not a new source-validation failure.
+- Cellar job `121008519140` returned LEGACY_OWNERLESS_PRESENT: 967 rows,
+  966 ownerless and one existing owned-row readback OK. It exited 2; ownerless
+  rows remain excluded and no owners were assigned.
+- Bonus mapping job `121008519154` passed the singular `bonus_attribute_id`
+  contract for 1,738 mappings. Point inventory remains 83 attributes: 82 global,
+  one private, two explicit values and 81 missing/blank. The sole explicit
+  global value remains 0.50. Mapping PASS does not satisfy verified point backfill.
+- Source Release gate `121008519160` and Browser/accessibility
+  `121008519161` passed for this head. New commits still need their own
+  source/browser qualification; these read-only provider results do not qualify
+  sessions, concurrent writes, recovery or public launch.
 
 ### Rating numeric-validation correction — 23 October 2026 (Australia/Sydney)
 
@@ -1348,10 +1479,13 @@ not the immutable older deployment URL visible in the screenshots. Follow
 
 Continue dependency-correct work from current repository and live GitHub evidence.
 The source/harness implementation PRs #628/#629 and repair PR #631 are merged;
-the later manual deletion remains failed. Dependency PRs #591 and #572 are
+the older failed manual deletion is retained history; subsequent bounded new-rating
+create/reload/delete and independent tombstone/child cleanup checks passed. The
+remaining historical contradiction/recovery and distributed concurrency remain
+under #165. Dependency PRs #591 and #572 are
 merged; the bounded #429 legacy settings slice is source/browser-validated,
 with exact final-head integration evidence retained in PR #634. This handoff reconciles
-completed integration while retaining the pending connected rows. Scoped blockers #165 and #577
+completed integration while retaining the pending connected rows. Scoped blockers #165/#144/#422
 do not prevent independent work. Do not enable durable rating reconciliation
 before the governed #165 provider migration and certification.
 
@@ -1388,23 +1522,31 @@ Detailed implementation history belongs in commits, PRs and `docs/RELEASE_TRACKI
 
 | Issue | Remaining boundary | Safe continuation |
 |---|---|---|
-| #165 | Provider-supported migration/backfill, uniqueness, backup/restore and exact approval package | Reversible evidence preparation only; no irreversible schema mutation or reconciliation enablement |
-| #577 | Distinct supported account sessions and protected certification execution | Reuse verified owner sign-in and establish second-account configuration; bounded current-instance fixtures remain authorised; never reinterpret database keys as passwords |
+| #165 | Certified parent/child concurrency, uniqueness, provider migration/recovery and historical contradictory rating | Source containment and evidence preparation; no irreversible mutation or reconciliation enablement before the existing gate |
+| #144 | Second-account supported login, remaining backend isolation and authoritative bonus values/backfill | Correct credentials securely; bounded read-only point-plan preparation and existing guarded certification after prerequisites |
+| #422 | Persistent profile/privacy and distinct-account acceptance | Reuse merged source; certify default-private, persistence, opt-in/revocation, copied links and owner denial |
 
-Neither scoped blocker prevents independent launch work. No owner decision is currently required.
+These scoped blockers do not prevent independent launch work. The product
+choices are settled; external credentials, authoritative values, provider
+recovery and named specialist/operations evidence remain required.
 
 ## Next dependency-correct work
 
-1. Continue existing #657: reconcile the cellar candidate with current main,
-   verify create/edit/delete acknowledgement and exact cleanup, then qualify
-   the exact runtime and supported owner-isolation checks.
-2. Reuse supported release-account sessions for #577/#422; establish a distinct
-   second account without interpreting database keys as passwords.
-3. Complete remaining bonus HTTP/browser/rating-use and ownership checks;
-   retain the 81 absent values as a data-evidence gap.
-4. Prepare the existing #165 migration/repair package and #449 historical
-   cellar provenance decision; do not mutate historical ownership or the
-   contradictory rating without governed recovery evidence and approval.
+1. Obtain the exact-ID/value source and reviewed complete point plan, then
+   prepare bounded backfill/recovery and verify persisted values with the
+   integrated read-only auditor. Preserve explicit/private values and all
+   historical rating totals.
+2. Correct the protected second-account password before one guarded distinct-
+   account session/cellar/profile/bonus run with current auth provenance.
+3. Complete the #165 provider/restore/approval package and historical rating
+   recovery; certify the accepted actual write contract under #144, then #154.
+4. Complete effective public documents/support, named alert/recovery owners,
+   anonymous production entry, manual accessibility and exact-candidate pilot/GO
+   acceptance. Keep public launch NO-GO until every required gate passes.
+
+This is the intended main integration handoff for PR #675. The source PRs
+#676/#677 are merged; PR #675 retains the final workflow/documentation head's
+canonical/browser/anonymous-entry results and resulting deployment identity.
 
 ## Deferred capability boundaries
 
@@ -1421,7 +1563,7 @@ The available repository tools cannot attach/detach ChatGPT Project sources. The
 
 ## Validation limitations
 
-Source and production read evidence do not by themselves prove every provider write/permission boundary. #422 must retain unsupported connected rows as pending until they are exercised against the provider with safe cleanup. #165 remains separately blocked at an irreversible schema migration boundary, and #577 remains limited by the available account-session credential contract.
+Source and production read evidence do not by themselves prove every provider write/permission boundary. #422 must retain unsupported connected rows as pending until they are exercised against the provider with safe cleanup. #165 remains separately blocked at an irreversible schema migration boundary, and #577 implementation is closed; remaining session acceptance is tracked under #144 and limited by the supported second-account credentials.
 
 
 

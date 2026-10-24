@@ -1,6 +1,6 @@
 # ROADMAP.md
 
-**Last materially reviewed:** 22 September 2026
+**Last materially reviewed:** 24 October 2026 UTC
 
 ## Current milestone
 
@@ -67,7 +67,10 @@ After the applicable backend/provider prerequisites are available, complete conn
 
 ### #449 — user beer add/edit and cellar alignment
 
-Continue provider-independent portions while #165 is blocked. The workflow must remain proposal/governance based where canonical catalogue mutation is not yet authorized. Do not permit arbitrary client-authoritative producer/style relationships or fabricate catalogue identity.
+#449 source work and bounded owner cellar lifecycle acceptance are complete and
+the implementation issue is closed. Certify remaining provider-gated acceptance
+under #144/#154 while #165 is blocked. The workflow must remain
+proposal/governance based where canonical catalogue mutation is not yet authorised. Do not permit arbitrary client-authoritative producer/style relationships or fabricate catalogue identity.
 
 ### #429 — targeted cleanup
 
@@ -99,6 +102,21 @@ That merge does **not** authorize production enablement. Until the required prov
 
 The next Brew Done It work is provider schema/permission certification, connected two-account/two-device privacy/recovery evidence, then a separate enablement change. It is not a beer-first launch dependency.
 
+## Verified bonus values and launch-data boundary
+
+The owner selected verified bonus point-value backfill as a public-launch
+prerequisite on 24 October 2026 UTC. Refresh the live inventory, obtain an
+authoritative exact-ID/value allocation and independent review, and use a bounded
+dry run, exact change counts, recovery evidence and post-write verification.
+Do not turn the existing 0.2 fallback into invented source data or recalculate
+historical ratings. Missing authoritative values keep this gate open.
+
+Retain ownerless historical cellar rows outside owner-scoped launch results;
+do not infer owners or require a bulk historical import to launch the verified
+current catalogue. Existing source corrections and completed owner lifecycles
+are not pending implementation. Current acceptance and evidence remain in
+`STATUS.md` and the existing launch checklist.
+
 ## Immediate dependency-correct path
 
 ```text
@@ -112,7 +130,7 @@ CONNECTED PROVIDER PATH
 exact-candidate launch verification
 
 INDEPENDENT LAUNCH WORK
-#449 safe provider-independent workflow work
+#144/#154 remaining cellar/proposal capability certification
 #429 targeted unreachable-code cleanup
 reliability / accessibility / truthful-data fixes
 
@@ -135,7 +153,7 @@ GOVERNANCE (NON-BLOCKING UNTIL RELEASE)
 
 When the connected provider path is sufficiently complete:
 
-1. identify the exact release-candidate SHA;
+1. complete verified bonus values and identify the exact release-candidate SHA;
 2. run canonical project-owned validation and inspect material diagnostics;
 3. verify actual repository governance against the release policy;
 4. verify production environment configuration without exposing secrets;
