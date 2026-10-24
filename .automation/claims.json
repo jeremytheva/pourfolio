@@ -7,17 +7,24 @@
       "issue": 144,
       "pr": 675,
       "surfaces": [
+        "branch:docs/public-mvp-launch-readiness-20261024",
+        "branch:fix/bonus-point-plan-audit-20261024",
+        "branch:fix/reject-terminal-rating-retries-20261024",
         "file:.project-master/launch-readiness.json",
+        "file:PROJECT.md",
         "file:ROADMAP.md",
         "file:STATUS.md",
+        "file:api/__tests__/ratingDataProxy.test.js",
+        "file:api/rating-data-proxy.js",
         "file:docs/LAUNCH_READINESS.md",
-        "repo:integration",
-        "branch:docs/public-mvp-launch-readiness-20261024",
-        "file:PROJECT.md",
-        "file:docs/evidence/github-issue-state.json"
+        "file:docs/evidence/github-issue-state.json",
+        "file:docs/nocodebackend/rating-workflow-certification.md",
+        "file:scripts/__tests__/bonusPointPlanAudit.test.js",
+        "file:scripts/audit-bonus-point-plan.js",
+        "repo:integration"
       ],
       "acquiredAt": "2026-10-24T22:23:14.131Z",
-      "expiresAt": "2026-10-24T23:14:33.032Z"
+      "expiresAt": "2026-10-24T23:16:24.462Z"
     }
   }
 }
