@@ -21,10 +21,11 @@
         "file:docs/nocodebackend/rating-workflow-certification.md",
         "file:scripts/__tests__/bonusPointPlanAudit.test.js",
         "file:scripts/audit-bonus-point-plan.js",
-        "repo:integration"
+        "repo:integration",
+        "file:.github/workflows/pull-request-validation.yml"
       ],
       "acquiredAt": "2026-10-24T22:23:14.131Z",
-      "expiresAt": "2026-10-24T23:16:24.462Z"
+      "expiresAt": "2026-10-24T23:26:34.770Z"
     }
   }
 }
