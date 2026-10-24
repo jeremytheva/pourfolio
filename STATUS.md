@@ -1396,10 +1396,13 @@ not the immutable older deployment URL visible in the screenshots. Follow
 
 Continue dependency-correct work from current repository and live GitHub evidence.
 The source/harness implementation PRs #628/#629 and repair PR #631 are merged;
-the later manual deletion remains failed. Dependency PRs #591 and #572 are
+the older failed manual deletion is retained history; subsequent bounded new-rating
+create/reload/delete and independent tombstone/child cleanup checks passed. The
+remaining historical contradiction/recovery and distributed concurrency remain
+under #165. Dependency PRs #591 and #572 are
 merged; the bounded #429 legacy settings slice is source/browser-validated,
 with exact final-head integration evidence retained in PR #634. This handoff reconciles
-completed integration while retaining the pending connected rows. Scoped blockers #165 and #577
+completed integration while retaining the pending connected rows. Scoped blockers #165/#144/#422
 do not prevent independent work. Do not enable durable rating reconciliation
 before the governed #165 provider migration and certification.
 

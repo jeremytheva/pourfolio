@@ -67,7 +67,10 @@ After the applicable backend/provider prerequisites are available, complete conn
 
 ### #449 — user beer add/edit and cellar alignment
 
-Continue provider-independent portions while #165 is blocked. The workflow must remain proposal/governance based where canonical catalogue mutation is not yet authorized. Do not permit arbitrary client-authoritative producer/style relationships or fabricate catalogue identity.
+#449 source work and bounded owner cellar lifecycle acceptance are complete and
+the implementation issue is closed. Certify remaining provider-gated acceptance
+under #144/#154 while #165 is blocked. The workflow must remain
+proposal/governance based where canonical catalogue mutation is not yet authorised. Do not permit arbitrary client-authoritative producer/style relationships or fabricate catalogue identity.
 
 ### #429 — targeted cleanup
 
@@ -127,7 +130,7 @@ CONNECTED PROVIDER PATH
 exact-candidate launch verification
 
 INDEPENDENT LAUNCH WORK
-#449 safe provider-independent workflow work
+#144/#154 remaining cellar/proposal capability certification
 #429 targeted unreachable-code cleanup
 reliability / accessibility / truthful-data fixes
 
