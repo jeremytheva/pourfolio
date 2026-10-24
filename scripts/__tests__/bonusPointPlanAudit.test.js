@@ -142,3 +142,20 @@ test('CLI reads only two supplied files and refuses apply or unknown flags befor
     assert.equal(reads.length, before)
   }
 })
+
+test('distinct exact decimal amounts never compare equal through Number rounding', () => {
+  for (const [stored, proposed] of [
+    ['90071992547409.90', '90071992547409.91'],
+    ['70368744177664.01', '70368744177664.02']
+  ]) {
+    const input = fixture()
+    input.snapshot.attributes[0].point_value = stored
+    input.plan.attributes[0].point_value = proposed
+    const result = audit(input)
+    assert.equal(result.status, 'BLOCKED')
+    assert.ok(result.blockers.includes('EXPLICIT_POINT_VALUE_CONFLICT'))
+  }
+  const oversized = fixture()
+  oversized.plan.attributes[1].point_value = '90071992547409.92'
+  assert.ok(audit(oversized).blockers.includes('PLAN_POINT_VALUE_INVALID'))
+})

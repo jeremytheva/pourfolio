@@ -18,9 +18,11 @@ const idOf = (value) => {
 }
 const missing = (value) => value === null || value === undefined || (typeof value === 'string' && value.trim() === '')
 const pointOf = (value) => {
-  if (!['number', 'string'].includes(typeof value) || !/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(String(value))) return null
-  const number = Number(value)
-  return Number.isFinite(number) && Number.isSafeInteger(Math.round(number * 100)) ? number : null
+  if (!['number', 'string'].includes(typeof value)) return null
+  const match = /^(0|[1-9]\d*)(?:\.(\d{1,2}))?$/.exec(String(value))
+  if (!match) return null
+  const cents = BigInt(match[1]) * 100n + BigInt((match[2] || '').padEnd(2, '0'))
+  return cents <= BigInt(Number.MAX_SAFE_INTEGER) ? cents : null
 }
 const isRecord = (value) => value !== null && typeof value === 'object' && !Array.isArray(value)
 const digest = (bytes) => createHash('sha256').update(bytes).digest('hex')
