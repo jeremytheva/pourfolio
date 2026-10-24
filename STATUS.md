@@ -41,8 +41,8 @@ evidence:
   current_candidate_commit: null
   latest_validated_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
   latest_deployed_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
-  latest_runtime_verified_commit: "c679192abb1de594d9268a4b85751db93cf6e768"
-  latest_browser_verified_commit: "d5fbe87a750e9340b14b6af26dc182f22ab32a1c"
+  latest_runtime_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
+  latest_browser_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
 validation:
   governance: PASS
   lint: PASS
@@ -50,9 +50,9 @@ validation:
   tests: PASS
   build: PASS
   ci: PENDING
-  runtime: UNVERIFIED
-last_verified_commit: "d5fbe87a750e9340b14b6af26dc182f22ab32a1c"
-last_updated: "2026-10-24T22:58:42Z"
+  runtime: VERIFIED
+last_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
+last_updated: "2026-10-24T23:03:59Z"
 
 ---
 
@@ -76,8 +76,9 @@ has substantive passing Release gate job `120406768104` and Browser and
 accessibility job `120406768386`; connected rating/bonus/cellar jobs skipped.
 Authenticated Vercel metadata confirms production
 `dpl_4DjMJaywW2bMkyWGNrrqGEEewXGz` READY at that SHA. PR #674 retains
-23 October 12:13 UTC exact production health/readiness. The frontmatter's PASS/
-VERIFIED fields describe this explicit baseline, not the new preparation branch.
+23 October 12:13 UTC exact production health/readiness. The frontmatter's evidence fields now identify the integrated `70c3a189`
+source/runtime baseline, with exact source and bounded HTTP evidence below;
+they do not infer final preparation-branch or owner-write qualification.
 New source/documentation changes need their own exact-head canonical/browser
 results retained in their PRs. Launch reconciliation is PR #675; its first
 hosted check caught a fractional-second timestamp outside the governed status
@@ -100,11 +101,30 @@ repository or targeted source search; no fallback is converted into stored truth
 
 The local filesystem is read-only, including /tmp, so source work uses bounded
 GitHub branches and the repository's hosted Node 22 executor. An anonymous HTTP
-probe was unavailable before receiving a response; public access remains
-UNVERIFIED, distinct from READY deployment metadata. No source change qualifies
+probe was unavailable before receiving a response; public access was initially
+UNVERIFIED, distinct from READY deployment metadata; the later hosted result
+above now verifies HTTP entry at exact production `70c3a189`. No source change qualifies
 privacy/legal, monitoring, support ownership, restore or public launch.
 Public launch remains **NO-GO**.
 
+
+### Anonymous production HTTP entry — 24 October 2026 23:00 UTC
+
+The plain anonymous probe in run
+[40140884697](https://github.com/jeremytheva/pourfolio/actions/runs/40140884697),
+job `121012212054`, passed all eight fixed URLs: login, five public documents,
+health and readiness returned same-origin HTTP 200 without credentials, cookies
+or bypass headers. Both API responses identified production
+`70c3a18982db276b89a5c8c7b26048d58f854e1a`; readiness reported provider OK.
+Authenticated metadata independently identifies the same READY production SHA.
+
+This closes only the HTTP_ENTRY_ONLY reachability/provenance check for that
+version. It supersedes the initial local NOT_RUN result, and shows why protection
+metadata alone could not determine visitor access. It does not approve draft
+legal/support content, prove rendered browser accessibility, establish session/
+owner writes or certify a later deployment. Final-head/source checks and any
+subsequent exact deployment require their own evidence. Public launch remains
+**NO-GO**.
 
 ### Integrated source preparations — 24 October 2026 UTC
 
@@ -119,9 +139,9 @@ this is deployment metadata, not a new connected or runtime HTTP PASS.
 
 PR #677 merged as `70c3a18982db276b89a5c8c7b26048d58f854e1a`.
 Resulting production deployment `dpl_945KiC6zYa98V3wKzsbVD8JqHhcv` is READY at that SHA
-by authenticated metadata. Post-merge canonical job `121011699590` passed;
-browser job `121011699720` was still running at this checkpoint. Retain its
-actual result in PR #675, not an inferred pass.
+by authenticated metadata. Post-merge canonical job `121011699590` and browser job `121011699720`
+both passed in run 40140717106. The anonymous HTTP_ENTRY_ONLY evidence above
+verifies the same runtime SHA without qualifying owner writes or recovery.
 Accepted head `d5fbe87a750e9340b14b6af26dc182f22ab32a1c` passed canonical
 Node 22, browser/accessibility, CodeQL and Dependency Review in run
 [40140477704](https://github.com/jeremytheva/pourfolio/actions/runs/40140477704).

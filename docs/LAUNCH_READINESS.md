@@ -1,8 +1,8 @@
 # Launch readiness
 
 Last reconciled: **24 October 2026 UTC**. Integrated source and READY deployment
-metadata: [`70c3a18982db276b89a5c8c7b26048d58f854e1a`](https://github.com/jeremytheva/pourfolio/commit/70c3a18982db276b89a5c8c7b26048d58f854e1a). The retained 23 October HTTP baseline remains `c679192a` until a fresh
-explicit runtime result is recorded; READY metadata is not an HTTP PASS.
+metadata: [`70c3a18982db276b89a5c8c7b26048d58f854e1a`](https://github.com/jeremytheva/pourfolio/commit/70c3a18982db276b89a5c8c7b26048d58f854e1a). The anonymous 24 October 23:00 UTC HTTP result below verifies that exact source;
+READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
 
@@ -57,8 +57,9 @@ Authenticated Vercel metadata confirms production deployment
 alias `brew-buds-mobile-app-design-3577.vercel.app`. PR #674 records matching
 production health/readiness at 23 October 12:13 UTC. This review did not repeat
 those HTTP probes or connected writes. A clean anonymous probe was unavailable
-before receiving an HTTP response, so public access remains UNVERIFIED; project
-protection metadata is not proof of visitor access.
+before receiving an HTTP response, so public access was then UNVERIFIED; the later hosted anonymous check below
+supersedes that initial NOT_RUN. Project protection metadata is not proof of
+visitor access.
 
 The source review also reproduced stale rating completion overwriting a
 concurrent deletion in an in-memory interleaving. Current transitions use
@@ -75,6 +76,24 @@ The newer guarded run still reports all four account fields present and second
 sign-in HTTP 401. Correct the supported second-account password securely rather
 than reopening adapter implementation or retrying unchanged credentials.
 
+
+### Anonymous production HTTP entry — 24 October 2026 23:00 UTC
+
+The plain anonymous probe in run
+[40140884697](https://github.com/jeremytheva/pourfolio/actions/runs/40140884697),
+job `121012212054`, passed all eight fixed URLs: login, five public documents,
+health and readiness returned same-origin HTTP 200 without credentials, cookies
+or bypass headers. Both API responses identified production
+`70c3a18982db276b89a5c8c7b26048d58f854e1a`; readiness reported provider OK.
+Authenticated metadata independently identifies the same READY production SHA.
+
+This closes only the HTTP_ENTRY_ONLY reachability/provenance check for that
+version. It supersedes the initial local NOT_RUN result, and shows why protection
+metadata alone could not determine visitor access. It does not approve draft
+legal/support content, prove rendered browser accessibility, establish session/
+owner writes or certify a later deployment. Final-head/source checks and any
+subsequent exact deployment require their own evidence. Public launch remains
+**NO-GO**.
 
 ### Integrated source preparations — 24 October 2026 UTC
 
@@ -205,7 +224,7 @@ UTC interval, operator, reviewer, safe evidence reference and cleanup result.
 | User/admin session certification — [#577](https://github.com/jeremytheva/pourfolio/issues/577) | Ratings | The adapter/protected runner is merged. One distinct-account rating read denial does not establish the full user/admin, expired/revoked or cellar/profile matrix. #577 adapter implementation is closed; remaining certification is under #144/#422. All four account fields are present. Correct `RELEASE_OTHER_PASSWORD` securely in protected `staging-release` to match the approved `RELEASE_OTHER_EMAIL` account; do not retry unchanged HTTP 401 credentials. Cellar/bonus manual workflows now require `auth_release_sha`. Session-based certification verifies exact auth provenance before login/write; the configured-contract-user bonus path remains provider-only evidence without session proof. Eight release-target tests and both workflows' five SHA pins passed source checks, with no connected rerun. Database Secret Keys are not login passwords. | **PARTIAL; remaining rows blocked at session-evidence boundary** |
 | Current review corrections | Launch hardening (bounded shared-file claim); integration by catalogue | PR #642's header-trust, profile-readback and body-deadline corrections are integrated. PR #657's persisted gift, shared 10-second deadline, uncertain-outcome guidance and cleanup guards merged with passing canonical/browser/security checks. PR #647 accepted source `0ef8f4e4a190090343c2dc99925af457466e4ada` passed the same gates after resolving upgraded-axe catalogue/history names and card structure. PR #645 subsequently updated matched React/React DOM to 19.3.1; integrated source `63da5fae` passed 994 canonical tests (15 gated skips), all 155 browser cases and security checks. This is maintenance, not a demonstrated RSC vulnerability fix. Production identity/readiness is verified below; connected privacy/write acceptance remains open. | **Source corrections integrated and validated; connected acceptance open** |
 | <!-- launch-requirement:PF-LAUNCH-ACCESS --> Launch accessibility acceptance | Launch hardening; catalogue integrates | Accepted React-patch source `63da5fae73406b8310320d44a70436abbfdf9813` passed the upgraded Playwright/axe suite after catalogue/history accessible-name and card-structure corrections. Complete production-equivalent mobile/desktop and supported screen-reader manual acceptance for the final launch candidate. Source/browser passes do not establish those manual connected results. | **PARTIAL: source/browser PASS; final connected/manual acceptance pending** |
-| <!-- launch-requirement:PF-LAUNCH-RELEASE --> Exact-candidate release qualification | Catalogue integration authority | Source preparations #676/#677 are merged at `70c3a189`; production `dpl_945KiC6zYa98V3wKzsbVD8JqHhcv` reports READY at that SHA. Their exact accepted heads passed canonical/browser/security checks. The original `c679192a` source/browser and 23 October HTTP evidence remains retained. Fresh read-only inventory still requires rating recovery, verified bonus values and ownerless-row exclusion. Complete anonymous entry, distinct-account/privacy and operations acceptance for the final candidate. | **PARTIAL; final public release remains NO-GO** |
+| <!-- launch-requirement:PF-LAUNCH-RELEASE --> Exact-candidate release qualification | Catalogue integration authority | Source preparations #676/#677 are merged at `70c3a189`; production `dpl_945KiC6zYa98V3wKzsbVD8JqHhcv` reports READY at that SHA. Their exact accepted heads passed canonical/browser/security checks. The original `c679192a` source/browser and 23 October HTTP evidence remains retained. Fresh read-only inventory still requires rating recovery, verified bonus values and ownerless-row exclusion. Anonymous HTTP entry passed at `70c3a189`; complete rendered-browser, distinct-account/privacy and operations acceptance for the final candidate. | **PARTIAL; final public release remains NO-GO** |
 | Publication and operations | Catalogue coordinates; `@jeremytheva` accountable for assigning named operators/reviewers | Reconcile current evidence against [publication](PUBLICATION_AND_RELEASE_EVIDENCE.md), [configuration](launch-configuration-evidence.md) and [operations](OPERATIONS_READINESS.md) procedures: reviewed public documents, support/alert ownership, safe logs, monitoring, credential handling, backup/restore and deployment rollback. No new remote verification is claimed here. | **PENDING current release evidence** |
 
 The earlier connected runs in `STATUS.md` passed 12 baseline cases and skipped
