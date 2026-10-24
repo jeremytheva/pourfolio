@@ -5,7 +5,7 @@
       "owner": "launch-20261024T2225-public-mvp",
       "workstream": "catalogue",
       "issue": 144,
-      "pr": null,
+      "pr": 675,
       "surfaces": [
         "file:.project-master/launch-readiness.json",
         "file:ROADMAP.md",
@@ -17,7 +17,7 @@
         "file:docs/evidence/github-issue-state.json"
       ],
       "acquiredAt": "2026-10-24T22:23:14.131Z",
-      "expiresAt": "2026-10-24T23:04:46.931Z"
+      "expiresAt": "2026-10-24T23:14:33.032Z"
     }
   }
 }
