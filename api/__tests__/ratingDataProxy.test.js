@@ -216,6 +216,133 @@ test('submitRating ignores browser totals and Bonus, persists server-derived fiv
   })
 })
 
+const terminalSubmissionError = (error) => {
+  assert.equal(error.status, 409)
+  assert.equal(error.code, 'RATING_SUBMISSION_DELETED')
+  assert.match(error.message, /Start a new rating/)
+  assert.doesNotMatch(error.message, /retried safely/)
+  return true
+}
+
+for (const terminal of [
+  { submission_state: 'deleting' },
+  { submission_state: 'deleted', deleted_at: '2026-10-24 01:00:00' },
+  { submission_state: 'complete', deleted_at: '2026-10-24 01:00:00' },
+  { submission_state: 'pending', deleted_at: '2026-10-24 01:00:00' }
+]) {
+  test('matching ' + terminal.submission_state + (terminal.deleted_at ? ' with tombstone' : '') + ' rejects replay before child writes', async () => {
+    const provider = durableProvider()
+    await withProviderMocks(provider.mocks, async () => {
+      await submitMaximum(responseHarness())
+      Object.assign(provider.state[COLLECTIONS.ratings][0], terminal)
+      provider.state[COLLECTIONS.ratingScores] = []
+      provider.state[COLLECTIONS.bonusRatingMappings] = []
+      const baseline = structuredClone(provider.state)
+      const mutations = []
+      for (const method of ['create', 'update', 'remove']) {
+        const operation = provider.mocks[method]
+        dataProvider[method] = async (...args) => { mutations.push(method); return operation(...args) }
+      }
+      await assert.rejects(submitMaximum(responseHarness()), terminalSubmissionError)
+      assert.deepEqual(mutations, [])
+      assert.deepEqual(provider.state, baseline)
+    })
+  })
+
+  test('state transition rejects ' + terminal.submission_state + (terminal.deleted_at ? ' with tombstone' : '') + ' before update or completed replay', async () => {
+    const persisted = {
+      id: 100, user_id: 'user-1', submission_fingerprint: 'fingerprint', submission_version: 2,
+      ...terminal
+    }
+    let updates = 0
+    await withProviderMocks({
+      get: async () => structuredClone(persisted),
+      update: async () => { updates += 1; throw new Error('Unexpected terminal update') }
+    }, async () => {
+      for (const target of ['complete', 'failed']) {
+        await assert.rejects(__testables.transitionRating(
+          persisted, 'user-1', 'fingerprint', new Set(['pending', 'failed']), target
+        ), terminalSubmissionError)
+      }
+      assert.equal(updates, 0)
+    })
+  })
+}
+
+test('new parent hydrated as deleted cannot create children or enter failure recovery', async () => {
+  const provider = durableProvider()
+  const read = provider.mocks.get
+  provider.mocks.get = async (collection, id) => {
+    const record = await read(collection, id)
+    if (collection === COLLECTIONS.ratings && record) {
+      Object.assign(record, { submission_state: 'deleted', deleted_at: '2026-10-24 01:00:00' })
+      return structuredClone(record)
+    }
+    return record
+  }
+  const creates = []
+  let updates = 0
+  let removes = 0
+  const create = provider.mocks.create
+  provider.mocks.create = async (collection, body) => { creates.push(collection); return create(collection, body) }
+  provider.mocks.update = async () => { updates += 1; throw new Error('Unexpected terminal update') }
+  provider.mocks.remove = async () => { removes += 1; throw new Error('Unexpected terminal cleanup') }
+  await withProviderMocks(provider.mocks, async () => {
+    await assert.rejects(submitMaximum(responseHarness()), terminalSubmissionError)
+    assert.deepEqual(creates, [COLLECTIONS.ratings])
+    assert.equal(updates, 0)
+    assert.equal(removes, 0)
+    assert.equal(provider.state[COLLECTIONS.ratingScores].length, 0)
+    assert.equal(provider.state[COLLECTIONS.bonusRatingMappings].length, 0)
+  })
+})
+
+test('recovery observing a deleted parent returns conflict without marking it failed', async () => {
+  const provider = durableProvider()
+  await withProviderMocks(provider.mocks, async () => {
+    await submitMaximum(responseHarness())
+    const parent = provider.state[COLLECTIONS.ratings][0]
+    parent.submission_state = 'pending'
+    const mutations = []
+    for (const method of ['create', 'update', 'remove']) {
+      const operation = provider.mocks[method]
+      dataProvider[method] = async (...args) => { mutations.push(method); return operation(...args) }
+    }
+    const list = provider.mocks.list
+    dataProvider.list = async (collection, filters) => {
+      if (collection === COLLECTIONS.ratingScores) {
+        Object.assign(parent, { submission_state: 'deleted', deleted_at: '2026-10-24 01:00:00' })
+        throw new Error('Injected child read failure')
+      }
+      return list(collection, filters)
+    }
+    await assert.rejects(submitMaximum(responseHarness()), terminalSubmissionError)
+    assert.deepEqual(mutations, [])
+    assert.equal(parent.submission_state, 'deleted')
+    assert.equal(parent.deleted_at, '2026-10-24 01:00:00')
+  })
+})
+
+for (const state of ['pending', 'failed']) {
+  test('non-terminal ' + state + ' submission still resumes missing children', async () => {
+    const provider = durableProvider()
+    await withProviderMocks(provider.mocks, async () => {
+      await submitMaximum(responseHarness())
+      provider.state[COLLECTIONS.ratings][0].submission_state = state
+      provider.state[COLLECTIONS.ratingScores].pop()
+      provider.state[COLLECTIONS.bonusRatingMappings].pop()
+      const response = responseHarness()
+      await submitMaximum(response)
+      assert.equal(response.statusCode, 200)
+      assert.equal(response.body.duplicate, true)
+      assert.equal(provider.state[COLLECTIONS.ratings].length, 1)
+      assert.equal(provider.state[COLLECTIONS.ratings][0].submission_state, 'complete')
+      assert.equal(provider.state[COLLECTIONS.ratingScores].length, 8)
+      assert.equal(provider.state[COLLECTIONS.bonusRatingMappings].length, 3)
+    })
+  })
+}
+
 test('fresh submission completes from individually verified children when child collection reads stay empty', async () => {
   const provider = durableProvider()
   const baseList = provider.mocks.list

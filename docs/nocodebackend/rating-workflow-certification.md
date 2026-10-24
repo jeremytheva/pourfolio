@@ -1,5 +1,30 @@
 # Rating workflow staging certification
 
+## Terminal submission retry containment — 24 October 2026 UTC
+
+Source review reproduced a matching retry against a deleted rating creating a
+new score child before its later state transition failed. The gateway now rejects
+an observed `deleting`/`deleted` state or nonempty `deleted_at` with HTTP 409
+and `RATING_SUBMISSION_DELETED` before child persistence. It repeats that guard
+after parent hydration, during workflow-state verification/transition and when
+failure recovery reads the parent. Terminal conflicts retain their safe response
+rather than becoming an instruction to retry the deleted submission.
+
+Gateway regressions cover terminal/tombstoned replay with zero provider
+mutations, a newly hydrated terminal parent, terminal state transitions, recovery
+that observes deletion, and continued pending/failed partial-child retries.
+Canonical Node 22 and hosted browser results must be recorded against the exact
+published head; these source changes are not connected provider evidence.
+
+This contains retries of an already observed terminal parent. It does **not**
+certify distributed concurrency: an unconditional update after a stale read and
+an in-flight child write racing deletion remain unresolved. Parent CAS alone
+does not fence late child writes. Issue #165 still requires a provider-certified
+atomic/conditional mechanism, no-mutation stale-write proof, graph concurrency
+and recovery acceptance. No provider record/schema is changed by this source
+correction, and `/ratings/reconcile` remains unavailable. Public launch remains
+**NO-GO**.
+
 ## Rating numeric-input correction — 23 October 2026 Sydney
 
 Source review of main `593b6010a60ca4a09e83102b0a958a56a84d09d8`

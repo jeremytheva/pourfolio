@@ -195,3 +195,57 @@ jobs:
           path: artifacts/cellar-integrity/
           if-no-files-found: error
           retention-days: 30
+
+  anonymous-production-entry:
+    name: Anonymous production entry (read-only)
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[public-access]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions: {}
+    steps:
+      - name: Check production entry without credentials or bypass headers
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import sys
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          origin = 'https://brew-buds-mobile-app-design-3577.vercel.app'
+          checks = []
+          versions = {}
+          for route in ['/login', '/privacy', '/terms', '/moderation', '/support', '/retention', '/api/health', '/api/readiness']:
+              check = {'route': route, 'pass': False}
+              try:
+                  request = urllib.request.Request(origin + route, headers={'Accept': 'application/json' if route.startswith('/api/') else 'text/html'})
+                  with urllib.request.urlopen(request, timeout=15) as response:
+                      same_origin = urllib.parse.urlsplit(response.url)[:2] == urllib.parse.urlsplit(origin)[:2]
+                      body = response.read(65536)
+                      check.update(httpStatus=response.status, sameOrigin=same_origin)
+                      if route.startswith('/api/'):
+                          payload = json.loads(body)
+                          release = payload.get('release') or {}
+                          sha = release.get('commitSha')
+                          if isinstance(sha, str) and len(sha) == 40 and all(char in '0123456789abcdef' for char in sha):
+                              versions[route] = sha
+                          check['pass'] = same_origin and response.status == 200 and route in versions and release.get('environment') == 'production'
+                          if route == '/api/health':
+                              check['pass'] = check['pass'] and payload.get('status') == 'ok' and payload.get('service') == 'pourfolio'
+                          if route == '/api/readiness':
+                              check['pass'] = check['pass'] and payload.get('status') == 'ready' and payload.get('checks', {}).get('dataProvider') == 'ok'
+                      else:
+                          check['pass'] = same_origin and response.status == 200 and 'text/html' in response.headers.get('Content-Type', '')
+              except urllib.error.HTTPError as error:
+                  check.update(httpStatus=error.code, error='http-error')
+              except (ValueError, TypeError):
+                  check['error'] = 'unexpected-response'
+              except Exception:
+                  check['error'] = 'request-unavailable'
+              checks.append(check)
+          matching_release = len(versions) == 2 and len(set(versions.values())) == 1
+          passed = all(check['pass'] for check in checks) and matching_release
+          print(json.dumps({'status': 'PASS' if passed else 'BLOCKED', 'mode': 'anonymous-read-only', 'qualification': 'HTTP_ENTRY_ONLY', 'checks': checks, 'matchingRelease': matching_release, 'releaseSha': next(iter(versions.values()), None)}))
+          sys.exit(0 if passed else 2)
+          PY

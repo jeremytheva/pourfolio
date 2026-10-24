@@ -1,18 +1,18 @@
 ---
 project: Pourfolio
-portfolio_state: ACTIVE
-execution_slot: VERIFYING
+portfolio_state: READY
+execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Public MVP launch preparation; provider integrity and verified bonus values required"
+stage: "Launch source preparations integrated; external provider, data and operations gates open"
 gate: Release
-execution_state: VALIDATING
+execution_state: BLOCKED
 current_work:
-  objective: "Deliver bounded rating retry containment, read-only bonus backfill preflight and current launch evidence without qualifying unverified provider behaviour."
+  objective: "Obtain authoritative bonus allocations and supported second-account access; complete the existing #165 provider/recovery package before final release qualification."
   issue: 144
-  pr: 675
-  branch: "docs/public-mvp-launch-readiness-20261024"
+  pr: null
+  branch: "main"
 next_actions:
-  - "Validate and integrate bounded terminal-rating retry containment and read-only authoritative bonus-point preflight; retain the distributed concurrency boundary under #165."
+  - "Terminal-rating containment and the read-only point-plan auditor are integrated in #676/#677; retain the distributed concurrency boundary under #165 and use the existing evidence package."
   - "Obtain authoritative exact-ID bonus values and complete reviewed bounded backfill with post-write verification; labelled defaults do not satisfy the selected launch gate."
   - "Correct RELEASE_OTHER_PASSWORD securely, then complete distinct-account session/cellar/profile certification with the current exact auth_release_sha; no unchanged HTTP 401 retry."
   - "Complete #165 provider mechanism, consistent snapshot and isolated restore evidence before irreversible migration or historical repair; then close #144/#154 acceptance."
@@ -32,27 +32,27 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 1
+  open_implementation_prs: 0
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "c679192abb1de594d9268a4b85751db93cf6e768"
+  observed_main_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
   current_candidate_commit: null
-  latest_validated_commit: "c679192abb1de594d9268a4b85751db93cf6e768"
-  latest_deployed_commit: "c679192abb1de594d9268a4b85751db93cf6e768"
+  latest_validated_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
+  latest_deployed_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
   latest_runtime_verified_commit: "c679192abb1de594d9268a4b85751db93cf6e768"
-  latest_browser_verified_commit: "c679192abb1de594d9268a4b85751db93cf6e768"
+  latest_browser_verified_commit: "d5fbe87a750e9340b14b6af26dc182f22ab32a1c"
 validation:
   governance: PASS
   lint: PASS
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: PASS
-  runtime: VERIFIED
-last_verified_commit: "c679192abb1de594d9268a4b85751db93cf6e768"
-last_updated: "2026-10-24T22:40:51Z"
+  ci: PENDING
+  runtime: UNVERIFIED
+last_verified_commit: "d5fbe87a750e9340b14b6af26dc182f22ab32a1c"
+last_updated: "2026-10-24T22:58:42Z"
 
 ---
 
@@ -69,7 +69,8 @@ URL and selected verified bonus point-value backfill as a prerequisite. Keep the
 current login-first scope. Do not publish a fixed date, infer missing values or
 assign ownerless cellar rows.
 
-Fresh main remains `c679192abb1de594d9268a4b85751db93cf6e768`.
+The initial 24 October baseline was `c679192abb1de594d9268a4b85751db93cf6e768`;
+source preparations #676/#677 have since integrated as `70c3a189`.
 Post-merge run [39951489367](https://github.com/jeremytheva/pourfolio/actions/runs/39951489367)
 has substantive passing Release gate job `120406768104` and Browser and
 accessibility job `120406768386`; connected rating/bonus/cellar jobs skipped.
@@ -104,6 +105,68 @@ UNVERIFIED, distinct from READY deployment metadata. No source change qualifies
 privacy/legal, monitoring, support ownership, restore or public launch.
 Public launch remains **NO-GO**.
 
+
+### Integrated source preparations — 24 October 2026 UTC
+
+PR #676 merged as `5c2bbd6b21f58222fd5546a4be226553925c7063`.
+Accepted head `bd3987b6e1369e643aa23f0a5c9b11ddc3a284a6` passed canonical
+Node 22, all browser/accessibility, CodeQL and Dependency Review in run
+[40140190510](https://github.com/jeremytheva/pourfolio/actions/runs/40140190510).
+Twelve added gateway cases cover observed-terminal replay/transition/hydration/
+recovery and continued pending/failed retry. Independent review found no material
+defect. Exact preview `dpl_3U2iy5gFJp29mdyyghAqzH3xTPXL` was READY;
+this is deployment metadata, not a new connected or runtime HTTP PASS.
+
+PR #677 merged as `70c3a18982db276b89a5c8c7b26048d58f854e1a`.
+Resulting production deployment `dpl_945KiC6zYa98V3wKzsbVD8JqHhcv` is READY at that SHA
+by authenticated metadata. Post-merge canonical job `121011699590` passed;
+browser job `121011699720` was still running at this checkpoint. Retain its
+actual result in PR #675, not an inferred pass.
+Accepted head `d5fbe87a750e9340b14b6af26dc182f22ab32a1c` passed canonical
+Node 22, browser/accessibility, CodeQL and Dependency Review in run
+[40140477704](https://github.com/jeremytheva/pourfolio/actions/runs/40140477704).
+Eleven focused cases include exact decimal-cent conflicts, existing explicit
+value preservation, private-data exclusion, byte fingerprints and refusal of
+write flags. Independent review identified and verified the precision correction.
+Exact preview `dpl_3GT1yUSiMsiFnHx44ZxVmEApHMPJ` was READY.
+
+The new offline `scripts/audit-bonus-point-plan.js` accepts a supplied reviewed
+JSON plan and complete provider snapshot. Run `--mode preflight` before governed
+backfill, then `--mode verify` with a fresh post-write snapshot. It reports
+SOURCE_ONLY counts, static blockers and SHA-256 fingerprints; it does not fetch,
+write or independently certify the supplied source/reviewer/completeness assertions.
+It cannot prove private-row preservation across an external mutation without
+the separate before/after evidence. Authoritative allocation and actual backfill,
+provider atomicity/recovery, account isolation and public GO remain uncompleted.
+
+The existing validation workflow now has an opt-in `[public-access]` push
+diagnostic using plain anonymous GETs to the fixed production login, public
+documents and health/readiness URLs. It has no credentials, bypass headers,
+checkout or token permissions. It verifies same-origin HTML and matching
+production provenance/readiness without logging bodies. HTTP_ENTRY_ONLY does
+not certify legal content, browser accessibility, sessions or owner writes.
+
+### Fresh read-only provider inventory — 24 October 2026 UTC
+
+Run [40139643089](https://github.com/jeremytheva/pourfolio/actions/runs/40139643089)
+at source `e597f10d739c1c425f62b6ce1e195cc69a2065af` executed the existing
+protected read-only audits. No `--apply`, historical repair, schema change,
+account login or connected fixture write was enabled.
+
+- Rating job `121008518999` returned REVIEW_REQUIRED: 628 ratings examined,
+  one completed/deleted contradiction with one surviving score child. It exited
+  2 to retain that #165 finding; this is not a new source-validation failure.
+- Cellar job `121008519140` returned LEGACY_OWNERLESS_PRESENT: 967 rows,
+  966 ownerless and one existing owned-row readback OK. It exited 2; ownerless
+  rows remain excluded and no owners were assigned.
+- Bonus mapping job `121008519154` passed the singular `bonus_attribute_id`
+  contract for 1,738 mappings. Point inventory remains 83 attributes: 82 global,
+  one private, two explicit values and 81 missing/blank. The sole explicit
+  global value remains 0.50. Mapping PASS does not satisfy verified point backfill.
+- Source Release gate `121008519160` and Browser/accessibility
+  `121008519161` passed for this head. New commits still need their own
+  source/browser qualification; these read-only provider results do not qualify
+  sessions, concurrent writes, recovery or public launch.
 
 ### Rating numeric-validation correction — 23 October 2026 (Australia/Sydney)
 
@@ -1449,18 +1512,21 @@ recovery and named specialist/operations evidence remain required.
 
 ## Next dependency-correct work
 
-1. Complete exact-head source/browser validation and review of terminal-rating
-   retry containment and the read-only authoritative bonus point-plan auditor.
-2. Obtain the exact-ID/value source and reviewed complete point plan, then
-   prepare bounded backfill/recovery and verify persisted values; preserve
-   explicit/private values and all historical rating totals.
-3. Correct the protected second-account password before one guarded distinct-
+1. Obtain the exact-ID/value source and reviewed complete point plan, then
+   prepare bounded backfill/recovery and verify persisted values with the
+   integrated read-only auditor. Preserve explicit/private values and all
+   historical rating totals.
+2. Correct the protected second-account password before one guarded distinct-
    account session/cellar/profile/bonus run with current auth provenance.
-4. Complete the #165 provider/restore/approval package and historical rating
+3. Complete the #165 provider/restore/approval package and historical rating
    recovery; certify the accepted actual write contract under #144, then #154.
-5. Complete effective public documents/support, named alert/recovery owners,
+4. Complete effective public documents/support, named alert/recovery owners,
    anonymous production entry, manual accessibility and exact-candidate pilot/GO
    acceptance. Keep public launch NO-GO until every required gate passes.
+
+This is the intended main integration handoff for PR #675. The source PRs
+#676/#677 are merged; PR #675 retains the final workflow/documentation head's
+canonical/browser/anonymous-entry results and resulting deployment identity.
 
 ## Deferred capability boundaries
 
