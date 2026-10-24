@@ -2,25 +2,20 @@
   "version": 1,
   "claims": {
     "catalogue": {
-      "owner": "launch-numeric-20261023T2312-9tppl06",
+      "owner": "launch-20261024T2225-public-mvp",
       "workstream": "catalogue",
       "issue": 165,
       "pr": null,
       "surfaces": [
-        "repo:integration",
-        "file:api/rating-data-proxy.js",
-        "file:api/cellar-data-proxy.js",
-        "file:api/catalog-data-proxy.js",
-        "file:api/__tests__/ratingDataProxy.test.js",
-        "file:api/_lib/__tests__/cellarPersistence.test.js",
+        "branch:launch/public-mvp-readiness-20261024",
+        "file:.project-master/launch-readiness.json",
+        "file:ROADMAP.md",
         "file:STATUS.md",
         "file:docs/LAUNCH_READINESS.md",
-        "branch:fix/persisted-numeric-validation-20261023",
-        "file:api/__tests__/catalogueRatingState.test.js",
-        "file:api/nocodebackend/__tests__/catalogueProducerStats.test.js"
+        "repo:integration"
       ],
-      "acquiredAt": "2026-10-23T23:12:22.000Z",
-      "expiresAt": "2026-10-23T23:42:22.000Z"
+      "acquiredAt": "2026-10-24T22:23:14.131Z",
+      "expiresAt": "2026-10-24T22:53:14.131Z"
     }
   }
 }
