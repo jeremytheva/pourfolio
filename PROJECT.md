@@ -24,6 +24,13 @@ The launch product is deliberately narrower than the broader prototype. Social, 
 
 ## Current launch outcome
 
+Launch delivery decision — 24 October 2026 UTC: prepare a readiness-gated public
+MVP on the existing Vercel production URL,
+`https://brew-buds-mobile-app-design-3577.vercel.app`. A custom domain or hosting
+migration is not a prerequisite. Keep the current login-first application;
+verify anonymous access to login and public documents before public release.
+
+
 The intended first public release is a reliable beer portfolio with:
 
 1. NoCodeBackend authentication through an application-owned same-origin server boundary.
@@ -141,6 +148,8 @@ Pourfolio is launch-ready only when:
 - authentication, session, ownership and rate-limit controls are proven;
 - canonical catalogue and imported data are reconciled;
 - rating writes are reliable and data-integrity controls are deployed;
+- every launch-selectable bonus descriptor has an authoritative, verified stored point value; a labelled fallback does not satisfy this gate;
+- historical ownerless cellar rows remain excluded unless ownership provenance is independently established;
 - project-owned validation is sufficient and material defects identified by diagnostic checks are resolved;
 - environment configuration and provider permissions are verified;
 - the exact production deployment SHA is verified;
