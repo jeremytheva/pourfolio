@@ -175,6 +175,15 @@ const validateSubmissionChildren = async (rating, userId, expectedScores, expect
   return summariseSubmissionChildren(rating, userId, expectedScores, expectedBonusIds, scoreRows, bonusRows)
 }
 
+const assertSubmissionNotDeleted = (rating) => {
+  if (rating && (rating.submission_state === 'deleting' || rating.submission_state === 'deleted' || rating.deleted_at)) {
+    const error = new Error('This rating submission is being deleted or has been deleted. Start a new rating to record another tasting.')
+    error.status = 409
+    error.code = 'RATING_SUBMISSION_DELETED'
+    throw error
+  }
+}
+
 const ratingIdentityMatches = (rating, userId, fingerprint) => isOwnedBy(rating, userId) && rating?.submission_fingerprint === fingerprint
 const RATING_STATE_VERIFY_DELAYS_MS = [0, 100, 250, 500, 1000]
 const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))
@@ -187,6 +196,7 @@ const verifyRatingState = async (ratingId, userId, fingerprint, state, version) 
       if (current) { const error = new Error('The persisted rating no longer matches this submission.'); error.status = 409; throw error }
       continue
     }
+    assertSubmissionNotDeleted(current)
     if (current.submission_state === state && Number(current.submission_version) === version) return current
   }
   throw new Error('Rating workflow state was not durably updated.')
@@ -195,6 +205,7 @@ const verifyRatingState = async (ratingId, userId, fingerprint, state, version) 
 const transitionRating = async (rating, userId, fingerprint, fromStates, toState) => {
   const persisted = await dataProvider.get(COLLECTIONS.ratings, rating.id)
   if (!ratingIdentityMatches(persisted, userId, fingerprint)) { const error = new Error('The persisted rating no longer matches this submission.'); error.status = 409; throw error }
+  assertSubmissionNotDeleted(persisted)
   if (persisted.submission_state === toState || (toState === 'failed' && persisted.submission_state === 'complete')) return persisted
   if (!fromStates.has(persisted.submission_state)) throw new Error('The rating workflow state cannot make that transition.')
   const version = Number(persisted.submission_version)
@@ -202,7 +213,9 @@ const transitionRating = async (rating, userId, fingerprint, fromStates, toState
   const updateResult = first(await dataProvider.update(COLLECTIONS.ratings, persisted.id, { submission_state: toState, submission_version: version + 1 }))
   if (updateResult && String(updateResult.id ?? persisted.id) === String(persisted.id) &&
       updateResult.submission_state === toState && Number(updateResult.submission_version) === version + 1) {
-    return { ...persisted, ...updateResult }
+    const updated = { ...persisted, ...updateResult }
+    assertSubmissionNotDeleted(updated)
+    return updated
   }
   try {
     return await verifyRatingState(persisted.id, userId, fingerprint, toState, version + 1)
@@ -311,6 +324,7 @@ const submitRating = async (request, response, user, correlationId) => {
   let rating = await findSubmission(user.id, submissionId)
   let duplicate = Boolean(rating)
   if (rating && rating.submission_fingerprint !== fingerprint) { const error = new Error('The submission identifier is already used by different rating data.'); error.status = 409; throw error }
+  assertSubmissionNotDeleted(rating)
   try {
     if (!rating) {
       try {
@@ -333,6 +347,7 @@ const submitRating = async (request, response, user, correlationId) => {
       if (!rating?.id) throw new Error('The rating service did not return a rating identifier.')
       if (!ratingIdentityMatches(rating, user.id, fingerprint)) { const conflict = new Error('The submission identifier is already used by different rating data.'); conflict.status = 409; throw conflict }
     }
+    assertSubmissionNotDeleted(rating)
     if (duplicate && isCompletedRating(rating)) {
       workflowStage = 'build_response'
       await submissionResponse({ response, status: 200, rating, totals, requestedBonusIds, bonusPointTotal, bonusScore, duplicate: true, cellar })
@@ -389,6 +404,7 @@ const submitRating = async (request, response, user, correlationId) => {
     workflowStage = 'build_response'
     await submissionResponse({ response, status: duplicate ? 200 : 201, rating, totals, requestedBonusIds, bonusPointTotal, bonusScore, duplicate, cellar })
   } catch (error) {
+    if (error.code === 'RATING_SUBMISSION_DELETED') throw error
     if (workflowStage === 'create_rating_parent' && process.env.VERCEL_ENV === 'preview') {
       try {
         const stages = await runAutomaticRatingCreateDiagnostic({ user, product, cellarId })
@@ -401,6 +417,7 @@ const submitRating = async (request, response, user, correlationId) => {
     if (rating?.id) {
       try {
         const persisted = await dataProvider.get(COLLECTIONS.ratings, rating.id)
+        if (ratingIdentityMatches(persisted, user.id, fingerprint)) assertSubmissionNotDeleted(persisted)
         if (ratingIdentityMatches(persisted, user.id, fingerprint) && isCompletedRating(persisted)) {
           const reconciled = await validateSubmissionChildren(persisted, user.id, totals.scores, requestedBonusIds, key)
           if (reconciled.complete) { await submissionResponse({ response, status: 200, rating: persisted, totals, requestedBonusIds, bonusPointTotal, bonusScore, duplicate: true, cellar }); return }
@@ -409,6 +426,7 @@ const submitRating = async (request, response, user, correlationId) => {
           await transitionRating(rating, user.id, fingerprint, new Set(['pending']), 'failed')
         }
       } catch (stateError) {
+        if (stateError.code === 'RATING_SUBMISSION_DELETED') throw stateError
         stateUpdateFailed = true
         if (process.env.VERCEL_ENV === 'preview') {
           console.error('[rating-workflow-diagnostic]', JSON.stringify({
