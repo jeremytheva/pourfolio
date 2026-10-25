@@ -1,4 +1,25 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "cleanup-v1-scorer-20261025T051120671Z",
+      "workstream": "catalogue",
+      "issue": 429,
+      "pr": null,
+      "surfaces": [
+        "branch:cleanup/429-retire-v1-scorer-20261025",
+        "file:.project-master/launch-readiness.json",
+        "file:STATUS.md",
+        "file:docs/BREW_DONE_IT_READINESS.md",
+        "file:docs/LAUNCH_READINESS.md",
+        "file:docs/nocodebackend/schema-mapping.md",
+        "file:src/utils/__tests__/brewDoneItScoring.test.js",
+        "file:src/utils/brewDoneItScoring.js",
+        "issue:429",
+        "repo:integration"
+      ],
+      "acquiredAt": "2026-10-25T05:11:20.671Z",
+      "expiresAt": "2026-10-25T05:41:20.671Z"
+    }
+  }
 }
