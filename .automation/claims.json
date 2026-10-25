@@ -4,7 +4,7 @@
     "catalogue": {
       "owner": "cleanup-v1-scorer-20261025T051120671Z",
       "workstream": "catalogue",
-      "issue": 429,
+      "issue": 682,
       "pr": null,
       "surfaces": [
         "branch:cleanup/429-retire-v1-scorer-20261025",
