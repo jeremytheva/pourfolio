@@ -10,7 +10,7 @@ The mapping is derived from:
 - the supplied products, producers, categories, rating-attribute, bonus-attribute and cellar CSV exports;
 - `Pourfolio_Beer_Ratings_Swagger_Payloads_With_Cellar(1)(1).xlsx`.
 
-The obsolete `*_pf2025` collection names and `beverage_id` field are not part of this contract. `api/auth-proxy.js` is the authentication proxy, and `api/data-proxy.js` is the owner-enforcing application-data gateway through which the browser accesses these collections.
+The obsolete `*_pf2025` collection names and `beverage_id` field are not part of this contract. `api/auth-proxy.js` is the authentication proxy; `api/data-router.js` dispatches browser data requests to the schema-aware, owner-enforcing handlers.
 
 Persistent `profiles` storage is **DEPLOYED_REQUIRED** from the governed #422 provider change and active profile implementation. The application uses it for owner create/read/update and stable public projection. This structural classification does not claim completed connected certification: #422 still requires live uniqueness/default-private, owner-isolation, public/private projection and recovery evidence.
 
@@ -322,10 +322,19 @@ changed by this alignment.
 
 ## Proposed Brew Done It persistent contract (not yet deployed)
 
-This is a deliberately smaller three-collection model. Questions come only from
-the separately reviewed controlled bank; free text is never accepted. The
-versioned scoring details are in [the approved product contract](../PRODUCT.md#scoring-contract-v100).
-No client route is part of this delivery.
+**Historical, superseded v1 proposal.** All Brew Done It tables, endpoints and
+rollout/retention text in this section are retained as design history, not a
+current provider target or execution authority. The next `Rating write lifecycle`
+section resumes the rating contract. Current Brew Done It work follows
+[ADR 0006](../DECISIONS/0006-adopt-brew-done-it-deduction-board.md), the
+[v3 schema target](brew-done-it-schema-target.md) and its
+[readiness gate](../BREW_DONE_IT_READINESS.md). The active v2 compatibility/v3
+scoring dispatcher remains in source; the unreferenced v1 scorer is retired.
+
+The historical proposal used a smaller three-collection model plus a
+history-question extension, a controlled question bank and scoring v1.0.0.
+No client route was part of that proposal. Its former product scoring anchor
+is superseded by the current decision and schema links above.
 
 ### `brew_done_it_games`
 

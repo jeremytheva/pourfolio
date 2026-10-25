@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Bonus preservation verification implemented; external provider, data and operations gates open"
+stage: "Obsolete v1 scoring source retired; external provider, data and operations gates open"
 gate: Release
 execution_state: BLOCKED
 current_work:
@@ -12,6 +12,7 @@ current_work:
   pr: null
   branch: "main"
 next_actions:
+  - "The bounded #682 v1 scorer retirement preserves current v2/v3 functionality. Keep #429 open and require new reachability/retention proof before any further cleanup."
   - "Use #680's before/after preservation checks with the authoritative point plan and complete private evidence; actual provider backfill and history/recovery qualification remain separate gates."
   - "Use #678's corrected canonical bonus_attribute_id checks when auditing fresh same-state baseline/import-rehearsal evidence; historical or mixed-column exports are not current-contract evidence."
   - "Terminal-rating containment and the read-only point-plan auditor are integrated in #676/#677; retain the distributed concurrency boundary under #165 and use the existing evidence package."
@@ -39,12 +40,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "a928060d06c24bd17de76baee9619753a82dd978"
+  observed_main_commit: "6daa4265757dfa24fadee8cea98ffe874141ca56"
   current_candidate_commit: null
-  latest_validated_commit: "abf1f11564d3d8e4cb82d95361c19209233fc678"
+  latest_validated_commit: "8619af59705379fb3d337d83621a94a7f583bb6a"
   latest_deployed_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
   latest_runtime_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
-  latest_browser_verified_commit: "44f325aca702490aa12ed5fb9b03a2a534e9f0a8"
+  latest_browser_verified_commit: "8619af59705379fb3d337d83621a94a7f583bb6a"
 validation:
   governance: PASS
   lint: PASS
@@ -53,8 +54,8 @@ validation:
   build: PASS
   ci: PENDING
   runtime: NOT_APPLICABLE
-last_verified_commit: "abf1f11564d3d8e4cb82d95361c19209233fc678"
-last_updated: "2026-10-25T04:36:01Z"
+last_verified_commit: "8619af59705379fb3d337d83621a94a7f583bb6a"
+last_updated: "2026-10-25T05:28:02Z"
 
 ---
 
@@ -63,6 +64,41 @@ last_updated: "2026-10-25T04:36:01Z"
 Last materially reviewed: 25 October 2026 UTC
 
 ## AI execution gate
+
+### Bounded obsolete scorer cleanup — 25 October 2026 UTC
+
+Entry main is `6daa4265757dfa24fadee8cea98ffe874141ca56`; #681 is merged,
+#680 is closed and there are no open implementation PRs. Its accepted head
+`020bf6b0` passed 1,054 source tests, 15 gated skips and 158 browser/accessibility
+cases; exact integrated-main canonical validation also passed. The allocation
+branch still supplies no point plan, and no corrected second-account input or
+new provider recovery evidence is available. No unchanged credential retry ran.
+
+Issue #682 progresses the existing #429 cleanup independently. Repository-wide
+search finds no consumer of `brewDoneItScoring.js` except its own eight tests,
+and no import glob/dynamic module loader selects it. Its v1.0.0 rules are
+superseded by ADR 0002/0006. Retire only that orphaned utility/test pair; retain
+the active v2 compatibility dispatcher, v3 scorer, gateway/recovery, historical
+provider records and approved contained/future source. The old detailed v1
+schema proposal is labelled historical with current authority links; its tables
+and ADRs remain. The stale generic data-proxy reference is corrected to the
+actual dispatcher without altering routing.
+
+All 13 retained v2/v3 scoring regressions pass. Canonical Node 22.23.4 validation
+passes 1,046 tests with 15 provider-gated skips, zero failures and zero production
+vulnerabilities. The passing-test count drops by exactly the eight deleted tests
+whose only subject was the retired helper; no current-contract test changes.
+All 40 production-client files are byte-identical before/after removal, with
+manifest SHA-256 `f1d4889a3a477c35aae32840ddd6f022d9326971e97aee17d2b9663ab78ed84f`.
+[PR #683](https://github.com/jeremytheva/pourfolio/pull/683) source head
+`8619af59705379fb3d337d83621a94a7f583bb6a` passed canonical validation on its
+exact local checkout and independently in hosted run
+[40165358247](https://github.com/jeremytheva/pourfolio/actions/runs/40165358247),
+Release gate job `121085174119`. Browser/accessibility job `121085174160` passed
+all 158 cases. Final-candidate checks and integration evidence remain in the PR;
+these source results do not qualify live provider/runtime acceptance. No new scoring, provider mutation, history recalculation or game enablement occurs.
+#429 remains open beyond this bounded slice; all existing public NO-GO gates
+remain open.
 
 ### Bonus backfill preservation preparation — 25 October 2026 UTC
 

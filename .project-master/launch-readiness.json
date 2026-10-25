@@ -308,15 +308,19 @@
       "applicability": "excluded",
       "criticality": "advisory",
       "issue_refs": [
-        "#433"
+        "#433",
+        "#682"
       ],
       "change_paths": [
         "src/**/Brew*",
+        "src/**/brewDoneIt*",
         "api/**brew*",
         "scripts/check-brew-done-it-containment.js"
       ],
       "test_refs": [
-        "e2e/brew-done-it.spec.js"
+        "e2e/brew-done-it.spec.js",
+        "src/utils/__tests__/brewDoneItChallengeScoring.test.js",
+        "src/utils/__tests__/brewDoneItDeductionScoring.test.js"
       ],
       "evidence_refs": [
         "docs/BREW_DONE_IT_READINESS.md",

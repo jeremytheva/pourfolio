@@ -55,6 +55,21 @@ The v3 source now provides:
 
 The connected provider schema has not been migrated/certified for v3, so the feature remains unreachable.
 
+### Retired v1 scoring prototype — 25 October 2026 UTC
+
+Issue #682 is a bounded cleanup under #429. The obsolete
+`src/utils/brewDoneItScoring.js` v1.0.0 helper had no runtime importer; only its
+dedicated eight-case test file consumed it. Both are retired. The current
+`brewDoneItChallengeScoring.js` dispatcher, v2 recovery callers and v3
+`brewDoneItDeductionScoring.js` implementation and tests remain intact. The old
+v1 provider proposal in `schema-mapping.md` is explicitly historical; ADRs and
+the proposal's tables remain available as design history.
+
+This retirement does not change any current scoring rule, persisted historical
+result, provider contract, policy flag or game enablement. Current functional
+coverage and the production-client before/after comparison qualify the cleanup;
+provider and connected readiness gates remain open.
+
 ## Current implementation state — 12 September 2026
 
 The persistent cross-device baseline from PR **#410** is merged. The deduction-board redesign from PR **#461** is also merged at `d555bf493931d8700d6a41fd5ff4fd36736b4025`.
