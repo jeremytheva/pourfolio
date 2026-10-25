@@ -1,24 +1,26 @@
 {
   "version": 1,
   "claims": {
-    "catalogue-launch-20261025T221136Z": {
-      "execution_id": "catalogue-launch-20261025T221136Z",
+    "catalogue": {
+      "owner": "catalogue-launch-20261025T221136Z",
       "workstream": "catalogue",
       "issue": 144,
       "pr": null,
       "surfaces": [
-        "repo:integration",
         "branch:fix/bonus-point-allocation-20261025",
-        "file:data/bonus_attribute_point_plan.json",
-        "file:scripts/run-bonus-point-preflight.js",
-        "file:scripts/__tests__/bonusPointPreflight.test.js",
+        "branch:fix/launch-cellar-isolation-20261025",
         "file:.github/workflows/bonus-point-preflight.yml",
+        "file:.github/workflows/cellar-write-certification.yml",
+        "file:.project-master/launch-readiness.json",
         "file:STATUS.md",
+        "file:data/bonus_attribute_point_plan.json",
         "file:docs/LAUNCH_READINESS.md",
-        "file:.project-master/launch-readiness.json"
+        "file:scripts/__tests__/bonusPointPreflight.test.js",
+        "file:scripts/run-bonus-point-preflight.js",
+        "repo:integration"
       ],
-      "acquired_at": "2026-10-25T22:11:36Z",
-      "expires_at": "2026-10-25T22:41:36Z"
+      "acquiredAt": "2026-10-25T22:11:36Z",
+      "expiresAt": "2026-10-25T22:41:36Z"
     }
   }
 }
