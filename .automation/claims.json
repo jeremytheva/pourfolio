@@ -1,17 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "catalogue-runtime-1792907613880",
-      "workstream": "catalogue",
-      "issue": null,
-      "pr": 683,
-      "surfaces": [
-        "repo:integration",
-        "pr:683"
-      ],
-      "acquiredAt": "2026-10-25T05:53:33.880Z",
-      "expiresAt": "2026-10-25T06:23:33.880Z"
-    }
-  }
+  "claims": {}
 }
