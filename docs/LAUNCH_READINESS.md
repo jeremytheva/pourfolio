@@ -50,8 +50,12 @@ the canonical header in every snapshot, including empty pre-import mappings,
 rejects legacy-only and mixed headers, and computes bonus orphan/duplicate-pair
 checks from the canonical CSV data. Ten focused Node 22 cases pass. Canonical
 Node 22.23.4 validation passes 1,043 tests with 15 provider-gated skips, zero
-failures and zero production vulnerabilities. The linked PR retains exact-head
-validation and integration evidence; no skipped connected row becomes PASS.
+failures and zero production vulnerabilities. [PR #679](https://github.com/jeremytheva/pourfolio/pull/679)
+head `4e90b8fc1e9b0c71ec49e280b636b5018b72729d` has the same independently verified
+hosted result in run [40159035452](https://github.com/jeremytheva/pourfolio/actions/runs/40159035452),
+Release gate job `121066492047`; browser/accessibility job `121066492211` passed
+all 158 cases. CodeQL and Dependency Review passed. The PR retains final
+documentation-head and integration evidence; no skipped connected row becomes PASS.
 
 This improves the tooling for PF-LAUNCH-PROVIDER/BONUS/RELEASE. It does not
 provide same-state provider evidence, reviewed point allocations, a backfill,

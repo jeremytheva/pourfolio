@@ -40,10 +40,10 @@ wip:
 evidence:
   observed_main_commit: "6f72b17dd9d138793be57666cd211d3022e45a89"
   current_candidate_commit: null
-  latest_validated_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
+  latest_validated_commit: "4e90b8fc1e9b0c71ec49e280b636b5018b72729d"
   latest_deployed_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
   latest_runtime_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
-  latest_browser_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
+  latest_browser_verified_commit: "4e90b8fc1e9b0c71ec49e280b636b5018b72729d"
 validation:
   governance: PASS
   lint: PASS
@@ -52,8 +52,8 @@ validation:
   build: PASS
   ci: PENDING
   runtime: NOT_APPLICABLE
-last_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
-last_updated: "2026-10-25T03:37:00Z"
+last_verified_commit: "4e90b8fc1e9b0c71ec49e280b636b5018b72729d"
+last_updated: "2026-10-25T03:44:30Z"
 
 ---
 
@@ -82,15 +82,21 @@ passes: 1,043 tests, 15 provider-gated skips, zero failures and zero production
 vulnerabilities. The first local run's sole failure was an experimental managed
 proxy warning in a subprocess that requires empty stderr. Rerunning with only
 that runtime warning disabled passed without changing tests or proxy controls.
-Exact accepted-head validation and integration evidence belong in the linked
-PR. Frontmatter commit references retain the earlier verified runtime baseline;
-source validation does not extend its connected/provider claims.
+[PR #679](https://github.com/jeremytheva/pourfolio/pull/679) head
+`4e90b8fc1e9b0c71ec49e280b636b5018b72729d` passed canonical validation both locally
+and in substantive hosted Release gate job `121066492047` of run
+[40159035452](https://github.com/jeremytheva/pourfolio/actions/runs/40159035452).
+The same run's browser/accessibility job `121066492211` passed all 158 cases;
+Dependency Review, CodeQL, preview deployment status and conflict/review checks
+also passed. Final documentation-head checks and merge evidence remain in that
+PR. Validated/browser commit references identify this source-only result;
+deployed/runtime references retain the earlier verified baseline and its
+bounded claims. No source check certifies connected provider state.
 
 This workspace is writable and a governed Node 22 runtime is available. The
 historical files remain unchanged. Reinspection of the supplied bonus CSV
-confirms 82 rows, one explicit 0.50 value and 81 absent values. The supplied
-workbooks contain selections/import mappings, not an authoritative exact-ID
-point allocation. No provider data, schema, credentials or account setting was
+confirms 82 rows, one explicit 0.50 value and 81 absent values. No reviewed exact-ID point allocation was recovered from the supplied
+workbooks' selections/import mappings. No provider data, schema, credentials or account setting was
 changed or retried. #165/#144/#154/#422 and public launch remain open/NO-GO.
 
 ### Adopted public MVP launch preparation — 24 October 2026 UTC
