@@ -79,6 +79,18 @@ The evidence-only workflow is not proposed for merge. Full
 session/rate-limit acceptance and profile privacy remain separate gates.
 
 
+Source head `83ac5d8e1ccba6f2c9ab943a4f63cc1de778ae3b` passed canonical
+Node 22 validation in [run 40239690588](https://github.com/jeremytheva/pourfolio/actions/runs/40239690588),
+Release gate job `121308631243`: 1,055 passed, 15 provider-gated skips, zero
+failures and zero production vulnerabilities. Browser/accessibility job
+`121308631244` passed all 158 cases; CodeQL, Dependency Review and independent
+code/mapping review passed. Exact preview `dpl_2L6CNRU5jEXMkRsN5QGF3B1uLjSx`
+was READY. [PR #686](https://github.com/jeremytheva/pourfolio/pull/686) retains
+final documentation-head, integration, live read-only preflight and deployment
+evidence; no preceding-head result qualifies a later head. This is the intended
+main integration handoff. No source/deployment result certifies a backfill or
+public release.
+
 The review of #679/#681/#683 found no material regression. Verified production
 metadata identifies READY deployment `dpl_BoLGF2ADjpZx17JmURmHazMB4sF6` at
 `f13e07a845714ea02d744394dbe1684e614c8bfb`. PR #683 retains the exact-version
