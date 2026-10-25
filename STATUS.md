@@ -1,17 +1,18 @@
 ---
 project: Pourfolio
-portfolio_state: READY
-execution_slot: WAITING
+portfolio_state: VALIDATING
+execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Canonical bonus evidence checks repaired; external provider, data and operations gates open"
-gate: Release
-execution_state: BLOCKED
+stage: "Bonus backfill preservation checks implemented and locally validated; integration pending"
+gate: Change
+execution_state: VALIDATING
 current_work:
-  objective: "Obtain authoritative bonus allocations and supported second-account access; complete the existing #165 provider/recovery package before final release qualification."
-  issue: 144
+  objective: "Validate and integrate #680's before/after bonus preservation checks, then resume external #144/#165 release prerequisites."
+  issue: 680
   pr: null
-  branch: "main"
+  branch: "fix/bonus-backfill-preservation-20261025"
 next_actions:
+  - "Complete final-head canonical validation and integrate #680's source-only preservation checks before using them for governed bonus backfill evidence."
   - "Use #678's corrected canonical bonus_attribute_id checks when auditing fresh same-state baseline/import-rehearsal evidence; historical or mixed-column exports are not current-contract evidence."
   - "Terminal-rating containment and the read-only point-plan auditor are integrated in #676/#677; retain the distributed concurrency boundary under #165 and use the existing evidence package."
   - "Obtain authoritative exact-ID bonus values and complete reviewed bounded backfill with post-write verification; labelled defaults do not satisfy the selected launch gate."
@@ -38,12 +39,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "6f72b17dd9d138793be57666cd211d3022e45a89"
+  observed_main_commit: "a928060d06c24bd17de76baee9619753a82dd978"
   current_candidate_commit: null
-  latest_validated_commit: "4e90b8fc1e9b0c71ec49e280b636b5018b72729d"
+  latest_validated_commit: "a928060d06c24bd17de76baee9619753a82dd978"
   latest_deployed_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
   latest_runtime_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
-  latest_browser_verified_commit: "4e90b8fc1e9b0c71ec49e280b636b5018b72729d"
+  latest_browser_verified_commit: "44f325aca702490aa12ed5fb9b03a2a534e9f0a8"
 validation:
   governance: PASS
   lint: PASS
@@ -52,8 +53,8 @@ validation:
   build: PASS
   ci: PENDING
   runtime: NOT_APPLICABLE
-last_verified_commit: "4e90b8fc1e9b0c71ec49e280b636b5018b72729d"
-last_updated: "2026-10-25T03:44:30Z"
+last_verified_commit: "a928060d06c24bd17de76baee9619753a82dd978"
+last_updated: "2026-10-25T04:30:00Z"
 
 ---
 
@@ -62,6 +63,32 @@ last_updated: "2026-10-25T03:44:30Z"
 Last materially reviewed: 25 October 2026 UTC
 
 ## AI execution gate
+
+### Bonus backfill preservation preparation — 25 October 2026 UTC
+
+Entry main is `a928060d06c24bd17de76baee9619753a82dd978`; #679 is merged,
+#678 is closed and there are no open implementation PRs. Its exact final head
+`44f325ac` passed 1,043 source tests, 15 provider-gated skips and 158 browser/
+accessibility cases; integrated-main canonical validation also passed. Those
+are retained source results, not qualification of this new candidate.
+
+Issue #680 extends the existing point-plan auditor for the launch plan's
+required preservation evidence. Earlier post-only verify could pass while a
+private attribute changed or disappeared; its documented scope did not prove
+preservation. Verify now requires complete before/after snapshots of the same
+environment and an ordered capture interval, and permits only reviewed missing
+global point fills. It preserves existing explicit values, private rows and all
+other supplied fields, verifies exact fill counts and fingerprints all three
+inputs. Eight initial regression groups failed against the prior behaviour;
+all 22 focused cases now pass under Node 22.23.4. Canonical validation passes
+1,054 tests with 15 provider-gated skips, zero failures and zero production
+vulnerabilities. Exact published-head checks and integration evidence remain
+required in the linked PR. No provider access, data write, history recalculation
+or credential retry occurs. Supplied evidence is not proof of provider completeness,
+concurrency, recovery, review or live historical-total preservation.
+
+The credential, authoritative allocation, #165 recovery, #144/#154 certification
+and #422 privacy prerequisites remain open. Public launch remains **NO-GO**.
 
 ### Canonical bonus evidence-auditor repair — 25 October 2026 UTC
 

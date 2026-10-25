@@ -25,6 +25,44 @@ rounded to `0.3` in the picker). This presentation does not backfill missing
 provider values or change the scoring rule. Authoritative per-descriptor values
 are still required before the missing historical data can be corrected.
 
+## Governed point backfill verification
+
+Use the existing offline auditor with an authoritative reviewed exact-ID point
+plan and immutable complete bonus-attribute snapshots in the private evidence
+workspace:
+
+```bash
+node scripts/audit-bonus-point-plan.js --plan /private/points.json --snapshot /private/before.json --mode preflight
+node scripts/audit-bonus-point-plan.js --plan /private/points.json --before-snapshot /private/before.json --snapshot /private/after.json --mode verify
+```
+
+The plan remains version 1 with `source_ref`, `reviewer_ref`, `reviewed_at` and
+`attributes: [{id, description, point_value}]`. Each version-1 snapshot requires
+`complete: true`, `environment_ref`, `captured_at` and `attributes`. Verification
+requires every global/private row to include `id`, `user_id`, `description` and
+an explicit `point_value` (which may be null in the before snapshot). Both
+snapshots must identify the same environment, and the after capture must be
+later than the before capture.
+
+Preflight checks the proposed global allocation without changing its existing
+semantics. Verify now requires `--before-snapshot`; a post-only report cannot
+prove preservation. The same reviewed plan must pass against both snapshots.
+Only missing global point values may become their reviewed values. Every row
+must remain present with the same ID, owner, descriptor and other supplied
+fields. Existing explicit values and every private row are compared exactly,
+including value types. Row and object-key order may differ. The expected and
+observed permitted-fill counts must match; a verified no-op has zero fills.
+
+Reports contain original plan/before/after SHA-256 fingerprints, aggregate
+counts and static blockers. They do not expose attribute IDs, descriptors,
+owners or private values. The tool has no provider access or apply mode.
+`SOURCE_ONLY PASS` establishes consistency of the supplied bonus-attribute
+evidence, not its completeness, authenticity, independent review or consistency
+with the live provider. Historical rating totals/children, provider concurrency,
+backups, recovery and connected permissions still require their existing
+evidence. Earlier post-only verification reports retain their original limited
+scope. No fallback becomes an authoritative allocation through this procedure.
+
 ## Category authority and canonical model
 
 Provider category rows and `bonus_attribute_category_mapping` remain authoritative at runtime. The frontend must not contain a duplicate hard-coded descriptor catalogue.

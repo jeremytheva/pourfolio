@@ -130,7 +130,8 @@
       "applicability": "required",
       "criticality": "blocking",
       "issue_refs": [
-        "PR #651"
+        "PR #651",
+        "#680"
       ],
       "change_paths": [
         "api/**bonus**",
