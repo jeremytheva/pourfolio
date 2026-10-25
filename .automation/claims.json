@@ -5,12 +5,14 @@
       "owner": "catalogue-launch-20261025T221136Z",
       "workstream": "catalogue",
       "issue": 144,
-      "pr": 686,
+      "pr": null,
       "surfaces": [
         "branch:fix/bonus-point-allocation-20261025",
         "branch:fix/launch-cellar-isolation-20261025",
+        "branch:fix/launch-connected-evidence-20261025",
         "file:.github/workflows/bonus-point-preflight.yml",
         "file:.github/workflows/cellar-write-certification.yml",
+        "file:.github/workflows/launch-connected-evidence.yml",
         "file:.project-master/launch-readiness.json",
         "file:STATUS.md",
         "file:data/bonus_attribute_point_plan.json",
@@ -20,7 +22,7 @@
         "repo:integration"
       ],
       "acquiredAt": "2026-10-25T22:11:36Z",
-      "expiresAt": "2026-10-25T22:41:36Z"
+      "expiresAt": "2026-10-25T23:02:04.000Z"
     }
   }
 }
