@@ -41,6 +41,22 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
+### Superseded scoring source retirement — 25 October 2026 UTC
+
+Issue #682 is a bounded #429 cleanup of the unreferenced v1.0.0 scoring helper
+and its sole-consumer eight-case test file. Current v2 recovery/v3 deduction
+scoring and their tests remain intact. The old v1 schema proposal is explicitly
+historical and links to the current decision/schema/readiness authority; its
+historical tables and ADRs are retained. All 13 current v2/v3 scoring cases pass;
+canonical Node 22.23.4 passes 1,046 tests, 15 gated skips, zero failures and zero
+production vulnerabilities. The eight removed cases exercised only the retired
+helper. All 40 client-build files remain byte-identical. Exact published-head,
+browser/security and integration evidence remain in its PR.
+
+This changes no current score, provider row, migration, permission or deployment
+flag. Brew Done It remains launch-excluded. #429 and all connected bonus,
+privacy, account-isolation, provider recovery and public **NO-GO** gates remain.
+
 ### Bonus backfill preservation checks — 25 October 2026 UTC
 
 Issue #680 completes the next source preparation for the verified-bonus gate.
