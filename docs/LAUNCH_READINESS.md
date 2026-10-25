@@ -50,8 +50,11 @@ historical and links to the current decision/schema/readiness authority; its
 historical tables and ADRs are retained. All 13 current v2/v3 scoring cases pass;
 canonical Node 22.23.4 passes 1,046 tests, 15 gated skips, zero failures and zero
 production vulnerabilities. The eight removed cases exercised only the retired
-helper. All 40 client-build files remain byte-identical. Exact published-head,
-browser/security and integration evidence remain in its PR.
+helper. All 40 client-build files remain byte-identical. [PR #683](https://github.com/jeremytheva/pourfolio/pull/683)
+source head `8619af59705379fb3d337d83621a94a7f583bb6a` passed exact-checkout canonical
+validation and hosted run [40165358247](https://github.com/jeremytheva/pourfolio/actions/runs/40165358247),
+Release gate job `121085174119`; browser/accessibility job `121085174160` passed
+158 cases. Final-candidate and integration evidence remain in the PR.
 
 This changes no current score, provider row, migration, permission or deployment
 flag. Brew Done It remains launch-excluded. #429 and all connected bonus,

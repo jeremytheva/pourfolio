@@ -1,18 +1,18 @@
 ---
 project: Pourfolio
-portfolio_state: VALIDATING
-execution_slot: VERIFYING
+portfolio_state: READY
+execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Bounded obsolete v1 scorer cleanup source-validated; integration pending"
-gate: Change
-execution_state: VALIDATING
+stage: "Obsolete v1 scoring source retired; external provider, data and operations gates open"
+gate: Release
+execution_state: BLOCKED
 current_work:
-  objective: "Validate and integrate #682's bounded #429 cleanup while preserving current v2/v3 code and launch containment."
-  issue: 682
+  objective: "Obtain authoritative bonus allocations and supported second-account access; complete the existing #165 provider/recovery package before final release qualification."
+  issue: 144
   pr: null
-  branch: "cleanup/429-retire-v1-scorer-20261025"
+  branch: "main"
 next_actions:
-  - "Complete exact-head canonical/browser validation and production-client byte comparison for #682; keep #429 open for its remaining evidence-based audit."
+  - "The bounded #682 v1 scorer retirement preserves current v2/v3 functionality. Keep #429 open and require new reachability/retention proof before any further cleanup."
   - "Use #680's before/after preservation checks with the authoritative point plan and complete private evidence; actual provider backfill and history/recovery qualification remain separate gates."
   - "Use #678's corrected canonical bonus_attribute_id checks when auditing fresh same-state baseline/import-rehearsal evidence; historical or mixed-column exports are not current-contract evidence."
   - "Terminal-rating containment and the read-only point-plan auditor are integrated in #676/#677; retain the distributed concurrency boundary under #165 and use the existing evidence package."
@@ -42,10 +42,10 @@ wip:
 evidence:
   observed_main_commit: "6daa4265757dfa24fadee8cea98ffe874141ca56"
   current_candidate_commit: null
-  latest_validated_commit: "6daa4265757dfa24fadee8cea98ffe874141ca56"
+  latest_validated_commit: "8619af59705379fb3d337d83621a94a7f583bb6a"
   latest_deployed_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
   latest_runtime_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
-  latest_browser_verified_commit: "020bf6b0454fa998c08257700802d3a89278cc0e"
+  latest_browser_verified_commit: "8619af59705379fb3d337d83621a94a7f583bb6a"
 validation:
   governance: PASS
   lint: PASS
@@ -54,8 +54,8 @@ validation:
   build: PASS
   ci: PENDING
   runtime: NOT_APPLICABLE
-last_verified_commit: "6daa4265757dfa24fadee8cea98ffe874141ca56"
-last_updated: "2026-10-25T05:15:00Z"
+last_verified_commit: "8619af59705379fb3d337d83621a94a7f583bb6a"
+last_updated: "2026-10-25T05:28:02Z"
 
 ---
 
@@ -90,8 +90,13 @@ vulnerabilities. The passing-test count drops by exactly the eight deleted tests
 whose only subject was the retired helper; no current-contract test changes.
 All 40 production-client files are byte-identical before/after removal, with
 manifest SHA-256 `f1d4889a3a477c35aae32840ddd6f022d9326971e97aee17d2b9663ab78ed84f`.
-Exact published-head/browser/security and integration evidence remain required
-in the linked PR. No new scoring, provider mutation, history recalculation or game enablement occurs.
+[PR #683](https://github.com/jeremytheva/pourfolio/pull/683) source head
+`8619af59705379fb3d337d83621a94a7f583bb6a` passed canonical validation on its
+exact local checkout and independently in hosted run
+[40165358247](https://github.com/jeremytheva/pourfolio/actions/runs/40165358247),
+Release gate job `121085174119`. Browser/accessibility job `121085174160` passed
+all 158 cases. Final-candidate checks and integration evidence remain in the PR;
+these source results do not qualify live provider/runtime acceptance. No new scoring, provider mutation, history recalculation or game enablement occurs.
 #429 remains open beyond this bounded slice; all existing public NO-GO gates
 remain open.
 
