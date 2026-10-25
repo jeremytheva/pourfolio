@@ -76,7 +76,7 @@ Issue #680 extends the existing point-plan auditor for the launch plan's
 required preservation evidence. Earlier post-only verify could pass while a
 private attribute changed or disappeared; its documented scope did not prove
 preservation. Verify now requires complete before/after snapshots of the same
-environment and an ordered capture interval, and permits only reviewed missing
+environment and an ordered UTC capture interval, and permits only reviewed missing
 global point fills. It preserves existing explicit values, private rows and all
 other supplied fields, verifies exact fill counts and fingerprints all three
 inputs. Eight initial regression groups failed against the prior behaviour;

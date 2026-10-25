@@ -41,8 +41,9 @@ The plan remains version 1 with `source_ref`, `reviewer_ref`, `reviewed_at` and
 `complete: true`, `environment_ref`, `captured_at` and `attributes`. Verification
 requires every global/private row to include `id`, `user_id`, `description` and
 an explicit `point_value` (which may be null in the before snapshot). Both
-snapshots must identify the same environment, and the after capture must be
-later than the before capture.
+snapshots must identify the same environment. Captures must use explicit UTC
+timestamps (`Z` or `+00:00`), and the after capture must be later than the before
+capture. Timezone-free and non-UTC captures are refused.
 
 Preflight checks the proposed global allocation without changing its existing
 semantics. Verify now requires `--before-snapshot`; a post-only report cannot

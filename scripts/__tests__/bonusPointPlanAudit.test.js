@@ -246,6 +246,9 @@ test('verify refuses different environments, unordered captures and incomplete b
     [(input) => { input.beforeSnapshot.environment_ref = 'another-instance' }, 'SNAPSHOT_ENVIRONMENT_MISMATCH'],
     [(input) => { input.beforeSnapshot.captured_at = input.snapshot.captured_at }, 'SNAPSHOT_CAPTURE_ORDER_INVALID'],
     [(input) => { input.beforeSnapshot.captured_at = '2026-10-25T00:00:00Z' }, 'SNAPSHOT_CAPTURE_ORDER_INVALID'],
+    [(input) => { input.beforeSnapshot.captured_at = '2026-10-24T00:00:00' }, 'SNAPSHOT_CAPTURE_ORDER_INVALID'],
+    [(input) => { input.snapshot.captured_at = '2026-10-24T00:10:00' }, 'SNAPSHOT_CAPTURE_ORDER_INVALID'],
+    [(input) => { input.snapshot.captured_at = '2026-10-24T11:10:00+11:00' }, 'SNAPSHOT_CAPTURE_ORDER_INVALID'],
     [(input) => { input.beforeSnapshot.complete = false }, 'BEFORE_SNAPSHOT_OR_PLAN_INVALID'],
     [(input) => { input.beforeSnapshot.attributes.push({ ...input.beforeSnapshot.attributes[0] }) }, 'BEFORE_SNAPSHOT_OR_PLAN_INVALID']
   ]) {
@@ -319,6 +322,7 @@ test('verify requires all core fields even when both snapshots omit the same pri
 
 test('before fingerprint uses original UTF-8 bytes and supports object-key reordering only', () => {
   const input = verifyFixture()
+  input.beforeSnapshot.captured_at = '2026-10-24T00:00:00+00:00'
   const beforeSnapshotBytes = Buffer.from(JSON.stringify(input.beforeSnapshot, null, 2) + '\n')
   const row = input.snapshot.attributes[2]
   input.snapshot.attributes[2] = { point_value: row.point_value, description: row.description, user_id: row.user_id, id: row.id }

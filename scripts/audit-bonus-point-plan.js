@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { isDeepStrictEqual } from 'node:util'
+import { isUtcTimestamp } from './audit-evidence-utils.js'
 
 // Read-only offline evidence preparation: no provider access or apply mode.
 // node scripts/audit-bonus-point-plan.js --plan /private/points.json --snapshot /private/bonus.json --mode preflight
@@ -125,7 +126,8 @@ export const auditBonusPointPlan = ({ planBytes, snapshotBytes, beforeSnapshotBy
           expectedFills: beforeAudit.counts.proposedFills, observedFills: 0
         }
         if (before.environment_ref !== snapshot.environment_ref) block('SNAPSHOT_ENVIRONMENT_MISMATCH')
-        if (Date.parse(before.captured_at) >= Date.parse(snapshot.captured_at)) block('SNAPSHOT_CAPTURE_ORDER_INVALID')
+        if (!isUtcTimestamp(before.captured_at) || !isUtcTimestamp(snapshot.captured_at) ||
+            Date.parse(before.captured_at) >= Date.parse(snapshot.captured_at)) block('SNAPSHOT_CAPTURE_ORDER_INVALID')
         if (!completeAttributeFields(before.attributes)) block('BEFORE_SNAPSHOT_ATTRIBUTE_FIELDS_INCOMPLETE')
         if (!completeAttributeFields(snapshot.attributes)) block('SNAPSHOT_ATTRIBUTE_FIELDS_INCOMPLETE')
         const afterRows = new Map(snapshot.attributes.map((row) => [idOf(row.id), row]))

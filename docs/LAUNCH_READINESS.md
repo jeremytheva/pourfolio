@@ -48,7 +48,8 @@ The existing point-plan auditor now requires `--before-snapshot` for verify,
 checks the same reviewed plan against both snapshots and permits only missing
 global point fills. Row additions/deletions, private changes, existing-value
 changes, other supplied-field drift, incomplete fields and environment/capture
-mismatches block verification. Original plan/before/after bytes are fingerprinted;
+mismatches block verification; captures require explicit UTC timestamps. Original
+plan/before/after bytes are fingerprinted;
 output contains only aggregate counts and static blockers. Eight initial
 regression groups failed before the change; 22 focused Node 22 cases pass.
 Canonical Node 22.23.4 validation passes 1,054 tests with 15 provider-gated
