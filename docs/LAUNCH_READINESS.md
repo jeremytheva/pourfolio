@@ -1,6 +1,6 @@
 # Launch readiness
 
-Last reconciled: **24 October 2026 UTC**. Integrated source and READY deployment
+Last reconciled: **25 October 2026 UTC**. Retained integrated source and READY deployment
 metadata: [`70c3a18982db276b89a5c8c7b26048d58f854e1a`](https://github.com/jeremytheva/pourfolio/commit/70c3a18982db276b89a5c8c7b26048d58f854e1a). The anonymous 24 October 23:00 UTC HTTP result below verifies that exact source;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
@@ -40,6 +40,23 @@ preflight report. No application policy, stored bonus value or provider schema
 changes in this diagnostic correction.
 
 ## Current launch decision
+
+### Canonical provider-evidence checks — 25 October 2026 UTC
+
+Issue #678 corrects a source-only certification defect under #144. The baseline
+and import-rehearsal auditors previously used historical `bonus_attributes_id`
+instead of the current canonical `bonus_attribute_id`. The correction requires
+the canonical header in every snapshot, including empty pre-import mappings,
+rejects legacy-only and mixed headers, and computes bonus orphan/duplicate-pair
+checks from the canonical CSV data. Ten focused Node 22 cases pass. Canonical
+Node 22.23.4 validation passes 1,043 tests with 15 provider-gated skips, zero
+failures and zero production vulnerabilities. The linked PR retains exact-head
+validation and integration evidence; no skipped connected row becomes PASS.
+
+This improves the tooling for PF-LAUNCH-PROVIDER/BONUS/RELEASE. It does not
+provide same-state provider evidence, reviewed point allocations, a backfill,
+restore proof or connected permissions. Historical source files are retained
+unchanged. Existing #165/#144/#154/#422 acceptance and public **NO-GO** remain.
 
 ### Adopted public MVP execution — 24 October 2026 UTC
 

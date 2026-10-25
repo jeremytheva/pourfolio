@@ -39,7 +39,7 @@ const REQUIRED_HEADERS = {
   rating_scores: ['id', 'rating_id', 'attribute_id'],
   rating_attributes: ['id'],
   bonus_attributes: ['id'],
-  bonus_attribute_rating_mapping: ['id', 'rating_id', 'bonus_attributes_id'],
+  bonus_attribute_rating_mapping: ['id', 'rating_id', 'bonus_attribute_id'],
   profiles: ['user_id'],
   cellar: ['id', 'product_id', 'user_id']
 }
@@ -209,6 +209,9 @@ const validateRelationships = (collections, blockers) => {
     for (const field of required) {
       if (!headers.has(field)) addBlocker(blockers, 'CSV_REQUIRED_COLUMN_MISSING', { collection, field })
     }
+    if (collection === 'bonus_attribute_rating_mapping' && headers.has('bonus_attributes_id')) {
+      addBlocker(blockers, 'CSV_LEGACY_BONUS_COLUMN_UNSUPPORTED', { collection })
+    }
     if (collection === 'products' && !headers.has('product_category_id') && !headers.has('category_id')) {
       addBlocker(blockers, 'CSV_REQUIRED_COLUMN_MISSING', { collection, field: 'product_category_id|category_id' })
     }
@@ -239,7 +242,7 @@ const validateRelationships = (collections, blockers) => {
     ['SCORE_RATING_ORPHAN', 'rating_scores', 'rating_id', ids.ratings, false],
     ['SCORE_ATTRIBUTE_ORPHAN', 'rating_scores', 'attribute_id', ids.rating_attributes, false],
     ['BONUS_RATING_ORPHAN', 'bonus_attribute_rating_mapping', 'rating_id', ids.ratings, false],
-    ['BONUS_ATTRIBUTE_ORPHAN', 'bonus_attribute_rating_mapping', 'bonus_attributes_id', ids.bonus_attributes, false],
+    ['BONUS_ATTRIBUTE_ORPHAN', 'bonus_attribute_rating_mapping', 'bonus_attribute_id', ids.bonus_attributes, false],
     ['CELLAR_PRODUCT_ORPHAN', 'cellar', 'product_id', ids.products, false],
     ['CELLAR_PROFILE_ORPHAN', 'cellar', 'user_id', ids.profiles, false]
   ]

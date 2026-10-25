@@ -54,6 +54,15 @@ bonus mapping rating/attribute and cellar product/profile relationships. A
 blank product category is treated as an intentional nullable relationship;
 every other listed relationship must resolve.
 
+Bonus mappings require the current canonical `bonus_attribute_id` header,
+including when the CSV has no data rows. The older `bonus_attributes_id`
+header is rejected, alone or alongside the canonical field, to prevent
+ambiguous relationship evidence. The retained July SQL export remains
+historical source evidence. Do not rename its fields in place or treat it as
+a fresh same-state baseline. The current field contract and its dated provider
+evidence are recorded in `contracts/pourfolio-data-contract.json` and
+`docs/nocodebackend/schema-mapping.md`.
+
 Retain the manifest, report, exact source bytes and provider pagination log
 together. `PASS` establishes package integrity and structural reconciliation,
 not provider permission, migration, rollback or release approval.

@@ -52,6 +52,14 @@ zero for every mutation. Both runs require every key exported as
 `ORPHAN_CHECKS` and `DUPLICATE_CHECKS` by
 `scripts/audit-import-rehearsal.js` to be present with value zero.
 
+Every bonus-mapping CSV must expose canonical `bonus_attribute_id`, including
+the empty `before` snapshot. Legacy `bonus_attributes_id` and mixed headers
+are rejected rather than silently translated. Orphan and duplicate
+`(rating_id, bonus_attribute_id)` checks are recomputed from the first/rerun
+CSV bytes and compared with the declared counts. Declaring zero cannot hide a
+bad canonical relationship. Retain historical source files unchanged and
+obtain current-contract exports for the rehearsal.
+
 The auditor additionally requires byte-identical first/rerun CSVs, exact target
 row-count deltas, and unchanged counts and hashes for products, producers,
 categories, attributes and profiles from before through rerun. `PASS` does not
