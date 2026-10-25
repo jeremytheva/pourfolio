@@ -3,7 +3,7 @@ name: Bounded current-instance cellar certification
 on:
   push:
     branches:
-      - fix/cellar-write-persistence-verification-20261019
+      - fix/launch-cellar-isolation-20261025
   workflow_dispatch:
     inputs:
       auth_release_sha:
@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   certify:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-cellar-write]') || contains(github.event.head_commit.message, '[connected-cellar-owner-write]') || contains(github.event.head_commit.message, '[cellar-fixture-inspect]')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-cellar-write]')
     permissions:
       contents: read
       actions: read
@@ -43,19 +43,19 @@ jobs:
         env:
           CELLAR_CERTIFICATION_SHA: ${{ github.sha }}
       - name: Verify bounded candidate cellar gateway persistence
-        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-cellar-write]') || contains(github.event.head_commit.message, '[connected-cellar-owner-write]')
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-cellar-write]')
         run: node scripts/run-cellar-write-certification.js
         env:
           CELLAR_CERTIFICATION_SHA: ${{ github.sha }}
-          CELLAR_CERTIFICATION_SCOPE: ${{ contains(github.event.head_commit.message, '[connected-cellar-owner-write]') && 'owner-crud-only' || 'owner-and-isolation' }}
-          CELLAR_CERTIFICATION_CONFIRMATION: ${{ contains(github.event.head_commit.message, '[connected-cellar-owner-write]') && 'RUN CURRENT INSTANCE OWNER CELLAR TEST' || 'RUN CURRENT INSTANCE CELLAR TEST' }}
+          CELLAR_CERTIFICATION_SCOPE: owner-and-isolation
+          CELLAR_CERTIFICATION_CONFIRMATION: RUN CURRENT INSTANCE CELLAR TEST
           NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
           NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
           # Only normal application sessions establish owner identity. The
           # checked-out gateway, not the auth release, performs provider CRUD.
           BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
-          BONUS_CERTIFICATION_AUTH_SHA: ${{ inputs.auth_release_sha || '36ce8ffef482a9044e1e9f35da03214f46b7e1d5' }}
+          BONUS_CERTIFICATION_AUTH_SHA: ${{ inputs.auth_release_sha || 'f13e07a845714ea02d744394dbe1684e614c8bfb' }}
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
           RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}
@@ -80,7 +80,7 @@ jobs:
           NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
           BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
-          BONUS_CERTIFICATION_AUTH_SHA: ${{ inputs.auth_release_sha || '36ce8ffef482a9044e1e9f35da03214f46b7e1d5' }}
+          BONUS_CERTIFICATION_AUTH_SHA: ${{ inputs.auth_release_sha || 'f13e07a845714ea02d744394dbe1684e614c8bfb' }}
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
       - name: Retain encrypted recovery and redacted results
