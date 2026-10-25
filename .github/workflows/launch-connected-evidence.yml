@@ -1,4 +1,4 @@
-name: Redacted connected baseline evidence
+name: Redacted connected cellar HTTP evidence
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: pourfolio-connected-baseline-evidence
+  group: bounded-current-instance-cellar-certification
   cancel-in-progress: false
 
 jobs:
@@ -51,7 +51,7 @@ jobs:
           RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}
           RELEASE_OTHER_PASSWORD: ${{ secrets.RELEASE_OTHER_PASSWORD }}
           RELEASE_OWNER_SESSION_PATH: ${{ runner.temp }}/pourfolio-release-owner-${{ github.run_id }}.json
-          RELEASE_DESTRUCTIVE_CONFIRMATION: ""
+          RELEASE_DESTRUCTIVE_CONFIRMATION: RUN CLEANUP-GUARDED RELEASE WRITES
         shell: bash
         run: |
           node --input-type=module <<'JS'
@@ -82,12 +82,12 @@ jobs:
           const root = process.cwd()
           const output = path.join(root, 'artifacts/launch-connected-evidence/summary.json')
           const report = {
-            version: 1, qualification: 'CONNECTED_BASELINE', status: 'BLOCKED',
+            version: 1, qualification: 'CONNECTED_CELLAR_HTTP', status: 'BLOCKED',
             releaseSha: /^[a-f0-9]{40}$/.test(process.env.RELEASE_SHA || '') ? process.env.RELEASE_SHA : null,
             harnessSha: /^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA || '') ? process.env.GITHUB_SHA : null,
             startedAt: new Date().toISOString(),
             scope: {
-              ratingCreateDeleteChecks: 'DISABLED', cellarMutationChecks: 'DISABLED',
+              ratingCreateDeleteChecks: 'DISABLED', cellarMutationChecks: 'ONE_EXISTING_CLEANUP_GUARDED_TEST',
               retiredReconciliationEndpoint: 'DENIAL_PROBE_ONLY',
               signupCredentials: 'OMITTED', otpCredentials: 'OMITTED',
               profileInitialization: 'NORMAL_APPLICATION_INITIALIZATION_MAY_CREATE_DEFAULT_PRIVATE_PROFILES',
@@ -126,10 +126,10 @@ jobs:
               throw fail('PLAYWRIGHT_REPORT_UNAVAILABLE')
             }
           }
-          const confirmIdentities = parsed => {
+          const confirmIdentities = (parsed, expectedTitles = titles) => {
             const found = entries(parsed.suites)
-            if (found.length !== titles.length || new Set(found.map(row => row.title)).size !== titles.length ||
-                found.some(row => !allowedTitles.has(row.title))) throw fail('TEST_IDENTITY_MISMATCH')
+            if (found.length !== expectedTitles.length || new Set(found.map(row => row.title)).size !== expectedTitles.length ||
+                found.some(row => !allowedTitles.has(row.title) || !expectedTitles.includes(row.title))) throw fail('TEST_IDENTITY_MISMATCH')
             return found
           }
           try {
@@ -151,7 +151,7 @@ jobs:
               'RELEASE_SIGNUP_EMAIL', 'RELEASE_SIGNUP_PASSWORD', 'RELEASE_OTP_EMAIL', 'RELEASE_OTP_CODE',
               'PLAYWRIGHT_JSON_OUTPUT_DIR', 'PLAYWRIGHT_JSON_OUTPUT_NAME', 'PLAYWRIGHT_JSON_OUTPUT_FILE'
             ]) delete childEnvironment[name]
-            childEnvironment.RELEASE_DESTRUCTIVE_CONFIRMATION = ''
+            childEnvironment.RELEASE_DESTRUCTIVE_CONFIRMATION = 'RUN CLEANUP-GUARDED RELEASE WRITES'
             const run = async (label, extraArguments) => {
               const stdoutPath = path.join(privateDirectory, label + '.json')
               const stdout = fs.openSync(stdoutPath, 'w', 0o600)
@@ -175,8 +175,9 @@ jobs:
             const discovery = await run('discovery', ['--list'])
             if (discovery.exitCode !== 0) throw fail('PLAYWRIGHT_REPORT_UNAVAILABLE')
             confirmIdentities(discovery.parsed)
-            const execution = await run('execution', [])
-            const found = confirmIdentities(execution.parsed)
+            const selectedTitles = ["cellar CRUD and cross-account ownership boundaries use exact verified cleanup"]
+            const execution = await run('execution', ['connected.spec.js', '--grep', "cellar CRUD and cross-account ownership boundaries use exact verified cleanup$"])
+            const found = confirmIdentities(execution.parsed, selectedTitles)
             const states = new Map()
             const diagnostics = new Map()
             for (const { title, test } of found) {
@@ -202,7 +203,7 @@ jobs:
               }
               states.set(title, status)
             }
-            report.tests = titles.map(title => ({
+            report.tests = selectedTitles.map(title => ({
               title, status: states.get(title) || 'NOT_RUN',
               ...(diagnostics.has(title) ? { diagnostic: diagnostics.get(title) } : {})
             }))
@@ -260,7 +261,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: launch-connected-baseline-${{ env.RELEASE_SHA }}-${{ github.run_id }}
+          name: launch-connected-cellar-http-${{ env.RELEASE_SHA }}-${{ github.run_id }}
           path: artifacts/launch-connected-evidence/summary.json
           if-no-files-found: error
           retention-days: 30
