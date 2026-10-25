@@ -4,7 +4,7 @@
     "catalogue": {
       "owner": "launch-audit-20261025T032725",
       "workstream": "catalogue",
-      "issue": 144,
+      "issue": 678,
       "pr": null,
       "surfaces": [
         "branch:fix/144-canonical-bonus-evidence-20261025",
