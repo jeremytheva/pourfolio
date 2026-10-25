@@ -3,59 +3,62 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "39 bonus allocations recorded; 42 unresolved; bounded cellar gateway isolation passes"
+stage: "QA cellar recovery awaits owner authorization; 42 bonus values and provider recovery open"
 gate: Release
 execution_state: BLOCKED
 current_work:
-  objective: "Obtain the remaining 42 authoritative bonus values, verify governed backfill, and complete provider/recovery and connected release gates."
+  objective: "Obtain owner authorization for the exact QA-cellar recovery plan, then complete missing bonus allocations and remaining provider/release gates."
   issue: 144
   pr: null
   branch: "main"
 next_actions:
-  - "The bounded #682 v1 scorer retirement preserves current v2/v3 functionality. Keep #429 open and require new reachability/retention proof before any further cleanup."
-  - "Use #680's before/after preservation checks with the authoritative point plan and complete private evidence; actual provider backfill and history/recovery qualification remain separate gates."
+  - "Obtain explicit owner authorization for the prepared single-QA-cellar recovery; keep the record untouched until then. Future HTTP mutation certification must retain encrypted intent/acknowledgement before writes."
+  - "Live bonus preflight 40240571404 confirms 39 proposed fills and 42 unresolved values. Complete the plan, then use #680 before/after preservation checks and complete historical evidence for governed backfill."
   - "Use #678's corrected canonical bonus_attribute_id checks when auditing fresh same-state baseline/import-rehearsal evidence; historical or mixed-column exports are not current-contract evidence."
   - "Terminal-rating containment and the read-only point-plan auditor are integrated in #676/#677; retain the distributed concurrency boundary under #165 and use the existing evidence package."
   - "Obtain the remaining 42 exact-ID bonus values in data/bonus_attribute_point_plan.json, then complete governed backfill and post-write/historical-total preservation verification; all 82 descriptors remain available."
-  - "Both distinct accounts passed protected authentication-only verification at production f13e07a8. Bounded cellar gateway/isolation and cleanup now pass in run 40239183671; full session, HTTP/browser and profile acceptance remain separate."
+  - "Distinct-account authentication and cellar gateway isolation/cleanup pass. Connected baseline at fec60da4 passes 12 checks with four skips; retain its initial unreproduced failure and qualify remaining HTTP/write, privacy and session gates."
   - "Complete #165 provider mechanism, consistent snapshot and isolated restore evidence before irreversible migration or historical repair; then close #144/#154 acceptance."
   - "Complete publication, monitored support, named operations owners, anonymous production access and final exact-candidate release qualification."
 blockers:
+  - scope: qa_cellar_recovery_authorization
+    issue: 144
+    detail: "One current owned QA record remains. Original HTTP create correlation is unconfirmed; full encrypted backup and exact-target recovery plan are prepared, with no delete or retry authorised yet."
   - scope: rating_idempotency_provider_migration
     issue: 165
     detail: "Unconditional parent transitions and late child writes lack certified distributed integrity. Provider uniqueness/atomic workflow, consistent backup, isolated restore and approval for irreversible changes remain required."
   - scope: connected_backend_and_bonus_values
     issue: 144
-    detail: "Protected distinct-account authentication now passes. 39 owner allocations are mapped, 42 values remain unresolved, and backfill plus remaining connected policy/recovery acceptance is open; #577 implementation is closed."
+    detail: "Distinct-account authentication and bounded cellar gateway isolation pass; connected baseline has 12 passes and four skips, with an earlier unreproduced failure retained. Live preflight confirms 39 proposed fills and 42 unresolved values. Backfill, remaining connected policy and recovery acceptance remain open; #577 implementation is closed."
   - scope: persistent_profile_privacy
     issue: 422
     detail: "Provider uniqueness/default-private creation, persisted opt-in/revocation, copied links and cross-owner denial still need connected certification."
-requires_owner_decision: false
+requires_owner_decision: true
 owner_decision:
-  question: null
-  recommendation: null
+  question: "Authorize deletion of the single current QA-marked cellar row using the prepared encrypted backup and exact-record guard? Original create acknowledgement is unavailable."
+  recommendation: "Approve only the current QA record fingerprint 1c8e0ec1278a28e426f6cb041d1790c26dcc4fe650d4b3b413efddd5fd0ee1ed; perform one guarded delete with post-verification before another HTTP mutation test."
 wip:
   open_implementation_prs: 0
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "f13e07a845714ea02d744394dbe1684e614c8bfb"
+  observed_main_commit: "fec60da415c2f6cb75cd8f19bdc01a6731c5553a"
   current_candidate_commit: null
-  latest_validated_commit: "83ac5d8e1ccba6f2c9ab943a4f63cc1de778ae3b"
-  latest_deployed_commit: "f13e07a845714ea02d744394dbe1684e614c8bfb"
-  latest_runtime_verified_commit: "f13e07a845714ea02d744394dbe1684e614c8bfb"
-  latest_browser_verified_commit: "83ac5d8e1ccba6f2c9ab943a4f63cc1de778ae3b"
+  latest_validated_commit: "fec60da415c2f6cb75cd8f19bdc01a6731c5553a"
+  latest_deployed_commit: "fec60da415c2f6cb75cd8f19bdc01a6731c5553a"
+  latest_runtime_verified_commit: "fec60da415c2f6cb75cd8f19bdc01a6731c5553a"
+  latest_browser_verified_commit: "fec60da415c2f6cb75cd8f19bdc01a6731c5553a"
 validation:
   governance: PASS
   lint: PASS
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: PENDING
+  ci: PASS
   runtime: NOT_APPLICABLE
-last_verified_commit: "83ac5d8e1ccba6f2c9ab943a4f63cc1de778ae3b"
-last_updated: "2026-10-25T22:24:00Z"
+last_verified_commit: "fec60da415c2f6cb75cd8f19bdc01a6731c5553a"
+last_updated: "2026-10-25T22:59:31Z"
 
 ---
 
@@ -64,6 +67,115 @@ last_updated: "2026-10-25T22:24:00Z"
 Last materially reviewed: 25 October 2026 UTC
 
 ## AI execution gate
+
+### Cellar HTTP recovery boundary — 25 October 2026 UTC
+
+The separate existing cleanup-guarded cellar HTTP test was selected alone against
+production `fec60da4`, with retries disabled and no rating mutation selected.
+[Run 40241436043](https://github.com/jeremytheva/pourfolio/actions/runs/40241436043),
+job `121313879468`, failed at 22:43:02 UTC in the cleanup helper call.
+Its redacted report cannot identify whether create acknowledgement, owner
+readback, verification or cleanup failed. No HTTP test PASS is claimed, no
+unchanged mutation retry ran, and the earlier direct-gateway PASS is retained
+only within its separate scope.
+
+Read-only owner inspection
+[40241841492](https://github.com/jeremytheva/pourfolio/actions/runs/40241841492),
+job `121315114617`, found one owned row, carrying one canonical QA marker.
+It made zero cellar mutation requests, verified the owner session/release
+before and after, signed out successfully and retained encrypted inspection
+artifact `12617127055`.
+
+Read-only recovery comparison
+[40242334490](https://github.com/jeremytheva/pourfolio/actions/runs/40242334490),
+job `121316602591`, bound that encrypted receipt to the same current owner
+HTTP row and a fresh exact provider read. The stored row matches the initial
+create shape (quantity 1, container `release-check`, exact product/marker,
+received date 25 October); the update shape differs on quantity. This
+establishes persisted create-shaped data, not the original response or failed
+stage. Original-attempt correlation remains **UNCONFIRMED**. The complete raw
+target and owner baseline are backed up in encrypted artifact `12617575916`,
+SHA-256 `1bc38bc4e15e9f0de67c958b884b9ca18485d1986d8032a7cfe74e8423649cbf`.
+The exact raw target fingerprint is
+`1c8e0ec1278a28e426f6cb041d1790c26dcc4fe650d4b3b413efddd5fd0ee1ed`.
+
+The existing [cellar cleanup helper](release-check/cellarCleanup.js) states:
+“Never discover a cleanup target by comparing histories after a failed create.”
+The original create nonce/acknowledgement was not retained as a durable intent
+receipt. The later snapshot cannot replace that original evidence. The
+[prepared single-record recovery workflow](https://github.com/jeremytheva/pourfolio/blob/23917bf8ad71d5724f2f0641061587f54c4eccfa/.github/workflows/launch-connected-evidence.yml)
+therefore remains untriggered pending explicit owner authorization for this
+current QA record. It verifies the encrypted source plan, exact raw fingerprint
+and owner, writes an encrypted before receipt, permits one HTTP DELETE with no
+retry and verifies fresh provider/owner absence plus other owned-row preservation.
+Source/read-only validation does not claim that recovery executed. No unrelated
+record, ownerless history or rating is an authorised cleanup target.
+
+Before another HTTP mutation certification, retain durable encrypted create
+intent/acknowledgement and safe stage/status evidence; review any provider or
+application failure established by that evidence. Do not infer a container enum,
+Origin failure, missing Playwright base URL or a fixed product defect from the
+outer helper frame. Runtime-log/metric queries supplied no request sequence.
+Public launch remains **NO-GO**.
+
+### Integrated allocation and connected release evidence — 25 October 2026 UTC
+
+[PR #686](https://github.com/jeremytheva/pourfolio/pull/686) merged as
+`fec60da415c2f6cb75cd8f19bdc01a6731c5553a`. Exact main source validation and
+all 158 browser/accessibility cases passed in
+[run 40240571422](https://github.com/jeremytheva/pourfolio/actions/runs/40240571422),
+jobs `121311271384` and `121311271130`: 1,055 source tests passed, 15
+provider-gated skips, zero failures and zero production vulnerabilities.
+Production `dpl_9KDT7ZW55CbtJZu8UiLRUS62C6P7` is READY at that exact SHA.
+Anonymous attempt 2, job `121312137847`, passed all eight fixed URLs at
+22:34:58 UTC with matching health/readiness source `fec60da4`. The first
+attempt observed preceding `f13e07a8` during deployment; it did not qualify
+the new candidate.
+
+The live read-only
+[bonus preflight 40240571404](https://github.com/jeremytheva/pourfolio/actions/runs/40240571404),
+job `121311271248`, completed at 22:31:51 UTC. It returned expected
+**BLOCKED / PLAN_POINT_VALUE_INVALID**: 82 global and one private attribute,
+81 missing global values, 39 proposed fills, 42 unresolved allocations, one
+already matched preserved value and zero missing preserved values. The workflow
+exits 2 for the incomplete plan; its canonical validation passed.
+Plan SHA-256 is `e1cdd3421bd072a81868ffe97cb32f03916514e54d148d1705d4d9b5ac0e6723`;
+snapshot SHA-256 is `c6f1ea1167ae07f4b424db4fa0c1c543487513e053caac16387c8e869343c227`.
+Only fresh paginated reads occurred. This is not an atomic backup, a backfill
+or post-write/private/history preservation certification. All 82 descriptors
+remain available; obtain the 42 `null` allocations in [the committed plan](data/bonus_attribute_point_plan.json).
+
+The existing connected browser baseline ran against that exact production
+release on a reviewed evidence-only branch, with no explicit rating/cellar
+writes enabled. Normal profile reads may initialise a default-private profile.
+[Diagnostic run 40240996316](https://github.com/jeremytheva/pourfolio/actions/runs/40240996316),
+job `121312525327`, passed 12 checks, failed zero and skipped four at
+22:39:06 UTC. This covers host/security, public document rendering, configured
+authentication discovery/sign-in/sign-out, catalogue search/pagination/details,
+rating form boundaries, owner/public profile projections, proposal/cellar form
+reachability, inaccessible reconciliation, bonus category rendering, brewery
+navigation, cleared-cookie protected-route redirects and scoped desktop axe.
+The aggregate authentication test does not prove omitted optional sign-up/OTP
+branches, provider expiry/revocation, rate-limit enforcement or real OAuth
+completion. Profile projection does not qualify privacy transitions/uniqueness.
+
+The four skips are rating mutation, cellar HTTP mutation and the two existing
+history-fixture/link cases; no skip becomes PASS. Earlier
+[run 40240743642](https://github.com/jeremytheva/pourfolio/actions/runs/40240743642)
+had five passes, one failure in the composite catalogue/rating-form/profile test
+and ten skips. Diagnostic capture added only static source locations; the
+unchanged application/search configuration then passed. The first failure is
+**NOT_REPRODUCED / CAUSE_UNDETERMINED**; no defect or fix is established. Retain
+both observations and assess repeatability at final candidate qualification.
+
+Trace, screenshot and video capture were disabled; raw diagnostics/session
+files were kept private and removed. Only aggregate results/fixed titles were
+published in artifact `12616933404`, SHA-256
+`016f8c2a4e8fcb3828bc478c3a408f4382f2d1049fb91226eae3b854477dcfbc`.
+Provenance before/after and private-workspace cleanup passed. These evidence-only
+workflows are not proposed for merge. No source, HTTP-entry or baseline result
+approves public-document content, manual WCAG acceptance, #165 provider
+integrity/recovery, complete bonus values/backfill or public launch.
 
 ### Owner allocations and corrected account access — 25 October 2026 UTC
 
