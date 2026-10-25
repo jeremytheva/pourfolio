@@ -1,0 +1,249 @@
+name: Redacted connected baseline evidence
+
+on:
+  push:
+    branches:
+      - fix/launch-connected-evidence-20261025
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pourfolio-connected-baseline-evidence
+  cancel-in-progress: false
+
+jobs:
+  baseline:
+    if: contains(github.event.head_commit.message, '[connected-baseline-evidence]')
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      RELEASE_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
+      RELEASE_SHA: fec60da415c2f6cb75cd8f19bdc01a6731c5553a
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.RELEASE_SHA }}
+          persist-credentials: false
+      - name: Confirm the exact release checkout
+        shell: bash
+        run: |
+          [[ "$RELEASE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Verify release origin and provenance
+        id: release-target
+        run: node scripts/verify-release-target.js
+      - name: Build the reviewed release
+        run: npm run build
+      - name: Check the built release for server-only data
+        run: npm run check:release-security
+      - run: npx playwright install --with-deps chromium
+      - name: Run the existing baseline with private diagnostics
+        env:
+          RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
+          RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
+          RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}
+          RELEASE_OTHER_PASSWORD: ${{ secrets.RELEASE_OTHER_PASSWORD }}
+          RELEASE_OWNER_SESSION_PATH: ${{ runner.temp }}/pourfolio-release-owner-${{ github.run_id }}.json
+          RELEASE_DESTRUCTIVE_CONFIRMATION: ""
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs'
+          import path from 'node:path'
+          import { spawn } from 'node:child_process'
+          import { pathToFileURL } from 'node:url'
+
+          const titles = [
+            'host health, headers, SPA fallback and rejected redirects',
+            'public policy and support documents are reachable without authentication',
+            'provider discovery, sign-up, password sign-in, OTP, Google and logout',
+            'catalogue, pagination, direct details, rating form boundary and session-backed profile read',
+            'catalogue stewardship and cellar launch forms are reachable without implicit writes',
+            'historical reconciliation is inaccessible and completed aggregates remain coherent',
+            'live bonus category mappings render across every rating dimension and Overall',
+            'Breweries & Venues is keyboard operable and preserves the verified-data boundary',
+            'rating create/history/delete uses exact cleanup identity',
+            'cellar CRUD and cross-account ownership boundaries use exact verified cleanup',
+            'expired session returns every protected direct route to sign-in',
+            'axe has no serious or critical violations on every reachable launch page',
+            'retain redacted exact-SHA catalogue browse, search and direct-detail evidence',
+            'read-only catalogue failures and verified brewery navigation stay truthful',
+            'connected private history links, controlled retry and repeated reloads preserve the exact owner tasting',
+            'connected other-account history cannot resolve an owner rating link'
+          ]
+          const allowedTitles = new Set(titles)
+          const root = process.cwd()
+          const output = path.join(root, 'artifacts/launch-connected-evidence/summary.json')
+          const report = {
+            version: 1, qualification: 'CONNECTED_BASELINE', status: 'BLOCKED',
+            releaseSha: /^[a-f0-9]{40}$/.test(process.env.RELEASE_SHA || '') ? process.env.RELEASE_SHA : null,
+            harnessSha: /^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA || '') ? process.env.GITHUB_SHA : null,
+            startedAt: new Date().toISOString(),
+            scope: {
+              ratingCreateDeleteChecks: 'DISABLED', cellarMutationChecks: 'DISABLED',
+              retiredReconciliationEndpoint: 'DENIAL_PROBE_ONLY',
+              signupCredentials: 'OMITTED', otpCredentials: 'OMITTED',
+              profileInitialization: 'NORMAL_APPLICATION_INITIALIZATION_MAY_CREATE_DEFAULT_PRIVATE_PROFILES',
+              profilePrivacyTransitions: 'NOT_RUN', ratingProviderRecovery: 'NOT_QUALIFIED'
+            },
+            retainedEvidence: {
+              traces: 'OFF', screenshots: 'OFF', videos: 'OFF', privateErrorsAndAttachments: 'NOT_PUBLISHED'
+            },
+            counts: { passed: 0, failed: 0, skipped: 0, notRun: titles.length },
+            tests: titles.map(title => ({ title, status: 'NOT_RUN' }))
+          }
+          const fail = code => Object.assign(new Error(), { code })
+          const safeCodes = new Set([
+            'RELEASE_IDENTITY_INVALID', 'PLAYWRIGHT_REPORT_UNAVAILABLE',
+            'TEST_IDENTITY_MISMATCH', 'BASELINE_CHECKS_FAILED', 'PRIVATE_CLEANUP_UNCONFIRMED'
+          ])
+          let privateDirectory
+          const entries = suites => {
+            const found = []
+            for (const suite of suites || []) {
+              for (const spec of suite.specs || []) {
+                for (const test of spec.tests || []) found.push({ title: spec.title, test })
+              }
+              found.push(...entries(suite.suites))
+            }
+            return found
+          }
+          const readReport = file => {
+            try {
+              const size = fs.statSync(file).size
+              if (size < 2 || size > 16 * 1024 * 1024) throw fail('PLAYWRIGHT_REPORT_UNAVAILABLE')
+              const parsed = JSON.parse(fs.readFileSync(file, 'utf8'))
+              if (!Array.isArray(parsed.suites)) throw fail('PLAYWRIGHT_REPORT_UNAVAILABLE')
+              return parsed
+            } catch {
+              throw fail('PLAYWRIGHT_REPORT_UNAVAILABLE')
+            }
+          }
+          const confirmIdentities = parsed => {
+            const found = entries(parsed.suites)
+            if (found.length !== titles.length || new Set(found.map(row => row.title)).size !== titles.length ||
+                found.some(row => !allowedTitles.has(row.title))) throw fail('TEST_IDENTITY_MISMATCH')
+            return found
+          }
+          try {
+            if (!report.releaseSha || !process.env.RUNNER_TEMP) throw fail('RELEASE_IDENTITY_INVALID')
+            privateDirectory = fs.mkdtempSync(path.join(process.env.RUNNER_TEMP, 'pourfolio-connected-evidence-'))
+            fs.chmodSync(privateDirectory, 0o700)
+            const configPath = path.join(privateDirectory, 'release.config.mjs')
+            const baseConfig = pathToFileURL(path.join(root, 'playwright.release.config.js')).href
+            fs.writeFileSync(configPath, [
+              'import base from ' + JSON.stringify(baseConfig),
+              'export default { ...base,',
+              'testDir: ' + JSON.stringify(path.join(root, 'release-check')) + ',',
+              'outputDir: ' + JSON.stringify(path.join(privateDirectory, 'results')) + ',',
+              'retries: 0, workers: 1, reporter: [["json"]],',
+              'use: { ...base.use, trace: "off", screenshot: "off", video: "off" } }'
+            ].join('\n'), { mode: 0o600 })
+            const childEnvironment = { ...process.env }
+            for (const name of [
+              'RELEASE_SIGNUP_EMAIL', 'RELEASE_SIGNUP_PASSWORD', 'RELEASE_OTP_EMAIL', 'RELEASE_OTP_CODE',
+              'PLAYWRIGHT_JSON_OUTPUT_DIR', 'PLAYWRIGHT_JSON_OUTPUT_NAME', 'PLAYWRIGHT_JSON_OUTPUT_FILE'
+            ]) delete childEnvironment[name]
+            childEnvironment.RELEASE_DESTRUCTIVE_CONFIRMATION = ''
+            const run = async (label, extraArguments) => {
+              const stdoutPath = path.join(privateDirectory, label + '.json')
+              const stdout = fs.openSync(stdoutPath, 'w', 0o600)
+              const stderr = fs.openSync(path.join(privateDirectory, label + '.stderr'), 'w', 0o600)
+              try {
+                const exitCode = await new Promise((resolve, reject) => {
+                  const child = spawn(process.execPath, [
+                    path.join(root, 'node_modules/@playwright/test/cli.js'), 'test',
+                    '--config', configPath, '--reporter=json', '--retries=0', '--workers=1',
+                    ...extraArguments
+                  ], { cwd: root, env: childEnvironment, stdio: ['ignore', stdout, stderr] })
+                  child.once('error', () => reject(fail('PLAYWRIGHT_REPORT_UNAVAILABLE')))
+                  child.once('close', code => resolve(Number.isInteger(code) ? code : -1))
+                })
+                return { exitCode, parsed: readReport(stdoutPath) }
+              } finally {
+                fs.closeSync(stdout)
+                fs.closeSync(stderr)
+              }
+            }
+            const discovery = await run('discovery', ['--list'])
+            if (discovery.exitCode !== 0) throw fail('PLAYWRIGHT_REPORT_UNAVAILABLE')
+            confirmIdentities(discovery.parsed)
+            const execution = await run('execution', [])
+            const found = confirmIdentities(execution.parsed)
+            const states = new Map()
+            for (const { title, test } of found) {
+              const results = Array.isArray(test.results) ? test.results : []
+              const last = results.at(-1)
+              let status = 'NOT_RUN'
+              if (test.status === 'skipped' || last?.status === 'skipped') status = 'SKIPPED'
+              else if (test.status === 'expected' && results.length === 1 && last?.status === 'passed') status = 'PASS'
+              else if (test.status === 'unexpected' || test.status === 'flaky' ||
+                       ['failed', 'timedOut', 'interrupted'].includes(last?.status)) status = 'FAIL'
+              states.set(title, status)
+            }
+            report.tests = titles.map(title => ({ title, status: states.get(title) || 'NOT_RUN' }))
+            report.counts = {
+              passed: report.tests.filter(row => row.status === 'PASS').length,
+              failed: report.tests.filter(row => row.status === 'FAIL').length,
+              skipped: report.tests.filter(row => row.status === 'SKIPPED').length,
+              notRun: report.tests.filter(row => row.status === 'NOT_RUN').length
+            }
+            if (execution.exitCode !== 0 || report.counts.failed > 0 || report.counts.notRun > 0 ||
+                (execution.parsed.errors || []).length > 0) throw fail('BASELINE_CHECKS_FAILED')
+            report.status = report.counts.skipped > 0 ? 'PASS_WITH_SKIPS' : 'PASS'
+          } catch (error) {
+            report.status = 'BLOCKED'
+            report.blocker = safeCodes.has(error?.code) ? error.code : 'EVIDENCE_RUNNER_UNAVAILABLE'
+          } finally {
+            try {
+              if (privateDirectory) fs.rmSync(privateDirectory, { recursive: true, force: true })
+              if (process.env.RELEASE_OWNER_SESSION_PATH) fs.rmSync(process.env.RELEASE_OWNER_SESSION_PATH, { force: true })
+              report.privateWorkspaceCleanup = 'PASS'
+            } catch {
+              report.status = 'BLOCKED'
+              report.blocker = 'PRIVATE_CLEANUP_UNCONFIRMED'
+              report.privateWorkspaceCleanup = 'UNCONFIRMED'
+            }
+            report.completedAt = new Date().toISOString()
+            fs.mkdirSync(path.dirname(output), { recursive: true })
+            fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n')
+            process.stdout.write(JSON.stringify(report) + '\n')
+          }
+          if (!['PASS', 'PASS_WITH_SKIPS'].includes(report.status)) process.exitCode = 2
+          JS
+      - name: Reverify release origin and provenance
+        if: always() && steps.release-target.outcome == 'success'
+        run: node scripts/verify-release-target.js
+      - name: Remove private diagnostic and session files
+        if: always()
+        env:
+          RELEASE_OWNER_SESSION_PATH: ${{ runner.temp }}/pourfolio-release-owner-${{ github.run_id }}.json
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs'
+          import path from 'node:path'
+          for (const name of fs.readdirSync(process.env.RUNNER_TEMP)) {
+            if (name.startsWith('pourfolio-connected-evidence-')) {
+              fs.rmSync(path.join(process.env.RUNNER_TEMP, name), { recursive: true, force: true })
+            }
+          }
+          fs.rmSync(process.env.RELEASE_OWNER_SESSION_PATH, { force: true })
+          fs.rmSync('test-results/release-check', { recursive: true, force: true })
+          fs.rmSync('playwright-report/release-check', { recursive: true, force: true })
+          JS
+      - name: Retain only the redacted baseline summary
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: launch-connected-baseline-${{ env.RELEASE_SHA }}-${{ github.run_id }}
+          path: artifacts/launch-connected-evidence/summary.json
+          if-no-files-found: error
+          retention-days: 30
