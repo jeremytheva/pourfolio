@@ -169,7 +169,8 @@ Rules:
 - the server assigns authenticated `user_id`; the browser cannot choose an owner;
 - personal attributes and their category mappings are visible only to their owner;
 - duplicate visible descriptions are rejected;
-- creation is compensated if the required category mapping cannot be created.
+- success requires verified attribute/category persistence; uncertain partial
+  records are retained for guarded recovery, with no automatic compensating delete.
 
 The server reuses an existing visible `Overall` category where available. If no Overall category exists, it creates an owner-scoped Overall category for the user.
 

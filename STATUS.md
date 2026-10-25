@@ -1,18 +1,18 @@
 ---
 project: Pourfolio
-portfolio_state: VALIDATING
-execution_slot: VERIFYING
+portfolio_state: READY
+execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Bonus backfill preservation checks implemented and locally validated; integration pending"
-gate: Change
-execution_state: VALIDATING
+stage: "Bonus preservation verification implemented; external provider, data and operations gates open"
+gate: Release
+execution_state: BLOCKED
 current_work:
-  objective: "Validate and integrate #680's before/after bonus preservation checks, then resume external #144/#165 release prerequisites."
-  issue: 680
+  objective: "Obtain authoritative bonus allocations and supported second-account access; complete the existing #165 provider/recovery package before final release qualification."
+  issue: 144
   pr: null
-  branch: "fix/bonus-backfill-preservation-20261025"
+  branch: "main"
 next_actions:
-  - "Complete final-head canonical validation and integrate #680's source-only preservation checks before using them for governed bonus backfill evidence."
+  - "Use #680's before/after preservation checks with the authoritative point plan and complete private evidence; actual provider backfill and history/recovery qualification remain separate gates."
   - "Use #678's corrected canonical bonus_attribute_id checks when auditing fresh same-state baseline/import-rehearsal evidence; historical or mixed-column exports are not current-contract evidence."
   - "Terminal-rating containment and the read-only point-plan auditor are integrated in #676/#677; retain the distributed concurrency boundary under #165 and use the existing evidence package."
   - "Obtain authoritative exact-ID bonus values and complete reviewed bounded backfill with post-write verification; labelled defaults do not satisfy the selected launch gate."
@@ -41,7 +41,7 @@ wip:
 evidence:
   observed_main_commit: "a928060d06c24bd17de76baee9619753a82dd978"
   current_candidate_commit: null
-  latest_validated_commit: "a928060d06c24bd17de76baee9619753a82dd978"
+  latest_validated_commit: "abf1f11564d3d8e4cb82d95361c19209233fc678"
   latest_deployed_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
   latest_runtime_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
   latest_browser_verified_commit: "44f325aca702490aa12ed5fb9b03a2a534e9f0a8"
@@ -53,8 +53,8 @@ validation:
   build: PASS
   ci: PENDING
   runtime: NOT_APPLICABLE
-last_verified_commit: "a928060d06c24bd17de76baee9619753a82dd978"
-last_updated: "2026-10-25T04:30:00Z"
+last_verified_commit: "abf1f11564d3d8e4cb82d95361c19209233fc678"
+last_updated: "2026-10-25T04:36:01Z"
 
 ---
 
@@ -82,8 +82,13 @@ other supplied fields, verifies exact fill counts and fingerprints all three
 inputs. Eight initial regression groups failed against the prior behaviour;
 all 22 focused cases now pass under Node 22.23.4. Canonical validation passes
 1,054 tests with 15 provider-gated skips, zero failures and zero production
-vulnerabilities. Exact published-head checks and integration evidence remain
-required in the linked PR. No provider access, data write, history recalculation
+vulnerabilities. [PR #681](https://github.com/jeremytheva/pourfolio/pull/681)
+source head `abf1f11564d3d8e4cb82d95361c19209233fc678` passed canonical validation
+on its exact local checkout and independently in hosted run
+[40162291112](https://github.com/jeremytheva/pourfolio/actions/runs/40162291112),
+Release gate job `121076181186`. The final documentation head and integration
+require their own evidence in that PR. Browser/runtime references retain earlier
+verified baselines; no source check qualifies a connected release. No provider access, data write, history recalculation
 or credential retry occurs. Supplied evidence is not proof of provider completeness,
 concurrency, recovery, review or live historical-total preservation.
 

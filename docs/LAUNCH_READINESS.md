@@ -52,8 +52,11 @@ mismatches block verification. Original plan/before/after bytes are fingerprinte
 output contains only aggregate counts and static blockers. Eight initial
 regression groups failed before the change; 22 focused Node 22 cases pass.
 Canonical Node 22.23.4 validation passes 1,054 tests with 15 provider-gated
-skips, zero failures and zero production vulnerabilities. Exact published-head
-checks and integration evidence remain required in the linked PR.
+skips, zero failures and zero production vulnerabilities. [PR #681](https://github.com/jeremytheva/pourfolio/pull/681)
+source head `abf1f11564d3d8e4cb82d95361c19209233fc678` passed exact-checkout local
+validation and hosted run [40162291112](https://github.com/jeremytheva/pourfolio/actions/runs/40162291112),
+Release gate job `121076181186`. The PR retains final documentation-head and
+integration evidence. No connected skip becomes passing evidence.
 
 This is `SOURCE_ONLY` consistency checking of supplied bonus-attribute evidence.
 Completeness/source/reviewer metadata remain assertions; historical rating
