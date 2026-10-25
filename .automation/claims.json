@@ -5,7 +5,7 @@
       "owner": "cleanup-v1-scorer-20261025T051120671Z",
       "workstream": "catalogue",
       "issue": 682,
-      "pr": null,
+      "pr": 683,
       "surfaces": [
         "branch:cleanup/429-retire-v1-scorer-20261025",
         "file:.project-master/launch-readiness.json",
@@ -16,10 +16,12 @@
         "file:src/utils/__tests__/brewDoneItScoring.test.js",
         "file:src/utils/brewDoneItScoring.js",
         "issue:429",
+        "issue:682",
+        "pr:683",
         "repo:integration"
       ],
       "acquiredAt": "2026-10-25T05:11:20.671Z",
-      "expiresAt": "2026-10-25T05:41:20.671Z"
+      "expiresAt": "2026-10-25T05:54:14.551Z"
     }
   }
 }
