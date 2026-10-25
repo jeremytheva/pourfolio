@@ -5,7 +5,7 @@
       "owner": "launch-audit-20261025T032725",
       "workstream": "catalogue",
       "issue": 678,
-      "pr": null,
+      "pr": 679,
       "surfaces": [
         "branch:fix/144-canonical-bonus-evidence-20261025",
         "file:.project-master/launch-readiness.json",
@@ -17,6 +17,8 @@
         "file:scripts/__tests__/audit-import-rehearsal.test.js",
         "file:scripts/audit-baseline-bundle.js",
         "file:scripts/audit-import-rehearsal.js",
+        "issue:678",
+        "pr:679",
         "repo:integration"
       ],
       "acquiredAt": "2026-10-25T03:27:25.049Z",
