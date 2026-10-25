@@ -178,6 +178,7 @@ jobs:
             const execution = await run('execution', [])
             const found = confirmIdentities(execution.parsed)
             const states = new Map()
+            const diagnostics = new Map()
             for (const { title, test } of found) {
               const results = Array.isArray(test.results) ? test.results : []
               const last = results.at(-1)
@@ -186,9 +187,25 @@ jobs:
               else if (test.status === 'expected' && results.length === 1 && last?.status === 'passed') status = 'PASS'
               else if (test.status === 'unexpected' || test.status === 'flaky' ||
                        ['failed', 'timedOut', 'interrupted'].includes(last?.status)) status = 'FAIL'
+              if (status === 'FAIL') {
+                const locations = []
+                for (const error of [...(last?.errors || []), ...(last?.error ? [last.error] : [])]) {
+                  for (const match of String(error?.stack || '').matchAll(/\/release-check\/(connected\.spec\.js|support\.js|catalogue-readonly\.spec\.js|profile-history-readonly\.spec\.js):(\d{1,4}):(\d{1,4})/g)) {
+                    const location = { file: match[1], line: Number(match[2]), column: Number(match[3]) }
+                    if (!locations.some(row => row.file === location.file && row.line === location.line && row.column === location.column)) locations.push(location)
+                  }
+                }
+                diagnostics.set(title, {
+                  result: ['failed', 'timedOut', 'interrupted'].includes(last?.status) ? last.status : 'unconfirmed',
+                  locations: locations.slice(0, 5)
+                })
+              }
               states.set(title, status)
             }
-            report.tests = titles.map(title => ({ title, status: states.get(title) || 'NOT_RUN' }))
+            report.tests = titles.map(title => ({
+              title, status: states.get(title) || 'NOT_RUN',
+              ...(diagnostics.has(title) ? { diagnostic: diagnostics.get(title) } : {})
+            }))
             report.counts = {
               passed: report.tests.filter(row => row.status === 'PASS').length,
               failed: report.tests.filter(row => row.status === 'FAIL').length,
