@@ -15,6 +15,7 @@
         "file:docs/nocodebackend/schema-mapping.md",
         "file:src/utils/__tests__/brewDoneItScoring.test.js",
         "file:src/utils/brewDoneItScoring.js",
+        "issue:143",
         "issue:429",
         "issue:682",
         "pr:683",
