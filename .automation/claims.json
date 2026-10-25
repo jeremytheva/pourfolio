@@ -1,4 +1,23 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "bonus-preservation-20261025T042156223Z",
+      "workstream": "catalogue",
+      "issue": 144,
+      "pr": null,
+      "surfaces": [
+        "branch:fix/bonus-backfill-preservation-20261025",
+        "file:.project-master/launch-readiness.json",
+        "file:STATUS.md",
+        "file:docs/BONUS_ATTRIBUTES.md",
+        "file:docs/LAUNCH_READINESS.md",
+        "file:scripts/__tests__/bonusPointPlanAudit.test.js",
+        "file:scripts/audit-bonus-point-plan.js",
+        "repo:integration"
+      ],
+      "acquiredAt": "2026-10-25T04:21:56.223Z",
+      "expiresAt": "2026-10-25T04:51:56.223Z"
+    }
+  }
 }
