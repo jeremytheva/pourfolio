@@ -1,23 +1,23 @@
 ---
 project: Pourfolio
-portfolio_state: READY
-execution_slot: WAITING
+portfolio_state: ACTIVE
+execution_slot: BUILDING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Obsolete v1 scoring source retired; external provider, data and operations gates open"
+stage: "Cellar gateway isolation passes; owner bonus allocation preflight validating"
 gate: Release
-execution_state: BLOCKED
+execution_state: VALIDATING
 current_work:
-  objective: "Obtain authoritative bonus allocations and supported second-account access; complete the existing #165 provider/recovery package before final release qualification."
+  objective: "Integrate 39 reviewed owner allocations, retain 42 unresolved values and run a read-only provider preflight."
   issue: 144
   pr: null
-  branch: "main"
+  branch: "fix/bonus-point-allocation-20261025"
 next_actions:
   - "The bounded #682 v1 scorer retirement preserves current v2/v3 functionality. Keep #429 open and require new reachability/retention proof before any further cleanup."
   - "Use #680's before/after preservation checks with the authoritative point plan and complete private evidence; actual provider backfill and history/recovery qualification remain separate gates."
   - "Use #678's corrected canonical bonus_attribute_id checks when auditing fresh same-state baseline/import-rehearsal evidence; historical or mixed-column exports are not current-contract evidence."
   - "Terminal-rating containment and the read-only point-plan auditor are integrated in #676/#677; retain the distributed concurrency boundary under #165 and use the existing evidence package."
-  - "Obtain authoritative exact-ID bonus values and complete reviewed bounded backfill with post-write verification; labelled defaults do not satisfy the selected launch gate."
-  - "Correct RELEASE_OTHER_PASSWORD securely, then complete distinct-account session/cellar/profile certification with the current exact auth_release_sha; no unchanged HTTP 401 retry."
+  - "Obtain the remaining 42 exact-ID bonus values in data/bonus_attribute_point_plan.json, then complete governed backfill and post-write/historical-total preservation verification; all 82 descriptors remain available."
+  - "Both distinct accounts passed protected authentication-only verification at production f13e07a8. Bounded cellar gateway/isolation and cleanup now pass in run 40239183671; full session, HTTP/browser and profile acceptance remain separate."
   - "Complete #165 provider mechanism, consistent snapshot and isolated restore evidence before irreversible migration or historical repair; then close #144/#154 acceptance."
   - "Complete publication, monitored support, named operations owners, anonymous production access and final exact-candidate release qualification."
 blockers:
@@ -26,7 +26,7 @@ blockers:
     detail: "Unconditional parent transitions and late child writes lack certified distributed integrity. Provider uniqueness/atomic workflow, consistent backup, isolated restore and approval for irreversible changes remain required."
   - scope: connected_backend_and_bonus_values
     issue: 144
-    detail: "The second account sign-in returns HTTP 401 with all four fields present. Authoritative bonus allocations, governed backfill, remaining connected policy and recovery evidence are unavailable; #577 implementation is closed."
+    detail: "Protected distinct-account authentication now passes. 39 owner allocations are mapped, 42 values remain unresolved, and backfill plus remaining connected policy/recovery acceptance is open; #577 implementation is closed."
   - scope: persistent_profile_privacy
     issue: 422
     detail: "Provider uniqueness/default-private creation, persisted opt-in/revocation, copied links and cross-owner denial still need connected certification."
@@ -40,11 +40,11 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "6daa4265757dfa24fadee8cea98ffe874141ca56"
+  observed_main_commit: "f13e07a845714ea02d744394dbe1684e614c8bfb"
   current_candidate_commit: null
   latest_validated_commit: "8619af59705379fb3d337d83621a94a7f583bb6a"
-  latest_deployed_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
-  latest_runtime_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
+  latest_deployed_commit: "f13e07a845714ea02d744394dbe1684e614c8bfb"
+  latest_runtime_verified_commit: "f13e07a845714ea02d744394dbe1684e614c8bfb"
   latest_browser_verified_commit: "8619af59705379fb3d337d83621a94a7f583bb6a"
 validation:
   governance: PASS
@@ -55,7 +55,7 @@ validation:
   ci: PENDING
   runtime: NOT_APPLICABLE
 last_verified_commit: "8619af59705379fb3d337d83621a94a7f583bb6a"
-last_updated: "2026-10-25T05:28:02Z"
+last_updated: "2026-10-25T22:15:43Z"
 
 ---
 
@@ -64,6 +64,53 @@ last_updated: "2026-10-25T05:28:02Z"
 Last materially reviewed: 25 October 2026 UTC
 
 ## AI execution gate
+
+### Owner allocations and corrected account access — 25 October 2026 UTC
+
+The owner supplied 39 calculation values and explicitly confirmed that “All that
+and more” maps to existing ID 3, “All this and more!”. The reviewed
+[data/bonus_attribute_point_plan.json](data/bonus_attribute_point_plan.json)
+records exact IDs and two-decimal amounts with provenance. All 82 global
+descriptors remain available as requested. Existing global ID 51 retains its
+stored 0.50; the other 42 entries are explicitly unresolved (`null`).
+“Other” is a UI section heading, not a point-bearing row. No default or similar
+descriptor is used to infer an allocation.
+
+The protected read-only preflight uses fresh bounded provider pagination and the
+existing point-plan auditor. It fingerprints the plan/snapshot, reports aggregate
+counts/static blockers and never writes provider data. Missing or conflicting
+preserved values block it. Its protected workflow is main-only, manually
+dispatchable or selected by `[bonus-point-preflight]` in a reviewed merge.
+A partial plan must remain BLOCKED. No actual backfill, historical-total
+preservation, private-row preservation across a write or provider atomicity is
+claimed by this source preparation.
+
+The owner confirmed secure second-account credential updates. Existing protected
+[run 40235529806](https://github.com/jeremytheva/pourfolio/actions/runs/40235529806),
+job `121296164720`, passed both account sign-in/session/sign-out and distinct
+identities at 21:27:10 UTC against production
+`f13e07a845714ea02d744394dbe1684e614c8bfb`, with zero data writes.
+This supersedes the former HTTP 401 blocker for that observation and qualifies
+AUTH_ONLY. The separate bounded
+[cellar run 40239183671](https://github.com/jeremytheva/pourfolio/actions/runs/40239183671),
+job `121307112955`, passed at 22:14:30 UTC from reviewed evidence-only source
+`8b0be28fc81a9a8327e2c500ac89c032cd1c554f` using those live account identities
+and auth release `f13e07a8`. Owner create/reload/update, nullable relationships,
+gift round trip, other-account list/PUT/DELETE denial and exact cleanup passed.
+There was one create, one update, one delete, one removed fixture and no gateway
+failure. The encrypted receipt and redacted summary are artifact `12616105836`.
+No historical ownerless row or rating was mutated. This invokes the candidate
+gateway directly; HTTP/session middleware and browser submission are NOT_RUN.
+The evidence-only workflow is not proposed for merge. Full
+session/rate-limit acceptance and profile privacy remain separate gates.
+
+
+The review of #679/#681/#683 found no material regression. Verified production
+metadata identifies READY deployment `dpl_BoLGF2ADjpZx17JmURmHazMB4sF6` at
+`f13e07a845714ea02d744394dbe1684e614c8bfb`. PR #683 retains the exact-version
+anonymous eight-route HTTP result. Final-candidate evidence is still required.
+#165 integrity/recovery, complete allocations/backfill, connected privacy and
+publication/operations remain open. Public launch remains **NO-GO**.
 
 ### Bounded obsolete scorer cleanup — 25 October 2026 UTC
 
@@ -1628,7 +1675,7 @@ Detailed implementation history belongs in commits, PRs and `docs/RELEASE_TRACKI
 | Issue | Remaining boundary | Safe continuation |
 |---|---|---|
 | #165 | Certified parent/child concurrency, uniqueness, provider migration/recovery and historical contradictory rating | Source containment and evidence preparation; no irreversible mutation or reconciliation enablement before the existing gate |
-| #144 | Second-account supported login, remaining backend isolation and authoritative bonus values/backfill | Correct credentials securely; bounded read-only point-plan preparation and existing guarded certification after prerequisites |
+| #144 | Authentication-only now passes; remaining backend isolation and 42 bonus values/backfill | Review bounded cellar certification, complete the committed point plan and retain governed recovery gates |
 | #422 | Persistent profile/privacy and distinct-account acceptance | Reuse merged source; certify default-private, persistence, opt-in/revocation, copied links and owner denial |
 
 These scoped blockers do not prevent independent launch work. The product
@@ -1637,19 +1684,20 @@ recovery and named specialist/operations evidence remain required.
 
 ## Next dependency-correct work
 
-1. Obtain the exact-ID/value source and reviewed complete point plan, then
-   prepare bounded backfill/recovery and verify persisted values with the
-   integrated read-only auditor. Preserve explicit/private values and all
+1. Obtain the 42 unresolved exact-ID values in the committed point plan, then
+   refresh the bounded read-only provider preflight and prepare governed
+   backfill/recovery with post-write preservation verification. Preserve explicit/private values and all
    historical rating totals.
-2. Correct the protected second-account password before one guarded distinct-
-   account session/cellar/profile/bonus run with current auth provenance.
+2. Retain passing distinct-account AUTH_ONLY and bounded cellar gateway
+   isolation/cleanup evidence; complete remaining HTTP/browser, full session,
+   profile and bonus connected acceptance with current release provenance.
 3. Complete the #165 provider/restore/approval package and historical rating
    recovery; certify the accepted actual write contract under #144, then #154.
 4. Complete effective public documents/support, named alert/recovery owners,
    anonymous production entry, manual accessibility and exact-candidate pilot/GO
    acceptance. Keep public launch NO-GO until every required gate passes.
 
-This is the intended main integration handoff for PR #675. The source PRs
+The earlier PR #675 integration handoff is retained below for provenance. The source PRs
 #676/#677 are merged; PR #675 retains the final workflow/documentation head's
 canonical/browser/anonymous-entry results and resulting deployment identity.
 

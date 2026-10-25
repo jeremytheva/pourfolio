@@ -145,13 +145,15 @@
         "scripts/**/liveBonus*",
         "api/_lib/**/bonus*",
         "api/_lib/**/Bonus*",
-        "scripts/*Bonus*"
+        "scripts/*Bonus*",
+        "data/bonus_attribute_point_plan.json"
       ],
       "test_refs": [
         "e2e/bonus-attributes.spec.js",
         "api/_lib/__tests__/bonusAttributeCreation.test.js",
         "scripts/__tests__/liveBonusRatingMappingAudit.test.js",
-        "scripts/__tests__/bonusPointPlanAudit.test.js"
+        "scripts/__tests__/bonusPointPlanAudit.test.js",
+        "scripts/__tests__/bonusPointPreflight.test.js"
       ],
       "evidence_refs": [
         "docs/BONUS_ATTRIBUTES.md",
