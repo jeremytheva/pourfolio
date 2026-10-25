@@ -154,7 +154,7 @@ jobs:
             report.encryptedBeforeReceipt = 'RETAINED'
             report.deletesAttempted = 1
             const deleted = await context.request.delete('/api/nocodebackend/cellar/' + encodeURIComponent(before.id), {
-              headers: { origin: target.origin }, timeout: 15000, maxRetries: 0
+              headers: { origin: target.origin }, timeout: 15000, maxRetries: 0, maxRedirects: 0
             })
             report.deleteHttpStatus = deleted.status()
             checkpoint('delete-response')
