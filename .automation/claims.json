@@ -4,7 +4,7 @@
     "catalogue": {
       "owner": "bonus-preservation-20261025T042156223Z",
       "workstream": "catalogue",
-      "issue": 144,
+      "issue": 680,
       "pr": null,
       "surfaces": [
         "branch:fix/bonus-backfill-preservation-20261025",
