@@ -1,17 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "catalogue-auth-1792963585187",
-      "workstream": "catalogue",
-      "issue": 144,
-      "pr": null,
-      "surfaces": [
-        "repo:integration",
-        "auth:second-account"
-      ],
-      "acquiredAt": "2026-10-25T21:26:25.187Z",
-      "expiresAt": "2026-10-25T21:56:25.187Z"
-    }
-  }
+  "claims": {}
 }
