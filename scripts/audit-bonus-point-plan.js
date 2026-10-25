@@ -1,10 +1,12 @@
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
+import { isDeepStrictEqual } from 'node:util'
+import { isUtcTimestamp } from './audit-evidence-utils.js'
 
 // Read-only offline evidence preparation: no provider access or apply mode.
 // node scripts/audit-bonus-point-plan.js --plan /private/points.json --snapshot /private/bonus.json --mode preflight
-// Repeat with --mode verify and a fresh complete post-backfill snapshot.
+// Verify with --mode verify --before-snapshot /private/before.json and a fresh post-backfill snapshot.
 // Plan: {version:1,source_ref,reviewer_ref,reviewed_at,attributes:[{id,description,point_value}]}
 // Snapshot: {version:1,complete:true,environment_ref,captured_at,attributes:[{id,user_id,description,point_value}]}
 // Review/source references and completeness are supplied assertions, not independently certified evidence.
@@ -25,13 +27,18 @@ const pointOf = (value) => {
   return cents <= BigInt(Number.MAX_SAFE_INTEGER) ? cents : null
 }
 const isRecord = (value) => value !== null && typeof value === 'object' && !Array.isArray(value)
+const isBytes = (value) => typeof value === 'string' || Buffer.isBuffer(value)
 const digest = (bytes) => createHash('sha256').update(bytes).digest('hex')
+const decodeJson = (bytes) => JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(typeof bytes === 'string' ? Buffer.from(bytes) : bytes))
+const completeAttributeFields = (rows) => rows.every((row) => isRecord(row) &&
+  ['id', 'user_id', 'description', 'point_value'].every((field) => Object.hasOwn(row, field)) && text(row.description))
 
-export const auditBonusPointPlan = ({ planBytes, snapshotBytes, mode = 'preflight' }) => {
+export const auditBonusPointPlan = ({ planBytes, snapshotBytes, beforeSnapshotBytes, mode = 'preflight' }) => {
   if (!['preflight', 'verify'].includes(mode)) throw new TypeError('Use preflight or verify mode.')
-  if (![planBytes, snapshotBytes].every((value) => typeof value === 'string' || Buffer.isBuffer(value))) {
+  if (![planBytes, snapshotBytes].every(isBytes)) {
     throw new TypeError('Original plan and snapshot UTF-8 bytes are required.')
   }
+  if (mode === 'preflight' && beforeSnapshotBytes !== undefined) throw new TypeError('Before snapshot is used only in verify mode.')
   const result = {
     status: 'BLOCKED', mode, qualification: 'SOURCE_ONLY',
     planSha256: digest(planBytes), snapshotSha256: digest(snapshotBytes),
@@ -42,9 +49,8 @@ export const auditBonusPointPlan = ({ planBytes, snapshotBytes, mode = 'prefligh
   let plan
   let snapshot
   try {
-    const decode = (bytes) => new TextDecoder('utf-8', { fatal: true }).decode(typeof bytes === 'string' ? Buffer.from(bytes) : bytes)
-    plan = JSON.parse(decode(planBytes))
-    snapshot = JSON.parse(decode(snapshotBytes))
+    plan = decodeJson(planBytes)
+    snapshot = decodeJson(snapshotBytes)
   } catch {
     block('INPUT_JSON_OR_UTF8_INVALID')
     return result
@@ -102,6 +108,46 @@ export const auditBonusPointPlan = ({ planBytes, snapshotBytes, mode = 'prefligh
   }
   if (!globals.size || [...globals.keys()].some((id) => !plannedIds.has(id))) block('GLOBAL_PLAN_INCOMPLETE')
   if (mode === 'verify' && result.counts.missing > 0) block('GLOBAL_POINT_VALUES_STILL_MISSING')
+  if (mode === 'verify') {
+    result.preservation = { status: 'NOT_RUN', rowsBefore: null, rowsAfter: null, expectedFills: null, observedFills: null }
+    if (!isBytes(beforeSnapshotBytes)) {
+      block('BEFORE_SNAPSHOT_REQUIRED')
+    } else {
+      result.beforeSnapshotSha256 = digest(beforeSnapshotBytes)
+      // Apply the same reviewed plan to both snapshots so it cannot rewrite an
+      // existing explicit value or description merely by matching the after state.
+      const beforeAudit = auditBonusPointPlan({ planBytes, snapshotBytes: beforeSnapshotBytes })
+      if (beforeAudit.status !== 'PASS') {
+        block('BEFORE_SNAPSHOT_OR_PLAN_INVALID')
+      } else if (!result.blockers.length) {
+        const before = decodeJson(beforeSnapshotBytes)
+        result.preservation = {
+          status: 'BLOCKED', rowsBefore: before.attributes.length, rowsAfter: snapshot.attributes.length,
+          expectedFills: beforeAudit.counts.proposedFills, observedFills: 0
+        }
+        if (before.environment_ref !== snapshot.environment_ref) block('SNAPSHOT_ENVIRONMENT_MISMATCH')
+        if (!isUtcTimestamp(before.captured_at) || !isUtcTimestamp(snapshot.captured_at) ||
+            Date.parse(before.captured_at) >= Date.parse(snapshot.captured_at)) block('SNAPSHOT_CAPTURE_ORDER_INVALID')
+        if (!completeAttributeFields(before.attributes)) block('BEFORE_SNAPSHOT_ATTRIBUTE_FIELDS_INCOMPLETE')
+        if (!completeAttributeFields(snapshot.attributes)) block('SNAPSHOT_ATTRIBUTE_FIELDS_INCOMPLETE')
+        const afterRows = new Map(snapshot.attributes.map((row) => [idOf(row.id), row]))
+        if (before.attributes.length !== afterRows.size || before.attributes.some((row) => !afterRows.has(idOf(row.id)))) {
+          block('ATTRIBUTE_SET_CHANGED')
+        }
+        for (const row of before.attributes) {
+          const after = afterRows.get(idOf(row.id))
+          if (!after) continue
+          const global = row.user_id === null || row.user_id.trim() === ''
+          const fill = global && missing(row.point_value)
+          const expected = fill ? { ...row, point_value: after.point_value } : row
+          if (!isDeepStrictEqual(after, expected)) block('UNEXPECTED_ATTRIBUTE_CHANGE')
+          else if (fill) result.preservation.observedFills += 1
+        }
+        if (result.preservation.observedFills !== result.preservation.expectedFills) block('POINT_FILL_COUNT_MISMATCH')
+        if (!result.blockers.length) result.preservation.status = 'PASS'
+      }
+    }
+  }
   if (!result.blockers.length) result.status = 'PASS'
   return result
 }
@@ -110,17 +156,21 @@ export const runBonusPointPlanCli = (args = process.argv.slice(2), readFile = re
   const options = {}
   for (let index = 0; index < args.length; index += 2) {
     const key = args[index]
-    if (!['--plan', '--snapshot', '--mode'].includes(key) || Object.hasOwn(options, key) ||
+    if (!['--plan', '--snapshot', '--before-snapshot', '--mode'].includes(key) || Object.hasOwn(options, key) ||
         !args[index + 1] || args[index + 1].startsWith('--')) {
-      throw new TypeError('Use --plan FILE --snapshot FILE [--mode preflight|verify]; no apply mode exists.')
+      throw new TypeError('Use --plan FILE --snapshot FILE [--mode preflight|verify]; verify requires --before-snapshot FILE. No apply mode exists.')
     }
     options[key] = args[index + 1]
   }
   if (!options['--plan'] || !options['--snapshot']) throw new TypeError('Plan and snapshot files are required.')
   const mode = options['--mode'] || 'preflight'
   if (!['preflight', 'verify'].includes(mode)) throw new TypeError('Use preflight or verify mode.')
+  if ((mode === 'verify') !== Boolean(options['--before-snapshot'])) {
+    throw new TypeError('Before snapshot is required only in verify mode.')
+  }
   return auditBonusPointPlan({
-    planBytes: readFile(options['--plan']), snapshotBytes: readFile(options['--snapshot']), mode
+    planBytes: readFile(options['--plan']), snapshotBytes: readFile(options['--snapshot']),
+    ...(mode === 'verify' ? { beforeSnapshotBytes: readFile(options['--before-snapshot']) } : {}), mode
   })
 }
 

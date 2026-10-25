@@ -41,6 +41,30 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
+### Bonus backfill preservation checks — 25 October 2026 UTC
+
+Issue #680 completes the next source preparation for the verified-bonus gate.
+The existing point-plan auditor now requires `--before-snapshot` for verify,
+checks the same reviewed plan against both snapshots and permits only missing
+global point fills. Row additions/deletions, private changes, existing-value
+changes, other supplied-field drift, incomplete fields and environment/capture
+mismatches block verification; captures require explicit UTC timestamps. Original
+plan/before/after bytes are fingerprinted;
+output contains only aggregate counts and static blockers. Eight initial
+regression groups failed before the change; 22 focused Node 22 cases pass.
+Canonical Node 22.23.4 validation passes 1,054 tests with 15 provider-gated
+skips, zero failures and zero production vulnerabilities. [PR #681](https://github.com/jeremytheva/pourfolio/pull/681)
+source head `abf1f11564d3d8e4cb82d95361c19209233fc678` passed exact-checkout local
+validation and hosted run [40162291112](https://github.com/jeremytheva/pourfolio/actions/runs/40162291112),
+Release gate job `121076181186`. The PR retains final documentation-head and
+integration evidence. No connected skip becomes passing evidence.
+
+This is `SOURCE_ONLY` consistency checking of supplied bonus-attribute evidence.
+Completeness/source/reviewer metadata remain assertions; historical rating
+totals/children, actual provider state, backups, restore, concurrency and
+connected permissions retain their existing gates. Authoritative allocations
+and actual backfill remain uncompleted; public launch remains **NO-GO**.
+
 ### Canonical provider-evidence checks — 25 October 2026 UTC
 
 Issue #678 corrects a source-only certification defect under #144. The baseline
