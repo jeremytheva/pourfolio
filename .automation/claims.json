@@ -5,7 +5,7 @@
       "owner": "catalogue-launch-20261025T221136Z",
       "workstream": "catalogue",
       "issue": 144,
-      "pr": null,
+      "pr": 687,
       "surfaces": [
         "branch:docs/launch-evidence-reconciliation-20261025",
         "branch:fix/bonus-point-allocation-20261025",
