@@ -1,4 +1,24 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "bonus-values-20261025T004026904Z",
+      "workstream": "catalogue",
+      "issue": 144,
+      "pr": null,
+      "surfaces": [
+        "branch:fix/bonus-point-allocation-20261025",
+        "file:.github/workflows/bonus-point-preflight.yml",
+        "file:.project-master/launch-readiness.json",
+        "file:STATUS.md",
+        "file:data/bonus_attribute_point_plan.json",
+        "file:docs/LAUNCH_READINESS.md",
+        "file:scripts/__tests__/bonusPointPreflight.test.js",
+        "file:scripts/run-bonus-point-preflight.js",
+        "repo:integration"
+      ],
+      "acquiredAt": "2026-10-25T00:40:26.904Z",
+      "expiresAt": "2026-10-25T01:10:26.904Z"
+    }
+  }
 }
