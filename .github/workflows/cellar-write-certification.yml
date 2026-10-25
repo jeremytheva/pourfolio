@@ -1,32 +1,18 @@
-name: Bounded current-instance cellar certification
-
+name: Protected two-account authentication verification
 on:
   push:
     branches:
-      - fix/cellar-write-persistence-verification-20261019
-  workflow_dispatch:
-    inputs:
-      auth_release_sha:
-        description: Exact currently deployed auth release commit (40 lowercase hex characters)
-        required: true
-        type: string
-
+      - agent/144-auth-only-20261026
 permissions:
   contents: read
-
 concurrency:
-  group: bounded-current-instance-cellar-certification
+  group: protected-two-account-auth-verification
   cancel-in-progress: false
-
 jobs:
-  certify:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-cellar-write]') || contains(github.event.head_commit.message, '[connected-cellar-owner-write]') || contains(github.event.head_commit.message, '[cellar-fixture-inspect]')
-    permissions:
-      contents: read
-      actions: read
+  verify-auth:
     environment: staging-release
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
         with:
@@ -36,59 +22,49 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Validate the candidate before provider writes
-        run: npm run platform:validate
-      - name: Verify the checked-out candidate
-        run: test "$(git rev-parse HEAD)" = "$CELLAR_CERTIFICATION_SHA"
+      - name: Verify sign-in, matching session and sign-out only
         env:
-          CELLAR_CERTIFICATION_SHA: ${{ github.sha }}
-      - name: Verify bounded candidate cellar gateway persistence
-        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[connected-cellar-write]') || contains(github.event.head_commit.message, '[connected-cellar-owner-write]')
-        run: node scripts/run-cellar-write-certification.js
-        env:
-          CELLAR_CERTIFICATION_SHA: ${{ github.sha }}
-          CELLAR_CERTIFICATION_SCOPE: ${{ contains(github.event.head_commit.message, '[connected-cellar-owner-write]') && 'owner-crud-only' || 'owner-and-isolation' }}
-          CELLAR_CERTIFICATION_CONFIRMATION: ${{ contains(github.event.head_commit.message, '[connected-cellar-owner-write]') && 'RUN CURRENT INSTANCE OWNER CELLAR TEST' || 'RUN CURRENT INSTANCE CELLAR TEST' }}
-          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
-          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
-          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
-          # Only normal application sessions establish owner identity. The
-          # checked-out gateway, not the auth release, performs provider CRUD.
           BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
-          BONUS_CERTIFICATION_AUTH_SHA: ${{ inputs.auth_release_sha || '36ce8ffef482a9044e1e9f35da03214f46b7e1d5' }}
+          BONUS_CERTIFICATION_AUTH_SHA: f13e07a845714ea02d744394dbe1684e614c8bfb
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
           RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}
           RELEASE_OTHER_PASSWORD: ${{ secrets.RELEASE_OTHER_PASSWORD }}
-      - name: Read the encrypted receipt from the reviewed current attempt
-        if: contains(github.event.head_commit.message, '[cellar-fixture-inspect]')
-        uses: actions/download-artifact@v8
-        with:
-          artifact-ids: 12241600938
-          run-id: 39370740463
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/pourfolio-cellar-source
-          digest-mismatch: error
-      - name: Inspect original fixture state without provider writes
-        if: contains(github.event.head_commit.message, '[cellar-fixture-inspect]')
-        run: node scripts/inspect-cellar-write-fixture.js
-        env:
-          CELLAR_CERTIFICATION_SHA: ${{ github.sha }}
-          CELLAR_INSPECTION_CONFIRMATION: INSPECT THE ORIGINAL CELLAR CREATE ATTEMPT
-          CELLAR_SOURCE_DIRECTORY: ${{ runner.temp }}/pourfolio-cellar-source
-          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
-          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
-          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
-          BONUS_CERTIFICATION_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
-          BONUS_CERTIFICATION_AUTH_SHA: ${{ inputs.auth_release_sha || '36ce8ffef482a9044e1e9f35da03214f46b7e1d5' }}
-          RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
-          RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
-      - name: Retain encrypted recovery and redacted results
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: bounded-cellar-${{ github.sha }}
-          path: artifacts/cellar-write-certification/
-          if-no-files-found: warn
-          retention-days: 30
-
+        run: |
+          node --input-type=module <<'JS'
+          import { resolveBonusCertificationOwner } from './scripts/bonus-certification-owner.js'
+          const report = { qualification: 'AUTH_ONLY', releaseSha: process.env.BONUS_CERTIFICATION_AUTH_SHA,
+            startedAt: new Date().toISOString(), dataWrites: 0, accounts: [] }
+          let primaryId
+          for (const account of ['owner', 'other']) {
+            const environment = { ...process.env }
+            delete environment.NOCODEBACKEND_CONTRACT_USER_ID
+            if (account === 'other') {
+              environment.RELEASE_OWNER_EMAIL = environment.RELEASE_OTHER_EMAIL
+              environment.RELEASE_OWNER_PASSWORD = environment.RELEASE_OTHER_PASSWORD
+            }
+            try {
+              const result = await resolveBonusCertificationOwner({ environment })
+              if (account === 'owner') primaryId = result.id
+              else if (result.id === primaryId) {
+                report.accounts.push({ account, status: 'BLOCKED', error: 'ACCOUNTS_NOT_DISTINCT' })
+                break
+              }
+              report.accounts.push({ account, status: 'PASS', signInSessionSignOut: 'PASS' })
+            } catch (error) {
+              const allowed = new Set(['BONUS_TEST_OWNER_AUTH_REJECTED', 'BONUS_TEST_OWNER_SESSION_UNCONFIRMED',
+                'BONUS_TEST_OWNER_AUTH_UNAVAILABLE', 'BONUS_TEST_OWNER_SIGNOUT_UNCONFIRMED',
+                'BONUS_TEST_OWNER_TARGET_UNVERIFIED', 'RUNTIME_CONFIGURATION_MISSING'])
+              report.accounts.push({ account, status: 'BLOCKED',
+                error: allowed.has(error.code) ? error.code : 'AUTH_VERIFICATION_UNAVAILABLE',
+                ...(['sign-in', 'get-session', 'sign-out'].includes(error.authStage) ? { stage: error.authStage } : {}),
+                ...(Number.isInteger(error.authStatus) ? { httpStatus: error.authStatus } : {}),
+                ...(error.sessionCleanup === 'UNCONFIRMED' ? { sessionCleanup: 'UNCONFIRMED' } : {}) })
+              break
+            }
+          }
+          report.completedAt = new Date().toISOString()
+          report.status = report.accounts.length === 2 && report.accounts.every(row => row.status === 'PASS') ? 'PASS' : 'BLOCKED'
+          console.log(JSON.stringify(report))
+          process.exitCode = report.status === 'PASS' ? 0 : 2
+          JS
