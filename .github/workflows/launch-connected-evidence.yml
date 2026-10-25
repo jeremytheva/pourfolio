@@ -1,4 +1,4 @@
-name: Read-only cellar recovery comparison
+name: Reviewed single QA cellar recovery
 
 on:
   push:
@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   baseline:
-    if: contains(github.event.head_commit.message, '[connected-baseline-evidence]')
+    if: contains(github.event.head_commit.message, '[apply-reviewed-cellar-cleanup]')
     environment: staging-release
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -48,8 +48,8 @@ jobs:
       - name: Download the exact encrypted inspection receipt
         uses: actions/download-artifact@v8
         with:
-          artifact-ids: 12617127055
-          run-id: 40241841492
+          artifact-ids: 12617575916
+          run-id: 40242334490
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/pourfolio-owned-cellar-source
           digest-mismatch: error
@@ -65,6 +65,7 @@ jobs:
           CELLAR_SOURCE_DIRECTORY: ${{ runner.temp }}/pourfolio-owned-cellar-source
           RELEASE_OWNER_SESSION_PATH: ${{ runner.temp }}/pourfolio-release-owner-${{ github.run_id }}.json
           RELEASE_DESTRUCTIVE_CONFIRMATION: ""
+          CELLAR_QA_CLEANUP_CONFIRMATION: REMOVE THE SINGLE REVIEWED QA CELLAR RECORD
         shell: bash
         run: |
           node --input-type=module <<'JS'
@@ -77,123 +78,113 @@ jobs:
           import { verifyReleaseTarget } from './release-check/releaseTarget.js'
           import { openBonusFixtureReceipt, sealBonusFixtureReceipt } from './scripts/bonus-fixture-receipt.js'
           
+          const expectedTargetSha256 = '1c8e0ec1278a28e426f6cb041d1790c26dcc4fe650d4b3b413efddd5fd0ee1ed'
           const report = {
-            version: 1, qualification: 'OWNER_CELLAR_RECOVERY_DRY_RUN', status: 'BLOCKED',
-            releaseSha: process.env.RELEASE_SHA, observedAt: new Date().toISOString(),
-            signInSession: 'NOT_RUN', cellarReadHttpStatus: null, totalOwnedRows: null,
-            qaMarkerRows: null, qaPrefixRows: null, cellarMutationRequests: 0,
-            blockedUnexpectedMutations: 0, sessionCleanup: 'NOT_RUN', privateDetails: 'NOT_PUBLISHED'
+            version: 1, qualification: 'OWNER_AUTHORIZED_SINGLE_QA_CELLAR_RECOVERY', status: 'BLOCKED',
+            releaseSha: process.env.RELEASE_SHA, targetSha256: expectedTargetSha256,
+            observedAt: new Date().toISOString(), deletesAttempted: 0, removed: 0,
+            originalAttemptCorrelation: 'UNCONFIRMED', cleanup: 'NOT_RUN', sessionCleanup: 'NOT_RUN'
           }
           const fail = code => Object.assign(new Error(), { code })
-          const codes = new Set(['CONFIGURATION_MISSING', 'CELLAR_SOURCE_RECEIPT_UNCONFIRMED', 'RELEASE_TARGET_UNVERIFIED',
-            'OWNER_SESSION_UNCONFIRMED', 'CELLAR_READ_UNCONFIRMED', 'OWNED_QA_FIXTURE_PRESENT',
-            'UNEXPECTED_MUTATION_BLOCKED', 'SESSION_CLEANUP_UNCONFIRMED', 'PRIVATE_CLEANUP_UNCONFIRMED'])
-          const qaPattern = /^Pourfolio release QA cellar-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
+          const codes = new Set(['RECOVERY_EXECUTION_GUARD_MISSING', 'RECOVERY_PLAN_UNCONFIRMED',
+            'RELEASE_TARGET_UNVERIFIED', 'OWNER_SESSION_UNCONFIRMED', 'TARGET_DRIFT',
+            'OWNER_BASELINE_UNCONFIRMED', 'DELETE_UNCONFIRMED', 'POST_DELETE_UNCONFIRMED',
+            'SESSION_CLEANUP_UNCONFIRMED', 'PRIVATE_CLEANUP_UNCONFIRMED'])
+          const canonical = value => JSON.stringify(Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b))))
+          const digest = value => createHash('sha256').update(canonical(value)).digest('hex')
           let browser
           let context
+          let plan
+          let before
           let verifiedBefore = false
           const verify = async () => {
             try { return await verifyReleaseTarget({ baseUrl: process.env.RELEASE_BASE_URL, releaseSha: process.env.RELEASE_SHA }) }
             catch { throw fail('RELEASE_TARGET_UNVERIFIED') }
           }
+          const checkpoint = stage => {
+            const receipt = sealBonusFixtureReceipt({
+              version: 1, kind: 'owner-authorized-single-qa-cellar-recovery-v1', stage,
+              releaseSha: report.releaseSha, targetSha256: expectedTargetSha256,
+              sourcePlan: plan, targetBefore: before, deletesAttempted: report.deletesAttempted,
+              observedAt: new Date().toISOString(), originalAttemptCorrelation: 'UNCONFIRMED'
+            }, process.env.NOCODEBACKEND_SECRET_KEY)
+            const file = 'artifacts/launch-connected-evidence/recovery.json'
+            fs.mkdirSync(path.dirname(file), { recursive: true })
+            fs.writeFileSync(file + '.tmp', JSON.stringify(receipt) + '\n', { mode: 0o600 })
+            fs.renameSync(file + '.tmp', file)
+          }
           try {
-            if (!process.env.RELEASE_OWNER_EMAIL || !process.env.RELEASE_OWNER_PASSWORD) throw fail('CONFIGURATION_MISSING')
+            if (process.env.CELLAR_QA_CLEANUP_CONFIRMATION !== 'REMOVE THE SINGLE REVIEWED QA CELLAR RECORD' ||
+                !process.env.RELEASE_OWNER_EMAIL || !process.env.RELEASE_OWNER_PASSWORD ||
+                !process.env.NOCODEBACKEND_SECRET_KEY) throw fail('RECOVERY_EXECUTION_GUARD_MISSING')
+            const sourceFiles = fs.readdirSync(process.env.CELLAR_SOURCE_DIRECTORY, { recursive: true })
+              .filter(file => path.basename(file) === 'recovery.json')
+            if (sourceFiles.length !== 1) throw fail('RECOVERY_PLAN_UNCONFIRMED')
+            plan = openBonusFixtureReceipt(JSON.parse(fs.readFileSync(path.join(process.env.CELLAR_SOURCE_DIRECTORY, sourceFiles[0]), 'utf8')), process.env.NOCODEBACKEND_SECRET_KEY)
+            if (plan?.kind !== 'owner-reviewed-cellar-cleanup-plan-v1' || plan.version !== 1 ||
+                plan.targetSha256 !== expectedTargetSha256 || digest(plan.target || {}) !== expectedTargetSha256 ||
+                !/^[1-9]\d*$/.test(String(plan.target.id)) ||
+                !/^Pourfolio release QA cellar-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(plan.target.notes || '') ||
+                !Array.isArray(plan.ownerBaseline)) throw fail('RECOVERY_PLAN_UNCONFIRMED')
             const target = await verify()
             verifiedBefore = true
             report.provenanceBefore = 'PASS'
             browser = await chromium.launch()
             context = await browser.newContext({ baseURL: target.origin })
-            await context.route('**/api/nocodebackend/**', route => {
-              const request = route.request()
-              const pathname = new URL(request.url()).pathname
-              const method = request.method()
-              const allowedAuth = method === 'POST' && [
-                '/api/nocodebackend/auth/sign-in/email', '/api/nocodebackend/auth/sign-out'
-              ].includes(pathname)
-              if (['GET', 'HEAD', 'OPTIONS'].includes(method) || allowedAuth) return route.continue()
-              report.blockedUnexpectedMutations += 1
-              return route.abort('blockedbyclient')
-            })
             const page = await context.newPage()
             await signIn(page, process.env.RELEASE_OWNER_EMAIL, process.env.RELEASE_OWNER_PASSWORD)
             const session = await context.request.get('/api/nocodebackend/auth/get-session', { timeout: 15000 })
             const user = session.status() === 200 ? normalizeAuthUser(await session.json().catch(() => null)) : null
-            if (!user || String(user.email || '').trim().toLowerCase() !== process.env.RELEASE_OWNER_EMAIL.trim().toLowerCase()) {
-              throw fail('OWNER_SESSION_UNCONFIRMED')
-            }
-            report.signInSession = 'PASS'
-            const response = await context.request.get('/api/nocodebackend/cellar', { timeout: 20000 })
-            report.cellarReadHttpStatus = response.status()
-            const payload = response.status() === 200 ? await response.json().catch(() => null) : null
-            if (!Array.isArray(payload?.items)) throw fail('CELLAR_READ_UNCONFIRMED')
-            report.totalOwnedRows = payload.items.length
-            report.qaMarkerRows = payload.items.filter(row => typeof row?.notes === 'string' && qaPattern.test(row.notes)).length
-            const qaRows = payload.items.filter(row => typeof row?.notes === 'string' && row.notes.startsWith('Pourfolio release QA cellar-'))
-            report.qaPrefixRows = qaRows.length
-            const sourceFiles = fs.readdirSync(process.env.CELLAR_SOURCE_DIRECTORY, { recursive: true })
-              .filter(file => path.basename(file) === 'recovery.json')
-            if (sourceFiles.length !== 1) throw fail('CELLAR_SOURCE_RECEIPT_UNCONFIRMED')
-            const source = openBonusFixtureReceipt(JSON.parse(fs.readFileSync(path.join(process.env.CELLAR_SOURCE_DIRECTORY, sourceFiles[0]), 'utf8')), process.env.NOCODEBACKEND_SECRET_KEY)
-            if (source?.kind !== 'read-only-owned-http-cellar-inspection' || source.releaseSha !== report.releaseSha ||
-                !Array.isArray(source.rows) || source.rows.length !== 1 || qaRows.length !== 1) throw fail('CELLAR_SOURCE_RECEIPT_UNCONFIRMED')
-            const recorded = source.rows[0]
-            const current = qaRows[0]
-            if (String(recorded.id) !== String(current.id) || String(recorded.product_id) !== String(current.product_id) ||
-                recorded.notes !== current.notes || !qaPattern.test(current.notes)) throw fail('CELLAR_SOURCE_RECEIPT_UNCONFIRMED')
+            if (!user || String(user.email || '').trim().toLowerCase() !== process.env.RELEASE_OWNER_EMAIL.trim().toLowerCase() ||
+                String(plan.target.user_id) !== String(user.id)) throw fail('OWNER_SESSION_UNCONFIRMED')
             const { dataProvider } = await import('./api/_lib/dataProvider.js')
-            const { verifyPersistedCellar } = await import('./api/cellar-data-proxy.js')
-            const raw = await dataProvider.get('cellar', current.id, { fresh: true })
-            if (!raw || String(raw.id) !== String(current.id) || String(raw.user_id) !== String(user.id) ||
-                String(raw.product_id) !== String(current.product_id) || raw.notes !== current.notes) throw fail('CELLAR_SOURCE_RECEIPT_UNCONFIRMED')
-            const allowedFields = new Set(['product_id', 'quantity', 'container', 'notes', 'date_received', 'user_id'])
-            const compare = async expected => {
-              try {
-                await verifyPersistedCellar({ provider: { get: async () => raw }, id: raw.id, userId: user.id, expected, attempts: 1 })
-                return { matches: true, mismatchFields: [] }
-              } catch (error) {
-                return { matches: false, mismatchFields: Array.isArray(error.mismatchFields)
-                  ? error.mismatchFields.filter(field => allowedFields.has(field)) : [] }
-              }
-            }
-            report.createShape = await compare({ product_id: current.product_id, quantity: 1, container: 'release-check', notes: current.notes, date_received: '2026-10-25' })
-            report.updateShape = await compare({ product_id: current.product_id, quantity: 2, notes: current.notes })
-            report.exactOwnerProviderRead = 'PASS'
-            report.matchesInspectionIdentity = 'PASS'
-            report.originalAttemptCorrelation = 'UNCONFIRMED'
-            const canonical = value => JSON.stringify(Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b))))
-            report.targetSha256 = createHash('sha256').update(canonical(raw)).digest('hex')
-            const recovery = sealBonusFixtureReceipt({
-              version: 1, kind: 'owner-reviewed-cellar-cleanup-plan-v1', releaseSha: report.releaseSha,
-              capturedAt: new Date().toISOString(), target: raw, projectedTarget: current, ownerBaseline: payload.items,
-              targetSha256: report.targetSha256, originalAttemptCorrelation: 'UNCONFIRMED'
-            }, process.env.NOCODEBACKEND_SECRET_KEY)
-            fs.mkdirSync('artifacts/launch-connected-evidence', { recursive: true })
-            fs.writeFileSync('artifacts/launch-connected-evidence/recovery.json', JSON.stringify(recovery) + '\n', { mode: 0o600 })
-            report.fullRawTargetBackup = 'ENCRYPTED_AND_RETAINED'
-            report.requiredAction = 'OWNER_AUTHORIZATION_FOR_THIS_SINGLE_QA_RECORD'
-                      if (report.blockedUnexpectedMutations > 0) throw fail('UNEXPECTED_MUTATION_BLOCKED')
-            if (report.qaPrefixRows > 0) {
-              report.status = 'REVIEW_REQUIRED'
-              report.blocker = 'OWNED_QA_FIXTURE_PRESENT'
-            } else {
-              report.status = 'PASS'
-              report.fixtureState = 'NO_OWNED_QA_MARKER_OBSERVED'
-            }
+            before = await dataProvider.get('cellar', plan.target.id, { fresh: true })
+            if (!before || digest(before) !== expectedTargetSha256 ||
+                String(before.user_id) !== String(user.id)) throw fail('TARGET_DRIFT')
+            const ownerResponse = await context.request.get('/api/nocodebackend/cellar', { timeout: 20000 })
+            const owner = ownerResponse.status() === 200 ? await ownerResponse.json().catch(() => null) : null
+            if (!Array.isArray(owner?.items)) throw fail('OWNER_BASELINE_UNCONFIRMED')
+            const exact = owner.items.filter(row => String(row.id) === String(before.id) &&
+              String(row.product_id) === String(before.product_id) && row.notes === before.notes)
+            if (exact.length !== 1 || owner.items.filter(row => typeof row.notes === 'string' &&
+                row.notes.startsWith('Pourfolio release QA cellar-')).length !== 1) throw fail('OWNER_BASELINE_UNCONFIRMED')
+            const otherRows = owner.items.filter(row => String(row.id) !== String(before.id))
+            report.exactTargetPreflight = 'PASS'
+            checkpoint('delete-intent')
+            report.encryptedBeforeReceipt = 'RETAINED'
+            report.deletesAttempted = 1
+            const deleted = await context.request.delete('/api/nocodebackend/cellar/' + encodeURIComponent(before.id), {
+              headers: { origin: target.origin }, timeout: 15000, maxRetries: 0
+            })
+            report.deleteHttpStatus = deleted.status()
+            checkpoint('delete-response')
+            if (deleted.status() !== 204) throw fail('DELETE_UNCONFIRMED')
+            const stored = await dataProvider.get('cellar', before.id, { fresh: true })
+            const afterResponse = await context.request.get('/api/nocodebackend/cellar', { timeout: 20000 })
+            const after = afterResponse.status() === 200 ? await afterResponse.json().catch(() => null) : null
+            if (stored !== null || !Array.isArray(after?.items) ||
+                after.items.some(row => String(row.id) === String(before.id) || row.notes === before.notes)) throw fail('POST_DELETE_UNCONFIRMED')
+            const rowsDigest = rows => JSON.stringify(rows.map(canonical).sort())
+            if (rowsDigest(after.items) !== rowsDigest(otherRows)) throw fail('POST_DELETE_UNCONFIRMED')
+            report.cleanup = 'PASS'
+            report.removed = 1
+            report.otherOwnedRowsPreserved = 'PASS'
+            report.status = 'PASS'
+            checkpoint('finished')
           } catch (error) {
             report.status = 'BLOCKED'
-            report.blocker = codes.has(error?.code) ? error.code : 'CELLAR_INSPECTION_UNAVAILABLE'
+            report.blocker = codes.has(error?.code) ? error.code : 'SINGLE_QA_RECOVERY_UNAVAILABLE'
+            if (report.deletesAttempted) report.cleanup = 'UNCONFIRMED'
           } finally {
             if (context) {
               try {
                 const signedOut = await context.request.post('/api/nocodebackend/auth/sign-out', {
-                  data: {}, headers: { origin: process.env.RELEASE_BASE_URL }, timeout: 15000
+                  data: {}, headers: { origin: process.env.RELEASE_BASE_URL }, timeout: 15000, maxRetries: 0
                 })
                 if (!signedOut.ok()) throw fail('SESSION_CLEANUP_UNCONFIRMED')
                 report.sessionCleanup = 'PASS'
               } catch {
-                report.status = 'BLOCKED'
-                report.blocker = 'SESSION_CLEANUP_UNCONFIRMED'
-                report.sessionCleanup = 'UNCONFIRMED'
+                report.status = 'BLOCKED'; report.blocker = 'SESSION_CLEANUP_UNCONFIRMED'; report.sessionCleanup = 'UNCONFIRMED'
               }
             }
             try {
@@ -202,13 +193,11 @@ jobs:
               if (process.env.RELEASE_OWNER_SESSION_PATH) fs.rmSync(process.env.RELEASE_OWNER_SESSION_PATH, { force: true })
               report.privateWorkspaceCleanup = 'PASS'
             } catch {
-              report.status = 'BLOCKED'
-              report.blocker = 'PRIVATE_CLEANUP_UNCONFIRMED'
-              report.privateWorkspaceCleanup = 'UNCONFIRMED'
+              report.status = 'BLOCKED'; report.blocker = 'PRIVATE_CLEANUP_UNCONFIRMED'; report.privateWorkspaceCleanup = 'UNCONFIRMED'
             }
             if (verifiedBefore) {
               try { await verify(); report.provenanceAfter = 'PASS' }
-              catch { report.status = 'BLOCKED'; report.blocker = 'RELEASE_TARGET_UNVERIFIED'; report.provenanceAfter = 'UNVERIFIED' }
+              catch { report.status = 'BLOCKED'; report.blocker = 'RELEASE_TARGET_UNVERIFIED' }
             }
             report.completedAt = new Date().toISOString()
             fs.mkdirSync('artifacts/launch-connected-evidence', { recursive: true })
@@ -242,7 +231,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: launch-owned-cellar-recovery-plan-${{ env.RELEASE_SHA }}-${{ github.run_id }}
+          name: launch-reviewed-cellar-recovery-${{ env.RELEASE_SHA }}-${{ github.run_id }}
           path: |
             artifacts/launch-connected-evidence/summary.json
             artifacts/launch-connected-evidence/recovery.json
