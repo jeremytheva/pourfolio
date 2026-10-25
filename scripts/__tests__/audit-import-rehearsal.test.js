@@ -37,7 +37,7 @@ const csvForCollection = (collection, count, suffix = '') => {
       rows.push(`${index}${suffix},${ratingId}${suffix},${attributeId},score-${index}${suffix}`)
     }
   } else if (collection === 'bonus_attribute_rating_mapping') {
-    rows.push('id,rating_id,bonus_attributes_id,uniqueness_key')
+    rows.push('id,rating_id,bonus_attribute_id,uniqueness_key')
     for (let index = 1; index <= count; index += 1) {
       const ratingId = ((index - 1) % 593) + 1
       const bonusId = Math.floor((index - 1) / 593) + 1
@@ -153,6 +153,17 @@ const buildFixture = () => {
   return { directory, manifest, manifestPath }
 }
 
+const replaceBonusMappings = (fixture, runName, transform) => {
+  const collection = 'bonus_attribute_rating_mapping'
+  const file = `${runName}-${collection}-replacement.csv`
+  const oldPath = path.join(fixture.directory, fixture.manifest.runs[runName].collections[collection].file)
+  const buffer = Buffer.from(transform(fs.readFileSync(oldPath, 'utf8')))
+  fs.writeFileSync(path.join(fixture.directory, file), buffer)
+  fixture.manifest.runs[runName].collections[collection] = {
+    file, rows: buffer.toString('utf8').trim().split('\n').length - 1, ...fingerprintBuffer(buffer)
+  }
+}
+
 test('historical import rehearsal verifies reconciliation, idempotency and unchanged non-targets', () => {
   const fixture = buildFixture()
   try {
@@ -184,6 +195,58 @@ test('historical import rehearsal blocks rerun mutation, content drift and rejec
     assert.ok(report.countsByCode.RERUN_MUTATION_NON_ZERO >= 1)
     assert.equal(report.countsByCode.REJECTED_LEDGER_COUNT_MISMATCH, 1)
     assert.equal(report.countsByCode.RUN_CHECK_NON_ZERO, 1)
+  } finally {
+    fs.rmSync(fixture.directory, { recursive: true, force: true })
+  }
+})
+
+test('rehearsal recomputes canonical bonus orphans and duplicate pairs despite declared zeroes', () => {
+  for (const [transform, field] of [
+    [(csv) => csv.replace('1,1,1,bonus-1', '1,1,999,bonus-1'), 'bonus_mappings_without_attribute'],
+    [(csv) => csv.replace('2,2,1,bonus-2', '2,1,1,bonus-2'), 'bonus_mappings_parent_attribute']
+  ]) {
+    const fixture = buildFixture()
+    try {
+      for (const runName of ['first', 'rerun']) replaceBonusMappings(fixture, runName, transform)
+      const report = auditImportRehearsal(fixture.manifest, fixture.manifestPath)
+      assert.equal(report.status, 'BLOCKED')
+      for (const runName of ['first', 'rerun']) {
+        assert.ok(report.blockers.some((blocker) => blocker.code === 'RUN_COMPUTED_CHECK_NON_ZERO' && blocker.run === runName && blocker.field === field && blocker.count === 1))
+        assert.ok(report.blockers.some((blocker) => blocker.code === 'RUN_CHECK_EVIDENCE_MISMATCH' && blocker.run === runName && blocker.field === field))
+      }
+    } finally {
+      fs.rmSync(fixture.directory, { recursive: true, force: true })
+    }
+  }
+})
+
+test('rehearsal rejects legacy-only and mixed bonus columns in all three snapshots', () => {
+  for (const transform of [
+    (csv) => csv.replace('bonus_attribute_id', 'bonus_attributes_id'),
+    (csv) => csv.replace('bonus_attribute_id,uniqueness_key', 'bonus_attribute_id,bonus_attributes_id,uniqueness_key')
+      .replace(/^(\d+,\d+,\d+),/gm, '$1,1,')
+  ]) {
+    for (const runName of ['before', 'first', 'rerun']) {
+      const fixture = buildFixture()
+      try {
+        replaceBonusMappings(fixture, runName, transform)
+        const report = auditImportRehearsal(fixture.manifest, fixture.manifestPath)
+        assert.equal(report.status, 'BLOCKED')
+        assert.ok(report.blockers.some((blocker) => blocker.code === 'RUN_LEGACY_BONUS_COLUMN_UNSUPPORTED' && blocker.run === runName))
+      } finally {
+        fs.rmSync(fixture.directory, { recursive: true, force: true })
+      }
+    }
+  }
+})
+
+test('an empty pre-import snapshot cannot omit the canonical bonus column', () => {
+  const fixture = buildFixture()
+  try {
+    replaceBonusMappings(fixture, 'before', () => 'id,rating_id,uniqueness_key\n')
+    const report = auditImportRehearsal(fixture.manifest, fixture.manifestPath)
+    assert.equal(report.status, 'BLOCKED')
+    assert.ok(report.blockers.some((blocker) => blocker.code === 'RUN_COLLECTION_REQUIRED_COLUMN_MISSING' && blocker.run === 'before' && blocker.field === 'bonus_attribute_id'))
   } finally {
     fs.rmSync(fixture.directory, { recursive: true, force: true })
   }

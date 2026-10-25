@@ -212,6 +212,14 @@ const readRun = (manifestPath, run, runName, blockers) => {
     if (!SHA256.test(textValue(declared.sha256))) addBlocker(blockers, 'RUN_COLLECTION_SHA256_INVALID', { run: runName, collection })
     try {
       const evidence = readCsvEvidence(manifestPath, declared.file)
+      if (collection === 'bonus_attribute_rating_mapping') {
+        if (!evidence.headers.includes('bonus_attribute_id')) {
+          addBlocker(blockers, 'RUN_COLLECTION_REQUIRED_COLUMN_MISSING', { run: runName, collection, field: 'bonus_attribute_id' })
+        }
+        if (evidence.headers.includes('bonus_attributes_id')) {
+          addBlocker(blockers, 'RUN_LEGACY_BONUS_COLUMN_UNSUPPORTED', { run: runName, collection })
+        }
+      }
       result[collection] = {
         file: path.basename(evidence.file),
         rows: evidence.records.length,
@@ -374,7 +382,7 @@ const computeSnapshotChecks = (manifestPath, run, runName, blockers) => {
     scores_without_rating: orphanCount(records.rating_scores, 'rating_id', ids.ratings),
     scores_without_attribute: orphanCount(records.rating_scores, 'attribute_id', ids.rating_attributes),
     bonus_mappings_without_rating: orphanCount(records.bonus_attribute_rating_mapping, 'rating_id', ids.ratings),
-    bonus_mappings_without_attribute: orphanCount(records.bonus_attribute_rating_mapping, 'bonus_attributes_id', ids.bonus_attributes),
+    bonus_mappings_without_attribute: orphanCount(records.bonus_attribute_rating_mapping, 'bonus_attribute_id', ids.bonus_attributes),
     cellar_without_product: orphanCount(records.cellar, 'product_id', ids.products),
     cellar_without_profile: orphanCount(records.cellar, 'user_id', ids.profiles)
   }
@@ -383,7 +391,7 @@ const computeSnapshotChecks = (manifestPath, run, runName, blockers) => {
     ratings_submission_key: duplicateCount(records.ratings, ['submission_key']),
     rating_scores_parent_attribute: duplicateCount(records.rating_scores, ['rating_id', 'attribute_id']),
     rating_scores_uniqueness_key: duplicateCount(records.rating_scores, ['uniqueness_key']),
-    bonus_mappings_parent_attribute: duplicateCount(records.bonus_attribute_rating_mapping, ['rating_id', 'bonus_attributes_id']),
+    bonus_mappings_parent_attribute: duplicateCount(records.bonus_attribute_rating_mapping, ['rating_id', 'bonus_attribute_id']),
     bonus_mappings_uniqueness_key: duplicateCount(records.bonus_attribute_rating_mapping, ['uniqueness_key']),
     cellar_destination_id: duplicateCount(records.cellar, ['id'])
   }

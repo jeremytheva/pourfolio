@@ -18,7 +18,7 @@ const csvFixtures = {
   rating_scores: 'id,rating_id,attribute_id\n1,1,1\n',
   rating_attributes: 'id\n1\n',
   bonus_attributes: 'id\n1\n',
-  bonus_attribute_rating_mapping: 'id,rating_id,bonus_attributes_id\n1,1,1\n',
+  bonus_attribute_rating_mapping: 'id,rating_id,bonus_attribute_id\n1,1,1\n',
   profiles: 'user_id\nu1\n',
   cellar: 'id,product_id,user_id\n1,1,u1\n'
 }
@@ -82,6 +82,16 @@ const buildFixture = () => {
   return { directory, manifest, manifestPath }
 }
 
+const replaceBonusMappings = (fixture, csv) => {
+  const buffer = Buffer.from(csv)
+  fs.writeFileSync(path.join(fixture.directory, 'bonus_attribute_rating_mapping.csv'), buffer)
+  const rows = csv.trim().split('\n').length - 1
+  Object.assign(fixture.manifest.artifacts.find((artifact) => artifact.collection === 'bonus_attribute_rating_mapping'), {
+    rows, ...fingerprintBuffer(buffer)
+  })
+  fixture.manifest.pages.find((page) => page.collection === 'bonus_attribute_rating_mapping').rows = rows
+}
+
 test('same-state baseline bundle verifies bytes, rows, pagination, schema and relationships', () => {
   const fixture = buildFixture()
   try {
@@ -110,6 +120,52 @@ test('baseline bundle blocks snapshot, checksum, pagination and relationship dri
     assert.ok(report.countsByCode.PAGINATION_SNAPSHOT_MISMATCH >= 1)
     assert.ok(report.countsByCode.PAGINATION_TERMINAL_INVALID >= 1)
     assert.equal(report.countsByCode.RATING_PRODUCT_ORPHAN, 1)
+  } finally {
+    fs.rmSync(fixture.directory, { recursive: true, force: true })
+  }
+})
+
+test('baseline bonus relationships use the canonical field and reject an orphan', () => {
+  const fixture = buildFixture()
+  try {
+    replaceBonusMappings(fixture, 'id,rating_id,bonus_attribute_id\n1,1,999\n')
+    const report = auditBaselineBundle(fixture.manifest, fixture.manifestPath)
+    assert.equal(report.status, 'BLOCKED')
+    assert.equal(report.countsByCode.BONUS_ATTRIBUTE_ORPHAN, 1)
+    assert.equal(report.countsByCode.CSV_REQUIRED_COLUMN_MISSING, undefined)
+  } finally {
+    fs.rmSync(fixture.directory, { recursive: true, force: true })
+  }
+})
+
+test('baseline refuses legacy-only or mixed bonus fields, including empty exports', () => {
+  for (const csv of [
+    'id,rating_id,bonus_attributes_id\n1,1,1\n',
+    'id,rating_id,bonus_attributes_id\n',
+    'id,rating_id,bonus_attribute_id,bonus_attributes_id\n1,1,1,999\n'
+  ]) {
+    const fixture = buildFixture()
+    try {
+      replaceBonusMappings(fixture, csv)
+      const report = auditBaselineBundle(fixture.manifest, fixture.manifestPath)
+      assert.equal(report.status, 'BLOCKED')
+      assert.equal(report.countsByCode.CSV_LEGACY_BONUS_COLUMN_UNSUPPORTED, 1)
+      if (!csv.includes(',bonus_attribute_id')) {
+        assert.ok(report.blockers.some((blocker) => blocker.code === 'CSV_REQUIRED_COLUMN_MISSING' && blocker.field === 'bonus_attribute_id'))
+      }
+    } finally {
+      fs.rmSync(fixture.directory, { recursive: true, force: true })
+    }
+  }
+})
+
+test('an empty baseline mapping export still requires the canonical bonus column', () => {
+  const fixture = buildFixture()
+  try {
+    replaceBonusMappings(fixture, 'id,rating_id\n')
+    const report = auditBaselineBundle(fixture.manifest, fixture.manifestPath)
+    assert.equal(report.status, 'BLOCKED')
+    assert.ok(report.blockers.some((blocker) => blocker.code === 'CSV_REQUIRED_COLUMN_MISSING' && blocker.field === 'bonus_attribute_id'))
   } finally {
     fs.rmSync(fixture.directory, { recursive: true, force: true })
   }

@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Launch source preparations integrated; external provider, data and operations gates open"
+stage: "Canonical bonus evidence checks repaired; external provider, data and operations gates open"
 gate: Release
 execution_state: BLOCKED
 current_work:
@@ -12,6 +12,7 @@ current_work:
   pr: null
   branch: "main"
 next_actions:
+  - "Use #678's corrected canonical bonus_attribute_id checks when auditing fresh same-state baseline/import-rehearsal evidence; historical or mixed-column exports are not current-contract evidence."
   - "Terminal-rating containment and the read-only point-plan auditor are integrated in #676/#677; retain the distributed concurrency boundary under #165 and use the existing evidence package."
   - "Obtain authoritative exact-ID bonus values and complete reviewed bounded backfill with post-write verification; labelled defaults do not satisfy the selected launch gate."
   - "Correct RELEASE_OTHER_PASSWORD securely, then complete distinct-account session/cellar/profile certification with the current exact auth_release_sha; no unchanged HTTP 401 retry."
@@ -37,12 +38,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
+  observed_main_commit: "6f72b17dd9d138793be57666cd211d3022e45a89"
   current_candidate_commit: null
-  latest_validated_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
+  latest_validated_commit: "4e90b8fc1e9b0c71ec49e280b636b5018b72729d"
   latest_deployed_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
   latest_runtime_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
-  latest_browser_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
+  latest_browser_verified_commit: "4e90b8fc1e9b0c71ec49e280b636b5018b72729d"
 validation:
   governance: PASS
   lint: PASS
@@ -50,17 +51,53 @@ validation:
   tests: PASS
   build: PASS
   ci: PENDING
-  runtime: VERIFIED
-last_verified_commit: "70c3a18982db276b89a5c8c7b26048d58f854e1a"
-last_updated: "2026-10-24T23:03:59Z"
+  runtime: NOT_APPLICABLE
+last_verified_commit: "4e90b8fc1e9b0c71ec49e280b636b5018b72729d"
+last_updated: "2026-10-25T03:44:30Z"
 
 ---
 
 # STATUS.md
 
-Last materially reviewed: 24 October 2026 UTC
+Last materially reviewed: 25 October 2026 UTC
 
 ## AI execution gate
+
+### Canonical bonus evidence-auditor repair — 25 October 2026 UTC
+
+Live main is `6f72b17dd9d138793be57666cd211d3022e45a89`; there were no open
+implementation PRs at entry. The expired bonus-allocation branch has no diff
+from that main and has not supplied an allocation. Its former lease was
+reconciled before acquiring the bounded catalogue/integration claim.
+
+Issue #678 repairs a reproduced #144 source defect: the baseline-bundle and
+import-rehearsal auditors still checked historical `bonus_attributes_id`,
+despite the canonical contract, target schema and connected 4 October evidence
+using `bonus_attribute_id`. Canonical synthetic exports failed while a
+legacy-only baseline passed. Six of eight initial regression cases failed
+before the fix. The corrected ten focused cases pass under Node 22.23.4,
+including empty pre-import evidence, legacy/mixed headers, canonical orphans
+and duplicate pairs despite declared zeroes. Canonical Node 22.23.4 validation
+passes: 1,043 tests, 15 provider-gated skips, zero failures and zero production
+vulnerabilities. The first local run's sole failure was an experimental managed
+proxy warning in a subprocess that requires empty stderr. Rerunning with only
+that runtime warning disabled passed without changing tests or proxy controls.
+[PR #679](https://github.com/jeremytheva/pourfolio/pull/679) head
+`4e90b8fc1e9b0c71ec49e280b636b5018b72729d` passed canonical validation both locally
+and in substantive hosted Release gate job `121066492047` of run
+[40159035452](https://github.com/jeremytheva/pourfolio/actions/runs/40159035452).
+The same run's browser/accessibility job `121066492211` passed all 158 cases;
+Dependency Review, CodeQL, preview deployment status and conflict/review checks
+also passed. Final documentation-head checks and merge evidence remain in that
+PR. Validated/browser commit references identify this source-only result;
+deployed/runtime references retain the earlier verified baseline and its
+bounded claims. No source check certifies connected provider state.
+
+This workspace is writable and a governed Node 22 runtime is available. The
+historical files remain unchanged. Reinspection of the supplied bonus CSV
+confirms 82 rows, one explicit 0.50 value and 81 absent values. No reviewed exact-ID point allocation was recovered from the supplied
+workbooks' selections/import mappings. No provider data, schema, credentials or account setting was
+changed or retried. #165/#144/#154/#422 and public launch remain open/NO-GO.
 
 ### Adopted public MVP launch preparation — 24 October 2026 UTC
 

@@ -56,7 +56,8 @@
       "criticality": "blocking",
       "issue_refs": [
         "#165",
-        "#144"
+        "#144",
+        "#678"
       ],
       "change_paths": [
         "api/_lib/**provider**",
@@ -64,10 +65,15 @@
         "data/**",
         "scripts/*schema*",
         "scripts/*baseline*",
+        "scripts/*import-rehearsal*",
+        "scripts/**/audit-baseline-bundle*",
+        "scripts/**/audit-import-rehearsal*",
         "docs/nocodebackend/**"
       ],
       "test_refs": [
         "scripts/audit-rating-migration-evidence.js",
+        "scripts/__tests__/audit-baseline-bundle.test.js",
+        "scripts/__tests__/audit-import-rehearsal.test.js",
         "release-check/connected.spec.js"
       ],
       "evidence_refs": [
