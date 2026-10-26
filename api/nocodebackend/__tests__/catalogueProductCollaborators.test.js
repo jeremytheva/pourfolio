@@ -6,12 +6,19 @@ import { DEPLOYED_COLLECTIONS as COLLECTIONS } from '../../../src/data/contract.
 
 const original = {
   list: dataProvider.list,
+  listPage: dataProvider.listPage,
   get: dataProvider.get,
   create: dataProvider.create,
   remove: dataProvider.remove
 }
 
 test.afterEach(() => Object.assign(dataProvider, original))
+test.beforeEach(() => {
+  dataProvider.listPage = async (collection, { filters, page, limit }) => {
+    const rows = await dataProvider.list(collection, filters)
+    return { items: rows.slice((page - 1) * limit, page * limit), totalPages: Math.ceil(rows.length / limit) }
+  }
+})
 
 const responseRecorder = () => {
   const result = { statusCode: null, body: null }

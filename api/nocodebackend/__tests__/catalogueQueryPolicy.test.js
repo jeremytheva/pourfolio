@@ -18,7 +18,8 @@ const responseRecorder = () => {
 
 test('catalogue delegates deterministic page boundaries and the provider page limit', async () => {
   let options
-  dataProvider.listPage = async (_collection, received) => {
+  dataProvider.listPage = async (collection, received) => {
+    if (collection !== COLLECTIONS.products) return { items: [], totalPages: 0 }
     options = received
     return { items: [{ id: 101, product_name: 'Zulu' }], page: 3, pageSize: 100, total: 201, totalPages: 3 }
   }

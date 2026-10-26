@@ -69,6 +69,22 @@ Last materially reviewed: 26 October 2026 UTC
 
 ## AI execution gate
 
+### Catalogue relationship pagination repair — 26 October 2026
+
+The confirmed #154 list/detail attribution mismatch is repaired in source by
+using the existing paginated provider reader for product-producer mappings,
+producers and categories. The former unpaged relationship reads could silently
+stop at the provider's default page. Five regressions cover late-page brewery
+and style records, list/detail agreement, collaboration primaries, unrelated
+mappings and later-page failures. Existing privacy, fallback and failure
+assertions are retained with fixtures updated to the paged interface.
+
+This is application-read code only. Exact-head validation and connected release
+readback belong in the linked #154 repair PR; source does not certify live
+provider migration or recovery. Autosave's owner-reported recovery and subsequent
+bounded live history/public-document checks are retained in PR #689. The 42
+unresolved bonus values, QA recovery authorization, #165 and public NO-GO remain.
+
 ### Automatic local rating saving deployed — 26 October 2026
 
 The owner authorised one-off integration in the current session; the paused
