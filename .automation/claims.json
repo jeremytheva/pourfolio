@@ -1,17 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "ratings": {
-      "owner": "ratings-owner-acceptance-1793006665365",
-      "workstream": "ratings",
-      "issue": 688,
-      "pr": 689,
-      "surfaces": [
-        "issue:688",
-        "pr:689"
-      ],
-      "acquiredAt": "2026-10-26T09:24:25.365Z",
-      "expiresAt": "2026-10-26T09:54:25.365Z"
-    }
-  }
+  "claims": {}
 }
