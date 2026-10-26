@@ -16,7 +16,7 @@ test('draft is restored from device storage when the rating-form API is unavaila
   await page.goto('/products/4/rate')
   await completeRatingCards(page)
   await page.getByRole('button', { name: 'Save draft on this device' }).click()
-  await expect(page.getByRole('status')).toContainText('Draft saved on this device only')
+  await expect(page.getByText('Draft saved on this device only.')).toBeVisible()
   expect(uploads).toBe(0)
 
   await page.route('**/api/nocodebackend/rating-form?**', (route) => route.fulfill({
