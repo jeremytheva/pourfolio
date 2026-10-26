@@ -51,6 +51,13 @@ const bonusCategories = [
   { key: 'overall', name: 'Overall' }
 ]
 
+export const submissionReceipt = (submitted) => ({
+  rating: { ...rating, rating_id: submitted.submissionId, product_id: submitted.productId },
+  scoreCount: submitted.scores.length + 1,
+  bonusCount: new Set(submitted.bonusAttributeIds || []).size,
+  duplicate: false
+})
+
 export const installMockApi = async (page, { bonusAttributeRows = bonusAttributes } = {}) => {
   let brewRound = null
   let brewGame = null
@@ -246,7 +253,7 @@ export const installMockApi = async (page, { bonusAttributeRows = bonusAttribute
   await page.route('**/api/nocodebackend/ratings/submit', (route) => route.fulfill({
     status: 201,
     contentType: 'application/json',
-    body: JSON.stringify({ rating, scoreCount: 6, bonusCount: 0, bonusPointTotal: 0, bonusScore: 0, duplicate: false })
+    body: JSON.stringify(submissionReceipt(route.request().postDataJSON()))
   }))
 
   await page.route('**/api/nocodebackend/ratings/history?**', (route) => route.fulfill({

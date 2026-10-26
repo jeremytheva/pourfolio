@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "QA cellar recovery awaits owner authorization; 42 bonus values and provider recovery open"
+stage: "Automatic local rating saving deployed; QA recovery and bonus/provider gates remain"
 gate: Release
 execution_state: BLOCKED
 current_work:
@@ -12,6 +12,7 @@ current_work:
   pr: null
   branch: "main"
 next_actions:
+  - "Autosave is merged/deployed in #689. Complete physical iOS/home-screen and Android acceptance without automatic upload; retain #165 and existing release gates."
   - "Obtain explicit owner authorization for the prepared single-QA-cellar recovery; keep the record untouched until then. Future HTTP mutation certification must retain encrypted intent/acknowledgement before writes."
   - "Live bonus preflight 40240571404 confirms 39 proposed fills and 42 unresolved values. Complete the plan, then use #680 before/after preservation checks and complete historical evidence for governed backfill."
   - "Use #678's corrected canonical bonus_attribute_id checks when auditing fresh same-state baseline/import-rehearsal evidence; historical or mixed-column exports are not current-contract evidence."
@@ -38,17 +39,17 @@ owner_decision:
   question: "Authorize deletion of the single current QA-marked cellar row using the prepared encrypted backup and exact-record guard? Original create acknowledgement is unavailable."
   recommendation: "Approve only the current QA record fingerprint 1c8e0ec1278a28e426f6cb041d1790c26dcc4fe650d4b3b413efddd5fd0ee1ed; perform one guarded delete with post-verification before another HTTP mutation test."
 wip:
-  open_implementation_prs: 0
+  open_implementation_prs: 1
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "fec60da415c2f6cb75cd8f19bdc01a6731c5553a"
+  observed_main_commit: "89c6e4618aefde0f5e33365f4b8578a73421fd4c"
   current_candidate_commit: null
-  latest_validated_commit: "fec60da415c2f6cb75cd8f19bdc01a6731c5553a"
-  latest_deployed_commit: "fec60da415c2f6cb75cd8f19bdc01a6731c5553a"
-  latest_runtime_verified_commit: "fec60da415c2f6cb75cd8f19bdc01a6731c5553a"
-  latest_browser_verified_commit: "fec60da415c2f6cb75cd8f19bdc01a6731c5553a"
+  latest_validated_commit: "89c6e4618aefde0f5e33365f4b8578a73421fd4c"
+  latest_deployed_commit: "89c6e4618aefde0f5e33365f4b8578a73421fd4c"
+  latest_runtime_verified_commit: "89c6e4618aefde0f5e33365f4b8578a73421fd4c"
+  latest_browser_verified_commit: "89c6e4618aefde0f5e33365f4b8578a73421fd4c"
 validation:
   governance: PASS
   lint: PASS
@@ -57,16 +58,60 @@ validation:
   build: PASS
   ci: PASS
   runtime: NOT_APPLICABLE
-last_verified_commit: "fec60da415c2f6cb75cd8f19bdc01a6731c5553a"
-last_updated: "2026-10-25T22:59:31Z"
+last_verified_commit: "89c6e4618aefde0f5e33365f4b8578a73421fd4c"
+last_updated: "2026-10-26T09:04:35.961Z"
 
 ---
 
 # STATUS.md
 
-Last materially reviewed: 25 October 2026 UTC
+Last materially reviewed: 26 October 2026 UTC
 
 ## AI execution gate
+
+### Automatic local rating saving deployed — 26 October 2026
+
+The owner authorised one-off integration in the current session; the paused
+catalogue/integration task and all other automation settings were left unchanged.
+[PR #689](https://github.com/jeremytheva/pourfolio/pull/689) merged as
+`89c6e4618aefde0f5e33365f4b8578a73421fd4c`. Its tree
+`d8bf257fe4226383c4fe67b7fb1c1245b62cced6` exactly matches accepted source
+`cd155345dacc1434c5ff900dc3958b8845b93ab9`.
+
+Partial ratings now save automatically to IndexedDB after edits pause, preserving
+scores, bonuses/definitions, weights, cellar selection and card progress per
+account/product. Reopening restores incomplete work. Local saves are visibly
+separate from explicit server submission; reconnecting never uploads. Conflicts
+and storage failures remain visible, uncertain submissions retain recovery, and
+confirmed submission clears only its matching revision. See
+[offline rating boundaries](docs/offline-ratings.md).
+
+Exact integrated-main [run 40296207415](https://github.com/jeremytheva/pourfolio/actions/runs/40296207415)
+passed canonical Node 22 validation in job `121482787589`: 1,069 passed,
+15 provider-gated skips, zero failures and zero production vulnerabilities.
+Browser/accessibility job `121482787323` passed all 176 cases; CodeQL passed.
+Accepted source additionally passed 18 mobile Chromium and 36 Linux WebKit
+checks (desktop/iPhone emulation). WebKit API-mocked cases ran with workers
+blocked (30 passes); real-worker public shell/update cases ran with workers
+enabled (six passes). The initial runner dependency and mock-interception
+failures are retained in PR #689 and do not establish an application defect.
+Physical iOS Safari/home-screen and Android acceptance remains NOT_RUN.
+
+Production deployment `dpl_3YytygHm81BeEuzZwie241MX7pBP` is READY.
+Health and readiness on
+`https://brew-buds-mobile-app-design-3577.vercel.app` returned HTTP 200 with
+the exact merged SHA. The manifest and worker returned HTTP 200; the worker
+contains 38 compiled assets, excludes API/private HTTP responses and waits for
+old clients before update activation. These are deployment and bounded runtime
+reads, not connected rating-write or physical-device certification. Existing
+device drafts remain at their original browser origin; preview drafts do not
+migrate to production. Latest deployment/check evidence is retained in PR #689.
+
+The owner's latest Accept All Cookies rating/device draft remains unverified;
+historical workbook matches do not prove the current live attempt. No historical
+rating, QA-cellar record, provider/schema or security control was changed.
+#165, the exact QA recovery authorization, 42 missing bonus allocations and the
+other existing release gates remain open. Public launch stays **NO-GO**.
 
 ### Cellar HTTP recovery boundary — 25 October 2026 UTC
 

@@ -1,7 +1,7 @@
 # Launch readiness
 
-Last reconciled: **25 October 2026 UTC**. Current reviewed application and READY production deployment:
-[`fec60da415c2f6cb75cd8f19bdc01a6731c5553a`](https://github.com/jeremytheva/pourfolio/commit/fec60da415c2f6cb75cd8f19bdc01a6731c5553a). Anonymous attempt 2 of run 40240571422 verifies that exact source;
+Last reconciled: **26 October 2026 UTC**. Last verified application deployment:
+[`89c6e4618aefde0f5e33365f4b8578a73421fd4c`](https://github.com/jeremytheva/pourfolio/commit/89c6e4618aefde0f5e33365f4b8578a73421fd4c). PR #689 retains matching production health/readiness and source/browser evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
@@ -38,6 +38,24 @@ preflight report. No application policy, stored bonus value or provider schema
 changes in this diagnostic correction.
 
 ## Current launch decision
+
+### Automatic local rating saving — 26 October 2026
+
+[PR #689](https://github.com/jeremytheva/pourfolio/pull/689) is merged and deployed
+at `89c6e4618aefde0f5e33365f4b8578a73421fd4c`; production health/readiness and
+static PWA resources returned HTTP 200. Exact main source/browser checks pass
+(1,069 source tests, 15 provider-gated skips, 176 browser/accessibility cases).
+The identical accepted source also passes mobile Chromium and Linux WebKit
+emulation. [STATUS.md](../STATUS.md#automatic-local-rating-saving-deployed--26-october-2026)
+holds integration/runtime evidence; [offline boundaries](offline-ratings.md)
+define the account/product draft and static-cache contract.
+
+This closes the source/local-draft delivery only. Physical iOS/home-screen and
+Android acceptance is NOT_RUN, explicit server submission is still required,
+and #165 provider integrity/recovery remains open. No automatic upload or live
+rating/provider mutation occurred. The existing QA recovery authorization,
+42 unresolved bonus allocations, connected privacy/operations and other launch
+gates are unchanged; public launch remains **NO-GO**.
 
 ### Cellar HTTP recovery boundary — 25 October 2026 UTC
 
