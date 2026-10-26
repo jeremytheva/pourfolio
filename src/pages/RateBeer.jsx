@@ -6,7 +6,7 @@ import { AllBonusAttributes, RatingCardBonusAttributes } from '../components/Bon
 import { cellarService } from '../services/cellarService.js'
 import { ratingService } from '../services/ratingService.js'
 import { useAuth } from '../hooks/useAuth.js'
-import { cacheRatingForm, loadCachedRatingForm, saveRatingDraft, loadRatingDraft, discardRatingDraft } from '../lib/offlineRatingStore.js'
+import { cacheRatingForm, loadCachedRatingForm, saveRatingDraft, loadRatingDraft, discardRatingDraft, ratingDraftRevision } from '../lib/offlineRatingStore.js'
 import { bonusScoreFromPoints, selectedBonusPointTotal } from '../lib/bonusAttributes.js'
 import { calculatePPP, canonicalRatingKey, ratingDimension } from '../lib/ratingFormulaV1.js'
 import { calculateRatingTotals, createSubmissionId } from '../utils/ratingSubmission.js'
@@ -34,6 +34,17 @@ function RateBeer() {
   const [offlineForm, setOfflineForm] = useState(false)
   const [draftSaved, setDraftSaved] = useState(false)
   const [storageNotice, setStorageNotice] = useState('')
+  const [online, setOnline] = useState(() => navigator.onLine !== false)
+  const draftRevisionRef = useRef(null)
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine !== false)
+    window.addEventListener('online', update)
+    window.addEventListener('offline', update)
+    return () => {
+      window.removeEventListener('online', update)
+      window.removeEventListener('offline', update)
+    }
+  }, [])
   const [step, setStep] = useState(0)
   const pointerStartXRef = useRef(null)
   const autoAdvanceTimerRef = useRef(null)
@@ -48,11 +59,18 @@ function RateBeer() {
     setStatus('loading')
     setError('')
     setStorageNotice('')
+    setFormDefinition(null)
     setOfflineForm(false)
     setDraftSaved(false)
 
     const initialise = async () => {
       try {
+        let draft = null
+        try {
+          draft = await loadRatingDraft(ownerId, productId)
+        } catch {
+          if (active) setStorageNotice('Offline draft storage is unavailable in this browser.')
+        }
         let form
         let usedCache = false
         const cellarPromise = navigator.onLine === false
@@ -69,7 +87,7 @@ function RateBeer() {
           }
         } catch (requestError) {
           try {
-            form = await loadCachedRatingForm(ownerId, productId)
+            form = draft?.form || await loadCachedRatingForm(ownerId, productId)
           } catch {
             // Preserve the original network failure message below.
           }
@@ -77,15 +95,14 @@ function RateBeer() {
           usedCache = true
         }
 
-        let draft = null
-        try {
-          draft = await loadRatingDraft(ownerId, productId)
-        } catch {
-          if (active) setStorageNotice('Offline draft storage is unavailable in this browser.')
-        }
         const cellarPayload = await cellarPromise
         if (!active) return
 
+        const availableBonuses = new Set((form.bonusAttributes || []).map((item) => String(item.id)))
+        if ((draft?.bonusIds || []).some((id) => !availableBonuses.has(String(id)))) {
+          throw new Error('A saved bonus attribute is unavailable. Reconnect before recovering this draft; your saved copy has been retained.')
+        }
+        draftRevisionRef.current = ratingDraftRevision(draft)
         const availableScores = new Set((form.attributes || []).map((attribute) => String(attribute.id)))
         const recoveredScores = Object.fromEntries(Object.entries(draft?.scores || {}).filter(([id, value]) =>
           availableScores.has(id) && Number.isFinite(value)
@@ -237,9 +254,14 @@ function RateBeer() {
 
   const persistDraft = async () => {
     if (!ownerId) throw new Error('Sign in online before saving a rating on this device.')
-    await saveRatingDraft(ownerId, productId, { submissionId, scores, bonusIds, cellarId, weights })
+    const saved = await saveRatingDraft(ownerId, productId, {
+      submissionId, scores, bonusIds, cellarId, weights,
+      form: { ...formDefinition, bonusAttributes, bonusCategories }
+    }, draftRevisionRef.current)
+    draftRevisionRef.current = saved.revision
     setDraftSaved(true)
     setStorageNotice('Draft saved on this device only. It has not been uploaded.')
+    return saved
   }
 
   const saveDraft = async () => {
@@ -263,15 +285,17 @@ function RateBeer() {
 
     // Saving is local only; the server retains authority for every rating write.
     if (navigator.onLine === false) {
-      await saveDraft()
+      setError('You are offline. Save your draft on this device, then submit when connected.')
       return
     }
 
     setStatus('submitting')
     try {
+      let saved = null
       try {
-        await persistDraft()
-      } catch {
+        saved = await persistDraft()
+      } catch (storageError) {
+        if (storageError.code === 'OFFLINE_DRAFT_CONFLICT') throw storageError
         // Browser storage can be unavailable; do not break existing online ratings.
         setStorageNotice('This device could not retain a backup draft. Keep this page open until submission is confirmed.')
       }
@@ -286,7 +310,7 @@ function RateBeer() {
         cellarId: cellarId || null
       })
       try {
-        await discardRatingDraft(ownerId, productId, submissionId)
+        if (saved) await discardRatingDraft(ownerId, productId, submissionId, saved.revision)
       } catch {
         // Submission was confirmed by the server; storage cleanup is best effort.
       }
@@ -349,6 +373,8 @@ function RateBeer() {
 
       {offlineForm && <p role="status" className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-900">Using a previously saved rating form. Values may be outdated; the server will validate them when you submit.</p>}
       {storageNotice && <p role="status" className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3 text-blue-900">{storageNotice}</p>}
+      {!online && <p role="status">You are offline. Save your draft on this device and submit when connected.</p>}
+      {error.includes('another tab') && <button type="button" onClick={retryLoad}>Load saved draft</button>}
       {error && <div ref={errorRef} tabIndex={-1} className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 outline-none focus:ring-2 focus:ring-red-300" role="alert">{error}</div>}
 
       <form onSubmit={submit} aria-busy={submitting ? 'true' : 'false'}>
@@ -504,8 +530,8 @@ function RateBeer() {
                 {draftSaved ? 'Save draft again' : 'Save draft on this device'}
               </button>
               <p className="mt-2 text-sm text-gray-600">Saved drafts are local only and do not appear in your rating history until the server confirms submission.</p>
-              <button type="submit" disabled={submitting || !preview} aria-busy={submitting} className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-amber-700 px-5 py-3 font-semibold text-white hover:bg-amber-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2 disabled:cursor-wait disabled:bg-gray-500">
-                <SafeIcon icon={FiCheck} className="mr-2 h-5 w-5" />{submitting ? 'Submitting securely…' : navigator.onLine === false ? 'Save for later' : 'Submit rating'}
+              <button type="submit" disabled={submitting || !preview || !online} aria-busy={submitting} className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-amber-700 px-5 py-3 font-semibold text-white hover:bg-amber-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2 disabled:cursor-wait disabled:bg-gray-500">
+                <SafeIcon icon={FiCheck} className="mr-2 h-5 w-5" />{submitting ? 'Submitting securely…' : 'Submit rating'}
               </button>
             </div>
           )}

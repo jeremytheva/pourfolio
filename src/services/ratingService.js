@@ -3,6 +3,7 @@ import { sortRatingAttributes } from '../utils/ratingAttributeOrder.js'
 import { validateRatingBreakdown } from './ratingBreakdownResponse.js'
 import { normalisePublicProfileId } from './publicProfileResponse.js'
 import { validateSharedRatings } from './sharedRatingResponse.js'
+import { validateRatingSubmissionResponse } from './ratingSubmissionResponse.js'
 
 export const ratingService = {
   getRatingForm(productId) {
@@ -24,7 +25,7 @@ export const ratingService = {
     return apiRequest('/ratings/submit', {
       method: 'POST',
       body: rating
-    })
+    }).then((payload) => validateRatingSubmissionResponse(payload, rating))
   },
 
   getUserRatings(productId = null) {

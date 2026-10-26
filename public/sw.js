@@ -12,7 +12,7 @@ self.addEventListener('install', (event) => {
     // Without a complete app bundle an offline reload would show a blank page.
     // Fail the installation rather than claim the shell works when it is incomplete.
     await cache.addAll(PRECACHE)
-    await self.skipWaiting()
+    // Updates wait until existing clients close; never replace an active build.
   })())
 })
 
@@ -33,10 +33,11 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).catch(async () => {
+      (async () => {
         const cache = await caches.open(CACHE)
-        return (await cache.match('/index.html')) || Response.error()
-      })
+        // Keep controlled documents and their lazy chunks on the same build.
+        return (await cache.match('/index.html')) || fetch(request)
+      })()
     )
     return
   }

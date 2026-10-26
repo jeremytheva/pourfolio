@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { installMockApi } from './mockApi.js'
+import { installMockApi, submissionReceipt } from './mockApi.js'
 import { completeRatingCards } from '../release-check/ratingJourney.js'
 
 test.beforeEach(async ({ page }) => {
@@ -10,7 +10,7 @@ test('draft is restored from device storage when the rating-form API is unavaila
   let uploads = 0
   await page.route('**/api/nocodebackend/ratings/submit', async (route) => {
     uploads += 1
-    return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ rating: { id: 99 } }) })
+    return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify(submissionReceipt(route.request().postDataJSON())) })
   })
 
   await page.goto('/products/4/rate')
@@ -40,8 +40,10 @@ test('offline Submit only saves locally and never calls the rating gateway', asy
   await completeRatingCards(page)
   await page.evaluate(() => {
     Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false })
+    window.dispatchEvent(new Event('offline'))
   })
-  await page.getByRole('button', { name: 'Submit rating' }).click()
+  await expect(page.getByRole('button', { name: 'Submit rating' })).toBeDisabled()
+    await page.getByRole('button', { name: 'Save draft on this device', exact: true }).click()
   await expect(page.getByText('Draft saved on this device only.')).toBeVisible()
   await expect(page).toHaveURL(/\/products\/4\/rate$/)
   expect(uploads).toBe(0)

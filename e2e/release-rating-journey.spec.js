@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { completeRatingCards } from '../release-check/ratingJourney.js'
-import { installMockApi } from './mockApi.js'
+import { installMockApi, submissionReceipt } from './mockApi.js'
 
 test.beforeEach(async ({ page }) => { await installMockApi(page) })
 
@@ -8,7 +8,7 @@ const submitReviewedRating = async (page) => {
   const requests = []
   await page.route('**/api/nocodebackend/ratings/submit', async (route) => {
     requests.push(route.request().postDataJSON())
-    await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ rating: { id: 99 } }) })
+    await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify(submissionReceipt(route.request().postDataJSON())) })
   })
   await page.goto('/products/4/rate')
   const result = await completeRatingCards(page)

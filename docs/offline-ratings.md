@@ -35,3 +35,14 @@ Local records are keyed to the signed-in user's canonical ID and product ID. The
 - Verify iOS Safari, installed iOS home screen, Android Chrome and desktop.
 - Complete #165 provider uniqueness, distributed child-write integrity and recovery certification before implementing automatic uploads.
 - Confirm accessibility, build, Node tests, lint and end-to-end browser cases on the actual candidate head before merge/release.
+
+
+## Review corrections — 26 October 2026
+
+- Draft saves compare a unique revision in the same IndexedDB transaction as the write. Stale tabs cannot overwrite a newer saved draft or recreate a cleared revision. Submission cleanup requires both the submission ID and the exact saved revision; a later save survives an earlier acknowledgement. A conflict blocks upload and offers Load saved draft.
+- Each saved draft contains its coherent form snapshot, including newly created bonus definitions and values. Cached recovery uses that snapshot. Unavailable selected definitions fail visibly instead of silently contributing zero.
+- Local Save draft always stays local. The separate Submit rating action is disabled offline and connectivity updates reactively. Reconnecting never uploads automatically.
+- The client validates a matching completed submission receipt (rating/product identities, completed total and child counts; an echoed submission ID must also match when present) before clearing a saved revision. The current gateway does not echo a submission ID: request association and the server fingerprint remain authoritative, and this client check does not certify provider durability. Empty, malformed or mismatched responses retain recovery data.
+- Service Worker updates remain waiting until existing controlled clients close. Controlled navigations use the active cached HTML, keeping that build's document and lazy chunks consistent. Only then may the next worker activate and retire the old cache. There is no forced reload or immediate takeover of an active rating session.
+
+Regression coverage includes stale save/cleanup, coherent bonus recovery, connectivity transitions, empty-success retention and two-version worker updates. Physical mobile and connected provider acceptance remain separate; #165 and public NO-GO are unchanged.

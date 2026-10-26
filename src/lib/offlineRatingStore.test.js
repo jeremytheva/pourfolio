@@ -12,7 +12,7 @@ const memoryIndexedDB = () => {
     createObjectStore: (name) => stores.set(name, new Map()),
     close() {},
     transaction(name) {
-      const tx = { oncomplete: null, onerror: null, onabort: null }
+      const tx = { oncomplete: null, onerror: null, onabort: null, aborted: false, abort() { this.aborted = true; queueMicrotask(() => this.onabort?.()) } }
       let pending = 0
       const wrap = (operation) => {
         pending += 1
@@ -21,7 +21,7 @@ const memoryIndexedDB = () => {
           req.result = operation()
           req.onsuccess?.()
           pending -= 1
-          if (pending === 0) queueMicrotask(() => tx.oncomplete?.())
+          if (pending === 0 && !tx.aborted) queueMicrotask(() => tx.oncomplete?.())
         })
         return req
       }
@@ -85,7 +85,7 @@ test('drafts and forms survive requests, are account-scoped and never sync thems
     assert.equal(await loadRatingDraft('bob', 23), null)
     assert.equal(await discardRatingDraft('alice', 23, 1700000000000002), false)
     assert.equal((await loadRatingDraft('alice', 23)).submissionId, 1700000000000001)
-    assert.equal(await discardRatingDraft('alice', 23, 1700000000000001), true)
+    assert.equal(await discardRatingDraft('alice', 23, 1700000000000001, saved.revision), true)
     assert.equal(await loadRatingDraft('alice', 23), null)
   } finally {
     globalThis.indexedDB = previous
@@ -107,4 +107,22 @@ test('draft creation refuses missing submission identity', async () => {
   await assert.rejects(saveRatingDraft('alice', 23, { scores: {} }), /submission identifier/)
   await assert.rejects(saveRatingDraft('alice', 23, { submissionId: '1700000000000001' }), /submission identifier/)
   await assert.rejects(saveRatingDraft('alice', 23, { submissionId: Number.MAX_SAFE_INTEGER + 1 }), /submission identifier/)
+})
+
+
+test('stale saves and acknowledgements preserve newer revisions, including after deletion', async () => {
+  const previous = globalThis.indexedDB
+  globalThis.indexedDB = memoryIndexedDB()
+  try {
+    const draft = { submissionId: 1700000000000001, scores: { 1: 4 }, form: { product: { id: 23 }, attributes: [], bonusAttributes: [{ id: 9, point_value: 0.7 }] } }
+    const original = await saveRatingDraft('alice', 23, draft)
+    const newer = await saveRatingDraft('alice', 23, { ...draft, scores: { 1: 7 } }, original.revision)
+    await assert.rejects(saveRatingDraft('alice', 23, draft, original.revision), { code: 'OFFLINE_DRAFT_CONFLICT' })
+    assert.equal(await discardRatingDraft('alice', 23, draft.submissionId, original.revision), false)
+    assert.equal((await loadRatingDraft('alice', 23)).scores[1], 7)
+    assert.equal((await loadRatingDraft('alice', 23)).form.bonusAttributes[0].point_value, 0.7)
+    assert.equal(await discardRatingDraft('alice', 23, draft.submissionId, newer.revision), true)
+    await assert.rejects(saveRatingDraft('alice', 23, draft, newer.revision), { code: 'OFFLINE_DRAFT_CONFLICT' })
+    assert.equal(await loadRatingDraft('alice', 23), null)
+  } finally { globalThis.indexedDB = previous }
 })

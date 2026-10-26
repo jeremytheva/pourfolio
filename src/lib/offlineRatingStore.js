@@ -50,6 +50,12 @@ const transaction = async (storeName, mode, operation) => {
 const storeGet = (name, key) => transaction(name, 'readonly', (store) => store.get(key))
 const storePut = (name, key, value) => transaction(name, 'readwrite', (store) => store.put(value, key))
 
+export const ratingDraftRevision = (draft) => draft ? (draft.revision || 'legacy') : null
+
+const draftConflict = () => Object.assign(new Error('A newer draft was saved or submitted in another tab. Load the saved draft before continuing.'), {
+  code: 'OFFLINE_DRAFT_CONFLICT'
+})
+
 export const projectRatingForm = (form, productId) => {
   if (!form || String(form.product?.id) !== String(productId) || !Array.isArray(form.attributes)) {
     throw new TypeError('The rating form cannot be cached.')
@@ -75,40 +81,63 @@ export const loadCachedRatingForm = async (ownerId, productId) => {
   return item.form || null
 }
 
-export const saveRatingDraft = async (ownerId, productId, draft) => {
+export const saveRatingDraft = async (ownerId, productId, draft, expectedRevision = null) => {
   const key = ratingDraftKey(ownerId, productId)
   if (!draft || !Number.isSafeInteger(draft.submissionId) || draft.submissionId <= 0) {
     throw new TypeError('A stable rating submission identifier is required.')
   }
   const value = {
     savedAt: Date.now(),
+    revision: crypto.randomUUID(),
     submissionId: draft.submissionId,
     scores: structuredClone(draft.scores || {}),
     bonusIds: structuredClone(draft.bonusIds || []),
     cellarId: String(draft.cellarId || ''),
-    weights: structuredClone(draft.weights || {})
+    weights: structuredClone(draft.weights || {}),
+    ...(draft.form ? { form: projectRatingForm(draft.form, productId) } : {})
   }
-  await storePut(DRAFT_STORE, key, value)
-  return value
+  const db = await openDatabase()
+  try {
+    return await new Promise((resolve, reject) => {
+      let conflict = null
+      const tx = db.transaction(DRAFT_STORE, 'readwrite')
+      const store = tx.objectStore(DRAFT_STORE)
+      const request = store.get(key)
+      request.onsuccess = () => {
+        if (ratingDraftRevision(request.result) !== expectedRevision) {
+          conflict = draftConflict()
+          tx.abort()
+          return
+        }
+        store.put(value, key)
+      }
+      tx.oncomplete = () => resolve(value)
+      tx.onerror = () => reject(new Error('Offline storage failed. Your changes were not confirmed as saved.'))
+      tx.onabort = () => reject(conflict || new Error('Offline storage was interrupted. Your changes were not confirmed as saved.'))
+    })
+  } finally {
+    db.close()
+  }
 }
 
 export const loadRatingDraft = async (ownerId, productId) => (
   (await storeGet(DRAFT_STORE, ratingDraftKey(ownerId, productId))) || null
 )
 
-export const discardRatingDraft = async (ownerId, productId, submissionId) => {
+export const discardRatingDraft = async (ownerId, productId, submissionId, expectedRevision) => {
   const key = ratingDraftKey(ownerId, productId)
+  if (typeof expectedRevision !== 'string' || !expectedRevision) return false
   const db = await openDatabase()
   try {
-    // Read/check/delete in one transaction, so a newer draft in another tab
-    // cannot be lost between a separate read and delete.
+    // A restored tab shares the submission ID, but each saved revision is unique.
+    // Confirm and remove only the exact revision acknowledged by the server.
     return await new Promise((resolve, reject) => {
       let removed = false
       const tx = db.transaction(DRAFT_STORE, 'readwrite')
       const store = tx.objectStore(DRAFT_STORE)
       const request = store.get(key)
       request.onsuccess = () => {
-        if (request.result?.submissionId === submissionId) {
+        if (request.result?.submissionId === submissionId && ratingDraftRevision(request.result) === expectedRevision) {
           store.delete(key)
           removed = true
         }
