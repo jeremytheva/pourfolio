@@ -8,7 +8,7 @@ const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000
 export const ratingDraftKey = (ownerId, productId) => {
   const owner = typeof ownerId === 'string' ? ownerId.trim() : ''
   const product = String(productId ?? '').trim()
-  if (!owner || owner.length > 128 || !/^[1-9]\\d*$/.test(product)) {
+  if (!owner || owner.length > 128 || !/^[1-9]\d*$/.test(product)) {
     throw new TypeError('A valid signed-in owner and product are required.')
   }
   return JSON.stringify([owner, product])
