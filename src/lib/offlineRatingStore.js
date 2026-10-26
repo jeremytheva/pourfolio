@@ -86,6 +86,9 @@ export const saveRatingDraft = async (ownerId, productId, draft, expectedRevisio
   if (!draft || !Number.isSafeInteger(draft.submissionId) || draft.submissionId <= 0) {
     throw new TypeError('A stable rating submission identifier is required.')
   }
+  if (draft.step !== undefined && (!Number.isSafeInteger(draft.step) || draft.step < 0 || draft.step > 128)) {
+    throw new TypeError('The saved rating step is invalid.')
+  }
   const value = {
     savedAt: Date.now(),
     revision: crypto.randomUUID(),
@@ -94,6 +97,7 @@ export const saveRatingDraft = async (ownerId, productId, draft, expectedRevisio
     bonusIds: structuredClone(draft.bonusIds || []),
     cellarId: String(draft.cellarId || ''),
     weights: structuredClone(draft.weights || {}),
+    ...(draft.step === undefined ? {} : { step: draft.step }),
     ...(draft.form ? { form: projectRatingForm(draft.form, productId) } : {})
   }
   const db = await openDatabase()

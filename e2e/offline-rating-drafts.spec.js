@@ -15,7 +15,7 @@ test('draft is restored from device storage when the rating-form API is unavaila
 
   await page.goto('/products/4/rate')
   await completeRatingCards(page)
-  await page.getByRole('button', { name: 'Save draft on this device' }).click()
+  await page.getByRole('button', { name: /^Save draft (on this device|again)$/ }).click()
   await expect(page.getByText('Draft saved on this device only.')).toBeVisible()
   expect(uploads).toBe(0)
 
@@ -43,7 +43,7 @@ test('offline Submit only saves locally and never calls the rating gateway', asy
     window.dispatchEvent(new Event('offline'))
   })
   await expect(page.getByRole('button', { name: 'Submit rating' })).toBeDisabled()
-    await page.getByRole('button', { name: 'Save draft on this device', exact: true }).click()
+    await page.getByRole('button', { name: /^Save draft (on this device|again)$/, exact: true }).click()
   await expect(page.getByText('Draft saved on this device only.')).toBeVisible()
   await expect(page).toHaveURL(/\/products\/4\/rate$/)
   expect(uploads).toBe(0)
@@ -52,7 +52,7 @@ test('offline Submit only saves locally and never calls the rating gateway', asy
 test('another signed-in account cannot see the prior owner device draft', async ({ page }) => {
   await page.goto('/products/4/rate')
   await completeRatingCards(page)
-  await page.getByRole('button', { name: 'Save draft on this device' }).click()
+  await page.getByRole('button', { name: /^Save draft (on this device|again)$/ }).click()
   await expect(page.getByText('Draft saved on this device only.')).toBeVisible()
 
   await page.route('**/api/nocodebackend/auth/get-session', (route) => route.fulfill({

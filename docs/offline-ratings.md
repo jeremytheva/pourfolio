@@ -9,7 +9,7 @@ Tracking issue: #688. Existing rating-integrity dependency: #165.
 - Static allowlisted assets are looked up with the Cache API's `ignoreVary` option because Vite preview may return `Vary: Origin` and installer fetches do not send the browser module import's `Origin` header. This exception never applies to API or user-specific responses.
 - Account/product-scoped IndexedDB form snapshots and rating drafts.
 - Previously loaded rating forms can be used offline **when an authenticated client session is already active**.
-- A user explicitly saves a draft on the review screen; reopening that beer's rating screen with the same authenticated identity restores the same scores, selected bonuses, weights and stable submission identifier.
+- Progress saves automatically on the device after edits pause for 350 ms, including incomplete ratings, bonuses, cellar selection and the current card. Save draft remains available on every card. Reopening that beer's rating screen with the same authenticated identity restores the scores, selected bonuses, weights and stable submission identifier.
 - On confirmed server submission, the matching draft can be removed. On any uncertain HTTP outcome, the draft remains recoverable. Saving to the device is never represented as a successful backend write.
 
 ## Deliberately not implemented
@@ -46,3 +46,35 @@ Local records are keyed to the signed-in user's canonical ID and product ID. The
 - Service Worker updates remain waiting until existing controlled clients close. Controlled navigations use the active cached HTML, keeping that build's document and lazy chunks consistent. Only then may the next worker activate and retire the old cache. There is no forced reload or immediate takeover of an active rating session.
 
 Regression coverage includes stale save/cleanup, coherent bonus recovery, connectivity transitions, empty-success retention and two-version worker updates. Physical mobile and connected provider acceptance remain separate; #165 and public NO-GO are unchanged.
+
+## Automatic local saving — 26 October 2026
+
+The owner requested automatic saving after the manual offline test. The earlier
+version saved only when explicitly requested or before online submission. It
+could therefore lose unfinished work before review; this slice closes that gap.
+
+- One serial writer per owner/product editor coalesces rapid changes. Every write
+  uses the revision returned by its predecessor, preserving cross-tab conflict
+  checks. A newer edit is never labelled saved by an older in-flight save.
+- Visibility loss, page hide and SPA navigation request a flush of the last
+  captured edit. Browser termination, eviction or closing before the save
+  completes can still interrupt persistence; only the completed Saved message
+  confirms local storage. There is no claim of guaranteed saving after a crash.
+- Incomplete drafts resume at the saved card, capped at an unanswered required
+  card when necessary. Earlier complete drafts without progress metadata remain
+  compatible. Opening a form alone never overwrites or creates a blank draft.
+- Storage failures show a visible unsaved warning and a manual retry on the
+  current card. Conflicts pause the editor's writer until Load saved draft;
+  automatic saving never overwrites another tab's revision.
+- Manual save and explicit online submission flush the same writer. Inputs are
+  disabled during submission. Confirmed completion closes its writer before
+  exact-revision cleanup, so a delayed timer cannot recreate the submitted draft.
+- Autosave is device-only. It does not submit, sync on reconnection, alter existing
+  server ratings or enable background API replay.
+
+Review of the previous attempt: a read-only 30-minute Vercel runtime-log search
+for rating submission, the known previous preview's logs, and submission error
+clusters returned no matching events. The initial two-hour query exceeded the
+plan's retention and was replaced with the supported window. These observations
+cannot confirm a specific previous rating or the contents of a phone's local
+draft. They do not establish that a server submission succeeded or failed.

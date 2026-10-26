@@ -107,6 +107,9 @@ test('draft creation refuses missing submission identity', async () => {
   await assert.rejects(saveRatingDraft('alice', 23, { scores: {} }), /submission identifier/)
   await assert.rejects(saveRatingDraft('alice', 23, { submissionId: '1700000000000001' }), /submission identifier/)
   await assert.rejects(saveRatingDraft('alice', 23, { submissionId: Number.MAX_SAFE_INTEGER + 1 }), /submission identifier/)
+  for (const step of [-1, 1.5, 129, NaN, '2']) {
+    await assert.rejects(saveRatingDraft('alice', 23, { submissionId: 1700000000000001, step }), /step/)
+  }
 })
 
 
@@ -114,12 +117,13 @@ test('stale saves and acknowledgements preserve newer revisions, including after
   const previous = globalThis.indexedDB
   globalThis.indexedDB = memoryIndexedDB()
   try {
-    const draft = { submissionId: 1700000000000001, scores: { 1: 4 }, form: { product: { id: 23 }, attributes: [], bonusAttributes: [{ id: 9, point_value: 0.7 }] } }
+    const draft = { submissionId: 1700000000000001, scores: { 1: 4 }, step: 2, form: { product: { id: 23 }, attributes: [], bonusAttributes: [{ id: 9, point_value: 0.7 }] } }
     const original = await saveRatingDraft('alice', 23, draft)
     const newer = await saveRatingDraft('alice', 23, { ...draft, scores: { 1: 7 } }, original.revision)
     await assert.rejects(saveRatingDraft('alice', 23, draft, original.revision), { code: 'OFFLINE_DRAFT_CONFLICT' })
     assert.equal(await discardRatingDraft('alice', 23, draft.submissionId, original.revision), false)
     assert.equal((await loadRatingDraft('alice', 23)).scores[1], 7)
+    assert.equal((await loadRatingDraft('alice', 23)).step, 2)
     assert.equal((await loadRatingDraft('alice', 23)).form.bonusAttributes[0].point_value, 0.7)
     assert.equal(await discardRatingDraft('alice', 23, draft.submissionId, newer.revision), true)
     await assert.rejects(saveRatingDraft('alice', 23, draft, newer.revision), { code: 'OFFLINE_DRAFT_CONFLICT' })

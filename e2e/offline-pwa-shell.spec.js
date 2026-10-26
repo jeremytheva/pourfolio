@@ -67,7 +67,7 @@ test('a complete rating saves locally during an actual network outage without up
   await context.setOffline(true)
   try {
     await expect(page.getByRole('button', { name: 'Submit rating' })).toBeDisabled()
-    await page.getByRole('button', { name: 'Save draft on this device', exact: true }).click()
+    await page.getByRole('button', { name: /^Save draft (on this device|again)$/, exact: true }).click()
     await expect(page.getByText('Draft saved on this device only.')).toBeVisible()
     const draft = await page.evaluate(() => new Promise((resolve, reject) => {
       const open = indexedDB.open('pourfolio-offline-ratings-v1')
