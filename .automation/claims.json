@@ -1,36 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "ratings": {
-      "owner": "ratings-offline-repair-1792996480980",
-      "workstream": "ratings",
-      "issue": 688,
-      "pr": 689,
-      "surfaces": [
-        "branch:feat/offline-rating-foundation-20261026",
-        "file:docs/offline-ratings.md",
-        "file:e2e/core-flow.spec.js",
-        "file:e2e/mockApi.js",
-        "file:e2e/offline-pwa-shell.spec.js",
-        "file:e2e/offline-rating-drafts.spec.js",
-        "file:e2e/offline-rating-recovery.spec.js",
-        "file:e2e/rating-journey.spec.js",
-        "file:e2e/release-rating-journey.spec.js",
-        "file:public/sw.js",
-        "file:scripts/pwa-assets.mjs",
-        "file:scripts/pwa-assets.test.mjs",
-        "file:scripts/service-worker.test.mjs",
-        "file:src/hooks/useConnectivity.js",
-        "file:src/lib/offlineRatingStore.js",
-        "file:src/lib/offlineRatingStore.test.js",
-        "file:src/main.jsx",
-        "file:src/pages/RateBeer.jsx",
-        "file:src/services/ratingService.js",
-        "file:src/services/ratingSubmissionResponse.js",
-        "file:src/services/ratingSubmissionResponse.test.js"
-      ],
-      "acquiredAt": "2026-10-26T06:34:40.980Z",
-      "expiresAt": "2026-10-26T07:36:49.743Z"
-    }
-  }
+  "claims": {}
 }
