@@ -1,4 +1,16 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "catalogue-attribution-review-1793015902478",
+      "workstream": "catalogue",
+      "issue": 154,
+      "pr": null,
+      "surfaces": [
+        "issue:154"
+      ],
+      "acquiredAt": "2026-10-26T11:58:22.478Z",
+      "expiresAt": "2026-10-26T12:28:22.478Z"
+    }
+  }
 }
