@@ -77,7 +77,7 @@ export const loadCachedRatingForm = async (ownerId, productId) => {
 
 export const saveRatingDraft = async (ownerId, productId, draft) => {
   const key = ratingDraftKey(ownerId, productId)
-  if (!draft || typeof draft.submissionId !== 'string' || !draft.submissionId.trim()) {
+  if (!draft || !Number.isSafeInteger(draft.submissionId) || draft.submissionId <= 0) {
     throw new TypeError('A stable rating submission identifier is required.')
   }
   const value = {
