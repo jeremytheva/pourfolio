@@ -97,11 +97,14 @@ function RateBeer() {
         setScores(recoveredScores)
         setBonusIds(Array.isArray(draft?.bonusIds) ? draft.bonusIds : [])
         setCellarId(draft?.cellarId || '')
-        if (draft?.submissionId) setSubmissionId(draft.submissionId)
+        setSubmissionId(draft?.submissionId || createSubmissionId())
         if (draft?.weights && typeof draft.weights === 'object' && !Array.isArray(draft.weights)) setWeights(draft.weights)
         setDraftSaved(Boolean(draft))
         setOfflineForm(usedCache)
-        setStep(draft ? (form.attributes || []).filter((attribute) => canonicalRatingKey(attribute.attribute_name) !== 'bonus').length + 1 : 0)
+        setStep(draft ? (form.attributes || []).filter((attribute) => {
+          const key = canonicalRatingKey(attribute.attribute_name)
+          return key !== 'bonus' && Boolean(ratingDimension(key))
+        }).length + 1 : 0)
         previousStepRef.current = 0
         setStatus('ready')
       } catch (requestError) {
