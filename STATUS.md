@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Automatic local rating saving deployed; QA recovery and bonus/provider gates remain"
+stage: "Automatic saving and catalogue attribution verified within bounded scope; release gates remain"
 gate: Release
 execution_state: BLOCKED
 current_work:
@@ -12,7 +12,7 @@ current_work:
   pr: null
   branch: "main"
 next_actions:
-  - "Autosave is merged/deployed in #689. Complete physical iOS/home-screen and Android acceptance without automatic upload; retain #165 and existing release gates."
+  - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
   - "Obtain explicit owner authorization for the prepared single-QA-cellar recovery; keep the record untouched until then. Future HTTP mutation certification must retain encrypted intent/acknowledgement before writes."
   - "Live bonus preflight 40240571404 confirms 39 proposed fills and 42 unresolved values. Complete the plan, then use #680 before/after preservation checks and complete historical evidence for governed backfill."
   - "Use #678's corrected canonical bonus_attribute_id checks when auditing fresh same-state baseline/import-rehearsal evidence; historical or mixed-column exports are not current-contract evidence."
@@ -39,17 +39,17 @@ owner_decision:
   question: "Authorize deletion of the single current QA-marked cellar row using the prepared encrypted backup and exact-record guard? Original create acknowledgement is unavailable."
   recommendation: "Approve only the current QA record fingerprint 1c8e0ec1278a28e426f6cb041d1790c26dcc4fe650d4b3b413efddd5fd0ee1ed; perform one guarded delete with post-verification before another HTTP mutation test."
 wip:
-  open_implementation_prs: 1
+  open_implementation_prs: 0
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "89c6e4618aefde0f5e33365f4b8578a73421fd4c"
+  observed_main_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
   current_candidate_commit: null
-  latest_validated_commit: "89c6e4618aefde0f5e33365f4b8578a73421fd4c"
-  latest_deployed_commit: "89c6e4618aefde0f5e33365f4b8578a73421fd4c"
-  latest_runtime_verified_commit: "89c6e4618aefde0f5e33365f4b8578a73421fd4c"
-  latest_browser_verified_commit: "89c6e4618aefde0f5e33365f4b8578a73421fd4c"
+  latest_validated_commit: "1bbb84505dfaf24f7c808c55d97c37d98c1fac6b"
+  latest_deployed_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
+  latest_runtime_verified_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
+  latest_browser_verified_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
 validation:
   governance: PASS
   lint: PASS
@@ -57,9 +57,9 @@ validation:
   tests: PASS
   build: PASS
   ci: PASS
-  runtime: NOT_APPLICABLE
-last_verified_commit: "89c6e4618aefde0f5e33365f4b8578a73421fd4c"
-last_updated: "2026-10-26T09:04:35Z"
+  runtime: VERIFIED
+last_verified_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
+last_updated: "2026-10-26T12:25:00Z"
 
 ---
 
@@ -69,7 +69,7 @@ Last materially reviewed: 26 October 2026 UTC
 
 ## AI execution gate
 
-### Catalogue relationship pagination repair — 26 October 2026
+### Catalogue relationship pagination deployed and read back — 26 October 2026
 
 The confirmed #154 list/detail attribution mismatch is repaired in source by
 using the existing paginated provider reader for product-producer mappings,
@@ -79,11 +79,31 @@ and style records, list/detail agreement, collaboration primaries, unrelated
 mappings and later-page failures. Existing privacy, fallback and failure
 assertions are retained with fixtures updated to the paged interface.
 
-This is application-read code only. Exact-head validation and connected release
-readback belong in the linked #154 repair PR; source does not certify live
-provider migration or recovery. Autosave's owner-reported recovery and subsequent
-bounded live history/public-document checks are retained in PR #689. The 42
-unresolved bonus values, QA recovery authorization, #165 and public NO-GO remain.
+[PR #690](https://github.com/jeremytheva/pourfolio/pull/690) merged as
+`63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad`. Its tree
+`852a02305ff59381ac8a751fb7117e1e516b77a0` equals validated source
+`1bbb84505dfaf24f7c808c55d97c37d98c1fac6b`: canonical Node 22.23.4 validation
+passed 1,074 tests with 15 provider-gated skips and zero failures; all 176
+Chromium browser/accessibility cases passed. Source and browser diagnostic
+workflows, CodeQL and Dependency Review passed on the repair head.
+
+Production deployment `dpl_Ejo6A33viiEvGPnPKN9o3ofoX95W` is READY. Normal-origin
+health/readiness returned HTTP 200 at the exact merged SHA at 12:21 UTC.
+Authenticated read-only catalogue inspection returned 24 products: all 21
+recorded producer references and 22 category references were hydrated. Accept
+All Cookies now identifies Mr. Banks Brewing Co in the list response, rendered
+catalogue card and detail page; the canonical style is American Imperial Porter.
+Ace, Aftermath and Alpha Crucis also resolve their recorded brewery/style data.
+Rows without recorded references remain unresolved; no relationship was invented.
+The page's lookahead total is not a complete catalogue count.
+
+This qualifies the observed read defect only. Full catalogue reconciliation,
+connected failure/recovery and WCAG acceptance remain under #154. No provider
+write, schema change, rating/cellar mutation or automation change occurred.
+Autosave's owner-reported recovery and bounded live history/public-document
+checks are retained in PR #689. The 42 unresolved bonus values, exact QA recovery
+authorization, #165 and public **NO-GO** remain. Current open PRs #684/#685 are
+dependency updates; no ordinary implementation PR is outstanding at this read.
 
 ### Automatic local rating saving deployed — 26 October 2026
 
@@ -123,9 +143,17 @@ reads, not connected rating-write or physical-device certification. Existing
 device drafts remain at their original browser origin; preview drafts do not
 migrate to production. Latest deployment/check evidence is retained in PR #689.
 
-The owner's latest Accept All Cookies rating/device draft remains unverified;
-historical workbook matches do not prove the current live attempt. No historical
-rating, QA-cellar record, provider/schema or security control was changed.
+The owner subsequently reported that reopening restored the rating without
+pressing Save: bounded owner-reported autosave/recovery **PASS**. Device/browser
+and installed mode were not captured, so the full physical-device matrix remains
+NOT_RUN. Read-only live product/profile inspection also confirmed that the latest
+completed tasting and its recorded breakdown survive profile navigation/reload;
+the historical tasting link selects its correct history page and recorded
+breakdown. This does not correlate every phone attempt or certify provider
+distributed durability. Public documents rendered with working section targets
+and keyboard skip links; they remain draft documents awaiting legal/operational
+qualification. These bounded DOM/keyboard checks are not full WCAG acceptance.
+No historical rating, QA-cellar record, provider/schema or security control changed.
 #165, the exact QA recovery authorization, 42 missing bonus allocations and the
 other existing release gates remain open. Public launch stays **NO-GO**.
 

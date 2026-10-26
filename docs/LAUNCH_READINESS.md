@@ -1,7 +1,7 @@
 # Launch readiness
 
 Last reconciled: **26 October 2026 UTC**. Last verified application deployment:
-[`89c6e4618aefde0f5e33365f4b8578a73421fd4c`](https://github.com/jeremytheva/pourfolio/commit/89c6e4618aefde0f5e33365f4b8578a73421fd4c). PR #689 retains matching production health/readiness and source/browser evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
+[`63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad`](https://github.com/jeremytheva/pourfolio/commit/63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad). PR #690 retains matching production health/readiness, validated-tree and bounded live catalogue readback evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
@@ -41,11 +41,20 @@ changes in this diagnostic correction.
 
 ### Catalogue relationship pagination — 26 October 2026
 
-The #154 source repair replaces provider-default relationship lists with
+[PR #690](https://github.com/jeremytheva/pourfolio/pull/690) replaces provider-default relationship lists with
 complete filtered pagination for catalogue brewery/style enrichment and
-collaboration attribution. List and detail share that path. The repair PR holds
-exact validation and connected readback evidence; this does not close catalogue
-reconciliation, provider/recovery, bonus allocation or public-launch gates.
+collaboration attribution. List and detail share that path. It is merged and
+deployed at `63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad`, whose tree equals
+validated source `1bbb84505dfaf24f7c808c55d97c37d98c1fac6b` (1,074 source tests,
+15 provider-gated skips, 176 Chromium browser/accessibility passes). Production
+health/readiness match the merged SHA. Authenticated read-only inspection of one
+24-product page resolves all 21 recorded producer and 22 category references;
+Accept All Cookies now shows Mr. Banks Brewing Co in the response, card and
+detail page. The page total remains a lookahead estimate, not a catalogue census.
+
+This bounded read acceptance does not close #154 catalogue reconciliation,
+connected failure/recovery or WCAG criteria. No provider row was changed.
+Provider/recovery, bonus allocation and public-launch gates remain open.
 
 ### Automatic local rating saving — 26 October 2026
 
@@ -58,8 +67,16 @@ emulation. [STATUS.md](../STATUS.md#automatic-local-rating-saving-deployed--26-o
 holds integration/runtime evidence; [offline boundaries](offline-ratings.md)
 define the account/product draft and static-cache contract.
 
-This closes the source/local-draft delivery only. Physical iOS/home-screen and
-Android acceptance is NOT_RUN, explicit server submission is still required,
+The owner has since reported successful restoration after reopening without
+pressing Save: bounded owner-reported recovery PASS. Device/browser/installed
+mode were not captured; the full physical iOS/home-screen and Android matrix
+remains NOT_RUN. Read-only production product/profile checks confirmed completed
+tasting history and recorded breakdown navigation/reload. They do not correlate
+every phone submission or certify distributed provider durability. Public
+document DOM/keyboard checks passed within their recorded scope; documents
+remain drafts, with full legal/operational and WCAG qualification open.
+
+This closes the source/local-draft delivery only. Explicit server submission is still required,
 and #165 provider integrity/recovery remains open. No automatic upload or live
 rating/provider mutation occurred. The existing QA recovery authorization,
 42 unresolved bonus allocations, connected privacy/operations and other launch
