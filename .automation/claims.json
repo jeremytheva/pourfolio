@@ -1,17 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "ratings": {
-      "owner": "ratings-offline-acceptance-1792999102104",
-      "workstream": "ratings",
-      "issue": 688,
-      "pr": 689,
-      "surfaces": [
-        "pr:689",
-        "branch:feat/offline-rating-foundation-20261026"
-      ],
-      "acquiredAt": "2026-10-26T07:18:22.104Z",
-      "expiresAt": "2026-10-26T07:48:22.104Z"
-    }
-  }
+  "claims": {}
 }
