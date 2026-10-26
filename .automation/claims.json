@@ -24,26 +24,6 @@
       ],
       "acquiredAt": "2026-10-25T22:11:36Z",
       "expiresAt": "2026-10-25T23:25:38.000Z"
-    },
-    "offline-ratings": {
-      "owner": "offline-ratings-20261026T0031Z",
-      "workstream": "offline-ratings",
-      "issue": 688,
-      "pr": 689,
-      "surfaces": [
-        "branch:feat/offline-rating-foundation-20261026",
-        "file:src/lib/offlineRatingStore.js",
-        "file:src/lib/offlineRatingStore.test.js",
-        "file:src/pages/RateBeer.jsx",
-        "file:src/main.jsx",
-        "file:public/sw.js",
-        "file:public/manifest.webmanifest",
-        "file:index.html",
-        "file:docs/offline-ratings.md",
-        "file:e2e/offline-rating-drafts.spec.js"
-      ],
-      "acquiredAt": "2026-10-26T00:31:00Z",
-      "expiresAt": "2026-10-26T01:01:00Z"
     }
   }
 }
