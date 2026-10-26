@@ -46,7 +46,9 @@ self.addEventListener('fetch', (event) => {
   if (!ALLOWED_STATIC.has(url.pathname)) return
   event.respondWith((async () => {
     const cache = await caches.open(CACHE)
-    const cached = await cache.match(request)
+    // Build assets may carry Vary: Origin. Precache requests have no Origin header,
+    // while browser module imports do; only this fixed static allowlist ignores Vary.
+    const cached = await cache.match(request, { ignoreVary: true })
     if (cached) return cached
     const response = await fetch(request)
     if (response.ok && response.type === 'basic') {
