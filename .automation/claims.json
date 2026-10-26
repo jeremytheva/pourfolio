@@ -1,16 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "ratings": {
-      "owner": "ratings-webkit-review-1793004761754",
-      "workstream": "ratings",
-      "issue": 688,
-      "pr": 689,
-      "surfaces": [
-        "pr:689"
-      ],
-      "acquiredAt": "2026-10-26T08:52:41.754Z",
-      "expiresAt": "2026-10-26T09:22:41.754Z"
-    }
-  }
+  "claims": {}
 }
