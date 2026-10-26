@@ -28,7 +28,7 @@
     "offline-ratings": {
       "owner": "offline-ratings-20261026T0031Z",
       "workstream": "offline-ratings",
-      "issue": null,
+      "issue": 688,
       "pr": null,
       "surfaces": [
         "branch:feat/offline-rating-foundation-20261026",
