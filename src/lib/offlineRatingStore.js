@@ -98,8 +98,26 @@ export const loadRatingDraft = async (ownerId, productId) => (
 
 export const discardRatingDraft = async (ownerId, productId, submissionId) => {
   const key = ratingDraftKey(ownerId, productId)
-  const current = await storeGet(DRAFT_STORE, key)
-  if (!current || current.submissionId !== submissionId) return false
-  await transaction(DRAFT_STORE, 'readwrite', (store) => store.delete(key))
-  return true
+  const db = await openDatabase()
+  try {
+    // Read/check/delete in one transaction, so a newer draft in another tab
+    // cannot be lost between a separate read and delete.
+    return await new Promise((resolve, reject) => {
+      let removed = false
+      const tx = db.transaction(DRAFT_STORE, 'readwrite')
+      const store = tx.objectStore(DRAFT_STORE)
+      const request = store.get(key)
+      request.onsuccess = () => {
+        if (request.result?.submissionId === submissionId) {
+          store.delete(key)
+          removed = true
+        }
+      }
+      tx.oncomplete = () => resolve(removed)
+      tx.onerror = () => reject(new Error('The local draft could not be cleared.'))
+      tx.onabort = () => reject(new Error('The local draft cleanup was interrupted.'))
+    })
+  } finally {
+    db.close()
+  }
 }
