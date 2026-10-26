@@ -5,7 +5,7 @@
       "owner": "catalogue-qa-cleanup-20261026T192231Z",
       "workstream": "catalogue",
       "issue": 144,
-      "pr": null,
+      "pr": 692,
       "surfaces": [
         "repo:integration",
         "branch:fix/launch-connected-evidence-20261025",
