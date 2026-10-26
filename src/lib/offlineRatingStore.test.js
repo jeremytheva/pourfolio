@@ -77,15 +77,15 @@ test('drafts and forms survive requests, are account-scoped and never sync thems
     assert.deepEqual(await loadCachedRatingForm('alice', 23), { ...form, bonusAttributes: [], bonusCategories: [] })
     assert.equal(await loadCachedRatingForm('bob', 23), null)
     const saved = await saveRatingDraft('alice', 23, {
-      submissionId: 'submission-1', scores: { 1: 5 },
+      submissionId: 1700000000000001, scores: { 1: 5 },
       bonusIds: [2], weights: { aroma: 0.1 }, cellarId: ''
     })
-    assert.equal(saved.submissionId, 'submission-1')
+    assert.equal(saved.submissionId, 1700000000000001)
     assert.deepEqual((await loadRatingDraft('alice', 23)).scores, { 1: 5 })
     assert.equal(await loadRatingDraft('bob', 23), null)
-    assert.equal(await discardRatingDraft('alice', 23, 'different-submission'), false)
-    assert.equal((await loadRatingDraft('alice', 23)).submissionId, 'submission-1')
-    assert.equal(await discardRatingDraft('alice', 23, 'submission-1'), true)
+    assert.equal(await discardRatingDraft('alice', 23, 1700000000000002), false)
+    assert.equal((await loadRatingDraft('alice', 23)).submissionId, 1700000000000001)
+    assert.equal(await discardRatingDraft('alice', 23, 1700000000000001), true)
     assert.equal(await loadRatingDraft('alice', 23), null)
   } finally {
     globalThis.indexedDB = previous
@@ -96,7 +96,7 @@ test('offline storage unavailability reports error rather than fabricated save',
   const previous = globalThis.indexedDB
   delete globalThis.indexedDB
   try {
-    await assert.rejects(saveRatingDraft('alice', 23, { submissionId: 'id-1' }), /unavailable/)
+    await assert.rejects(saveRatingDraft('alice', 23, { submissionId: 1700000000000003 }), /unavailable/)
     await assert.rejects(loadRatingDraft('alice', 23), /unavailable/)
   } finally {
     if (previous !== undefined) globalThis.indexedDB = previous
@@ -105,4 +105,6 @@ test('offline storage unavailability reports error rather than fabricated save',
 
 test('draft creation refuses missing submission identity', async () => {
   await assert.rejects(saveRatingDraft('alice', 23, { scores: {} }), /submission identifier/)
+  await assert.rejects(saveRatingDraft('alice', 23, { submissionId: '1700000000000001' }), /submission identifier/)
+  await assert.rejects(saveRatingDraft('alice', 23, { submissionId: Number.MAX_SAFE_INTEGER + 1 }), /submission identifier/)
 })
