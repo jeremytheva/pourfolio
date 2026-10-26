@@ -13,10 +13,11 @@
         "STATUS.md",
         "docs/LAUNCH_READINESS.md",
         "issue:154",
-        "repo:integration"
+        "repo:integration",
+        "docs/catalogue-response-contract.md"
       ],
       "acquiredAt": "2026-10-26T12:01:28.261Z",
-      "expiresAt": "2026-10-26T12:31:28.261Z"
+      "expiresAt": "2026-10-26T12:40:07.355Z"
     }
   }
 }
