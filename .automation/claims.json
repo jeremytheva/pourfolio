@@ -1,4 +1,30 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "catalogue-http-receipts-20261026T204552Z",
+      "workstream": "catalogue",
+      "issue": 144,
+      "pr": null,
+      "surfaces": [
+        "repo:integration",
+        "branch:fix/cellar-http-receipts-20261026",
+        "file:release-check/cellarCleanup.js",
+        "file:release-check/__tests__/cellarCleanup.test.js",
+        "file:release-check/cellarFixtureCheckpoint.js",
+        "file:release-check/__tests__/cellarFixtureCheckpoint.test.js",
+        "file:release-check/redactedReleaseReporter.js",
+        "file:release-check/__tests__/redactedReleaseReporter.test.js",
+        "file:release-check/connected.spec.js",
+        "file:.github/workflows/connected-release-check.yml",
+        "file:docs/TESTING.md",
+        "file:docs/nocodebackend/connected-policy-certification.md",
+        "file:STATUS.md",
+        "file:docs/LAUNCH_READINESS.md",
+        "file:.project-master/launch-readiness.json"
+      ],
+      "acquiredAt": "2026-10-26T20:45:52Z",
+      "expiresAt": "2026-10-26T21:15:52.000Z"
+    }
+  }
 }
