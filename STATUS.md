@@ -9,7 +9,7 @@ execution_state: VALIDATING
 current_work:
   objective: "Validate and integrate durable HTTP cellar fixture evidence before the next bounded connected qualification."
   issue: 144
-  pr: null
+  pr: 693
   branch: "fix/cellar-http-receipts-20261026"
 next_actions:
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
@@ -48,15 +48,15 @@ evidence:
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
   latest_browser_verified_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
 validation:
-  governance: PASS
-  lint: PASS
+  governance: NOT_RUN
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PASS
-  build: PASS
+  tests: NOT_RUN
+  build: NOT_RUN
   ci: PENDING
-  runtime: NOT_RUN
+  runtime: UNVERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-26T20:59:53Z"
+last_updated: "2026-10-26T21:05:06Z"
 
 ---
 
