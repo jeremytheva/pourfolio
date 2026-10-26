@@ -5,6 +5,7 @@ Tracking issue: #688. Existing rating-integrity dependency: #165.
 ## Delivered in the first implementation slice
 
 - Installable web-app manifest and conservative Service Worker cache for the public application shell and Vite assets only. The worker never caches API responses, account data, private images or arbitrary requests.
+- The Vite production build injects its complete hashed JavaScript/CSS asset list into the worker, using an asset-derived cache version. Installation waits for all shell assets to be cached before activation so the first offline reload does not lack lazy-loaded rating screens. The allowlist prevents opportunistic caching of unknown paths.
 - Account/product-scoped IndexedDB form snapshots and rating drafts.
 - Previously loaded rating forms can be used offline **when an authenticated client session is already active**.
 - A user explicitly saves a draft on the review screen; reopening that beer's rating screen with the same authenticated identity restores the same scores, selected bonuses, weights and stable submission identifier.
@@ -25,7 +26,8 @@ Local records are keyed to the signed-in user's canonical ID and product ID. The
 
 ## Acceptance and certification
 
-- Verify static files cache correctly, while `/api/` never gets intercepted/cached.
+- Verify the worker pre-caches all compiled assets and supports a real network-disconnected reload of public routes. Confirm the install fails rather than claiming success if its shell cannot be cached.
+- Verify static files cache correctly, while `/api/` never gets intercepted/cached. Any deployment which changes the built asset URL scheme or static routing must requalify the Service Worker.
 - Verify a previously loaded rating form opens when connectivity drops without replacing the server session.
 - Verify rating drafts survive navigation/reload, preserve submission identity and are scoped to the active user.
 - Verify IndexedDB/quota failures show a real error, and confirmed/uncertain submission paths do not misrepresent persistence.
