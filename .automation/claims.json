@@ -29,7 +29,7 @@
       "owner": "offline-ratings-20261026T0031Z",
       "workstream": "offline-ratings",
       "issue": 688,
-      "pr": null,
+      "pr": 689,
       "surfaces": [
         "branch:feat/offline-rating-foundation-20261026",
         "file:src/lib/offlineRatingStore.js",
