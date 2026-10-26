@@ -1,26 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "integration": {
-      "owner": "catalogue-pagination-fix-1793016088261",
-      "workstream": "integration",
-      "issue": 154,
-      "pr": 691,
-      "surfaces": [
-        "api/catalog-data-proxy.js",
-        "api/nocodebackend/__tests__",
-        "api/__tests__",
-        "STATUS.md",
-        "docs/LAUNCH_READINESS.md",
-        "issue:154",
-        "repo:integration",
-        "docs/catalogue-response-contract.md",
-        "api/_lib/__tests__/productProducerAttribution.test.js",
-        "pr:690",
-        "pr:691"
-      ],
-      "acquiredAt": "2026-10-26T12:01:28.261Z",
-      "expiresAt": "2026-10-26T13:01:28.735Z"
-    }
-  }
+  "claims": {}
 }
