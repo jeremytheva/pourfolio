@@ -5,7 +5,7 @@
       "owner": "catalogue-http-receipts-20261026T204552Z",
       "workstream": "catalogue",
       "issue": 144,
-      "pr": null,
+      "pr": 693,
       "surfaces": [
         "repo:integration",
         "branch:fix/cellar-http-receipts-20261026",
