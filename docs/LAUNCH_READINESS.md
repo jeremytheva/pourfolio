@@ -39,6 +39,14 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
+### Catalogue relationship pagination — 26 October 2026
+
+The #154 source repair replaces provider-default relationship lists with
+complete filtered pagination for catalogue brewery/style enrichment and
+collaboration attribution. List and detail share that path. The repair PR holds
+exact validation and connected readback evidence; this does not close catalogue
+reconciliation, provider/recovery, bonus allocation or public-launch gates.
+
 ### Automatic local rating saving — 26 October 2026
 
 [PR #689](https://github.com/jeremytheva/pourfolio/pull/689) is merged and deployed

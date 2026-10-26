@@ -94,7 +94,7 @@ const hydrateProducts = async (products) => {
     .map((product) => String(product.id ?? ''))
     .filter((id) => /^[1-9]\d*$/.test(id))
   const relationships = productIds.length
-    ? await requiredRelationshipList(COLLECTIONS.productProducers, { 'product_id[in]': productIds.join(',') })
+    ? await readAllProviderRows(COLLECTIONS.productProducers, { filters: { 'product_id[in]': productIds.join(',') } })
     : []
   const relationshipsByProduct = new Map()
   for (const relationship of relationships) {
@@ -119,8 +119,8 @@ const hydrateProducts = async (products) => {
   }
 
   const [producers, categories] = await Promise.all([
-    producerIds.size ? safeRelationshipList(COLLECTIONS.producers, { 'id[in]': [...producerIds].join(',') }) : [],
-    categoryIds.size ? safeRelationshipList(COLLECTIONS.categories, { 'id[in]': [...categoryIds].join(',') }) : []
+    producerIds.size ? readAllProviderRows(COLLECTIONS.producers, { filters: { 'id[in]': [...producerIds].join(',') } }).catch(() => []) : [],
+    categoryIds.size ? readAllProviderRows(COLLECTIONS.categories, { filters: { 'id[in]': [...categoryIds].join(',') } }).catch(() => []) : []
   ])
   const producersById = indexById(producers)
   const categoriesById = indexById(categories)

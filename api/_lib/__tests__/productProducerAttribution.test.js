@@ -4,8 +4,12 @@ import { dataProvider } from '../dataProvider.js'
 import { __testables } from '../../catalog-data-proxy.js'
 
 const withProviderStubs = async (stubs, callback) => {
-  const originals = { list: dataProvider.list, get: dataProvider.get }
+  const originals = { list: dataProvider.list, listPage: dataProvider.listPage, get: dataProvider.get }
   Object.assign(dataProvider, stubs)
+  dataProvider.listPage = async (collection, { filters, page, limit }) => {
+    const rows = await dataProvider.list(collection, filters)
+    return { items: rows.slice((page - 1) * limit, page * limit), totalPages: Math.ceil(rows.length / limit) }
+  }
   try {
     await callback()
   } finally {

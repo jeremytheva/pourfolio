@@ -42,6 +42,14 @@ free of control characters. ABV/IBU must be finite non-negative numeric values.
 Images may be same-origin paths or credential-free HTTPS URLs. Unknown fields,
 including provider or owner metadata, fail closed.
 
+The gateway reads every filtered provider page when hydrating product-producer
+mappings, producers and categories. Provider-default list sizes must not decide
+which recorded brewery or style is shown. Both catalogue list and detail use
+this hydration path. An authoritative mapping-read failure rejects hydration;
+an optional producer/category failure discards its partial pages and retains
+the existing unresolved-relationship presentation. No missing relationship is
+invented, and unrelated mapping rows never replace canonical attribution.
+
 NoCodeBackend may serialise an absent optional numeric value or relationship
 foreign key as either `null` or an empty string. The boundary copies those empty
 optional values as `null` so the UI reports “Not recorded”; it does not trim or
