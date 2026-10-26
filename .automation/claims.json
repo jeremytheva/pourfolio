@@ -1,29 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "ratings": {
-      "owner": "ratings-autosave-1793000574681",
-      "workstream": "ratings",
-      "issue": 688,
-      "pr": 689,
-      "surfaces": [
-        "branch:feat/offline-rating-foundation-20261026",
-        "file:docs/offline-ratings.md",
-        "file:e2e/mockApi.js",
-        "file:e2e/offline-pwa-shell.spec.js",
-        "file:e2e/offline-rating-autosave.spec.js",
-        "file:e2e/offline-rating-drafts.spec.js",
-        "file:e2e/offline-rating-recovery.spec.js",
-        "file:src/lib/offlineRatingStore.js",
-        "file:src/lib/offlineRatingStore.test.js",
-        "file:src/lib/ratingDraftAutosave.js",
-        "file:src/lib/ratingDraftAutosave.test.js",
-        "file:src/pages/RateBeer.jsx",
-        "issue:688",
-        "pr:689"
-      ],
-      "acquiredAt": "2026-10-26T07:42:54.681Z",
-      "expiresAt": "2026-10-26T08:26:43.482Z"
-    }
-  }
+  "claims": {}
 }
