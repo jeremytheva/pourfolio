@@ -1,29 +1,32 @@
 {
   "version": 1,
   "claims": {
-    "catalogue": {
-      "owner": "catalogue-launch-20261025T221136Z",
-      "workstream": "catalogue",
-      "issue": 144,
-      "pr": 687,
+    "ratings": {
+      "owner": "ratings-offline-repair-1792996480980",
+      "workstream": "ratings",
+      "issue": 688,
+      "pr": 689,
       "surfaces": [
-        "branch:docs/launch-evidence-reconciliation-20261025",
-        "branch:fix/bonus-point-allocation-20261025",
-        "branch:fix/launch-cellar-isolation-20261025",
-        "branch:fix/launch-connected-evidence-20261025",
-        "file:.github/workflows/bonus-point-preflight.yml",
-        "file:.github/workflows/cellar-write-certification.yml",
-        "file:.github/workflows/launch-connected-evidence.yml",
-        "file:.project-master/launch-readiness.json",
-        "file:STATUS.md",
-        "file:data/bonus_attribute_point_plan.json",
-        "file:docs/LAUNCH_READINESS.md",
-        "file:scripts/__tests__/bonusPointPreflight.test.js",
-        "file:scripts/run-bonus-point-preflight.js",
-        "repo:integration"
+        "branch:feat/offline-rating-foundation-20261026",
+        "file:docs/offline-ratings.md",
+        "file:e2e/offline-pwa-shell.spec.js",
+        "file:e2e/offline-rating-drafts.spec.js",
+        "file:e2e/offline-rating-recovery.spec.js",
+        "file:e2e/rating-journey.spec.js",
+        "file:public/sw.js",
+        "file:scripts/pwa-assets.test.mjs",
+        "file:scripts/service-worker.test.mjs",
+        "file:src/hooks/useConnectivity.js",
+        "file:src/lib/offlineRatingStore.js",
+        "file:src/lib/offlineRatingStore.test.js",
+        "file:src/main.jsx",
+        "file:src/pages/RateBeer.jsx",
+        "file:src/services/ratingService.js",
+        "file:src/services/ratingSubmissionResponse.js",
+        "file:src/services/ratingSubmissionResponse.test.js"
       ],
-      "acquiredAt": "2026-10-25T22:11:36Z",
-      "expiresAt": "2026-10-25T23:25:38.000Z"
+      "acquiredAt": "2026-10-26T06:34:40.980Z",
+      "expiresAt": "2026-10-26T07:04:40.980Z"
     }
   }
 }
