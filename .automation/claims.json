@@ -1,21 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "catalogue-qa-cleanup-20261026T192231Z",
-      "workstream": "catalogue",
-      "issue": 144,
-      "pr": 692,
-      "surfaces": [
-        "repo:integration",
-        "branch:fix/launch-connected-evidence-20261025",
-        "file:.github/workflows/launch-connected-evidence.yml",
-        "file:STATUS.md",
-        "file:docs/LAUNCH_READINESS.md",
-        "branch:docs/qa-cellar-recovery-20261026"
-      ],
-      "acquiredAt": "2026-10-26T19:22:31Z",
-      "expiresAt": "2026-10-26T20:18:03.000Z"
-    }
-  }
+  "claims": {}
 }
