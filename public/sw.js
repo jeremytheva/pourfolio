@@ -1,10 +1,19 @@
-// Offline app shell only. Authentication, API responses and user data are NEVER cached.
+// Only public static application resources may enter CacheStorage.
+// Vite's closeBundle hook injects all hashed JavaScript/CSS asset paths and a cache version.
 const CACHE = 'pourfolio-static-shell-v1'
 const SHELL = ['/', '/index.html', '/favicon.svg', '/manifest.webmanifest']
+const BUILD_ASSETS = []
+const PRECACHE = [...SHELL, ...BUILD_ASSETS]
+const ALLOWED_STATIC = new Set(PRECACHE)
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)))
-  self.skipWaiting()
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE)
+    // Without a complete app bundle an offline reload would show a blank page.
+    // Fail the installation rather than claim the shell works when it is incomplete.
+    await cache.addAll(PRECACHE)
+    await self.skipWaiting()
+  })())
 })
 
 self.addEventListener('activate', (event) => {
@@ -20,7 +29,7 @@ self.addEventListener('fetch', (event) => {
   const request = event.request
   if (request.method !== 'GET') return
   const url = new URL(request.url)
-  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return
+  if (url.origin !== self.location.origin || /^\/api(?:\/|$)/.test(url.pathname)) return
 
   if (request.mode === 'navigate') {
     event.respondWith(
@@ -32,16 +41,17 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Vite build assets are versioned immutable files. Do not cache user uploads,
-  // private images or arbitrary fetch responses.
-  if (!url.pathname.startsWith('/assets/') && !SHELL.includes(url.pathname)) return
-  event.respondWith(
-    caches.match(request).then((cached) => cached || fetch(request).then((response) => {
-      if (response.ok && response.type === 'basic') {
-        const copy = response.clone()
-        event.waitUntil(caches.open(CACHE).then((cache) => cache.put(request, copy)))
-      }
-      return response
-    }))
-  )
+  // No opportunistic caching: unknown paths, uploads, private media,
+  // authentication data and API responses must never enter CacheStorage.
+  if (!ALLOWED_STATIC.has(url.pathname)) return
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE)
+    const cached = await cache.match(request)
+    if (cached) return cached
+    const response = await fetch(request)
+    if (response.ok && response.type === 'basic') {
+      await cache.put(request, response.clone())
+    }
+    return response
+  })())
 })
