@@ -5,7 +5,7 @@
       "owner": "catalogue-pagination-fix-1793016088261",
       "workstream": "integration",
       "issue": 154,
-      "pr": null,
+      "pr": 690,
       "surfaces": [
         "api/catalog-data-proxy.js",
         "api/nocodebackend/__tests__",
@@ -15,10 +15,11 @@
         "issue:154",
         "repo:integration",
         "docs/catalogue-response-contract.md",
-        "api/_lib/__tests__/productProducerAttribution.test.js"
+        "api/_lib/__tests__/productProducerAttribution.test.js",
+        "pr:690"
       ],
       "acquiredAt": "2026-10-26T12:01:28.261Z",
-      "expiresAt": "2026-10-26T12:40:07.355Z"
+      "expiresAt": "2026-10-26T12:44:31.985Z"
     }
   }
 }
