@@ -1,16 +1,16 @@
 ---
 project: Pourfolio
-portfolio_state: READY
-execution_slot: WAITING
+portfolio_state: ACTIVE
+execution_slot: BUILDING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Approved QA cleanup verified; bonus allocations and provider/release gates remain"
+stage: "Durable encrypted HTTP fixture checkpoints and redacted evidence validating"
 gate: Release
-execution_state: BLOCKED
+execution_state: VALIDATING
 current_work:
-  objective: "Complete missing authoritative bonus allocations and remaining provider/recovery, privacy and release qualification."
+  objective: "Validate and integrate durable HTTP cellar fixture evidence before the next bounded connected qualification."
   issue: 144
   pr: null
-  branch: "main"
+  branch: "fix/cellar-http-receipts-20261026"
 next_actions:
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
   - "Approved single-QA recovery passed in run 40389866451: one DELETE, exact absence and other-owned-row preservation verified. Before another HTTP mutation certification, retain encrypted create intent/acknowledgement and safe stage/status evidence."
@@ -36,15 +36,15 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 0
+  open_implementation_prs: 1
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
+  observed_main_commit: "48178aa7ecb15b696fe2ce16477c33fd669b64de"
   current_candidate_commit: null
   latest_validated_commit: "1bbb84505dfaf24f7c808c55d97c37d98c1fac6b"
-  latest_deployed_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
+  latest_deployed_commit: "48178aa7ecb15b696fe2ce16477c33fd669b64de"
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
   latest_browser_verified_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
 validation:
@@ -53,10 +53,10 @@ validation:
   typecheck: NOT_APPLICABLE
   tests: PASS
   build: PASS
-  ci: PASS
-  runtime: VERIFIED
+  ci: PENDING
+  runtime: NOT_RUN
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-26T19:49:56Z"
+last_updated: "2026-10-26T20:59:53Z"
 
 ---
 
@@ -65,6 +65,43 @@ last_updated: "2026-10-26T19:49:56Z"
 Last materially reviewed: 26 October 2026 UTC
 
 ## AI execution gate
+
+### Durable cellar HTTP fixture evidence — 26 October 2026 UTC
+
+The failed connected HTTP test could leave a created fixture without a durable
+original acknowledgement. Its recovery is complete, but the test must retain
+its own evidence before another write qualification.
+
+The helper now requires an encrypted checkpoint writer before reading a
+baseline or sending a fixture mutation. It records the original nonce/product/
+baseline, create intent, HTTP response status before parsing, complete original
+receipt/ID before verification, owner confirmation, update/denial phases and
+exact cleanup intent/response/outcome. Failed checkpoint persistence latches a
+block on subsequent fixture mutations. Unknown outcomes are not retried and
+later list differences do not authorise guessed cleanup.
+
+The connected case verifies both live session identities before creating the
+fixture and requires distinct owners. One owner create/update/delete is
+separate from the two cross-owner mutation-denial probes. Mutating HTTP calls
+disable retries and redirects; a fresh owner read checks that denial probes
+preserved the private fixture fields.
+
+The existing protected workflow supplies its existing data credential only to
+the Node checkpoint writer. Candidate checkout must be a reviewed main ancestor
+and the workflow runs from main; the secret is not passed to browser code.
+It shares the current-instance cellar concurrency group. A redacted reporter
+publishes only fixed source case IDs, statuses/counts and validated commit
+metadata. Raw output is captured privately and removed; traces/screenshots/
+videos are disabled for connected checks. Only the release summary, cellar
+phase summary, encrypted receipt and build-security result are uploaded.
+
+Forty-two focused in-memory Node 24 tests pass, including retained provenance
+guards, checkpoint failures and redaction. The real Playwright reporter protocol
+smoke and canonical Node 22 validation require the hosted executor. No provider
+access or data mutation has occurred for this source preparation. An atomic
+runner-local checkpoint plus always-run artifact retention cannot guarantee
+recovery after loss of the entire worker. Connected certification, #165, profile
+privacy, the 42 missing bonus values and public **NO-GO** remain separate.
 
 ### Owner-approved QA cellar cleanup verified — 26 October 2026 UTC
 

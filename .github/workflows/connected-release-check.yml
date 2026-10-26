@@ -22,18 +22,19 @@ permissions:
   contents: read
 
 concurrency:
-  group: connected-release-${{ github.event_name == 'issue_comment' && github.sha || inputs.release_sha }}
+  group: bounded-current-instance-cellar-certification
   cancel-in-progress: false
 
 jobs:
   connected:
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'issue_comment' &&
-       github.event.issue.number == 278 &&
-       github.event.comment.body == '/release-certify' &&
-       github.event.comment.user.login == github.repository_owner &&
-       !github.event.issue.pull_request)
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'issue_comment' &&
+        github.event.issue.number == 278 &&
+        github.event.comment.body == '/release-certify' &&
+        github.event.comment.user.login == github.repository_owner &&
+        !github.event.issue.pull_request))
     environment: staging-release
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -45,8 +46,18 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event_name == 'issue_comment' && github.sha || inputs.release_sha }}
-      - name: Confirm checked-out release candidate
-        run: test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Confirm checked-out reviewed release candidate
+        shell: bash
+        run: |
+          [[ "$RELEASE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          git merge-base --is-ancestor "$RELEASE_SHA" "$REVIEWED_MAIN_SHA"
+          test -f release-check/cellarFixtureCheckpoint.js
+          test -f release-check/redactedReleaseReporter.js
+        env:
+          REVIEWED_MAIN_SHA: ${{ github.sha }}
       - name: Validate optional destructive confirmation
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.destructive_confirmation != '' }}
         run: test "$RELEASE_DESTRUCTIVE_CONFIRMATION" = 'RUN CLEANUP-GUARDED RELEASE WRITES'
@@ -62,10 +73,34 @@ jobs:
       - name: Check built browser release for server-only data
         run: npm run check:release-security | tee release-security-check.txt
       - run: npx playwright install --with-deps chromium
-      - name: Run connected release checks
-        run: npm run test:release
+      - name: Run connected release checks with redacted evidence
+        shell: bash
+        run: |
+          umask 077
+          private_log="$RUNNER_TEMP/pourfolio-release-check-$GITHUB_RUN_ID.log"
+          if npm run test:release -- --reporter=./release-check/redactedReleaseReporter.js --retries=0 > "$private_log" 2>&1
+          then
+            release_exit_code=0
+          else
+            release_exit_code=$?
+          fi
+          node --input-type=module <<'JS'
+          import fs from 'node:fs'
+          const required = 'artifacts/connected-release/release-summary.json'
+          if (!fs.existsSync(required)) {
+            process.stdout.write(JSON.stringify({ status: 'BLOCKED', code: 'RELEASE_REPORT_UNAVAILABLE' }) + '\n')
+            process.exit(2)
+          }
+          for (const file of [required, 'artifacts/connected-release/cellar/summary.json']) {
+            if (fs.existsSync(file)) process.stdout.write(JSON.stringify(JSON.parse(fs.readFileSync(file, 'utf8'))) + '\n')
+          }
+          JS
+          exit "$release_exit_code"
         env:
           RELEASE_OWNER_SESSION_PATH: ${{ runner.temp }}/pourfolio-release-owner-${{ github.run_id }}.json
+          RELEASE_EVIDENCE_DIRECTORY: ${{ github.workspace }}/artifacts/connected-release
+          RELEASE_CELLAR_RECEIPT_DIRECTORY: ${{ github.workspace }}/artifacts/connected-release/cellar
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
           RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}
@@ -75,10 +110,18 @@ jobs:
           RELEASE_OTP_EMAIL: ${{ secrets.RELEASE_OTP_EMAIL }}
           RELEASE_OTP_CODE: ${{ secrets.RELEASE_OTP_CODE }}
           RELEASE_SEARCH_TERM: ${{ vars.RELEASE_SEARCH_TERM }}
-      - name: Remove temporary owner session
+      - name: Remove private diagnostics and temporary owner session
         if: always()
+        shell: bash
         run: |
-          node --input-type=module -e 'import fs from "node:fs"; fs.rmSync(process.env.RELEASE_OWNER_SESSION_PATH, { force: true });'
+          node --input-type=module <<'JS'
+          import fs from 'node:fs'
+          import path from 'node:path'
+          fs.rmSync(process.env.RELEASE_OWNER_SESSION_PATH, { force: true })
+          fs.rmSync(path.join(process.env.RUNNER_TEMP, 'pourfolio-release-check-' + process.env.GITHUB_RUN_ID + '.log'), { force: true })
+          fs.rmSync('test-results/release-check', { recursive: true, force: true })
+          fs.rmSync('playwright-report/release-check', { recursive: true, force: true })
+          JS
         env:
           RELEASE_OWNER_SESSION_PATH: ${{ runner.temp }}/pourfolio-release-owner-${{ github.run_id }}.json
       - name: Retain redacted evidence
@@ -88,6 +131,7 @@ jobs:
           name: connected-release-${{ github.event_name == 'issue_comment' && github.sha || inputs.release_sha }}
           path: |
             release-security-check.txt
-            playwright-report/release-check/
-            test-results/release-check/
+            artifacts/connected-release/release-summary.json
+            artifacts/connected-release/cellar/summary.json
+            artifacts/connected-release/cellar/fixture-receipt.json
           retention-days: 30

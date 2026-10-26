@@ -39,6 +39,43 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
+### Durable cellar HTTP fixture evidence — 26 October 2026 UTC
+
+The failed connected HTTP test could leave a created fixture without a durable
+original acknowledgement. Its recovery is complete, but the test must retain
+its own evidence before another write qualification.
+
+The helper now requires an encrypted checkpoint writer before reading a
+baseline or sending a fixture mutation. It records the original nonce/product/
+baseline, create intent, HTTP response status before parsing, complete original
+receipt/ID before verification, owner confirmation, update/denial phases and
+exact cleanup intent/response/outcome. Failed checkpoint persistence latches a
+block on subsequent fixture mutations. Unknown outcomes are not retried and
+later list differences do not authorise guessed cleanup.
+
+The connected case verifies both live session identities before creating the
+fixture and requires distinct owners. One owner create/update/delete is
+separate from the two cross-owner mutation-denial probes. Mutating HTTP calls
+disable retries and redirects; a fresh owner read checks that denial probes
+preserved the private fixture fields.
+
+The existing protected workflow supplies its existing data credential only to
+the Node checkpoint writer. Candidate checkout must be a reviewed main ancestor
+and the workflow runs from main; the secret is not passed to browser code.
+It shares the current-instance cellar concurrency group. A redacted reporter
+publishes only fixed source case IDs, statuses/counts and validated commit
+metadata. Raw output is captured privately and removed; traces/screenshots/
+videos are disabled for connected checks. Only the release summary, cellar
+phase summary, encrypted receipt and build-security result are uploaded.
+
+Forty-two focused in-memory Node 24 tests pass, including retained provenance
+guards, checkpoint failures and redaction. The real Playwright reporter protocol
+smoke and canonical Node 22 validation require the hosted executor. No provider
+access or data mutation has occurred for this source preparation. An atomic
+runner-local checkpoint plus always-run artifact retention cannot guarantee
+recovery after loss of the entire worker. Connected certification, #165, profile
+privacy, the 42 missing bonus values and public **NO-GO** remain separate.
+
 ### Owner-approved QA cellar cleanup verified — 26 October 2026 UTC
 
 The owner explicitly approved removal of the single reviewed QA record.

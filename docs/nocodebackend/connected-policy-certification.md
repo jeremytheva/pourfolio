@@ -1,5 +1,32 @@
 # Connected provider policy certification
 
+## Current scoped evidence and HTTP fixture preparation — 26 October 2026 UTC
+
+The former second-account HTTP 401 was superseded after the owner securely
+updated its credentials. Protected [AUTH_ONLY run 40235529806](https://github.com/jeremytheva/pourfolio/actions/runs/40235529806)
+passed both distinct account sign-in/session/sign-out against production
+`f13e07a8`. Bounded [gateway run 40239183671](https://github.com/jeremytheva/pourfolio/actions/runs/40239183671)
+passed owner cellar CRUD, list/update/delete denial and exact fixture cleanup;
+its HTTP/session middleware and browser submission were not exercised.
+
+The later full HTTP test failed; source/HTTP outcomes remain recorded in
+[launch readiness](../LAUNCH_READINESS.md). The owner-approved single-record
+[recovery 40389866451](https://github.com/jeremytheva/pourfolio/actions/runs/40389866451)
+then passed one guarded DELETE with fresh provider/owner absence and other-owned
+row preservation. This closes that recovery, not the earlier full HTTP test.
+
+The current source preparation adds required encrypted intent/acknowledgement
+checkpoints and safe phase/status reports to that HTTP test, with distinct live
+session preflight and bounded mutation requests. Its protected workflow retains
+only redacted summaries and the encrypted receipt; raw diagnostic output and
+private capture are not published. Canonical source and fresh connected
+qualification are still required. The older failures below remain historical
+evidence and do not request another credential correction.
+
+#165 integrity/recovery, profile privacy, broader session/rate-limit acceptance
+and complete bonus values remain open. Overall policy certification is PARTIAL;
+public launch remains **NO-GO**.
+
 ## Second release account sign-in rejected with HTTP 401 — 22 October 2026 UTC
 
 Protected [run 39732649601](https://github.com/jeremytheva/pourfolio/actions/runs/39732649601),
@@ -14,9 +41,9 @@ At `2026-10-22T06:14:29.195Z`, the report is **BLOCKED** with
 `BONUS_TEST_OWNER_AUTH_REJECTED`, `authAccount: other`, `authStage: sign-in`,
 `authStatus: 401`, all four credential fields configured and zero creates,
 updates or deletes. Cleanup is NOT_RUN because no fixture exists. No credential
-retry, reset or account creation was attempted. Correct the second account's
-supported credentials securely in `staging-release` before another guarded run;
-the HTTP response does not establish which stored field is incorrect.
+retry, reset or account creation was attempted. At that checkpoint the second
+account required secure correction; the current evidence above supersedes this
+credential blocker. The HTTP response alone did not identify the incorrect field.
 
 Canonical Node 22 validation passed 1,005 tests, 15 gated skips and zero failures.
 [Source/browser run 39732448136](https://github.com/jeremytheva/pourfolio/actions/runs/39732448136)

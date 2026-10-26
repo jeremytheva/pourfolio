@@ -14,9 +14,9 @@ export default defineConfig({
   reporter: [['list'], ['html', { outputFolder: 'playwright-report/release-check', open: 'never' }]],
   use: {
     baseURL,
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    trace: 'off',
+    screenshot: 'off',
+    video: 'off',
     extraHTTPHeaders: { 'x-release-check': 'connected-staging' }
   },
   projects: [{ name: 'connected-chromium', use: { ...devices['Desktop Chrome'] } }]
