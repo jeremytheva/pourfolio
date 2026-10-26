@@ -13,12 +13,15 @@ const memoryIndexedDB = () => {
     close() {},
     transaction(name) {
       const tx = { oncomplete: null, onerror: null, onabort: null }
+      let pending = 0
       const wrap = (operation) => {
+        pending += 1
         const req = { result: undefined, onsuccess: null }
         queueMicrotask(() => {
           req.result = operation()
           req.onsuccess?.()
-          tx.oncomplete?.()
+          pending -= 1
+          if (pending === 0) queueMicrotask(() => tx.oncomplete?.())
         })
         return req
       }
