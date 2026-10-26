@@ -6,6 +6,7 @@ Tracking issue: #688. Existing rating-integrity dependency: #165.
 
 - Installable web-app manifest and conservative Service Worker cache for the public application shell and Vite assets only. The worker never caches API responses, account data, private images or arbitrary requests.
 - The Vite production build injects its complete hashed JavaScript/CSS asset list into the worker, using an asset-derived cache version. Installation waits for all shell assets to be cached before activation so the first offline reload does not lack lazy-loaded rating screens. The allowlist prevents opportunistic caching of unknown paths.
+- Static allowlisted assets are looked up with the Cache API's `ignoreVary` option because Vite preview may return `Vary: Origin` and installer fetches do not send the browser module import's `Origin` header. This exception never applies to API or user-specific responses.
 - Account/product-scoped IndexedDB form snapshots and rating drafts.
 - Previously loaded rating forms can be used offline **when an authenticated client session is already active**.
 - A user explicitly saves a draft on the review screen; reopening that beer's rating screen with the same authenticated identity restores the same scores, selected bonuses, weights and stable submission identifier.
