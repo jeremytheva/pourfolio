@@ -1,7 +1,7 @@
 # Launch readiness
 
-Last reconciled: **25 October 2026 UTC**. Current reviewed main and READY production deployment:
-[`f13e07a845714ea02d744394dbe1684e614c8bfb`](https://github.com/jeremytheva/pourfolio/commit/f13e07a845714ea02d744394dbe1684e614c8bfb). PR #683 retains exact-version anonymous eight-route HTTP evidence;
+Last reconciled: **26 October 2026 UTC**. Last verified application deployment:
+[`89c6e4618aefde0f5e33365f4b8578a73421fd4c`](https://github.com/jeremytheva/pourfolio/commit/89c6e4618aefde0f5e33365f4b8578a73421fd4c). PR #689 retains matching production health/readiness and source/browser evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
@@ -38,6 +38,133 @@ preflight report. No application policy, stored bonus value or provider schema
 changes in this diagnostic correction.
 
 ## Current launch decision
+
+### Automatic local rating saving — 26 October 2026
+
+[PR #689](https://github.com/jeremytheva/pourfolio/pull/689) is merged and deployed
+at `89c6e4618aefde0f5e33365f4b8578a73421fd4c`; production health/readiness and
+static PWA resources returned HTTP 200. Exact main source/browser checks pass
+(1,069 source tests, 15 provider-gated skips, 176 browser/accessibility cases).
+The identical accepted source also passes mobile Chromium and Linux WebKit
+emulation. [STATUS.md](../STATUS.md#automatic-local-rating-saving-deployed--26-october-2026)
+holds integration/runtime evidence; [offline boundaries](offline-ratings.md)
+define the account/product draft and static-cache contract.
+
+This closes the source/local-draft delivery only. Physical iOS/home-screen and
+Android acceptance is NOT_RUN, explicit server submission is still required,
+and #165 provider integrity/recovery remains open. No automatic upload or live
+rating/provider mutation occurred. The existing QA recovery authorization,
+42 unresolved bonus allocations, connected privacy/operations and other launch
+gates are unchanged; public launch remains **NO-GO**.
+
+### Cellar HTTP recovery boundary — 25 October 2026 UTC
+
+The separate existing cleanup-guarded cellar HTTP test was selected alone against
+production `fec60da4`, with retries disabled and no rating mutation selected.
+[Run 40241436043](https://github.com/jeremytheva/pourfolio/actions/runs/40241436043),
+job `121313879468`, failed at 22:43:02 UTC in the cleanup helper call.
+Its redacted report cannot identify whether create acknowledgement, owner
+readback, verification or cleanup failed. No HTTP test PASS is claimed, no
+unchanged mutation retry ran, and the earlier direct-gateway PASS is retained
+only within its separate scope.
+
+Read-only owner inspection
+[40241841492](https://github.com/jeremytheva/pourfolio/actions/runs/40241841492),
+job `121315114617`, found one owned row, carrying one canonical QA marker.
+It made zero cellar mutation requests, verified the owner session/release
+before and after, signed out successfully and retained encrypted inspection
+artifact `12617127055`.
+
+Read-only recovery comparison
+[40242334490](https://github.com/jeremytheva/pourfolio/actions/runs/40242334490),
+job `121316602591`, bound that encrypted receipt to the same current owner
+HTTP row and a fresh exact provider read. The stored row matches the initial
+create shape (quantity 1, container `release-check`, exact product/marker,
+received date 25 October); the update shape differs on quantity. This
+establishes persisted create-shaped data, not the original response or failed
+stage. Original-attempt correlation remains **UNCONFIRMED**. The complete raw
+target and owner baseline are backed up in encrypted artifact `12617575916`,
+SHA-256 `1bc38bc4e15e9f0de67c958b884b9ca18485d1986d8032a7cfe74e8423649cbf`.
+The exact raw target fingerprint is
+`1c8e0ec1278a28e426f6cb041d1790c26dcc4fe650d4b3b413efddd5fd0ee1ed`.
+
+The existing [cellar cleanup helper](../release-check/cellarCleanup.js) states:
+“Never discover a cleanup target by comparing histories after a failed create.”
+The original create nonce/acknowledgement was not retained as a durable intent
+receipt. The later snapshot cannot replace that original evidence. The
+[prepared single-record recovery workflow](https://github.com/jeremytheva/pourfolio/blob/23917bf8ad71d5724f2f0641061587f54c4eccfa/.github/workflows/launch-connected-evidence.yml)
+therefore remains untriggered pending explicit owner authorization for this
+current QA record. It verifies the encrypted source plan, exact raw fingerprint
+and owner, writes an encrypted before receipt, permits one HTTP DELETE with no
+retry and verifies fresh provider/owner absence plus other owned-row preservation.
+Source/read-only validation does not claim that recovery executed. No unrelated
+record, ownerless history or rating is an authorised cleanup target.
+
+Before another HTTP mutation certification, retain durable encrypted create
+intent/acknowledgement and safe stage/status evidence; review any provider or
+application failure established by that evidence. Do not infer a container enum,
+Origin failure, missing Playwright base URL or a fixed product defect from the
+outer helper frame. Runtime-log/metric queries supplied no request sequence.
+Public launch remains **NO-GO**.
+
+### Integrated allocation and connected release evidence — 25 October 2026 UTC
+
+[PR #686](https://github.com/jeremytheva/pourfolio/pull/686) merged as
+`fec60da415c2f6cb75cd8f19bdc01a6731c5553a`. Exact main source validation and
+all 158 browser/accessibility cases passed in
+[run 40240571422](https://github.com/jeremytheva/pourfolio/actions/runs/40240571422),
+jobs `121311271384` and `121311271130`: 1,055 source tests passed, 15
+provider-gated skips, zero failures and zero production vulnerabilities.
+Production `dpl_9KDT7ZW55CbtJZu8UiLRUS62C6P7` is READY at that exact SHA.
+Anonymous attempt 2, job `121312137847`, passed all eight fixed URLs at
+22:34:58 UTC with matching health/readiness source `fec60da4`. The first
+attempt observed preceding `f13e07a8` during deployment; it did not qualify
+the new candidate.
+
+The live read-only
+[bonus preflight 40240571404](https://github.com/jeremytheva/pourfolio/actions/runs/40240571404),
+job `121311271248`, completed at 22:31:51 UTC. It returned expected
+**BLOCKED / PLAN_POINT_VALUE_INVALID**: 82 global and one private attribute,
+81 missing global values, 39 proposed fills, 42 unresolved allocations, one
+already matched preserved value and zero missing preserved values. The workflow
+exits 2 for the incomplete plan; its canonical validation passed.
+Plan SHA-256 is `e1cdd3421bd072a81868ffe97cb32f03916514e54d148d1705d4d9b5ac0e6723`;
+snapshot SHA-256 is `c6f1ea1167ae07f4b424db4fa0c1c543487513e053caac16387c8e869343c227`.
+Only fresh paginated reads occurred. This is not an atomic backup, a backfill
+or post-write/private/history preservation certification. All 82 descriptors
+remain available; obtain the 42 `null` allocations in the committed plan.
+
+The existing connected browser baseline ran against that exact production
+release on a reviewed evidence-only branch, with no explicit rating/cellar
+writes enabled. Normal profile reads may initialise a default-private profile.
+[Diagnostic run 40240996316](https://github.com/jeremytheva/pourfolio/actions/runs/40240996316),
+job `121312525327`, passed 12 checks, failed zero and skipped four at
+22:39:06 UTC. This covers host/security, public document rendering, configured
+authentication discovery/sign-in/sign-out, catalogue search/pagination/details,
+rating form boundaries, owner/public profile projections, proposal/cellar form
+reachability, inaccessible reconciliation, bonus category rendering, brewery
+navigation, cleared-cookie protected-route redirects and scoped desktop axe.
+The aggregate authentication test does not prove omitted optional sign-up/OTP
+branches, provider expiry/revocation, rate-limit enforcement or real OAuth
+completion. Profile projection does not qualify privacy transitions/uniqueness.
+
+The four skips are rating mutation, cellar HTTP mutation and the two existing
+history-fixture/link cases; no skip becomes PASS. Earlier
+[run 40240743642](https://github.com/jeremytheva/pourfolio/actions/runs/40240743642)
+had five passes, one failure in the composite catalogue/rating-form/profile test
+and ten skips. Diagnostic capture added only static source locations; the
+unchanged application/search configuration then passed. The first failure is
+**NOT_REPRODUCED / CAUSE_UNDETERMINED**; no defect or fix is established. Retain
+both observations and assess repeatability at final candidate qualification.
+
+Trace, screenshot and video capture were disabled; raw diagnostics/session
+files were kept private and removed. Only aggregate results/fixed titles were
+published in artifact `12616933404`, SHA-256
+`016f8c2a4e8fcb3828bc478c3a408f4382f2d1049fb91226eae3b854477dcfbc`.
+Provenance before/after and private-workspace cleanup passed. These evidence-only
+workflows are not proposed for merge. No source, HTTP-entry or baseline result
+approves public-document content, manual WCAG acceptance, #165 provider
+integrity/recovery, complete bonus values/backfill or public launch.
 
 ### Owner allocations and corrected account access — 25 October 2026 UTC
 
@@ -334,7 +461,7 @@ UTC interval, operator, reviewer, safe evidence reference and cleanup result.
 
 | Work / issue | Delivery owner | Retained evidence and remaining completion gate | Current result |
 | --- | --- | --- | --- |
-| <!-- launch-requirement:PF-LAUNCH-AUTH --> Authentication and rate limits | Launch hardening; ratings owns remaining #144 session certification (#577 adapter closed) | Same-origin authentication, session and limiter controls are implemented. Certify sign-up/sign-in, refresh, expiry, sign-out and revoked/invalid sessions, plus enforced local/shared authentication limits against the intended hosting proxy boundary. | **PARTIAL; current connected lifecycle/rate-limit evidence pending** |
+| <!-- launch-requirement:PF-LAUNCH-AUTH --> Authentication and rate limits | Launch hardening; ratings owns remaining #144 session certification (#577 adapter closed) | Same-origin authentication, session and limiter controls are implemented. Certify sign-up/sign-in, refresh, expiry, sign-out and revoked/invalid sessions, plus enforced local/shared authentication limits against the intended hosting proxy boundary. | **PARTIAL: configured sign-in/session/sign-out and cleared-cookie redirects PASS; full lifecycle/rate-limit evidence pending** |
 | <!-- launch-requirement:PF-LAUNCH-PROVIDER --> Rating provider foundation — [#165](https://github.com/jeremytheva/pourfolio/issues/165) | Ratings | Application durability contracts exist. Prove provider migration/backfill, uniqueness, conditional updates, immutable rating dates, backup and isolated restore; complete the [migration evidence package](nocodebackend/rating-schema-migration-runbook.md) and obtain explicit approval before irreversible mutation. G04, G10–G12, G14–G16 and G28 remain open. | **BLOCKED at provider/approval boundary** |
 | <!-- launch-requirement:PF-LAUNCH-RATING --> Rating lifecycle and deletion — [#503](https://github.com/jeremytheva/pourfolio/issues/503), remaining integrity [#165](https://github.com/jeremytheva/pourfolio/issues/165) | Ratings | #503 is closed. A bounded production `36ce8ffe` browser tasting saved, reloaded and was deleted once; independent `31e41c3b` inspection proved its valid deleted tombstone, zero score/bonus children and preserved baseline. A separate, read-only normal-HTTPS rating-breakdown request from a verified distinct release account returned 404 without writes. These close only their scoped rows. The historical completed/deleted parent with one surviving score child remains a confirmed #165 recovery finding. Full retry/partial-write/concurrency and permission-negative certification remains open in the existing rating guide. | **PARTIAL: bounded lifecycle/read denial PASS; historical recovery and broader integrity evidence open** |
 | <!-- launch-requirement:PF-LAUNCH-BONUS --> Bonus attribute point integrity — [PR #651](https://github.com/jeremytheva/pourfolio/pull/651) | Ratings; catalogue release integration | Merged/deployed `4019c90e`: 896 canonical source tests, 15 gated skips, 155 browser/accessibility cases. Current-instance server persistence/reload and exact fixture cleanup passed: two creates, two deletes, no mutation retry, no fixture from that run remains. Production form rendered stored global 0.5/private 0.7, their 1.20 sum, six selections at 2.00 and the expected 3.07/5 preview; draft discarded. Inventory still has 81 absent values among 83 attributes; fallback 0.2 does not establish them. A later production `36ce8ffe` browser test saved/reloaded one tasting using 0.5 + 0.7 = 1.20 points (Bonus 1/2; 2.82/5), then deleted that exact tasting once and restored counts 4/2 with old links intact. Independent `31e41c3b` inspection confirmed a valid deleted tombstone, zero score/bonus children, and the preserved baseline. Owner decision on 24 October requires authoritative stored values for every launch-selectable descriptor. The owner has supplied 39 exact-ID allocations and confirmed ID 3; all 82 remain available, ID 51 preserves its existing 0.50 and 42 values remain unresolved in the committed point plan. Complete remaining allocations, fresh preflight, governed bounded write/readback and historical-total preservation. A labelled 0.2 fallback is insufficient. New custom-attribute browser creation, A/B denial and concurrency remain open; see the [certification guide](nocodebackend/rating-workflow-certification.md). | **PARTIAL: bounded persistence/cleanup and presentation PASS; verified backfill and connected acceptance required** |
@@ -342,10 +469,10 @@ UTC interval, operator, reviewer, safe evidence reference and cleanup result.
 | <!-- launch-requirement:PF-LAUNCH-CATALOGUE --> Catalogue certification — [#154](https://github.com/jeremytheva/pourfolio/issues/154) | Catalogue; producers owns producer fixes | Browse/search/details and relationship controls are integrated. Authenticated production `4019c90e` search, product statistics/history, producer profile and the previously failing unrated-beer filter passed without writes. Producer fix #664 and attribute averages #660 are integrated. Complete connected catalogue reconciliation, provider-failure recovery and applicable import/provenance decisions. | **PARTIAL** |
 | <!-- launch-requirement:PF-LAUNCH-CELLAR --> Private cellar CRUD — [#449](https://github.com/jeremytheva/pourfolio/issues/449) | Catalogue | #449 source work and PR #657 are merged. Retained 21 October production `50a10454` was READY with matching health/readiness, 994 canonical tests (15 gated skips) and 155 browser/accessibility passes. At 21 October 22:28–22:30 UTC, the normal signed-in owner browser added one tagged item, fully reloaded, edited quantity/volume/container/gift/notes, fully reloaded and verified prices/date, searched by marker and deleted only that item once. The full post-delete reload restored the unchanged original one-item baseline. One add/edit/delete, no retry. This closes the bounded deployed owner HTTP/browser row; a separate provider-inventory audit was not run. Distinct-account authentication passes in run 40235529806; candidate gateway A/B list/update/delete denial and cleanup pass in run 40239183671. The broader session and deployed HTTP/browser isolation matrix remains open. See the [policy record](nocodebackend/connected-policy-certification.md). Historical ownerless rows and gated catalogue/relationship capabilities are untouched. | **PARTIAL: owner browser lifecycle and candidate gateway isolation/cleanup PASS; full HTTP/session policy acceptance pending** |
 | <!-- launch-requirement:PF-LAUNCH-PRIVACY --> Persistent profiles and public history — [#422](https://github.com/jeremytheva/pourfolio/issues/422) | Ratings | Persistent profiles, stable `public_id` and opt-in public history are implemented. Certify provider uniqueness/default-private creation, persisted privacy changes and revocation, copied-link behaviour, cross-owner denial and recovery. Unsupported connected rows stay pending. | **PARTIAL** |
-| User/admin session certification — [#577](https://github.com/jeremytheva/pourfolio/issues/577) | Ratings | The adapter/protected runner is merged. One distinct-account rating read denial does not establish the full user/admin, expired/revoked or cellar/profile matrix. #577 adapter implementation is closed; remaining certification is under #144/#422. All four account fields are present. Correct `RELEASE_OTHER_PASSWORD` securely in protected `staging-release` to match the approved `RELEASE_OTHER_EMAIL` account; do not retry unchanged HTTP 401 credentials. Cellar/bonus manual workflows now require `auth_release_sha`. Session-based certification verifies exact auth provenance before login/write; the configured-contract-user bonus path remains provider-only evidence without session proof. Eight release-target tests and both workflows' five SHA pins passed source checks, with no connected rerun. Database Secret Keys are not login passwords. | **PARTIAL; remaining rows blocked at session-evidence boundary** |
+| User/admin session certification — [#577](https://github.com/jeremytheva/pourfolio/issues/577) | Ratings | The adapter/protected runner is merged and #577 implementation is closed; remaining certification is under #144/#422. Protected AUTH_ONLY run 40235529806 passed both distinct accounts' sign-in/session/sign-out at production f13e07a8 after the secure credential correction. That supersedes the prior unchanged HTTP 401 blocker for those observations. One distinct-account rating read denial and bounded cellar gateway checks do not establish the full user/admin, expired/revoked or cellar/profile matrix. Cellar/bonus workflows require auth_release_sha and verify exact auth provenance; the configured-contract-user bonus path remains provider-only evidence without session proof. Database Secret Keys are not login passwords. | **PARTIAL: distinct-account AUTH_ONLY PASS; broader connected session/policy rows pending** |
 | Current review corrections | Launch hardening (bounded shared-file claim); integration by catalogue | PR #642's header-trust, profile-readback and body-deadline corrections are integrated. PR #657's persisted gift, shared 10-second deadline, uncertain-outcome guidance and cleanup guards merged with passing canonical/browser/security checks. PR #647 accepted source `0ef8f4e4a190090343c2dc99925af457466e4ada` passed the same gates after resolving upgraded-axe catalogue/history names and card structure. PR #645 subsequently updated matched React/React DOM to 19.3.1; integrated source `63da5fae` passed 994 canonical tests (15 gated skips), all 155 browser cases and security checks. This is maintenance, not a demonstrated RSC vulnerability fix. Production identity/readiness is verified below; connected privacy/write acceptance remains open. | **Source corrections integrated and validated; connected acceptance open** |
 | <!-- launch-requirement:PF-LAUNCH-ACCESS --> Launch accessibility acceptance | Launch hardening; catalogue integrates | Accepted React-patch source `63da5fae73406b8310320d44a70436abbfdf9813` passed the upgraded Playwright/axe suite after catalogue/history accessible-name and card-structure corrections. Complete production-equivalent mobile/desktop and supported screen-reader manual acceptance for the final launch candidate. Source/browser passes do not establish those manual connected results. | **PARTIAL: source/browser PASS; final connected/manual acceptance pending** |
-| <!-- launch-requirement:PF-LAUNCH-RELEASE --> Exact-candidate release qualification | Catalogue integration authority | Source preparations #676/#677 are merged at `70c3a189`; production `dpl_945KiC6zYa98V3wKzsbVD8JqHhcv` reports READY at that SHA. Their exact accepted heads passed canonical/browser/security checks. The original `c679192a` source/browser and 23 October HTTP evidence remains retained. Fresh read-only inventory still requires rating recovery, verified bonus values and ownerless-row exclusion. Anonymous HTTP entry passed at `70c3a189`; complete rendered-browser, distinct-account/privacy and operations acceptance for the final candidate. | **PARTIAL; final public release remains NO-GO** |
+| <!-- launch-requirement:PF-LAUNCH-RELEASE --> Exact-candidate release qualification | Catalogue integration authority | Source preparations #676/#677 are merged at `70c3a189`; production `dpl_945KiC6zYa98V3wKzsbVD8JqHhcv` reports READY at that SHA. Their exact accepted heads passed canonical/browser/security checks. The original `c679192a` source/browser and 23 October HTTP evidence remains retained. Fresh read-only inventory still requires rating recovery, verified bonus values and ownerless-row exclusion. Anonymous HTTP entry and 12 connected baseline rows pass at `fec60da4`, with four skips and an initial unreproduced failure retained. Complete distinct-account privacy, write/recovery, manual accessibility and operations acceptance for the final candidate. | **PARTIAL; final public release remains NO-GO** |
 | Publication and operations | Catalogue coordinates; `@jeremytheva` accountable for assigning named operators/reviewers | Reconcile current evidence against [publication](PUBLICATION_AND_RELEASE_EVIDENCE.md), [configuration](launch-configuration-evidence.md) and [operations](OPERATIONS_READINESS.md) procedures: reviewed public documents, support/alert ownership, safe logs, monitoring, credential handling, backup/restore and deployment rollback. No new remote verification is claimed here. | **PENDING current release evidence** |
 
 The earlier connected runs in `STATUS.md` passed 12 baseline cases and skipped
