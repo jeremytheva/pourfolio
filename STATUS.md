@@ -3,17 +3,17 @@ project: Pourfolio
 portfolio_state: READY
 execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Automatic saving and catalogue attribution verified within bounded scope; release gates remain"
+stage: "Approved QA cleanup verified; bonus allocations and provider/release gates remain"
 gate: Release
 execution_state: BLOCKED
 current_work:
-  objective: "Obtain owner authorization for the exact QA-cellar recovery plan, then complete missing bonus allocations and remaining provider/release gates."
+  objective: "Complete missing authoritative bonus allocations and remaining provider/recovery, privacy and release qualification."
   issue: 144
   pr: null
   branch: "main"
 next_actions:
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
-  - "Obtain explicit owner authorization for the prepared single-QA-cellar recovery; keep the record untouched until then. Future HTTP mutation certification must retain encrypted intent/acknowledgement before writes."
+  - "Approved single-QA recovery passed in run 40389866451: one DELETE, exact absence and other-owned-row preservation verified. Before another HTTP mutation certification, retain encrypted create intent/acknowledgement and safe stage/status evidence."
   - "Live bonus preflight 40240571404 confirms 39 proposed fills and 42 unresolved values. Complete the plan, then use #680 before/after preservation checks and complete historical evidence for governed backfill."
   - "Use #678's corrected canonical bonus_attribute_id checks when auditing fresh same-state baseline/import-rehearsal evidence; historical or mixed-column exports are not current-contract evidence."
   - "Terminal-rating containment and the read-only point-plan auditor are integrated in #676/#677; retain the distributed concurrency boundary under #165 and use the existing evidence package."
@@ -22,9 +22,6 @@ next_actions:
   - "Complete #165 provider mechanism, consistent snapshot and isolated restore evidence before irreversible migration or historical repair; then close #144/#154 acceptance."
   - "Complete publication, monitored support, named operations owners, anonymous production access and final exact-candidate release qualification."
 blockers:
-  - scope: qa_cellar_recovery_authorization
-    issue: 144
-    detail: "One current owned QA record remains. Original HTTP create correlation is unconfirmed; full encrypted backup and exact-target recovery plan are prepared, with no delete or retry authorised yet."
   - scope: rating_idempotency_provider_migration
     issue: 165
     detail: "Unconditional parent transitions and late child writes lack certified distributed integrity. Provider uniqueness/atomic workflow, consistent backup, isolated restore and approval for irreversible changes remain required."
@@ -34,21 +31,21 @@ blockers:
   - scope: persistent_profile_privacy
     issue: 422
     detail: "Provider uniqueness/default-private creation, persisted opt-in/revocation, copied links and cross-owner denial still need connected certification."
-requires_owner_decision: true
+requires_owner_decision: false
 owner_decision:
-  question: "Authorize deletion of the single current QA-marked cellar row using the prepared encrypted backup and exact-record guard? Original create acknowledgement is unavailable."
-  recommendation: "Approve only the current QA record fingerprint 1c8e0ec1278a28e426f6cb041d1790c26dcc4fe650d4b3b413efddd5fd0ee1ed; perform one guarded delete with post-verification before another HTTP mutation test."
+  question: null
+  recommendation: null
 wip:
   open_implementation_prs: 0
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
+  observed_main_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
   current_candidate_commit: null
   latest_validated_commit: "1bbb84505dfaf24f7c808c55d97c37d98c1fac6b"
-  latest_deployed_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
-  latest_runtime_verified_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
+  latest_deployed_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
+  latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
   latest_browser_verified_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
 validation:
   governance: PASS
@@ -58,8 +55,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: VERIFIED
-last_verified_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
-last_updated: "2026-10-26T12:25:00Z"
+last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
+last_updated: "2026-10-26T19:49:56Z"
 
 ---
 
@@ -68,6 +65,40 @@ last_updated: "2026-10-26T12:25:00Z"
 Last materially reviewed: 26 October 2026 UTC
 
 ## AI execution gate
+
+### Owner-approved QA cellar cleanup verified — 26 October 2026 UTC
+
+The owner explicitly approved removal of the single reviewed QA record.
+[Recovery run 40389866451](https://github.com/jeremytheva/pourfolio/actions/runs/40389866451),
+job `121807724441`, passed at **19:48:15 UTC** against production
+`dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8`. Its reviewed workflow source is
+`3d90949b1425c95d49a2d72ecceb69f107e80146`; only the current release SHA
+changed from the prepared recovery. Cellar, authentication, provider and
+receipt helpers were unchanged from the reviewed baseline.
+
+The encrypted source plan, exact raw target fingerprint and authenticated
+ownership all matched before deletion. An encrypted before receipt was written
+before one HTTP DELETE, with redirects and retries disabled. It returned
+HTTP 204. Fresh direct-provider and owner reads confirmed absence of the exact
+ID/marker, and comparison with the remaining owner baseline passed.
+The result records `deletesAttempted: 1`, `removed: 1`, cleanup PASS,
+other-owned-row preservation PASS, release provenance before/after PASS,
+sign-out PASS and private-workspace cleanup PASS.
+
+Encrypted recovery artifact `12682295850` retains the before receipt and
+redacted summary; its SHA-256 is
+`0b2ede3e72638b5d114b0c61f3169655c74df84df4bc97af28769abda4134096`.
+The approved target fingerprint was
+`1c8e0ec1278a28e426f6cb041d1790c26dcc4fe650d4b3b413efddd5fd0ee1ed`.
+Independent review confirmed the executed guards and result.
+
+This closes the single-record recovery and owner-authorization blocker.
+Original-attempt correlation remains UNCONFIRMED, and the earlier failed full
+cellar HTTP test remains unqualified; it was not rerun. Before another mutation
+certification, retain durable encrypted create intent/acknowledgement and safe
+stage/status evidence. Existing provider integrity/recovery, privacy,
+42 unresolved bonus allocations and other public-launch gates remain open.
+Public launch remains **NO-GO**.
 
 ### Catalogue relationship pagination deployed and read back — 26 October 2026
 
@@ -101,8 +132,9 @@ This qualifies the observed read defect only. Full catalogue reconciliation,
 connected failure/recovery and WCAG acceptance remain under #154. No provider
 write, schema change, rating/cellar mutation or automation change occurred.
 Autosave's owner-reported recovery and bounded live history/public-document
-checks are retained in PR #689. The 42 unresolved bonus values, exact QA recovery
-authorization, #165 and public **NO-GO** remain. Current open PRs #684/#685 are
+checks are retained in PR #689. The 42 unresolved bonus values, #165 and public
+**NO-GO** remain; the QA recovery authorization and cleanup have since completed
+in the verified recovery entry above. Current open PRs #684/#685 are
 dependency updates; no ordinary implementation PR is outstanding at this read.
 
 ### Automatic local rating saving deployed — 26 October 2026
@@ -154,8 +186,8 @@ distributed durability. Public documents rendered with working section targets
 and keyboard skip links; they remain draft documents awaiting legal/operational
 qualification. These bounded DOM/keyboard checks are not full WCAG acceptance.
 No historical rating, QA-cellar record, provider/schema or security control changed.
-#165, the exact QA recovery authorization, 42 missing bonus allocations and the
-other existing release gates remain open. Public launch stays **NO-GO**.
+The QA recovery authorization and cleanup have since completed as recorded
+above. #165, 42 missing bonus allocations and the other release gates remain open. Public launch stays **NO-GO**.
 
 ### Cellar HTTP recovery boundary — 25 October 2026 UTC
 
@@ -193,8 +225,9 @@ The existing [cellar cleanup helper](release-check/cellarCleanup.js) states:
 The original create nonce/acknowledgement was not retained as a durable intent
 receipt. The later snapshot cannot replace that original evidence. The
 [prepared single-record recovery workflow](https://github.com/jeremytheva/pourfolio/blob/23917bf8ad71d5724f2f0641061587f54c4eccfa/.github/workflows/launch-connected-evidence.yml)
-therefore remains untriggered pending explicit owner authorization for this
-current QA record. It verifies the encrypted source plan, exact raw fingerprint
+was therefore held pending explicit owner authorization for this current QA
+record. The owner-approved cleanup subsequently passed on 26 October, as
+recorded above. It verifies the encrypted source plan, exact raw fingerprint
 and owner, writes an encrypted before receipt, permits one HTTP DELETE with no
 retry and verifies fresh provider/owner absence plus other owned-row preservation.
 Source/read-only validation does not claim that recovery executed. No unrelated
