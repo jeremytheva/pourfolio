@@ -59,7 +59,7 @@ validation:
   ci: PASS
   runtime: NOT_APPLICABLE
 last_verified_commit: "89c6e4618aefde0f5e33365f4b8578a73421fd4c"
-last_updated: "2026-10-26T09:04:35.961Z"
+last_updated: "2026-10-26T09:04:35Z"
 
 ---
 
