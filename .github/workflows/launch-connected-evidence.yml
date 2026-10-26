@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 30
     env:
       RELEASE_BASE_URL: https://brew-buds-mobile-app-design-3577.vercel.app
-      RELEASE_SHA: fec60da415c2f6cb75cd8f19bdc01a6731c5553a
+      RELEASE_SHA: dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8
     steps:
       - uses: actions/checkout@v7
         with:
