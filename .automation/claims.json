@@ -1,4 +1,16 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "ratings": {
+      "owner": "ratings-review-1793003971699",
+      "workstream": "ratings",
+      "issue": 688,
+      "pr": 689,
+      "surfaces": [
+        "pr:689"
+      ],
+      "acquiredAt": "2026-10-26T08:39:31.699Z",
+      "expiresAt": "2026-10-26T09:09:31.699Z"
+    }
+  }
 }
