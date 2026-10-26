@@ -21,7 +21,8 @@
         "file:docs/nocodebackend/connected-policy-certification.md",
         "file:STATUS.md",
         "file:docs/LAUNCH_READINESS.md",
-        "file:.project-master/launch-readiness.json"
+        "file:.project-master/launch-readiness.json",
+        "file:playwright.release.config.js"
       ],
       "acquiredAt": "2026-10-26T20:45:52Z",
       "expiresAt": "2026-10-26T21:15:52.000Z"
