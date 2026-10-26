@@ -1,20 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "integration": {
-      "owner": "offline-oneoff-integration-1793005176471",
-      "workstream": "integration",
-      "issue": 688,
-      "pr": 689,
-      "surfaces": [
-        "repo:integration",
-        "STATUS.md",
-        "docs/LAUNCH_READINESS.md",
-        "pr:689",
-        "pr:687"
-      ],
-      "acquiredAt": "2026-10-26T08:59:36.471Z",
-      "expiresAt": "2026-10-26T09:29:36.471Z"
-    }
-  }
+  "claims": {}
 }
