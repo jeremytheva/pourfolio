@@ -1,18 +1,18 @@
 ---
 project: Pourfolio
-portfolio_state: VALIDATING
-execution_slot: VERIFYING
+portfolio_state: BLOCKED
+execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Read-only Admin access verified; moderation target contract validating"
-gate: Integration
-execution_state: VALIDATING
+stage: "Read-only Admin access verified; moderation contract ready; fresh schema access required"
+gate: Change
+execution_state: BLOCKED
 current_work:
-  objective: "Integrate the deferred moderation/version/recovery contract and bounded provider-certification handoff."
-  issue: 700
+  objective: "Obtain current exact-instance schema evidence and qualify the moderation provider mapping in isolated staging."
+  issue: 701
   pr: null
-  branch: "feature/admin-moderation-contract"
+  branch: "main"
 next_actions:
-  - "Qualify #700 deferred moderation contract source, then complete #701 fresh exact-instance mapping, permissions, all-writer/version/dependency fencing and isolated recovery evidence before #702 mutable decisions."
+  - "PR #710 contains the qualified deferred moderation source contract. Next #701 needs a current schema-only export or connected read-only NoCodeBackend schema access, then isolated staging permissions, all-writer/dependency fencing and restore evidence before #702 mutable decisions."
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
   - "Approved single-QA recovery passed in run 40389866451: one DELETE, exact absence and other-owned-row preservation verified. Before another HTTP mutation certification, retain encrypted create intent/acknowledgement and safe stage/status evidence."
   - "Live bonus preflight 40240571404 confirms 39 proposed fills and 42 unresolved values. Complete the plan, then use #680 before/after preservation checks and complete historical evidence for governed backfill."
@@ -23,6 +23,9 @@ next_actions:
   - "Complete #165 provider mechanism, consistent snapshot and isolated restore evidence before irreversible migration or historical repair; then close #144/#154 acceptance."
   - "Complete publication, monitored support, named operations owners, anonymous production access and final exact-candidate release qualification."
 blockers:
+  - scope: moderation_provider_schema_access
+    issue: 701
+    detail: "The available schema export is dated 14 July 2026. No NoCodeBackend schema/MCP tool is connected; plugin discovery found no matching entry. A current schema-only export or authorized read-only get_schema connection is required before exact physical mapping and isolated-staging certification. No secret or row data is requested."
   - scope: rating_idempotency_provider_migration
     issue: 165
     detail: "Unconditional parent transitions and late child writes lack certified distributed integrity. Provider uniqueness/atomic workflow, consistent backup, isolated restore and approval for irreversible changes remain required."
@@ -57,7 +60,7 @@ validation:
   ci: PASS
   runtime: VERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-27T11:25:00Z"
+last_updated: "2026-10-27T11:36:00Z"
 
 ---
 
@@ -101,7 +104,14 @@ the 187 browser cases and real capability result remain scoped to #709. Active
 PR/exact hosted/deployment evidence is tracked in #700. Ordinary WIP is #693/#697 plus this
 candidate once published; source #709 is integrated. Mutable decisions remain
 unavailable. Existing #165, #144/#154, privacy, bonus and public-launch NO-GO
-boundaries remain unchanged. No new owner action is required for this preparation.
+boundaries remain unchanged. The source preparation is complete and no provider mutation is authorized.
+For the next provider step, owner input is a current NoCodeBackend schema-only
+export, or an authorized read-only schema connection; the supplied export is
+dated 14 July 2026. No credentials or row data should be pasted. Plugin search
+returned no matching NoCodeBackend entry and the current tool inventory has no
+schema/Swagger tools. Official NoCodeBackend MCP documentation describes
+get_schema/get_swagger; that documented capability is not a connected tool or
+proof of this instance. See #701 for the read-only discovery and exact next gate.
 
 ### Historical read-only Admin implementation checkpoint — 27 October 2026 UTC
 
