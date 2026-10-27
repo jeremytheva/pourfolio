@@ -29,7 +29,11 @@ test('promotion, private/raw fields, erased version fences, unsafe legacy approv
     (t) => { t.verification.pending_capabilities = ['view'] }, (t) => { t.verification_transitions[1].guards = ['evidence'] },
     (t) => { t.reliability.required_capabilities = [] }, (t) => { t.exposure.resubmission_preserves_restriction = false },
     (t) => { t.migration.schema_inventory = 'VERIFIED' }, (t) => { t.provider_mapping = { collection: 'guessed' } },
-    (t) => { t.editable_fields.product.push('user_id') }, (t) => { t.producer_relationships.primary_count = 2 }]) {
+    (t) => { t.editable_fields.product.push('user_id') }, (t) => { t.producer_relationships.primary_count = 2 },
+    (t) => { t.producer_relationships.restricted_dependency_rule = 'ignore' },
+    (t) => { t.resubmission.needs_changes_requires = 'none' },
+    (t) => { t.resubmission.rejected_requires = 'none' },
+    (t) => { t.verification_transitions.find((row) => row.action === 'resubmit').guards.pop() }]) {
     const changed = structuredClone(target); change(changed)
     assert.ok(validateModerationTarget(changed).length)
     assert.equal(evaluateModerationFixture(changed, fixture()).code, 'INVALID_TARGET')
@@ -56,11 +60,18 @@ test('ordinary/unknown actors, unsupported actions and unsupported state transit
   assert.equal(evaluate({ action: 'reject', reason: true }).nextState, 'rejected')
 })
 
-test('resubmission requires the original submitter and a new revision, and cannot lift restriction', () => {
-  const input = { actor: 'Submitter', action: 'resubmit', state: 'rejected', exposure: 'restricted', isSubmitter: true, newRevision: true }
+test('resubmission requires its state-specific evidence, original submitter and new revision without lifting restriction', () => {
+  const input = { actor: 'Submitter', action: 'resubmit', state: 'rejected', exposure: 'restricted',
+    isSubmitter: true, newRevision: true, responseToPriorReason: true }
   assert.deepEqual(evaluate(input), { outcome: 'ELIGIBLE', code: 'TARGET_TRANSITION', nextState: 'pending', exposure: 'restricted' })
   assert.equal(evaluate({ ...input, isSubmitter: false }).outcome, 'DENIED')
   assert.equal(evaluate({ ...input, newRevision: false }).outcome, 'DENIED')
+  assert.equal(evaluate({ ...input, responseToPriorReason: false }).outcome, 'DENIED')
+  assert.equal(evaluate({ ...input, responseToPriorReason: false, validatedResubmissionDiff: true }).outcome, 'DENIED')
+  assert.equal(evaluate({ ...input, state: 'needs_changes' }).outcome, 'DENIED')
+  assert.deepEqual(evaluate({ ...input, state: 'needs_changes', responseToPriorReason: false, validatedResubmissionDiff: true }),
+    { outcome: 'ELIGIBLE', code: 'TARGET_TRANSITION', nextState: 'pending', exposure: 'restricted' })
+  assert.equal(evaluate({ ...input, state: 'needs_changes', validatedResubmissionDiff: false }).outcome, 'DENIED')
   assert.equal(evaluate({ ...input, state: 'approved' }).outcome, 'DENIED')
 })
 

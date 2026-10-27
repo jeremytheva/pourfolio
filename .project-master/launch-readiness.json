@@ -250,11 +250,16 @@
         "api/**cellar**",
         "src/**/Cellar*",
         "e2e/cellar*",
-        "release-check/**cellar*"
+        "release-check/**cellar*",
+        "release-check/*cellar*",
+        "release-check/*Cellar*",
+        "release-check/**/cellar*"
       ],
       "test_refs": [
         "e2e/core-flow.spec.js",
-        "release-check/connected.spec.js"
+        "release-check/connected.spec.js",
+        "release-check/__tests__/cellarCleanup.test.js",
+        "release-check/__tests__/cellarFixtureCheckpoint.test.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",
@@ -336,7 +341,8 @@
       ],
       "test_refs": [
         "release-check/connected.spec.js",
-        "playwright.release.config.js"
+        "playwright.release.config.js",
+        "release-check/__tests__/redactedReleaseReporter.test.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#launch-sign-off",

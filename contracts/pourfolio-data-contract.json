@@ -673,7 +673,8 @@
           "guards": [
             "current_versions",
             "original_submitter",
-            "new_proposal_revision"
+            "new_proposal_revision",
+            "state_specific_resubmission"
           ]
         },
         {
@@ -761,7 +762,12 @@
         "source_collection": "product_producers",
         "complete_set_required": true,
         "primary_count": 1,
-        "sort_order_server_owned": true
+        "sort_order_server_owned": true,
+        "restricted_dependency_rule": "deny_new_dependent_exposure_and_require_review"
+      },
+      "resubmission": {
+        "needs_changes_requires": "validated_field_or_evidence_diff",
+        "rejected_requires": "recorded_response_to_prior_reason"
       }
     }
   }

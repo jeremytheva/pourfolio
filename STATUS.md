@@ -1,18 +1,20 @@
 ---
 project: Pourfolio
-portfolio_state: BLOCKED
-execution_slot: WAITING
+portfolio_state: VALIDATING
+execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Read-only Admin access verified; moderation contract ready; fresh schema access required"
-gate: Change
-execution_state: BLOCKED
+stage: "Moderation contract review corrections and retained evidence validating"
+gate: Integration
+execution_state: VALIDATING
 current_work:
-  objective: "Obtain current exact-instance schema evidence and qualify the moderation provider mapping in isolated staging."
-  issue: 701
-  pr: null
-  branch: "main"
+  objective: "Validate and integrate repaired deferred moderation rules in existing PR #710; preserve provider and runtime activation gates."
+  issue: 700
+  pr: 710
+  branch: "feature/admin-moderation-contract"
 next_actions:
-  - "PR #710 contains the qualified deferred moderation source contract. Next #701 needs a current schema-only export or connected read-only NoCodeBackend schema access, then isolated staging permissions, all-writer/dependency fencing and restore evidence before #702 mutable decisions."
+  - "Validate and integrate #710 with refreshed retained issue evidence, state-specific resubmission rules and preserved restricted-producer exposure constraints; then repair #697 keyboard selector visibility."
+  - "PR #693 is integrated and exact production e9661b0f is READY. Configure independent RELEASE_FIXTURE_ENCRYPTION_KEY before bounded HTTP cellar writes; read-only checks remain available."
+  - "#709 read-only Admin workspace is deployed and bounded Admin/user own-capability isolation passed in run 40494158943. Keep full Admin browser/moderation, role-write denial and revocation open under #699/#701/#702."
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
   - "Approved single-QA recovery passed in run 40389866451: one DELETE, exact absence and other-owned-row preservation verified. Before another HTTP mutation certification, retain encrypted create intent/acknowledgement and safe stage/status evidence."
   - "Live bonus preflight 40240571404 confirms 39 proposed fills and 42 unresolved values. Complete the plan, then use #680 before/after preservation checks and complete historical evidence for governed backfill."
@@ -25,7 +27,7 @@ next_actions:
 blockers:
   - scope: moderation_provider_schema_access
     issue: 701
-    detail: "The available schema export is dated 14 July 2026. No NoCodeBackend schema/MCP tool is connected; plugin discovery found no matching entry. A current schema-only export or authorized read-only get_schema connection is required before exact physical mapping and isolated-staging certification. No secret or row data is requested."
+    detail: "The supplied schema export is dated 14 July 2026. Current exact-instance schema-only evidence or an authorized read-only schema connection remains required before physical mapping and isolated staging certification; source contracts do not grant provider mutation."
   - scope: rating_idempotency_provider_migration
     issue: 165
     detail: "Unconditional parent transitions and late child writes lack certified distributed integrity. Provider uniqueness/atomic workflow, consistent backup, isolated restore and approval for irreversible changes remain required."
@@ -40,27 +42,27 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 3
+  open_implementation_prs: 2
   dependent_stack_depth: 1
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "e920d9df9f68214e6bc9a186770cce03239cba69"
+  observed_main_commit: "e9661b0f6102acb7002f5e207184829bb0398766"
   current_candidate_commit: null
-  latest_validated_commit: "d2b5804afd7c7710fa5d6498d22cb5d60d7afbb2"
-  latest_deployed_commit: "e920d9df9f68214e6bc9a186770cce03239cba69"
+  latest_validated_commit: "b1350719382efe704db2630a575d39c3a32b629b"
+  latest_deployed_commit: "e9661b0f6102acb7002f5e207184829bb0398766"
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-  latest_browser_verified_commit: "d2b5804afd7c7710fa5d6498d22cb5d60d7afbb2"
+  latest_browser_verified_commit: "828864b8dc1633edf61e051cb76ee020fbb5ca1b"
 validation:
-  governance: PASS
-  lint: PASS
+  governance: NOT_RUN
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PASS
-  build: PASS
-  ci: PASS
-  runtime: VERIFIED
+  tests: NOT_RUN
+  build: NOT_RUN
+  ci: PENDING
+  runtime: UNVERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-27T11:36:00Z"
+last_updated: "2026-10-27T21:13:00Z"
 
 ---
 
@@ -70,50 +72,101 @@ Last materially reviewed: 27 October 2026 UTC
 
 ## AI execution gate
 
-### Admin read-only boundary verified; moderation contract prepared — 27 October 2026 UTC
+### Deferred moderation contract review — 27 October 2026 UTC
 
-PR #709 merged as `e920d9df9f68214e6bc9a186770cce03239cba69` with the same
-validated tree `21a04bda3eb759e255f75354e1e1d41a4b6ec7e4`. Exact-source
-canonical Node 22 validation passed locally and in run 40493559547
-(1,115 passed, 15 intentional connected skips, zero failures), plus all 187
-local/hosted browser-accessibility cases, CodeQL and Dependency Review.
-Desktop/mobile visual inspection passed. Production deployment
-`dpl_A9xeHx3AdGP7KC9eszmxKeUqdX5m` is READY; production health/readiness
-return 200 with that exact merge SHA and dataProvider ok.
+Existing PR #710 is reconciled with integrated cellar evidence from #693.
+Its previous exact-head canonical run stopped at missing retained issue #701;
+all 11 current blocker/continuity issue states are now refreshed from GitHub in
+the existing evidence file. The checker and blocker remain intact.
 
-Protected run 40494158943/job 122155245104 executes exact main/runtime
-`e920d9d`. Verified distinct normal sessions expose `user.role`: known `admin`
-receives catalogue.review (ALLOWED), known `user` receives none (DENIED).
-Both session and sign-out/cleanup rows pass. This is real bounded read-only
-capability evidence, not a complete connected Admin browser/moderation journey.
-Full authorityCertified remains false; provider role-write denial and actual
-revocation remain NOT_RUN. #699 remains open for those outstanding rows.
+Independent review found two accepted #700 rules missing from the proposed
+contract. Needs-changes resubmission now requires a validated field/evidence
+diff; rejected resubmission requires a recorded response to the prior reason.
+Both retain immutable revisions, original-submitter checks and restriction.
+A restricted primary/collaborating producer independently denies new dependent
+product exposure and requires review, including already-approved products;
+verification history and historical attribution are preserved.
 
-Continuation #700 on `feature/admin-moderation-contract` adds the logical deferred
-target to canonical data contract 1.6.0, its offline guard/fixture checks, and a
-bounded provider migration/certification preparation. No active collection,
-writer permission, API/client or provider data changes. It distinguishes
-record/content versions, immutable proposal revisions, producer dependencies,
-legacy unknown state, independent restriction, safe replay and blocked recovery.
-Physical mapping/schema inventory, provider permissions, all-writer fencing,
-uniqueness, atomicity and restore remain UNVERIFIED/NOT_RUN under #701.
-Canonical Node 22 validation of this target source passed (1,123 passed,
-15 intentional connected skips, zero failures; production audit zero). The eight
-new offline contract cases pass. This changes no application/API/client source;
-the 187 browser cases and real capability result remain scoped to #709. Active
-PR/exact hosted/deployment evidence is tracked in #700. Ordinary WIP is #693/#697 plus this
-candidate once published; source #709 is integrated. Mutable decisions remain
-unavailable. Existing #165, #144/#154, privacy, bonus and public-launch NO-GO
-boundaries remain unchanged. The source preparation is complete and no provider mutation is authorized.
-For the next provider step, owner input is a current NoCodeBackend schema-only
-export, or an authorized read-only schema connection; the supplied export is
-dated 14 July 2026. No credentials or row data should be pasted. Plugin search
-returned no matching NoCodeBackend entry and the current tool inventory has no
-schema/Swagger tools. Official NoCodeBackend MCP documentation describes
-get_schema/get_swagger; that documented capability is not a connected tool or
-proof of this instance. See #701 for the read-only discovery and exact next gate.
+The canonical deferred target, offline guards/negative fixtures and migration
+preparation agree on these requirements. Eight focused contract cases and the
+data-contract checker pass in memory under Node 24; fresh exact-head canonical
+Node 22 validation is pending. Independent source/design review found no further
+material issue. There is no application, active collection, writer grant or
+provider mutation in this preparation. Physical mapping, all-writer/version
+fencing, actual dynamic exposure enforcement, response/diff validation, recovery
+and activation remain #701/#702 work.
 
-### Historical read-only Admin implementation checkpoint — 27 October 2026 UTC
+This dependency does not block independent launch work. Public launch remains
+**NO-GO** with the existing #165, #144/#154, privacy and 42-value requirements.
+
+### Durable cellar HTTP fixture evidence — 27 October 2026 UTC
+
+PR #693 merged as `e9661b0f6102acb7002f5e207184829bb0398766` after final
+canonical validation of `b1350719` (1,143 passed, 15 intentional skips, zero
+failures/production vulnerabilities). Exact Vercel production deployment
+`dpl_4W63qs33RcxgnAWoyyHz68Xff5v6` is READY. This does not qualify a connected
+cellar mutation; the independent encryption secret is still required.
+
+The failed connected HTTP test could leave a created fixture without a durable
+original acknowledgement. Its recovery is complete, but the test must retain
+its own evidence before another write qualification.
+
+The helper now requires an encrypted checkpoint writer before reading a
+baseline or sending a fixture mutation. It records the original nonce/product/
+baseline, create intent, HTTP response status before parsing, complete original
+receipt/ID before verification, owner confirmation, update/denial phases and
+exact cleanup intent/response/outcome. Failed checkpoint persistence latches a
+block on subsequent fixture mutations. Unknown outcomes are not retried and
+later list differences do not authorise guessed cleanup.
+
+The connected case verifies both live session identities before creating the
+fixture and requires distinct owners. One owner create/update/delete is
+separate from the two cross-owner mutation-denial probes. Mutating HTTP calls
+disable retries and redirects; a fresh owner read checks that denial probes
+preserved the private fixture fields.
+
+The protected workflow supplies a dedicated 32-byte random Base64
+`RELEASE_FIXTURE_ENCRYPTION_KEY` only to the Node checkpoint writer. Provider
+administration credentials remain owned by the deployed runtime; the existing
+governance prohibition is preserved. Invalid keys fail before baseline reads or
+mutations, and provider/account-password fallback is forbidden. Candidate
+checkout must be a reviewed main ancestor and the workflow runs from main.
+It shares the current-instance cellar concurrency group. A redacted reporter
+publishes only fixed source case IDs, statuses/counts and validated commit
+metadata. Raw output is captured privately and removed; traces/screenshots/
+videos are disabled for connected checks. Only the release summary, cellar
+phase summary, encrypted receipt and build-security result are uploaded.
+
+Source head `828864b8dc1633edf61e051cb76ee020fbb5ca1b` passes canonical Node 22
+validation in [run 40583149978](https://github.com/jeremytheva/pourfolio/actions/runs/40583149978):
+1,143 passed, 15 intentional connected skips, zero failures and zero production
+vulnerabilities. All 187 browser/accessibility cases, Dependency Review and
+CodeQL pass. The actual Playwright CLI redaction smoke passes; independent review
+found no material issues. Forty-two focused in-memory tests also pass after the
+key-contract repair, including malformed/noncanonical key rejection. The earlier
+provider-credential guard failure was corrected without weakening that guard.
+
+The new encryption secret must be entered in protected `staging-release` before
+HTTP cellar mutations; connected tools cannot set GitHub secrets. Read-only
+checks remain usable without it. C1 handoff
+`C1-20261027-POURFOLIO-PR693-SECRET-CONTRACT` is accepted in existing PR #693. No provider
+access or data mutation has occurred for this source preparation. An atomic
+runner-local checkpoint plus always-run artifact retention cannot guarantee
+recovery after loss of the entire worker. Connected certification, #165, profile
+privacy, the 42 missing bonus values and public **NO-GO** remain separate.
+
+### Read-only Admin workspace qualification update — 27 October 2026 UTC
+
+PR #709 merged as `e920d9df9f68214e6bc9a186770cce03239cba69`; exact
+production deployment `dpl_A9xeHx3AdGP7KC9eszmxKeUqdX5m` is READY.
+Protected [run 40494158943](https://github.com/jeremytheva/pourfolio/actions/runs/40494158943)
+at that SHA passed source validation, deployed-target checks, normal distinct
+sessions and cleanup. It observed Admin `catalogue.review` ALLOWED and ordinary
+user DENIED through the own-capability API. This supersedes the following older
+pending checkpoint only within that bounded scope. Full connected Admin browser,
+role-write denial, revocation and mutable moderation remain unqualified.
+
+### Read-only Admin workspace implementation — 27 October 2026 UTC
 
 PR #708 merged as `132f620bf2ec0dfacb6d30897d006aefc8962727`.
 Its source head `a72ba1a` passed canonical Node 22 (1,108 passed, 15 intentional

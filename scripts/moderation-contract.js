@@ -13,7 +13,7 @@ const transitions = {
   approve: ['Admin', ['pending', 'needs_changes', 'unknown'], 'approved', ['current_versions', 'producer_dependencies_approved', 'evidence']],
   request_changes: ['Admin', ['pending'], 'needs_changes', ['current_versions', 'reason']],
   reject: ['Admin', ['pending', 'needs_changes', 'unknown'], 'rejected', ['current_versions', 'reason']],
-  resubmit: ['Submitter', ['needs_changes', 'rejected'], 'pending', ['current_versions', 'original_submitter', 'new_proposal_revision']],
+  resubmit: ['Submitter', ['needs_changes', 'rejected'], 'pending', ['current_versions', 'original_submitter', 'new_proposal_revision', 'state_specific_resubmission']],
   apply_correction: ['Admin', ['approved'], 'approved', ['current_versions', 'producer_dependencies_approved', 'evidence', 'reason', 'validated_diff']],
   revoke_verification: ['Admin', ['approved'], 'needs_changes', ['current_versions', 'reason']]
 }
@@ -46,11 +46,15 @@ export const validateModerationTarget = (target) => {
       !sameSet(target?.editable_fields?.producer, ['producer_name', 'address', 'suburb_id'])) add('MODERATION_TARGET_EDIT_FIELDS_INVALID')
   const relationships = target?.producer_relationships
   if (relationships?.source_collection !== 'product_producers' || relationships?.complete_set_required !== true ||
-      relationships?.primary_count !== 1 || relationships?.sort_order_server_owned !== true) add('MODERATION_TARGET_RELATIONSHIPS_INVALID')
+      relationships?.primary_count !== 1 || relationships?.sort_order_server_owned !== true ||
+      relationships?.restricted_dependency_rule !== 'deny_new_dependent_exposure_and_require_review') add('MODERATION_TARGET_RELATIONSHIPS_INVALID')
   const version = target?.versions
   if (!sameSet(version?.review_requires, ['record_version', 'content_version', 'producer_dependency_versions', 'producer_relation_fingerprint']) ||
       version?.record_advances !== 'every_committed_decision' || version?.content_advances !== 'material_content_or_attribution_change' ||
       version?.approved_content_matches_current !== true) add('MODERATION_TARGET_VERSIONS_INVALID')
+  const resubmission = target?.resubmission
+  if (resubmission?.needs_changes_requires !== 'validated_field_or_evidence_diff' ||
+      resubmission?.rejected_requires !== 'recorded_response_to_prior_reason') add('MODERATION_TARGET_RESUBMISSION_INVALID')
   const rows = target?.verification_transitions
   if (!Array.isArray(rows) || !sameSet(rows.map((row) => row?.action), Object.keys(transitions))) add('MODERATION_TARGET_TRANSITIONS_INVALID')
   else for (const row of rows) {
@@ -100,7 +104,10 @@ export const evaluateModerationFixture = (target, fixture) => {
   const checks = { current_versions: true, durable_initialization: fixture.durableInitialization === true,
     producer_dependencies_approved: fixture.entityType === 'producer' || fixture.producersApproved === true,
     evidence: fixture.evidence === true, reason: fixture.reason === true, original_submitter: fixture.isSubmitter === true,
-    new_proposal_revision: fixture.newRevision === true, validated_diff: fixture.validatedDiff === true }
+    new_proposal_revision: fixture.newRevision === true, validated_diff: fixture.validatedDiff === true,
+    state_specific_resubmission: fixture.state === 'needs_changes'
+      ? fixture.validatedResubmissionDiff === true
+      : fixture.state === 'rejected' && fixture.responseToPriorReason === true }
   if (transition.guards.some((guard) => checks[guard] !== true)) return result('DENIED', 'GUARD')
   return { outcome: 'ELIGIBLE', code: 'TARGET_TRANSITION', nextState: transition.to_state, exposure: fixture.exposure }
 }

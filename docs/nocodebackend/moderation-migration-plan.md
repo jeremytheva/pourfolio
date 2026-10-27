@@ -67,8 +67,10 @@ The JSON transition table owns accepted actions/actors/states. In particular:
   reviewed versions, with evidence and current approved producer dependencies.
 - Requests for changes and rejection require a safe submitter-visible reason.
 - Original submitters can resubmit needs-changes/rejected proposals as a new
-  revision. Proposed fields/evidence in prior revisions remain immutable;
-  stable proposal ID + version identifies each retained revision.
+  revision. Needs-changes resubmission requires a validated field/evidence diff;
+  rejected resubmission requires a recorded response to the prior reason.
+  Proposed fields/evidence in prior revisions remain immutable; stable proposal
+  ID + version identifies each retained revision. Neither path lifts restriction.
 - A reviewed correction to approved content requires an allowlisted final diff,
   reason, evidence, current versions and refreshed producer dependencies.
 - Revocation creates a new decision and needs-changes state; it never erases an
@@ -101,7 +103,12 @@ moderation/content versions. All required primary/collaborating producers must
 be effectively approved at commit. Later producer changes/revocation make the
 product's effective verification need dependency review; do not continue showing
 an unconditional approved badge based only on the old product row. Producer
-approval never approves its products. Guided producer-then-product decisions
+restriction is checked independently for new dependent-product discovery,
+rating and cellar activity, including products approved before that restriction.
+Any restricted primary/collaborating producer denies that new exposure and
+requires dependency review; retain historical attribution and safe owner
+references. This does not rewrite verification history or implicitly unrestrict
+a product. Producer approval never approves its products. Guided producer-then-product decisions
 remain separate operations and show partial completion honestly.
 
 All writers must participate in the proven version fence: old application

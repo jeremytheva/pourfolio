@@ -5,6 +5,8 @@ import { requiredEnvironment, responseJson, signIn, signOut } from './support.js
 import { completeRatingCards } from './ratingJourney.js'
 import { withRatingCleanup } from './ratingCleanup.js'
 import { withCellarCleanup } from './cellarCleanup.js'
+import { createCellarCheckpointWriter } from './cellarFixtureCheckpoint.js'
+import { normalizeAuthUser } from '../src/hooks/useAuth.js'
 
 const ownerCredentials = requiredEnvironment([
   'RELEASE_OWNER_EMAIL',
@@ -430,66 +432,108 @@ test('cellar CRUD and cross-account ownership boundaries use exact verified clea
   const otherCredentials = requiredEnvironment(['RELEASE_OTHER_EMAIL', 'RELEASE_OTHER_PASSWORD'])
 
   await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD, { reuseSession: true })
-  const catalogue = await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1')
-  expect(catalogue.status()).toBe(200)
-  const product = (await responseJson(catalogue)).items[0]
-  expect(product?.id).toBeTruthy()
+  const ownerSession = await page.request.get('/api/nocodebackend/auth/get-session')
+  expect(ownerSession.status()).toBe(200)
+  const owner = normalizeAuthUser(await responseJson(ownerSession))
+  expect(Boolean(owner?.id) && String(owner.email || '').trim().toLowerCase() ===
+    ownerCredentials.RELEASE_OWNER_EMAIL.trim().toLowerCase()).toBe(true)
+  const checkpoint = createCellarCheckpointWriter({
+    directory: process.env.RELEASE_CELLAR_RECEIPT_DIRECTORY,
+    secret: process.env.RELEASE_FIXTURE_ENCRYPTION_KEY,
+    candidateCommit: process.env.RELEASE_SHA,
+    ownerId: owner.id
+  })
 
-  const marker = `Pourfolio release QA cellar-${randomUUID()}`
-  const readOwnerCellar = async () => {
-    const response = await page.request.get('/api/nocodebackend/cellar')
-    return { status: response.status(), body: response.status() === 200 ? await responseJson(response) : null }
-  }
+  const otherContext = await browser.newContext()
+  try {
+    const otherPage = await otherContext.newPage()
+    await signIn(otherPage, otherCredentials.RELEASE_OTHER_EMAIL, otherCredentials.RELEASE_OTHER_PASSWORD)
+    const otherSession = await otherPage.request.get('/api/nocodebackend/auth/get-session')
+    expect(otherSession.status()).toBe(200)
+    const other = normalizeAuthUser(await responseJson(otherSession))
+    expect(Boolean(other?.id) && String(other.email || '').trim().toLowerCase() ===
+      otherCredentials.RELEASE_OTHER_EMAIL.trim().toLowerCase() && other.id !== owner.id).toBe(true)
 
-  await withCellarCleanup({
-    productId: product.id,
-    marker,
-    readOwnerCellar,
-    submit: async () => {
-      const response = await page.request.post('/api/nocodebackend/cellar', { data: {
-        product_id: product.id, quantity: 1, container: 'release-check', notes: marker
-      } })
-      return { status: response.status(), body: response.status() === 201 ? await responseJson(response) : null }
-    },
-    verify: async (_receipt, createdId) => {
-      const updated = await page.request.put(`/api/nocodebackend/cellar/${encodeURIComponent(createdId)}`, {
-        data: { quantity: 2, notes: marker }
-      })
-      expect(updated.status()).toBe(200)
-      const saved = (await responseJson(updated)).item
-      expect(String(saved?.id) === createdId).toBe(true)
-      expect(Number(saved?.quantity)).toBe(2)
-      expect(saved?.notes === marker).toBe(true)
+    const catalogue = await page.request.get('/api/nocodebackend/catalog/products?page=1&limit=1')
+    expect(catalogue.status()).toBe(200)
+    const product = (await responseJson(catalogue)).items[0]
+    expect(product?.id).toBeTruthy()
 
-      const afterUpdate = await readOwnerCellar()
-      expect(afterUpdate.status).toBe(200)
-      const ownerItem = afterUpdate.body?.items?.find(({ id }) => String(id) === createdId)
-      expect(ownerItem).toBeTruthy()
-      expect(Number(ownerItem.quantity)).toBe(2)
-      expect(ownerItem.notes === marker).toBe(true)
+    const marker = 'Pourfolio release QA cellar-' + randomUUID()
+    const readOwnerCellar = async (recordPhase, phase) => {
+      const response = await page.request.get('/api/nocodebackend/cellar')
+      await recordPhase(phase, response.status())
+      return { status: response.status(), body: response.status() === 200 ? await responseJson(response) : null }
+    }
 
-      const otherContext = await browser.newContext()
-      try {
-        const otherPage = await otherContext.newPage()
-        await signIn(otherPage, otherCredentials.RELEASE_OTHER_EMAIL, otherCredentials.RELEASE_OTHER_PASSWORD)
-        expect([403, 404]).toContain((await otherPage.request.get(`/api/nocodebackend/cellar/${createdId}`)).status())
-        expect((await otherPage.request.put(`/api/nocodebackend/cellar/${createdId}`, {
-          data: { quantity: 99 }
-        })).status()).toBe(403)
-        expect((await otherPage.request.delete(`/api/nocodebackend/cellar/${createdId}`)).status()).toBe(403)
+    await withCellarCleanup({
+      productId: product.id, marker, checkpoint, readOwnerCellar,
+      submit: async (recordPhase) => {
+        const response = await page.request.post('/api/nocodebackend/cellar', {
+          data: { product_id: product.id, quantity: 1, container: 'release-check', notes: marker },
+          maxRetries: 0, maxRedirects: 0
+        })
+        await recordPhase('create-response', response.status())
+        return { status: response.status(), body: response.status() === 201 ? await responseJson(response) : null }
+      },
+      verify: async (_receipt, createdId, recordPhase) => {
+        await recordPhase('owner-update-intent')
+        const updated = await page.request.put('/api/nocodebackend/cellar/' + encodeURIComponent(createdId), {
+          data: { quantity: 2, notes: marker }, maxRetries: 0, maxRedirects: 0
+        })
+        await recordPhase('owner-update-response', updated.status())
+        expect(updated.status()).toBe(200)
+        const saved = (await responseJson(updated)).item
+        expect(String(saved?.id) === createdId).toBe(true)
+        expect(Number(saved?.quantity)).toBe(2)
+        expect(saved?.notes === marker).toBe(true)
+
+        const afterUpdate = await readOwnerCellar(recordPhase, 'owner-update-confirmation-response')
+        expect(afterUpdate.status).toBe(200)
+        const ownerItem = afterUpdate.body?.items?.find(({ id }) => String(id) === createdId)
+        expect(ownerItem).toBeTruthy()
+        expect(Number(ownerItem.quantity)).toBe(2)
+        expect(ownerItem.notes === marker).toBe(true)
+
+        const detail = await otherPage.request.get('/api/nocodebackend/cellar/' + createdId)
+        await recordPhase('other-owner-detail-response', detail.status())
+        expect([403, 404]).toContain(detail.status())
+        await recordPhase('other-owner-update-intent')
+        const deniedUpdate = await otherPage.request.put('/api/nocodebackend/cellar/' + createdId, {
+          data: { quantity: 99 }, maxRetries: 0, maxRedirects: 0
+        })
+        await recordPhase('other-owner-update-response', deniedUpdate.status())
+        expect(deniedUpdate.status()).toBe(403)
+        await recordPhase('other-owner-delete-intent')
+        const deniedDelete = await otherPage.request.delete('/api/nocodebackend/cellar/' + createdId, {
+          maxRetries: 0, maxRedirects: 0
+        })
+        await recordPhase('other-owner-delete-response', deniedDelete.status())
+        expect(deniedDelete.status()).toBe(403)
         const otherResponse = await otherPage.request.get('/api/nocodebackend/cellar')
+        await recordPhase('other-owner-list-response', otherResponse.status())
         expect(otherResponse.status()).toBe(200)
         const otherCellar = await responseJson(otherResponse)
         expect(otherCellar.items.some(({ id }) => String(id) === createdId)).toBe(false)
-      } finally {
-        await otherContext.close()
+
+        const afterDenial = await readOwnerCellar(recordPhase, 'owner-denial-confirmation-response')
+        expect(afterDenial.status).toBe(200)
+        const unchanged = afterDenial.body?.items?.find(({ id }) => String(id) === createdId)
+        const fields = (item) => JSON.stringify(Object.fromEntries(Object.entries(item || {})
+          .filter(([key]) => key !== 'product').sort(([a], [b]) => a.localeCompare(b))))
+        expect(fields(unchanged) === fields(ownerItem)).toBe(true)
+      },
+      remove: async (createdId, recordPhase) => {
+        const result = await page.request.delete('/api/nocodebackend/cellar/' + encodeURIComponent(createdId), {
+          maxRetries: 0, maxRedirects: 0
+        })
+        await recordPhase('delete-response', result.status())
+        return result.status()
       }
-    },
-    remove: async (createdId) => {
-      const result = await page.request.delete(`/api/nocodebackend/cellar/${encodeURIComponent(createdId)}`)
-      return result.status()
-    }
-  })
+    })
+  } finally {
+    await otherContext.close()
+  }
 })
 
 test('expired session returns every protected direct route to sign-in', async ({ page }) => {

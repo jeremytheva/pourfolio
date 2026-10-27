@@ -30,6 +30,7 @@ const fixture = (overrides = {}) => {
     options: {
       productId: 4,
       marker,
+      checkpoint: async () => {},
       readOwnerCellar: async () => {
         reads += 1
         calls.push('owner-read:' + reads)
@@ -151,6 +152,7 @@ test('a historical receipt omitted by the baseline cannot authorise deletion wit
     let writes = 0, deletes = 0
     await assert.rejects(withCellarCleanup({
       productId: 4, marker,
+      checkpoint: async () => {},
       readOwnerCellar: async () => ({ status: 200, body: { items: writes ? [historical] : [] } }),
       submit: async () => { writes += 1; return { status: 201, body: { item: historical } } },
       verify: async () => assert.fail('Unconfirmed history must not be updated.'),
@@ -200,3 +202,200 @@ test('cleanup rechecks exact owner fixture provenance after verification and bef
   }
 })
 
+
+const recordedFixture = ({ checkpoint: persist = async () => {}, ...overrides } = {}) => {
+  const calls = [], records = []
+  let present = false
+  const options = {
+    productId: 4, marker,
+    checkpoint: async (state) => { records.push(state); await persist(state) },
+    readOwnerCellar: async () => {
+      calls.push('GET')
+      return { status: 200, body: { items: present ? [...baseline, created] : baseline } }
+    },
+    submit: async (record) => {
+      calls.push('POST')
+      present = true
+      await record('create-response', 201)
+      return { status: 201, body: receipt }
+    },
+    verify: async () => {},
+    remove: async (_id, record) => {
+      calls.push('DELETE')
+      present = false
+      await record('delete-response', 204)
+      return 204
+    },
+    ...overrides
+  }
+  return { options, calls, records }
+}
+
+test('a missing durable writer prohibits even the first owner read', async () => {
+  const item = recordedFixture()
+  delete item.options.checkpoint
+  await assert.rejects(withCellarCleanup(item.options), /durable encrypted checkpoint/)
+  assert.deepEqual(item.calls, [])
+})
+
+test('intent and original acknowledgement are persisted before create and owner verification respectively', async () => {
+  const item = recordedFixture()
+  item.options.submit = async (record) => {
+    assert.equal(item.records.at(-1).stage, 'create-intent')
+    assert.equal(item.records.at(-1).marker, marker)
+    assert.deepEqual(item.records.at(-1).beforeIds, ['1', '2'])
+    assert.equal(item.records.at(-1).createsAttempted, 0)
+    await record('create-response', 201)
+    return { status: 201, body: receipt }
+  }
+  let reads = 0
+  item.options.readOwnerCellar = async () => {
+    reads += 1
+    if (reads === 2) {
+      assert.equal(item.records.at(-1).stage, 'owner-confirmation-start')
+      const acknowledgement = item.records.find(({ stage }) => stage === 'create-acknowledged')
+      assert.equal(acknowledgement.createdId, '99')
+      assert.deepEqual(acknowledgement.receiptBody, receipt)
+    }
+    return { status: 200, body: { items: [2, 3].includes(reads) ? [...baseline, created] : baseline } }
+  }
+  await withCellarCleanup(item.options)
+  const final = item.records.at(-1)
+  assert.equal(final.status, 'PASS')
+  assert.equal(final.createsAttempted, 1)
+  assert.equal(final.deletesAttempted, 1)
+  assert.equal(final.cleanup, 'PASS')
+})
+
+test('failed create-intent persistence never issues POST or DELETE', async () => {
+  const item = recordedFixture({ checkpoint: async ({ stage }) => {
+    if (stage === 'create-intent') throw new Error('Intent disk unavailable')
+  } })
+  await assert.rejects(withCellarCleanup(item.options), /Intent disk unavailable/)
+  assert.deepEqual(item.calls, ['GET'])
+  assert.equal(item.records.at(-1).createsAttempted, 0)
+  assert.equal(item.records.at(-1).checkpoint, 'FAIL')
+})
+
+test('failed acknowledgement persistence prevents later verification or deletion', async () => {
+  const item = recordedFixture({
+    checkpoint: async ({ stage }) => { if (stage === 'create-acknowledged') throw new Error('ACK disk unavailable') },
+    verify: async () => assert.fail('ACK must be durable first.')
+  })
+  await assert.rejects(withCellarCleanup(item.options), /ACK disk unavailable/)
+  assert.deepEqual(item.calls, ['GET', 'POST'])
+  assert.equal(item.records.at(-1).createdId, '99')
+  assert.equal(item.records.at(-1).deletesAttempted, 0)
+})
+
+test('HTTP status survives a malformed create response before an ID can be acknowledged', async () => {
+  const item = recordedFixture({
+    submit: async (record) => {
+      await record('create-response', 201)
+      throw new Error('Malformed response JSON')
+    }
+  })
+  await assert.rejects(withCellarCleanup(item.options), /Malformed response JSON/)
+  const final = item.records.at(-1)
+  assert.equal(final.createStatus, 201)
+  assert.equal(final.createdId, null)
+  assert.equal(final.marker, marker)
+  assert.equal(final.createsAttempted, 1)
+  assert.equal(final.deletesAttempted, 0)
+})
+
+test('failed owner read after acknowledged create retains exact original correlation without guessing cleanup', async () => {
+  let reads = 0
+  const item = recordedFixture({
+    readOwnerCellar: async () => {
+      if (++reads > 1) throw new Error('Owner read unavailable')
+      return { status: 200, body: { items: baseline } }
+    }
+  })
+  await assert.rejects(withCellarCleanup(item.options), /Owner read unavailable/)
+  const final = item.records.at(-1)
+  assert.equal(final.createdId, '99')
+  assert.deepEqual(final.receiptBody, receipt)
+  assert.equal(final.cleanup, 'NOT_RUN')
+  assert.equal(final.deletesAttempted, 0)
+})
+
+test('a phase checkpoint failure remains latched and cannot authorise a later cleanup mutation', async () => {
+  let failed = false
+  const item = recordedFixture({
+    checkpoint: async ({ stage }) => {
+      if (stage === 'owner-update-response' && !failed) { failed = true; throw new Error('Phase evidence unavailable') }
+    },
+    verify: async (_body, _id, record) => {
+      await record('owner-update-intent')
+      await record('owner-update-response', 200)
+    }
+  })
+  await assert.rejects(withCellarCleanup(item.options), (error) => {
+    assert.equal(error instanceof AggregateError, true)
+    assert.match(error.errors[0].message, /Phase evidence unavailable/)
+    assert.match(error.errors[1].message, /blocked after an evidence-write failure/)
+    return true
+  })
+  assert.equal(item.calls.filter((method) => method === 'DELETE').length, 0)
+  assert.equal(item.records.at(-1).checkpoint, 'FAIL')
+})
+
+test('a failed delete intent cannot send DELETE even for a verified fixture', async () => {
+  const item = recordedFixture({ checkpoint: async ({ stage }) => {
+    if (stage === 'delete-intent') throw new Error('Delete receipt unavailable')
+  } })
+  await assert.rejects(withCellarCleanup(item.options), /Delete receipt unavailable/)
+  assert.equal(item.calls.filter((method) => method === 'DELETE').length, 0)
+  assert.equal(item.records.at(-1).deletesAttempted, 0)
+})
+
+test('an uncertain DELETE is attempted once and leaves cleanup explicitly unconfirmed', async () => {
+  const item = recordedFixture({ remove: async () => { throw new Error('DELETE connection lost') } })
+  await assert.rejects(withCellarCleanup(item.options), /DELETE connection lost/)
+  const final = item.records.at(-1)
+  assert.equal(final.deletesAttempted, 1)
+  assert.equal(final.cleanup, 'UNCONFIRMED')
+  assert.equal(final.createdId, '99')
+})
+
+test('a final evidence failure preserves confirmed cleanup and never issues a second DELETE', async () => {
+  const item = recordedFixture({ checkpoint: async ({ stage }) => {
+    if (stage === 'finished') throw new Error('Final evidence unavailable')
+  } })
+  await assert.rejects(withCellarCleanup(item.options), /Final evidence unavailable/)
+  assert.equal(item.calls.filter((method) => method === 'DELETE').length, 1)
+  assert.equal(item.records.at(-1).cleanup, 'PASS')
+  assert.equal(item.records.find(({ stage }) => stage === 'cleanup-passed').cleanup, 'PASS')
+})
+
+test('phase records distinguish one owner update from two cross-owner denial requests', async () => {
+  const item = recordedFixture({ verify: async (_body, _id, record) => {
+    await record('owner-update-intent')
+    await record('owner-update-response', 200)
+    await record('other-owner-update-intent')
+    await record('other-owner-update-response', 403)
+    await record('other-owner-delete-intent')
+    await record('other-owner-delete-response', 403)
+  } })
+  await withCellarCleanup(item.options)
+  assert.equal(item.records.at(-1).ownerUpdatesAttempted, 1)
+  assert.equal(item.records.at(-1).denialMutationRequests, 2)
+  assert.deepEqual(item.records.at(-1).events.filter(({ httpStatus }) => httpStatus === 403), [
+    { phase: 'other-owner-update-response', httpStatus: 403 },
+    { phase: 'other-owner-delete-response', httpStatus: 403 }
+  ])
+})
+
+test('a repeated mutation intent never reaches a second caller write', async () => {
+  let writes = 0
+  const item = recordedFixture({ verify: async (_body, _id, record) => {
+    await record('owner-update-intent')
+    writes += 1
+    await record('owner-update-intent')
+    writes += 1
+  } })
+  await assert.rejects(withCellarCleanup(item.options), /cannot be retried/)
+  assert.equal(writes, 1)
+  assert.equal(item.calls.filter(method => method === 'DELETE').length, 1)
+})
