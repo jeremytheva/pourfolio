@@ -1,0 +1,191 @@
+name: Bounded Add Beer read-only evidence
+on:
+  push:
+    branches: [fix/add-beer-connected-evidence-20261027]
+permissions:
+  contents: read
+concurrency:
+  group: bounded-current-instance-cellar-certification
+  cancel-in-progress: false
+jobs:
+  qualify:
+    if: >-
+      github.ref == 'refs/heads/fix/add-beer-connected-evidence-20261027' &&
+      contains(github.event.head_commit.message, '[qualify-add-beer-readonly-9a7f4b8a]')
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RELEASE_SHA: 9a7f4b8a9037a3934e7edf4c986b66bd7e92d176
+      RELEASE_BASE_URL: https://pourfolio-8hq0miue9-jeremythevas-projects.vercel.app
+      RELEASE_EVIDENCE_DIRECTORY: artifacts/add-beer-readonly
+      RELEASE_OWNER_SESSION_PATH: ${{ runner.temp }}/add-beer-owner-${{ github.run_id }}.json
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: 9a7f4b8a9037a3934e7edf4c986b66bd7e92d176
+          persist-credentials: false
+      - name: Verify reviewed source
+        run: test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Prepare bounded provenance verifier
+        shell: bash
+        run: |
+          cat > "$RUNNER_TEMP/add-beer-provenance.mjs" <<'JS'
+          import fs from 'node:fs'
+          import path from 'node:path'
+          import { pathToFileURL } from 'node:url'
+          const { parseReleaseBaseUrl, verifyReleaseTarget } = await import(pathToFileURL(path.resolve('release-check/releaseTarget.js')))
+          const stage = process.argv[2]
+          if (!['preflight', 'postflight'].includes(stage)) process.exit(2)
+          const report = { version: 1, stage, releaseSha: process.env.RELEASE_SHA, health: 'NOT_RUN', readiness: 'NOT_RUN', healthHttpStatus: null, readinessHttpStatus: null, status: 'BLOCKED' }
+          try {
+            const origin = parseReleaseBaseUrl(process.env.RELEASE_BASE_URL)
+            const health = await fetch(origin + '/api/health', { redirect: 'manual', signal: AbortSignal.timeout(15000) })
+            report.healthHttpStatus = health.status
+            if (health.status !== 200) throw new Error('unverified')
+            const body = await health.json()
+            if (body.status !== 'ok' || body.service !== 'pourfolio' || body.release?.commitSha !== report.releaseSha || body.release?.environment !== 'preview') throw new Error('unverified')
+            report.health = 'PASS'
+            const verified = await verifyReleaseTarget({ baseUrl: origin, releaseSha: report.releaseSha, fetchImpl: async (url, init) => {
+              const response = await fetch(url, { ...init, signal: AbortSignal.timeout(15000) })
+              report.readinessHttpStatus = response.status
+              return response
+            } })
+            if (verified.environment !== 'preview' || verified.dataProvider !== 'ok') throw new Error('unverified')
+            report.readiness = 'PASS'; report.status = 'PASS'
+          } catch {}
+          fs.mkdirSync(process.env.RELEASE_EVIDENCE_DIRECTORY, { recursive: true })
+          fs.writeFileSync(path.join(process.env.RELEASE_EVIDENCE_DIRECTORY, stage + '.json'), JSON.stringify(report) + '\n', { mode: 0o600 })
+          console.log(JSON.stringify(report))
+          if (report.status !== 'PASS') process.exitCode = 1
+          JS
+      - name: Verify exact preview before credentials
+        id: preflight
+        run: node "$RUNNER_TEMP/add-beer-provenance.mjs" preflight
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Prove exactly one reviewed case is selected
+        id: selection
+        env:
+          RELEASE_OWNER_EMAIL: source-selection@example.invalid
+          RELEASE_OWNER_PASSWORD: source-selection-only
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs'
+          import path from 'node:path'
+          import { spawnSync } from 'node:child_process'
+          const args = ['node_modules/@playwright/test/cli.js', 'test', 'release-check/catalogue-readonly.spec.js', '--config=playwright.release.config.js', '--grep', 'connected Add Beer style choices use every authenticated canonical category page$', '--retries=0', '--workers=1', '--project=connected-chromium', '--list', '--reporter=json']
+          const report = { version: 1, status: 'BLOCKED', caseId: 'catalogue-readonly.spec.js:65', selected: 0 }
+          try {
+            const child = spawnSync(process.execPath, args, { encoding: 'utf8', timeout: 30000, maxBuffer: 2 * 1024 * 1024 })
+            if (child.error || child.status !== 0) throw new Error('selection')
+            const collect = suite => [...(suite.specs || []), ...(suite.suites || []).flatMap(collect)]
+            const specs = (JSON.parse(child.stdout).suites || []).flatMap(collect)
+            const file = typeof specs[0]?.file === 'string' ? specs[0].file.replaceAll('\\', '/') : ''
+            const canonicalFile = file === 'catalogue-readonly.spec.js' || path.resolve(file) === path.resolve('release-check/catalogue-readonly.spec.js')
+            if (specs.length !== 1 || specs[0].title !== 'connected Add Beer style choices use every authenticated canonical category page' || specs[0].line !== 65 || !canonicalFile || specs[0].tests.length !== 1 || specs[0].tests[0].projectName !== 'connected-chromium') throw new Error('selection')
+            report.selected = 1; report.status = 'PASS'
+          } catch {}
+          fs.writeFileSync(path.join(process.env.RELEASE_EVIDENCE_DIRECTORY, 'selection.json'), JSON.stringify(report) + '\n', { mode: 0o600 })
+          if (report.status !== 'PASS') process.exitCode = 1
+          JS
+      - name: Run one read-only case and close its session
+        id: browser
+        if: success() && steps.preflight.outcome == 'success' && steps.selection.outcome == 'success'
+        env:
+          RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
+          RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
+        shell: bash
+        run: |
+          umask 077
+          node --input-type=module > "$RUNNER_TEMP/add-beer-private-$GITHUB_RUN_ID.log" 2>&1 <<'JS'
+          import fs from 'node:fs'
+          import path from 'node:path'
+          import crypto from 'node:crypto'
+          import { spawnSync } from 'node:child_process'
+          let browser, exitCode = 1, cleanup = 'UNCONFIRMED'
+          try {
+            const args = ['node_modules/@playwright/test/cli.js', 'test', 'release-check/catalogue-readonly.spec.js', '--config=playwright.release.config.js', '--grep', 'connected Add Beer style choices use every authenticated canonical category page$', '--retries=0', '--workers=1', '--project=connected-chromium', '--reporter=./release-check/redactedReleaseReporter.js']
+            const child = spawnSync(process.execPath, args, { stdio: 'inherit', timeout: 180000 })
+            exitCode = child.error || child.status !== 0 ? 1 : 0
+          } catch {} finally {
+            try {
+              const file = process.env.RELEASE_OWNER_SESSION_PATH, stat = fs.lstatSync(file)
+              if (!stat.isFile() || stat.isSymbolicLink() || (stat.mode & 0o077) !== 0) throw new Error('session')
+              const saved = JSON.parse(fs.readFileSync(file, 'utf8')), origin = new URL(process.env.RELEASE_BASE_URL).origin
+              const owner = crypto.createHash('sha256').update(process.env.RELEASE_OWNER_EMAIL.trim().toLowerCase()).digest('hex')
+              if (saved.sha !== process.env.RELEASE_SHA || saved.origin !== origin || saved.owner !== owner || !Array.isArray(saved.cookies) || !saved.cookies.length || saved.cookies.some(cookie => !cookie || typeof cookie.domain !== 'string' || cookie.domain.replace(/^\./, '') !== new URL(origin).hostname || typeof cookie.name !== 'string' || !cookie.name || typeof cookie.value !== 'string' || !cookie.value)) throw new Error('session')
+              const { chromium } = await import('@playwright/test')
+              const { restoreReleaseOwnerSession } = await import('./release-check/ownerSession.js')
+              const { signOut } = await import('./release-check/support.js')
+              browser = await chromium.launch()
+              const context = await browser.newContext({ baseURL: origin }), page = await context.newPage()
+              if (!await restoreReleaseOwnerSession(page, process.env.RELEASE_OWNER_EMAIL)) cleanup = 'PASS'
+              else {
+                await signOut(page); await context.close()
+                const probe = await browser.newContext({ baseURL: origin })
+                cleanup = await restoreReleaseOwnerSession(await probe.newPage(), process.env.RELEASE_OWNER_EMAIL) ? 'UNCONFIRMED' : 'PASS'
+              }
+            } catch { cleanup = 'UNCONFIRMED' }
+            try { await browser?.close() } catch { cleanup = 'UNCONFIRMED' }
+            fs.writeFileSync(path.join(process.env.RELEASE_EVIDENCE_DIRECTORY, 'session-cleanup.json'), JSON.stringify({ version: 1, session: cleanup }) + '\n', { mode: 0o600 })
+          }
+          process.exitCode = exitCode || (cleanup === 'PASS' ? 0 : 1)
+          JS
+      - name: Recheck exact preview after attempted browser case
+        if: always() && steps.preflight.outcome == 'success' && steps.browser.outcome != 'skipped'
+        run: node "$RUNNER_TEMP/add-beer-provenance.mjs" postflight
+      - name: Remove all private evidence before retention
+        if: always()
+        env:
+          BROWSER_OUTCOME: ${{ steps.browser.outcome }}
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs'
+          import path from 'node:path'
+          const directory = process.env.RELEASE_EVIDENCE_DIRECTORY, file = path.join(directory, 'session-cleanup.json')
+          let session = process.env.BROWSER_OUTCOME === 'skipped' || !process.env.BROWSER_OUTCOME ? 'NOT_REQUIRED' : 'UNCONFIRMED', privateWorkspace = 'PASS'
+          try { const value = JSON.parse(fs.readFileSync(file, 'utf8')); if (['PASS', 'UNCONFIRMED'].includes(value.session)) session = value.session } catch {}
+          try {
+            for (const target of [process.env.RELEASE_OWNER_SESSION_PATH, path.join(process.env.RUNNER_TEMP, 'add-beer-private-' + process.env.GITHUB_RUN_ID + '.log'), path.join(process.env.RUNNER_TEMP, 'add-beer-provenance.mjs'), 'test-results/release-check', 'playwright-report/release-check']) fs.rmSync(target, { recursive: true, force: true })
+          } catch { privateWorkspace = 'UNCONFIRMED' }
+          fs.mkdirSync(directory, { recursive: true })
+          fs.writeFileSync(file, JSON.stringify({ version: 1, session, privateWorkspace }) + '\n', { mode: 0o600 })
+          JS
+      - name: Qualify only complete bounded evidence
+        if: always()
+        env:
+          BROWSER_OUTCOME: ${{ steps.browser.outcome }}
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs'
+          import path from 'node:path'
+          const directory = process.env.RELEASE_EVIDENCE_DIRECTORY
+          const read = file => { try { return JSON.parse(fs.readFileSync(path.join(directory, file), 'utf8')) } catch { return null } }
+          const pre = read('preflight.json'), post = read('postflight.json'), selection = read('selection.json'), cleanup = read('session-cleanup.json'), report = read('release-summary.json')
+          const provenance = value => value?.status === 'PASS' && value.releaseSha === process.env.RELEASE_SHA && value.health === 'PASS' && value.readiness === 'PASS' && value.healthHttpStatus === 200 && value.readinessHttpStatus === 200
+          const oneCase = report?.status === 'PASS' && report.runnerStatus === 'passed' && report.releaseSha === process.env.RELEASE_SHA && report.candidateSha === process.env.GITHUB_SHA && JSON.stringify(report.counts) === JSON.stringify({ expected: 1, passed: 1, failed: 0, skipped: 0, notRun: 0 }) && report.invalidEvents === 0 && report.runnerErrors === 0 && Array.isArray(report.blockers) && report.blockers.length === 0 && JSON.stringify(report.tests) === JSON.stringify([{ caseId: 'catalogue-readonly.spec.js:65', status: 'PASS' }])
+          const pass = provenance(pre) && provenance(post) && selection?.status === 'PASS' && selection.selected === 1 && oneCase && cleanup?.session === 'PASS' && cleanup.privateWorkspace === 'PASS'
+          const ran = process.env.BROWSER_OUTCOME && process.env.BROWSER_OUTCOME !== 'skipped'
+          const summary = { version: 1, qualification: 'READ_ONLY_ADD_BEER_CATEGORIES', sourceSha: process.env.RELEASE_SHA, workerSha: process.env.GITHUB_SHA, caseId: 'catalogue-readonly.spec.js:65', connected: ran ? (oneCase ? 'PASS' : 'FAIL') : 'NOT_RUN', status: pass ? 'PASS' : ran ? 'FAIL' : 'BLOCKED' }
+          fs.mkdirSync(directory, { recursive: true }); fs.writeFileSync(path.join(directory, 'qualification.json'), JSON.stringify(summary) + '\n', { mode: 0o600 })
+          console.log(JSON.stringify(summary)); if (!pass) process.exitCode = 1
+          JS
+      - name: Retain only redacted bounded evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: add-beer-readonly-9a7f4b8a-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            artifacts/add-beer-readonly/preflight.json
+            artifacts/add-beer-readonly/postflight.json
+            artifacts/add-beer-readonly/selection.json
+            artifacts/add-beer-readonly/session-cleanup.json
+            artifacts/add-beer-readonly/release-summary.json
+            artifacts/add-beer-readonly/qualification.json
