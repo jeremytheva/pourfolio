@@ -288,10 +288,11 @@ test('collaborator brewery picker rejects duplicate primary selection and remain
 
   await page.getByRole('button', { name: 'Add collaborating brewery' }).click()
   const secondCollaborator = page.getByRole('combobox', { name: 'Collaborating brewery 3 existing producer' })
-  await secondCollaborator.fill('Rocky')
-  await page.getByRole('option', { name: 'Rocky Ridge Brewing' }).click()
+  await secondCollaborator.fill('Other')
+  await page.getByRole('option', { name: 'Other Brewing' }).click()
+  await expect(page.getByText('Each producer can only be linked once.')).toBeVisible()
 
   await page.getByRole('button', { name: 'Remove' }).first().click()
-  await expect(page.getByRole('combobox', { name: 'Collaborating brewery 2 existing producer' })).toHaveValue('Rocky Ridge Brewing')
+  await expect(page.getByRole('combobox', { name: 'Collaborating brewery 2 existing producer' })).toHaveValue('Other Brewing')
   await expect(page.getByText('Each producer can only be linked once.')).toHaveCount(0)
 })
