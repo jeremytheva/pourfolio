@@ -3,7 +3,7 @@ import test from 'node:test'
 import { styleReferencesForCategory } from '../../../api/_lib/styleGuidelines.js'
 import { validateStyleReferences } from '../styleReferenceService.js'
 
-const valid = () => styleReferencesForCategory({ id: 31, category_name: 'American IPA' })
+const valid = () => structuredClone(styleReferencesForCategory({ id: 31, category_name: 'American IPA' }))
 test('client accepts only references for the requested canonical style and freezes an independent copy', () => {
   const source = valid()
   const result = validateStyleReferences(source, '31', 'American IPA')
