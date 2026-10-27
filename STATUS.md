@@ -36,15 +36,15 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 0
-  dependent_stack_depth: 0
+  open_implementation_prs: 3
+  dependent_stack_depth: 1
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
+  observed_main_commit: "a962b41cb9c8a63ba6071ad46749e433fa77d2c1"
   current_candidate_commit: null
   latest_validated_commit: "1bbb84505dfaf24f7c808c55d97c37d98c1fac6b"
-  latest_deployed_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
+  latest_deployed_commit: "a962b41cb9c8a63ba6071ad46749e433fa77d2c1"
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
   latest_browser_verified_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
 validation:
@@ -56,15 +56,55 @@ validation:
   ci: PASS
   runtime: VERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-26T19:49:56Z"
+last_updated: "2026-10-27T09:30:24Z"
 
 ---
 
 # STATUS.md
 
-Last materially reviewed: 26 October 2026 UTC
+Last materially reviewed: 27 October 2026 UTC
 
 ## AI execution gate
+
+### Admin permission foundation in validation — 27 October 2026 UTC
+
+[PR #707](https://github.com/jeremytheva/pourfolio/pull/707) implements a contained
+server-side catalogue permission guard and server auth POST field allowlists
+under #699. The direct signup path previously forwarded arbitrary browser
+fields; the new projection prevents role/owner/permission metadata forwarding
+for object, raw JSON and Buffer payloads. Malformed fields receive a safe 400.
+The ordinary UI already excluded these fields; actual provider exploitability
+was not asserted or tested against a real account.
+
+The source-only guard requires verified immutable session identity and a fresh
+matching server-owned role projection. It has no provider adapter or reachable
+Admin endpoint; #699/#701 connected role/moderation certification remains
+NOT_RUN. Do not present this source work as an enabled console. Canonical
+exact-head validation and applicable auth browser evidence are recorded in the
+PR; the parent issue remains open for provider proof and contained UI delivery.
+
+Live ordinary implementation WIP is #693, #697 and #707 (three). #697's active
+owner retains its branch/form/test claim; do not rewrite it or open overlapping
+implementation while this capacity is occupied.
+
+### Style reference source integrated — 27 October 2026 UTC
+
+PR #694 merged as `a962b41cb9c8a63ba6071ad46749e433fa77d2c1`. The reviewed
+head `ced11c718b3e1b81e689f3f2ab17d74f47e38e44` and merge have identical
+application tree `c39f9c47b18636bfd4929dcb91a282cae8c43197`. Substantive
+exact-head canonical Node 22 and 181 browser/accessibility cases passed in
+run 40456104756; independent whole-diff review found no blocking issue, and
+13 supplemental focused Node 22.23.4 tests passed. Exact preview health and
+readiness returned 200 with the intended SHA and dataProvider ok. Production
+health now reports the merge SHA; this is deployment identity evidence, not
+connected journey certification.
+
+Authenticated style/category readback remains NOT_RUN because the connector
+returned deployment authentication failure without a verifiable application
+response. The bounded static read-only integration does not close #154 or
+existing provider/privacy/bonus/release acceptance. Keep the style source branch
+while #697 targets it; its owner coordinates eventual retarget/revalidation.
+Public launch remains **NO-GO**.
 
 ### Owner-approved QA cellar cleanup verified — 26 October 2026 UTC
 
