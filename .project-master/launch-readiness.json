@@ -28,7 +28,8 @@
       "criticality": "blocking",
       "issue_refs": [
         "#577",
-        "#144"
+        "#144",
+        "#699"
       ],
       "change_paths": [
         "api/**auth**",
@@ -36,11 +37,13 @@
         "api/**/rateLimit*",
         "src/**/Auth*",
         "src/**/Login*",
-        "server/**"
+        "server/**",
+        "api/**/adminPolicy*"
       ],
       "test_refs": [
         "e2e/authentication.spec.js",
-        "release-check/connected.spec.js"
+        "release-check/connected.spec.js",
+        "api/_lib/__tests__/adminPolicy.test.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",

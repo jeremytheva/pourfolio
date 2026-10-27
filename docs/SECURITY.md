@@ -1,5 +1,25 @@
 # Security
 
+## Contained Admin permission foundation
+
+Authentication POST requests are projected server-side to each action's
+documented fields. Signup cannot forward browser-supplied role, owner,
+permission or arbitrary metadata fields to the provider; parsed, raw JSON and
+Buffer requests use the same allowlist. Invalid structures/field types receive
+a safe 400 without forwarding their contents. Passwords and OTPs retain their
+literal string value.
+
+`api/_lib/adminPolicy.js` defines the source-only catalogue authorizer under
+#699. It resolves session identity and a matching server-owned role projection
+on every privileged request, grants only four catalogue capabilities for the
+exact `Admin` value, and fails closed without a certified role adapter. It has
+no application caller or reachable Admin endpoint in this slice. Browser role
+hints, profile fields and credential names cannot grant access. Private rating,
+cellar, scoring and account-role privileges are excluded. Provider role source
+and permissions remain unverified; see
+[`admin-permission-foundation.md`](admin-permission-foundation.md) for the
+adapter evidence required before a reviewed gateway can use this policy.
+
 ## Contained game surface
 
 Brew Done It has a protected `/brew-done-it` browser route for controlled
