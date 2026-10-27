@@ -55,7 +55,7 @@ export const buildSessionHeaders = (request, secret) => ({
   cookie: request.headers?.cookie || ''
 })
 
-export const requireSessionUser = async (request, { signal } = {}) => {
+const requireSessionPayload = async (request, { signal } = {}) => {
   let secret
   try {
     secret = resolveAuthCredential().value
@@ -96,7 +96,25 @@ export const requireSessionUser = async (request, { signal } = {}) => {
     throw error
   }
 
-  return user
+  return { user, payload }
+}
+
+export const requireSessionUser = async (request, options) => (await requireSessionPayload(request, options)).user
+
+// Bounded catalogue-review identity, not a grant of mutable moderation access.
+// The observed provider field is user.role. Do not fall back to profile fields,
+// browser hints, metadata or another identity when that contract is unavailable.
+export const requireSessionReviewContext = async (request, options) => {
+  const { user, payload } = await requireSessionPayload(request, options)
+  const record = payload?.user
+  const id = record?.id || record?.user_id || record?.userId || record?._id
+  if (!record || typeof id !== 'string' || id !== user.id ||
+      !Object.hasOwn(record, 'role') || typeof record.role !== 'string' || !record.role.trim() || record.role.length > 50) {
+    throw Object.assign(new Error('Catalogue review access could not be verified.'), { status: 503, code: 'ADMIN_AUTHORITY_UNAVAILABLE' })
+  }
+  // Explicit provider spellings only; never trim/case-fold a role into Admin.
+  const role = ['Admin', 'admin'].includes(record.role) ? 'Admin' : 'User'
+  return { user, roleRecord: { userId: user.id, role } }
 }
 
 export const __testables = {

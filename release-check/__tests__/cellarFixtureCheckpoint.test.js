@@ -5,7 +5,7 @@ import { openBonusFixtureReceipt } from '../../scripts/bonus-fixture-receipt.js'
 import { createCellarCheckpointWriter, summariseCellarCheckpoint } from '../cellarFixtureCheckpoint.js'
 
 const candidateCommit = 'a'.repeat(40)
-const secret = 'synthetic-test-cipher-key'
+const secret = Buffer.alloc(32, 7).toString('base64')
 const ownerId = 'private-owner-never-publish'
 const directory = 'unit-only-cellar-artifacts'
 const marker = 'Pourfolio release QA cellar-12345678-1234-1234-1234-123456789abc'
@@ -60,7 +60,12 @@ test('atomic writer encrypts original recovery identity before publishing only a
 
 test('writer configuration is required before any file operation', () => {
   for (const patch of [
-    { directory: '' }, { secret: '' }, { candidateCommit: 'a'.repeat(39) }, { ownerId: '' }, { ownerId: 12 }
+    { directory: '' }, { secret: '' }, { secret: undefined }, { secret: 12 },
+    { secret: 'synthetic-password-is-not-an-encryption-key' },
+    { secret: Buffer.alloc(31, 7).toString('base64') }, { secret: Buffer.alloc(33, 7).toString('base64') },
+    { secret: secret.slice(0, -1) }, { secret: secret + '\n' },
+    { secret: secret.slice(0, -2) + 'd=' },
+    { candidateCommit: 'a'.repeat(39) }, { ownerId: '' }, { ownerId: 12 }
   ]) {
     const fileSystem = fakeFileSystem()
     assert.throws(() => createCellarCheckpointWriter({ ...configuration(fileSystem), ...patch }),

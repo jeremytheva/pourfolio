@@ -1,5 +1,13 @@
 # Architecture
 
+## Style reference enrichment
+
+The optional [style reference comparison](style-reference-comparison.md) uses
+the existing authenticated catalogue gateway for one exact category read and
+reviewed, versioned numeric references. Beer/style pages validate the response
+and render ABV/IBU ranges separately from rating scores. Reference failures stay
+local; no provider write, schema change or product reclassification occurs.
+
 ## Launch architecture
 
 Pourfolio is a beer-first React/Vite single-page application deployed with same-origin serverless functions. The browser cannot select a backend collection, owner ID, role or authoritative rating total.
@@ -24,6 +32,7 @@ The current browser route surface includes:
 - `/places` and `/breweries/:producerId`;
 - `/styles` and `/styles/:styleId`;
 - `/taste-map` and the informational `/features` status surface;
+- `/admin`, a separately reviewed, read-only catalogue workspace;
 - `/cellar`, `/history`, `/profile`, `/settings`, and `/users/:publicProfileId`;
 - the guarded `/brew-done-it` route for controlled authenticated testing.
 
@@ -37,7 +46,31 @@ patterns and named path parameters; cross-origin navigation targets are rejected
 This avoids carrying a general-purpose router dependency with unresolved launch
 advisories.
 
-Chat, Drinking Buddies, events, venues, analytics, producer claims, administration, test-user switching, non-beer rating modes, privacy controls without enforcement, and photo upload are not routed or bundled into the launch application.
+Chat, Drinking Buddies, events, venues, analytics, producer claims, mutable administration, test-user switching, non-beer rating modes, privacy controls without enforcement, and photo upload are not routed or bundled into the launch application.
+
+## Read-only Admin workspace
+
+The protected `/admin` entry is a bounded delivery under #699, separate from
+mutable moderation. `MainLayout` requests the current user's capabilities;
+`AdminCatalogue` renders only after a valid matching-subject projection grants
+`catalogue.review`. Entering the route rechecks access. No role/capability is
+saved in browser storage; late responses after identity changes are discarded.
+The own-capability GET reuses the profile gateway's method, size, origin,
+no-store and local rate controls, without loading or creating a profile.
+
+One fresh server get-session response supplies both immutable identity and
+`user.role`. Explicit provider values `Admin` and `admin` map to the policy's
+internal `Admin`; no trimming/case-folding, alternate-envelope, metadata or
+profile fallback grants access. Ordinary roles receive an empty capability list;
+missing authority is unavailable. Only read-only review is projected, always
+with `moderationAvailable: false`. Existing product/producer catalogue reads
+retain their ordinary authenticated policies. Search/type/page are URL state;
+ABV/IBU zero is preserved, missing relationships are distinguished from unavailable
+relationship enrichment, and no pending/approved status or count is invented.
+
+This grants no new private data access or mutable command. Provider role-write
+denial, demotion/revocation, durable moderation state, audit, concurrency and
+recovery remain separately unqualified. See [the permission contract](admin-permission-foundation.md).
 
 ## Authentication boundary
 
@@ -68,7 +101,7 @@ account identifier, then HMAC the dimensions before storage. No email, password,
 OTP, token or request body is stored. This direct REST implementation avoids a new
 runtime dependency; changing provider or package requires architecture review.
 
-Public sign-up supplies only email, password, name and non-authoritative display metadata. It cannot request producer or administrator access. Immutable identity must come from `id`, `user_id`, `userId` or `_id`; email alone is not accepted as identity.
+Public sign-up forwards only email, password and name. It cannot request producer or administrator access. Immutable identity must come from `id`, `user_id`, `userId` or `_id`; email alone is not accepted as identity.
 
 ## Data boundary
 

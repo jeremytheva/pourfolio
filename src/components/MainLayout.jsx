@@ -3,6 +3,7 @@ import { FiBookOpen, FiClock, FiCompass, FiHome, FiLayers, FiLogOut, FiMapPin, F
 import { Link, NavLink, useLocation } from '../lib/router.jsx'
 import SafeIcon from '../common/SafeIcon.jsx'
 import PublicDocumentLinks from './PublicDocumentLinks.jsx'
+import { AdminReviewContext, useAdminReviewAccess } from '../hooks/useAdminReviewAccess.js'
 
 const primaryNavigation = [
   { to: '/home', label: 'Discover', icon: FiHome },
@@ -33,6 +34,7 @@ const routeLabel = (pathname) => {
   if (pathname === '/history') return 'Historical Feed'
   if (pathname === '/profile') return 'Profile and rating history'
   if (pathname === '/settings') return 'Rating settings'
+  if (pathname === '/admin') return 'Admin catalogue review'
   if (/^\/products\/[^/]+\/rate$/.test(pathname)) return 'Rate beer'
   if (/^\/products\/[^/]+$/.test(pathname)) return 'Product details'
   if (/^\/breweries\/[^/]+$/.test(pathname)) return 'Brewery details'
@@ -41,6 +43,7 @@ const routeLabel = (pathname) => {
 
 function MainLayout({ children, user, onLogout }) {
   const { pathname } = useLocation()
+  const adminAccess = useAdminReviewAccess(user?.id, pathname === '/admin')
   const [isSigningOut, setIsSigningOut] = useState(false)
   const [signOutError, setSignOutError] = useState('')
   const signOutErrorRef = useRef(null)
@@ -77,7 +80,7 @@ function MainLayout({ children, user, onLogout }) {
   const focusRing = 'focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2'
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <AdminReviewContext.Provider value={adminAccess}><div className="min-h-screen bg-gray-50">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:shadow">Skip to content</a>
       <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{currentRouteLabel}</p>
       <header className="border-b border-gray-200 bg-white">
@@ -109,6 +112,7 @@ function MainLayout({ children, user, onLogout }) {
                 <SafeIcon icon={item.icon} className="h-4 w-4" />{item.label}
               </NavLink>
             ))}
+            {adminAccess.canReview && <NavLink to="/admin" className={({ isActive }) => `min-w-max rounded-lg px-3 py-2 text-sm font-medium ${focusRing} ${isActive ? 'bg-white text-amber-900 shadow-sm' : 'text-gray-600 hover:bg-white'}`}>Admin</NavLink>}
           </nav>
         </div>
       </header>
@@ -116,7 +120,7 @@ function MainLayout({ children, user, onLogout }) {
       <footer className="border-t border-gray-200 bg-white">
         <PublicDocumentLinks className="mx-auto flex max-w-7xl flex-wrap gap-x-5 gap-y-2 px-4 py-6 text-sm text-gray-700 sm:px-6 lg:px-8" />
       </footer>
-    </div>
+    </div></AdminReviewContext.Provider>
   )
 }
 

@@ -27,7 +27,7 @@ test('style explorer derives verified styles and opens a stable style route', as
 
   await expect(page).toHaveURL(/\/styles\/10$/)
   await expect(page.getByRole('heading', { name: 'Pale Ale' })).toBeVisible()
-  await expect(page.getByText('Reference descriptions, expected characteristics and typical ranges are intentionally omitted')).toBeVisible()
+  await expect(page.getByText('Reviewed guideline ranges are shown separately')).toBeVisible()
   await expect(page.getByRole('link', { name: 'Rocky Ridge Brewing', exact: true })).toBeVisible()
   const productSection = page.locator('section[aria-labelledby="style-products-heading"]')
   await expect(productSection.getByRole('link', { name: /Ace/ })).toBeVisible()

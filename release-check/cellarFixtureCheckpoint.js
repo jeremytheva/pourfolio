@@ -40,7 +40,8 @@ export const createCellarCheckpointWriter = ({
   directory, secret, candidateCommit, ownerId, fileSystem = fs
 }) => {
   requireThat(typeof directory === 'string' && directory.trim() !== '' &&
-    typeof secret === 'string' && secret.trim() !== '' &&
+    typeof secret === 'string' && /^[A-Za-z0-9+/]{43}=$/.test(secret) &&
+    Buffer.from(secret, 'base64').length === 32 && Buffer.from(secret, 'base64').toString('base64') === secret &&
     /^[a-f0-9]{40}$/.test(candidateCommit || '') &&
     typeof ownerId === 'string' && ownerId.trim() === ownerId && ownerId.length > 0 && ownerId.length <= 256,
   'CELLAR_CHECKPOINT_CONFIGURATION_MISSING')

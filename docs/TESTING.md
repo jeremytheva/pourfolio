@@ -53,6 +53,29 @@ does not verify the deployed flag state or connected gameplay. Unset-flag denial
 remains covered separately by Node policy tests; applicable Playwright and
 accessibility coverage remains required.
 
+## Admin catalogue review coverage
+
+Node policy/handler tests cover exact provider role spellings, one fresh
+identity-bound session read, demotion on the next request, missing/metadata-only
+roles, forged caller IDs/roles, safe capability projection, method/path rejection,
+anonymous denial, no-store and zero profile/data-collection access. Browser
+response validation rejects another subject, added fields and mutable capabilities.
+
+`e2e/admin-catalogue.spec.js` uses synthetic same-origin fixtures to verify the
+Admin entry, ordinary/forged-browser denial, wrong-subject fail-closed/retry,
+search/type/detail/back navigation, zero values, pagination, error/empty/retry,
+late responses after logout, keyboard use, mobile overflow and scoped axe checks.
+These tests do not prove provider role permissions or a real account's UI journey.
+
+The protected main-only `admin-role-source-assessment` workflow observes two
+independently verified normal sessions, classifies only allowlisted static role
+symbols, GETs each session's own review capabilities, compares expected access,
+and signs out. It retains a redacted report with exact source/target SHAs and
+ALLOWED/DENIED/UNAVAILABLE verdicts, never account IDs/emails/cookies/provider
+bodies. A matching Admin/ordinary capability pair is bounded read-only evidence;
+`authorityCertified` remains false, and provider role-write denial/revocation
+remain NOT_RUN. See [the permission contract](admin-permission-foundation.md).
+
 ## Current automated coverage
 
 Tests cover:
@@ -315,7 +338,7 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 ### Cellar HTTP checkpoints and redacted release evidence
 
 The connected cellar mutation case requires `RELEASE_CELLAR_RECEIPT_DIRECTORY`,
-a valid `RELEASE_SHA` and the existing protected `NOCODEBACKEND_SECRET_KEY`
+a valid `RELEASE_SHA` and a dedicated `RELEASE_FIXTURE_ENCRYPTION_KEY`
 for its Node-only encrypted writer. Both normal account sessions must resolve
 the configured addresses and distinct identities before fixture creation.
 The server still supplies application ownership; the recorded owner ID is
@@ -367,18 +390,27 @@ checks it out before dependency execution and uses the protected `staging-releas
 GitHub Environment. Configure required reviewers and prevent administrators
 from bypassing its protection rules.
 
-Use dedicated, non-personal accounts for the account secrets below. The existing
-provider data key is used only by the Node evidence writer. Never put secret
+Use dedicated, non-personal accounts for the account secrets below. The fixture
+encryption key is independent of provider credentials and account passwords.
+Provider administration credentials remain owned by the deployed server runtime. Never put secret
 values in repository variables, workflow inputs, command-line arguments, traces
 or committed `.env` files:
 
 | Secret | Purpose |
 | --- | --- |
 | `RELEASE_OWNER_EMAIL`, `RELEASE_OWNER_PASSWORD` | Primary owner journey and mutations |
-| `NOCODEBACKEND_SECRET_KEY` | Existing protected Node-only key for encrypted cellar evidence; required before cellar writes |
+| `RELEASE_FIXTURE_ENCRYPTION_KEY` | Dedicated 32 random bytes encoded as canonical Base64; required before cellar writes |
 | `RELEASE_OTHER_EMAIL`, `RELEASE_OTHER_PASSWORD` | Other-user authorisation boundary |
 | `RELEASE_SIGNUP_EMAIL`, `RELEASE_SIGNUP_PASSWORD` | Optional fresh sign-up address; rotate after use |
 | `RELEASE_OTP_EMAIL`, `RELEASE_OTP_CODE` | Required when OTP is enabled; inject a short-lived code immediately before the controlled run |
+
+Generate this encryption key locally with `openssl rand -base64 32` and save the
+output directly as `RELEASE_FIXTURE_ENCRYPTION_KEY` in the protected
+`staging-release` Environment. Do not send it in chat or reuse a provider key or
+account password. Retain it securely while encrypted recovery artefacts exist;
+rotating it without retaining the previous key makes those artefacts unreadable.
+The writer rejects missing, malformed, noncanonical or incorrectly sized keys
+before baseline reads or mutations. Read-only checks do not require this key.
 
 The workflow sets local output paths in `RELEASE_CELLAR_RECEIPT_DIRECTORY` and
 `RELEASE_EVIDENCE_DIRECTORY`; these paths are not credentials.

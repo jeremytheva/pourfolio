@@ -1,5 +1,32 @@
 # Security
 
+## Admin catalogue review boundary
+
+Authentication POST requests are projected server-side to each action's
+documented fields. Signup cannot forward browser-supplied role, owner,
+permission or arbitrary metadata fields to the provider; parsed, raw JSON and
+Buffer requests use the same allowlist. Invalid structures/field types receive
+a safe 400 without forwarding their contents. Passwords and OTPs retain their
+literal string value.
+
+`api/_lib/adminPolicy.js` retains the four-capability internal catalogue policy.
+The reviewed read-only entry under #699 projects only `catalogue.review` through
+`GET /profile/capabilities`, using one fresh provider get-session response for
+both immutable identity and the same record's `user.role`. The explicit provider
+spellings `Admin` and `admin` map to internal `Admin`; no trimming/case-folding,
+metadata/profile lookup or browser role hint grants access. The subject in the
+capability response must match the current authenticated browser identity.
+Missing authority fails closed; ordinary roles receive an empty list. Responses
+are no-store, and the endpoint never reads/creates a profile or data collection.
+
+The page uses existing authenticated product/producer catalogue reads. It grants
+no private rating/cellar, scoring, account-role, moderation or audit access.
+`moderationAvailable` is always false. Mutable commands must independently use
+server policy after actual provider role-write denial/revocation and moderation
+schema/concurrency/recovery certification. They cannot infer permission from
+this browser projection or read-only access. See
+[`admin-permission-foundation.md`](admin-permission-foundation.md).
+
 ## Contained game surface
 
 Brew Done It has a protected `/brew-done-it` browser route for controlled
@@ -218,7 +245,8 @@ routing path merely because its older tests still exist for regression history.
 ## Photos and deferred features
 
 Photo upload, broader buddy/cellar/activity sharing controls, chat, social sharing,
-events, venues, producer claims and administration are disabled in launch routing.
+events, venues, producer claims and mutable administration are disabled in launch routing.
+The separately reviewed Admin catalogue workspace grants only existing catalogue reads.
 They require their own permission, retention, moderation, validation and deletion
 controls before reactivation.
 

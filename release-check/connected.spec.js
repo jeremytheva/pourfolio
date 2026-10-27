@@ -439,7 +439,7 @@ test('cellar CRUD and cross-account ownership boundaries use exact verified clea
     ownerCredentials.RELEASE_OWNER_EMAIL.trim().toLowerCase()).toBe(true)
   const checkpoint = createCellarCheckpointWriter({
     directory: process.env.RELEASE_CELLAR_RECEIPT_DIRECTORY,
-    secret: process.env.NOCODEBACKEND_SECRET_KEY,
+    secret: process.env.RELEASE_FIXTURE_ENCRYPTION_KEY,
     candidateCommit: process.env.RELEASE_SHA,
     ownerId: owner.id
   })

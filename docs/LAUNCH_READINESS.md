@@ -39,7 +39,7 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
-### Durable cellar HTTP fixture evidence — 26 October 2026 UTC
+### Durable cellar HTTP fixture evidence — 27 October 2026 UTC
 
 The failed connected HTTP test could leave a created fixture without a durable
 original acknowledgement. Its recovery is complete, but the test must retain
@@ -59,18 +59,29 @@ separate from the two cross-owner mutation-denial probes. Mutating HTTP calls
 disable retries and redirects; a fresh owner read checks that denial probes
 preserved the private fixture fields.
 
-The existing protected workflow supplies its existing data credential only to
-the Node checkpoint writer. Candidate checkout must be a reviewed main ancestor
-and the workflow runs from main; the secret is not passed to browser code.
+The protected workflow supplies a dedicated 32-byte random Base64
+`RELEASE_FIXTURE_ENCRYPTION_KEY` only to the Node checkpoint writer. Provider
+administration credentials remain owned by the deployed runtime; the existing
+governance prohibition is preserved. Invalid keys fail before baseline reads or
+mutations, and provider/account-password fallback is forbidden. Candidate
+checkout must be a reviewed main ancestor and the workflow runs from main.
 It shares the current-instance cellar concurrency group. A redacted reporter
 publishes only fixed source case IDs, statuses/counts and validated commit
 metadata. Raw output is captured privately and removed; traces/screenshots/
 videos are disabled for connected checks. Only the release summary, cellar
 phase summary, encrypted receipt and build-security result are uploaded.
 
-Forty-two focused in-memory Node 24 tests pass, including retained provenance
-guards, checkpoint failures and redaction. The real Playwright reporter protocol
-smoke and canonical Node 22 validation require the hosted executor. No provider
+Forty-two focused in-memory Node 24 tests pass after the key-contract repair,
+including retained provenance guards, malformed/noncanonical key rejection,
+checkpoint failures and redaction. The previous head's hosted real Playwright
+reporter smoke passed, but canonical validation failed the provider-credential
+workflow guard; that real architecture defect is corrected without weakening the
+guard. Fresh exact-head Node 22/browser/security validation is pending.
+
+The new encryption secret must be entered in protected `staging-release` before
+HTTP cellar mutations; connected tools cannot set GitHub secrets. Read-only
+checks remain usable without it. C1 handoff
+`C1-20261027-POURFOLIO-PR693-SECRET-CONTRACT` is accepted in existing PR #693. No provider
 access or data mutation has occurred for this source preparation. An atomic
 runner-local checkpoint plus always-run artifact retention cannot guarantee
 recovery after loss of the entire worker. Connected certification, #165, profile

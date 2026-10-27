@@ -1,17 +1,19 @@
 ---
 project: Pourfolio
-portfolio_state: ACTIVE
-execution_slot: BUILDING
+portfolio_state: VALIDATING
+execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Durable encrypted HTTP fixture checkpoints and redacted evidence validating"
-gate: Release
+stage: "Cellar HTTP evidence credential separation and current-main validation"
+gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Validate and integrate durable HTTP cellar fixture evidence before the next bounded connected qualification."
+  objective: "Repair and integrate PR #693 with an independent fixture encryption key, then qualify bounded HTTP cellar evidence when configured."
   issue: 144
   pr: 693
   branch: "fix/cellar-http-receipts-20261026"
 next_actions:
+  - "Validate and integrate #693 against current main without provider credentials in the connected browser workflow; configure the independent RELEASE_FIXTURE_ENCRYPTION_KEY before bounded HTTP cellar writes."
+  - "Finish #699 read-only workspace exact-head source/browser/deployment qualification, then observe real Admin/ordinary capabilities on main. Keep mutable approval/audit/role actions unavailable pending #701/#702 provider permission, concurrency and recovery evidence."
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
   - "Approved single-QA recovery passed in run 40389866451: one DELETE, exact absence and other-owned-row preservation verified. Before another HTTP mutation certification, retain encrypted create intent/acknowledgement and safe stage/status evidence."
   - "Live bonus preflight 40240571404 confirms 39 proposed fills and 42 unresolved values. Complete the plan, then use #680 before/after preservation checks and complete historical evidence for governed backfill."
@@ -36,17 +38,17 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 1
-  dependent_stack_depth: 0
+  open_implementation_prs: 3
+  dependent_stack_depth: 1
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "48178aa7ecb15b696fe2ce16477c33fd669b64de"
+  observed_main_commit: "e920d9df9f68214e6bc9a186770cce03239cba69"
   current_candidate_commit: null
-  latest_validated_commit: "1bbb84505dfaf24f7c808c55d97c37d98c1fac6b"
-  latest_deployed_commit: "48178aa7ecb15b696fe2ce16477c33fd669b64de"
+  latest_validated_commit: "a72ba1a7ebafb6dc7a5fef8291f3d6201e70d431"
+  latest_deployed_commit: "132f620bf2ec0dfacb6d30897d006aefc8962727"
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-  latest_browser_verified_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
+  latest_browser_verified_commit: "d5e4ff94510237df0ffb2ca97f35e55a0fd0f803"
 validation:
   governance: NOT_RUN
   lint: NOT_RUN
@@ -56,17 +58,17 @@ validation:
   ci: PENDING
   runtime: UNVERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-26T21:05:06Z"
+last_updated: "2026-10-27T20:30:00Z"
 
 ---
 
 # STATUS.md
 
-Last materially reviewed: 26 October 2026 UTC
+Last materially reviewed: 27 October 2026 UTC
 
 ## AI execution gate
 
-### Durable cellar HTTP fixture evidence — 26 October 2026 UTC
+### Durable cellar HTTP fixture evidence — 27 October 2026 UTC
 
 The failed connected HTTP test could leave a created fixture without a durable
 original acknowledgement. Its recovery is complete, but the test must retain
@@ -86,22 +88,131 @@ separate from the two cross-owner mutation-denial probes. Mutating HTTP calls
 disable retries and redirects; a fresh owner read checks that denial probes
 preserved the private fixture fields.
 
-The existing protected workflow supplies its existing data credential only to
-the Node checkpoint writer. Candidate checkout must be a reviewed main ancestor
-and the workflow runs from main; the secret is not passed to browser code.
+The protected workflow supplies a dedicated 32-byte random Base64
+`RELEASE_FIXTURE_ENCRYPTION_KEY` only to the Node checkpoint writer. Provider
+administration credentials remain owned by the deployed runtime; the existing
+governance prohibition is preserved. Invalid keys fail before baseline reads or
+mutations, and provider/account-password fallback is forbidden. Candidate
+checkout must be a reviewed main ancestor and the workflow runs from main.
 It shares the current-instance cellar concurrency group. A redacted reporter
 publishes only fixed source case IDs, statuses/counts and validated commit
 metadata. Raw output is captured privately and removed; traces/screenshots/
 videos are disabled for connected checks. Only the release summary, cellar
 phase summary, encrypted receipt and build-security result are uploaded.
 
-Forty-two focused in-memory Node 24 tests pass, including retained provenance
-guards, checkpoint failures and redaction. The real Playwright reporter protocol
-smoke and canonical Node 22 validation require the hosted executor. No provider
+Forty-two focused in-memory Node 24 tests pass after the key-contract repair,
+including retained provenance guards, malformed/noncanonical key rejection,
+checkpoint failures and redaction. The previous head's hosted real Playwright
+reporter smoke passed, but canonical validation failed the provider-credential
+workflow guard; that real architecture defect is corrected without weakening the
+guard. Fresh exact-head Node 22/browser/security validation is pending.
+
+The new encryption secret must be entered in protected `staging-release` before
+HTTP cellar mutations; connected tools cannot set GitHub secrets. Read-only
+checks remain usable without it. C1 handoff
+`C1-20261027-POURFOLIO-PR693-SECRET-CONTRACT` is accepted in existing PR #693. No provider
 access or data mutation has occurred for this source preparation. An atomic
 runner-local checkpoint plus always-run artifact retention cannot guarantee
 recovery after loss of the entire worker. Connected certification, #165, profile
 privacy, the 42 missing bonus values and public **NO-GO** remain separate.
+
+### Read-only Admin workspace implementation — 27 October 2026 UTC
+
+PR #708 merged as `132f620bf2ec0dfacb6d30897d006aefc8962727`.
+Its source head `a72ba1a` passed canonical Node 22 (1,108 passed, 15 intentional
+connected skips, zero failures), hosted validation, browser/accessibility,
+CodeQL and Dependency Review. Protected role assessment run 40487355621
+(job 122132368182) passed exact-main/source validation, deployed-target readiness,
+two independent normal sessions, distinct identities and sign-out/cleanup.
+It observed `user.role` as near-Admin/non-Admin; full authority remained
+uncertified, with role-write denial and revocation NOT_RUN.
+
+Continuation under #699 is `feature/admin-readonly-catalogue`: a subject-bound
+own-capability GET and contained read-only `/admin` product/producer workspace.
+Only `catalogue.review` is projected, using explicit `Admin`/`admin` provider
+spellings from a fresh session. Existing catalogue reads are reused; no role,
+profile, approval, private data, audit or schema write is added. Search/type/page,
+error/retry/empty states, missing information and canonical detail links are
+implemented. The refined protected observation will retain only allowlisted
+static role symbols and own-capability verdicts to qualify Admin/ordinary access.
+Canonical Node 22 source validation passed (1,115 passed, 15 intentional connected
+skips, zero failures); six scoped Admin browser/accessibility cases passed with
+desktop/mobile visual inspection. All 187 browser/accessibility regression cases passed in local alternate
+Chromium. Connected capability qualification is PENDING at this checkpoint;
+the active PR and exact-head/deployment evidence are tracked in #699.
+
+Ordinary WIP before this candidate is #693 and #697; this candidate occupies the
+third slot when published. #697's branch/form/test ownership is retained.
+Do not close all #699 acceptance from bounded read-only access. Mutable decisions
+remain gated by #701/#702, and #696 stable-ID/immediate rateability requirements
+remain unchanged. Existing #165, #144/#154, privacy, bonus and public-launch
+NO-GO boundaries are unchanged. No owner action is currently required.
+
+### Historical Admin source checkpoint — 27 October 2026 UTC
+
+PR #707 merged as `486f148a834ff017f303e795144f327cdbf68694`; production
+health reports that SHA. Its final application/source head `d5e4ff9` passed
+canonical Node 22 locally and in run 40482695345 (1,101 passed, 15 intentional
+connected skips, zero failures), exact-head browser/accessibility, Dependency
+Review and CodeQL. The server now strips non-allowlisted auth fields, while
+its contained permission guard has no live role adapter or Admin route.
+
+Continuation under #699 adds a main-only bounded session-role observation
+workflow using the existing two protected normal-account credentials. It
+checks exact target provenance, reuses existing login/session/cleanup handling,
+and retains only a redacted summary. Role-write denial, revocation and actual
+Admin authority remain unverified; observing a role never enables the console.
+At this source-preparation checkpoint the connected observation is NOT_RUN.
+The active assessment PR/actual run and result are linked from #699.
+
+This independent source/certification work does not qualify #165, #144/#154,
+privacy, bonus allocations or public release. Public launch remains **NO-GO**.
+
+### Admin permission foundation source verified — 27 October 2026 UTC
+
+[PR #707](https://github.com/jeremytheva/pourfolio/pull/707) implements a contained
+server-side catalogue permission guard and server auth POST field allowlists
+under #699. The direct signup path previously forwarded arbitrary browser
+fields; the new projection prevents role/owner/permission metadata forwarding
+for object, raw JSON and Buffer payloads. Malformed fields receive a safe 400.
+The ordinary UI already excluded these fields; actual provider exploitability
+was not asserted or tested against a real account.
+
+The source-only guard requires verified immutable session identity and a fresh
+matching server-owned role projection. It has no provider adapter or reachable
+Admin endpoint; #699/#701 connected role/moderation certification remains
+NOT_RUN. Do not present this source work as an enabled console. Exact source
+head `61539e5a9f28db80189ae779561562ebe58542b9` passed the substantive hosted
+canonical Node 22 gate (1,101 passed, 15 intentional connected skips, zero
+failures), all 181 browser/accessibility cases, CodeQL and Dependency Review.
+Preview `dpl_HcSfmUBvwnpFU2NtnHJJfN8MY6QC` is READY; health/readiness both
+return 200 and that SHA, with dataProvider ok. The parent issue remains open
+for actual provider-role proof and contained UI delivery. Full evidence and
+the unavailable quota-limited automated code review are retained in PR #707.
+
+At this source-validation checkpoint, ordinary implementation WIP is #693, #697
+and #707 (three); refresh live GitHub state before the next execution. #697's active
+owner retains its branch/form/test claim; do not rewrite it or open overlapping
+implementation while this capacity is occupied.
+
+### Style reference source integrated — 27 October 2026 UTC
+
+PR #694 merged as `a962b41cb9c8a63ba6071ad46749e433fa77d2c1`. The reviewed
+head `ced11c718b3e1b81e689f3f2ab17d74f47e38e44` and merge have identical
+application tree `c39f9c47b18636bfd4929dcb91a282cae8c43197`. Substantive
+exact-head canonical Node 22 and 181 browser/accessibility cases passed in
+run 40456104756; independent whole-diff review found no blocking issue, and
+13 supplemental focused Node 22.23.4 tests passed. Exact preview health and
+readiness returned 200 with the intended SHA and dataProvider ok. Production
+health now reports the merge SHA; this is deployment identity evidence, not
+connected journey certification.
+
+Authenticated style/category readback remains NOT_RUN because the connector
+returned deployment authentication failure without a verifiable application
+response. The bounded static read-only integration does not close #154 or
+existing provider/privacy/bonus/release acceptance. Keep the style source branch
+while #697 targets it; its owner coordinates eventual retarget/revalidation.
+Public launch remains **NO-GO**.
 
 ### Owner-approved QA cellar cleanup verified — 26 October 2026 UTC
 

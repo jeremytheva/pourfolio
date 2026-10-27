@@ -1,0 +1,74 @@
+name: Read-only session role assessment
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Exact currently deployed application SHA; role observations never grant Admin access
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bounded-admin-role-source-assessment
+  cancel-in-progress: false
+
+jobs:
+  assess:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[assess-admin-role]'))
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Validate reviewed source
+        run: npm run platform:validate
+      - name: Verify source identity
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Verify deployed target before authentication
+        env:
+          ADMIN_ROLE_TARGET_SHA: ${{ inputs.release_sha || github.sha }}
+        run: |
+          node --input-type=module - <<'NODE'
+          import { verifyReleaseTargetWithRetry } from './release-check/releaseTarget.js'
+          try {
+            await verifyReleaseTargetWithRetry({
+              baseUrl: 'https://brew-buds-mobile-app-design-3577.vercel.app',
+              releaseSha: process.env.ADMIN_ROLE_TARGET_SHA,
+              fetchImpl: (url, init) => fetch(url, { ...init, signal: AbortSignal.timeout(10000) }),
+              attempts: 12, delayMs: 3000
+            })
+          } catch {
+            console.error('ADMIN_ROLE_TARGET_UNVERIFIED')
+            process.exitCode = 1
+          }
+          NODE
+      - name: Observe roles through normal account sessions
+        run: node scripts/admin-role-source-assessment.js
+        env:
+          ADMIN_ROLE_ASSESSMENT_SHA: ${{ github.sha }}
+          ADMIN_ROLE_TARGET_SHA: ${{ inputs.release_sha || github.sha }}
+          ADMIN_ROLE_ASSESSMENT_CONFIRMATION: RUN READ ONLY ADMIN ROLE ASSESSMENT
+          RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
+          RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
+          RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}
+          RELEASE_OTHER_PASSWORD: ${{ secrets.RELEASE_OTHER_PASSWORD }}
+      - name: Retain redacted role observations
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: admin-role-source-${{ github.sha }}
+          path: artifacts/admin-role-source-assessment/summary.json
+          if-no-files-found: warn
+          retention-days: 30
