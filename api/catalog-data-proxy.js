@@ -218,6 +218,21 @@ const listProducts = async (request, response) => {
   })
 }
 
+const listCategories = async (request, response) => {
+  const page = Math.max(1, Number.parseInt(request.query?.page, 10) || 1)
+  const limit = Math.min(100, Math.max(1, Number.parseInt(request.query?.limit, 10) || 100))
+  const providerPage = await dataProvider.listPage(COLLECTIONS.categories, {
+    page, limit, orderBy: 'category_name', order: 'asc'
+  })
+  response.status(200).json({
+    items: normaliseList(providerPage.items).map(projectCategory),
+    page: providerPage.page,
+    pageSize: providerPage.pageSize,
+    total: providerPage.total,
+    totalPages: providerPage.totalPages
+  })
+}
+
 const readAllProviderRows = async (collection, { filters = {}, orderBy = 'id', order = 'asc', limit = 100 } = {}) => {
   const rows = []
   let page = 1
@@ -884,6 +899,7 @@ const getStyleReferences = async (id, response) => {
 export const routeCatalogueRequest = async (request, response, user) => {
   const [resource, id, action] = pathSegments(request)
   if (resource === 'catalog' && id === 'style-references' && action && pathSegments(request).length === 3 && request.method === 'GET') return getStyleReferences(action, response)
+  if (resource === 'catalog' && id === 'categories' && !action && request.method === 'GET') return listCategories(request, response)
   if (resource === 'catalog' && id === 'products' && !action && request.method === 'GET') return listProducts(request, response)
   if (resource === 'catalog' && id === 'products' && !action && request.method === 'POST') return createProduct(request, response, user)
   if (resource === 'catalog' && id === 'products' && action && request.method === 'GET') return getProduct(action, response)
@@ -931,6 +947,7 @@ export default async function handler(request, response) {
 export const __testables = {
   getStyleReferences,
   listProducts,
+  listCategories,
   hydrateProducts,
   safeRelationshipList,
   requiredRelationshipList,
