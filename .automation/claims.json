@@ -2,7 +2,7 @@
   "version": 1,
   "claims": {
     "catalogue": {
-      "owner": "catalogue-http-receipts-20261027T2026Z",
+      "owner": "catalogue-http-receipts-20261027T2100Z",
       "workstream": "catalogue",
       "issue": 144,
       "pr": 693,
@@ -25,8 +25,8 @@
         "file:scripts/__tests__/connected-provider-workflow.test.js",
         "repo:integration"
       ],
-      "acquiredAt": "2026-10-27T20:26:39.000Z",
-      "expiresAt": "2026-10-27T20:56:39.000Z"
+      "acquiredAt": "2026-10-27T21:00:16.000Z",
+      "expiresAt": "2026-10-27T21:30:16.000Z"
     }
   }
 }
