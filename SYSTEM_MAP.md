@@ -28,6 +28,7 @@ This map is a compact navigation aid for whole-system analysis. `ARCHITECTURE.md
 - `/history`
 - `/profile`
 - `/settings`
+- `/admin`
 - `/`
 - `*`
 - `/privacy`
@@ -38,6 +39,17 @@ This map is a compact navigation aid for whole-system analysis. `ARCHITECTURE.md
 <!-- current-browser-routes:end -->
 
 Reachability is separate from production discovery and certification. `/features` is an informational feature-status surface. `/brew-done-it` remains directly reachable only for controlled authenticated testing, is absent from production-facing navigation/CTAs, and remains policy/provider-gated and launch-excluded; `/` and `*` redirect. Current blockers and acceptance evidence belong only in `STATUS.md` and linked issues.
+
+## Read-only Admin review
+
+`/admin` and its Explore link use a fresh, subject-bound
+`GET /api/nocodebackend/profile/capabilities` response. The server resolves the
+current session's `user.role`; explicit `Admin`/`admin` spellings project only
+`catalogue.review`. Ordinary users receive no capability. Missing/invalid
+projection fails closed. The page reuses authenticated catalogue product and
+producer reads, including producers without products; detail links preserve
+canonical IDs. It adds no role, profile, approval, audit or catalogue write.
+Mutable moderation and its provider/recovery certification remain separate.
 
 ## Authentication
 

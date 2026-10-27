@@ -1,99 +1,108 @@
-# Admin permission foundation
+# Admin catalogue permission contract
 
-Source foundation for #699, under the Admin Console plan #698 and moderation
-contract #700. This module grants no reachable application access: there is no
-Admin route, provider-role adapter, credential change or schema migration in
-this slice. The existing authentication gateway now also allowlists each
-supported POST action's fields. Signup forwards only name, email and password;
-signin and OTP actions forward only their documented string fields. Privilege,
-owner and arbitrary nested metadata fields are discarded for object, raw JSON
-and Buffer bodies. Invalid bodies fail with a safe 400 before provider access.
-Password/OTP contents are preserved as strings, and sign-out keeps its empty
-cookie-based body. The console and mutable moderation remain unavailable until their
-own provider, permission and application acceptance evidence exists.
+The contained source policy under #699 and plan #698 now has one reviewed,
+bounded caller: the read-only catalogue workspace. Mutable moderation, audit,
+account-role management, scoring and private-rating/cellar access remain
+unavailable. This document defines that boundary; `STATUS.md` and GitHub retain
+actual execution/evidence state. No schema or provider-credential change occurs.
 
-## Server contract
+## Authentication input protection
 
-`api/_lib/adminPolicy.js` provides `createAdminAuthorizer`. A future reviewed
-server gateway constructs it with a certified `readRole` adapter. The default
-session resolver is the existing `requireSessionUser`; session normalization
-and ordinary-user authentication are unchanged.
+The authentication gateway allowlists supported POST fields. Signup forwards
+only name, email and password; signin/OTP actions forward their documented
+string fields. Role, owner, permissions and arbitrary nested metadata are
+discarded for object, raw JSON and Buffer bodies. Invalid structures fail with
+a safe 400 before provider access. Password/OTP strings are preserved, and
+sign-out keeps its empty cookie-based body. Profile updates retain their
+existing display/privacy allowlist and cannot write role.
 
-The guard resolves a fresh immutable session ID on every request. It passes
-only that ID and the cancellation signal to the server-owned role adapter.
-The adapter returns exactly `{ userId, role }`, projected from an authoritative
-provider source. The identity must equal the verified session ID. Only the
-exact contract value `Admin` grants catalogue review, moderation, correction
-and audit capabilities. Missing or malformed authority returns a safe 503;
-ordinary/unknown role or unsupported capability returns 403; invalid session
-returns 401. Neither a provider credential named admin, an email hint, a role
-embedded in the session projection, nor a browser field grants permission.
+## Internal policy and read-only projection
 
-An authenticated caller without an adapter receives 503. There is no fallback
-provider query or environment allowlist. Adapter and upstream error details
-are discarded. The immutable internal principal contains only user ID and the
-four catalogue capabilities. It grants no account-role management, scoring,
-private-rating or private-cellar access. A future browser capability response
-must project the permitted capability names rather than return raw records.
+`api/_lib/adminPolicy.js` provides `createAdminAuthorizer`. Without an injected
+server role adapter it fails closed. A principal requires a fresh immutable
+session identity and exactly `{ userId, role }`, with matching identity. Only
+internal `Admin` can receive the four catalogue policy capabilities. Unknown
+roles/capabilities return 403; missing/malformed authority returns safe 503;
+invalid sessions return 401. Provider errors are redacted. No email allowlist,
+profile/metadata fallback or service-credential label grants authority.
 
-## Required role-source evidence before wiring a gateway
+`requireSessionReviewContext` is the bounded read-only adapter: one normal,
+fresh provider get-session response supplies both verified identity and the
+same `payload.user.role`. Its record ID must match the immutable verified user.
+The explicit provider spellings `Admin` and `admin` map to internal `Admin`;
+no trimming or case-folding expands that allowlist. Other well-formed roles
+are non-Admin; missing/invalid source is unavailable. Alternate session
+envelopes and user metadata cannot substitute for this observed source.
+Ordinary `requireSessionUser` still projects only id/email/name.
 
-The supplied historical SQL includes `ncba_user.role`, but the deployed
-application contract does not yet certify a safe role lookup. #577 concerns
-server credential certification, not an application's Admin role authority.
+`GET /api/nocodebackend/profile/capabilities` uses this adapter and requests
+only `catalogue.review`. The response has exactly version, subjectId,
+capabilities, mode (`read_only`) and moderationAvailable (`false`). Ordinary
+users receive an empty list; the response discloses no other account or raw
+provider role. The profile gateway applies existing method/path, size, unsafe
+origin, local rate-limit, safe error and no-store controls. It neither loads
+nor creates a profile or any data collection. This endpoint accepts no writes.
 
-Before selecting/connecting an adapter, retain redacted evidence for:
+The browser validates the complete envelope and exact current subject. No role
+or permission is cached in browser storage. Identity changes discard late
+responses; entering `/admin` rechecks access. The page only calls existing
+authenticated product/producer catalogue APIs, including the canonical producer
+list without a has-products filter. It adds no private data access. Search,
+type and page are URL state; detail links preserve canonical IDs. No approval
+state, pending total or success is invented. The existing ordinary Add Beer
+entry keeps its current policy.
 
-1. The provider source, exact immutable-user-ID lookup, role value semantics
-   and safe projection; no scan or email-based matching.
-2. Ordinary signup/profile/direct-provider requests cannot elevate that role.
-3. Admin and ordinary identities resolve independently on the exact candidate.
-4. Demotion/revocation is visible on the next privileged request; the adapter
-   itself must not conceal a stale provider role through an undocumented cache.
-5. Missing/forged/expired sessions, missing/ambiguous role records and provider
-   failure are denied without revealing records, secrets or credentials.
-6. Appropriate request timeout/cancellation and the gateway's same-origin,
-   method, size, rate-limit and safe-error controls remain enforced.
+## Connected observation and boundaries
 
-These connected rows are NOT_RUN in this source-only slice. Tests with injected
-adapters prove the policy contract, not provider permissions or deployment.
-Do not wire an adapter that merely trusts a user-editable auth/profile field.
+The initial protected run 40487355621 at main/runtime `132f620` independently
+verified two normal sessions, distinct identities and cleanup. It observed
+`user.role` with near-Admin/non-Admin classes. This established the source field,
+not complete role semantics or provider write-denial/revocation certification.
 
-## Continuation
+The refined `scripts/admin-role-source-assessment.js` uses the existing bounded
+login, immutable identity/email binding, exact release-target provenance and
+sign-out helper. Its isolated environment cannot use a configured-user-ID
+shortcut. After checking session/account binding, it GETs only that session's
+own capabilities, validates the exact subject and compares the access verdict
+with known role semantics. No catalogue/private data, signup, role write,
+provider secret or business-data mutation is used.
 
-Finish #699 by certifying the actual role source, connecting the contained
-console entry and proving its gateway/UI access behavior. #701 separately
-certifies moderation storage/concurrency/recovery before #702 mutable commands.
-The accepted historical identity rules and existing launch NO-GO remain in
-their current owning documents. This file explains this source module only;
-it is not another schema, status or release authority.
+The main-only workflow runs for a reviewed merge tagged `[assess-admin-role]`
+or explicit main dispatch. It validates source and target before exposing
+existing staging-release normal-account credentials to the observation step;
+dependency installation receives none. The target is the fixed production
+origin and exact SHA. Readiness may retry; login and sign-out never do.
 
+Its sole artifact is `artifacts/admin-role-source-assessment/summary.json`:
+source/target SHAs, static classifications/source paths, allowlisted exact
+symbols (`Admin`, `admin`, `User`, `user`; otherwise null), distinct-identity,
+cleanup and ALLOWED/DENIED/UNAVAILABLE verdicts. No emails, IDs, passwords,
+cookies, arbitrary raw roles or provider bodies are retained. Unknown or
+conflicting roles and unavailable capabilities are inconclusive; a valid
+capability verdict contradicting known role semantics fails. Login/session or
+cleanup failure stops the run.
 
-## Bounded connected session-role observation
+`authorityCertified` is always false. A matching Admin/ordinary capability pair
+qualifies only this read-only boundary. It cannot enable a mutable command,
+change a role, certify permission inheritance or close all #699 acceptance.
 
-`scripts/admin-role-source-assessment.js` reuses the existing protected-owner
-session helper and exact release-target verifier for the two configured normal
-accounts. A tightly scoped transport observer inspects only their successful
-same-origin get-session JSON. Each helper verifies immutable session identity
-and account binding, then signs out; the observer cannot turn a role observation
-into a permission grant. No business-data request, signup, role assignment or
-provider credential is used.
+## Required evidence before mutable moderation
 
-The main-only `Read-only session role assessment` workflow runs after a reviewed
-merge explicitly tagged `[assess-admin-role]`, or a manual main-branch dispatch.
-It validates source/provenance before providing the existing staging-release
-account credentials to the observation step. The target is the fixed production
-origin and an exact deployed SHA. No credential is available to dependency
-installation. Target readiness GETs may retry; login/mutation requests never do.
+Before connecting #702 commands or private audit access, retain:
 
-The only retained artifact is `artifacts/admin-role-source-assessment/summary.json`:
-source/target SHAs, static role classes/source paths, distinct-identity verdict,
-cleanup and test states. It contains no email, account ID, password, cookie, raw
-role string or provider body. Missing/near-match/conflicting roles remain
-unavailable or inconclusive. Failed identity verification/sign-out stops the
-run; a configured-user-ID shortcut is deliberately unavailable to this runner.
+1. Exact immutable-user-ID role source and provider role semantics, with no
+   scans, email matching or user-editable fallback.
+2. Ordinary signup/profile/direct-provider role-write denial.
+3. Independent Admin/ordinary identities on the exact candidate.
+4. Actual demotion/revocation visible on the next privileged request, without
+   an undocumented provider or application cache.
+5. Missing/forged/expired sessions, malformed/ambiguous authority and provider
+   failures denied without leaking records or credentials.
+6. Timeout/cancellation, same-origin/method/size/rate and error controls.
+7. #701 moderation schema/permissions, provenance, atomic version checks,
+   append-only audit and recovery qualification before writes.
 
-`authorityCertified` is always false and provider role-write denial/revocation
-remain NOT_RUN. A successful diagnostic job does not certify those boundaries,
-assign Admin, enable the console or close #699/#701. Use its real observations
-to choose the next dependency-correct role-source implementation/certification.
+Connected role-write denial and revocation remain NOT_RUN. Source tests prove
+fresh application checks, not actual provider permissions/cache semantics.
+The #696 stable-ID and immediately rateable pending-beer rules remain required.
+Existing rating integrity, privacy and public-launch NO-GO gates are unchanged.

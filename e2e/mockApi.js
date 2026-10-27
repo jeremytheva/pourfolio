@@ -108,6 +108,10 @@ export const installMockApi = async (page, { bonusAttributeRows = bonusAttribute
     })
   })
 
+  await page.route('**/api/nocodebackend/profile/capabilities', (route) => json(route, {
+    version: 1, subjectId: 'user-1', capabilities: [], mode: 'read_only', moderationAvailable: false
+  }))
+
   await page.route('**/api/nocodebackend/catalog/products?**', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',

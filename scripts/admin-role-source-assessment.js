@@ -3,11 +3,12 @@ import { pathToFileURL } from 'node:url'
 import { resolve } from 'node:path'
 import { extractSessionUser } from '../api/_lib/authSession.js'
 import { resolveBonusCertificationOwner } from './bonus-certification-owner.js'
+import { validateAdminReviewCapabilities } from '../src/services/adminReviewService.js'
 
 const CONFIRMATION = 'RUN READ ONLY ADMIN ROLE ASSESSMENT'
 const BASE_URL = 'https://brew-buds-mobile-app-design-3577.vercel.app'
 const sha = (value) => typeof value === 'string' && /^[a-f0-9]{40}$/.test(value)
-const missingRole = (roleClass = 'missing') => ({ status: 'UNAVAILABLE', roleClass, source: null })
+const missingRole = (roleClass = 'missing') => ({ status: 'UNAVAILABLE', roleClass, source: null, knownRole: null })
 
 // This observes an allowlisted role field only. It never grants a capability
 // or treats user_metadata/profile/credential names as role authority.
@@ -31,18 +32,19 @@ export const classifySessionRole = (payload) => {
   const value = observations[0].role
   return {
     status: 'OBSERVED', source: observations[0].source,
+    knownRole: ['Admin', 'admin', 'User', 'user'].includes(value) ? value : null,
     roleClass: value === 'Admin' ? 'admin_exact' : value.trim().toLowerCase() === 'admin' ? 'near_admin' : 'non_admin'
   }
 }
 
 export const runAdminRoleSourceAssessment = async ({ environment = process.env, fetchImpl = fetch } = {}) => {
   const report = {
-    version: 1, scope: 'session_role_shape_only', authorityCertified: false,
+    version: 2, scope: 'session_role_and_readonly_capabilities', authorityCertified: false,
     sourceSha: sha(environment.ADMIN_ROLE_ASSESSMENT_SHA) ? environment.ADMIN_ROLE_ASSESSMENT_SHA : null,
     targetSha: sha(environment.ADMIN_ROLE_TARGET_SHA) ? environment.ADMIN_ROLE_TARGET_SHA : null,
     accounts: [], checks: { identitiesDistinct: 'NOT_RUN', roleProjectionAvailable: 'NOT_RUN',
       exactAdminObserved: 'NOT_RUN', nonAdminObserved: 'NOT_RUN', providerRoleWriteDenial: 'NOT_RUN',
-      revocation: 'NOT_RUN' }, overall: 'SETUP_REQUIRED'
+      revocation: 'NOT_RUN', readOnlyCatalogueBoundary: 'NOT_RUN' }, overall: 'SETUP_REQUIRED'
   }
   const required = ['ADMIN_ROLE_ASSESSMENT_SHA', 'ADMIN_ROLE_TARGET_SHA', 'RELEASE_OWNER_EMAIL',
     'RELEASE_OWNER_PASSWORD', 'RELEASE_OTHER_EMAIL', 'RELEASE_OTHER_PASSWORD']
@@ -59,6 +61,7 @@ export const runAdminRoleSourceAssessment = async ({ environment = process.env, 
   const identities = []
   for (const [label, prefix] of [['configured_account_1', 'RELEASE_OWNER'], ['configured_account_2', 'RELEASE_OTHER']]) {
     let observed = missingRole()
+    let reviewAccess = 'UNAVAILABLE'
     try {
       // Reuse the existing bounded same-origin login, target provenance,
       // immutable identity/email verification and sign-out machinery. This
@@ -69,12 +72,23 @@ export const runAdminRoleSourceAssessment = async ({ environment = process.env, 
       }, fetchImpl: async (url, init) => {
         const response = await fetchImpl(url, init)
         if (new URL(url).pathname === '/api/nocodebackend/auth/get-session' && response.ok) {
-          try { observed = classifySessionRole(await response.clone().json()) } catch { observed = missingRole('malformed') }
+          try {
+            const payload = await response.clone().json()
+            observed = classifySessionRole(payload)
+            const user = extractSessionUser(payload)
+            const expectedEmail = environment[`${prefix}_EMAIL`].trim().toLowerCase()
+            if (user?.id && typeof user.email === 'string' && user.email.trim().toLowerCase() === expectedEmail) {
+              const capabilities = await fetchImpl(`${BASE_URL}/api/nocodebackend/profile/capabilities`, {
+                ...init, method: 'GET', redirect: 'error', signal: AbortSignal.timeout(15000)
+              })
+              if (capabilities.ok) reviewAccess = validateAdminReviewCapabilities(await capabilities.json(), user.id).canReview ? 'ALLOWED' : 'DENIED'
+            }
+          } catch { reviewAccess = 'UNAVAILABLE' }
         }
         return response
       } })
       identities.push(identity.id)
-      report.accounts.push({ label, session: 'PASS', cleanup: 'PASS', role: observed })
+      report.accounts.push({ label, session: 'PASS', cleanup: 'PASS', role: observed, reviewAccess })
     } catch (error) {
       const codes = { BONUS_TEST_OWNER_TARGET_UNVERIFIED: 'TARGET_UNVERIFIED',
         BONUS_TEST_OWNER_AUTH_REJECTED: 'AUTH_REJECTED', BONUS_TEST_OWNER_SESSION_UNCONFIRMED: 'SESSION_UNCONFIRMED',
@@ -91,8 +105,11 @@ export const runAdminRoleSourceAssessment = async ({ environment = process.env, 
   report.checks.roleProjectionAvailable = report.accounts.every((account) => account.role.status === 'OBSERVED') ? 'PASS' : 'INCONCLUSIVE'
   report.checks.exactAdminObserved = report.accounts.some((account) => account.role.roleClass === 'admin_exact') ? 'PASS' : 'INCONCLUSIVE'
   report.checks.nonAdminObserved = report.accounts.some((account) => account.role.roleClass === 'non_admin') ? 'PASS' : 'INCONCLUSIVE'
+  const expected = report.accounts.map((account) => ['Admin', 'admin'].includes(account.role.knownRole) ? 'ALLOWED' : ['User', 'user'].includes(account.role.knownRole) ? 'DENIED' : null)
+  const mismatched = report.accounts.some((account, index) => expected[index] && account.reviewAccess !== 'UNAVAILABLE' && account.reviewAccess !== expected[index])
+  report.checks.readOnlyCatalogueBoundary = mismatched ? 'FAIL' : expected.includes('ALLOWED') && expected.includes('DENIED') && report.accounts.every((account, index) => account.reviewAccess === expected[index]) ? 'PASS' : 'INCONCLUSIVE'
   // Observing a role is not provider write-denial or revocation certification.
-  report.overall = report.checks.identitiesDistinct === 'FAIL' ? 'FAIL' : 'INCONCLUSIVE'
+  report.overall = report.checks.identitiesDistinct === 'FAIL' || mismatched ? 'FAIL' : 'INCONCLUSIVE'
   return report
 }
 
