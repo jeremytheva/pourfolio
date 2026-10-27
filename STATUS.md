@@ -41,12 +41,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "a962b41cb9c8a63ba6071ad46749e433fa77d2c1"
+  observed_main_commit: "486f148a834ff017f303e795144f327cdbf68694"
   current_candidate_commit: null
-  latest_validated_commit: "61539e5a9f28db80189ae779561562ebe58542b9"
-  latest_deployed_commit: "a962b41cb9c8a63ba6071ad46749e433fa77d2c1"
+  latest_validated_commit: "d5e4ff94510237df0ffb2ca97f35e55a0fd0f803"
+  latest_deployed_commit: "486f148a834ff017f303e795144f327cdbf68694"
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-  latest_browser_verified_commit: "61539e5a9f28db80189ae779561562ebe58542b9"
+  latest_browser_verified_commit: "d5e4ff94510237df0ffb2ca97f35e55a0fd0f803"
 validation:
   governance: PASS
   lint: PASS
@@ -56,7 +56,7 @@ validation:
   ci: PASS
   runtime: VERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-27T09:41:20Z"
+last_updated: "2026-10-27T10:06:48Z"
 
 ---
 
@@ -65,6 +65,26 @@ last_updated: "2026-10-27T09:41:20Z"
 Last materially reviewed: 27 October 2026 UTC
 
 ## AI execution gate
+
+### Admin source merged; role observation prepared — 27 October 2026 UTC
+
+PR #707 merged as `486f148a834ff017f303e795144f327cdbf68694`; production
+health reports that SHA. Its final application/source head `d5e4ff9` passed
+canonical Node 22 locally and in run 40482695345 (1,101 passed, 15 intentional
+connected skips, zero failures), exact-head browser/accessibility, Dependency
+Review and CodeQL. The server now strips non-allowlisted auth fields, while
+its contained permission guard has no live role adapter or Admin route.
+
+Continuation under #699 adds a main-only bounded session-role observation
+workflow using the existing two protected normal-account credentials. It
+checks exact target provenance, reuses existing login/session/cleanup handling,
+and retains only a redacted summary. Role-write denial, revocation and actual
+Admin authority remain unverified; observing a role never enables the console.
+At this source-preparation checkpoint the connected observation is NOT_RUN.
+The active assessment PR/actual run and result are linked from #699.
+
+This independent source/certification work does not qualify #165, #144/#154,
+privacy, bonus allocations or public release. Public launch remains **NO-GO**.
 
 ### Admin permission foundation source verified — 27 October 2026 UTC
 
