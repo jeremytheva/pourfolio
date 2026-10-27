@@ -4,9 +4,32 @@ import { beverageService } from '../services/beverageService.js'
 import { buildCatalogueDuplicateCandidates } from '../services/catalogueProposalDuplicates.js'
 import { producerService } from '../services/producerService.js'
 import { styleService } from '../services/styleService.js'
+import CanonicalSearchSelect from '../components/CanonicalSearchSelect.jsx'
+import guidelineData from '../../data/style-guidelines.json'
+import guidelineMappings from '../../data/style-guideline-mappings.json'
 
 const normalise = (value) => String(value || '').trim().toLocaleLowerCase().replace(/\s+/gu, ' ')
 const newCollaborator = () => ({ mode: 'existing', producer_id: '', newProducerName: '' })
+
+const referenceStyleIndex = new Map(guidelineData.styles.map((reference) => [reference.id, reference]))
+const exactCategoryMappings = new Map(guidelineMappings.mappings.map((mapping) => [String(mapping.categoryId), mapping]))
+
+const catalogueStyleChoices = (styles) => styles.map(({ style }) => {
+  // Both canonical ID and exact name must agree: never assign guidelines by fuzzy resemblance.
+  const mapping = exactCategoryMappings.get(String(style.id))
+  const references = mapping?.categoryName === style.category_name
+    ? mapping.referenceIds.map((referenceId) => referenceStyleIndex.get(referenceId)).filter(Boolean)
+    : []
+  const descriptions = references.map((reference) => (
+    `${reference.guideId.startsWith('bjcp-') ? 'BJCP' : 'BA'}${reference.code ? ` ${reference.code}` : ''}: ${reference.name}`
+  ))
+  return {
+    id: String(style.id),
+    name: style.category_name,
+    description: descriptions.join(' · '),
+    searchText: references.map((reference) => reference.name).join(' ')
+  }
+})
 
 function AddBeerProposal() {
   const location = useLocation()
@@ -27,12 +50,10 @@ function AddBeerProposal() {
   const [producers, setProducers] = useState([])
   const [styles, setStyles] = useState([])
   const [producerQuery, setProducerQuery] = useState('')
-  const [styleQuery, setStyleQuery] = useState('')
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
   const [duplicates, setDuplicates] = useState([])
   const [duplicateStatus, setDuplicateStatus] = useState('idle')
-  const [reviewing, setReviewing] = useState(false)
   const [submissionStatus, setSubmissionStatus] = useState('idle')
   const [submissionError, setSubmissionError] = useState('')
 
@@ -66,20 +87,11 @@ function AddBeerProposal() {
     () => styles.find(({ style }) => String(style.id) === form.product_category_id)?.style || null,
     [form.product_category_id, styles]
   )
-  const filteredProducers = useMemo(() => {
-    const query = normalise(producerQuery)
-    if (!query) return producers
-    return producers.filter(({ producer }) => (
-      String(producer.id) === form.producer_id || normalise(producer.producer_name).includes(query)
-    ))
-  }, [form.producer_id, producerQuery, producers])
-  const filteredStyles = useMemo(() => {
-    const query = normalise(styleQuery)
-    if (!query) return styles
-    return styles.filter(({ style }) => (
-      String(style.id) === form.product_category_id || normalise(style.category_name).includes(query)
-    ))
-  }, [form.product_category_id, styleQuery, styles])
+  const producerChoices = useMemo(() => producers.map(({ producer }) => ({
+    id: String(producer.id),
+    name: producer.producer_name
+  })), [producers])
+  const styleChoices = useMemo(() => catalogueStyleChoices(styles), [styles])
 
   const producerRelationshipId = producerMode === 'existing'
     ? form.producer_id
@@ -153,19 +165,19 @@ function AddBeerProposal() {
   }, [form, producerReady, producerRelationshipId])
 
   const setField = (field, value) => {
-    setReviewing(false)
+
     setSubmissionError('')
     setForm((current) => ({ ...current, [field]: value }))
   }
 
   const setProducerChoice = (mode) => {
     setProducerMode(mode)
-    setReviewing(false)
+
     setSubmissionError('')
   }
 
   const updateCollaborator = (index, updates) => {
-    setReviewing(false)
+
     setSubmissionError('')
     setCollaborators((current) => current.map((collaborator, collaboratorIndex) => (
       collaboratorIndex === index ? { ...collaborator, ...updates } : collaborator
@@ -173,7 +185,7 @@ function AddBeerProposal() {
   }
 
   const removeCollaborator = (index) => {
-    setReviewing(false)
+
     setSubmissionError('')
     setCollaborators((current) => current.filter((_, collaboratorIndex) => collaboratorIndex !== index))
   }
@@ -234,7 +246,7 @@ function AddBeerProposal() {
         <p className="mt-2 text-gray-600">Choose the primary brewery, then add any collaborating breweries. Pourfolio stores every producer relationship while keeping the primary producer in the compatibility product field.</p>
       </header>
 
-      <form className="mt-8 space-y-6" onSubmit={(event) => { event.preventDefault(); if (valid && duplicateCheckReady) setReviewing(true) }}>
+      <form className="mt-8 space-y-6" onSubmit={(event) => { event.preventDefault(); void createProduct() }}>
         <label className="block text-sm font-medium text-gray-700">Beer name
           <input required minLength={2} maxLength={255} value={form.product_name} onChange={(event) => setField('product_name', event.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
         </label>
@@ -242,37 +254,37 @@ function AddBeerProposal() {
         <fieldset className="space-y-4 rounded-xl border border-gray-200 p-4">
           <legend className="px-1 text-sm font-semibold text-gray-900">Primary brewery / producer</legend>
           <p className="text-xs text-gray-500">The primary producer is also stored in the legacy product producer field during the transition.</p>
-          <div className="flex flex-wrap gap-5 text-sm">
-            <label className="flex items-center gap-2">
-              <input type="radio" name="producer-mode" value="existing" checked={producerMode === 'existing'} onChange={() => setProducerChoice('existing')} />
-              Existing brewery
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="radio" name="producer-mode" value="new" checked={producerMode === 'new'} onChange={() => setProducerChoice('new')} />
-              Add a brewery
-            </label>
-          </div>
-
           {producerMode === 'existing' ? (
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Search breweries
-                <input type="search" value={producerQuery} onChange={(event) => setProducerQuery(event.target.value)} aria-describedby="producer-search-status" placeholder="Filter verified breweries" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
-              </label>
-              <p id="producer-search-status" className="text-xs text-gray-500" role="status" aria-live="polite">{filteredProducers.length} of {producers.length} verified breweries shown.</p>
-              <label className="block text-sm font-medium text-gray-700">Select brewery
-                <select required value={form.producer_id} onChange={(event) => setField('producer_id', event.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200">
-                  <option value="">Select a verified brewery</option>
-                  {filteredProducers.map(({ producer }) => <option key={producer.id} value={String(producer.id)}>{producer.producer_name}</option>)}
-                </select>
-              </label>
+            <div className="space-y-3">
+              <CanonicalSearchSelect
+                id="primary-producer"
+                label="Brewery / producer"
+                options={producerChoices}
+                value={form.producer_id}
+                onChange={(id) => setField('producer_id', id)}
+                onQueryChange={setProducerQuery}
+                placeholder="Search breweries"
+              />
+              <button type="button" onClick={() => {
+                setNewProducerName(producerQuery.trim())
+                setProducerChoice('new')
+              }} className="text-sm font-semibold text-amber-800 underline">
+                Can't find the brewery? Add a brewery
+              </button>
             </div>
           ) : (
-            <div>
+            <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-700">New brewery / producer name
-                <input required minLength={2} maxLength={255} value={newProducerName} onChange={(event) => { setNewProducerName(event.target.value); setReviewing(false); setSubmissionError('') }} placeholder="Brewery name" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
+                <input required minLength={2} maxLength={255} value={newProducerName}
+                  onChange={(event) => { setNewProducerName(event.target.value); setSubmissionError('') }}
+                  placeholder="Brewery name"
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
               </label>
-              <p className="mt-2 text-xs text-gray-500">Before creating a brewery, the server checks the producer table for an existing brewery with the same normalized name and reuses it when found.</p>
-              {matchingProducerForNewName && <p className="mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">An existing brewery named <strong>{matchingProducerForNewName.producer_name}</strong> is already visible. It will be reused rather than duplicated.</p>}
+              <button type="button" className="text-sm font-semibold text-amber-800 underline" onClick={() => setProducerChoice('existing')}>
+                Select an existing brewery instead
+              </button>
+              <p className="text-xs text-gray-600">The server checks for an existing producer with the same name and reuses it when possible.</p>
+              {matchingProducerForNewName && <p className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">Existing brewery <strong>{matchingProducerForNewName.producer_name}</strong> will be reused rather than duplicated.</p>}
             </div>
           )}
         </fieldset>
@@ -324,20 +336,22 @@ function AddBeerProposal() {
         </fieldset>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Search beer styles
-            <input type="search" value={styleQuery} onChange={(event) => setStyleQuery(event.target.value)} aria-describedby="style-search-status" placeholder="Filter verified styles" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200" />
-          </label>
-          <p id="style-search-status" className="text-xs text-gray-500" role="status" aria-live="polite">{filteredStyles.length} of {styles.length} verified styles shown.</p>
-          <label className="block text-sm font-medium text-gray-700">Beer style / category
-            <select required value={form.product_category_id} onChange={(event) => setField('product_category_id', event.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200">
-              <option value="">Select a verified style</option>
-              {filteredStyles.map(({ style }) => <option key={style.id} value={String(style.id)}>{style.category_name}</option>)}
-            </select>
-          </label>
+          <CanonicalSearchSelect
+            id="beer-style"
+            label="Beer style / category"
+            options={styleChoices}
+            value={form.product_category_id}
+            onChange={(id) => setField('product_category_id', id)}
+            placeholder="Search website, BJCP or BA style names"
+            description="Choose the website category. Verified BJCP/BA equivalents appear in brackets; unmapped styles remain selectable."
+          />
         </div>
 
-        <label className="block text-sm font-medium text-gray-700">Declared category / style on the beer
-          <input maxLength={255} value={form.declared_category} onChange={(event) => setField('declared_category', event.target.value)} placeholder="Optional brewery-declared style" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+        <label className="block text-sm font-medium text-gray-700">Stated Style (on can/bottle)
+          <input maxLength={255} value={form.declared_category} onChange={(event) => setField('declared_category', event.target.value)}
+            placeholder="E.g. New England Double IPA"
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+          <span className="mt-1 block text-xs font-normal text-gray-600">Optional. Recorded separately from the official website style.</span>
         </label>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -374,30 +388,12 @@ function AddBeerProposal() {
           {duplicates.length > 0 && <ul className="mt-3 space-y-3">{duplicates.map(({ product, exactName, styleMatch, editionMatch, editionConflict }) => <li key={product.id} className="rounded-lg border border-gray-200 bg-white p-3"><Link to={`/products/${product.id}`} className="font-medium text-amber-800 underline">{product.product_name}</Link><p className="mt-1 text-xs text-gray-600">Same primary brewery · {exactName ? 'same name' : 'similar name'}{styleMatch ? ' · same style' : ''}{editionMatch ? ' · same edition' : ''}{editionConflict ? ' · different edition' : ''}</p></li>)}</ul>}
         </section>
 
-        <button type="submit" disabled={!valid || !duplicateCheckReady} className="rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Review beer</button>
+        <button type="submit" disabled={!valid || !duplicateCheckReady || submissionStatus === 'submitting'} className="rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">{submissionStatus === 'submitting' ? 'Adding beer…' : 'Add beer to catalogue'}</button>
       </form>
+ 
+      {submissionError && <div role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900">{submissionError}</div>}
+      <p className="mt-3 text-sm text-gray-600">Submitting adds this beer to the current catalogue. Moderation status is not yet available on the deployed provider, so this is not presented as a reviewed submission.</p>
 
-      {reviewing && (
-        <section className="mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="review-heading">
-          <h2 id="review-heading" className="text-xl font-semibold text-gray-900">Review beer</h2>
-          <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-            <div><dt className="text-gray-500">Beer</dt><dd className="font-medium text-gray-900">{form.product_name.trim()}</dd></div>
-            <div><dt className="text-gray-500">Primary brewery</dt><dd className="font-medium text-gray-900">{producerMode === 'existing' ? selectedProducer?.producer_name : matchingProducerForNewName?.producer_name || newProducerName.trim()}</dd></div>
-            <div><dt className="text-gray-500">Collaborating breweries</dt><dd>{collaboratorDetails.length ? collaboratorDetails.map((detail) => detail.name).join(', ') : 'None'}</dd></div>
-            <div><dt className="text-gray-500">Style</dt><dd className="font-medium text-gray-900">{selectedStyle?.category_name}</dd></div>
-            <div><dt className="text-gray-500">Declared category</dt><dd>{form.declared_category.trim() || 'Not specified'}</dd></div>
-            <div><dt className="text-gray-500">ABV</dt><dd>{form.abv || 'Unknown'}</dd></div>
-            <div><dt className="text-gray-500">IBU</dt><dd>{form.ibu || 'Unknown'}</dd></div>
-            <div><dt className="text-gray-500">Edition</dt><dd>{form.edition.trim() || 'None specified'}</dd></div>
-            <div><dt className="text-gray-500">Collaboration</dt><dd>{isCollaboration ? 'Yes' : 'No'}</dd></div>
-          </dl>
-          {submissionError && <div className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900" role="alert">{submissionError}</div>}
-          <button type="button" onClick={createProduct} disabled={submissionStatus === 'submitting'} className="mt-5 rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
-            {submissionStatus === 'submitting' ? 'Adding beer…' : 'Add beer to catalogue'}
-          </button>
-          <p className="mt-2 text-sm text-gray-600">Every producer relationship is written to the product-producer relationship table. The first producer remains mirrored into the legacy product producer field as a temporary compatibility fallback.</p>
-        </section>
-      )}
     </div>
   )
 }
