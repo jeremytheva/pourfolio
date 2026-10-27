@@ -296,3 +296,28 @@ test('collaborator brewery picker rejects duplicate primary selection and remain
   await expect(page.getByRole('combobox', { name: 'Collaborating brewery 2 existing producer' })).toHaveValue('Other Brewing')
   await expect(page.getByText('Each producer can only be linked once.')).toHaveCount(0)
 })
+
+test('opening all choices clears an invisible brewery or style ID before submission', async ({ page }) => {
+  await page.goto('/products/propose?name=Selection%20Check')
+  const brewery = page.getByRole('combobox', { name: 'Brewery / producer' })
+  const style = page.getByRole('combobox', { name: 'Beer style / category' })
+  const submit = page.getByRole('button', { name: 'Add beer to catalogue' })
+
+  await brewery.fill('Rocky')
+  await page.getByRole('option', { name: 'Rocky Ridge Brewing' }).click()
+  await style.fill('Stout')
+  await page.getByRole('option', { name: 'Stout' }).click()
+  await expect(submit).toBeEnabled()
+
+  await page.getByRole('button', { name: 'Show brewery / producer choices' }).click()
+  await expect(brewery).toHaveValue('')
+  await expect(submit).toBeDisabled()
+  await page.getByRole('option', { name: 'Other Brewing' }).click()
+  await expect(submit).toBeEnabled()
+
+  await page.getByRole('button', { name: 'Show beer style / category choices' }).click()
+  await expect(style).toHaveValue('')
+  await expect(submit).toBeDisabled()
+  await page.getByRole('option', { name: 'Stout' }).click()
+  await expect(submit).toBeEnabled()
+})
