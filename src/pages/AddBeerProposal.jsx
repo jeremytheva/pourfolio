@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from '../lib/router.jsx'
 import { beverageService } from '../services/beverageService.js'
 import { buildCatalogueDuplicateCandidates } from '../services/catalogueProposalDuplicates.js'
@@ -47,6 +47,7 @@ function AddBeerProposal() {
   const [producerMode, setProducerMode] = useState('existing')
   const [newProducerName, setNewProducerName] = useState('')
   const [collaborators, setCollaborators] = useState([])
+  const nextCollaboratorKey = useRef(0)
   const [producers, setProducers] = useState([])
   const [styles, setStyles] = useState([])
   const [producerQuery, setProducerQuery] = useState('')
@@ -98,7 +99,7 @@ function AddBeerProposal() {
     : matchingProducerForNewName ? String(matchingProducerForNewName.id) : ''
   const primaryProducerReady = producerMode === 'existing'
     ? Boolean(selectedProducer)
-    : newProducerName.trim().length >= 2
+    : newProducerName.trim().length >= 2 && newProducerName.trim().length <= 255
 
   const collaboratorDetails = useMemo(() => collaborators.map((collaborator) => {
     if (collaborator.mode === 'existing') {
@@ -114,7 +115,7 @@ function AddBeerProposal() {
     const name = collaborator.newProducerName.trim()
     const matchingProducer = producers.find(({ producer }) => normalise(producer.producer_name) === normalise(name))?.producer || null
     return {
-      ready: name.length >= 2,
+      ready: name.length >= 2 && name.length <= 255,
       key: matchingProducer ? `id:${matchingProducer.id}` : name ? `name:${normalise(name)}` : '',
       name: matchingProducer?.producer_name || name,
       payload: name ? { new_producer: { producer_name: name } } : null,
@@ -184,6 +185,11 @@ function AddBeerProposal() {
   const removeCollaborator = (index) => {
     setSubmissionError('')
     setCollaborators((current) => current.filter((_, collaboratorIndex) => collaboratorIndex !== index))
+  }
+
+  const addCollaborator = () => {
+    const key = `collaborator-${++nextCollaboratorKey.current}`
+    setCollaborators((current) => current.length >= 19 ? current : [...current, { ...newCollaborator(), key }])
   }
 
   const numericValue = (value) => value === '' ? null : Number(value)
@@ -293,7 +299,7 @@ function AddBeerProposal() {
             const detail = collaboratorDetails[index]
             const number = index + 2
             return (
-              <div key={index} className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <div key={collaborator.key} className="rounded-lg border border-gray-200 bg-gray-50 p-4">
                 <div className="flex items-center justify-between gap-4">
                   <h3 className="font-medium text-gray-900">Producer {number}</h3>
                   <button type="button" onClick={() => removeCollaborator(index)} className="text-sm font-medium text-red-700 underline">Remove</button>
@@ -309,12 +315,16 @@ function AddBeerProposal() {
                   </label>
                 </div>
                 {collaborator.mode === 'existing' ? (
-                  <label className="mt-3 block text-sm font-medium text-gray-700">Collaborating brewery {number} existing producer
-                    <select value={collaborator.producer_id} onChange={(event) => updateCollaborator(index, { producer_id: event.target.value })} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2">
-                      <option value="">Select a verified brewery</option>
-                      {producers.map(({ producer }) => <option key={producer.id} value={String(producer.id)}>{producer.producer_name}</option>)}
-                    </select>
-                  </label>
+                  <div className="mt-3">
+                    <CanonicalSearchSelect
+                      id={`collaborator-producer-${collaborator.key}`}
+                      label={`Collaborating brewery ${number} existing producer`}
+                      options={producerChoices}
+                      value={collaborator.producer_id}
+                      onChange={(id) => updateCollaborator(index, { producer_id: id })}
+                      placeholder="Search collaborating breweries"
+                    />
+                  </div>
                 ) : (
                   <div className="mt-3">
                     <label className="block text-sm font-medium text-gray-700">Collaborating brewery {number} new producer name
@@ -328,7 +338,7 @@ function AddBeerProposal() {
           })}
 
           {!producerSelectionsUnique && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-900">Each producer can only be linked once.</p>}
-          <button type="button" onClick={() => setCollaborators((current) => current.length >= 19 ? current : [...current, newCollaborator()])} disabled={collaborators.length >= 19} className="rounded-lg border border-amber-700 px-3 py-2 text-sm font-semibold text-amber-800 disabled:cursor-not-allowed disabled:opacity-50">Add collaborating brewery</button>
+          <button type="button" onClick={addCollaborator} disabled={collaborators.length >= 19} className="rounded-lg border border-amber-700 px-3 py-2 text-sm font-semibold text-amber-800 disabled:cursor-not-allowed disabled:opacity-50">Add collaborating brewery</button>
         </fieldset>
 
         <div className="space-y-2">
