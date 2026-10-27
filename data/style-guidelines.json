@@ -1,0 +1,458 @@
+{
+  "version": 1,
+  "scope": "Reviewed ABV/IBU numeric references only; not the complete guides.",
+  "guides": [
+    {
+      "id": "bjcp-2021",
+      "label": "BJCP 2021",
+      "edition": "2021",
+      "sourceUrl": "https://www.bjcp.org/bjcp-style-guidelines/",
+      "attribution": "Numeric style references: Beer Judge Certification Program, 2021. Full guidelines remain at bjcp.org."
+    },
+    {
+      "id": "ba-2026",
+      "label": "Brewers Association 2026",
+      "edition": "2026",
+      "sourceUrl": "https://www.brewersassociation.org/edu/brewers-association-beer-style-guidelines/",
+      "attribution": "2026 Brewers Association Beer Style Guidelines used with permission of Brewers Association."
+    }
+  ],
+  "styles": [
+    {
+      "id": "bjcp-2021:21A",
+      "guideId": "bjcp-2021",
+      "code": "21A",
+      "name": "American IPA",
+      "sourceUrl": "https://www.bjcp.org/style/2021/21/21A/american-ipa/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 5.5,
+          "max": 7.5,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 40,
+          "max": 70,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "bjcp-2021:18B",
+      "guideId": "bjcp-2021",
+      "code": "18B",
+      "name": "American Pale Ale",
+      "sourceUrl": "https://styles.bjcp.org/bjcp-2021-beer/18/18b-american-pale-ale",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 4.5,
+          "max": 6.2,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 30,
+          "max": 50,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "bjcp-2021:20A",
+      "guideId": "bjcp-2021",
+      "code": "20A",
+      "name": "American Porter",
+      "sourceUrl": "https://styles.bjcp.org/bjcp-2021-beer/20/20a-american-porter",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 4.8,
+          "max": 6.5,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 25,
+          "max": 50,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "bjcp-2021:20C",
+      "guideId": "bjcp-2021",
+      "code": "20C",
+      "name": "Imperial Stout",
+      "sourceUrl": "https://styles.bjcp.org/bjcp-2021-beer/20/20c-imperial-stout",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 8,
+          "max": 12,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 50,
+          "max": 90,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "bjcp-2021:21C",
+      "guideId": "bjcp-2021",
+      "code": "21C",
+      "name": "Hazy IPA",
+      "sourceUrl": "https://styles.bjcp.org/bjcp-2021-beer/21/21c-hazy-ipa",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 6,
+          "max": 9,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 25,
+          "max": 60,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "bjcp-2021:22A",
+      "guideId": "bjcp-2021",
+      "code": "22A",
+      "name": "Double IPA",
+      "sourceUrl": "https://www.bjcp.org/style/2021/22/22A/double-ipa/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 7.5,
+          "max": 10,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 60,
+          "max": 100,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "bjcp-2021:24A",
+      "guideId": "bjcp-2021",
+      "code": "24A",
+      "name": "Witbier",
+      "sourceUrl": "https://www.bjcp.org/style/2021/24/24A/witbier/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 4.5,
+          "max": 5.5,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 8,
+          "max": 20,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "bjcp-2021:5B",
+      "guideId": "bjcp-2021",
+      "code": "5B",
+      "name": "Kölsch",
+      "sourceUrl": "https://www.bjcp.org/style/2021/5/5B/kolsch/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 4.4,
+          "max": 5.2,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 18,
+          "max": 30,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "bjcp-2021:19A",
+      "guideId": "bjcp-2021",
+      "code": "19A",
+      "name": "American Amber Ale",
+      "sourceUrl": "https://www.bjcp.org/style/2021/19/19A/american-amber-ale/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 4.5,
+          "max": 6.2,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 25,
+          "max": 40,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "bjcp-2021:1C",
+      "guideId": "bjcp-2021",
+      "code": "1C",
+      "name": "Cream Ale",
+      "sourceUrl": "https://www.bjcp.org/style/2021/1/1C/cream-ale/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 4.2,
+          "max": 5.6,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 8,
+          "max": 20,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "bjcp-2021:28B",
+      "guideId": "bjcp-2021",
+      "code": "28B",
+      "name": "Mixed-Fermentation Sour Beer",
+      "sourceUrl": "https://styles.bjcp.org/bjcp-2021-beer/28/28b-mixed-fermentation-sour-beer",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "variable",
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "variable",
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "ba-2026:american-ipa",
+      "guideId": "ba-2026",
+      "code": null,
+      "name": "American-Style India Pale Ale",
+      "sourceUrl": "https://www.brewersassociation.org/edu/brewers-association-beer-style-guidelines/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 6.3,
+          "max": 7.5,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 50,
+          "max": 70,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "ba-2026:american-pale-ale",
+      "guideId": "ba-2026",
+      "code": null,
+      "name": "American-Style Pale Ale",
+      "sourceUrl": "https://www.brewersassociation.org/edu/brewers-association-beer-style-guidelines/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 4.4,
+          "max": 5.4,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 30,
+          "max": 50,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "ba-2026:hazy-ipa",
+      "guideId": "ba-2026",
+      "code": null,
+      "name": "Juicy or Hazy India Pale Ale",
+      "sourceUrl": "https://www.brewersassociation.org/edu/brewers-association-beer-style-guidelines/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 6.3,
+          "max": 7.5,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 20,
+          "max": 50,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "ba-2026:imperial-porter",
+      "guideId": "ba-2026",
+      "code": null,
+      "name": "American-Style Imperial Porter",
+      "sourceUrl": "https://www.brewersassociation.org/edu/brewers-association-beer-style-guidelines/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 7,
+          "max": 12,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 35,
+          "max": 50,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "ba-2026:imperial-stout",
+      "guideId": "ba-2026",
+      "code": null,
+      "name": "American-Style Imperial Stout",
+      "sourceUrl": "https://www.brewersassociation.org/edu/brewers-association-beer-style-guidelines/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 7,
+          "max": 12,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 50,
+          "max": 80,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "ba-2026:amber-red-ale",
+      "guideId": "ba-2026",
+      "code": null,
+      "name": "American-Style Amber/Red Ale",
+      "sourceUrl": "https://www.brewersassociation.org/edu/brewers-association-beer-style-guidelines/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 4.4,
+          "max": 6.1,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 25,
+          "max": 45,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "ba-2026:koelsch",
+      "guideId": "ba-2026",
+      "code": null,
+      "name": "German-Style Koelsch",
+      "sourceUrl": "https://www.brewersassociation.org/edu/brewers-association-beer-style-guidelines/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 4.8,
+          "max": 5.3,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 22,
+          "max": 30,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "ba-2026:witbier",
+      "guideId": "ba-2026",
+      "code": null,
+      "name": "Belgian-Style Witbier",
+      "sourceUrl": "https://www.brewersassociation.org/edu/brewers-association-beer-style-guidelines/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 4,
+          "max": 5.5,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 10,
+          "max": 17,
+          "unit": "IBU"
+        }
+      }
+    },
+    {
+      "id": "ba-2026:session-ipa",
+      "guideId": "ba-2026",
+      "code": null,
+      "name": "Session India Pale Ale",
+      "sourceUrl": "https://www.brewersassociation.org/edu/brewers-association-beer-style-guidelines/",
+      "verifiedAt": "2026-10-27",
+      "metrics": {
+        "abv": {
+          "kind": "range",
+          "min": 0.5,
+          "max": 5,
+          "unit": "% ABV"
+        },
+        "ibu": {
+          "kind": "range",
+          "min": 20,
+          "max": 55,
+          "unit": "IBU"
+        }
+      }
+    }
+  ]
+}

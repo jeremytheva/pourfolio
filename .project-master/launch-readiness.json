@@ -168,7 +168,8 @@
       "applicability": "required",
       "criticality": "blocking",
       "issue_refs": [
-        "#154"
+        "#154",
+        "#443"
       ],
       "change_paths": [
         "api/**catalogue**",
@@ -181,13 +182,27 @@
         "e2e/*product*",
         "e2e/*brewery*",
         "api/catalog-data-proxy.js",
-        "api/**catalog**"
+        "api/**catalog**",
+        "api/**/styleGuidelines*",
+        "api/**/styleReference*",
+        "src/**/StyleReference*",
+        "src/**/styleReference*",
+        "src/**/styleComparison*",
+        "src/pages/StyleProfile.jsx",
+        "src/pages/BeerDetails.jsx",
+        "data/style-guideline*",
+        "e2e/style-reference*",
+        "e2e/style-explorer.spec.js",
+        "e2e/mockApi.js"
       ],
       "test_refs": [
         "e2e/core-flow.spec.js",
         "e2e/global-search.spec.js",
         "release-check/catalogue-readonly.spec.js",
-        "api/_lib/__tests__/catalogueTombstoneMetrics.test.js"
+        "api/_lib/__tests__/catalogueTombstoneMetrics.test.js",
+        "api/_lib/__tests__/styleGuidelines.test.js",
+        "api/nocodebackend/__tests__/styleReference.test.js",
+        "e2e/style-reference-comparison.spec.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",

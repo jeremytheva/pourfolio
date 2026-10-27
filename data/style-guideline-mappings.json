@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "source": "Supplied canonical category CSV; runtime must match both ID and exact name.",
+  "reviewedAt": "2026-10-27",
+  "mappings": [
+    {
+      "categoryId": 15,
+      "categoryName": "American Amber Ale",
+      "referenceIds": [
+        "bjcp-2021:19A",
+        "ba-2026:amber-red-ale"
+      ]
+    },
+    {
+      "categoryId": 27,
+      "categoryName": "American Imperial Porter",
+      "referenceIds": [
+        "ba-2026:imperial-porter"
+      ]
+    },
+    {
+      "categoryId": 28,
+      "categoryName": "American Imperial Stout",
+      "referenceIds": [
+        "ba-2026:imperial-stout"
+      ]
+    },
+    {
+      "categoryId": 29,
+      "categoryName": "American India Pale Ale",
+      "referenceIds": [
+        "ba-2026:american-ipa"
+      ]
+    },
+    {
+      "categoryId": 31,
+      "categoryName": "American IPA",
+      "referenceIds": [
+        "bjcp-2021:21A",
+        "ba-2026:american-ipa"
+      ]
+    },
+    {
+      "categoryId": 36,
+      "categoryName": "American Pale Ale",
+      "referenceIds": [
+        "bjcp-2021:18B",
+        "ba-2026:american-pale-ale"
+      ]
+    },
+    {
+      "categoryId": 38,
+      "categoryName": "American Porter",
+      "referenceIds": [
+        "bjcp-2021:20A"
+      ]
+    },
+    {
+      "categoryId": 79,
+      "categoryName": "Belgian Witbier",
+      "referenceIds": [
+        "ba-2026:witbier"
+      ]
+    },
+    {
+      "categoryId": 119,
+      "categoryName": "Cream Ale",
+      "referenceIds": [
+        "bjcp-2021:1C"
+      ]
+    },
+    {
+      "categoryId": 133,
+      "categoryName": "Double IPA",
+      "referenceIds": [
+        "bjcp-2021:22A"
+      ]
+    },
+    {
+      "categoryId": 172,
+      "categoryName": "German Koelsch",
+      "referenceIds": [
+        "ba-2026:koelsch"
+      ]
+    },
+    {
+      "categoryId": 190,
+      "categoryName": "Hazy IPA",
+      "referenceIds": [
+        "bjcp-2021:21C"
+      ]
+    },
+    {
+      "categoryId": 196,
+      "categoryName": "Imperial Stout",
+      "referenceIds": [
+        "bjcp-2021:20C"
+      ]
+    },
+    {
+      "categoryId": 214,
+      "categoryName": "Juicy or Hazy India Pale Ale",
+      "referenceIds": [
+        "ba-2026:hazy-ipa"
+      ]
+    },
+    {
+      "categoryId": 219,
+      "categoryName": "Koelsch",
+      "referenceIds": [
+        "bjcp-2021:5B"
+      ]
+    },
+    {
+      "categoryId": 229,
+      "categoryName": "Mixed-Fermentation Sour Beer",
+      "referenceIds": [
+        "bjcp-2021:28B"
+      ]
+    },
+    {
+      "categoryId": 269,
+      "categoryName": "Session India Pale Ale",
+      "referenceIds": [
+        "ba-2026:session-ipa"
+      ]
+    },
+    {
+      "categoryId": 314,
+      "categoryName": "Witbier",
+      "referenceIds": [
+        "bjcp-2021:24A",
+        "ba-2026:witbier"
+      ]
+    }
+  ]
+}

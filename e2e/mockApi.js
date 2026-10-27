@@ -125,6 +125,11 @@ export const installMockApi = async (page, { bonusAttributeRows = bonusAttribute
     })
   }))
 
+  await page.route('**/api/nocodebackend/catalog/style-references/*', (route) => {
+    const id = Number(new URL(route.request().url()).pathname.split('/').at(-1))
+    return json(route, { version: 1, category: { id, category_name: product.category.category_name }, status: 'unmapped', references: [] })
+  })
+
   await page.route('**/api/nocodebackend/catalog/producers/rankings?**', (route) => {
     const requestUrl = new URL(route.request().url())
     const pageSize = Number(requestUrl.searchParams.get('limit') || 24)

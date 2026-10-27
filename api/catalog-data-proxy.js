@@ -9,6 +9,7 @@ import { requireSessionUser } from './_lib/authSession.js'
 import { loadBonusCatalogue } from './_lib/bonusAttributeCatalogue.js'
 import { dataProvider } from './_lib/dataProvider.js'
 import { isCompletedRating } from './_lib/ratingHistoryRecords.js'
+import { styleReferencesForCategory } from './_lib/styleGuidelines.js'
 import {
   CATEGORY_FIELDS,
   PRODUCT_FIELDS,
@@ -870,8 +871,19 @@ const getRatingForm = async (request, response, user) => {
   })
 }
 
+const getStyleReferences = async (id, response) => {
+  const categoryId = parsePositiveId(id, 'Style identifier')
+  const category = await dataProvider.get(COLLECTIONS.categories, categoryId)
+  if (!category || String(category.id) !== categoryId || typeof category.category_name !== 'string' || !category.category_name.trim()) {
+    response.status(404).json({ error: 'Style not found.' })
+    return
+  }
+  response.status(200).json(styleReferencesForCategory(category))
+}
+
 export const routeCatalogueRequest = async (request, response, user) => {
   const [resource, id, action] = pathSegments(request)
+  if (resource === 'catalog' && id === 'style-references' && action && pathSegments(request).length === 3 && request.method === 'GET') return getStyleReferences(action, response)
   if (resource === 'catalog' && id === 'products' && !action && request.method === 'GET') return listProducts(request, response)
   if (resource === 'catalog' && id === 'products' && !action && request.method === 'POST') return createProduct(request, response, user)
   if (resource === 'catalog' && id === 'products' && action && request.method === 'GET') return getProduct(action, response)
@@ -917,6 +929,7 @@ export default async function handler(request, response) {
 }
 
 export const __testables = {
+  getStyleReferences,
   listProducts,
   hydrateProducts,
   safeRelationshipList,

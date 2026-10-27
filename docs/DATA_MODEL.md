@@ -1,5 +1,13 @@
 # Data model
 
+## Versioned numeric style references
+
+The [style reference contract](style-reference-comparison.md) defines a static,
+reviewed reference layer, not a new provider collection. Reference identities
+include guide/edition/code; canonical category mappings require exact ID and
+name. Variable ranges and missing product specifications remain explicit. The
+existing product ABV/IBU fields and rating formula remain unchanged.
+
 The uploaded NoCodeBackend database structure is the authoritative launch schema for the currently deployed beer-rating and cellar paths. The broader target model remains documented in [Canonical NoCodeBackend schema mapping](nocodebackend/schema-mapping.md), but code must not require proposed fields before those fields are actually deployed.
 
 The application uses the supplied relational names:
