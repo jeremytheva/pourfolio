@@ -321,3 +321,21 @@ test('opening all choices clears an invisible brewery or style ID before submiss
   await page.getByRole('option', { name: 'Stout' }).click()
   await expect(submit).toBeEnabled()
 })
+
+test.describe('mobile touch choices', () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })
+
+  test('tapping brewery and style options selects their canonical identities', async ({ page }) => {
+    await page.goto('/products/propose?name=Touch%20Beer')
+    const brewery = page.getByRole('combobox', { name: 'Brewery / producer' })
+    const style = page.getByRole('combobox', { name: 'Beer style / category' })
+    await brewery.fill('Rocky')
+    await page.getByRole('option', { name: 'Rocky Ridge Brewing' }).tap()
+    await expect(brewery).toHaveValue('Rocky Ridge Brewing')
+
+    await style.fill('Stout')
+    await page.getByRole('option', { name: 'Stout' }).tap()
+    await expect(style).toHaveValue('Stout')
+    await expect(page.getByRole('button', { name: 'Add beer to catalogue' })).toBeEnabled()
+  })
+})
