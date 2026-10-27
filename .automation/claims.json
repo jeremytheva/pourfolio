@@ -5,7 +5,7 @@
       "owner": "codex:admin-foundation:1793090326513",
       "workstream": "catalogue",
       "issue": 699,
-      "pr": null,
+      "pr": 709,
       "surfaces": [
         "repo:integration",
         "issue:699",
@@ -37,7 +37,7 @@
         "scripts/__tests__/adminRoleSourceAssessment.test.js"
       ],
       "acquiredAt": "2026-10-27T08:38:46.513Z",
-      "expiresAt": "2026-10-27T11:25:01.434Z"
+      "expiresAt": "2026-10-27T11:36:27.220Z"
     }
   }
 }
