@@ -38,12 +38,16 @@
         "src/**/Auth*",
         "src/**/Login*",
         "server/**",
-        "api/**/adminPolicy*"
+        "api/**/adminPolicy*",
+        "scripts/admin-role-source-assessment.js",
+        "scripts/__tests__/adminRoleSourceAssessment.test.js",
+        ".github/workflows/admin-role-source-assessment.yml"
       ],
       "test_refs": [
         "e2e/authentication.spec.js",
         "release-check/connected.spec.js",
-        "api/_lib/__tests__/adminPolicy.test.js"
+        "api/_lib/__tests__/adminPolicy.test.js",
+        "scripts/__tests__/adminRoleSourceAssessment.test.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",

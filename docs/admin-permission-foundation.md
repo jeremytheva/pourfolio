@@ -67,3 +67,33 @@ certifies moderation storage/concurrency/recovery before #702 mutable commands.
 The accepted historical identity rules and existing launch NO-GO remain in
 their current owning documents. This file explains this source module only;
 it is not another schema, status or release authority.
+
+
+## Bounded connected session-role observation
+
+`scripts/admin-role-source-assessment.js` reuses the existing protected-owner
+session helper and exact release-target verifier for the two configured normal
+accounts. A tightly scoped transport observer inspects only their successful
+same-origin get-session JSON. Each helper verifies immutable session identity
+and account binding, then signs out; the observer cannot turn a role observation
+into a permission grant. No business-data request, signup, role assignment or
+provider credential is used.
+
+The main-only `Read-only session role assessment` workflow runs after a reviewed
+merge explicitly tagged `[assess-admin-role]`, or a manual main-branch dispatch.
+It validates source/provenance before providing the existing staging-release
+account credentials to the observation step. The target is the fixed production
+origin and an exact deployed SHA. No credential is available to dependency
+installation. Target readiness GETs may retry; login/mutation requests never do.
+
+The only retained artifact is `artifacts/admin-role-source-assessment/summary.json`:
+source/target SHAs, static role classes/source paths, distinct-identity verdict,
+cleanup and test states. It contains no email, account ID, password, cookie, raw
+role string or provider body. Missing/near-match/conflicting roles remain
+unavailable or inconclusive. Failed identity verification/sign-out stops the
+run; a configured-user-ID shortcut is deliberately unavailable to this runner.
+
+`authorityCertified` is always false and provider role-write denial/revocation
+remain NOT_RUN. A successful diagnostic job does not certify those boundaries,
+assign Admin, enable the console or close #699/#701. Use its real observations
+to choose the next dependency-correct role-source implementation/certification.
