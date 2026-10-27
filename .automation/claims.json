@@ -1,20 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "addbeer-picker-qa": {
-      "owner": "chat-pr697-select-20261027T1235Z",
-      "workstream": "addbeer-picker-qa",
-      "issue": 695,
-      "pr": 697,
-      "surfaces": [
-        "e2e/catalogue-proposal-searchable-selectors.spec.js",
-        "issue:695",
-        "pr:697",
-        "release-check/catalogue-readonly.spec.js",
-        "src/components/CanonicalSearchSelect.jsx"
-      ],
-      "acquiredAt": "2026-10-27T12:33:08.069Z",
-      "expiresAt": "2026-10-27T13:03:08.069Z"
-    }
-  }
+  "claims": {}
 }
