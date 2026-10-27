@@ -5,21 +5,39 @@
       "owner": "codex:admin-foundation:1793090326513",
       "workstream": "catalogue",
       "issue": 699,
-      "pr": 708,
+      "pr": null,
       "surfaces": [
         "repo:integration",
         "issue:699",
+        "issue:698",
         "STATUS.md",
+        "ARCHITECTURE.md",
+        "SYSTEM_MAP.md",
+        "docs/ARCHITECTURE.md",
+        "docs/INTERFACE_PLAN.md",
+        "docs/SECURITY.md",
+        "docs/TESTING.md",
         "docs/admin-permission-foundation.md",
-        "scripts/admin-role-source-assessment.js",
-        "scripts/__tests__/adminRoleSourceAssessment.test.js",
-        ".github/workflows/admin-role-source-assessment.yml",
         ".project-master/launch-readiness.json",
-        "pr:708",
-        "issue:698"
+        "api/_lib/authSession.js",
+        "api/_lib/adminReviewAccess.js",
+        "api/_lib/__tests__/adminReviewAccess.test.js",
+        "api/profile-data-proxy.js",
+        "api/__tests__/adminReviewCapabilities.test.js",
+        "src/App.jsx",
+        "src/components/MainLayout.jsx",
+        "src/hooks/useAdminReviewAccess.js",
+        "src/services/adminReviewService.js",
+        "src/services/__tests__/adminReviewService.test.js",
+        "src/pages/AdminCatalogue.jsx",
+        "src/services/producerService.js",
+        "e2e/mockApi.js",
+        "e2e/admin-catalogue.spec.js",
+        "scripts/admin-role-source-assessment.js",
+        "scripts/__tests__/adminRoleSourceAssessment.test.js"
       ],
       "acquiredAt": "2026-10-27T08:38:46.513Z",
-      "expiresAt": "2026-10-27T10:49:28.249Z"
+      "expiresAt": "2026-10-27T11:11:02.056Z"
     }
   }
 }
