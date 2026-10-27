@@ -1,4 +1,32 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "catalogue-http-receipts-20261027T2026Z",
+      "workstream": "catalogue",
+      "issue": 144,
+      "pr": 693,
+      "surfaces": [
+        "branch:fix/cellar-http-receipts-20261026",
+        "file:.github/workflows/connected-release-check.yml",
+        "file:.project-master/launch-readiness.json",
+        "file:STATUS.md",
+        "file:docs/LAUNCH_READINESS.md",
+        "file:docs/TESTING.md",
+        "file:docs/nocodebackend/connected-policy-certification.md",
+        "file:playwright.release.config.js",
+        "file:release-check/__tests__/cellarCleanup.test.js",
+        "file:release-check/__tests__/cellarFixtureCheckpoint.test.js",
+        "file:release-check/__tests__/redactedReleaseReporter.test.js",
+        "file:release-check/cellarCleanup.js",
+        "file:release-check/cellarFixtureCheckpoint.js",
+        "file:release-check/connected.spec.js",
+        "file:release-check/redactedReleaseReporter.js",
+        "file:scripts/__tests__/connected-provider-workflow.test.js",
+        "repo:integration"
+      ],
+      "acquiredAt": "2026-10-27T20:26:39.000Z",
+      "expiresAt": "2026-10-27T20:56:39.000Z"
+    }
+  }
 }
