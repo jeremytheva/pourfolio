@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { __testables } from '../../../auth-proxy.js'
+import authHandler, { __testables } from '../../../auth-proxy.js'
 import { UPSTREAM_TIMEOUT_MS } from '../../../_lib/httpSecurity.js'
 
 const TEST_INSTANCE = 'test-instance'
@@ -19,6 +19,56 @@ test('authentication proxy exposes only explicit actions', () => {
 
 test('catch-all path parsing preserves only requested action segments', () => {
   assert.equal(__testables.getRequestPath({ query: { path: ['sign-in', 'email'] } }), 'sign-in/email')
+})
+
+test('signup strips privilege and owner fields from parsed, raw JSON and Buffer bodies', async (context) => {
+  const input = {
+    name: 'Example', email: 'example@example.invalid', password: '  literal password  ',
+    role: 'Admin', id: 'forged', user_id: 'forged', emailVerified: true,
+    permissions: ['admin'], user_metadata: { role: 'Admin' }, data: { role: 'Admin' }
+  }
+  const expected = { name: input.name, email: input.email, password: input.password }
+  const calls = []
+  context.mock.method(globalThis, 'fetch', async (_url, options) => {
+    calls.push(JSON.parse(options.body))
+    return { status: 200, arrayBuffer: async () => new ArrayBuffer(0) }
+  })
+  for (const body of [input, JSON.stringify(input), Buffer.from(JSON.stringify(input))]) {
+    await __testables.fetchUpstreamResponse({ method: 'POST', body, headers: {} }, 'sign-up/email', 'test-secret')
+  }
+  assert.deepEqual(calls, [expected, expected, expected])
+})
+
+test('each auth action permits only its documented fields and sign-out remains cookie based', () => {
+  const body = { name: 'Name', email: 'example@example.invalid', password: 'literal', otp: '001234', role: 'Admin', identifier: 'forged' }
+  for (const [path, expected] of [
+    ['sign-in/email', { email: body.email, password: body.password }],
+    ['sign-in/otp', { email: body.email }],
+    ['verify-otp', { email: body.email, otp: body.otp }],
+    ['sign-out', {}]
+  ]) assert.deepEqual(JSON.parse(__testables.getRequestBody({ method: 'POST', body }, path)), expected)
+  const inherited = Object.assign(Object.create({ name: 'inherited', role: 'Admin' }), { email: body.email, password: body.password })
+  assert.deepEqual(JSON.parse(__testables.getRequestBody({ method: 'POST', body: inherited }, 'sign-up/email')), { email: body.email, password: body.password })
+})
+
+test('invalid auth payloads return safe 400 before upstream or shared-limiter access', async (context) => {
+  for (const [key, value] of Object.entries({
+    NOCODEBACKEND_AUTH_SECRET_KEY: 'test-auth-secret',
+    NOCODEBACKEND_AUTH_BASE_URL: 'https://app.nocodebackend.com/api/user-auth'
+  })) {
+    const previous = process.env[key]
+    process.env[key] = value
+    context.after(() => { if (previous === undefined) delete process.env[key]; else process.env[key] = previous })
+  }
+  context.mock.method(globalThis, 'fetch', () => assert.fail('invalid body must not contact a provider'))
+  let attempt = 0
+  for (const body of ['{private', 'null', '[]', '42', [], false, { email: { role: 'Admin' } }, { password: ['private'] }]) {
+    const response = { setHeader() {}, status(code) { this.code = code; return this }, json(value) { this.value = value } }
+    await authHandler({ method: 'POST', query: { path: ['sign-up', 'email'] }, headers: {}, socket: { remoteAddress: `192.0.2.${++attempt}` }, body }, response)
+    assert.equal(response.code, 400)
+    assert.equal(response.value.code, 'AUTH_REQUEST_INVALID')
+    assert.equal(JSON.stringify(response.value).includes('private'), false)
+  }
 })
 
 test('authentication upstream URLs use the lowercase runtime auth instance selector', () => {
