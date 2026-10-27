@@ -39,7 +39,7 @@ test('connected provider workflows keep production provider configuration owned 
   assert.doesNotMatch(releaseWorkflow, /NOCODEBACKEND_SECRET_KEY/)
   assert.match(releaseWorkflow, /RELEASE_FIXTURE_ENCRYPTION_KEY: \$\{\{ secrets\.RELEASE_FIXTURE_ENCRYPTION_KEY \}\}/)
   const connectedChecks = fs.readFileSync('release-check/connected.spec.js', 'utf8')
-  const writerConfiguration = connectedChecks.match(/createCellarCheckpointWriter\(\{([\s\S]*?)\n  \}\)/)?.[1]
+  const writerConfiguration = connectedChecks.match(/createCellarCheckpointWriter\(\{([\s\S]*?)\n {2}\}\)/)?.[1]
   assert.ok(writerConfiguration)
   assert.match(writerConfiguration, /secret: process\.env\.RELEASE_FIXTURE_ENCRYPTION_KEY,/)
   assert.doesNotMatch(writerConfiguration, /NOCODEBACKEND_|RELEASE_(?:OWNER|OTHER)_PASSWORD|\|\||\?\?/)
