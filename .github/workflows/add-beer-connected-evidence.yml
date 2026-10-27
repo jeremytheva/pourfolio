@@ -107,7 +107,7 @@ jobs:
           import path from 'node:path'
           import crypto from 'node:crypto'
           import { spawnSync } from 'node:child_process'
-          let browser, exitCode = 1, cleanup = 'UNCONFIRMED'
+          let browser, exitCode = 1, cleanup = 'UNCONFIRMED', cleanupHttpStatus = null
           try {
             const args = ['node_modules/@playwright/test/cli.js', 'test', 'release-check/catalogue-readonly.spec.js', '--config=playwright.release.config.js', '--grep', 'connected Add Beer style choices use every authenticated canonical category page$', '--retries=0', '--workers=1', '--project=connected-chromium', '--reporter=./release-check/redactedReleaseReporter.js']
             const child = spawnSync(process.execPath, args, { stdio: 'inherit', timeout: 180000 })
@@ -124,15 +124,17 @@ jobs:
               const { signOut } = await import('./release-check/support.js')
               browser = await chromium.launch()
               const context = await browser.newContext({ baseURL: origin }), page = await context.newPage()
-              if (!await restoreReleaseOwnerSession(page, process.env.RELEASE_OWNER_EMAIL)) cleanup = 'PASS'
-              else {
-                await signOut(page); await context.close()
-                const probe = await browser.newContext({ baseURL: origin })
-                cleanup = await restoreReleaseOwnerSession(await probe.newPage(), process.env.RELEASE_OWNER_EMAIL) ? 'UNCONFIRMED' : 'PASS'
-              }
+              if (await restoreReleaseOwnerSession(page, process.env.RELEASE_OWNER_EMAIL)) await signOut(page)
+              await context.close()
+              const probe = await browser.newContext({ baseURL: origin })
+              await probe.addCookies(saved.cookies)
+              const response = await probe.request.get('/api/nocodebackend/auth/get-session', { maxRedirects: 0, maxRetries: 0 })
+              cleanupHttpStatus = response.status()
+              cleanup = cleanupHttpStatus === 401 ? 'PASS' : 'UNCONFIRMED'
+              await probe.close()
             } catch { cleanup = 'UNCONFIRMED' }
             try { await browser?.close() } catch { cleanup = 'UNCONFIRMED' }
-            fs.writeFileSync(path.join(process.env.RELEASE_EVIDENCE_DIRECTORY, 'session-cleanup.json'), JSON.stringify({ version: 1, session: cleanup }) + '\n', { mode: 0o600 })
+            fs.writeFileSync(path.join(process.env.RELEASE_EVIDENCE_DIRECTORY, 'session-cleanup.json'), JSON.stringify({ version: 1, session: cleanup, sessionHttpStatus: cleanupHttpStatus }) + '\n', { mode: 0o600 })
           }
           process.exitCode = exitCode || (cleanup === 'PASS' ? 0 : 1)
           JS
@@ -148,13 +150,17 @@ jobs:
           import fs from 'node:fs'
           import path from 'node:path'
           const directory = process.env.RELEASE_EVIDENCE_DIRECTORY, file = path.join(directory, 'session-cleanup.json')
-          let session = process.env.BROWSER_OUTCOME === 'skipped' || !process.env.BROWSER_OUTCOME ? 'NOT_REQUIRED' : 'UNCONFIRMED', privateWorkspace = 'PASS'
-          try { const value = JSON.parse(fs.readFileSync(file, 'utf8')); if (['PASS', 'UNCONFIRMED'].includes(value.session)) session = value.session } catch {}
+          let session = process.env.BROWSER_OUTCOME === 'skipped' || !process.env.BROWSER_OUTCOME ? 'NOT_REQUIRED' : 'UNCONFIRMED', privateWorkspace = 'PASS', sessionHttpStatus = null
+          try {
+            const value = JSON.parse(fs.readFileSync(file, 'utf8'))
+            if (['PASS', 'UNCONFIRMED'].includes(value.session)) session = value.session
+            if (Number.isInteger(value.sessionHttpStatus) && value.sessionHttpStatus >= 100 && value.sessionHttpStatus <= 599) sessionHttpStatus = value.sessionHttpStatus
+          } catch {}
           try {
             for (const target of [process.env.RELEASE_OWNER_SESSION_PATH, path.join(process.env.RUNNER_TEMP, 'add-beer-private-' + process.env.GITHUB_RUN_ID + '.log'), path.join(process.env.RUNNER_TEMP, 'add-beer-provenance.mjs'), 'test-results/release-check', 'playwright-report/release-check']) fs.rmSync(target, { recursive: true, force: true })
           } catch { privateWorkspace = 'UNCONFIRMED' }
           fs.mkdirSync(directory, { recursive: true })
-          fs.writeFileSync(file, JSON.stringify({ version: 1, session, privateWorkspace }) + '\n', { mode: 0o600 })
+          fs.writeFileSync(file, JSON.stringify({ version: 1, session, sessionHttpStatus, privateWorkspace }) + '\n', { mode: 0o600 })
           JS
       - name: Qualify only complete bounded evidence
         if: always()
@@ -169,7 +175,7 @@ jobs:
           const pre = read('preflight.json'), post = read('postflight.json'), selection = read('selection.json'), cleanup = read('session-cleanup.json'), report = read('release-summary.json')
           const provenance = value => value?.status === 'PASS' && value.releaseSha === process.env.RELEASE_SHA && value.health === 'PASS' && value.readiness === 'PASS' && value.healthHttpStatus === 200 && value.readinessHttpStatus === 200
           const oneCase = report?.status === 'PASS' && report.runnerStatus === 'passed' && report.releaseSha === process.env.RELEASE_SHA && report.candidateSha === process.env.GITHUB_SHA && JSON.stringify(report.counts) === JSON.stringify({ expected: 1, passed: 1, failed: 0, skipped: 0, notRun: 0 }) && report.invalidEvents === 0 && report.runnerErrors === 0 && Array.isArray(report.blockers) && report.blockers.length === 0 && JSON.stringify(report.tests) === JSON.stringify([{ caseId: 'catalogue-readonly.spec.js:65', status: 'PASS' }])
-          const pass = provenance(pre) && provenance(post) && selection?.status === 'PASS' && selection.selected === 1 && oneCase && cleanup?.session === 'PASS' && cleanup.privateWorkspace === 'PASS'
+          const pass = provenance(pre) && provenance(post) && selection?.status === 'PASS' && selection.selected === 1 && oneCase && cleanup?.session === 'PASS' && cleanup.sessionHttpStatus === 401 && cleanup.privateWorkspace === 'PASS'
           const ran = process.env.BROWSER_OUTCOME && process.env.BROWSER_OUTCOME !== 'skipped'
           const summary = { version: 1, qualification: 'READ_ONLY_ADD_BEER_CATEGORIES', sourceSha: process.env.RELEASE_SHA, workerSha: process.env.GITHUB_SHA, caseId: 'catalogue-readonly.spec.js:65', connected: ran ? (oneCase ? 'PASS' : 'FAIL') : 'NOT_RUN', status: pass ? 'PASS' : ran ? 'FAIL' : 'BLOCKED' }
           fs.mkdirSync(directory, { recursive: true }); fs.writeFileSync(path.join(directory, 'qualification.json'), JSON.stringify(summary) + '\n', { mode: 0o600 })
