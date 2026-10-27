@@ -73,7 +73,9 @@
       "issue_refs": [
         "#165",
         "#144",
-        "#678"
+        "#678",
+        "#700",
+        "#701"
       ],
       "change_paths": [
         "api/_lib/**provider**",
@@ -84,13 +86,18 @@
         "scripts/*import-rehearsal*",
         "scripts/**/audit-baseline-bundle*",
         "scripts/**/audit-import-rehearsal*",
-        "docs/nocodebackend/**"
+        "docs/nocodebackend/**",
+        "contracts/pourfolio-data-contract.json",
+        "scripts/check-data-contract.js",
+        "scripts/moderation-contract.js",
+        "scripts/__tests__/moderation-contract.test.js"
       ],
       "test_refs": [
         "scripts/audit-rating-migration-evidence.js",
         "scripts/__tests__/audit-baseline-bundle.test.js",
         "scripts/__tests__/audit-import-rehearsal.test.js",
-        "release-check/connected.spec.js"
+        "release-check/connected.spec.js",
+        "scripts/__tests__/moderation-contract.test.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",

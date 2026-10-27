@@ -3,16 +3,16 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Read-only Admin workspace qualification; mutable moderation and release gates remain"
+stage: "Read-only Admin access verified; moderation target contract validating"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Qualify the contained read-only Admin catalogue workspace and its subject-bound capability projection."
-  issue: 699
+  objective: "Integrate the deferred moderation/version/recovery contract and bounded provider-certification handoff."
+  issue: 700
   pr: null
-  branch: "feature/admin-readonly-catalogue"
+  branch: "feature/admin-moderation-contract"
 next_actions:
-  - "Finish #699 read-only workspace exact-head source/browser/deployment qualification, then observe real Admin/ordinary capabilities on main. Keep mutable approval/audit/role actions unavailable pending #701/#702 provider permission, concurrency and recovery evidence."
+  - "Qualify #700 deferred moderation contract source, then complete #701 fresh exact-instance mapping, permissions, all-writer/version/dependency fencing and isolated recovery evidence before #702 mutable decisions."
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
   - "Approved single-QA recovery passed in run 40389866451: one DELETE, exact absence and other-owned-row preservation verified. Before another HTTP mutation certification, retain encrypted create intent/acknowledgement and safe stage/status evidence."
   - "Live bonus preflight 40240571404 confirms 39 proposed fills and 42 unresolved values. Complete the plan, then use #680 before/after preservation checks and complete historical evidence for governed backfill."
@@ -42,12 +42,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "132f620bf2ec0dfacb6d30897d006aefc8962727"
+  observed_main_commit: "e920d9df9f68214e6bc9a186770cce03239cba69"
   current_candidate_commit: null
-  latest_validated_commit: "a72ba1a7ebafb6dc7a5fef8291f3d6201e70d431"
-  latest_deployed_commit: "132f620bf2ec0dfacb6d30897d006aefc8962727"
+  latest_validated_commit: "d2b5804afd7c7710fa5d6498d22cb5d60d7afbb2"
+  latest_deployed_commit: "e920d9df9f68214e6bc9a186770cce03239cba69"
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-  latest_browser_verified_commit: "d5e4ff94510237df0ffb2ca97f35e55a0fd0f803"
+  latest_browser_verified_commit: "d2b5804afd7c7710fa5d6498d22cb5d60d7afbb2"
 validation:
   governance: PASS
   lint: PASS
@@ -57,7 +57,7 @@ validation:
   ci: PASS
   runtime: VERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-27T11:00:00Z"
+last_updated: "2026-10-27T11:25:00Z"
 
 ---
 
@@ -67,7 +67,43 @@ Last materially reviewed: 27 October 2026 UTC
 
 ## AI execution gate
 
-### Read-only Admin workspace implementation — 27 October 2026 UTC
+### Admin read-only boundary verified; moderation contract prepared — 27 October 2026 UTC
+
+PR #709 merged as `e920d9df9f68214e6bc9a186770cce03239cba69` with the same
+validated tree `21a04bda3eb759e255f75354e1e1d41a4b6ec7e4`. Exact-source
+canonical Node 22 validation passed locally and in run 40493559547
+(1,115 passed, 15 intentional connected skips, zero failures), plus all 187
+local/hosted browser-accessibility cases, CodeQL and Dependency Review.
+Desktop/mobile visual inspection passed. Production deployment
+`dpl_A9xeHx3AdGP7KC9eszmxKeUqdX5m` is READY; production health/readiness
+return 200 with that exact merge SHA and dataProvider ok.
+
+Protected run 40494158943/job 122155245104 executes exact main/runtime
+`e920d9d`. Verified distinct normal sessions expose `user.role`: known `admin`
+receives catalogue.review (ALLOWED), known `user` receives none (DENIED).
+Both session and sign-out/cleanup rows pass. This is real bounded read-only
+capability evidence, not a complete connected Admin browser/moderation journey.
+Full authorityCertified remains false; provider role-write denial and actual
+revocation remain NOT_RUN. #699 remains open for those outstanding rows.
+
+Continuation #700 on `feature/admin-moderation-contract` adds the logical deferred
+target to canonical data contract 1.6.0, its offline guard/fixture checks, and a
+bounded provider migration/certification preparation. No active collection,
+writer permission, API/client or provider data changes. It distinguishes
+record/content versions, immutable proposal revisions, producer dependencies,
+legacy unknown state, independent restriction, safe replay and blocked recovery.
+Physical mapping/schema inventory, provider permissions, all-writer fencing,
+uniqueness, atomicity and restore remain UNVERIFIED/NOT_RUN under #701.
+Canonical Node 22 validation of this target source passed (1,123 passed,
+15 intentional connected skips, zero failures; production audit zero). The eight
+new offline contract cases pass. This changes no application/API/client source;
+the 187 browser cases and real capability result remain scoped to #709. Active
+PR/exact hosted/deployment evidence is tracked in #700. Ordinary WIP is #693/#697 plus this
+candidate once published; source #709 is integrated. Mutable decisions remain
+unavailable. Existing #165, #144/#154, privacy, bonus and public-launch NO-GO
+boundaries remain unchanged. No new owner action is required for this preparation.
+
+### Historical read-only Admin implementation checkpoint — 27 October 2026 UTC
 
 PR #708 merged as `132f620bf2ec0dfacb6d30897d006aefc8962727`.
 Its source head `a72ba1a` passed canonical Node 22 (1,108 passed, 15 intentional

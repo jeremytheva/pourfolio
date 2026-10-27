@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { validateModerationTarget } from './moderation-contract.js'
 
 const root = process.cwd()
 const contractPath = path.join(root, 'contracts', 'pourfolio-data-contract.json')
@@ -89,6 +90,7 @@ if (!fs.existsSync(contractPath)) {
   }
 
   if (contract) {
+    findings.push(...validateModerationTarget(contract.deferred_targets?.catalogue_moderation))
     if (contract.contract_name !== 'pourfolio-data-contract') add('DATA_CONTRACT_NAME_INVALID')
     if (!/^1\.\d+\.\d+$/.test(contract.contract_version ?? '')) {
       add('DATA_CONTRACT_VERSION_UNSUPPORTED', { version: contract.contract_version ?? null })

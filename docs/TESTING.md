@@ -76,6 +76,19 @@ bodies. A matching Admin/ordinary capability pair is bounded read-only evidence;
 `authorityCertified` remains false, and provider role-write denial/revocation
 remain NOT_RUN. See [the permission contract](admin-permission-foundation.md).
 
+## Moderation target checks
+
+The existing data-contract check now validates the deferred moderation target.
+`node --test scripts/__tests__/moderation-contract.test.js` verifies guard removal,
+unsafe field widening/promotion, independent content/record versions, stale review,
+producer dependencies, legacy/new missing state, original-owner resubmission,
+restricted exposure, actor-bound replay, blocked/unknown operations and large
+string IDs. The evaluator is an offline synthetic-fixture interpreter, never a
+server authorizer or provider adapter. Its ELIGIBLE result is not a durable
+commit. Source validation cannot qualify #701 staging, permission, concurrency,
+crash recovery or snapshot/restore. See the
+[target/migration package](nocodebackend/moderation-migration-plan.md).
+
 ## Current automated coverage
 
 Tests cover:
