@@ -102,6 +102,8 @@ export default function CanonicalSearchSelect({
           onClick={() => {
             setQuery('')
             onQueryChange?.('')
+            // An empty visible query must never submit an invisible prior canonical ID.
+            if (value) onChange('')
             setExpanded(true)
             setActiveIndex(0)
             inputRef.current?.focus()
