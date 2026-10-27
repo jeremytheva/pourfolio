@@ -392,8 +392,8 @@ from bypassing its protection rules.
 
 Use dedicated, non-personal accounts for the account secrets below. The fixture
 encryption key is independent of provider credentials and account passwords.
-Provider administration credentials remain owned by the deployed server runtime. Never put secret
-values in repository variables, workflow inputs, command-line arguments, traces
+Provider administration credentials remain owned by the deployed server runtime.
+Never put secret values in repository variables, workflow inputs, command-line arguments, traces
 or committed `.env` files:
 
 | Secret | Purpose |

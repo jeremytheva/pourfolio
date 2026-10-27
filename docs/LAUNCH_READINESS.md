@@ -71,12 +71,14 @@ metadata. Raw output is captured privately and removed; traces/screenshots/
 videos are disabled for connected checks. Only the release summary, cellar
 phase summary, encrypted receipt and build-security result are uploaded.
 
-Forty-two focused in-memory Node 24 tests pass after the key-contract repair,
-including retained provenance guards, malformed/noncanonical key rejection,
-checkpoint failures and redaction. The previous head's hosted real Playwright
-reporter smoke passed, but canonical validation failed the provider-credential
-workflow guard; that real architecture defect is corrected without weakening the
-guard. Fresh exact-head Node 22/browser/security validation is pending.
+Source head `828864b8dc1633edf61e051cb76ee020fbb5ca1b` passes canonical Node 22
+validation in [run 40583149978](https://github.com/jeremytheva/pourfolio/actions/runs/40583149978):
+1,143 passed, 15 intentional connected skips, zero failures and zero production
+vulnerabilities. All 187 browser/accessibility cases, Dependency Review and
+CodeQL pass. The actual Playwright CLI redaction smoke passes; independent review
+found no material issues. Forty-two focused in-memory tests also pass after the
+key-contract repair, including malformed/noncanonical key rejection. The earlier
+provider-credential guard failure was corrected without weakening that guard.
 
 The new encryption secret must be entered in protected `staging-release` before
 HTTP cellar mutations; connected tools cannot set GitHub secrets. Read-only
