@@ -59,7 +59,7 @@ function AddBeerProposal() {
 
   useEffect(() => {
     let active = true
-    Promise.all([producerService.listCanonicalProducers(), styleService.listVerifiedStyles()])
+    Promise.all([producerService.listCanonicalProducers(), styleService.listCanonicalStyleOptions()])
       .then(([producerRows, styleRows]) => {
         if (!active) return
         setProducers(producerRows)
@@ -165,19 +165,16 @@ function AddBeerProposal() {
   }, [form, producerReady, producerRelationshipId])
 
   const setField = (field, value) => {
-
     setSubmissionError('')
     setForm((current) => ({ ...current, [field]: value }))
   }
 
   const setProducerChoice = (mode) => {
     setProducerMode(mode)
-
     setSubmissionError('')
   }
 
   const updateCollaborator = (index, updates) => {
-
     setSubmissionError('')
     setCollaborators((current) => current.map((collaborator, collaboratorIndex) => (
       collaboratorIndex === index ? { ...collaborator, ...updates } : collaborator
@@ -185,7 +182,6 @@ function AddBeerProposal() {
   }
 
   const removeCollaborator = (index) => {
-
     setSubmissionError('')
     setCollaborators((current) => current.filter((_, collaboratorIndex) => collaboratorIndex !== index))
   }
@@ -243,7 +239,7 @@ function AddBeerProposal() {
       <header>
         <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Catalogue</p>
         <h1 className="mt-2 text-3xl font-bold text-gray-900">Add a beer</h1>
-        <p className="mt-2 text-gray-600">Choose the primary brewery, then add any collaborating breweries. Pourfolio stores every producer relationship while keeping the primary producer in the compatibility product field.</p>
+        <p className="mt-2 text-gray-600">Add the beer's name, choose the brewery and website style, then submit. You can add a missing brewery and optional collaborators here.</p>
       </header>
 
       <form className="mt-8 space-y-6" onSubmit={(event) => { event.preventDefault(); void createProduct() }}>
@@ -253,7 +249,7 @@ function AddBeerProposal() {
 
         <fieldset className="space-y-4 rounded-xl border border-gray-200 p-4">
           <legend className="px-1 text-sm font-semibold text-gray-900">Primary brewery / producer</legend>
-          <p className="text-xs text-gray-500">The primary producer is also stored in the legacy product producer field during the transition.</p>
+          
           {producerMode === 'existing' ? (
             <div className="space-y-3">
               <CanonicalSearchSelect
@@ -392,7 +388,7 @@ function AddBeerProposal() {
       </form>
  
       {submissionError && <div role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900">{submissionError}</div>}
-      <p className="mt-3 text-sm text-gray-600">Submitting adds this beer to the current catalogue. Moderation status is not yet available on the deployed provider, so this is not presented as a reviewed submission.</p>
+      <p className="mt-3 text-sm text-gray-600">Submitting adds this beer to the current catalogue. Moderation and verification will be added separately; submitting currently creates a catalogue entry.</p>
 
     </div>
   )
