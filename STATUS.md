@@ -3,16 +3,17 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Read-only Admin workspace qualification; mutable moderation and release gates remain"
+stage: "Validated cellar HTTP evidence integration; protected encryption configuration pending"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Qualify the contained read-only Admin catalogue workspace and its subject-bound capability projection."
-  issue: 699
-  pr: null
-  branch: "feature/admin-readonly-catalogue"
+  objective: "Integrate validated PR #693, then qualify bounded HTTP cellar evidence when its independent encryption key is configured."
+  issue: 144
+  pr: 693
+  branch: "fix/cellar-http-receipts-20261026"
 next_actions:
-  - "Finish #699 read-only workspace exact-head source/browser/deployment qualification, then observe real Admin/ordinary capabilities on main. Keep mutable approval/audit/role actions unavailable pending #701/#702 provider permission, concurrency and recovery evidence."
+  - "Validate and integrate #693 against current main without provider credentials in the connected browser workflow; configure the independent RELEASE_FIXTURE_ENCRYPTION_KEY before bounded HTTP cellar writes."
+  - "#709 read-only Admin workspace is deployed and bounded Admin/user own-capability isolation passed in run 40494158943. Keep full Admin browser/moderation, role-write denial and revocation open under #699/#701/#702."
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
   - "Approved single-QA recovery passed in run 40389866451: one DELETE, exact absence and other-owned-row preservation verified. Before another HTTP mutation certification, retain encrypted create intent/acknowledgement and safe stage/status evidence."
   - "Live bonus preflight 40240571404 confirms 39 proposed fills and 42 unresolved values. Complete the plan, then use #680 before/after preservation checks and complete historical evidence for governed backfill."
@@ -42,12 +43,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "132f620bf2ec0dfacb6d30897d006aefc8962727"
+  observed_main_commit: "e920d9df9f68214e6bc9a186770cce03239cba69"
   current_candidate_commit: null
-  latest_validated_commit: "a72ba1a7ebafb6dc7a5fef8291f3d6201e70d431"
-  latest_deployed_commit: "132f620bf2ec0dfacb6d30897d006aefc8962727"
+  latest_validated_commit: "828864b8dc1633edf61e051cb76ee020fbb5ca1b"
+  latest_deployed_commit: "e920d9df9f68214e6bc9a186770cce03239cba69"
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-  latest_browser_verified_commit: "d5e4ff94510237df0ffb2ca97f35e55a0fd0f803"
+  latest_browser_verified_commit: "828864b8dc1633edf61e051cb76ee020fbb5ca1b"
 validation:
   governance: PASS
   lint: PASS
@@ -55,9 +56,9 @@ validation:
   tests: PASS
   build: PASS
   ci: PASS
-  runtime: VERIFIED
+  runtime: UNVERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-27T11:00:00Z"
+last_updated: "2026-10-27T21:07:00Z"
 
 ---
 
@@ -66,6 +67,67 @@ last_updated: "2026-10-27T11:00:00Z"
 Last materially reviewed: 27 October 2026 UTC
 
 ## AI execution gate
+
+### Durable cellar HTTP fixture evidence — 27 October 2026 UTC
+
+The failed connected HTTP test could leave a created fixture without a durable
+original acknowledgement. Its recovery is complete, but the test must retain
+its own evidence before another write qualification.
+
+The helper now requires an encrypted checkpoint writer before reading a
+baseline or sending a fixture mutation. It records the original nonce/product/
+baseline, create intent, HTTP response status before parsing, complete original
+receipt/ID before verification, owner confirmation, update/denial phases and
+exact cleanup intent/response/outcome. Failed checkpoint persistence latches a
+block on subsequent fixture mutations. Unknown outcomes are not retried and
+later list differences do not authorise guessed cleanup.
+
+The connected case verifies both live session identities before creating the
+fixture and requires distinct owners. One owner create/update/delete is
+separate from the two cross-owner mutation-denial probes. Mutating HTTP calls
+disable retries and redirects; a fresh owner read checks that denial probes
+preserved the private fixture fields.
+
+The protected workflow supplies a dedicated 32-byte random Base64
+`RELEASE_FIXTURE_ENCRYPTION_KEY` only to the Node checkpoint writer. Provider
+administration credentials remain owned by the deployed runtime; the existing
+governance prohibition is preserved. Invalid keys fail before baseline reads or
+mutations, and provider/account-password fallback is forbidden. Candidate
+checkout must be a reviewed main ancestor and the workflow runs from main.
+It shares the current-instance cellar concurrency group. A redacted reporter
+publishes only fixed source case IDs, statuses/counts and validated commit
+metadata. Raw output is captured privately and removed; traces/screenshots/
+videos are disabled for connected checks. Only the release summary, cellar
+phase summary, encrypted receipt and build-security result are uploaded.
+
+Source head `828864b8dc1633edf61e051cb76ee020fbb5ca1b` passes canonical Node 22
+validation in [run 40583149978](https://github.com/jeremytheva/pourfolio/actions/runs/40583149978):
+1,143 passed, 15 intentional connected skips, zero failures and zero production
+vulnerabilities. All 187 browser/accessibility cases, Dependency Review and
+CodeQL pass. The actual Playwright CLI redaction smoke passes; independent review
+found no material issues. Forty-two focused in-memory tests also pass after the
+key-contract repair, including malformed/noncanonical key rejection. The earlier
+provider-credential guard failure was corrected without weakening that guard.
+
+The new encryption secret must be entered in protected `staging-release` before
+HTTP cellar mutations; connected tools cannot set GitHub secrets. Read-only
+checks remain usable without it. C1 handoff
+`C1-20261027-POURFOLIO-PR693-SECRET-CONTRACT` is accepted in existing PR #693. No provider
+access or data mutation has occurred for this source preparation. An atomic
+runner-local checkpoint plus always-run artifact retention cannot guarantee
+recovery after loss of the entire worker. Connected certification, #165, profile
+privacy, the 42 missing bonus values and public **NO-GO** remain separate.
+
+### Read-only Admin workspace qualification update — 27 October 2026 UTC
+
+PR #709 merged as `e920d9df9f68214e6bc9a186770cce03239cba69`; exact
+production deployment `dpl_A9xeHx3AdGP7KC9eszmxKeUqdX5m` is READY.
+Protected [run 40494158943](https://github.com/jeremytheva/pourfolio/actions/runs/40494158943)
+at that SHA passed source validation, deployed-target checks, normal distinct
+sessions and cleanup. It observed Admin `catalogue.review` ALLOWED and ordinary
+user DENIED through the own-capability API. This supersedes the following older
+pending checkpoint only within that bounded scope. Full connected Admin browser,
+role-write denial, revocation and mutable moderation remain unqualified.
 
 ### Read-only Admin workspace implementation — 27 October 2026 UTC
 
