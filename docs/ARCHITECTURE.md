@@ -1,5 +1,13 @@
 # Architecture
 
+## Style reference enrichment
+
+The optional [style reference comparison](style-reference-comparison.md) uses
+the existing authenticated catalogue gateway for one exact category read and
+reviewed, versioned numeric references. Beer/style pages validate the response
+and render ABV/IBU ranges separately from rating scores. Reference failures stay
+local; no provider write, schema change or product reclassification occurs.
+
 ## Launch architecture
 
 Pourfolio is a beer-first React/Vite single-page application deployed with same-origin serverless functions. The browser cannot select a backend collection, owner ID, role or authoritative rating total.

@@ -5,6 +5,7 @@ import SafeIcon from '../common/SafeIcon.jsx'
 import { ratingService } from '../services/ratingService.js'
 import { styleService } from '../services/styleService.js'
 import { buildStyleHistorySummary } from '../services/tasteMapSummary.js'
+import StyleReferenceComparison from '../components/StyleReferenceComparison.jsx'
 
 function StyleProfile() {
   const { styleId } = useParams()
@@ -104,12 +105,13 @@ function StyleProfile() {
       <header className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
         <p className="text-sm font-semibold uppercase tracking-wide text-amber-700">Beer Style Explorer</p>
         <h1 className="mt-2 text-4xl font-bold text-gray-900">{style.category_name}</h1>
-        <p className="mt-3 max-w-3xl text-gray-600">This page uses the verified catalogue style identity. Reference descriptions, expected characteristics and typical ranges are intentionally omitted until Pourfolio has a governed reference-data source.</p>
+        <p className="mt-3 max-w-3xl text-gray-600">This page uses the verified catalogue style identity. Reviewed guideline ranges are shown separately where an exact mapping is available.</p>
         <dl className="mt-6 grid max-w-md grid-cols-2 gap-4 rounded-xl bg-gray-50 p-5">
           <div><dt className="text-sm text-gray-500">Beers</dt><dd className="mt-1 text-xl font-semibold text-gray-900">{products.length}</dd></div>
           <div><dt className="text-sm text-gray-500">Breweries</dt><dd className="mt-1 text-xl font-semibold text-gray-900">{breweries.length}</dd></div>
         </dl>
       </header>
+      <StyleReferenceComparison category={style} />
 
       <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="your-style-history-heading" aria-busy={historyStatus === 'loading' ? 'true' : 'false'}>
         <div className="flex flex-wrap items-start justify-between gap-4">
