@@ -10,6 +10,7 @@
         "e2e/catalogue-proposal-searchable-selectors.spec.js",
         "issue:695",
         "pr:697",
+        "release-check/catalogue-readonly.spec.js",
         "src/components/CanonicalSearchSelect.jsx"
       ],
       "acquiredAt": "2026-10-27T12:33:08.069Z",
