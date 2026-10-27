@@ -4,16 +4,22 @@
     "catalogue-add-form": {
       "owner": "chat-add-product-20261027-ux-v1",
       "workstream": "catalogue-add-form",
-      "issue": null,
-      "pr": null,
+      "issue": 695,
+      "pr": 697,
       "surfaces": [
-        "src/pages/AddBeerProposal.jsx",
-        "src/components/CanonicalSearchSelect.jsx",
+        "api/catalog-data-proxy.js",
+        "api/nocodebackend/__tests__/catalogueCategories.test.js",
+        "docs/add-product-moderation.md",
         "e2e/catalogue-proposal-searchable-selectors.spec.js",
-        "docs/add-product-moderation.md"
+        "e2e/mockApi.js",
+        "src/components/CanonicalSearchSelect.jsx",
+        "src/pages/AddBeerProposal.jsx",
+        "src/services/__tests__/catalogueCategoryPage.test.js",
+        "src/services/catalogueResponse.js",
+        "src/services/styleService.js"
       ],
       "acquiredAt": "2026-10-27T06:16:51.185Z",
-      "expiresAt": "2026-10-27T06:46:51.185Z"
+      "expiresAt": "2026-10-27T06:59:54.864Z"
     }
   }
 }
