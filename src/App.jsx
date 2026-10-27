@@ -24,6 +24,7 @@ const History = lazy(() => import('./pages/History.jsx'))
 const Settings = lazy(() => import('./pages/Settings.jsx'))
 const PublicUserProfile = lazy(() => import('./pages/PublicUserProfile.jsx'))
 const PublicDocumentPage = lazy(() => import('./pages/PublicDocumentPage.jsx'))
+const AdminCatalogue = lazy(() => import('./pages/AdminCatalogue.jsx'))
 
 const LoadingState = () => (
   <div className="flex min-h-screen items-center justify-center bg-gray-50" role="status" aria-live="polite" aria-atomic="true">
@@ -91,6 +92,7 @@ function App() {
             <Route path="/history" element={protect(<History />)} />
             <Route path="/profile" element={protect(<Profile />)} />
             <Route path="/settings" element={protect(<Settings />)} />
+            <Route path="/admin" element={protect(<AdminCatalogue />)} />
             <Route path="/" element={<Navigate to={user ? '/home' : '/login'} replace />} />
             <Route path="*" element={<Navigate to={user ? '/home' : '/login'} replace />} />
           </Routes>

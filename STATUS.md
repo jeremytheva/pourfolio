@@ -1,17 +1,18 @@
 ---
 project: Pourfolio
-portfolio_state: READY
-execution_slot: WAITING
+portfolio_state: VALIDATING
+execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Approved QA cleanup verified; bonus allocations and provider/release gates remain"
-gate: Release
-execution_state: BLOCKED
+stage: "Read-only Admin workspace qualification; mutable moderation and release gates remain"
+gate: Integration
+execution_state: VALIDATING
 current_work:
-  objective: "Complete missing authoritative bonus allocations and remaining provider/recovery, privacy and release qualification."
-  issue: 144
+  objective: "Qualify the contained read-only Admin catalogue workspace and its subject-bound capability projection."
+  issue: 699
   pr: null
-  branch: "main"
+  branch: "feature/admin-readonly-catalogue"
 next_actions:
+  - "Finish #699 read-only workspace exact-head source/browser/deployment qualification, then observe real Admin/ordinary capabilities on main. Keep mutable approval/audit/role actions unavailable pending #701/#702 provider permission, concurrency and recovery evidence."
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
   - "Approved single-QA recovery passed in run 40389866451: one DELETE, exact absence and other-owned-row preservation verified. Before another HTTP mutation certification, retain encrypted create intent/acknowledgement and safe stage/status evidence."
   - "Live bonus preflight 40240571404 confirms 39 proposed fills and 42 unresolved values. Complete the plan, then use #680 before/after preservation checks and complete historical evidence for governed backfill."
@@ -41,10 +42,10 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "486f148a834ff017f303e795144f327cdbf68694"
+  observed_main_commit: "132f620bf2ec0dfacb6d30897d006aefc8962727"
   current_candidate_commit: null
-  latest_validated_commit: "d5e4ff94510237df0ffb2ca97f35e55a0fd0f803"
-  latest_deployed_commit: "486f148a834ff017f303e795144f327cdbf68694"
+  latest_validated_commit: "a72ba1a7ebafb6dc7a5fef8291f3d6201e70d431"
+  latest_deployed_commit: "132f620bf2ec0dfacb6d30897d006aefc8962727"
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
   latest_browser_verified_commit: "d5e4ff94510237df0ffb2ca97f35e55a0fd0f803"
 validation:
@@ -56,7 +57,7 @@ validation:
   ci: PASS
   runtime: VERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-27T10:06:48Z"
+last_updated: "2026-10-27T11:00:00Z"
 
 ---
 
@@ -66,7 +67,39 @@ Last materially reviewed: 27 October 2026 UTC
 
 ## AI execution gate
 
-### Admin source merged; role observation prepared — 27 October 2026 UTC
+### Read-only Admin workspace implementation — 27 October 2026 UTC
+
+PR #708 merged as `132f620bf2ec0dfacb6d30897d006aefc8962727`.
+Its source head `a72ba1a` passed canonical Node 22 (1,108 passed, 15 intentional
+connected skips, zero failures), hosted validation, browser/accessibility,
+CodeQL and Dependency Review. Protected role assessment run 40487355621
+(job 122132368182) passed exact-main/source validation, deployed-target readiness,
+two independent normal sessions, distinct identities and sign-out/cleanup.
+It observed `user.role` as near-Admin/non-Admin; full authority remained
+uncertified, with role-write denial and revocation NOT_RUN.
+
+Continuation under #699 is `feature/admin-readonly-catalogue`: a subject-bound
+own-capability GET and contained read-only `/admin` product/producer workspace.
+Only `catalogue.review` is projected, using explicit `Admin`/`admin` provider
+spellings from a fresh session. Existing catalogue reads are reused; no role,
+profile, approval, private data, audit or schema write is added. Search/type/page,
+error/retry/empty states, missing information and canonical detail links are
+implemented. The refined protected observation will retain only allowlisted
+static role symbols and own-capability verdicts to qualify Admin/ordinary access.
+Canonical Node 22 source validation passed (1,115 passed, 15 intentional connected
+skips, zero failures); six scoped Admin browser/accessibility cases passed with
+desktop/mobile visual inspection. All 187 browser/accessibility regression cases passed in local alternate
+Chromium. Connected capability qualification is PENDING at this checkpoint;
+the active PR and exact-head/deployment evidence are tracked in #699.
+
+Ordinary WIP before this candidate is #693 and #697; this candidate occupies the
+third slot when published. #697's branch/form/test ownership is retained.
+Do not close all #699 acceptance from bounded read-only access. Mutable decisions
+remain gated by #701/#702, and #696 stable-ID/immediate rateability requirements
+remain unchanged. Existing #165, #144/#154, privacy, bonus and public-launch
+NO-GO boundaries are unchanged. No owner action is currently required.
+
+### Historical Admin source checkpoint — 27 October 2026 UTC
 
 PR #707 merged as `486f148a834ff017f303e795144f327cdbf68694`; production
 health reports that SHA. Its final application/source head `d5e4ff9` passed

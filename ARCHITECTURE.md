@@ -39,6 +39,7 @@ Current authenticated routes include:
 - `/places` and `/breweries/:producerId`;
 - `/styles` and `/styles/:styleId`;
 - `/taste-map`;
+- `/admin`, a separately reviewed, read-only catalogue workspace gated by server capabilities;
 - `/features` for implemented/planned capability status;
 - `/cellar`, `/history`, `/profile`, `/settings`, and `/users/:publicProfileId`.
 

@@ -1,4 +1,5 @@
 import { requireSessionUser } from './_lib/authSession.js'
+import { catalogueReviewCapabilities } from './_lib/adminReviewAccess.js'
 import {
   ensureOwnerProfile,
   findPublicProfile,
@@ -112,6 +113,11 @@ export default async function handler(request, response) {
   })) return
 
   try {
+    const segments = pathSegments(request)
+    if (request.method === 'GET' && segments.length === 2 && segments[0] === 'profile' && segments[1] === 'capabilities') {
+      writeJson(response, 200, await catalogueReviewCapabilities(request))
+      return
+    }
     const user = await requireSessionUser(request)
     await routeProfileRequest(request, response, user)
   } catch (error) {

@@ -11,7 +11,7 @@ const configuration = {
   RELEASE_OTHER_EMAIL: 'private-two@example.invalid', RELEASE_OTHER_PASSWORD: 'private-password-2'
 }
 const body = (value, status = 200, headers = {}) => new Response(JSON.stringify(value), { status, headers: { 'content-type': 'application/json', ...headers } })
-const fixture = ({ roles = ['Admin', 'User'], omitRole = false, stale = false, reject = false, wrongEmail = false, logoutFails = false, duplicateId = false } = {}) => {
+const fixture = ({ roles = ['Admin', 'User'], omitRole = false, stale = false, reject = false, wrongEmail = false, logoutFails = false, duplicateId = false, reverseCapabilities = false } = {}) => {
   const calls = []
   const fetchImpl = async (url, init) => {
     const parsed = new URL(url)
@@ -36,6 +36,10 @@ const fixture = ({ roles = ['Admin', 'User'], omitRole = false, stale = false, r
     }
     const index = init.headers.cookie === 'session=private-cookie-0' ? 0 : 1
     assert.equal(init.headers.cookie, `session=private-cookie-${index}`)
+    if (parsed.pathname.endsWith('/profile/capabilities')) {
+      const canReview = ['Admin', 'admin'].includes(roles[index]) !== reverseCapabilities
+      return body({ version: 1, subjectId: `private-user-${duplicateId ? 0 : index}`, capabilities: canReview ? ['catalogue.review'] : [], mode: 'read_only', moderationAvailable: false })
+    }
     if (parsed.pathname.endsWith('/get-session')) {
       assert.equal(init.method, 'GET')
       return body({ user: { id: `private-user-${duplicateId ? 0 : index}`, email: wrongEmail ? 'private-wrong@example.invalid' : configuration[index ? 'RELEASE_OTHER_EMAIL' : 'RELEASE_OWNER_EMAIL'],
@@ -50,7 +54,7 @@ const fixture = ({ roles = ['Admin', 'User'], omitRole = false, stale = false, r
 }
 
 test('role shape observations never infer authority from metadata, missing fields or conflicting identities', () => {
-  assert.deepEqual(classifySessionRole({ user: { id: 'one', role: 'Admin' } }), { status: 'OBSERVED', roleClass: 'admin_exact', source: 'user.role' })
+  assert.deepEqual(classifySessionRole({ user: { id: 'one', role: 'Admin' } }), { status: 'OBSERVED', roleClass: 'admin_exact', source: 'user.role', knownRole: 'Admin' })
   assert.equal(classifySessionRole({ data: { user: { id: 'one', role: 'admin' } } }).roleClass, 'near_admin')
   for (const payload of [null, { user: { email: 'private@example.invalid', role: 'Admin' } }, { user: { id: 'one', user_metadata: { role: 'Admin' } } },
     { user: { id: 'one', role: ['Admin'] } }, { user: { id: 'one', role: 'Admin' }, data: { user: { id: 'two', role: 'Admin' } } },
@@ -79,6 +83,7 @@ test('two independently verified sessions observe roles and clean up without ret
   assert.equal(report.checks.nonAdminObserved, 'PASS')
   assert.equal(report.checks.providerRoleWriteDenial, 'NOT_RUN')
   assert.equal(report.checks.revocation, 'NOT_RUN')
+  assert.equal(report.checks.readOnlyCatalogueBoundary, 'PASS')
   assert.equal(report.accounts.every((a) => a.cleanup === 'PASS'), true)
   assert.equal(f.calls.filter((c) => c.path.endsWith('/sign-in/email')).length, 2)
   assert.equal(f.calls.filter((c) => c.path.endsWith('/sign-out')).length, 2)
@@ -112,7 +117,7 @@ test('a stale target blocks authentication, and a failed login is never retried 
 })
 
 test('wrong session identity, duplicate identity, transport errors and sign-out failure cannot certify authority', async () => {
-  for (const options of [{ wrongEmail: true }, { duplicateId: true }, { logoutFails: true }]) {
+  for (const options of [{ wrongEmail: true }, { duplicateId: true }, { logoutFails: true }, { reverseCapabilities: true }]) {
     const f = fixture(options)
     const report = await runAdminRoleSourceAssessment({ environment: configuration, fetchImpl: f.fetchImpl })
     assert.equal(report.overall, 'FAIL')
