@@ -18,9 +18,9 @@
         "file:docs/ARCHITECTURE.md",
         "file:docs/DATA_MODEL.md",
         "file:docs/style-reference-comparison.md",
+        "file:e2e/mockApi.js",
         "file:e2e/style-explorer.spec.js",
         "file:e2e/style-reference-comparison.spec.js",
-        "file:scripts/audit-style-guidelines.mjs",
         "file:src/components/StyleReferenceComparison.jsx",
         "file:src/lib/styleComparison.js",
         "file:src/lib/styleComparison.test.js",
@@ -30,7 +30,7 @@
         "file:src/services/styleReferenceService.js"
       ],
       "acquiredAt": "2026-10-27T05:02:48.806Z",
-      "expiresAt": "2026-10-27T05:39:42.905Z"
+      "expiresAt": "2026-10-27T05:45:15.300Z"
     }
   }
 }
