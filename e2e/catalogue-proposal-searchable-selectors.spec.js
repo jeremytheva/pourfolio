@@ -339,3 +339,40 @@ test.describe('mobile touch choices', () => {
     await expect(page.getByRole('button', { name: 'Add beer to catalogue' })).toBeEnabled()
   })
 })
+
+test('keyboard navigation keeps the active style visible beyond the listbox viewport', async ({ page }) => {
+  const categories = Array.from({ length: 40 }, (_, index) => ({
+    id: 1001 + index,
+    category_name: `Keyboard Style ${String(index + 1).padStart(2, '0')}`,
+    parent_id: null
+  }))
+  await page.route('**/api/nocodebackend/catalog/categories?page=1&limit=100', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ items: categories, page: 1, pageSize: 100, total: 40, totalPages: 1 })
+  }))
+  await page.goto('/products/propose?name=Keyboard%20Visibility')
+  const style = page.getByRole('combobox', { name: 'Beer style / category' })
+  const listbox = page.getByRole('listbox', { name: 'Beer style / category' })
+  await style.focus()
+  await expect(listbox).toBeVisible()
+
+  const activeOptionIsVisible = () => style.evaluate((input) => {
+    const option = document.getElementById(input.getAttribute('aria-activedescendant'))
+    const list = option?.closest('[role="listbox"]')
+    if (!option || !list) return false
+    const optionBounds = option.getBoundingClientRect()
+    const listBounds = list.getBoundingClientRect()
+    return optionBounds.top >= listBounds.top && optionBounds.bottom <= listBounds.bottom
+  })
+  for (let index = 0; index < 20; index += 1) await style.press('ArrowDown')
+  await expect(style).toHaveAttribute('aria-activedescendant', 'beer-style-option-1021')
+  await expect.poll(activeOptionIsVisible).toBe(true)
+  await expect(style).toBeFocused()
+
+  for (let index = 0; index < 20; index += 1) await style.press('ArrowUp')
+  await expect(style).toHaveAttribute('aria-activedescendant', 'beer-style-option-1001')
+  await expect.poll(activeOptionIsVisible).toBe(true)
+  await style.press('Enter')
+  await expect(style).toHaveValue('Keyboard Style 01')
+})

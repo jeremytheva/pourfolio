@@ -3,16 +3,18 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Read-only Admin workspace qualification; mutable moderation and release gates remain"
+stage: "Add Beer keyboard visibility repair and current-main validation"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Qualify the contained read-only Admin catalogue workspace and its subject-bound capability projection."
-  issue: 699
-  pr: null
-  branch: "feature/admin-readonly-catalogue"
+  objective: "Repair PR #697 keyboard option visibility and validate the complete form on current main before authenticated read-only category qualification."
+  issue: 695
+  pr: 697
+  branch: "feature/add-beer-release-form"
 next_actions:
-  - "Finish #699 read-only workspace exact-head source/browser/deployment qualification, then observe real Admin/ordinary capabilities on main. Keep mutable approval/audit/role actions unavailable pending #701/#702 provider permission, concurrency and recovery evidence."
+  - "Validate #697 keyboard visibility and current-main integration, then qualify authenticated canonical category pagination and selection against its exact deployed preview before merging. No new provider/rating write is needed for that read-only gate."
+  - "PR #693 is integrated and exact production e9661b0f is READY. Configure independent RELEASE_FIXTURE_ENCRYPTION_KEY before bounded HTTP cellar writes; read-only checks remain available."
+  - "#709 read-only Admin workspace is deployed and bounded Admin/user own-capability isolation passed in run 40494158943. Keep full Admin browser/moderation, role-write denial and revocation open under #699/#701/#702."
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
   - "Approved single-QA recovery passed in run 40389866451: one DELETE, exact absence and other-owned-row preservation verified. Before another HTTP mutation certification, retain encrypted create intent/acknowledgement and safe stage/status evidence."
   - "Live bonus preflight 40240571404 confirms 39 proposed fills and 42 unresolved values. Complete the plan, then use #680 before/after preservation checks and complete historical evidence for governed backfill."
@@ -23,6 +25,9 @@ next_actions:
   - "Complete #165 provider mechanism, consistent snapshot and isolated restore evidence before irreversible migration or historical repair; then close #144/#154 acceptance."
   - "Complete publication, monitored support, named operations owners, anonymous production access and final exact-candidate release qualification."
 blockers:
+  - scope: moderation_provider_schema_access
+    issue: 701
+    detail: "The supplied schema export is dated 14 July 2026. Current exact-instance schema-only evidence or an authorized read-only schema connection remains required before physical mapping and isolated staging certification; source contracts do not grant provider mutation."
   - scope: rating_idempotency_provider_migration
     issue: 165
     detail: "Unconditional parent transitions and late child writes lack certified distributed integrity. Provider uniqueness/atomic workflow, consistent backup, isolated restore and approval for irreversible changes remain required."
@@ -37,27 +42,27 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 3
-  dependent_stack_depth: 1
+  open_implementation_prs: 1
+  dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "132f620bf2ec0dfacb6d30897d006aefc8962727"
+  observed_main_commit: "078843e564c22f91317c2832c1e6991ffc30472a"
   current_candidate_commit: null
-  latest_validated_commit: "a72ba1a7ebafb6dc7a5fef8291f3d6201e70d431"
-  latest_deployed_commit: "132f620bf2ec0dfacb6d30897d006aefc8962727"
+  latest_validated_commit: "7a8e05c669ce39811a9d2bf9308ee315f9048f26"
+  latest_deployed_commit: "e9661b0f6102acb7002f5e207184829bb0398766"
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-  latest_browser_verified_commit: "d5e4ff94510237df0ffb2ca97f35e55a0fd0f803"
+  latest_browser_verified_commit: "828864b8dc1633edf61e051cb76ee020fbb5ca1b"
 validation:
-  governance: PASS
-  lint: PASS
+  governance: NOT_RUN
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PASS
-  build: PASS
-  ci: PASS
-  runtime: VERIFIED
+  tests: NOT_RUN
+  build: NOT_RUN
+  ci: PENDING
+  runtime: UNVERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-27T11:00:00Z"
+last_updated: "2026-10-27T21:19:00Z"
 
 ---
 
@@ -66,6 +71,128 @@ last_updated: "2026-10-27T11:00:00Z"
 Last materially reviewed: 27 October 2026 UTC
 
 ## AI execution gate
+
+### Add Beer selector review repair — 27 October 2026 UTC
+
+PR #697 retains its complete canonical brewery/style controls, reviewed style
+aliases and authenticated canonical-category route. Independent architecture and
+contract review found one material accessibility issue: keyboard navigation could
+move the active option outside the clipped listbox. An active-option ref/effect
+now scrolls that option into nearest view while keeping combobox focus. A
+40-choice browser regression navigates forward beyond the viewport, back to the
+first option, and selects it with Enter. Fresh exact-head canonical Node 22 and
+browser/accessibility validation are pending after reconciliation with current
+main; no new connected PASS is inferred from the older 192-case source evidence.
+
+The existing connected read-only case must still verify full authenticated
+category pagination and select a real style through the new form against its
+exact preview before integration. Earlier access stopped at Vercel protection
+before application authentication; that is unavailable evidence. Existing test
+account secrets are configured. No provider/catalogue/rating write is required
+for this category gate. #696 moderation, #165 distributed integrity, privacy and
+42 missing bonus values remain separate; public launch remains **NO-GO**.
+
+### Deferred moderation contract review — 27 October 2026 UTC
+
+PR #710 merged as `078843e564c22f91317c2832c1e6991ffc30472a` after final
+canonical Node 22 validation of `7a8e05c6` (1,151 passed, 15 intentional skips,
+zero failures and production vulnerabilities). No provider activation is implied.
+
+Existing PR #710 is reconciled with integrated cellar evidence from #693.
+Its previous exact-head canonical run stopped at missing retained issue #701;
+all 11 current blocker/continuity issue states are now refreshed from GitHub in
+the existing evidence file. The checker and blocker remain intact.
+
+Independent review found two accepted #700 rules missing from the proposed
+contract. Needs-changes resubmission now requires a validated field/evidence
+diff; rejected resubmission requires a recorded response to the prior reason.
+Both retain immutable revisions, original-submitter checks and restriction.
+A restricted primary/collaborating producer independently denies new dependent
+product exposure and requires review, including already-approved products;
+verification history and historical attribution are preserved.
+
+The canonical deferred target, offline guards/negative fixtures and migration
+preparation agree on these requirements. Eight focused contract cases and the
+data-contract checker pass in memory under Node 24. Exact source head
+`3a63f736bbf2a8c381277bce3ee4e8c08b69e807` passes canonical Node 22 in
+[run 40585046726](https://github.com/jeremytheva/pourfolio/actions/runs/40585046726),
+job `122474141764`: 1,151 passed, 15 intentional skips, zero failures and zero
+production vulnerabilities. Independent exact-head source/design review found
+no material issue. This changes no application UI; the existing 187-case browser
+baseline remains separately qualified. There is no application, active collection, writer grant or
+provider mutation in this preparation. Physical mapping, all-writer/version
+fencing, actual dynamic exposure enforcement, response/diff validation, recovery
+and activation remain #701/#702 work.
+
+This dependency does not block independent launch work. Public launch remains
+**NO-GO** with the existing #165, #144/#154, privacy and 42-value requirements.
+
+### Durable cellar HTTP fixture evidence — 27 October 2026 UTC
+
+PR #693 merged as `e9661b0f6102acb7002f5e207184829bb0398766` after final
+canonical validation of `b1350719` (1,143 passed, 15 intentional skips, zero
+failures/production vulnerabilities). Exact Vercel production deployment
+`dpl_4W63qs33RcxgnAWoyyHz68Xff5v6` is READY. This does not qualify a connected
+cellar mutation; the independent encryption secret is still required.
+
+The failed connected HTTP test could leave a created fixture without a durable
+original acknowledgement. Its recovery is complete, but the test must retain
+its own evidence before another write qualification.
+
+The helper now requires an encrypted checkpoint writer before reading a
+baseline or sending a fixture mutation. It records the original nonce/product/
+baseline, create intent, HTTP response status before parsing, complete original
+receipt/ID before verification, owner confirmation, update/denial phases and
+exact cleanup intent/response/outcome. Failed checkpoint persistence latches a
+block on subsequent fixture mutations. Unknown outcomes are not retried and
+later list differences do not authorise guessed cleanup.
+
+The connected case verifies both live session identities before creating the
+fixture and requires distinct owners. One owner create/update/delete is
+separate from the two cross-owner mutation-denial probes. Mutating HTTP calls
+disable retries and redirects; a fresh owner read checks that denial probes
+preserved the private fixture fields.
+
+The protected workflow supplies a dedicated 32-byte random Base64
+`RELEASE_FIXTURE_ENCRYPTION_KEY` only to the Node checkpoint writer. Provider
+administration credentials remain owned by the deployed runtime; the existing
+governance prohibition is preserved. Invalid keys fail before baseline reads or
+mutations, and provider/account-password fallback is forbidden. Candidate
+checkout must be a reviewed main ancestor and the workflow runs from main.
+It shares the current-instance cellar concurrency group. A redacted reporter
+publishes only fixed source case IDs, statuses/counts and validated commit
+metadata. Raw output is captured privately and removed; traces/screenshots/
+videos are disabled for connected checks. Only the release summary, cellar
+phase summary, encrypted receipt and build-security result are uploaded.
+
+Source head `828864b8dc1633edf61e051cb76ee020fbb5ca1b` passes canonical Node 22
+validation in [run 40583149978](https://github.com/jeremytheva/pourfolio/actions/runs/40583149978):
+1,143 passed, 15 intentional connected skips, zero failures and zero production
+vulnerabilities. All 187 browser/accessibility cases, Dependency Review and
+CodeQL pass. The actual Playwright CLI redaction smoke passes; independent review
+found no material issues. Forty-two focused in-memory tests also pass after the
+key-contract repair, including malformed/noncanonical key rejection. The earlier
+provider-credential guard failure was corrected without weakening that guard.
+
+The new encryption secret must be entered in protected `staging-release` before
+HTTP cellar mutations; connected tools cannot set GitHub secrets. Read-only
+checks remain usable without it. C1 handoff
+`C1-20261027-POURFOLIO-PR693-SECRET-CONTRACT` is accepted in existing PR #693. No provider
+access or data mutation has occurred for this source preparation. An atomic
+runner-local checkpoint plus always-run artifact retention cannot guarantee
+recovery after loss of the entire worker. Connected certification, #165, profile
+privacy, the 42 missing bonus values and public **NO-GO** remain separate.
+
+### Read-only Admin workspace qualification update — 27 October 2026 UTC
+
+PR #709 merged as `e920d9df9f68214e6bc9a186770cce03239cba69`; exact
+production deployment `dpl_A9xeHx3AdGP7KC9eszmxKeUqdX5m` is READY.
+Protected [run 40494158943](https://github.com/jeremytheva/pourfolio/actions/runs/40494158943)
+at that SHA passed source validation, deployed-target checks, normal distinct
+sessions and cleanup. It observed Admin `catalogue.review` ALLOWED and ordinary
+user DENIED through the own-capability API. This supersedes the following older
+pending checkpoint only within that bounded scope. Full connected Admin browser,
+role-write denial, revocation and mutable moderation remain unqualified.
 
 ### Read-only Admin workspace implementation — 27 October 2026 UTC
 

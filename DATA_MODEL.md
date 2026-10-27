@@ -37,6 +37,17 @@ Use `docs/nocodebackend/launch-schema-contract.md` when deciding whether an appl
 
 The durable rating idempotency/concurrency fields tracked by #165 remain DEFERRED_TARGET. Persistent `profiles` storage is DEPLOYED_REQUIRED from the governed #422 provider change and active application contract; connected permission/uniqueness/recovery certification remains pending.
 
+## Catalogue moderation target
+
+Contract 1.6.0 adds `deferred_targets.catalogue_moderation` under #700. Its logical
+entity/proposal-revision/decision/operation records remain DEFERRED_TARGET with
+null physical mapping, NOT_RUN provider evidence and mutable commands disabled.
+No active collection or external-writer permission changes. Separate record and
+content versions protect concurrent decisions and version-bound approval;
+producer dependency versions and complete attribution are reviewed together.
+Pending beers remain usable, legacy verification is unknown and restriction is
+independent. See the [target/migration package](docs/nocodebackend/moderation-migration-plan.md).
+
 ## Core launch entities
 
 ```mermaid

@@ -10,6 +10,7 @@ export default function CanonicalSearchSelect({
   id, label, options, value, onChange, placeholder, description, onQueryChange
 }) {
   const inputRef = useRef(null)
+  const activeOptionRef = useRef(null)
   const [query, setQuery] = useState('')
   const [expanded, setExpanded] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
@@ -28,6 +29,11 @@ export default function CanonicalSearchSelect({
     ).includes(needle))).slice(0, 60)
   }, [options, query, selected])
   const safeActive = Math.min(activeIndex, Math.max(0, matches.length - 1))
+  const activeOptionId = matches[safeActive]?.id
+
+  useEffect(() => {
+    if (expanded) activeOptionRef.current?.scrollIntoView({ block: 'nearest' })
+  }, [expanded, activeOptionId])
 
   const choose = (option) => {
     onChange(String(option.id))
@@ -126,6 +132,7 @@ export default function CanonicalSearchSelect({
               <li
                 id={`${id}-option-${option.id}`}
                 key={option.id}
+                ref={index === safeActive ? activeOptionRef : null}
                 role="option"
                 aria-selected={String(option.id) === String(value)}
                 className={`cursor-pointer px-3 py-2 text-sm ${index === safeActive ? 'bg-amber-50' : 'hover:bg-gray-50'}`}
