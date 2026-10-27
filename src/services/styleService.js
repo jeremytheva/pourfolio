@@ -1,5 +1,5 @@
 import { ApiError, apiRequest } from '../lib/nocodeBackend.js'
-import { validateCataloguePage } from './catalogueResponse.js'
+import { validateCataloguePage, validateCatalogueCategoryPage } from './catalogueResponse.js'
 
 const INVALID_STYLE_ID_MESSAGE = 'Style identifier is invalid.'
 const INVALID_STYLE_ID_CODE = 'invalid_style_identifier'
@@ -135,7 +135,32 @@ const verifiedStyleDetailFromProducts = (products, styleId) => {
   })
 }
 
+const readAllCanonicalCategories = async () => {
+  const categories = []
+  const seen = new Set()
+  let page = 1
+  while (true) {
+    const result = validateCatalogueCategoryPage(
+      await apiRequest(`/catalog/categories?page=${page}&limit=100`),
+      { expectedPage: page, expectedPageSize: 100 }
+    )
+    for (const category of result.items) {
+      const id = String(category.id)
+      if (seen.has(id)) throw styleDataError()
+      seen.add(id)
+      categories.push(Object.freeze({ style: category }))
+    }
+    if (page >= result.totalPages) break
+    page += 1
+  }
+  return Object.freeze(categories.sort((a, b) => a.style.category_name.localeCompare(b.style.category_name)))
+}
+
 export const styleService = {
+  async listCanonicalStyleOptions() {
+    return readAllCanonicalCategories()
+  },
+
   async listVerifiedStyles() {
     return verifiedStyleIndexFromProducts(await readAllVerifiedProducts())
   },
