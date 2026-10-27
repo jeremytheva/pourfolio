@@ -8,6 +8,8 @@
       "pr": 697,
       "surfaces": [
         "branch:feature/add-beer-release-form",
+        "branch:fix/add-beer-connected-evidence-20261027",
+        "file:.github/workflows/add-beer-connected-evidence.yml",
         "file:STATUS.md",
         "file:api/catalog-data-proxy.js",
         "file:api/nocodebackend/__tests__/catalogueCategories.test.js",
@@ -24,7 +26,7 @@
         "repo:integration"
       ],
       "acquiredAt": "2026-10-27T21:00:16.000Z",
-      "expiresAt": "2026-10-27T21:49:06.000Z"
+      "expiresAt": "2026-10-27T22:12:30.000Z"
     }
   }
 }
