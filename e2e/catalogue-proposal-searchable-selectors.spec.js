@@ -95,30 +95,21 @@ test('add beer links an existing verified producer and creates the product', asy
   await expect(page.getByLabel('Product image URL')).toHaveCount(0)
   await expect(page.getByText('Image submission is not available yet.')).toBeVisible()
 
-  const producerSearch = page.getByLabel('Search breweries')
-  const producerSelect = page.getByLabel('Select brewery')
-  await producerSearch.fill('Other')
-  await expect(page.locator('#producer-search-status')).toHaveText('1 of 2 verified breweries shown.')
-  await expect(producerSelect.locator('option')).toHaveCount(2)
-  await producerSelect.selectOption('21')
+  const producerPicker = page.getByRole('combobox', { name: 'Brewery / producer' })
+  await producerPicker.fill('Other')
+  await expect(page.getByRole('option', { name: 'Other Brewing' })).toBeVisible()
+  await page.getByRole('option', { name: 'Other Brewing' }).click()
 
-  const styleSearch = page.getByLabel('Search beer styles')
-  const styleSelect = page.getByLabel('Beer style / category')
-  await styleSearch.fill('Stout')
-  await expect(page.locator('#style-search-status')).toHaveText('1 of 2 verified styles shown.')
-  await expect(styleSelect.locator('option')).toHaveCount(2)
-  await styleSelect.selectOption('11')
+  const stylePicker = page.getByRole('combobox', { name: 'Beer style / category' })
+  await stylePicker.fill('Stout')
+  await page.getByRole('option', { name: 'Stout' }).click()
+  await page.getByLabel('Stated Style (on can/bottle)').fill('Oatmeal Stout')
 
-  const reviewButton = page.getByRole('button', { name: 'Review beer' })
-  await expect(reviewButton).toBeDisabled()
+  const submitButton = page.getByRole('button', { name: 'Add beer to catalogue' })
+  await expect(submitButton).toBeDisabled()
   await expect(page.getByText('No likely duplicate was found in the current search results.')).toBeVisible()
-  await expect(reviewButton).toBeEnabled()
-  await reviewButton.click()
-
-  const review = page.locator('section[aria-labelledby="review-heading"]')
-  await expect(review.getByText('Other Brewing')).toBeVisible()
-  await expect(review.getByText('Stout')).toBeVisible()
-  await page.getByRole('button', { name: 'Add beer to catalogue' }).click()
+  await expect(submitButton).toBeEnabled()
+  await submitButton.click()
 
   await expect(page).toHaveURL(/\/products\/6$/)
   expect(submittedBody.producer_id).toBe('21')
@@ -126,6 +117,7 @@ test('add beer links an existing verified producer and creates the product', asy
   expect(submittedBody.collaboration).toBe(false)
   expect(submittedBody.product_category_id).toBe('11')
   expect(submittedBody.product_name).toBe('New Beer')
+  expect(submittedBody.declared_category).toBe('Oatmeal Stout')
   expect(submittedBody).not.toHaveProperty('new_producer')
   expect(submittedBody).not.toHaveProperty('user_id')
   expect(submittedBody).not.toHaveProperty('product_image')
@@ -152,16 +144,16 @@ test('add beer can create a missing producer without exposing raw relationship i
   })
 
   await page.goto('/products/propose?name=New%20Beer')
-  await page.getByLabel('Add a brewery').first().check()
+  await page.getByRole('combobox', { name: 'Brewery / producer' }).fill('Brand New')
+  await page.getByRole('button', { name: /Can't find the brewery\? Add a brewery/ }).click()
   await page.getByLabel('New brewery / producer name').fill('Brand New Brewing')
-  await page.getByLabel('Beer style / category').selectOption('11')
+  await page.getByRole('combobox', { name: 'Beer style / category' }).fill('Stout')
+  await page.getByRole('option', { name: 'Stout' }).click()
 
   await expect(page.getByLabel(/producer id/i)).toHaveCount(0)
-  const reviewButton = page.getByRole('button', { name: 'Review beer' })
-  await expect(reviewButton).toBeEnabled()
-  await reviewButton.click()
-  await expect(page.locator('section[aria-labelledby="review-heading"]').getByText('Brand New Brewing')).toBeVisible()
-  await page.getByRole('button', { name: 'Add beer to catalogue' }).click()
+  const submitButton = page.getByRole('button', { name: 'Add beer to catalogue' })
+  await expect(submitButton).toBeEnabled()
+  await submitButton.click()
 
   await expect(page).toHaveURL(/\/products\/7$/)
   expect(submittedBody.new_producer).toEqual({ producer_name: 'Brand New Brewing' })
@@ -201,17 +193,14 @@ test('add beer supports multiple producers and derives collaboration state', asy
   })
 
   await page.goto('/products/propose?name=New%20Beer')
-  await page.getByLabel('Select brewery').selectOption('20')
+  await page.getByRole('combobox', { name: 'Brewery / producer' }).fill('Rocky')
+  await page.getByRole('option', { name: 'Rocky Ridge Brewing' }).click()
   await page.getByRole('button', { name: 'Add collaborating brewery' }).click()
   await page.getByLabel('Collaborating brewery 2 existing producer').selectOption('21')
-  await page.getByLabel('Beer style / category').selectOption('11')
+  await page.getByRole('combobox', { name: 'Beer style / category' }).fill('Stout')
+  await page.getByRole('option', { name: 'Stout' }).click()
 
   await expect(page.getByText('2 producers will be linked. This beer will be recorded as a collaboration.')).toBeVisible()
-  await page.getByRole('button', { name: 'Review beer' }).click()
-  const review = page.locator('section[aria-labelledby="review-heading"]')
-  await expect(review.getByText('Rocky Ridge Brewing')).toBeVisible()
-  await expect(review.getByText('Other Brewing')).toBeVisible()
-  await expect(review.getByText('Yes')).toBeVisible()
   await page.getByRole('button', { name: 'Add beer to catalogue' }).click()
 
   await expect(page).toHaveURL(/\/products\/8$/)
@@ -225,8 +214,10 @@ test('add beer explains style and edition duplicate signals', async ({ page }) =
   await installDuplicateSearch(page)
   await page.goto('/products/propose?name=Dark%20Matter')
 
-  await page.getByLabel('Select brewery').selectOption('21')
-  await page.getByLabel('Beer style / category').selectOption('11')
+  await page.getByRole('combobox', { name: 'Brewery / producer' }).fill('Other')
+  await page.getByRole('option', { name: 'Other Brewing' }).click()
+  await page.getByRole('combobox', { name: 'Beer style / category' }).fill('Stout')
+  await page.getByRole('option', { name: 'Stout' }).click()
   await page.getByLabel('Edition / vintage').fill('2026')
 
   const duplicateSection = page.locator('section[aria-labelledby="duplicate-heading"]')
@@ -236,5 +227,35 @@ test('add beer explains style and edition duplicate signals', async ({ page }) =
 
   await page.getByLabel('Edition / vintage').fill('2025')
   await expect(duplicateSection.getByText('Same primary brewery · same name · same style · different edition')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Review beer' })).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'Add beer to catalogue' })).toBeEnabled()
+})
+
+test('searchable style offers only verified BJCP/BA alternatives and retains canonical website category ID', async ({ page }) => {
+  await page.route('**/api/nocodebackend/catalog/products?page=1&limit=50', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      items: [{ ...product, product_category_id: 31, category: { id: 31, category_name: 'American IPA' } }],
+      page: 1, pageSize: 50, total: 1, totalPages: 1
+    })
+  }))
+  await page.goto('/products/propose?name=Test%20IPA')
+  const stylePicker = page.getByRole('combobox', { name: 'Beer style / category' })
+  await stylePicker.fill('21A')
+  await expect(page.getByRole('option', { name: /American IPA.*BJCP 21A/ })).toBeVisible()
+  await page.getByRole('option', { name: /American IPA.*BJCP 21A/ }).click()
+  await expect(stylePicker).toHaveValue('American IPA')
+  await expect(page.getByText('Verified BJCP/BA equivalents appear in brackets')).toBeVisible()
+})
+
+test('brewery picker supports keyboard choice and clearing an obsolete selected producer ID', async ({ page }) => {
+  await page.goto('/products/propose?name=Keyboard%20Beer')
+  const picker = page.getByRole('combobox', { name: 'Brewery / producer' })
+  await picker.focus()
+  await picker.press('ArrowDown')
+  await picker.press('Enter')
+  await expect(picker).not.toHaveValue('')
+  await picker.fill('not-a-brewery')
+  await expect(page.getByRole('button', { name: 'Add beer to catalogue' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: /Can't find the brewery\? Add a brewery/ })).toBeVisible()
 })
