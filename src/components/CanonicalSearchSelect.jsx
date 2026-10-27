@@ -84,9 +84,9 @@ export default function CanonicalSearchSelect({
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={expanded}
-          aria-controls={listId}
+          aria-controls={expanded ? listId : undefined}
           aria-activedescendant={expanded && matches[safeActive] ? `${id}-option-${matches[safeActive].id}` : undefined}
-          aria-describedby={description ? `${id}-hint` : `${id}-status`}
+          aria-describedby={[description ? `${id}-hint` : null, `${id}-status`].filter(Boolean).join(' ')}
           autoComplete="off"
           placeholder={placeholder}
           value={query}
@@ -112,6 +112,7 @@ export default function CanonicalSearchSelect({
         </button>
       </div>
       {description && <p id={`${id}-hint`} className="mt-1 text-xs text-gray-600">{description}</p>}
+      {selected?.description && <p className="mt-1 text-xs text-gray-600">Mapped style guidance: {selected.description}</p>}
       <p id={`${id}-status`} className="mt-1 text-xs text-gray-500" role="status" aria-live="polite">
         {selected ? `Selected: ${selected.name}. ` : ''}
         {expanded ? `Showing ${matches.length} of ${options.length} choices. Use arrow keys and Enter to select.` : 'Type to find a choice or open the list.'}
