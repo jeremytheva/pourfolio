@@ -15,6 +15,23 @@
       ],
       "acquiredAt": "2026-10-27T08:37:14.161Z",
       "expiresAt": "2026-10-27T09:07:14.161Z"
+    },
+    "catalogue": {
+      "owner": "codex:admin-foundation:1793090326513",
+      "workstream": "catalogue",
+      "issue": 699,
+      "pr": 694,
+      "surfaces": [
+        "repo:integration",
+        "pr:694",
+        "issue:699",
+        "api/_lib/adminPolicy.js",
+        "api/_lib/__tests__/adminPolicy.test.js",
+        "docs/admin-permission-foundation.md",
+        "STATUS.md"
+      ],
+      "acquiredAt": "2026-10-27T08:38:46.513Z",
+      "expiresAt": "2026-10-27T09:08:46.513Z"
     }
   }
 }
