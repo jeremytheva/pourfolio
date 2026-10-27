@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
-import { requiredEnvironment, responseJson, signIn } from './support.js'
+import { requiredEnvironment, responseJson, signIn, signOut } from './support.js'
+import { validateCatalogueCategoryPage } from '../src/services/catalogueResponse.js'
 
 const ownerCredentials = requiredEnvironment([
   'RELEASE_OWNER_EMAIL',
@@ -59,4 +60,37 @@ test('read-only catalogue failures and verified brewery navigation stay truthful
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   const breweryProducts = page.getByRole('heading', { name: 'Beer from this brewery' }).locator('xpath=..').locator('xpath=..')
   await expect(breweryProducts.getByRole('link')).not.toHaveCount(0)
+})
+
+test('connected Add Beer style choices use every authenticated canonical category page', async ({ page }) => {
+  test.setTimeout(120_000)
+  await signIn(page, ownerCredentials.RELEASE_OWNER_EMAIL, ownerCredentials.RELEASE_OWNER_PASSWORD)
+
+  const seen = new Set()
+  const categories = []
+  let totalPages = 1
+  for (let current = 1; current <= totalPages; current += 1) {
+    if (current > 25) throw new Error('Connected category pagination exceeded the bounded page count.')
+    const response = await page.request.get(`/api/nocodebackend/catalog/categories?page=${current}&limit=100`)
+    expect(response.status()).toBe(200)
+    const body = await responseJson(response)
+    const result = validateCatalogueCategoryPage(body, { expectedPage: current, expectedPageSize: 100 })
+    totalPages = result.totalPages
+    for (const category of result.items) {
+      const id = String(category.id)
+      expect(seen.has(id)).toBe(false)
+      seen.add(id)
+      categories.push(category)
+    }
+  }
+  expect(categories.length).toBeGreaterThan(0)
+
+  await page.goto('/products/propose')
+  const style = page.getByRole('combobox', { name: 'Beer style / category' })
+  await expect(style).toBeVisible()
+  const categoryName = categories[0].category_name
+  await style.fill(categoryName)
+  await page.getByRole('option').filter({ has: page.getByText(categoryName, { exact: true }) }).first().click()
+  await expect(style).toHaveValue(categoryName)
+  await signOut(page)
 })
