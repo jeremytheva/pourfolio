@@ -4,29 +4,27 @@
     "catalogue": {
       "owner": "catalogue-http-receipts-20261027T2100Z",
       "workstream": "catalogue",
-      "issue": 700,
-      "pr": 710,
+      "issue": 695,
+      "pr": 697,
       "surfaces": [
-        "branch:feature/admin-moderation-contract",
-        "file:.project-master/launch-readiness.json",
-        "file:DATA_MODEL.md",
+        "branch:feature/add-beer-release-form",
         "file:STATUS.md",
-        "file:contracts/pourfolio-data-contract.json",
-        "file:docs/DATA_MODEL.md",
+        "file:api/catalog-data-proxy.js",
+        "file:api/nocodebackend/__tests__/catalogueCategories.test.js",
         "file:docs/LAUNCH_READINESS.md",
-        "file:docs/TESTING.md",
-        "file:docs/admin-permission-foundation.md",
-        "file:docs/evidence/github-issue-state.json",
-        "file:docs/nocodebackend/launch-schema-contract.md",
-        "file:docs/nocodebackend/moderation-migration-plan.md",
-        "file:docs/nocodebackend/schema-mapping.md",
-        "file:scripts/__tests__/moderation-contract.test.js",
-        "file:scripts/check-data-contract.js",
-        "file:scripts/moderation-contract.js",
+        "file:docs/add-product-moderation.md",
+        "file:e2e/catalogue-proposal-searchable-selectors.spec.js",
+        "file:e2e/mockApi.js",
+        "file:release-check/catalogue-readonly.spec.js",
+        "file:src/components/CanonicalSearchSelect.jsx",
+        "file:src/pages/AddBeerProposal.jsx",
+        "file:src/services/__tests__/catalogueCategoryPage.test.js",
+        "file:src/services/catalogueResponse.js",
+        "file:src/services/styleService.js",
         "repo:integration"
       ],
       "acquiredAt": "2026-10-27T21:00:16.000Z",
-      "expiresAt": "2026-10-27T21:41:40.000Z"
+      "expiresAt": "2026-10-27T21:49:06.000Z"
     }
   }
 }
