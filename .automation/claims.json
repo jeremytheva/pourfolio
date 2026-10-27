@@ -1,17 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "codex:admin-contract:1793085772679",
-      "workstream": "catalogue",
-      "issue": 700,
-      "pr": null,
-      "surfaces": [
-        "issue:699",
-        "issue:700"
-      ],
-      "acquiredAt": "2026-10-27T07:22:52.679Z",
-      "expiresAt": "2026-10-27T07:52:52.679Z"
-    }
-  }
+  "claims": {}
 }
