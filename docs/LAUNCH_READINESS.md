@@ -41,6 +41,12 @@ changes in this diagnostic correction.
 
 ### Durable cellar HTTP fixture evidence — 27 October 2026 UTC
 
+PR #693 merged as `e9661b0f6102acb7002f5e207184829bb0398766` after final
+canonical validation of `b1350719` (1,143 passed, 15 intentional skips, zero
+failures/production vulnerabilities). Exact Vercel production deployment
+`dpl_4W63qs33RcxgnAWoyyHz68Xff5v6` is READY. This does not qualify a connected
+cellar mutation; the independent encryption secret is still required.
+
 The failed connected HTTP test could leave a created fixture without a durable
 original acknowledgement. Its recovery is complete, but the test must retain
 its own evidence before another write qualification.

@@ -54,6 +54,12 @@ entry keeps its current policy.
 
 ## Connected observation and boundaries
 
+The refined protected run 40494158943 (job 122155245104) at main/runtime
+`e920d9d` verified actual `user.role` symbols: `admin` received read-only catalogue
+review; `user` received no capability. Distinct identities, normal sessions and
+sign-out/cleanup passed. Full provider role-write denial and revocation remain
+NOT_RUN; no mutable authority was certified.
+
 The initial protected run 40487355621 at main/runtime `132f620` independently
 verified two normal sessions, distinct identities and cleanup. It observed
 `user.role` with near-Admin/non-Admin classes. This established the source field,
@@ -106,3 +112,7 @@ Connected role-write denial and revocation remain NOT_RUN. Source tests prove
 fresh application checks, not actual provider permissions/cache semantics.
 The #696 stable-ID and immediately rateable pending-beer rules remain required.
 Existing rating integrity, privacy and public-launch NO-GO gates are unchanged.
+
+The canonical deferred moderation target and its [migration preparation](nocodebackend/moderation-migration-plan.md)
+under #700 specify the remaining version, permission, audit and recovery contract.
+They create no runtime permission or provider resource.

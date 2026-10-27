@@ -3,16 +3,17 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Validated cellar HTTP evidence integration; protected encryption configuration pending"
+stage: "Validated deferred moderation contract integration; independent launch work continues"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Integrate validated PR #693, then qualify bounded HTTP cellar evidence when its independent encryption key is configured."
-  issue: 144
-  pr: 693
-  branch: "fix/cellar-http-receipts-20261026"
+  objective: "Validate and integrate repaired deferred moderation rules in existing PR #710; preserve provider and runtime activation gates."
+  issue: 700
+  pr: 710
+  branch: "feature/admin-moderation-contract"
 next_actions:
-  - "Validate and integrate #693 against current main without provider credentials in the connected browser workflow; configure the independent RELEASE_FIXTURE_ENCRYPTION_KEY before bounded HTTP cellar writes."
+  - "Validate and integrate #710 with refreshed retained issue evidence, state-specific resubmission rules and preserved restricted-producer exposure constraints; then repair #697 keyboard selector visibility."
+  - "PR #693 is integrated and exact production e9661b0f is READY. Configure independent RELEASE_FIXTURE_ENCRYPTION_KEY before bounded HTTP cellar writes; read-only checks remain available."
   - "#709 read-only Admin workspace is deployed and bounded Admin/user own-capability isolation passed in run 40494158943. Keep full Admin browser/moderation, role-write denial and revocation open under #699/#701/#702."
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
   - "Approved single-QA recovery passed in run 40389866451: one DELETE, exact absence and other-owned-row preservation verified. Before another HTTP mutation certification, retain encrypted create intent/acknowledgement and safe stage/status evidence."
@@ -24,6 +25,9 @@ next_actions:
   - "Complete #165 provider mechanism, consistent snapshot and isolated restore evidence before irreversible migration or historical repair; then close #144/#154 acceptance."
   - "Complete publication, monitored support, named operations owners, anonymous production access and final exact-candidate release qualification."
 blockers:
+  - scope: moderation_provider_schema_access
+    issue: 701
+    detail: "The supplied schema export is dated 14 July 2026. Current exact-instance schema-only evidence or an authorized read-only schema connection remains required before physical mapping and isolated staging certification; source contracts do not grant provider mutation."
   - scope: rating_idempotency_provider_migration
     issue: 165
     detail: "Unconditional parent transitions and late child writes lack certified distributed integrity. Provider uniqueness/atomic workflow, consistent backup, isolated restore and approval for irreversible changes remain required."
@@ -38,15 +42,15 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 3
+  open_implementation_prs: 2
   dependent_stack_depth: 1
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "e920d9df9f68214e6bc9a186770cce03239cba69"
+  observed_main_commit: "e9661b0f6102acb7002f5e207184829bb0398766"
   current_candidate_commit: null
-  latest_validated_commit: "828864b8dc1633edf61e051cb76ee020fbb5ca1b"
-  latest_deployed_commit: "e920d9df9f68214e6bc9a186770cce03239cba69"
+  latest_validated_commit: "3a63f736bbf2a8c381277bce3ee4e8c08b69e807"
+  latest_deployed_commit: "e9661b0f6102acb7002f5e207184829bb0398766"
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
   latest_browser_verified_commit: "828864b8dc1633edf61e051cb76ee020fbb5ca1b"
 validation:
@@ -58,7 +62,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-27T21:07:00Z"
+last_updated: "2026-10-27T21:16:00Z"
 
 ---
 
@@ -68,7 +72,44 @@ Last materially reviewed: 27 October 2026 UTC
 
 ## AI execution gate
 
+### Deferred moderation contract review — 27 October 2026 UTC
+
+Existing PR #710 is reconciled with integrated cellar evidence from #693.
+Its previous exact-head canonical run stopped at missing retained issue #701;
+all 11 current blocker/continuity issue states are now refreshed from GitHub in
+the existing evidence file. The checker and blocker remain intact.
+
+Independent review found two accepted #700 rules missing from the proposed
+contract. Needs-changes resubmission now requires a validated field/evidence
+diff; rejected resubmission requires a recorded response to the prior reason.
+Both retain immutable revisions, original-submitter checks and restriction.
+A restricted primary/collaborating producer independently denies new dependent
+product exposure and requires review, including already-approved products;
+verification history and historical attribution are preserved.
+
+The canonical deferred target, offline guards/negative fixtures and migration
+preparation agree on these requirements. Eight focused contract cases and the
+data-contract checker pass in memory under Node 24. Exact source head
+`3a63f736bbf2a8c381277bce3ee4e8c08b69e807` passes canonical Node 22 in
+[run 40585046726](https://github.com/jeremytheva/pourfolio/actions/runs/40585046726),
+job `122474141764`: 1,151 passed, 15 intentional skips, zero failures and zero
+production vulnerabilities. Independent exact-head source/design review found
+no material issue. This changes no application UI; the existing 187-case browser
+baseline remains separately qualified. There is no application, active collection, writer grant or
+provider mutation in this preparation. Physical mapping, all-writer/version
+fencing, actual dynamic exposure enforcement, response/diff validation, recovery
+and activation remain #701/#702 work.
+
+This dependency does not block independent launch work. Public launch remains
+**NO-GO** with the existing #165, #144/#154, privacy and 42-value requirements.
+
 ### Durable cellar HTTP fixture evidence — 27 October 2026 UTC
+
+PR #693 merged as `e9661b0f6102acb7002f5e207184829bb0398766` after final
+canonical validation of `b1350719` (1,143 passed, 15 intentional skips, zero
+failures/production vulnerabilities). Exact Vercel production deployment
+`dpl_4W63qs33RcxgnAWoyyHz68Xff5v6` is READY. This does not qualify a connected
+cellar mutation; the independent encryption secret is still required.
 
 The failed connected HTTP test could leave a created fixture without a durable
 original acknowledgement. Its recovery is complete, but the test must retain

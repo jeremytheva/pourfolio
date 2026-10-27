@@ -212,6 +212,23 @@ The browser may edit only `name`, `description`, `avatar_url` and `rating_histor
 
 This classification records the governed deployed structure and current application path. It does not close #422: connected provider evidence is still required for owner create/read/update, uniqueness/default behavior with a valid authenticated subject, cross-owner denial, public/private projection, cleanup and recovery.
 
+## Catalogue moderation — DEFERRED_TARGET
+
+Contract 1.6.0 adds only the logical target at
+`deferred_targets.catalogue_moderation`: entity moderation, immutable proposal
+revisions, decisions and actor-scoped operations. Physical mapping is null,
+provider evidence NOT_RUN and mutable_enabled false. No active collection or
+external-writer grant changes. The current read-only Admin workspace does not
+require these fields and projects no verification state from their absence.
+
+The [target/migration package](moderation-migration-plan.md) requires fresh
+schema/permission mapping, independent record/content/dependency fences,
+all-writer compatibility, consistent initialization/audit/recovery, complete
+snapshot and isolated restore before activation. Pending beers remain rateable
+and cellar-eligible; restriction independently denies new activity and preserves
+safe historical references. Legacy verification is explicit unknown. #701 owns
+provider evidence; source fixtures do not qualify any deployed capability.
+
 ## Provider/certification boundary
 
 This classification permits application alignment from supplied provider exports and governed owner-confirmed schema changes without pretending that repository evidence is fresh live schema introspection.
