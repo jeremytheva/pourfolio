@@ -44,6 +44,14 @@ const installVerifiedRelationshipPage = async (page) => {
       totalPages: 1
     })
   }))
+  await page.route('**/api/nocodebackend/catalog/categories?page=1&limit=100', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      items: [product.category, secondProduct.category],
+      page: 1, pageSize: 100, total: 2, totalPages: 1
+    })
+  }))
   await page.route('**/api/nocodebackend/catalog/products?page=1&limit=50', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
@@ -230,13 +238,13 @@ test('add beer explains style and edition duplicate signals', async ({ page }) =
   await expect(page.getByRole('button', { name: 'Add beer to catalogue' })).toBeEnabled()
 })
 
-test('searchable style offers only verified BJCP/BA alternatives and retains canonical website category ID', async ({ page }) => {
-  await page.route('**/api/nocodebackend/catalog/products?page=1&limit=50', (route) => route.fulfill({
+test('unused canonical style is selectable using reviewed BJCP/BA aliases', async ({ page }) => {
+  await page.route('**/api/nocodebackend/catalog/categories?page=1&limit=100', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({
-      items: [{ ...product, product_category_id: 31, category: { id: 31, category_name: 'American IPA' } }],
-      page: 1, pageSize: 50, total: 1, totalPages: 1
+      items: [product.category, { id: 31, category_name: 'American IPA', parent_id: null }],
+      page: 1, pageSize: 100, total: 2, totalPages: 1
     })
   }))
   await page.goto('/products/propose?name=Test%20IPA')
