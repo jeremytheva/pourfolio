@@ -258,6 +258,12 @@ function AddBeerProposal() {
           
           {producerMode === 'existing' ? (
             <div className="space-y-3">
+              <button type="button" onClick={() => {
+                setNewProducerName(producerQuery.trim())
+                setProducerChoice('new')
+              }} className="text-sm font-semibold text-amber-800 underline">
+                Can't find the brewery? Add a brewery
+              </button>
               <CanonicalSearchSelect
                 id="primary-producer"
                 label="Brewery / producer"
@@ -267,12 +273,6 @@ function AddBeerProposal() {
                 onQueryChange={setProducerQuery}
                 placeholder="Search breweries"
               />
-              <button type="button" onClick={() => {
-                setNewProducerName(producerQuery.trim())
-                setProducerChoice('new')
-              }} className="text-sm font-semibold text-amber-800 underline">
-                Can't find the brewery? Add a brewery
-              </button>
             </div>
           ) : (
             <div className="space-y-3">
