@@ -24,6 +24,13 @@ const canonicalProducerRows = (producers) => Object.freeze(producers
   }))
 
 export const producerService = {
+  async listCanonicalProducerPage({ search = '', page = 1, limit = VERIFIED_PRODUCER_PAGE_SIZE } = {}) {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) })
+    if (String(search).trim()) params.set('q', String(search).trim())
+    return validateCatalogueProducerPage(await apiRequest(`/catalog/producers?${params}`), {
+      expectedPage: page, expectedPageSize: limit
+    })
+  },
   async getProducer(producerId) {
     const identifier = normaliseCatalogueProducerId(producerId)
     return validateCatalogueProducer(await apiRequest(`/catalog/producers/${identifier}`), {
@@ -35,10 +42,7 @@ export const producerService = {
     const producers = []
     let page = 1
     while (true) {
-      const catalogue = validateCatalogueProducerPage(
-        await apiRequest(`/catalog/producers?page=${page}&limit=${VERIFIED_PRODUCER_PAGE_SIZE}`),
-        { expectedPage: page, expectedPageSize: VERIFIED_PRODUCER_PAGE_SIZE }
-      )
+      const catalogue = await producerService.listCanonicalProducerPage({ page })
       producers.push(...catalogue.items)
       if (page >= catalogue.totalPages) break
       page += 1

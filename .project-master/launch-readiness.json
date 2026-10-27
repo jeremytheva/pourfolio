@@ -5,7 +5,7 @@
     "version": "1.1.0",
     "adoption": "adapted"
   },
-  "project": "Pourfolio — beer-first launch",
+  "project": "Pourfolio \u2014 beer-first launch",
   "goal_source": "PROJECT.md",
   "readiness_source": "docs/LAUNCH_READINESS.md",
   "tracked_roots": [
@@ -28,7 +28,8 @@
       "criticality": "blocking",
       "issue_refs": [
         "#577",
-        "#144"
+        "#144",
+        "#699"
       ],
       "change_paths": [
         "api/**auth**",
@@ -36,11 +37,26 @@
         "api/**/rateLimit*",
         "src/**/Auth*",
         "src/**/Login*",
-        "server/**"
+        "server/**",
+        "api/**/adminPolicy*",
+        "scripts/admin-role-source-assessment.js",
+        "scripts/__tests__/adminRoleSourceAssessment.test.js",
+        ".github/workflows/admin-role-source-assessment.yml",
+        "api/**/adminReview*",
+        "src/**/adminReview*",
+        "src/**/useAdminReview*",
+        "src/pages/AdminCatalogue.jsx",
+        "e2e/admin-catalogue.spec.js"
       ],
       "test_refs": [
         "e2e/authentication.spec.js",
-        "release-check/connected.spec.js"
+        "release-check/connected.spec.js",
+        "api/_lib/__tests__/adminPolicy.test.js",
+        "scripts/__tests__/adminRoleSourceAssessment.test.js",
+        "api/_lib/__tests__/adminReviewAccess.test.js",
+        "api/__tests__/adminReviewCapabilities.test.js",
+        "src/services/__tests__/adminReviewService.test.js",
+        "e2e/admin-catalogue.spec.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",
@@ -193,7 +209,10 @@
         "data/style-guideline*",
         "e2e/style-reference*",
         "e2e/style-explorer.spec.js",
-        "e2e/mockApi.js"
+        "e2e/mockApi.js",
+        "src/services/producerService.js",
+        "src/pages/AdminCatalogue.jsx",
+        "e2e/admin-catalogue.spec.js"
       ],
       "test_refs": [
         "e2e/core-flow.spec.js",
@@ -202,7 +221,8 @@
         "api/_lib/__tests__/catalogueTombstoneMetrics.test.js",
         "api/_lib/__tests__/styleGuidelines.test.js",
         "api/nocodebackend/__tests__/styleReference.test.js",
-        "e2e/style-reference-comparison.spec.js"
+        "e2e/style-reference-comparison.spec.js",
+        "e2e/admin-catalogue.spec.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",

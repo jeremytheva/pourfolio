@@ -23,6 +23,12 @@ const AUTH_ACTIONS = Object.freeze({
 })
 
 const PROVIDER_CREDENTIAL_ACTIONS = new Set(['providers'])
+const AUTH_BODY_FIELDS = Object.freeze({
+  'sign-up/email': ['name', 'email', 'password'],
+  'sign-in/email': ['email', 'password'],
+  'sign-in/otp': ['email'],
+  'verify-otp': ['email', 'otp']
+})
 const configuredInstance = () => process.env.NOCODEBACKEND_INSTANCE?.trim() || null
 const configuredAuthBaseUrl = () => resolveAuthBaseUrl(process.env.NOCODEBACKEND_AUTH_BASE_URL)
 
@@ -45,11 +51,27 @@ const getRequestPath = (request) => {
 
 const getRequestBody = (request, path) => {
   if (['GET', 'HEAD'].includes(request.method)) return undefined
-  if (request.body === undefined || request.body === null) {
-    return path === 'sign-out' ? '{}' : undefined
+  if (path === 'sign-out') return '{}'
+  if (request.body === undefined || request.body === null) return undefined
+  const invalid = () => Object.assign(new Error('Authentication request body must contain valid JSON fields.'), {
+    status: 400, code: 'AUTH_REQUEST_INVALID'
+  })
+  let body = request.body
+  if (typeof body === 'string' || Buffer.isBuffer(body)) {
+    try {
+      body = JSON.parse(body.toString())
+    } catch {
+      throw invalid()
+    }
   }
-  if (typeof request.body === 'string' || Buffer.isBuffer(request.body)) return request.body
-  return JSON.stringify(request.body)
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw invalid()
+  const safe = {}
+  for (const field of AUTH_BODY_FIELDS[path] || []) {
+    if (!Object.hasOwn(body, field)) continue
+    if (typeof body[field] !== 'string') throw invalid()
+    safe[field] = body[field]
+  }
+  return JSON.stringify(safe)
 }
 
 const safeRedirectTarget = (request, value) => {
@@ -141,11 +163,11 @@ const copyResponseHeaders = (upstream, response) => {
   if (cookies.length) response.setHeader('Set-Cookie', cookies.map(secureCookie))
 }
 
-const fetchUpstreamResponse = (request, path, secret) => withTimeout(async (signal) => {
+const fetchUpstreamResponse = (request, path, secret, requestBody = getRequestBody(request, path)) => withTimeout(async (signal) => {
   const upstream = await fetch(buildUpstreamUrl(request, path), {
     method: request.method,
     headers: buildUpstreamHeaders(request, secret),
-    body: getRequestBody(request, path),
+    body: requestBody,
     redirect: 'manual',
     signal
   })
@@ -202,10 +224,20 @@ export default async function handler(request, response) {
   if (!enforceRequestSize(request, response) || !enforceOrigin(request, response)) return
   const rateLimit = rateLimitPolicyFor(path)
   if (!enforceRateLimit(request, response, { key: `auth:${rateLimit.name}`, ...rateLimit })) return
+  let requestBody
+  try {
+    requestBody = getRequestBody(request, path)
+  } catch {
+    response.status(400).json({
+      error: 'Authentication request body must contain valid JSON fields.',
+      code: 'AUTH_REQUEST_INVALID', requestId: correlationId
+    })
+    return
+  }
   if (!await enforceSharedRateLimit(request, response, path, { requestId: correlationId })) return
 
   try {
-    const { upstream, body } = await fetchUpstreamResponse(request, path, secret)
+    const { upstream, body } = await fetchUpstreamResponse(request, path, secret, requestBody)
 
     copyResponseHeaders(upstream, response)
 

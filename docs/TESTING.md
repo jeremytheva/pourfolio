@@ -53,6 +53,29 @@ does not verify the deployed flag state or connected gameplay. Unset-flag denial
 remains covered separately by Node policy tests; applicable Playwright and
 accessibility coverage remains required.
 
+## Admin catalogue review coverage
+
+Node policy/handler tests cover exact provider role spellings, one fresh
+identity-bound session read, demotion on the next request, missing/metadata-only
+roles, forged caller IDs/roles, safe capability projection, method/path rejection,
+anonymous denial, no-store and zero profile/data-collection access. Browser
+response validation rejects another subject, added fields and mutable capabilities.
+
+`e2e/admin-catalogue.spec.js` uses synthetic same-origin fixtures to verify the
+Admin entry, ordinary/forged-browser denial, wrong-subject fail-closed/retry,
+search/type/detail/back navigation, zero values, pagination, error/empty/retry,
+late responses after logout, keyboard use, mobile overflow and scoped axe checks.
+These tests do not prove provider role permissions or a real account's UI journey.
+
+The protected main-only `admin-role-source-assessment` workflow observes two
+independently verified normal sessions, classifies only allowlisted static role
+symbols, GETs each session's own review capabilities, compares expected access,
+and signs out. It retains a redacted report with exact source/target SHAs and
+ALLOWED/DENIED/UNAVAILABLE verdicts, never account IDs/emails/cookies/provider
+bodies. A matching Admin/ordinary capability pair is bounded read-only evidence;
+`authorityCertified` remains false, and provider role-write denial/revocation
+remain NOT_RUN. See [the permission contract](admin-permission-foundation.md).
+
 ## Current automated coverage
 
 Tests cover:
