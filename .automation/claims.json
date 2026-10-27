@@ -5,7 +5,7 @@
       "owner": "codex:admin-foundation:1793090326513",
       "workstream": "catalogue",
       "issue": 700,
-      "pr": null,
+      "pr": 710,
       "surfaces": [
         "repo:integration",
         "issue:698",
@@ -27,7 +27,7 @@
         "docs/TESTING.md"
       ],
       "acquiredAt": "2026-10-27T08:38:46.513Z",
-      "expiresAt": "2026-10-27T11:45:46.240Z"
+      "expiresAt": "2026-10-27T12:01:19.747Z"
     }
   }
 }
