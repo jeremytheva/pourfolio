@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Moderation contract review corrections and retained evidence validating"
+stage: "Validated deferred moderation contract integration; independent launch work continues"
 gate: Integration
 execution_state: VALIDATING
 current_work:
@@ -49,20 +49,20 @@ wip:
 evidence:
   observed_main_commit: "e9661b0f6102acb7002f5e207184829bb0398766"
   current_candidate_commit: null
-  latest_validated_commit: "b1350719382efe704db2630a575d39c3a32b629b"
+  latest_validated_commit: "3a63f736bbf2a8c381277bce3ee4e8c08b69e807"
   latest_deployed_commit: "e9661b0f6102acb7002f5e207184829bb0398766"
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
   latest_browser_verified_commit: "828864b8dc1633edf61e051cb76ee020fbb5ca1b"
 validation:
-  governance: NOT_RUN
-  lint: NOT_RUN
+  governance: PASS
+  lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: NOT_RUN
-  build: NOT_RUN
-  ci: PENDING
+  tests: PASS
+  build: PASS
+  ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-27T21:13:00Z"
+last_updated: "2026-10-27T21:16:00Z"
 
 ---
 
@@ -89,9 +89,13 @@ verification history and historical attribution are preserved.
 
 The canonical deferred target, offline guards/negative fixtures and migration
 preparation agree on these requirements. Eight focused contract cases and the
-data-contract checker pass in memory under Node 24; fresh exact-head canonical
-Node 22 validation is pending. Independent source/design review found no further
-material issue. There is no application, active collection, writer grant or
+data-contract checker pass in memory under Node 24. Exact source head
+`3a63f736bbf2a8c381277bce3ee4e8c08b69e807` passes canonical Node 22 in
+[run 40585046726](https://github.com/jeremytheva/pourfolio/actions/runs/40585046726),
+job `122474141764`: 1,151 passed, 15 intentional skips, zero failures and zero
+production vulnerabilities. Independent exact-head source/design review found
+no material issue. This changes no application UI; the existing 187-case browser
+baseline remains separately qualified. There is no application, active collection, writer grant or
 provider mutation in this preparation. Physical mapping, all-writer/version
 fencing, actual dynamic exposure enforcement, response/diff validation, recovery
 and activation remain #701/#702 work.
