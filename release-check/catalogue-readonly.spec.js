@@ -69,12 +69,18 @@ test('connected Add Beer style choices use every authenticated canonical categor
   const seen = new Set()
   const categories = []
   let totalPages = 1
+  let expectedTotal = null
   for (let current = 1; current <= totalPages; current += 1) {
     if (current > 25) throw new Error('Connected category pagination exceeded the bounded page count.')
     const response = await page.request.get(`/api/nocodebackend/catalog/categories?page=${current}&limit=100`)
     expect(response.status()).toBe(200)
     const body = await responseJson(response)
     const result = validateCatalogueCategoryPage(body, { expectedPage: current, expectedPageSize: 100 })
+    if (expectedTotal === null) expectedTotal = result.total
+    else {
+      expect(result.total).toBe(expectedTotal)
+      expect(result.totalPages).toBe(totalPages)
+    }
     totalPages = result.totalPages
     for (const category of result.items) {
       const id = String(category.id)
@@ -84,6 +90,7 @@ test('connected Add Beer style choices use every authenticated canonical categor
     }
   }
   expect(categories.length).toBeGreaterThan(0)
+  expect(categories.length).toBe(expectedTotal)
 
   await page.goto('/products/propose')
   const style = page.getByRole('combobox', { name: 'Beer style / category' })
