@@ -204,7 +204,8 @@ test('add beer supports multiple producers and derives collaboration state', asy
   await page.getByRole('combobox', { name: 'Brewery / producer' }).fill('Rocky')
   await page.getByRole('option', { name: 'Rocky Ridge Brewing' }).click()
   await page.getByRole('button', { name: 'Add collaborating brewery' }).click()
-  await page.getByLabel('Collaborating brewery 2 existing producer').selectOption('21')
+  await page.getByRole('combobox', { name: 'Collaborating brewery 2 existing producer' }).fill('Other')
+  await page.getByRole('option', { name: 'Other Brewing' }).click()
   await page.getByRole('combobox', { name: 'Beer style / category' }).fill('Stout')
   await page.getByRole('option', { name: 'Stout' }).click()
 
@@ -253,6 +254,8 @@ test('unused canonical style is selectable using reviewed BJCP/BA aliases', asyn
   await expect(page.getByRole('option', { name: /American IPA.*BJCP 21A/ })).toBeVisible()
   await page.getByRole('option', { name: /American IPA.*BJCP 21A/ }).click()
   await expect(stylePicker).toHaveValue('American IPA')
+  await expect(page.getByText(/Mapped style guidance: BJCP 21A: American IPA/)).toBeVisible()
+  await expect(stylePicker).toHaveAttribute('aria-describedby', /beer-style-hint beer-style-status/)
   await expect(page.getByText('Verified BJCP/BA equivalents appear in brackets')).toBeVisible()
 })
 
@@ -266,4 +269,29 @@ test('brewery picker supports keyboard choice and clearing an obsolete selected 
   await picker.fill('not-a-brewery')
   await expect(page.getByRole('button', { name: 'Add beer to catalogue' })).toBeDisabled()
   await expect(page.getByRole('button', { name: /Can't find the brewery\? Add a brewery/ })).toBeVisible()
+})
+
+test('collaborator brewery picker rejects duplicate primary selection and remains searchable after removal', async ({ page }) => {
+  await page.goto('/products/propose?name=Collaboration%20Check')
+  await page.getByRole('combobox', { name: 'Brewery / producer' }).fill('Rocky')
+  await page.getByRole('option', { name: 'Rocky Ridge Brewing' }).click()
+  await page.getByRole('button', { name: 'Add collaborating brewery' }).click()
+
+  const firstCollaborator = page.getByRole('combobox', { name: 'Collaborating brewery 2 existing producer' })
+  await firstCollaborator.fill('Rocky')
+  await page.getByRole('option', { name: 'Rocky Ridge Brewing' }).click()
+  await expect(page.getByRole('alert').filter({ hasText: 'Each producer can only be linked once.' })).toBeVisible()
+
+  await firstCollaborator.fill('Other')
+  await page.getByRole('option', { name: 'Other Brewing' }).click()
+  await expect(page.getByText('Each producer can only be linked once.')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Add collaborating brewery' }).click()
+  const secondCollaborator = page.getByRole('combobox', { name: 'Collaborating brewery 3 existing producer' })
+  await secondCollaborator.fill('Rocky')
+  await page.getByRole('option', { name: 'Rocky Ridge Brewing' }).click()
+
+  await page.getByRole('button', { name: 'Remove' }).first().click()
+  await expect(page.getByRole('combobox', { name: 'Collaborating brewery 2 existing producer' })).toHaveValue('Rocky Ridge Brewing')
+  await expect(page.getByText('Each producer can only be linked once.')).toHaveCount(0)
 })
