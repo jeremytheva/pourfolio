@@ -43,10 +43,10 @@ wip:
 evidence:
   observed_main_commit: "a962b41cb9c8a63ba6071ad46749e433fa77d2c1"
   current_candidate_commit: null
-  latest_validated_commit: "1bbb84505dfaf24f7c808c55d97c37d98c1fac6b"
+  latest_validated_commit: "61539e5a9f28db80189ae779561562ebe58542b9"
   latest_deployed_commit: "a962b41cb9c8a63ba6071ad46749e433fa77d2c1"
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-  latest_browser_verified_commit: "63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad"
+  latest_browser_verified_commit: "61539e5a9f28db80189ae779561562ebe58542b9"
 validation:
   governance: PASS
   lint: PASS
@@ -56,7 +56,7 @@ validation:
   ci: PASS
   runtime: VERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-27T09:30:24Z"
+last_updated: "2026-10-27T09:41:20Z"
 
 ---
 
@@ -66,7 +66,7 @@ Last materially reviewed: 27 October 2026 UTC
 
 ## AI execution gate
 
-### Admin permission foundation in validation — 27 October 2026 UTC
+### Admin permission foundation source verified — 27 October 2026 UTC
 
 [PR #707](https://github.com/jeremytheva/pourfolio/pull/707) implements a contained
 server-side catalogue permission guard and server auth POST field allowlists
@@ -79,11 +79,17 @@ was not asserted or tested against a real account.
 The source-only guard requires verified immutable session identity and a fresh
 matching server-owned role projection. It has no provider adapter or reachable
 Admin endpoint; #699/#701 connected role/moderation certification remains
-NOT_RUN. Do not present this source work as an enabled console. Canonical
-exact-head validation and applicable auth browser evidence are recorded in the
-PR; the parent issue remains open for provider proof and contained UI delivery.
+NOT_RUN. Do not present this source work as an enabled console. Exact source
+head `61539e5a9f28db80189ae779561562ebe58542b9` passed the substantive hosted
+canonical Node 22 gate (1,101 passed, 15 intentional connected skips, zero
+failures), all 181 browser/accessibility cases, CodeQL and Dependency Review.
+Preview `dpl_HcSfmUBvwnpFU2NtnHJJfN8MY6QC` is READY; health/readiness both
+return 200 and that SHA, with dataProvider ok. The parent issue remains open
+for actual provider-role proof and contained UI delivery. Full evidence and
+the unavailable quota-limited automated code review are retained in PR #707.
 
-Live ordinary implementation WIP is #693, #697 and #707 (three). #697's active
+At this source-validation checkpoint, ordinary implementation WIP is #693, #697
+and #707 (three); refresh live GitHub state before the next execution. #697's active
 owner retains its branch/form/test claim; do not rewrite it or open overlapping
 implementation while this capacity is occupied.
 
