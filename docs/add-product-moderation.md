@@ -12,6 +12,7 @@ This endpoint does **not** persist moderation status or queue membership. The cu
 
 - A single accessible search-and-select control retains only a validated canonical ID. Filtering is integrated into the picker; changing typed text clears a previous ID.
 - Brewery selection has a nearby missing-brewery action that prefills what was typed. The existing exact-name producer reuse safeguard is preserved.
+- The Add Beer selector reads the complete, paginated canonical `categories` collection from the authenticated catalogue gateway, rather than deriving available categories only from beers already in the catalogue. This keeps unused but valid website styles selectable. Category objects are projected from an allowlist and strictly validated at the browser boundary.
 - Website style categories remain the identity users select. The matching BJCP 2021 and BA 2026 names from the reviewed data of PR #694 are shown in parentheses as search aids **only when both category ID and category name match the explicit reviewed mapping**.
 - Guideline data contains 20 reviewed numeric references and 18 reviewed canonical category mappings. It is not a full exhaustive BJCP or BA classification and does not authorize guesses for other categories. For unmapped categories only the website category is shown.
 - Stated Style (on can/bottle) maps to `declared_category`, not the official style relationship. Canonical category and printed manufacturer description may legitimately differ.
