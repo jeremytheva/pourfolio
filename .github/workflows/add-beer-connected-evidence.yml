@@ -11,18 +11,18 @@ jobs:
   qualify:
     if: >-
       github.ref == 'refs/heads/fix/add-beer-connected-evidence-20261027' &&
-      contains(github.event.head_commit.message, '[qualify-add-beer-readonly-9a7f4b8a]')
+      contains(github.event.head_commit.message, '[qualify-add-beer-readonly-763c67ab]')
     environment: staging-release
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      RELEASE_SHA: 9a7f4b8a9037a3934e7edf4c986b66bd7e92d176
-      RELEASE_BASE_URL: https://pourfolio-8hq0miue9-jeremythevas-projects.vercel.app
+      RELEASE_SHA: 763c67ab286dd78ea020cc69be21e9d028c27053
+      RELEASE_BASE_URL: https://pourfolio-a8rcpo479-jeremythevas-projects.vercel.app
       RELEASE_EVIDENCE_DIRECTORY: artifacts/add-beer-readonly
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: 9a7f4b8a9037a3934e7edf4c986b66bd7e92d176
+          ref: 763c67ab286dd78ea020cc69be21e9d028c27053
           persist-credentials: false
       - name: Verify reviewed source
         run: test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
@@ -186,7 +186,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: add-beer-readonly-9a7f4b8a-${{ github.run_id }}
+          name: add-beer-readonly-763c67ab-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: error
           path: |
