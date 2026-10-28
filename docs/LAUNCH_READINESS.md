@@ -654,11 +654,15 @@ governed capabilities.
 
 An owner-approved empty schema clone and a separate main-only `brew-contract`
 GitHub environment now exist for Brew write probes. The isolated instance
-variable is configured; its provider key, independent recovery key and dedicated
-fixture user/product IDs are not yet configured. The shared `staging-release`
+variable and provider key are configured; the independent recovery key and
+dedicated fixture user/product IDs are not yet configured. The shared `staging-release`
 environment remains unchanged. Provider UI shows zero clone records and private
 game-table defaults; these observations do not certify API permissions,
 combined indexes, recovery, CAS, score storage, privacy or two-device play.
+The first staging API inventory (run 40670930701) failed its first read with
+`INVENTORY_READ_FAILED`; no connected count/permission PASS is established.
+The report is retained in artifact 12808530751. Bounded failure diagnostics are
+being qualified under #715; no raw response or credential is retained.
 The clone SQL export is pending review. See the
 [dedicated test setup](BREW_DONE_IT_READINESS.md#dedicated-provider-test-environment--28-october-2026-australiasydney)
 and #715. No connected write test or public enablement was performed.

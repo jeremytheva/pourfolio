@@ -25,6 +25,25 @@ const env = () => ({
   NOCODEBACKEND_INSTANCE: 'private-instance', NOCODEBACKEND_SECRET_KEY: 'private-credential'
 })
 
+test('read failure retains only bounded HTTP status and recognised adapter code', async () => {
+  for (const [status, code] of [[401, 'DATA_PROVIDER_UNAUTHENTICATED'], [403, 'DATA_PROVIDER_FORBIDDEN'],
+    [200, 'PROVIDER_ERROR'], ['private-status', 'private-code']]) {
+    const provider = makeProvider(() => { throw Object.assign(new Error('private-message'), {
+      providerStatus: status, code, body: 'private-body', cause: 'private-cause'
+    }) })
+    const result = await runBrewInventory({ provider, ...options })
+    assert.equal(result.status, 'BLOCKED')
+    assert.equal(provider.calls.length, 1)
+    if (Number.isInteger(status)) {
+      assert.equal(result.failure.providerStatus, status)
+      assert.equal(result.failure.providerCode, code)
+    } else {
+      assert.deepEqual(result.failure, { collection: COLLECTIONS[0], code: 'INVENTORY_READ_FAILED' })
+    }
+    assert.ok(!JSON.stringify(result).includes('private-'))
+  }
+})
+
 test('empty inventory makes exactly two GET observations of the four allowlisted collections', async () => {
   const provider = makeProvider()
   const result = await runBrewInventory({ provider, ...options })
