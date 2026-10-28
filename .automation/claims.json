@@ -1,18 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "brew": {
-      "owner": "brew-diagnostic-record-1793189608228",
-      "workstream": "brew",
-      "issue": 715,
-      "pr": 722,
-      "surfaces": [
-        "issue:715",
-        "pr:721",
-        "pr:722"
-      ],
-      "acquiredAt": "2026-10-28T12:13:28.228Z",
-      "expiresAt": "2026-10-28T12:43:28.228Z"
-    }
-  }
+  "claims": {}
 }
