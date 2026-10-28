@@ -19,7 +19,6 @@ jobs:
       RELEASE_SHA: 9a7f4b8a9037a3934e7edf4c986b66bd7e92d176
       RELEASE_BASE_URL: https://pourfolio-8hq0miue9-jeremythevas-projects.vercel.app
       RELEASE_EVIDENCE_DIRECTORY: artifacts/add-beer-readonly
-      RELEASE_OWNER_SESSION_PATH: ${{ runner.temp }}/add-beer-owner-${{ github.run_id }}.json
     steps:
       - uses: actions/checkout@v7
         with:
@@ -97,6 +96,7 @@ jobs:
         id: browser
         if: success() && steps.preflight.outcome == 'success' && steps.selection.outcome == 'success'
         env:
+          RELEASE_OWNER_SESSION_PATH: ${{ runner.temp }}/add-beer-owner-${{ github.run_id }}.json
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
         shell: bash
@@ -144,6 +144,7 @@ jobs:
       - name: Remove all private evidence before retention
         if: always()
         env:
+          RELEASE_OWNER_SESSION_PATH: ${{ runner.temp }}/add-beer-owner-${{ github.run_id }}.json
           BROWSER_OUTCOME: ${{ steps.browser.outcome }}
         run: |
           node --input-type=module <<'JS'
