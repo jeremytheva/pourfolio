@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Empty Brew staging clone provisioned; secure fixture access and connected qualification remain open"
+stage: "Staging key configured; first read-only provider inventory failed and needs bounded diagnosis"
 gate: Integration
 execution_state: VALIDATING
 current_work:
@@ -29,7 +29,7 @@ next_actions:
 blockers:
   - scope: brew_done_it_connected_qualification
     issue: 715
-    detail: "The source's combined indexes are correct. An empty schema clone and dedicated main-only brew-contract environment now exist, but its four required secrets are absent. Cloned-index/API verification, connected cleanup/non-interference, isolated recovery, provider CAS, scoring storage, privacy and two-device testing remain unqualified."
+    detail: "The source's combined indexes are correct. An empty schema clone and dedicated main-only brew-contract environment now exist, and its provider key is now configured. Three fixture/recovery secrets remain absent; the first staging API read failed with INVENTORY_READ_FAILED. Cloned-index/API verification, connected cleanup/non-interference, isolated recovery, provider CAS, scoring storage, privacy and two-device testing remain unqualified."
   - scope: moderation_provider_schema_access
     issue: 701
     detail: "The supplied schema export is dated 14 July 2026. Current exact-instance schema-only evidence or an authorized read-only schema connection remains required before physical mapping and isolated staging certification; source contracts do not grant provider mutation."
@@ -67,7 +67,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
-last_updated: "2026-10-28T08:30:07Z"
+last_updated: "2026-10-28T10:23:40Z"
 
 ---
 
@@ -76,6 +76,26 @@ last_updated: "2026-10-28T08:30:07Z"
 Last materially reviewed: 28 October 2026 UTC
 
 ## AI execution gate
+
+### Staging API inventory blocked — 28 October 2026 (Australia/Sydney)
+
+The owner saved the isolated provider key in `brew-contract`; its presence was
+verified after refreshing GitHub, without reading the value. PR #721 adds an
+allowlisted manual environment choice to the existing read-only collector,
+preserving the shared push/default target. Canonical source validation passes.
+
+Run 40670930701 at `b317325b`, job 122757200657, used the clone reference
+`sha256:28a894d649601056bb874de52734132610265ec574d6e378c2a8abc9c11d48a5`.
+Its first games-table read failed with `INVENTORY_READ_FAILED`; no collection
+count or connected PASS was established and no write was attempted. Artifact
+12808530751 retains the exact redacted report; ZIP SHA256 is
+`48d28bd4779e54e595f7bd3559d83bafbd30e5069766298d9d6d417520b66fde`.
+The original failure discarded HTTP detail. PR #722 retains only a bounded HTTP
+status and allowlisted adapter code; messages, bodies and causes remain absent.
+A new read-only run must establish the failure category before key/permission
+changes or fixture creation. #715 holds the live result and next action.
+The independent recovery key and dedicated fixture user/product IDs remain
+unconfigured. Public gameplay stays disabled.
 
 ### Empty Brew staging provisioned — 28 October 2026 (Australia/Sydney)
 
@@ -92,8 +112,8 @@ error, so no mail/browser fallback or further export was attempted.
 The separate GitHub `brew-contract` environment has an explicit `main` branch
 allowlist and its isolated instance variable. The write-probe workflow now uses
 that environment, preserving shared `staging-release` settings and credentials.
-The four required secrets remain absent: the isolated provider key, independent
-fixture encryption key and dedicated fixture user/product IDs. No secret value
+The provider key has since been configured. The independent fixture encryption
+key and dedicated fixture user/product IDs remain absent. No secret value
 was read or changed and no fixture, provider schema/index, role policy or public
 enablement was modified. The clone is preparation only; API/index, restore,
 cleanup, non-interference, CAS, score persistence, privacy and two-device
