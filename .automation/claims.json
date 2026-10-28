@@ -4,8 +4,8 @@
     "brew": {
       "owner": "brew-launch-preflight-20261028T012134023Z",
       "workstream": "brew",
-      "issue": 711,
-      "pr": 712,
+      "issue": 713,
+      "pr": null,
       "surfaces": [
         "branch:chore/brew-v3-readonly-provider-inventory",
         "file:scripts/brew-done-it-provider-inventory.mjs",
