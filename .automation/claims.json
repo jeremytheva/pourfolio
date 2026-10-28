@@ -1,4 +1,22 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "brew": {
+      "owner": "brew-fixture-impl-1793172070163",
+      "workstream": "brew",
+      "issue": 715,
+      "pr": null,
+      "surfaces": [
+        "issue:715",
+        "scripts/brew-contract-fixtures.js",
+        "scripts/__tests__/brew-contract-fixtures.test.js",
+        "api/_lib/__tests__/brewDoneItCreate.connected.test.js",
+        "api/_lib/__tests__/brewDoneItChildCardinality.connected.test.js",
+        ".github/workflows/brew-done-it-connected-contract.yml",
+        "docs/BREW_DONE_IT_READINESS.md"
+      ],
+      "acquiredAt": "2026-10-28T07:21:10.163Z",
+      "expiresAt": "2026-10-28T07:51:10.163Z"
+    }
+  }
 }
