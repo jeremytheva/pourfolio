@@ -55,6 +55,88 @@ The v3 source now provides:
 
 The machine-readable data contract classifies the four owner-provisioned v3 collections as `DEPLOYED_OPTIONAL`. This records their application integration, not certification of their current physical constraints, permissions, recovery or gameplay. The feature is not qualified for public launch. Earlier statements about an absent route or wholly deferred collections describe the historical containment baseline and must not override the current source/contract.
 
+### Owner-supplied structure review — 28 October 2026 (Australia/Sydney)
+
+The owner supplied the four table-designer structures under
+[#715](https://github.com/jeremytheva/pourfolio/issues/715), following the four
+header-only CSV exports. Every v3 target field is present in the supplied
+headers: games 18/18, rounds 29/29, guesses 13/13 and deductions 14/14.
+The additional `user_id` columns and legacy round `question_count` are not,
+by themselves, defects. The structure transcription includes types and defaults;
+requesting the same column-only exports again is not the next action.
+
+The reported `UNIQUE` badges identify eight cardinality hazards. **If these are
+individual single-column unique indexes**, they prevent the following valid
+operations:
+
+| Table | Columns that must allow repeated values independently | Valid operation otherwise blocked |
+| --- | --- | --- |
+| `brew_done_it_games` | `creator_participant_id`, `opponent_participant_id` | A participant creates or joins another series |
+| `brew_done_it_rounds` | `game_id`, `round_number` | A series starts round 2; another series starts round 1 |
+| `brew_done_it_guesses` | `round_id`, `turn_sequence` | A second formal outcome in a round; turn 1 in another round |
+| `brew_done_it_deductions` | `round_id`, `recorded_by_participant_id` | A guesser records another clue or changes an answer with a new event |
+
+Round numbering instead requires one **combined** unique constraint on
+`(game_id, round_number)`. Two separate single-column unique flags are not that
+constraint. Preserve a correct existing combined index if the UI badges already
+refer to its members; inspect actual index membership before removing anything.
+Do not substitute a unique `(round_id, recorded_by_participant_id)` or clue
+dimension constraint: the deduction ledger is append-only and must retain
+successive events from the same participant for the same clue.
+
+Keep primary IDs, existing invitation-digest and idempotency-key uniqueness,
+private/role access, field types, nullability and defaults unchanged in this
+bounded index correction. Application-created request keys already include the
+authenticated participant. A correct index does not establish atomic provider
+compare-and-set, permission enforcement or replay safety.
+
+The structure was supplied by the owner, not obtained through live schema
+introspection. The table-designer capture time, runtime-instance binding, index
+names/membership, foreign-key targets/actions and role grants remain unverified.
+The current application contract names `54026_rating`; neither the CSV filename
+prefix nor the transcription independently binds it to the configured runtime.
+All four reported primary IDs are `int(11)`, while game/round references are
+`bigint(20) unsigned`; verify type compatibility before introducing physical
+foreign keys rather than silently changing either side. The round's
+`score_breakdown` is reported as `text`, while the application submits an object:
+its provider write/read representation still needs a controlled round-trip.
+The copied guess default has a typographic closing quote; verify the actual
+stored default is exactly `pending`, without treating copied typography as a
+proven provider defect. Default-private history flags and pending action states
+are otherwise consistent with the target as reported.
+
+#### Bounded correction and verification sequence
+
+1. Bind the reported structures to the intended instance and retain current
+   index definitions and access policy. Establish the provider-supported index
+   operation and recovery path. Re-run the existing bounded read-only inventory
+   immediately before an actual change; the earlier zero-row observations are
+   not a current backup. Keep public play disabled and fence concurrent writers.
+   If rows appear or isolation/recovery cannot be established, stop at assessment
+   and use the existing governed migration evidence package; do not wipe tables.
+2. Verify or add the combined unique `(game_id, round_number)` constraint first,
+   then remove only the eight unwanted single-column unique indexes if present.
+   Preserve all other indexes and policies. Do not invent SQL index names or
+   schema-management endpoints. Re-read exact index membership and counts after
+   each operation. With writes still fenced and unchanged rows, the retained
+   definitions provide the reverse operation; after normal play begins, do not
+   blindly restore the invalid single-column constraints over repeated values.
+3. Once the existing isolation, fixture acknowledgement and recovery/cleanup
+   prerequisites pass, reuse the existing opt-in creation/child-cardinality
+   probes. Prove repeated creator/opponent participation, round 1 in two games,
+   rounds 1 and 2 in one game, multiple guesses and append-only deductions, plus
+   rejection of a duplicate `(game_id, round_number)` and duplicate request keys.
+   Qualify atomic stale-version rejection, text/object score persistence,
+   raw-response secrecy, consent/revocation, failure recovery and two-device
+   resume separately; neither schema inspection nor cardinality success proves
+   those behaviours.
+
+This is a reviewable correction plan, not an executed provider migration. No
+schema, row, permission, fixture or feature-flag change has occurred. Existing
+provider/release manifests remain BLOCKED with unsupported checks NOT_RUN. The
+next external dependency is provider index inspection/correction capability and
+its bounded execution prerequisites under #715, rather than another column list.
+
 ### Live read-only inventory verified — 28 October 2026 UTC
 
 PR #714's privacy correction and PR #712's inventory preparation are merged and
@@ -78,11 +160,11 @@ permissions/cardinality, recovery and two-account/two-device play remain NOT_RUN
 release readiness remains BLOCKED. Zero observed rows do not authorise a wipe,
 make the shared instance disposable or establish a recoverable snapshot.
 
-The next dependency is [#715](https://github.com/jeremytheva/pourfolio/issues/715):
-obtain current schema-only evidence for the same four tables and qualify the
-existing controlled-test prerequisites. The project SQL has no definitions for
-these tables. Keep the existing provider/release manifests blocked and public
-gameplay disabled until their separate evidence gates are satisfied.
+The subsequent owner-supplied structure review above advances
+[#715](https://github.com/jeremytheva/pourfolio/issues/715) to exact index
+inspection/correction and controlled-test prerequisites. The project SQL has no
+definitions for these tables. Keep the existing provider/release manifests
+blocked and public gameplay disabled until their separate evidence gates pass.
 
 ### Earlier launch preparation review — 28 October 2026 UTC
 
