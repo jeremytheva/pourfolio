@@ -303,6 +303,21 @@ export const validateCataloguePage = (payload, { expectedPage, expectedPageSize 
   if (identifiers.size !== items.length) invalid()
   return { items, page: page.page, pageSize: page.pageSize, total: page.total, totalPages: page.totalPages }
 })
+export const validateCatalogueCategoryPage = (payload, { expectedPage, expectedPageSize } = {}) => validate(() => {
+  const page = readDataProperties(payload, PAGE_KEYS, ['items', 'page', 'pageSize', 'total', 'totalPages'])
+  if (!Array.isArray(page.items)) invalid()
+  for (const value of [page.page, page.pageSize, page.total, page.totalPages]) if (!Number.isSafeInteger(value)) invalid()
+  if (page.page < 1 || page.pageSize < 1 || page.pageSize > 100 || page.total < 0 || page.totalPages < 0) invalid()
+  if ((expectedPage !== undefined && page.page !== expectedPage) || (expectedPageSize !== undefined && page.pageSize !== expectedPageSize)) invalid()
+  const totalPages = page.total === 0 ? 0 : Math.ceil(page.total / page.pageSize)
+  if (page.totalPages !== totalPages || page.page > Math.max(1, totalPages)) invalid()
+  const expectedItems = page.total === 0 ? 0 : page.page < totalPages ? page.pageSize : page.total - (page.pageSize * (totalPages - 1))
+  if (page.items.length !== expectedItems) invalid()
+  const items = page.items.map((item) => validateCategory(item))
+  if (items.some((item) => !item)) invalid()
+  if (new Set(items.map((item) => String(item.id))).size !== items.length) invalid()
+  return { items, page: page.page, pageSize: page.pageSize, total: page.total, totalPages: page.totalPages }
+})
 export const validateCatalogueProduct = (payload, { expectedProductId } = {}) => validate(() => {
   const product = validateProduct(payload, { detail: true })
   if (expectedProductId !== undefined && !sameId(product.id, validateStableId(expectedProductId))) invalid()

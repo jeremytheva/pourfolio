@@ -39,6 +39,17 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
+### Add Beer qualification continuation — 28 October 2026 UTC
+
+The keyboard visibility correction and all 193 deterministic browser cases pass
+at source `9a7f4b8a`. PR #697 is being reconciled with current main `fa18a865`
+while retaining the newer Brew work. Fresh combined-source validation and
+exact-preview authenticated category/selector evidence are still required.
+The original worker failed before any job ran because it used a runner context
+in job-level configuration; the step-scoped repair was accepted with the job
+intentionally skipped. No connected PASS or data write is claimed. Existing
+provider, privacy, bonus and public **NO-GO** gates remain unchanged.
+
 ### Durable cellar HTTP fixture evidence — 27 October 2026 UTC
 
 PR #693 merged as `e9661b0f6102acb7002f5e207184829bb0398766` after final

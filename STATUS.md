@@ -3,18 +3,19 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Staging key configured; first read-only provider inventory failed and needs bounded diagnosis"
+stage: "Add Beer current-main reconciliation and read-only qualification"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Complete secure fixture access in the dedicated Brew test environment under #715, then qualify its provider boundary; preserve public gameplay gates."
-  issue: 715
-  pr: null
-  branch: null
+  objective: "Qualify the reviewed Add Beer selector and canonical category read path on a fresh combined candidate, preserving newer Brew work and launch gates."
+  issue: 695
+  pr: 697
+  branch: "feature/add-beer-release-form"
 next_actions:
+  - "Validate the #697/current-main combined candidate, then run only the existing authenticated category-pagination/selector case against its exact preview. The worker context repair was accepted; no browser/provider work ran in its original invalid attempt."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
   - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Securely configure its instance-scoped provider key, independent recovery key and dedicated fixture user/product IDs; verify cloned constraints and recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
-  - "#710 is integrated as 078843e5. Resume #697 keyboard selector visibility without rewriting its owner's branch/form/test work."
+  - "#710 is integrated as 078843e5. The #697 keyboard visibility fix and long-list regression already passed at 9a7f4b8a; retain them while qualifying the fresh combined candidate."
   - "PR #693 is integrated and exact production e9661b0f is READY. Configure independent RELEASE_FIXTURE_ENCRYPTION_KEY before bounded HTTP cellar writes; read-only checks remain available."
   - "#709 read-only Admin workspace is deployed and bounded Admin/user own-capability isolation passed in run 40494158943. Keep full Admin browser/moderation, role-write denial and revocation open under #699/#701/#702."
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
@@ -48,26 +49,26 @@ owner_decision:
   recommendation: null
 wip:
   open_implementation_prs: 1
-  dependent_stack_depth: 1
+  dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
+  observed_main_commit: "fa18a8655f06c0b25540ec1b7bfcaeac34927ac6"
   current_candidate_commit: null
-  latest_validated_commit: "dfdc04c9d9595e04ec02153c9d3cc198b3394972"
-  latest_deployed_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
+  latest_validated_commit: "fa18a8655f06c0b25540ec1b7bfcaeac34927ac6"
+  latest_deployed_commit: "fa18a8655f06c0b25540ec1b7bfcaeac34927ac6"
   latest_runtime_verified_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
-  latest_browser_verified_commit: "ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda"
+  latest_browser_verified_commit: "fa18a8655f06c0b25540ec1b7bfcaeac34927ac6"
 validation:
-  governance: PASS
-  lint: PASS
+  governance: NOT_RUN
+  lint: NOT_RUN
   typecheck: NOT_APPLICABLE
-  tests: PASS
-  build: PASS
-  ci: PASS
+  tests: NOT_RUN
+  build: NOT_RUN
+  ci: PENDING
   runtime: UNVERIFIED
 last_verified_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
-last_updated: "2026-10-28T10:23:40Z"
+last_updated: "2026-10-28T19:47:00Z"
 
 ---
 
@@ -76,6 +77,37 @@ last_updated: "2026-10-28T10:23:40Z"
 Last materially reviewed: 28 October 2026 UTC
 
 ## AI execution gate
+
+### Add Beer qualification continuation — 28 October 2026 UTC
+
+PR #697 source `9a7f4b8a` passed canonical Node 22 validation (1,156
+passed, 15 intentional skips, zero failures/production vulnerabilities), all
+193 browser/accessibility cases and independent review. Its keyboard-active
+canonical option now remains visible through long-list navigation; the
+40-choice forward/back/Enter regression passes. This source work is complete.
+
+Current main `fa18a865` independently passes 1,191 source tests and all
+187 browser/accessibility cases in run 40671993296. Its exact production
+deployment `dpl_EfZPt3zpR6s2w1PcyV8X9ZwbnXwz` is READY. The updated candidate
+preserves all newer Brew source, inventory, recovery and documentation facts;
+only the two shared continuity documents required reconciliation. Fresh combined
+source/browser validation and exact-preview qualification remain pending.
+
+The first one-case worker run 40590320110 at `4fa3dbe1` failed before any
+job existed: `runner.temp` is unavailable in job-level environment expressions.
+No sign-in, browser test or provider operation ran. Moving the session path to
+the browser/private-cleanup step environments fixes that defect. GitHub accepted
+the revised workflow in run 40757218755; its job was deliberately skipped
+without a qualification marker. This is configuration acceptance, not a
+connected PASS.
+
+After fresh source validation, the worker will select only the existing
+authenticated category-pagination and real selector case, with zero retries,
+before/after exact provenance, original-session rejection and private cleanup.
+It uses configured owner credentials after preflight and retains only fixed
+redacted evidence. No catalogue, rating or cellar write is selected. Brew
+qualification remains separate and launch-excluded. #165, privacy, 42 missing
+bonus allocations and public **NO-GO** remain unchanged.
 
 ### Staging API inventory blocked — 28 October 2026 (Australia/Sydney)
 

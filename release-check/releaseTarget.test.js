@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  assertReleasePageOrigin,
   parseReleaseBaseUrl,
   parseReleaseSha,
   validateReadinessPayload,
@@ -198,4 +199,22 @@ test('retry configuration is bounded and invalid release inputs fail before poll
     /Release URL/
   )
   assert.equal(called, false)
+})
+
+test('credential actions require the exact approved deployment origin and redact rejected URLs', () => {
+  assert.equal(assertReleasePageOrigin(deployment + '/login?returnTo=%2Fhome', deployment), deployment)
+  assert.equal(assertReleasePageOrigin(publicProduction + '/home', publicProduction), publicProduction)
+  for (const current of [
+    'https://external-login.example.invalid/login?private-token=never-print',
+    publicProduction + '/login',
+    deployment.replace('https:', 'http:') + '/login',
+    deployment + ':8443/login',
+    'https://user:password@' + new URL(deployment).hostname + '/login',
+    'about:blank',
+    'invalid-private-token',
+    null
+  ]) {
+    assert.throws(() => assertReleasePageOrigin(current, deployment),
+      (error) => error.message === 'Release page origin is unverified.')
+  }
 })
