@@ -698,7 +698,7 @@ membership inspection: individual uniqueness on participant IDs, parent IDs,
 round numbers or guess turn numbers would block repeated play. Round numbering
 requires one combined unique `(game_id, round_number)` constraint, while the
 deduction ledger must allow repeated events from the same participant/round.
-The [bounded correction plan](BREW_DONE_IT_READINESS.md#owner-supplied-structure-review--28-october-2026-australiasydney)
+The [bounded correction plan](BREW_DONE_IT_READINESS.md#exported-constraints-resolved--28-october-2026-australiasydney)
 preserves private access and request-key uniqueness, requires a fresh inventory
 and recovery/non-interference evidence before provider changes, and records
 remaining type/score-storage compatibility checks. No schema correction or
