@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   brew-done-it-connected-contract:
-    environment: staging-release
+    environment: brew-contract
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

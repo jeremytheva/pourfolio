@@ -117,6 +117,7 @@ test('recovery artifacts bind a canonical provider instance without exposing con
 })
 test('secret-bearing workflow uses exact reviewed main and retains recovery evidence on failure',async()=>{
  const workflow=await fs.readFile('.github/workflows/brew-done-it-connected-contract.yml','utf8')
+ assert.match(workflow,/^ {4}environment: brew-contract$/m)
  assert.ok(workflow.includes('test "$GITHUB_REF" = "refs/heads/main"'))
  assert.ok(workflow.includes('test "$RELEASE_SHA" = "$GITHUB_SHA"'))
  assert.match(workflow,/group: brew-done-it-connected-contract\n/)

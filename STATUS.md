@@ -3,17 +3,17 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Brew Done It fixture recovery implemented; isolated provider and connected testing prerequisites remain open"
+stage: "Empty Brew staging clone provisioned; secure fixture access and connected qualification remain open"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Qualify the isolated Brew Done It provider test boundary under #715 after fixture recovery integration; preserve public gameplay gates."
+  objective: "Complete secure fixture access in the dedicated Brew test environment under #715, then qualify its provider boundary; preserve public gameplay gates."
   issue: 715
   pr: null
   branch: null
 next_actions:
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
-  - "#715 has exact exported index definitions. No index correction is needed for the eight badge concerns. PR #719 supplies encrypted fixture tracking and identity/absence-verified cleanup. Qualify the independent protected encryption key, isolated recovery and unrelated-row preservation before connected writes, then certify CAS, scoring persistence, privacy and two-device play."
+  - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Securely configure its instance-scoped provider key, independent recovery key and dedicated fixture user/product IDs; verify cloned constraints and recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
   - "#710 is integrated as 078843e5. Resume #697 keyboard selector visibility without rewriting its owner's branch/form/test work."
   - "PR #693 is integrated and exact production e9661b0f is READY. Configure independent RELEASE_FIXTURE_ENCRYPTION_KEY before bounded HTTP cellar writes; read-only checks remain available."
   - "#709 read-only Admin workspace is deployed and bounded Admin/user own-capability isolation passed in run 40494158943. Keep full Admin browser/moderation, role-write denial and revocation open under #699/#701/#702."
@@ -29,7 +29,7 @@ next_actions:
 blockers:
   - scope: brew_done_it_connected_qualification
     issue: 715
-    detail: "Exported game constraints resolve the eight uniqueness concerns; preserve combined indexes. Fixture recovery guards exist in source under #719; protected key configuration, connected cleanup/non-interference, isolated restore, provider CAS, scoring storage, privacy and two-device testing remain unqualified."
+    detail: "The source's combined indexes are correct. An empty schema clone and dedicated main-only brew-contract environment now exist, but its four required secrets are absent. Cloned-index/API verification, connected cleanup/non-interference, isolated recovery, provider CAS, scoring storage, privacy and two-device testing remain unqualified."
   - scope: moderation_provider_schema_access
     issue: 701
     detail: "The supplied schema export is dated 14 July 2026. Current exact-instance schema-only evidence or an authorized read-only schema connection remains required before physical mapping and isolated staging certification; source contracts do not grant provider mutation."
@@ -52,11 +52,11 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "1956f14e8e2e48e45bdb72980d5156aad6f4ecf6"
+  observed_main_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
   current_candidate_commit: null
-  latest_validated_commit: "8f77d1480de836ebec03ee2c5b3f18f9f7f5ca18"
-  latest_deployed_commit: "ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda"
-  latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
+  latest_validated_commit: "dfdc04c9d9595e04ec02153c9d3cc198b3394972"
+  latest_deployed_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
+  latest_runtime_verified_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
   latest_browser_verified_commit: "ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda"
 validation:
   governance: PASS
@@ -66,8 +66,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-28T07:35:42Z"
+last_verified_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
+last_updated: "2026-10-28T08:30:07Z"
 
 ---
 
@@ -76,6 +76,32 @@ last_updated: "2026-10-28T07:35:42Z"
 Last materially reviewed: 28 October 2026 UTC
 
 ## AI execution gate
+
+### Empty Brew staging provisioned — 28 October 2026 (Australia/Sydney)
+
+The owner continued after the exact schema-only staging-clone approval request.
+NoCodeBackend created the separate empty clone in US West (Phoenix), with
+provider reference `sha256:28a894d649601056bb874de52734132610265ec574d6e378c2a8abc9c11d48a5`.
+Its dashboard reports zero records. Loaded record views for each of the four
+game tables show no persisted rows; the schema editor shows the current target
+fields, private defaults and no checked role-access overrides. Column badges
+do not independently verify combined indexes. A clone SQL export was requested
+once and is pending review; the Gmail connector returned an unavailable-tool
+error, so no mail/browser fallback or further export was attempted.
+
+The separate GitHub `brew-contract` environment has an explicit `main` branch
+allowlist and its isolated instance variable. The write-probe workflow now uses
+that environment, preserving shared `staging-release` settings and credentials.
+The four required secrets remain absent: the isolated provider key, independent
+fixture encryption key and dedicated fixture user/product IDs. No secret value
+was read or changed and no fixture, provider schema/index, role policy or public
+enablement was modified. The clone is preparation only; API/index, restore,
+cleanup, non-interference, CAS, score persistence, privacy and two-device
+qualification remain open in #715.
+
+Production health/readiness at the #719 merge `9e0c44ba` returned 200 with its
+exact SHA; the game endpoint returned the disabled 404 response. These bounded
+runtime checks do not certify connected gameplay.
 
 ### Brew Done It fixture recovery integration — 28 October 2026 (Australia/Sydney)
 

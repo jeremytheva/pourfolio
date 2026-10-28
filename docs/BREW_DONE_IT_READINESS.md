@@ -89,6 +89,38 @@ Those connected prerequisites remain open under #715. Do not dispatch the
 write workflow solely because source validation passes. An unknown fixture
 outcome needs bounded operator reconciliation before another run.
 
+### Dedicated provider test environment — 28 October 2026 (Australia/Sydney)
+
+The write-probe workflow uses the separate GitHub environment `brew-contract`.
+The existing `staging-release` environment targets the shared application
+database and remains unchanged for other release work. Do not copy its provider
+key or repoint its instance variable for Brew testing.
+
+An owner-approved schema-only clone was created in US West (Phoenix). Its
+dashboard reports zero records, and the editor shows all four v3 game tables
+with private defaults and no checked role-access overrides. These are provider
+UI observations, not connected API, combined-index or gameplay certification.
+The source database and its rows were not modified or copied into the clone.
+The clone export was requested once; its SQL definitions remain pending review.
+
+Configure only the isolated instance in `brew-contract`:
+
+- environment variable `NOCODEBACKEND_INSTANCE` for that instance;
+- secret `NOCODEBACKEND_SECRET_KEY` scoped to that instance;
+- independent secret `RELEASE_FIXTURE_ENCRYPTION_KEY` (canonical base64 for 32
+  random bytes, never a provider/account credential);
+- secret `BREW_DONE_IT_CONTRACT_USER_ID` for a dedicated non-personal fixture
+  owner in that instance; and
+- secret `BREW_DONE_IT_CONTRACT_PRODUCT_ID` for a disposable beer fixture in that
+  instance.
+
+Restrict the environment to the `main` branch. Keep credentials and raw fixture
+identities out of chat, issues, source and logs. Provisioning an empty clone and
+selecting an environment do not qualify permissions, uniqueness, restore,
+cleanup, CAS, scoring storage, privacy or two-device behaviour. Finish the #715
+prerequisites and independent evidence review before dispatch; public gameplay
+remains disabled.
+
 ### Exported constraints resolved — 28 October 2026 (Australia/Sydney)
 
 The 28 October owner-supplied `54026_rating_export_2026-10-28.sql.gz` resolves the index ambiguity. Its SHA-256 is `bf6d49719695aecc64d91a6b36443c10d382e7ba01ec68757387eb1ba1bb3f51`; the dump header names `54026_rating`. The four game-table definitions and exact index declarations are retained in [#715](https://github.com/jeremytheva/pourfolio/issues/715). All eight suspect column badges belong to combined unique indexes; zero invalid standalone unique indexes were found on those fields. The required `(game_id, round_number)` unique key already exists. Preserve the existing indexes: the earlier conditional DROP/ADD correction plan is superseded for this exported state.
