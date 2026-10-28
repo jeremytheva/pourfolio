@@ -3,17 +3,17 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Brew Done It privacy fix deployed; read-only provider inventory qualification pending"
+stage: "Brew Done It source deployed and read-only inventory passed; current provider contract evidence required"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Integrate the combined Brew Done It inventory candidate in #712 and execute its protected read-only provider preflight; preserve public gameplay gates."
-  issue: 711
-  pr: 712
-  branch: "chore/brew-v3-readonly-provider-inventory"
+  objective: "Qualify the current Brew Done It provider schema and controlled-test prerequisites under #715; preserve public gameplay gates."
+  issue: 715
+  pr: null
+  branch: null
 next_actions:
-  - "#714 is integrated as e3e87ce9 with exact production health/readiness and disabled game API readback. Validate/integrate #712 against it, run [brew-inventory] from protected main and retain the real summary in #711."
-  - "Use the inventory plus a current schema-only export to qualify game constraints/isolation/recovery before connected two-account/two-device gameplay. No provider mutation or public enablement is authorised by a read-only PASS."
+  - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
+  - "#715 needs a current schema-only export or authorised read-only schema capability for the four game tables. Qualify exact constraints, instance isolation and recovery/cleanup before controlled writes and two-device gameplay. Read-only PASS does not authorise public enablement."
   - "#710 is integrated as 078843e5. Resume #697 keyboard selector visibility without rewriting its owner's branch/form/test work."
   - "PR #693 is integrated and exact production e9661b0f is READY. Configure independent RELEASE_FIXTURE_ENCRYPTION_KEY before bounded HTTP cellar writes; read-only checks remain available."
   - "#709 read-only Admin workspace is deployed and bounded Admin/user own-capability isolation passed in run 40494158943. Keep full Admin browser/moderation, role-write denial and revocation open under #699/#701/#702."
@@ -28,8 +28,8 @@ next_actions:
   - "Complete publication, monitored support, named operations owners, anonymous production access and final exact-candidate release qualification."
 blockers:
   - scope: brew_done_it_connected_qualification
-    issue: 711
-    detail: "The privacy correction is deployed; current game-table inventory, schema/constraint, isolation/recovery and two-device evidence remain unqualified. The supplied SQL omits these tables. Read-only inventory preparation does not enable public gameplay."
+    issue: 715
+    detail: "Source/privacy containment is deployed and the bounded live inventory passed. Current game-table schema/constraints, isolated test prerequisites, connected privacy/recovery and two-device evidence remain unqualified; the supplied SQL omits these tables."
   - scope: moderation_provider_schema_access
     issue: 701
     detail: "The supplied schema export is dated 14 July 2026. Current exact-instance schema-only evidence or an authorized read-only schema connection remains required before physical mapping and isolated staging certification; source contracts do not grant provider mutation."
@@ -47,17 +47,17 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 2
+  open_implementation_prs: 1
   dependent_stack_depth: 1
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "e3e87ce9ea14ed3f409de8ae5b549b87a661c796"
+  observed_main_commit: "ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda"
   current_candidate_commit: null
-  latest_validated_commit: "058df47b1dbddf72df73336a80c3874409b2702a"
-  latest_deployed_commit: "e3e87ce9ea14ed3f409de8ae5b549b87a661c796"
+  latest_validated_commit: "ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda"
+  latest_deployed_commit: "ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda"
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-  latest_browser_verified_commit: "058df47b1dbddf72df73336a80c3874409b2702a"
+  latest_browser_verified_commit: "ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda"
 validation:
   governance: PASS
   lint: PASS
@@ -67,7 +67,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-28T02:04:00Z"
+last_updated: "2026-10-28T02:22:11Z"
 
 ---
 
@@ -77,7 +77,36 @@ Last materially reviewed: 28 October 2026 UTC
 
 ## AI execution gate
 
-### Brew Done It source integration — 28 October 2026 UTC
+### Brew Done It live read-only inventory — 28 October 2026 UTC
+
+PR #712 merged as `ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda`, including the
+already-integrated #714 privacy correction. Exact production
+`dpl_BZEKrX5g2YvC8GG9jYaQHfmvzfjA` is READY; live health/readiness return HTTP
+200 with that SHA and the known game API remains disabled with HTTP 404.
+Exact-main source validation passes (1,173 passed, 15 intentional connected
+skips, zero failures) and the main browser/accessibility job passes. No skipped
+connected case becomes PASS.
+
+Protected [run 40619712618](https://github.com/jeremytheva/pourfolio/actions/runs/40619712618),
+job `122590506824`, passed canonical Node 22 validation, exact-source verification
+and the actual read-only inventory at `2026-10-28T02:14:36.262Z`. Each of the four
+game collections returned zero rows on both complete observations: eight GETs,
+zero writes. The exact redacted report is retained in
+`docs/evidence/brew-done-it-provider-inventory-2026-10-28.json`.
+Artifact `12786144793` has SHA-256
+`9fe158da1f208681b9f642463eec04ff01044db2aa575dd0d18bdf902c925696`;
+the downloaded ZIP digest, single summary entry and source SHA were verified.
+
+These are the configured observer's bounded reads, not proof of an atomic
+snapshot, schema/constraints, public permissions, recovery or two-device play.
+The report explicitly leaves those qualifications NOT_RUN and release readiness
+BLOCKED. #711's inventory outcome is complete once this retained evidence is
+integrated; #715 owns the next current-schema/controlled-test prerequisite gate.
+No schema/data mutation, test fixture or public enablement occurred. The missing
+current schema-only export remains an external prerequisite; no new product
+decision is required. Unrelated Pourfolio work, including #697, can continue.
+
+### Earlier Brew Done It source integration checkpoint — 28 October 2026 UTC
 
 PR #714 merged as `e3e87ce9ea14ed3f409de8ae5b549b87a661c796` and #713 is
 closed. Its tree is identical to accepted source `058df47b`: canonical Node 22
