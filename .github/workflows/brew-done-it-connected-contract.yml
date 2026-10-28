@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_sha:
-        description: Full commit SHA deployed to the isolated staging provider
+        description: Exact reviewed main commit SHA for the isolated provider probes
         required: true
         type: string
       destructive_confirmation:
@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: brew-done-it-connected-contract-${{ inputs.release_sha }}
+  group: brew-done-it-connected-contract
   cancel-in-progress: false
 
 jobs:
@@ -29,6 +29,8 @@ jobs:
         shell: bash
         run: |
           [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$RELEASE_SHA" = "$GITHUB_SHA"
           test "$DESTRUCTIVE_CONFIRMATION" = "isolated-staging-brew-done-it-contract"
         env:
           RELEASE_SHA: ${{ inputs.release_sha }}

@@ -115,3 +115,13 @@ test('recovery artifacts bind a canonical provider instance without exposing con
   assert.ok(!JSON.stringify(before).includes(config.instance));assert.ok(!JSON.stringify(before).includes(config.baseUrl))
  } finally {await fs.rm(directory,{recursive:true,force:true})}
 })
+test('secret-bearing workflow uses exact reviewed main and retains recovery evidence on failure',async()=>{
+ const workflow=await fs.readFile('.github/workflows/brew-done-it-connected-contract.yml','utf8')
+ assert.ok(workflow.includes('test "$GITHUB_REF" = "refs/heads/main"'))
+ assert.ok(workflow.includes('test "$RELEASE_SHA" = "$GITHUB_SHA"'))
+ assert.match(workflow,/group: brew-done-it-connected-contract\n/)
+ assert.ok(workflow.indexOf('test "$RELEASE_SHA" = "$GITHUB_SHA"')<workflow.indexOf('NOCODEBACKEND_SECRET_KEY:'))
+ assert.ok(workflow.includes('RELEASE_FIXTURE_ENCRYPTION_KEY: ${{ secrets.RELEASE_FIXTURE_ENCRYPTION_KEY }}'))
+ assert.ok(workflow.includes('BREW_DONE_IT_CONTRACT_RELEASE_SHA: ${{ inputs.release_sha }}'))
+ assert.match(workflow,/Retain encrypted fixture recovery checkpoints\n\s+if: always\(\)/)
+})

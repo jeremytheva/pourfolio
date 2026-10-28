@@ -68,6 +68,11 @@ absence readback. A successful delete response alone is insufficient. Failed
 cleanup stops the tracker, so retrying cleanup cannot issue another delete.
 Child creation requires an acknowledged parent fixture from the same run.
 
+Manual dispatch must target `main` and supply exactly its workflow commit SHA;
+the guard rejects stale/other-branch code before credentials are exposed. A
+single workflow concurrency group serialises candidates against the configured
+provider, so a later commit cannot overlap an earlier probe run.
+
 The protected workflow requires an independent `RELEASE_FIXTURE_ENCRYPTION_KEY`
 (canonical base64 for 32 bytes) and uses the verified `BREW_DONE_IT_CONTRACT_RELEASE_SHA` as receipt provenance.
 Receipts and summaries include a capture time and the same hashed canonical
