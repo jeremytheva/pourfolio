@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_sha:
-        description: Full commit SHA deployed to the isolated staging provider
+        description: Exact reviewed main commit SHA for the isolated provider probes
         required: true
         type: string
       destructive_confirmation:
@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: brew-done-it-connected-contract-${{ inputs.release_sha }}
+  group: brew-done-it-connected-contract
   cancel-in-progress: false
 
 jobs:
@@ -29,6 +29,8 @@ jobs:
         shell: bash
         run: |
           [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$RELEASE_SHA" = "$GITHUB_SHA"
           test "$DESTRUCTIVE_CONFIRMATION" = "isolated-staging-brew-done-it-contract"
         env:
           RELEASE_SHA: ${{ inputs.release_sha }}
@@ -48,6 +50,9 @@ jobs:
       - name: Run Brew Done It isolated provider probes
         run: npm run test:brew-provider-contract
         env:
+          BREW_DONE_IT_CONTRACT_RELEASE_SHA: ${{ inputs.release_sha }}
+          BREW_DONE_IT_RECEIPT_DIRECTORY: brew-contract-receipts
+          RELEASE_FIXTURE_ENCRYPTION_KEY: ${{ secrets.RELEASE_FIXTURE_ENCRYPTION_KEY }}
           RUN_BREW_DONE_IT_PROVIDER_CONTRACT: "1"
           BREW_DONE_IT_CONTRACT_ENVIRONMENT: isolated-staging
           BREW_DONE_IT_CONTRACT_ALLOW_DESTRUCTIVE: "1"
@@ -56,3 +61,12 @@ jobs:
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
           BREW_DONE_IT_CONTRACT_USER_ID: ${{ secrets.BREW_DONE_IT_CONTRACT_USER_ID }}
           BREW_DONE_IT_CONTRACT_PRODUCT_ID: ${{ secrets.BREW_DONE_IT_CONTRACT_PRODUCT_ID }}
+
+      - name: Retain encrypted fixture recovery checkpoints
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: brew-contract-receipts-${{ github.run_id }}-${{ github.run_attempt }}
+          path: brew-contract-receipts/
+          if-no-files-found: warn
+          retention-days: 30

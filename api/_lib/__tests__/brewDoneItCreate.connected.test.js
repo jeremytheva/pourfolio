@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { createHash, randomUUID } from 'node:crypto'
 import test from 'node:test'
 import { dataProvider } from '../dataProvider.js'
+import { createBrewFixtureTracker, createBrewFixtureCheckpoint } from '../../../scripts/brew-contract-fixtures.js'
 
 const enabled = process.env.RUN_BREW_DONE_IT_PROVIDER_CONTRACT === '1'
 const contractTest = enabled ? test : test.skip
@@ -15,17 +16,16 @@ const requiredEnvironment = [
   'BREW_DONE_IT_CONTRACT_PRODUCT_ID'
 ]
 
-const created = []
 const userId = process.env.BREW_DONE_IT_CONTRACT_USER_ID
 const productId = process.env.BREW_DONE_IT_CONTRACT_PRODUCT_ID
 const runId = `brew-contract-${Date.now()}-${randomUUID()}`
 
 const first = (value) => Array.isArray(value) ? value[0] : value
-const remember = (collection, value) => {
-  const record = first(value)
-  if (record?.id !== undefined && record?.id !== null) created.push([collection, record.id])
-  return record
-}
+const tracker = enabled ? createBrewFixtureTracker({ provider: dataProvider, ownerId: userId, namespace: runId,
+  checkpoint: createBrewFixtureCheckpoint({ directory: process.env.BREW_DONE_IT_RECEIPT_DIRECTORY,
+    secret: process.env.RELEASE_FIXTURE_ENCRYPTION_KEY, candidateCommit: process.env.BREW_DONE_IT_CONTRACT_RELEASE_SHA, namespace: runId,
+    baseUrl: process.env.NOCODEBACKEND_DATA_BASE_URL, instance: process.env.NOCODEBACKEND_INSTANCE }) }) : null
+const remember = (_collection, value) => first(value)
 
 const requireContractEnvironment = () => {
   const missing = requiredEnvironment.filter((key) => !process.env[key])
@@ -75,18 +75,7 @@ const roundPayload = (game, roundNumber, suffix = '') => ({
   ...(suffix ? { round_creation_idempotency_key: `${userId}:${runId}:${suffix}` } : {})
 })
 
-test.after(async () => {
-  if (!enabled) return
-  const failures = []
-  for (const [collection, id] of created.reverse()) {
-    try {
-      await dataProvider.remove(collection, id)
-    } catch (error) {
-      failures.push({ collection, status: error?.status ?? null, code: error?.code ?? 'CLEANUP_FAILED' })
-    }
-  }
-  assert.deepEqual(failures, [], 'Brew Done It connected contract cleanup must remove every disposable fixture.')
-})
+test.after(async () => { if (enabled) await tracker.cleanup() })
 
 contractTest('Brew Done It provider contract uses an explicit disposable environment', () => {
   requireContractEnvironment()
@@ -94,10 +83,10 @@ contractTest('Brew Done It provider contract uses an explicit disposable environ
 
 contractTest('challenge creation accepts the current v3 game and opening-round payloads', async () => {
   requireContractEnvironment()
-  const game = remember('brew_done_it_games', await dataProvider.create('brew_done_it_games', gamePayload('create')))
+  const game = remember('brew_done_it_games', await tracker.create('brew_done_it_games', gamePayload('create')))
   assert.ok(game?.id, 'Provider must return the created game identifier.')
 
-  const round = remember('brew_done_it_rounds', await dataProvider.create('brew_done_it_rounds', roundPayload(game, 1)))
+  const round = remember('brew_done_it_rounds', await tracker.create('brew_done_it_rounds', roundPayload(game, 1)))
   assert.ok(round?.id, 'Provider must return the opening round identifier.')
   assert.equal(String(round.game_id), String(game.id))
   assert.equal(Number(round.round_number), 1)
@@ -105,19 +94,19 @@ contractTest('challenge creation accepts the current v3 game and opening-round p
 
 contractTest('one participant can own multiple series and each series can contain repeated round numbers independently', async () => {
   requireContractEnvironment()
-  const gameA = remember('brew_done_it_games', await dataProvider.create('brew_done_it_games', gamePayload('series-a')))
-  const gameB = remember('brew_done_it_games', await dataProvider.create('brew_done_it_games', gamePayload('series-b')))
+  const gameA = remember('brew_done_it_games', await tracker.create('brew_done_it_games', gamePayload('series-a')))
+  const gameB = remember('brew_done_it_games', await tracker.create('brew_done_it_games', gamePayload('series-b')))
   assert.notEqual(String(gameA.id), String(gameB.id), 'creator_participant_id must not be globally unique.')
 
-  const roundA = remember('brew_done_it_rounds', await dataProvider.create('brew_done_it_rounds', roundPayload(gameA, 1)))
-  const roundB = remember('brew_done_it_rounds', await dataProvider.create('brew_done_it_rounds', roundPayload(gameB, 1)))
+  const roundA = remember('brew_done_it_rounds', await tracker.create('brew_done_it_rounds', roundPayload(gameA, 1)))
+  const roundB = remember('brew_done_it_rounds', await tracker.create('brew_done_it_rounds', roundPayload(gameB, 1)))
   assert.notEqual(String(roundA.id), String(roundB.id), 'round_number must be scoped to a game, not globally unique.')
 })
 
 contractTest('one series can persist more than one round', async () => {
   requireContractEnvironment()
-  const game = remember('brew_done_it_games', await dataProvider.create('brew_done_it_games', gamePayload('multi-round')))
-  const firstRound = remember('brew_done_it_rounds', await dataProvider.create('brew_done_it_rounds', roundPayload(game, 1)))
-  const secondRound = remember('brew_done_it_rounds', await dataProvider.create('brew_done_it_rounds', roundPayload(game, 2, 'round-2')))
+  const game = remember('brew_done_it_games', await tracker.create('brew_done_it_games', gamePayload('multi-round')))
+  const firstRound = remember('brew_done_it_rounds', await tracker.create('brew_done_it_rounds', roundPayload(game, 1)))
+  const secondRound = remember('brew_done_it_rounds', await tracker.create('brew_done_it_rounds', roundPayload(game, 2, 'round-2')))
   assert.equal(String(firstRound.game_id), String(secondRound.game_id), 'game_id must support multiple child rounds.')
 })
