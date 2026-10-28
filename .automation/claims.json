@@ -1,26 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "catalogue-brew-staging-20261028T083007447Z",
-      "workstream": "catalogue",
-      "issue": 715,
-      "pr": 720,
-      "surfaces": [
-        ".github/workflows/brew-done-it-connected-contract.yml",
-        "STATUS.md",
-        "docs/BREW_DONE_IT_READINESS.md",
-        "docs/LAUNCH_READINESS.md",
-        "github:environment:brew-contract",
-        "issue:715",
-        "provider:54026_rating:schema-clone",
-        "provider:brew-staging",
-        "repo:integration",
-        "scripts/__tests__/brew-contract-fixtures.test.js",
-        "workspace:brew-staging"
-      ],
-      "acquiredAt": "2026-10-28T08:30:07.447Z",
-      "expiresAt": "2026-10-28T09:11:13.988Z"
-    }
-  }
+  "claims": {}
 }
