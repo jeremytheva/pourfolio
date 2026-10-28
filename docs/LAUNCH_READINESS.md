@@ -652,6 +652,17 @@ governed capabilities.
 
 <!-- launch-requirement:PF-LAUNCH-DEFERRED -->
 
+An owner-approved empty schema clone and a separate main-only `brew-contract`
+GitHub environment now exist for Brew write probes. The isolated instance
+variable is configured; its provider key, independent recovery key and dedicated
+fixture user/product IDs are not yet configured. The shared `staging-release`
+environment remains unchanged. Provider UI shows zero clone records and private
+game-table defaults; these observations do not certify API permissions,
+combined indexes, recovery, CAS, score storage, privacy or two-device play.
+The clone SQL export is pending review. See the
+[dedicated test setup](BREW_DONE_IT_READINESS.md#dedicated-provider-test-environment--28-october-2026-australiasydney)
+and #715. No connected write test or public enablement was performed.
+
 The 28 October owner-supplied `54026_rating_export_2026-10-28.sql.gz` resolves the index ambiguity. Its SHA-256 is `bf6d49719695aecc64d91a6b36443c10d382e7ba01ec68757387eb1ba1bb3f51`; the dump header names `54026_rating`. The four game-table definitions and exact index declarations are retained in [#715](https://github.com/jeremytheva/pourfolio/issues/715). All eight suspect column badges belong to combined unique indexes; zero invalid standalone unique indexes were found on those fields. The required `(game_id, round_number)` unique key already exists. Preserve the existing indexes: the earlier conditional DROP/ADD correction plan is superseded for this exported state.
 
 The native snapshot was created and listed successfully on 28 October; restore is untested. Exported structure and absence of game INSERT statements do not prove live row counts, concurrency, privacy or isolation. PR #719 adds encrypted atomic create intent/acknowledgement, a hashed canonical provider-instance reference, fresh exact-ID reads, acknowledged run-owned parent checks and identity-scoped reverse-order cleanup with exact absence verification. Uncertain creates, failed checkpoints and failed cleanup stop further mutations; uncertain deletes cannot be retried in the same tracker. Before a connected run, qualify the protected independent encryption key, isolated recovery and unrelated-row preservation. Source implementation and local regression tests do not certify those external conditions. Do not treat a successful DELETE response or an `isolated-staging` label as that proof. CAS, score text/object persistence, consent/privacy and two-device play remain NOT_RUN; public enablement remains blocked.
