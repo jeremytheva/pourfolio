@@ -179,7 +179,8 @@ test('actual CLI failure output is a redacted JSON summary with a failing exit s
 test('workflow keeps privileged reads main-only and retains only the fixed summary', () => {
   const workflow = readFileSync(new URL('../../.github/workflows/brew-done-it-provider-inventory.yml', import.meta.url), 'utf8')
   assert.match(workflow, /github.ref == 'refs\/heads\/main'/)
-  assert.match(workflow, /environment: staging-release/)
+  assert.ok(workflow.includes("contains(fromJSON('[\"staging-release\",\"brew-contract\"]'), inputs.provider_environment)"))
+  assert.ok(workflow.includes("environment: ${{ github.event_name == 'workflow_dispatch' && inputs.provider_environment || 'staging-release' }}"))
   assert.match(workflow, /ref: \$\{\{ github.sha \}\}/)
   assert.match(workflow, /persist-credentials: false/)
   assert.match(workflow, /npm run platform:validate/)
