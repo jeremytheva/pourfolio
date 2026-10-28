@@ -1,0 +1,53 @@
+name: Brew Done It read-only provider inventory
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: brew-done-it-current-instance-inventory
+  cancel-in-progress: false
+
+jobs:
+  inventory:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[brew-inventory]'))
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Validate reviewed main source
+        run: npm run platform:validate
+      - name: Verify exact source identity
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Read only the four game collections
+        env:
+          RUN_BREW_READONLY_INVENTORY: '1'
+          BREW_INVENTORY_SOURCE_SHA: ${{ github.sha }}
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+        shell: bash
+        run: |
+          mkdir -p artifacts/brew-readonly-inventory
+          node scripts/brew-done-it-provider-inventory.mjs > artifacts/brew-readonly-inventory/summary.json
+      - name: Retain only redacted counts and provenance
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: brew-readonly-inventory-${{ github.sha }}
+          path: artifacts/brew-readonly-inventory/summary.json
+          if-no-files-found: warn
+          retention-days: 30
