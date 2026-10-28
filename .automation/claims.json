@@ -5,7 +5,7 @@
       "owner": "brew-schema-catalogue-1793160452078",
       "workstream": "catalogue",
       "issue": 715,
-      "pr": null,
+      "pr": 717,
       "surfaces": [
         "STATUS.md",
         "docs/BREW_DONE_IT_READINESS.md",
