@@ -5,7 +5,7 @@
       "owner": "catalogue-brew-inventory-1793182439504",
       "workstream": "catalogue",
       "issue": 715,
-      "pr": 721,
+      "pr": 722,
       "surfaces": [
         "repo:integration",
         "issue:715",
