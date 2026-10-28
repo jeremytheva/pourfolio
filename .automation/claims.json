@@ -11,10 +11,14 @@
         "file:scripts/brew-done-it-provider-inventory.mjs",
         "file:scripts/__tests__/brew-done-it-provider-inventory.test.mjs",
         "file:.github/workflows/brew-done-it-provider-inventory.yml",
-        "file:docs/BREW_DONE_IT_READINESS.md"
+        "file:docs/BREW_DONE_IT_READINESS.md",
+        "branch:fix/brew-provider-filter-isolation",
+        "file:api/_lib/brewDoneItData.js",
+        "file:api/_lib/__tests__/brewDoneItData.test.js",
+        "file:docs/SECURITY.md"
       ],
       "acquiredAt": "2026-10-28T01:21:34.023Z",
-      "expiresAt": "2026-10-28T01:51:34.023Z"
+      "expiresAt": "2026-10-28T02:03:31.741Z"
     }
   }
 }
