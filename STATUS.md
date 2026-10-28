@@ -3,17 +3,17 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Brew Done It source deployed and read-only inventory passed; current provider contract evidence required"
+stage: "Brew Done It structure reviewed; exact provider index correction and controlled-test prerequisites required"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Qualify the current Brew Done It provider schema and controlled-test prerequisites under #715; preserve public gameplay gates."
+  objective: "Qualify/correct the eight reported Brew Done It uniqueness hazards and combined round key under #715, then establish controlled-test prerequisites; preserve public gameplay gates."
   issue: 715
   pr: null
   branch: null
 next_actions:
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
-  - "#715 needs a current schema-only export or authorised read-only schema capability for the four game tables. Qualify exact constraints, instance isolation and recovery/cleanup before controlled writes and two-device gameplay. Read-only PASS does not authorise public enablement."
+  - "#715 has owner-supplied structures and complete target column coverage. Inspect actual membership of eight reported UNIQUE badges, preserve/add combined (game_id, round_number), and correct only invalid single-column uniqueness under the bounded plan. Require fresh inventory, instance binding, non-interference/recovery and provider-supported operations before changes or controlled play; do not request the same column-only exports again."
   - "#710 is integrated as 078843e5. Resume #697 keyboard selector visibility without rewriting its owner's branch/form/test work."
   - "PR #693 is integrated and exact production e9661b0f is READY. Configure independent RELEASE_FIXTURE_ENCRYPTION_KEY before bounded HTTP cellar writes; read-only checks remain available."
   - "#709 read-only Admin workspace is deployed and bounded Admin/user own-capability isolation passed in run 40494158943. Keep full Admin browser/moderation, role-write denial and revocation open under #699/#701/#702."
@@ -29,7 +29,7 @@ next_actions:
 blockers:
   - scope: brew_done_it_connected_qualification
     issue: 715
-    detail: "Source/privacy containment is deployed and the bounded live inventory passed. Current game-table schema/constraints, isolated test prerequisites, connected privacy/recovery and two-device evidence remain unqualified; the supplied SQL omits these tables."
+    detail: "Source/privacy containment is deployed and bounded inventory passed. Owner-reported structures expose eight potentially invalid single-column UNIQUE flags; exact index membership, combined game/round uniqueness, type/storage compatibility, safe correction capability, controlled-test prerequisites and connected privacy/recovery/two-device evidence remain unqualified."
   - scope: moderation_provider_schema_access
     issue: 701
     detail: "The supplied schema export is dated 14 July 2026. Current exact-instance schema-only evidence or an authorized read-only schema connection remains required before physical mapping and isolated staging certification; source contracts do not grant provider mutation."
@@ -52,7 +52,7 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda"
+  observed_main_commit: "9456aa9044e66c854e4fe1b5ff62e04a2384e784"
   current_candidate_commit: null
   latest_validated_commit: "ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda"
   latest_deployed_commit: "ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda"
@@ -67,7 +67,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-28T02:22:11Z"
+last_updated: "2026-10-28T04:09:36Z"
 
 ---
 
@@ -76,6 +76,27 @@ last_updated: "2026-10-28T02:22:11Z"
 Last materially reviewed: 28 October 2026 UTC
 
 ## AI execution gate
+
+### Brew Done It owner-supplied structure assessment — 28 October 2026 (Australia/Sydney)
+
+The four supplied CSV headers contain every target field, and the subsequent
+table-designer transcription provides types/defaults and eight `UNIQUE` badges
+that would block normal repeated play if they are individual indexes. #715 now
+owns exact index membership inspection and the bounded correction plan in
+`docs/BREW_DONE_IT_READINESS.md`. Round numbering requires combined uniqueness
+on `(game_id, round_number)`; participant IDs, parent IDs and guess sequence
+numbers must allow repeated values independently. Preserve primary IDs,
+invitation/idempotency uniqueness and private access. The source application,
+provider and capability flags are unchanged.
+
+This is owner-supplied structural evidence, not fresh live introspection or
+connected certification. Provider-supported index operations, current inventory,
+instance binding, non-interference and recovery must be established before any
+change; controlled fixtures, privacy, atomic version checks, score text/object
+storage and two-device play remain unqualified. Do not request the same
+column-only exports again or infer that the earlier empty read makes the shared
+instance disposable. No provider migration or public enablement was performed.
+Unrelated Pourfolio work remains available.
 
 ### Brew Done It live read-only inventory — 28 October 2026 UTC
 
@@ -102,9 +123,10 @@ snapshot, schema/constraints, public permissions, recovery or two-device play.
 The report explicitly leaves those qualifications NOT_RUN and release readiness
 BLOCKED. #711's inventory outcome is complete once this retained evidence is
 integrated; #715 owns the next current-schema/controlled-test prerequisite gate.
-No schema/data mutation, test fixture or public enablement occurred. The missing
-current schema-only export remains an external prerequisite; no new product
-decision is required. Unrelated Pourfolio work, including #697, can continue.
+No schema/data mutation, test fixture or public enablement occurred. The later
+owner-supplied structure review above supersedes the missing-column-export next
+step with concrete index qualification/correction; no new product decision is
+required. Unrelated Pourfolio work, including #697, can continue.
 
 ### Earlier Brew Done It source integration checkpoint — 28 October 2026 UTC
 

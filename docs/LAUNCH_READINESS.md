@@ -688,6 +688,18 @@ remains disabled with HTTP 404. The main browser/accessibility job passes.
 
 This closes #711's bounded inventory outcome after retained-evidence integration;
 #715 owns current schema/constraints and safe controlled-test prerequisites.
+The owner's subsequent four table-designer structures and header-only CSVs
+contain every target field. Eight reported `UNIQUE` badges require actual index
+membership inspection: individual uniqueness on participant IDs, parent IDs,
+round numbers or guess turn numbers would block repeated play. Round numbering
+requires one combined unique `(game_id, round_number)` constraint, while the
+deduction ledger must allow repeated events from the same participant/round.
+The [bounded correction plan](BREW_DONE_IT_READINESS.md#owner-supplied-structure-review--28-october-2026-australiasydney)
+preserves private access and request-key uniqueness, requires a fresh inventory
+and recovery/non-interference evidence before provider changes, and records
+remaining type/score-storage compatibility checks. No schema correction or
+connected gameplay certification has been performed; a repeated column-only
+export is no longer the immediate dependency.
 Inventory PASS does not prove atomic snapshot/recovery, permissions, cardinality,
 two-device gameplay or enablement. Those fields remain NOT_RUN in the report and
 release readiness remains BLOCKED. Keep the existing capability manifests and
