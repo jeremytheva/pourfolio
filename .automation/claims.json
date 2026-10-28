@@ -1,32 +1,20 @@
 {
   "version": 1,
   "claims": {
-    "catalogue": {
-      "owner": "catalogue-http-receipts-20261027T2100Z",
-      "workstream": "catalogue",
-      "issue": 695,
-      "pr": 697,
+    "brew": {
+      "owner": "brew-launch-preflight-20261028T012134023Z",
+      "workstream": "brew",
+      "issue": null,
+      "pr": null,
       "surfaces": [
-        "branch:feature/add-beer-release-form",
-        "branch:fix/add-beer-connected-evidence-20261027",
-        "file:.github/workflows/add-beer-connected-evidence.yml",
-        "file:STATUS.md",
-        "file:api/catalog-data-proxy.js",
-        "file:api/nocodebackend/__tests__/catalogueCategories.test.js",
-        "file:docs/LAUNCH_READINESS.md",
-        "file:docs/add-product-moderation.md",
-        "file:e2e/catalogue-proposal-searchable-selectors.spec.js",
-        "file:e2e/mockApi.js",
-        "file:release-check/catalogue-readonly.spec.js",
-        "file:src/components/CanonicalSearchSelect.jsx",
-        "file:src/pages/AddBeerProposal.jsx",
-        "file:src/services/__tests__/catalogueCategoryPage.test.js",
-        "file:src/services/catalogueResponse.js",
-        "file:src/services/styleService.js",
-        "repo:integration"
+        "branch:chore/brew-v3-readonly-provider-inventory",
+        "file:scripts/brew-done-it-provider-inventory.mjs",
+        "file:scripts/__tests__/brew-done-it-provider-inventory.test.mjs",
+        "file:.github/workflows/brew-done-it-provider-inventory.yml",
+        "file:docs/BREW_DONE_IT_READINESS.md"
       ],
-      "acquiredAt": "2026-10-27T21:00:16.000Z",
-      "expiresAt": "2026-10-27T22:12:30.000Z"
+      "acquiredAt": "2026-10-28T01:21:34.023Z",
+      "expiresAt": "2026-10-28T01:51:34.023Z"
     }
   }
 }
