@@ -1,4 +1,18 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "brew": {
+      "owner": "brew-staging-20261028T081500371Z",
+      "workstream": "brew",
+      "issue": 715,
+      "pr": null,
+      "surfaces": [
+        "issue:715",
+        "provider:54026_rating:schema-clone",
+        "provider:brew-staging"
+      ],
+      "acquiredAt": "2026-10-28T08:15:00.371Z",
+      "expiresAt": "2026-10-28T08:45:00.371Z"
+    }
+  }
 }
