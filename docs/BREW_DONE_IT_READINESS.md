@@ -64,11 +64,15 @@ checkpoint/readback failure stops subsequent writes; retain the intent for
 operator recovery rather than retrying an uncertain create. Cleanup traverses
 acknowledged fixtures in reverse dependency order, verifies run-scoped request
 and owner/parent identities immediately before deletion, and requires an exact
-absence readback. A successful delete response alone is insufficient.
+absence readback. A successful delete response alone is insufficient. Failed
+cleanup stops the tracker, so retrying cleanup cannot issue another delete.
+Child creation requires an acknowledged parent fixture from the same run.
 
 The protected workflow requires an independent `RELEASE_FIXTURE_ENCRYPTION_KEY`
 (canonical base64 for 32 bytes) and uses the verified `BREW_DONE_IT_CONTRACT_RELEASE_SHA` as receipt provenance.
-Each suite has a separate receipt directory, with encrypted receipts and
+Receipts and summaries include a capture time and the same hashed canonical
+endpoint/instance reference used by the read-only inventory. Raw provider
+configuration remains excluded. Each suite has a separate receipt directory, with encrypted receipts and
 minimised stage/count summaries retained by an always-run artifact step for
 30 days. No plaintext fixture payload is uploaded. Do not use a provider or
 account credential as the encryption key. Interrupted-run receipts remain
@@ -84,7 +88,7 @@ outcome needs bounded operator reconciliation before another run.
 
 The 28 October owner-supplied `54026_rating_export_2026-10-28.sql.gz` resolves the index ambiguity. Its SHA-256 is `bf6d49719695aecc64d91a6b36443c10d382e7ba01ec68757387eb1ba1bb3f51`; the dump header names `54026_rating`. The four game-table definitions and exact index declarations are retained in [#715](https://github.com/jeremytheva/pourfolio/issues/715). All eight suspect column badges belong to combined unique indexes; zero invalid standalone unique indexes were found on those fields. The required `(game_id, round_number)` unique key already exists. Preserve the existing indexes: the earlier conditional DROP/ADD correction plan is superseded for this exported state.
 
-The native snapshot was created and listed successfully on 28 October; restore is untested. Exported structure and absence of game INSERT statements do not prove live row counts, concurrency, privacy or isolation. Existing connected probes retain acknowledged create IDs only in memory and delete them in an after-hook, without durable create intent/acknowledgement or exact absence verification. Before running them, retain encrypted fixture recovery identity, verify ownership before each bounded delete, prove final absence/non-interference and qualify the isolated test/recovery boundary. Do not treat a successful DELETE response or an `isolated-staging` label as that proof. CAS, score text/object persistence, consent/privacy and two-device play remain NOT_RUN; public enablement remains blocked.
+The native snapshot was created and listed successfully on 28 October; restore is untested. Exported structure and absence of game INSERT statements do not prove live row counts, concurrency, privacy or isolation. PR #719 adds encrypted atomic create intent/acknowledgement, a hashed canonical provider-instance reference, fresh exact-ID reads, acknowledged run-owned parent checks and identity-scoped reverse-order cleanup with exact absence verification. Uncertain creates, failed checkpoints and failed cleanup stop further mutations; uncertain deletes cannot be retried in the same tracker. Before a connected run, qualify the protected independent encryption key, isolated recovery and unrelated-row preservation. Source implementation and local regression tests do not certify those external conditions. Do not treat a successful DELETE response or an `isolated-staging` label as that proof. CAS, score text/object persistence, consent/privacy and two-device play remain NOT_RUN; public enablement remains blocked.
 
 ### Earlier owner-supplied structure review — 28 October 2026 (Australia/Sydney)
 

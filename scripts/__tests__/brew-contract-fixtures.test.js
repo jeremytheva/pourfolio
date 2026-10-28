@@ -33,16 +33,17 @@ test('foreign identity is never deleted',async()=>{
  const s=setup();await s.tracker.create('brew_done_it_games',payload);s.rows.get('1').user_id='other';await assert.rejects(s.tracker.cleanup());assert.deepEqual(s.calls,['create'])
 })
 test('a successful DELETE without actual absence fails verification',async()=>{
- const s=setup();s.provider.remove=async()=>s.calls.push('delete');await s.tracker.create('brew_done_it_games',payload);await assert.rejects(s.tracker.cleanup());assert.deepEqual(s.calls,['create','delete'])
+ const s=setup();s.provider.remove=async()=>s.calls.push('delete');await s.tracker.create('brew_done_it_games',payload);await assert.rejects(s.tracker.cleanup())
+ await assert.rejects(s.tracker.cleanup());await assert.rejects(s.tracker.create('brew_done_it_games',payload));assert.deepEqual(s.calls,['create','delete'])
 })
 test('ambiguous delete is accepted only after exact absence readback',async()=>{
  const s=setup();s.provider.remove=async()=>{s.calls.push('delete');s.rows.delete('1');throw Error('lost')};await s.tracker.create('brew_done_it_games',payload);await s.tracker.cleanup();assert.deepEqual(s.calls,['create','delete'])
 })
 test('checkpoint stores encrypted identities and minimised summary, rejects invalid key',async()=>{
- const directory=await fs.mkdtemp(path.join(os.tmpdir(),'brew-receipt-'));const secret=Buffer.alloc(32,7).toString('base64');const candidateCommit='a'.repeat(40)
+ const directory=await fs.mkdtemp(path.join(os.tmpdir(),'brew-receipt-'));const secret=Buffer.alloc(32,7).toString('base64');const candidateCommit='a'.repeat(40); const baseUrl='https://api.nocodebackend.com/'; const instance='fixture_test_instance'
  try {
   assert.throws(()=>createBrewFixtureCheckpoint({directory,secret:'bad',candidateCommit,namespace}))
-  const writer=createBrewFixtureCheckpoint({directory,secret,candidateCommit,namespace});const s=setup(writer);await s.tracker.create('brew_done_it_games',payload)
+  const writer=createBrewFixtureCheckpoint({directory,secret,candidateCommit,namespace,baseUrl,instance});const s=setup(writer);await s.tracker.create('brew_done_it_games',payload)
   const receipt=JSON.parse(await fs.readFile(path.join(directory,namespace,'receipt.json'),'utf8'));const summary=await fs.readFile(path.join(directory,namespace,'summary.json'),'utf8')
   assert.equal(openBonusFixtureReceipt(receipt,secret).fixtures[0].id,'1');assert.throws(()=>openBonusFixtureReceipt(receipt,'wrong'));assert.ok(!summary.includes('owner'));assert.ok(!JSON.stringify(receipt).includes(namespace))
  } finally {await fs.rm(directory,{recursive:true,force:true})}
@@ -66,4 +67,51 @@ test('wrong record ID returned by an exact read prevents cleanup writes',async()
  const s=setup();await s.tracker.create('brew_done_it_games',payload)
  s.provider.get=async()=>({...payload,id:2})
  await assert.rejects(s.tracker.cleanup());assert.deepEqual(s.calls,['create'])
+})
+test('children cannot attach to a foreign game or round even with a run-scoped key',async()=>{
+ const s=setup()
+ await assert.rejects(s.tracker.create('brew_done_it_rounds', {
+  user_id:'owner',game_id:999,round_number:2,round_creation_idempotency_key:`owner:${namespace}:round-two`
+ }))
+ await assert.rejects(s.tracker.create('brew_done_it_guesses', {
+  user_id:'owner',round_id:999,idempotency_key:`owner:${namespace}:guess`
+ }))
+ await assert.rejects(s.tracker.create('brew_done_it_deductions', {
+  user_id:'owner',round_id:999,idempotency_key:`owner:${namespace}:deduction`
+ }))
+ assert.deepEqual(s.calls,[])
+})
+test('namespace substrings do not authorise another actor request key',async()=>{
+ const s=setup()
+ await assert.rejects(s.tracker.create('brew_done_it_games', {
+  ...payload,creation_idempotency_key:`foreign:prefix-${namespace}:one`
+ }))
+ assert.deepEqual(s.calls,[])
+})
+test('every exact read requests fresh provider data and a finished tracker cannot write again',async()=>{
+ const s=setup();const options=[];const get=s.provider.get
+ s.provider.get=async(c,id,opts)=>{options.push(opts);return get(c,id)}
+ await s.tracker.create('brew_done_it_games',payload);await s.tracker.cleanup()
+ assert.equal(options.length,3);assert.ok(options.every(o=>o?.fresh===true))
+ await assert.rejects(s.tracker.create('brew_done_it_games',payload));assert.deepEqual(s.calls,['create','delete'])
+})
+test('recovery artifacts bind a canonical provider instance without exposing configuration',async()=>{
+ const directory=await fs.mkdtemp(path.join(os.tmpdir(),'brew-target-'))
+ const config={directory,namespace,secret:Buffer.alloc(32,9).toString('base64'),candidateCommit:'b'.repeat(40),baseUrl:'https://api.nocodebackend.com/',instance:'first_private_instance'}
+ try {
+  assert.throws(()=>createBrewFixtureCheckpoint({...config,instance:''}))
+  assert.throws(()=>createBrewFixtureCheckpoint({...config,baseUrl:'https://untrusted.invalid'}))
+  const writer=createBrewFixtureCheckpoint(config);const s=setup(writer);await s.tracker.create('brew_done_it_games',payload)
+  const readSummary=async root=>JSON.parse(await fs.readFile(path.join(root,namespace,'summary.json'),'utf8'))
+  const before=await readSummary(directory)
+  const receipt=JSON.parse(await fs.readFile(path.join(directory,namespace,'receipt.json'),'utf8'))
+  assert.match(before.providerRef,/^sha256:[a-f0-9]{64}$/)
+  assert.equal(openBonusFixtureReceipt(receipt,config.secret).providerRef,before.providerRef)
+  assert.ok(Number.isFinite(Date.parse(before.capturedAt)))
+  const secondDirectory=path.join(directory,'second')
+  const second=createBrewFixtureCheckpoint({...config,directory:secondDirectory,instance:'second_private_instance'})
+  const other=setup(second);await other.tracker.create('brew_done_it_games',payload)
+  assert.notEqual((await readSummary(secondDirectory)).providerRef,before.providerRef)
+  assert.ok(!JSON.stringify(before).includes(config.instance));assert.ok(!JSON.stringify(before).includes(config.baseUrl))
+ } finally {await fs.rm(directory,{recursive:true,force:true})}
 })
