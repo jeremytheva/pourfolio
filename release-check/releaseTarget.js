@@ -52,6 +52,21 @@ export const parseReleaseBaseUrl = (value) => {
   return url.origin
 }
 
+export const assertReleasePageOrigin = (currentUrl, baseUrl) => {
+  const origin = parseReleaseBaseUrl(baseUrl)
+  let current
+  try {
+    if (typeof currentUrl !== 'string') throw new Error('invalid')
+    current = new URL(currentUrl)
+  } catch {
+    throw new Error('Release page origin is unverified.')
+  }
+  if (current.origin !== origin || current.username || current.password) {
+    throw new Error('Release page origin is unverified.')
+  }
+  return origin
+}
+
 export const validateReadinessPayload = (payload, expectedSha) => {
   parseReleaseSha(expectedSha)
   if (!isPlainObject(payload) || !isPlainObject(payload.release) || !isPlainObject(payload.checks)) {
