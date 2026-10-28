@@ -4,7 +4,7 @@
     "brew": {
       "owner": "brew-launch-preflight-20261028T012134023Z",
       "workstream": "brew",
-      "issue": null,
+      "issue": 711,
       "pr": null,
       "surfaces": [
         "branch:chore/brew-v3-readonly-provider-inventory",
