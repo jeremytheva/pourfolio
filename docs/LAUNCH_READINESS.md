@@ -1,7 +1,7 @@
 # Launch readiness
 
 Last reconciled: **28 October 2026 UTC**. Last bounded health/readiness deployment:
-[`e3e87ce9ea14ed3f409de8ae5b549b87a661c796`](https://github.com/jeremytheva/pourfolio/commit/e3e87ce9ea14ed3f409de8ae5b549b87a661c796). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
+[`ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda`](https://github.com/jeremytheva/pourfolio/commit/ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
@@ -675,13 +675,23 @@ trees, with canonical source validation and all 187 browser/accessibility cases
 passing. No live private game was accessed or exposed during the synthetic
 reproduction. This qualifies the source correction and bounded containment only.
 
-PR #712 adds the current-instance read-only inventory under #711 and reconciles
-the actual protected route/optional-table classification. Its earlier isolated
-source evidence must be refreshed for the combined integration candidate. The
-protected main workflow's real execution is NOT_RUN at this checkpoint; an
-inventory PASS does not prove schema constraints, atomic snapshot/recovery,
-permissions, two-device gameplay or enablement. Keep #711 and the capability
-gates open until their actual evidence exists.
+PR #712 is now integrated as `ec6bbc58`; its final source and exact-main
+validation pass with 1,173 tests and 15 intentional connected skips. Protected
+[run 40619712618](https://github.com/jeremytheva/pourfolio/actions/runs/40619712618),
+job `122590506824`, completed the real inventory: all four game collections
+returned zero rows on two complete observations, eight GETs and zero writes.
+The [redacted report](evidence/brew-done-it-provider-inventory-2026-10-28.json)
+is retained with artifact `12786144793` and verified ZIP SHA-256
+`9fe158da1f208681b9f642463eec04ff01044db2aa575dd0d18bdf902c925696`.
+Exact production health/readiness return HTTP 200 at ec6bbc58 and the game API
+remains disabled with HTTP 404. The main browser/accessibility job passes.
+
+This closes #711's bounded inventory outcome after retained-evidence integration;
+#715 owns current schema/constraints and safe controlled-test prerequisites.
+Inventory PASS does not prove atomic snapshot/recovery, permissions, cardinality,
+two-device gameplay or enablement. Those fields remain NOT_RUN in the report and
+release readiness remains BLOCKED. Keep the existing capability manifests and
+public NO-GO intact; no provider mutation or game enablement has occurred.
 
 [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) and
 [ADR 0006](DECISIONS/0006-adopt-brew-done-it-deduction-board.md) approve the

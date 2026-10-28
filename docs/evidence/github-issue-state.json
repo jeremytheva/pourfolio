@@ -1,5 +1,5 @@
 {
-  "captured_at": "2026-10-28T02:03:22.889Z",
+  "captured_at": "2026-10-28T02:21:51.554Z",
   "repository": "jeremytheva/pourfolio",
   "source": "GitHub connected inspection (equivalent to scripts/check-status-github-state.js)",
   "scope": "retained issue-state evidence for current blocker and continuity drift checks; offline validation does not treat this as fresh live state",
@@ -81,6 +81,12 @@
       "title": "Brew Done It: reject provider rows outside the authorised exact filter",
       "state": "closed",
       "html_url": "https://github.com/jeremytheva/pourfolio/issues/713"
+    },
+    {
+      "number": 715,
+      "title": "Brew Done It: qualify current provider schema and controlled-test prerequisites",
+      "state": "open",
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/715"
     }
   ]
 }

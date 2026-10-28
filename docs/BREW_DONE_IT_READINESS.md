@@ -55,7 +55,36 @@ The v3 source now provides:
 
 The machine-readable data contract classifies the four owner-provisioned v3 collections as `DEPLOYED_OPTIONAL`. This records their application integration, not certification of their current physical constraints, permissions, recovery or gameplay. The feature is not qualified for public launch. Earlier statements about an absent route or wholly deferred collections describe the historical containment baseline and must not override the current source/contract.
 
-### Launch preparation review — 28 October 2026 UTC
+### Live read-only inventory verified — 28 October 2026 UTC
+
+PR #714's privacy correction and PR #712's inventory preparation are merged and
+deployed at `ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda`. Exact production health
+and readiness return HTTP 200 with that SHA; the known game API retains its
+disabled HTTP 404 response. Source validation passes with 1,173 passed and 15
+intentional connected skips; the exact-main browser/accessibility job passes.
+
+Protected [inventory run 40619712618](https://github.com/jeremytheva/pourfolio/actions/runs/40619712618),
+job `122590506824`, completed the actual preflight at
+`2026-10-28T02:14:36.262Z`. Games, rounds, guesses and deductions each returned
+zero rows on two complete observations, with eight GETs and zero writes.
+The [exact redacted summary](evidence/brew-done-it-provider-inventory-2026-10-28.json)
+retains source identity and the hashed provider reference, without row data.
+Artifact `12786144793` has SHA-256
+`9fe158da1f208681b9f642463eec04ff01044db2aa575dd0d18bdf902c925696`.
+Its downloaded ZIP digest, sole summary entry and expected source SHA were verified.
+
+Inventory PASS qualifies only these bounded reads. Schema constraints, provider
+permissions/cardinality, recovery and two-account/two-device play remain NOT_RUN;
+release readiness remains BLOCKED. Zero observed rows do not authorise a wipe,
+make the shared instance disposable or establish a recoverable snapshot.
+
+The next dependency is [#715](https://github.com/jeremytheva/pourfolio/issues/715):
+obtain current schema-only evidence for the same four tables and qualify the
+existing controlled-test prerequisites. The project SQL has no definitions for
+these tables. Keep the existing provider/release manifests blocked and public
+gameplay disabled until their separate evidence gates are satisfied.
+
+### Earlier launch preparation review — 28 October 2026 UTC
 
 [Issue #711](https://github.com/jeremytheva/pourfolio/issues/711) prepares the bounded read-only inventory required before any connected fixture mutation. Main `078843e564c22f91317c2832c1e6991ffc30472a` is deployed as Vercel production `dpl_BrXmcGgRynq2rQuMTCvmrnAnAzUP`; live `/api/health` and `/api/readiness` both returned HTTP 200 with that SHA on 28 October. These results qualify application deployment identity and readiness only; they do not exercise the game.
 
