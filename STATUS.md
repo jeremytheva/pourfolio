@@ -3,16 +3,19 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Add Beer keyboard visibility repair and current-main validation"
+stage: "Add Beer current-main reconciliation and read-only qualification"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Repair PR #697 keyboard option visibility and validate the complete form on current main before authenticated read-only category qualification."
+  objective: "Qualify the reviewed Add Beer selector and canonical category read path on a fresh combined candidate, preserving newer Brew work and launch gates."
   issue: 695
   pr: 697
   branch: "feature/add-beer-release-form"
 next_actions:
-  - "Validate #697 keyboard visibility and current-main integration, then qualify authenticated canonical category pagination and selection against its exact deployed preview before merging. No new provider/rating write is needed for that read-only gate."
+  - "Validate the #697/current-main combined candidate, then run only the existing authenticated category-pagination/selector case against its exact preview. The worker context repair was accepted; no browser/provider work ran in its original invalid attempt."
+  - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
+  - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Securely configure its instance-scoped provider key, independent recovery key and dedicated fixture user/product IDs; verify cloned constraints and recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
+  - "#710 is integrated as 078843e5. The #697 keyboard visibility fix and long-list regression already passed at 9a7f4b8a; retain them while qualifying the fresh combined candidate."
   - "PR #693 is integrated and exact production e9661b0f is READY. Configure independent RELEASE_FIXTURE_ENCRYPTION_KEY before bounded HTTP cellar writes; read-only checks remain available."
   - "#709 read-only Admin workspace is deployed and bounded Admin/user own-capability isolation passed in run 40494158943. Keep full Admin browser/moderation, role-write denial and revocation open under #699/#701/#702."
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
@@ -25,6 +28,9 @@ next_actions:
   - "Complete #165 provider mechanism, consistent snapshot and isolated restore evidence before irreversible migration or historical repair; then close #144/#154 acceptance."
   - "Complete publication, monitored support, named operations owners, anonymous production access and final exact-candidate release qualification."
 blockers:
+  - scope: brew_done_it_connected_qualification
+    issue: 715
+    detail: "The source's combined indexes are correct. An empty schema clone and dedicated main-only brew-contract environment now exist, and its provider key is now configured. Three fixture/recovery secrets remain absent; the first staging API read failed with INVENTORY_READ_FAILED. Cloned-index/API verification, connected cleanup/non-interference, isolated recovery, provider CAS, scoring storage, privacy and two-device testing remain unqualified."
   - scope: moderation_provider_schema_access
     issue: 701
     detail: "The supplied schema export is dated 14 July 2026. Current exact-instance schema-only evidence or an authorized read-only schema connection remains required before physical mapping and isolated staging certification; source contracts do not grant provider mutation."
@@ -47,12 +53,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "078843e564c22f91317c2832c1e6991ffc30472a"
+  observed_main_commit: "fa18a8655f06c0b25540ec1b7bfcaeac34927ac6"
   current_candidate_commit: null
-  latest_validated_commit: "7a8e05c669ce39811a9d2bf9308ee315f9048f26"
-  latest_deployed_commit: "e9661b0f6102acb7002f5e207184829bb0398766"
-  latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-  latest_browser_verified_commit: "828864b8dc1633edf61e051cb76ee020fbb5ca1b"
+  latest_validated_commit: "fa18a8655f06c0b25540ec1b7bfcaeac34927ac6"
+  latest_deployed_commit: "fa18a8655f06c0b25540ec1b7bfcaeac34927ac6"
+  latest_runtime_verified_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
+  latest_browser_verified_commit: "fa18a8655f06c0b25540ec1b7bfcaeac34927ac6"
 validation:
   governance: NOT_RUN
   lint: NOT_RUN
@@ -61,42 +67,204 @@ validation:
   build: NOT_RUN
   ci: PENDING
   runtime: UNVERIFIED
-last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-27T21:19:00Z"
+last_verified_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
+last_updated: "2026-10-28T19:47:00Z"
 
 ---
 
 # STATUS.md
 
-Last materially reviewed: 27 October 2026 UTC
+Last materially reviewed: 28 October 2026 UTC
 
 ## AI execution gate
 
-### Add Beer selector review repair — 27 October 2026 UTC
+### Add Beer qualification continuation — 28 October 2026 UTC
 
-PR #697 retains its complete canonical brewery/style controls, reviewed style
-aliases and authenticated canonical-category route. Independent architecture and
-contract review found one material accessibility issue: keyboard navigation could
-move the active option outside the clipped listbox. An active-option ref/effect
-now scrolls that option into nearest view while keeping combobox focus. A
-40-choice browser regression navigates forward beyond the viewport, back to the
-first option, and selects it with Enter. Fresh exact-head canonical Node 22 and
-browser/accessibility validation are pending after reconciliation with current
-main; no new connected PASS is inferred from the older 192-case source evidence.
+PR #697 source `9a7f4b8a` passed canonical Node 22 validation (1,156
+passed, 15 intentional skips, zero failures/production vulnerabilities), all
+193 browser/accessibility cases and independent review. Its keyboard-active
+canonical option now remains visible through long-list navigation; the
+40-choice forward/back/Enter regression passes. This source work is complete.
 
-The existing connected read-only case must still verify full authenticated
-category pagination and select a real style through the new form against its
-exact preview before integration. Earlier access stopped at Vercel protection
-before application authentication; that is unavailable evidence. Existing test
-account secrets are configured. No provider/catalogue/rating write is required
-for this category gate. #696 moderation, #165 distributed integrity, privacy and
-42 missing bonus values remain separate; public launch remains **NO-GO**.
+Current main `fa18a865` independently passes 1,191 source tests and all
+187 browser/accessibility cases in run 40671993296. Its exact production
+deployment `dpl_EfZPt3zpR6s2w1PcyV8X9ZwbnXwz` is READY. The updated candidate
+preserves all newer Brew source, inventory, recovery and documentation facts;
+only the two shared continuity documents required reconciliation. Fresh combined
+source/browser validation and exact-preview qualification remain pending.
+
+The first one-case worker run 40590320110 at `4fa3dbe1` failed before any
+job existed: `runner.temp` is unavailable in job-level environment expressions.
+No sign-in, browser test or provider operation ran. Moving the session path to
+the browser/private-cleanup step environments fixes that defect. GitHub accepted
+the revised workflow in run 40757218755; its job was deliberately skipped
+without a qualification marker. This is configuration acceptance, not a
+connected PASS.
+
+After fresh source validation, the worker will select only the existing
+authenticated category-pagination and real selector case, with zero retries,
+before/after exact provenance, original-session rejection and private cleanup.
+It uses configured owner credentials after preflight and retains only fixed
+redacted evidence. No catalogue, rating or cellar write is selected. Brew
+qualification remains separate and launch-excluded. #165, privacy, 42 missing
+bonus allocations and public **NO-GO** remain unchanged.
+
+### Staging API inventory blocked — 28 October 2026 (Australia/Sydney)
+
+The owner saved the isolated provider key in `brew-contract`; its presence was
+verified after refreshing GitHub, without reading the value. PR #721 adds an
+allowlisted manual environment choice to the existing read-only collector,
+preserving the shared push/default target. Canonical source validation passes.
+
+Run 40670930701 at `b317325b`, job 122757200657, used the clone reference
+`sha256:28a894d649601056bb874de52734132610265ec574d6e378c2a8abc9c11d48a5`.
+Its first games-table read failed with `INVENTORY_READ_FAILED`; no collection
+count or connected PASS was established and no write was attempted. Artifact
+12808530751 retains the exact redacted report; ZIP SHA256 is
+`48d28bd4779e54e595f7bd3559d83bafbd30e5069766298d9d6d417520b66fde`.
+The original failure discarded HTTP detail. PR #722 retains only a bounded HTTP
+status and allowlisted adapter code; messages, bodies and causes remain absent.
+A new read-only run must establish the failure category before key/permission
+changes or fixture creation. #715 holds the live result and next action.
+The independent recovery key and dedicated fixture user/product IDs remain
+unconfigured. Public gameplay stays disabled.
+
+### Empty Brew staging provisioned — 28 October 2026 (Australia/Sydney)
+
+The owner continued after the exact schema-only staging-clone approval request.
+NoCodeBackend created the separate empty clone in US West (Phoenix), with
+provider reference `sha256:28a894d649601056bb874de52734132610265ec574d6e378c2a8abc9c11d48a5`.
+Its dashboard reports zero records. Loaded record views for each of the four
+game tables show no persisted rows; the schema editor shows the current target
+fields, private defaults and no checked role-access overrides. Column badges
+do not independently verify combined indexes. A clone SQL export was requested
+once and is pending review; the Gmail connector returned an unavailable-tool
+error, so no mail/browser fallback or further export was attempted.
+
+The separate GitHub `brew-contract` environment has an explicit `main` branch
+allowlist and its isolated instance variable. The write-probe workflow now uses
+that environment, preserving shared `staging-release` settings and credentials.
+The provider key has since been configured. The independent fixture encryption
+key and dedicated fixture user/product IDs remain absent. No secret value
+was read or changed and no fixture, provider schema/index, role policy or public
+enablement was modified. The clone is preparation only; API/index, restore,
+cleanup, non-interference, CAS, score persistence, privacy and two-device
+qualification remain open in #715.
+
+Production health/readiness at the #719 merge `9e0c44ba` returned 200 with its
+exact SHA; the game endpoint returned the disabled 404 response. These bounded
+runtime checks do not certify connected gameplay.
+
+### Brew Done It fixture recovery integration — 28 October 2026 (Australia/Sydney)
+
+PR #719 replaces in-memory-only fixture cleanup in both existing provider
+suites with encrypted atomic intent/acknowledgement and minimised summaries.
+Receipts bind the checked-out source SHA and canonical provider-instance hash.
+Every child belongs to an acknowledged fixture from the same run. Cleanup uses
+fresh exact-ID and scoped identity reads, removes children before parents and
+requires absence readback. An uncertain create, checkpoint failure or cleanup
+failure prevents subsequent mutations; uncertain deletes are never blindly
+retried. Independent-key and privacy/regression checks are part of source
+validation. Whole-runner loss is outside local checkpoint guarantees.
+
+This change supplies source safety controls; it does not run the connected
+workflow or certify provider permissions, isolation, restore, unrelated-row
+preservation, CAS, score text/object persistence or two-device gameplay. The
+exported combined indexes are correct and remain unchanged. #715 owns the
+remaining external prerequisites and certification; public gameplay stays
+contained. Unrelated work, including #697, remains available.
+
+
+### Exported Brew Done It constraints resolved — 28 October 2026 (Australia/Sydney)
+
+The 28 October owner-supplied `54026_rating_export_2026-10-28.sql.gz` resolves the index ambiguity. Its SHA-256 is `bf6d49719695aecc64d91a6b36443c10d382e7ba01ec68757387eb1ba1bb3f51`; the dump header names `54026_rating`. The four game-table definitions and exact index declarations are retained in [#715](https://github.com/jeremytheva/pourfolio/issues/715). All eight suspect column badges belong to combined unique indexes; zero invalid standalone unique indexes were found on those fields. The required `(game_id, round_number)` unique key already exists. Preserve the existing indexes: the earlier conditional DROP/ADD correction plan is superseded for this exported state.
+
+The native snapshot was created and listed successfully on 28 October; restore is untested. Exported structure and absence of game INSERT statements do not prove live row counts, concurrency, privacy or isolation. PR #719 adds encrypted atomic create intent/acknowledgement, a hashed canonical provider-instance reference, fresh exact-ID reads, acknowledged run-owned parent checks and identity-scoped reverse-order cleanup with exact absence verification. Uncertain creates, failed checkpoints and failed cleanup stop further mutations; uncertain deletes cannot be retried in the same tracker. Before a connected run, qualify the protected independent encryption key, isolated recovery and unrelated-row preservation. Source implementation and local regression tests do not certify those external conditions. Do not treat a successful DELETE response or an `isolated-staging` label as that proof. CAS, score text/object persistence, consent/privacy and two-device play remain NOT_RUN; public enablement remains blocked.
+
+### Brew Done It owner-supplied structure assessment — 28 October 2026 (Australia/Sydney)
+
+The four supplied CSV headers contain every target field, and the subsequent
+table-designer transcription provides types/defaults and eight `UNIQUE` badges
+that would block normal repeated play if they are individual indexes. #715 now
+owns exact index membership inspection and the bounded correction plan in
+`docs/BREW_DONE_IT_READINESS.md`. Round numbering requires combined uniqueness
+on `(game_id, round_number)`; participant IDs, parent IDs and guess sequence
+numbers must allow repeated values independently. Preserve primary IDs,
+invitation/idempotency uniqueness and private access. The source application,
+provider and capability flags are unchanged.
+
+This is owner-supplied structural evidence, not fresh live introspection or
+connected certification. Provider-supported index operations, current inventory,
+instance binding, non-interference and recovery must be established before any
+change; controlled fixtures, privacy, atomic version checks, score text/object
+storage and two-device play remain unqualified. Do not request the same
+column-only exports again or infer that the earlier empty read makes the shared
+instance disposable. No provider migration or public enablement was performed.
+Unrelated Pourfolio work remains available.
+
+### Brew Done It live read-only inventory — 28 October 2026 UTC
+
+PR #712 merged as `ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda`, including the
+already-integrated #714 privacy correction. Exact production
+`dpl_BZEKrX5g2YvC8GG9jYaQHfmvzfjA` is READY; live health/readiness return HTTP
+200 with that SHA and the known game API remains disabled with HTTP 404.
+Exact-main source validation passes (1,173 passed, 15 intentional connected
+skips, zero failures) and the main browser/accessibility job passes. No skipped
+connected case becomes PASS.
+
+Protected [run 40619712618](https://github.com/jeremytheva/pourfolio/actions/runs/40619712618),
+job `122590506824`, passed canonical Node 22 validation, exact-source verification
+and the actual read-only inventory at `2026-10-28T02:14:36.262Z`. Each of the four
+game collections returned zero rows on both complete observations: eight GETs,
+zero writes. The exact redacted report is retained in
+`docs/evidence/brew-done-it-provider-inventory-2026-10-28.json`.
+Artifact `12786144793` has SHA-256
+`9fe158da1f208681b9f642463eec04ff01044db2aa575dd0d18bdf902c925696`;
+the downloaded ZIP digest, single summary entry and source SHA were verified.
+
+These are the configured observer's bounded reads, not proof of an atomic
+snapshot, schema/constraints, public permissions, recovery or two-device play.
+The report explicitly leaves those qualifications NOT_RUN and release readiness
+BLOCKED. #711's inventory outcome is complete once this retained evidence is
+integrated; #715 owns the next current-schema/controlled-test prerequisite gate.
+No schema/data mutation, test fixture or public enablement occurred. The later
+owner-supplied structure review above supersedes the missing-column-export next
+step with concrete index qualification/correction; no new product decision is
+required. Unrelated Pourfolio work, including #697, can continue.
+
+### Earlier Brew Done It source integration checkpoint — 28 October 2026 UTC
+
+PR #714 merged as `e3e87ce9ea14ed3f409de8ae5b549b87a661c796` and #713 is
+closed. Its tree is identical to accepted source `058df47b`: canonical Node 22
+passes with 1,159 passed, 15 intentional connected skips and zero failures or
+production vulnerabilities; all 187 browser/accessibility cases, Dependency
+Review and CodeQL pass. The shared game read boundary now rejects foreign or
+malformed rows on every filtered page before projection/recovery. The local
+ignored-filter reproduction disclosed synthetic unrelated series/terminal
+answers before the fix; no live disclosure is asserted.
+
+Exact production `dpl_CwvmeB5SAPMQSu6vccQUEE6FEREY` is READY. Live health and
+readiness returned HTTP 200 with `e3e87ce9`; the known games-list endpoint returned
+the fixed disabled HTTP 404. This is bounded deployment/containment evidence,
+not connected game qualification.
+
+Existing PR #712 is being reconciled with that integrated privacy fix and this
+status/evidence refresh. Its inventory preparation previously passed 1,165 source
+tests and all 187 browser/accessibility cases at `d4903882`; that result is not
+substituted for current combined-candidate validation. The main-only protected
+workflow reads the four game collections twice, retains redacted counts and
+fails closed on incomplete/changing observations. Connected execution is
+NOT_RUN until reviewed integration. Retain its real summary in #711.
+
+Current schema/constraints, provider isolation/cardinality, recovery, raw-response
+secret protection and two-device play remain open. Existing provider/release
+templates remain BLOCKED. The supplied SQL has no game-table definitions.
+Public gameplay remains disabled and excluded; no provider mutation is included.
+Ordinary WIP is #697 and #712 (two), with no dependent stack. Automated Codex
+review was quota-unavailable without an actual inline finding; full-diff source
+review and current project-owned evidence govern integration.
 
 ### Deferred moderation contract review — 27 October 2026 UTC
-
-PR #710 merged as `078843e564c22f91317c2832c1e6991ffc30472a` after final
-canonical Node 22 validation of `7a8e05c6` (1,151 passed, 15 intentional skips,
-zero failures and production vulnerabilities). No provider activation is implied.
 
 Existing PR #710 is reconciled with integrated cellar evidence from #693.
 Its previous exact-head canonical run stopped at missing retained issue #701;

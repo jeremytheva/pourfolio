@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { createHash, randomUUID } from 'node:crypto'
 import test from 'node:test'
 import { dataProvider } from '../dataProvider.js'
+import { createBrewFixtureTracker, createBrewFixtureCheckpoint } from '../../../scripts/brew-contract-fixtures.js'
 
 const enabled = process.env.RUN_BREW_DONE_IT_PROVIDER_CONTRACT === '1'
 const contractTest = enabled ? test : test.skip
@@ -15,17 +16,16 @@ const requiredEnvironment = [
   'BREW_DONE_IT_CONTRACT_PRODUCT_ID'
 ]
 
-const created = []
 const userId = process.env.BREW_DONE_IT_CONTRACT_USER_ID
 const productId = process.env.BREW_DONE_IT_CONTRACT_PRODUCT_ID
 const runId = `brew-child-contract-${Date.now()}-${randomUUID()}`
 const now = () => new Date().toISOString()
 const first = (value) => Array.isArray(value) ? value[0] : value
-const remember = (collection, value) => {
-  const record = first(value)
-  if (record?.id !== undefined && record?.id !== null) created.push([collection, record.id])
-  return record
-}
+const tracker = enabled ? createBrewFixtureTracker({ provider: dataProvider, ownerId: userId, namespace: runId,
+  checkpoint: createBrewFixtureCheckpoint({ directory: process.env.BREW_DONE_IT_RECEIPT_DIRECTORY,
+    secret: process.env.RELEASE_FIXTURE_ENCRYPTION_KEY, candidateCommit: process.env.BREW_DONE_IT_CONTRACT_RELEASE_SHA, namespace: runId,
+    baseUrl: process.env.NOCODEBACKEND_DATA_BASE_URL, instance: process.env.NOCODEBACKEND_INSTANCE }) }) : null
+const remember = (_collection, value) => first(value)
 
 const requireContractEnvironment = () => {
   const missing = requiredEnvironment.filter((key) => !process.env[key])
@@ -104,25 +104,14 @@ const deductionPayload = (round, answer, suffix) => ({
   updated_at: now()
 })
 
-test.after(async () => {
-  if (!enabled) return
-  const failures = []
-  for (const [collection, id] of created.reverse()) {
-    try {
-      await dataProvider.remove(collection, id)
-    } catch (error) {
-      failures.push({ collection, status: error?.status ?? null, code: error?.code ?? 'CLEANUP_FAILED' })
-    }
-  }
-  assert.deepEqual(failures, [], 'Brew Done It connected child-cardinality cleanup must remove every disposable fixture.')
-})
+test.after(async () => { if (enabled) await tracker.cleanup() })
 
 contractTest('formal outcomes allow multiple child rows for one round', async () => {
   requireContractEnvironment()
-  const game = remember('brew_done_it_games', await dataProvider.create('brew_done_it_games', gamePayload('guesses')))
-  const round = remember('brew_done_it_rounds', await dataProvider.create('brew_done_it_rounds', roundPayload(game)))
-  const firstGuess = remember('brew_done_it_guesses', await dataProvider.create('brew_done_it_guesses', guessPayload(round, 1, 'one')))
-  const secondGuess = remember('brew_done_it_guesses', await dataProvider.create('brew_done_it_guesses', guessPayload(round, 2, 'two')))
+  const game = remember('brew_done_it_games', await tracker.create('brew_done_it_games', gamePayload('guesses')))
+  const round = remember('brew_done_it_rounds', await tracker.create('brew_done_it_rounds', roundPayload(game)))
+  const firstGuess = remember('brew_done_it_guesses', await tracker.create('brew_done_it_guesses', guessPayload(round, 1, 'one')))
+  const secondGuess = remember('brew_done_it_guesses', await tracker.create('brew_done_it_guesses', guessPayload(round, 2, 'two')))
 
   assert.equal(String(firstGuess.round_id), String(round.id))
   assert.equal(String(secondGuess.round_id), String(round.id), 'round_id must not be globally unique in brew_done_it_guesses.')
@@ -131,10 +120,10 @@ contractTest('formal outcomes allow multiple child rows for one round', async ()
 
 contractTest('deduction history allows multiple events from one guesser in one round', async () => {
   requireContractEnvironment()
-  const game = remember('brew_done_it_games', await dataProvider.create('brew_done_it_games', gamePayload('deductions')))
-  const round = remember('brew_done_it_rounds', await dataProvider.create('brew_done_it_rounds', roundPayload(game)))
-  const firstDeduction = remember('brew_done_it_deductions', await dataProvider.create('brew_done_it_deductions', deductionPayload(round, 'yes', 'one')))
-  const secondDeduction = remember('brew_done_it_deductions', await dataProvider.create('brew_done_it_deductions', deductionPayload(round, 'unknown', 'two')))
+  const game = remember('brew_done_it_games', await tracker.create('brew_done_it_games', gamePayload('deductions')))
+  const round = remember('brew_done_it_rounds', await tracker.create('brew_done_it_rounds', roundPayload(game)))
+  const firstDeduction = remember('brew_done_it_deductions', await tracker.create('brew_done_it_deductions', deductionPayload(round, 'yes', 'one')))
+  const secondDeduction = remember('brew_done_it_deductions', await tracker.create('brew_done_it_deductions', deductionPayload(round, 'unknown', 'two')))
 
   assert.equal(String(firstDeduction.round_id), String(round.id))
   assert.equal(String(secondDeduction.round_id), String(round.id), 'round_id must not be globally unique in brew_done_it_deductions.')

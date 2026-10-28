@@ -1,6 +1,6 @@
 # Brew Done It readiness
 
-Status: **v3 contained source validated and merged; provider migration evidence remains blocked pending real isolated evidence and explicit approval**  
+Status: **v3 source merged with a protected testing route; connected provider qualification and public enablement remain blocked**
 Decision authority: [ADR 0006](DECISIONS/0006-adopt-brew-done-it-deduction-board.md)  
 Retained cross-device authority: [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md)  
 Schema target: [Brew Done It persistent schema target](nocodebackend/brew-done-it-schema-target.md)  
@@ -51,9 +51,204 @@ The v3 source now provides:
 - exact provider-boolean normalization at the server projection and internal scoring boundaries;
 - explicit round completion and forfeit with replay safety;
 - v3 longitudinal/head-to-head outcome statistics including forfeited rounds in terminal round counts; and
-- absent production route/navigation with `BREW_DONE_IT_POLICY_ENABLED` still unset.
+- a protected `/brew-done-it` route for controlled testing, hidden production navigation/product CTAs, and a backend that requires explicit `BREW_DONE_IT_POLICY_ENABLED=true`.
 
-The connected provider schema has not been migrated/certified for v3, so the feature remains unreachable.
+The machine-readable data contract classifies the four owner-provisioned v3 collections as `DEPLOYED_OPTIONAL`. This records their application integration, not certification of their current physical constraints, permissions, recovery or gameplay. The feature is not qualified for public launch. Earlier statements about an absent route or wholly deferred collections describe the historical containment baseline and must not override the current source/contract.
+
+### Connected fixture recovery implementation — 28 October 2026
+
+The existing creation and child-cardinality probes now use one shared tracker.
+Each create intent and acknowledged provider identity is atomically checkpointed
+in an encrypted receipt before another mutation. A lost create response or
+checkpoint/readback failure stops subsequent writes; retain the intent for
+operator recovery rather than retrying an uncertain create. Cleanup traverses
+acknowledged fixtures in reverse dependency order, verifies run-scoped request
+and owner/parent identities immediately before deletion, and requires an exact
+absence readback. A successful delete response alone is insufficient. Failed
+cleanup stops the tracker, so retrying cleanup cannot issue another delete.
+Child creation requires an acknowledged parent fixture from the same run.
+
+Manual dispatch must target `main` and supply exactly its workflow commit SHA;
+the guard rejects stale/other-branch code before credentials are exposed. A
+single workflow concurrency group serialises candidates against the configured
+provider, so a later commit cannot overlap an earlier probe run.
+
+The protected workflow requires an independent `RELEASE_FIXTURE_ENCRYPTION_KEY`
+(canonical base64 for 32 bytes) and uses the verified `BREW_DONE_IT_CONTRACT_RELEASE_SHA` as receipt provenance.
+Receipts and summaries include a capture time and the same hashed canonical
+endpoint/instance reference used by the read-only inventory. Raw provider
+configuration remains excluded. Each suite has a separate receipt directory, with encrypted receipts and
+minimised stage/count summaries retained by an always-run artifact step for
+30 days. No plaintext fixture payload is uploaded. Do not use a provider or
+account credential as the encryption key. Interrupted-run receipts remain
+recovery evidence; no automatic broad discovery or delete is authorised.
+
+These guards do not prove shared-instance isolation, snapshot restore,
+unrelated-row preservation, atomic compare-and-set or two-device gameplay.
+Those connected prerequisites remain open under #715. Do not dispatch the
+write workflow solely because source validation passes. An unknown fixture
+outcome needs bounded operator reconciliation before another run.
+
+### Dedicated provider test environment — 28 October 2026 (Australia/Sydney)
+
+The write-probe workflow uses the separate GitHub environment `brew-contract`.
+The existing `staging-release` environment targets the shared application
+database and remains unchanged for other release work. Do not copy its provider
+key or repoint its instance variable for Brew testing.
+
+An owner-approved schema-only clone was created in US West (Phoenix). Its
+dashboard reports zero records, and the editor shows all four v3 game tables
+with private defaults and no checked role-access overrides. These are provider
+UI observations, not connected API, combined-index or gameplay certification.
+The source database and its rows were not modified or copied into the clone.
+The clone export was requested once; its SQL definitions remain pending review.
+
+Configure only the isolated instance in `brew-contract`:
+
+- environment variable `NOCODEBACKEND_INSTANCE` for that instance;
+- secret `NOCODEBACKEND_SECRET_KEY` scoped to that instance;
+- independent secret `RELEASE_FIXTURE_ENCRYPTION_KEY` (canonical base64 for 32
+  random bytes, never a provider/account credential);
+- secret `BREW_DONE_IT_CONTRACT_USER_ID` for a dedicated non-personal fixture
+  owner in that instance; and
+- secret `BREW_DONE_IT_CONTRACT_PRODUCT_ID` for a disposable beer fixture in that
+  instance.
+
+Restrict the environment to the `main` branch. Keep credentials and raw fixture
+identities out of chat, issues, source and logs. Provisioning an empty clone and
+selecting an environment do not qualify permissions, uniqueness, restore,
+cleanup, CAS, scoring storage, privacy or two-device behaviour. Finish the #715
+prerequisites and independent evidence review before dispatch; public gameplay
+remains disabled.
+
+### Exported constraints resolved — 28 October 2026 (Australia/Sydney)
+
+The 28 October owner-supplied `54026_rating_export_2026-10-28.sql.gz` resolves the index ambiguity. Its SHA-256 is `bf6d49719695aecc64d91a6b36443c10d382e7ba01ec68757387eb1ba1bb3f51`; the dump header names `54026_rating`. The four game-table definitions and exact index declarations are retained in [#715](https://github.com/jeremytheva/pourfolio/issues/715). All eight suspect column badges belong to combined unique indexes; zero invalid standalone unique indexes were found on those fields. The required `(game_id, round_number)` unique key already exists. Preserve the existing indexes: the earlier conditional DROP/ADD correction plan is superseded for this exported state.
+
+The native snapshot was created and listed successfully on 28 October; restore is untested. Exported structure and absence of game INSERT statements do not prove live row counts, concurrency, privacy or isolation. PR #719 adds encrypted atomic create intent/acknowledgement, a hashed canonical provider-instance reference, fresh exact-ID reads, acknowledged run-owned parent checks and identity-scoped reverse-order cleanup with exact absence verification. Uncertain creates, failed checkpoints and failed cleanup stop further mutations; uncertain deletes cannot be retried in the same tracker. Before a connected run, qualify the protected independent encryption key, isolated recovery and unrelated-row preservation. Source implementation and local regression tests do not certify those external conditions. Do not treat a successful DELETE response or an `isolated-staging` label as that proof. CAS, score text/object persistence, consent/privacy and two-device play remain NOT_RUN; public enablement remains blocked.
+
+### Earlier owner-supplied structure review — 28 October 2026 (Australia/Sydney)
+
+The owner supplied the four table-designer structures under
+[#715](https://github.com/jeremytheva/pourfolio/issues/715), following the four
+header-only CSV exports. Every v3 target field is present in the supplied
+headers: games 18/18, rounds 29/29, guesses 13/13 and deductions 14/14.
+The additional `user_id` columns and legacy round `question_count` are not,
+by themselves, defects. The structure transcription includes types and defaults;
+requesting the same column-only exports again is not the next action.
+
+The reported `UNIQUE` badges identify eight cardinality hazards. **If these are
+individual single-column unique indexes**, they prevent the following valid
+operations:
+
+| Table | Columns that must allow repeated values independently | Valid operation otherwise blocked |
+| --- | --- | --- |
+| `brew_done_it_games` | `creator_participant_id`, `opponent_participant_id` | A participant creates or joins another series |
+| `brew_done_it_rounds` | `game_id`, `round_number` | A series starts round 2; another series starts round 1 |
+| `brew_done_it_guesses` | `round_id`, `turn_sequence` | A second formal outcome in a round; turn 1 in another round |
+| `brew_done_it_deductions` | `round_id`, `recorded_by_participant_id` | A guesser records another clue or changes an answer with a new event |
+
+Round numbering instead requires one **combined** unique constraint on
+`(game_id, round_number)`. Two separate single-column unique flags are not that
+constraint. Preserve a correct existing combined index if the UI badges already
+refer to its members; inspect actual index membership before removing anything.
+Do not substitute a unique `(round_id, recorded_by_participant_id)` or clue
+dimension constraint: the deduction ledger is append-only and must retain
+successive events from the same participant for the same clue.
+
+Keep primary IDs, existing invitation-digest and idempotency-key uniqueness,
+private/role access, field types, nullability and defaults unchanged in this
+bounded index correction. Application-created request keys already include the
+authenticated participant. A correct index does not establish atomic provider
+compare-and-set, permission enforcement or replay safety.
+
+The structure was supplied by the owner, not obtained through live schema
+introspection. The table-designer capture time, runtime-instance binding, index
+names/membership, foreign-key targets/actions and role grants remain unverified.
+The current application contract names `54026_rating`; neither the CSV filename
+prefix nor the transcription independently binds it to the configured runtime.
+All four reported primary IDs are `int(11)`, while game/round references are
+`bigint(20) unsigned`; verify type compatibility before introducing physical
+foreign keys rather than silently changing either side. The round's
+`score_breakdown` is reported as `text`, while the application submits an object:
+its provider write/read representation still needs a controlled round-trip.
+The copied guess default has a typographic closing quote; verify the actual
+stored default is exactly `pending`, without treating copied typography as a
+proven provider defect. Default-private history flags and pending action states
+are otherwise consistent with the target as reported.
+
+#### Bounded correction and verification sequence
+
+1. Bind the reported structures to the intended instance and retain current
+   index definitions and access policy. Establish the provider-supported index
+   operation and recovery path. Re-run the existing bounded read-only inventory
+   immediately before an actual change; the earlier zero-row observations are
+   not a current backup. Keep public play disabled and fence concurrent writers.
+   If rows appear or isolation/recovery cannot be established, stop at assessment
+   and use the existing governed migration evidence package; do not wipe tables.
+2. Verify or add the combined unique `(game_id, round_number)` constraint first,
+   then remove only the eight unwanted single-column unique indexes if present.
+   Preserve all other indexes and policies. Do not invent SQL index names or
+   schema-management endpoints. Re-read exact index membership and counts after
+   each operation. With writes still fenced and unchanged rows, the retained
+   definitions provide the reverse operation; after normal play begins, do not
+   blindly restore the invalid single-column constraints over repeated values.
+3. Once the existing isolation, fixture acknowledgement and recovery/cleanup
+   prerequisites pass, reuse the existing opt-in creation/child-cardinality
+   probes. Prove repeated creator/opponent participation, round 1 in two games,
+   rounds 1 and 2 in one game, multiple guesses and append-only deductions, plus
+   rejection of a duplicate `(game_id, round_number)` and duplicate request keys.
+   Qualify atomic stale-version rejection, text/object score persistence,
+   raw-response secrecy, consent/revocation, failure recovery and two-device
+   resume separately; neither schema inspection nor cardinality success proves
+   those behaviours.
+
+This is a reviewable correction plan, not an executed provider migration. No
+schema, row, permission, fixture or feature-flag change has occurred. Existing
+provider/release manifests remain BLOCKED with unsupported checks NOT_RUN. The
+next external dependency is provider index inspection/correction capability and
+its bounded execution prerequisites under #715, rather than another column list.
+
+### Live read-only inventory verified — 28 October 2026 UTC
+
+PR #714's privacy correction and PR #712's inventory preparation are merged and
+deployed at `ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda`. Exact production health
+and readiness return HTTP 200 with that SHA; the known game API retains its
+disabled HTTP 404 response. Source validation passes with 1,173 passed and 15
+intentional connected skips; the exact-main browser/accessibility job passes.
+
+Protected [inventory run 40619712618](https://github.com/jeremytheva/pourfolio/actions/runs/40619712618),
+job `122590506824`, completed the actual preflight at
+`2026-10-28T02:14:36.262Z`. Games, rounds, guesses and deductions each returned
+zero rows on two complete observations, with eight GETs and zero writes.
+The [exact redacted summary](evidence/brew-done-it-provider-inventory-2026-10-28.json)
+retains source identity and the hashed provider reference, without row data.
+Artifact `12786144793` has SHA-256
+`9fe158da1f208681b9f642463eec04ff01044db2aa575dd0d18bdf902c925696`.
+Its downloaded ZIP digest, sole summary entry and expected source SHA were verified.
+
+Inventory PASS qualifies only these bounded reads. Schema constraints, provider
+permissions/cardinality, recovery and two-account/two-device play remain NOT_RUN;
+release readiness remains BLOCKED. Zero observed rows do not authorise a wipe,
+make the shared instance disposable or establish a recoverable snapshot.
+
+The subsequent owner-supplied structure review above advances
+[#715](https://github.com/jeremytheva/pourfolio/issues/715) to exact index
+inspection/correction and controlled-test prerequisites. The project SQL has no
+definitions for these tables. Keep the existing provider/release manifests
+blocked and public gameplay disabled until their separate evidence gates pass.
+
+### Earlier launch preparation review — 28 October 2026 UTC
+
+[Issue #711](https://github.com/jeremytheva/pourfolio/issues/711) prepares the bounded read-only inventory required before any connected fixture mutation. Main `078843e564c22f91317c2832c1e6991ffc30472a` is deployed as Vercel production `dpl_BrXmcGgRynq2rQuMTCvmrnAnAzUP`; live `/api/health` and `/api/readiness` both returned HTTP 200 with that SHA on 28 October. These results qualify application deployment identity and readiness only; they do not exercise the game.
+
+The inventory uses the existing provider adapter and game paginator to read only `brew_done_it_games`, `brew_done_it_rounds`, `brew_done_it_guesses` and `brew_done_it_deductions`. Each observation is limited to ten pages of 100 rows per collection. It requires complete pagination, valid unique IDs and a second unchanged observation of all four collections. Missing/malformed/repeated pages, count/content drift, provider errors or limits produce `BLOCKED` rather than a guessed count. A limit requires a separately reviewed bounded approach; do not silently raise it or infer that the unobserved remainder is empty.
+
+The report retains only source commit, capture time, a hashed provider reference, allowlisted collection names, counts and fixed statuses. Records, participant IDs, selected beers, invitation material, comparison digests and arbitrary provider errors are never retained. Two stable observations are **not** an atomic snapshot, backup, current schema export or certification of permissions/cardinality/concurrency. Inventory PASS leaves provider/privacy/recovery/two-account certification `NOT_RUN` and release readiness `BLOCKED`.
+
+After review and integration, run **Brew Done It read-only provider inventory** from `main` in the existing protected `staging-release` environment, or include `[brew-inventory]` in the integration commit message. The workflow pins and verifies `github.sha`, validates source before reads, uses the protected instance/data credential and retains only `summary.json`. It accepts no candidate branch or provider URL input and performs no provider mutation. Connected inventory execution is **NOT_RUN** at this source-preparation checkpoint; retain the actual run/summary in #711 before advancing.
+
+Next, combine the observed counts with a current schema-only export of the same provider instance and independently verified isolation/recovery/cleanup evidence. The existing isolated probes can then qualify creation/child cardinality under their existing execution guards. Complete raw-response secret protection, history-consent/revocation, two-account/two-device play/resume, failure injection and accessibility before the separately reviewed public-enablement change. Use the existing provider/release evidence manifests; this inventory creates no alternative launch approval.
 
 ### Retired v1 scoring prototype — 25 October 2026 UTC
 
@@ -96,14 +291,14 @@ Current next boundary:
 
 Until those conditions are met:
 
-- do not enable a playable route/navigation or policy flag;
+- do not expose public gameplay/navigation or enable the backend policy flag;
 - do not create/change Brew Done It provider collections;
 - do not represent the evidence template as approved; and
 - do not treat merged source as connected-provider certification.
 
 ## Beer-profile entry-point contract
 
-While contained, **Play Brew-Done-It** on the beer profile remains informational and performs no game API request. Once separately enabled, it passes the viewed canonical product as a reviewable initial secret-beer selection. The selector may change the beer before creating the challenge, and server product validation remains authoritative.
+While contained, the beer profile exposes no production **Play Brew-Done-It** CTA. The protected testing route retains a private navigation-state preselection contract. Once separately enabled, the beer-profile action passes the viewed canonical product as a reviewable initial secret-beer selection. The selector may change the beer before creating the challenge, and server product validation remains authoritative.
 
 The selected beer must never be encoded into an invitation or guesser-facing payload.
 
@@ -318,7 +513,7 @@ Prove create → share/paste → join → resume → deductions → formal outco
 
 Before route enablement:
 
-- add the enabled route to the browser test matrix only after provider migration exists;
+- qualify the connected browser matrix against verified provider prerequisites; existing deterministic protected-route coverage remains source evidence only;
 - run automated WCAG 2.2 AA checks for challenge list, create/join, paste-to-join, waiting/expiry, selector answer sheet, both deduction-card sides, formal outcomes, completion and recovery states;
 - verify keyboard operation and visible focus for all deduction controls, exclusions, Set Unknown, invitation paste/share and round actions;
 - verify status/live-region announcements for paste recognition, save, formal result, stale conflict, completion and invite actions without creating noisy initial announcements; and
@@ -329,9 +524,9 @@ Before route enablement:
 Only a separate reviewed enablement change may:
 
 - make beer-profile **Play Brew-Done-It** navigate into play;
-- add `/brew-done-it` to application routing/navigation;
+- expose the existing protected `/brew-done-it` testing route through production navigation;
 - set/require `BREW_DONE_IT_POLICY_ENABLED=true`; or
-- promote Brew Done It collections from deferred to deployed contract.
+- qualify the existing `DEPLOYED_OPTIONAL` Brew Done It collections for public gameplay.
 
 That change requires provider, privacy, cross-device, scoring, recovery, accessibility and cleanup evidence attributable to the exact candidate revision.
 
@@ -340,11 +535,12 @@ That change requires provider, privacy, cross-device, scoring, recovery, accessi
 Brew Done It v3 enablement is blocked by its own capability boundary, not by unrelated launch work:
 
 - the canonical provider-evidence template remains BLOCKED because real isolated-provider capability/idempotency/recovery/privacy/cleanup evidence has not been supplied and provider mutation is not approved;
-- v3 provider collections/fields/uniqueness constraints are not certified/deployed;
+- owner-provisioned v3 collections are integrated as `DEPLOYED_OPTIONAL`, but their current fields/uniqueness constraints and permissions are not connected-certified;
 - rating-history consent/privacy behaviour is not connected-certified;
 - v3 create/join/round/deduction/formal-outcome recovery has not been failure-injection tested against NoCodeBackend;
 - two-account/two-device v3 evidence does not yet exist;
-- canonical brewery geography is unavailable for geography-based narrowing; and
 - no reviewed provider-migration or enablement change exists.
+
+Canonical brewery geography remains unavailable for geography-based narrowing; the controls stay unavailable and this is not a prerequisite for the agreed v3 game.
 
 These blockers remain scoped to Brew Done It and must not block unrelated Pourfolio launch work.
