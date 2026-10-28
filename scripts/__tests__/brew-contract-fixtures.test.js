@@ -62,3 +62,8 @@ test('unconfirmed create readback prevents every subsequent mutation',async()=>{
  const s=setup();s.provider.get=async()=>({...payload,id:1,user_id:'foreign'})
  await assert.rejects(s.tracker.create('brew_done_it_games',payload));await assert.rejects(s.tracker.create('brew_done_it_games',payload));await assert.rejects(s.tracker.cleanup());assert.deepEqual(s.calls,['create'])
 })
+test('wrong record ID returned by an exact read prevents cleanup writes',async()=>{
+ const s=setup();await s.tracker.create('brew_done_it_games',payload)
+ s.provider.get=async()=>({...payload,id:2})
+ await assert.rejects(s.tracker.cleanup());assert.deepEqual(s.calls,['create'])
+})

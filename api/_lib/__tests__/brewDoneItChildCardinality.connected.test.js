@@ -23,7 +23,7 @@ const now = () => new Date().toISOString()
 const first = (value) => Array.isArray(value) ? value[0] : value
 const tracker = enabled ? createBrewFixtureTracker({ provider: dataProvider, ownerId: userId, namespace: runId,
   checkpoint: createBrewFixtureCheckpoint({ directory: process.env.BREW_DONE_IT_RECEIPT_DIRECTORY,
-    secret: process.env.RELEASE_FIXTURE_ENCRYPTION_KEY, candidateCommit: process.env.GITHUB_SHA, namespace: runId }) }) : null
+    secret: process.env.RELEASE_FIXTURE_ENCRYPTION_KEY, candidateCommit: process.env.BREW_DONE_IT_CONTRACT_RELEASE_SHA, namespace: runId }) }) : null
 const remember = (_collection, value) => first(value)
 
 const requireContractEnvironment = () => {

@@ -48,6 +48,7 @@ jobs:
       - name: Run Brew Done It isolated provider probes
         run: npm run test:brew-provider-contract
         env:
+          BREW_DONE_IT_CONTRACT_RELEASE_SHA: ${{ inputs.release_sha }}
           BREW_DONE_IT_RECEIPT_DIRECTORY: brew-contract-receipts
           RELEASE_FIXTURE_ENCRYPTION_KEY: ${{ secrets.RELEASE_FIXTURE_ENCRYPTION_KEY }}
           RUN_BREW_DONE_IT_PROVIDER_CONTRACT: "1"

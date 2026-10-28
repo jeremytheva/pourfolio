@@ -67,7 +67,7 @@ and owner/parent identities immediately before deletion, and requires an exact
 absence readback. A successful delete response alone is insufficient.
 
 The protected workflow requires an independent `RELEASE_FIXTURE_ENCRYPTION_KEY`
-(canonical base64 for 32 bytes) and uses `GITHUB_SHA` as receipt provenance.
+(canonical base64 for 32 bytes) and uses the verified `BREW_DONE_IT_CONTRACT_RELEASE_SHA` as receipt provenance.
 Each suite has a separate receipt directory, with encrypted receipts and
 minimised stage/count summaries retained by an always-run artifact step for
 30 days. No plaintext fixture payload is uploaded. Do not use a provider or

@@ -19,7 +19,11 @@ export const createBrewFixtureTracker = ({ provider, checkpoint, ownerId, namesp
     try { await checkpoint(structuredClone(state)) } catch { stopped = true; throw new Error('BREW_FIXTURE_CHECKPOINT_FAILED') }
   }
   const read = async (collection, id) => {
-    try { return await provider.get(collection, id) } catch (error) { if (error?.status === 404) return null; throw new Error('BREW_FIXTURE_READ_UNCONFIRMED', { cause: error }) }
+    try {
+      const record = await provider.get(collection, id)
+      requireThat(record === null || record && String(record.id) === String(id))
+      return record
+    } catch (error) { if (error?.status === 404) return null; throw new Error('BREW_FIXTURE_READ_UNCONFIRMED', { cause: error }) }
   }
   const matches = (record, payload) => record && Object.entries(payload).filter(([key]) =>
     key === 'user_id' || key.endsWith('_participant_id') || key.endsWith('idempotency_key') ||
