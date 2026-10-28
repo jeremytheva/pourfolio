@@ -55,6 +55,31 @@ The v3 source now provides:
 
 The machine-readable data contract classifies the four owner-provisioned v3 collections as `DEPLOYED_OPTIONAL`. This records their application integration, not certification of their current physical constraints, permissions, recovery or gameplay. The feature is not qualified for public launch. Earlier statements about an absent route or wholly deferred collections describe the historical containment baseline and must not override the current source/contract.
 
+### Connected fixture recovery implementation — 28 October 2026
+
+The existing creation and child-cardinality probes now use one shared tracker.
+Each create intent and acknowledged provider identity is atomically checkpointed
+in an encrypted receipt before another mutation. A lost create response or
+checkpoint/readback failure stops subsequent writes; retain the intent for
+operator recovery rather than retrying an uncertain create. Cleanup traverses
+acknowledged fixtures in reverse dependency order, verifies run-scoped request
+and owner/parent identities immediately before deletion, and requires an exact
+absence readback. A successful delete response alone is insufficient.
+
+The protected workflow requires an independent `RELEASE_FIXTURE_ENCRYPTION_KEY`
+(canonical base64 for 32 bytes) and uses `GITHUB_SHA` as receipt provenance.
+Each suite has a separate receipt directory, with encrypted receipts and
+minimised stage/count summaries retained by an always-run artifact step for
+30 days. No plaintext fixture payload is uploaded. Do not use a provider or
+account credential as the encryption key. Interrupted-run receipts remain
+recovery evidence; no automatic broad discovery or delete is authorised.
+
+These guards do not prove shared-instance isolation, snapshot restore,
+unrelated-row preservation, atomic compare-and-set or two-device gameplay.
+Those connected prerequisites remain open under #715. Do not dispatch the
+write workflow solely because source validation passes. An unknown fixture
+outcome needs bounded operator reconciliation before another run.
+
 ### Exported constraints resolved — 28 October 2026 (Australia/Sydney)
 
 The 28 October owner-supplied `54026_rating_export_2026-10-28.sql.gz` resolves the index ambiguity. Its SHA-256 is `bf6d49719695aecc64d91a6b36443c10d382e7ba01ec68757387eb1ba1bb3f51`; the dump header names `54026_rating`. The four game-table definitions and exact index declarations are retained in [#715](https://github.com/jeremytheva/pourfolio/issues/715). All eight suspect column badges belong to combined unique indexes; zero invalid standalone unique indexes were found on those fields. The required `(game_id, round_number)` unique key already exists. Preserve the existing indexes: the earlier conditional DROP/ADD correction plan is superseded for this exported state.

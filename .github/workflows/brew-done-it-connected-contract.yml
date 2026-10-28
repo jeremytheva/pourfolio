@@ -48,6 +48,8 @@ jobs:
       - name: Run Brew Done It isolated provider probes
         run: npm run test:brew-provider-contract
         env:
+          BREW_DONE_IT_RECEIPT_DIRECTORY: brew-contract-receipts
+          RELEASE_FIXTURE_ENCRYPTION_KEY: ${{ secrets.RELEASE_FIXTURE_ENCRYPTION_KEY }}
           RUN_BREW_DONE_IT_PROVIDER_CONTRACT: "1"
           BREW_DONE_IT_CONTRACT_ENVIRONMENT: isolated-staging
           BREW_DONE_IT_CONTRACT_ALLOW_DESTRUCTIVE: "1"
@@ -56,3 +58,12 @@ jobs:
           NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
           BREW_DONE_IT_CONTRACT_USER_ID: ${{ secrets.BREW_DONE_IT_CONTRACT_USER_ID }}
           BREW_DONE_IT_CONTRACT_PRODUCT_ID: ${{ secrets.BREW_DONE_IT_CONTRACT_PRODUCT_ID }}
+
+      - name: Retain encrypted fixture recovery checkpoints
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: brew-contract-receipts-${{ github.run_id }}-${{ github.run_attempt }}
+          path: brew-contract-receipts/
+          if-no-files-found: warn
+          retention-days: 30
