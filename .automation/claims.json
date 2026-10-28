@@ -1,4 +1,16 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "brew": {
+      "owner": "brew-export-review-1793171069177",
+      "workstream": "brew",
+      "issue": 715,
+      "pr": null,
+      "surfaces": [
+        "issue:715"
+      ],
+      "acquiredAt": "2026-10-28T07:04:29.177Z",
+      "expiresAt": "2026-10-28T07:34:29.177Z"
+    }
+  }
 }
