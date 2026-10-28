@@ -1,4 +1,32 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "catalogue-add-beer-20261028T1943Z",
+      "workstream": "catalogue",
+      "issue": 695,
+      "pr": 697,
+      "surfaces": [
+        "branch:feature/add-beer-release-form",
+        "branch:fix/add-beer-connected-evidence-20261027",
+        "file:.github/workflows/add-beer-connected-evidence.yml",
+        "file:STATUS.md",
+        "file:api/catalog-data-proxy.js",
+        "file:api/nocodebackend/__tests__/catalogueCategories.test.js",
+        "file:docs/LAUNCH_READINESS.md",
+        "file:docs/add-product-moderation.md",
+        "file:e2e/catalogue-proposal-searchable-selectors.spec.js",
+        "file:e2e/mockApi.js",
+        "file:release-check/catalogue-readonly.spec.js",
+        "file:src/components/CanonicalSearchSelect.jsx",
+        "file:src/pages/AddBeerProposal.jsx",
+        "file:src/services/__tests__/catalogueCategoryPage.test.js",
+        "file:src/services/catalogueResponse.js",
+        "file:src/services/styleService.js",
+        "repo:integration"
+      ],
+      "acquiredAt": "2026-10-28T19:42:32.000Z",
+      "expiresAt": "2026-10-28T20:12:32.000Z"
+    }
+  }
 }
