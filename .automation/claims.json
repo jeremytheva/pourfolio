@@ -7,12 +7,17 @@
       "issue": 715,
       "pr": null,
       "surfaces": [
+        ".github/workflows/brew-done-it-connected-contract.yml",
+        "docs/BREW_DONE_IT_READINESS.md",
+        "github:environment:brew-contract",
         "issue:715",
         "provider:54026_rating:schema-clone",
-        "provider:brew-staging"
+        "provider:brew-staging",
+        "scripts/__tests__/brew-contract-fixtures.test.js",
+        "workspace:brew-staging"
       ],
       "acquiredAt": "2026-10-28T08:15:00.371Z",
-      "expiresAt": "2026-10-28T08:45:00.371Z"
+      "expiresAt": "2026-10-28T08:49:20.045Z"
     }
   }
 }
