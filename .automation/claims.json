@@ -1,4 +1,23 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "catalogue-brew-launch-20261028T020117535Z",
+      "workstream": "catalogue",
+      "issue": 711,
+      "pr": 712,
+      "surfaces": [
+        "repo:integration",
+        "pr:714",
+        "pr:712",
+        "branch:chore/brew-v3-readonly-provider-inventory",
+        "file:STATUS.md",
+        "file:docs/LAUNCH_READINESS.md",
+        "file:docs/BREW_DONE_IT_READINESS.md",
+        "file:docs/evidence/github-issue-state.json"
+      ],
+      "acquiredAt": "2026-10-28T02:01:17.535Z",
+      "expiresAt": "2026-10-28T02:31:17.535Z"
+    }
+  }
 }
