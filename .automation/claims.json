@@ -13,10 +13,11 @@
         "docs/LAUNCH_READINESS.md",
         "docs/BREW_DONE_IT_READINESS.md",
         ".github/workflows/brew-done-it-provider-inventory.yml",
-        "scripts/__tests__/brew-done-it-provider-inventory.test.mjs"
+        "scripts/__tests__/brew-done-it-provider-inventory.test.mjs",
+        "scripts/brew-done-it-provider-inventory.mjs"
       ],
       "acquiredAt": "2026-10-28T10:13:59.504Z",
-      "expiresAt": "2026-10-28T10:43:59.504Z"
+      "expiresAt": "2026-10-28T10:50:45.733Z"
     }
   }
 }
