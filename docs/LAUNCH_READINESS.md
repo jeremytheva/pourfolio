@@ -1,7 +1,7 @@
 # Launch readiness
 
-Last reconciled: **26 October 2026 UTC**. Last verified application deployment:
-[`dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8`](https://github.com/jeremytheva/pourfolio/commit/dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8). The approved QA recovery verifies exact production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
+Last reconciled: **28 October 2026 UTC**. Last bounded health/readiness deployment:
+[`e3e87ce9ea14ed3f409de8ae5b549b87a661c796`](https://github.com/jeremytheva/pourfolio/commit/e3e87ce9ea14ed3f409de8ae5b549b87a661c796). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
@@ -666,6 +666,22 @@ on 21 October. This is a bounded denial consistent with the policy gate; it
 does not expose the literal flag value or qualify gameplay. The checkbox above
 remains open. Security/testing guidance now describes the controlled route
 and actual containment checks accurately.
+
+On 28 October, PR #714's exact production `e3e87ce9` again returned HTTP 404
+from that endpoint while health/readiness returned HTTP 200 with the same SHA.
+The source correction rejects every mis-scoped filtered game page before any
+projection or recovery; accepted head `058df47b` and the merge have identical
+trees, with canonical source validation and all 187 browser/accessibility cases
+passing. No live private game was accessed or exposed during the synthetic
+reproduction. This qualifies the source correction and bounded containment only.
+
+PR #712 adds the current-instance read-only inventory under #711 and reconciles
+the actual protected route/optional-table classification. Its earlier isolated
+source evidence must be refreshed for the combined integration candidate. The
+protected main workflow's real execution is NOT_RUN at this checkpoint; an
+inventory PASS does not prove schema constraints, atomic snapshot/recovery,
+permissions, two-device gameplay or enablement. Keep #711 and the capability
+gates open until their actual evidence exists.
 
 [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) and
 [ADR 0006](DECISIONS/0006-adopt-brew-done-it-deduction-board.md) approve the

@@ -1,6 +1,6 @@
 # Brew Done It readiness
 
-Status: **v3 contained source validated and merged; provider migration evidence remains blocked pending real isolated evidence and explicit approval**  
+Status: **v3 source merged with a protected testing route; connected provider qualification and public enablement remain blocked**
 Decision authority: [ADR 0006](DECISIONS/0006-adopt-brew-done-it-deduction-board.md)  
 Retained cross-device authority: [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md)  
 Schema target: [Brew Done It persistent schema target](nocodebackend/brew-done-it-schema-target.md)  
@@ -51,9 +51,21 @@ The v3 source now provides:
 - exact provider-boolean normalization at the server projection and internal scoring boundaries;
 - explicit round completion and forfeit with replay safety;
 - v3 longitudinal/head-to-head outcome statistics including forfeited rounds in terminal round counts; and
-- absent production route/navigation with `BREW_DONE_IT_POLICY_ENABLED` still unset.
+- a protected `/brew-done-it` route for controlled testing, hidden production navigation/product CTAs, and a backend that requires explicit `BREW_DONE_IT_POLICY_ENABLED=true`.
 
-The connected provider schema has not been migrated/certified for v3, so the feature remains unreachable.
+The machine-readable data contract classifies the four owner-provisioned v3 collections as `DEPLOYED_OPTIONAL`. This records their application integration, not certification of their current physical constraints, permissions, recovery or gameplay. The feature is not qualified for public launch. Earlier statements about an absent route or wholly deferred collections describe the historical containment baseline and must not override the current source/contract.
+
+### Launch preparation review — 28 October 2026 UTC
+
+[Issue #711](https://github.com/jeremytheva/pourfolio/issues/711) prepares the bounded read-only inventory required before any connected fixture mutation. Main `078843e564c22f91317c2832c1e6991ffc30472a` is deployed as Vercel production `dpl_BrXmcGgRynq2rQuMTCvmrnAnAzUP`; live `/api/health` and `/api/readiness` both returned HTTP 200 with that SHA on 28 October. These results qualify application deployment identity and readiness only; they do not exercise the game.
+
+The inventory uses the existing provider adapter and game paginator to read only `brew_done_it_games`, `brew_done_it_rounds`, `brew_done_it_guesses` and `brew_done_it_deductions`. Each observation is limited to ten pages of 100 rows per collection. It requires complete pagination, valid unique IDs and a second unchanged observation of all four collections. Missing/malformed/repeated pages, count/content drift, provider errors or limits produce `BLOCKED` rather than a guessed count. A limit requires a separately reviewed bounded approach; do not silently raise it or infer that the unobserved remainder is empty.
+
+The report retains only source commit, capture time, a hashed provider reference, allowlisted collection names, counts and fixed statuses. Records, participant IDs, selected beers, invitation material, comparison digests and arbitrary provider errors are never retained. Two stable observations are **not** an atomic snapshot, backup, current schema export or certification of permissions/cardinality/concurrency. Inventory PASS leaves provider/privacy/recovery/two-account certification `NOT_RUN` and release readiness `BLOCKED`.
+
+After review and integration, run **Brew Done It read-only provider inventory** from `main` in the existing protected `staging-release` environment, or include `[brew-inventory]` in the integration commit message. The workflow pins and verifies `github.sha`, validates source before reads, uses the protected instance/data credential and retains only `summary.json`. It accepts no candidate branch or provider URL input and performs no provider mutation. Connected inventory execution is **NOT_RUN** at this source-preparation checkpoint; retain the actual run/summary in #711 before advancing.
+
+Next, combine the observed counts with a current schema-only export of the same provider instance and independently verified isolation/recovery/cleanup evidence. The existing isolated probes can then qualify creation/child cardinality under their existing execution guards. Complete raw-response secret protection, history-consent/revocation, two-account/two-device play/resume, failure injection and accessibility before the separately reviewed public-enablement change. Use the existing provider/release evidence manifests; this inventory creates no alternative launch approval.
 
 ### Retired v1 scoring prototype — 25 October 2026 UTC
 
@@ -96,14 +108,14 @@ Current next boundary:
 
 Until those conditions are met:
 
-- do not enable a playable route/navigation or policy flag;
+- do not expose public gameplay/navigation or enable the backend policy flag;
 - do not create/change Brew Done It provider collections;
 - do not represent the evidence template as approved; and
 - do not treat merged source as connected-provider certification.
 
 ## Beer-profile entry-point contract
 
-While contained, **Play Brew-Done-It** on the beer profile remains informational and performs no game API request. Once separately enabled, it passes the viewed canonical product as a reviewable initial secret-beer selection. The selector may change the beer before creating the challenge, and server product validation remains authoritative.
+While contained, the beer profile exposes no production **Play Brew-Done-It** CTA. The protected testing route retains a private navigation-state preselection contract. Once separately enabled, the beer-profile action passes the viewed canonical product as a reviewable initial secret-beer selection. The selector may change the beer before creating the challenge, and server product validation remains authoritative.
 
 The selected beer must never be encoded into an invitation or guesser-facing payload.
 
@@ -318,7 +330,7 @@ Prove create → share/paste → join → resume → deductions → formal outco
 
 Before route enablement:
 
-- add the enabled route to the browser test matrix only after provider migration exists;
+- qualify the connected browser matrix against verified provider prerequisites; existing deterministic protected-route coverage remains source evidence only;
 - run automated WCAG 2.2 AA checks for challenge list, create/join, paste-to-join, waiting/expiry, selector answer sheet, both deduction-card sides, formal outcomes, completion and recovery states;
 - verify keyboard operation and visible focus for all deduction controls, exclusions, Set Unknown, invitation paste/share and round actions;
 - verify status/live-region announcements for paste recognition, save, formal result, stale conflict, completion and invite actions without creating noisy initial announcements; and
@@ -329,9 +341,9 @@ Before route enablement:
 Only a separate reviewed enablement change may:
 
 - make beer-profile **Play Brew-Done-It** navigate into play;
-- add `/brew-done-it` to application routing/navigation;
+- expose the existing protected `/brew-done-it` testing route through production navigation;
 - set/require `BREW_DONE_IT_POLICY_ENABLED=true`; or
-- promote Brew Done It collections from deferred to deployed contract.
+- qualify the existing `DEPLOYED_OPTIONAL` Brew Done It collections for public gameplay.
 
 That change requires provider, privacy, cross-device, scoring, recovery, accessibility and cleanup evidence attributable to the exact candidate revision.
 
@@ -340,11 +352,12 @@ That change requires provider, privacy, cross-device, scoring, recovery, accessi
 Brew Done It v3 enablement is blocked by its own capability boundary, not by unrelated launch work:
 
 - the canonical provider-evidence template remains BLOCKED because real isolated-provider capability/idempotency/recovery/privacy/cleanup evidence has not been supplied and provider mutation is not approved;
-- v3 provider collections/fields/uniqueness constraints are not certified/deployed;
+- owner-provisioned v3 collections are integrated as `DEPLOYED_OPTIONAL`, but their current fields/uniqueness constraints and permissions are not connected-certified;
 - rating-history consent/privacy behaviour is not connected-certified;
 - v3 create/join/round/deduction/formal-outcome recovery has not been failure-injection tested against NoCodeBackend;
 - two-account/two-device v3 evidence does not yet exist;
-- canonical brewery geography is unavailable for geography-based narrowing; and
 - no reviewed provider-migration or enablement change exists.
+
+Canonical brewery geography remains unavailable for geography-based narrowing; the controls stay unavailable and this is not a prerequisite for the agreed v3 game.
 
 These blockers remain scoped to Brew Done It and must not block unrelated Pourfolio launch work.
