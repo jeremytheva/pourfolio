@@ -7,6 +7,7 @@
       "issue": 695,
       "pr": 697,
       "surfaces": [
+        "branch:docs/launch-progress-20261028",
         "branch:feature/add-beer-release-form",
         "branch:fix/add-beer-connected-evidence-20261027",
         "file:.github/workflows/add-beer-connected-evidence.yml",
@@ -14,6 +15,7 @@
         "file:api/catalog-data-proxy.js",
         "file:api/nocodebackend/__tests__/catalogueCategories.test.js",
         "file:docs/LAUNCH_READINESS.md",
+        "file:docs/TESTING.md",
         "file:docs/add-product-moderation.md",
         "file:e2e/catalogue-proposal-searchable-selectors.spec.js",
         "file:e2e/mockApi.js",
@@ -26,7 +28,7 @@
         "repo:integration"
       ],
       "acquiredAt": "2026-10-28T19:42:32.000Z",
-      "expiresAt": "2026-10-28T20:31:39.000Z"
+      "expiresAt": "2026-10-28T20:52:59.000Z"
     }
   }
 }
