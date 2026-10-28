@@ -3,16 +3,18 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Validated deferred moderation contract integration; independent launch work continues"
+stage: "Brew Done It privacy fix deployed; read-only provider inventory qualification pending"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Validate and integrate repaired deferred moderation rules in existing PR #710; preserve provider and runtime activation gates."
-  issue: 700
-  pr: 710
-  branch: "feature/admin-moderation-contract"
+  objective: "Integrate the combined Brew Done It inventory candidate in #712 and execute its protected read-only provider preflight; preserve public gameplay gates."
+  issue: 711
+  pr: 712
+  branch: "chore/brew-v3-readonly-provider-inventory"
 next_actions:
-  - "Validate and integrate #710 with refreshed retained issue evidence, state-specific resubmission rules and preserved restricted-producer exposure constraints; then repair #697 keyboard selector visibility."
+  - "#714 is integrated as e3e87ce9 with exact production health/readiness and disabled game API readback. Validate/integrate #712 against it, run [brew-inventory] from protected main and retain the real summary in #711."
+  - "Use the inventory plus a current schema-only export to qualify game constraints/isolation/recovery before connected two-account/two-device gameplay. No provider mutation or public enablement is authorised by a read-only PASS."
+  - "#710 is integrated as 078843e5. Resume #697 keyboard selector visibility without rewriting its owner's branch/form/test work."
   - "PR #693 is integrated and exact production e9661b0f is READY. Configure independent RELEASE_FIXTURE_ENCRYPTION_KEY before bounded HTTP cellar writes; read-only checks remain available."
   - "#709 read-only Admin workspace is deployed and bounded Admin/user own-capability isolation passed in run 40494158943. Keep full Admin browser/moderation, role-write denial and revocation open under #699/#701/#702."
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
@@ -25,6 +27,9 @@ next_actions:
   - "Complete #165 provider mechanism, consistent snapshot and isolated restore evidence before irreversible migration or historical repair; then close #144/#154 acceptance."
   - "Complete publication, monitored support, named operations owners, anonymous production access and final exact-candidate release qualification."
 blockers:
+  - scope: brew_done_it_connected_qualification
+    issue: 711
+    detail: "The privacy correction is deployed; current game-table inventory, schema/constraint, isolation/recovery and two-device evidence remain unqualified. The supplied SQL omits these tables. Read-only inventory preparation does not enable public gameplay."
   - scope: moderation_provider_schema_access
     issue: 701
     detail: "The supplied schema export is dated 14 July 2026. Current exact-instance schema-only evidence or an authorized read-only schema connection remains required before physical mapping and isolated staging certification; source contracts do not grant provider mutation."
@@ -47,12 +52,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "e9661b0f6102acb7002f5e207184829bb0398766"
+  observed_main_commit: "e3e87ce9ea14ed3f409de8ae5b549b87a661c796"
   current_candidate_commit: null
-  latest_validated_commit: "3a63f736bbf2a8c381277bce3ee4e8c08b69e807"
-  latest_deployed_commit: "e9661b0f6102acb7002f5e207184829bb0398766"
+  latest_validated_commit: "058df47b1dbddf72df73336a80c3874409b2702a"
+  latest_deployed_commit: "e3e87ce9ea14ed3f409de8ae5b549b87a661c796"
   latest_runtime_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-  latest_browser_verified_commit: "828864b8dc1633edf61e051cb76ee020fbb5ca1b"
+  latest_browser_verified_commit: "058df47b1dbddf72df73336a80c3874409b2702a"
 validation:
   governance: PASS
   lint: PASS
@@ -62,15 +67,47 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-27T21:16:00Z"
+last_updated: "2026-10-28T02:04:00Z"
 
 ---
 
 # STATUS.md
 
-Last materially reviewed: 27 October 2026 UTC
+Last materially reviewed: 28 October 2026 UTC
 
 ## AI execution gate
+
+### Brew Done It source integration — 28 October 2026 UTC
+
+PR #714 merged as `e3e87ce9ea14ed3f409de8ae5b549b87a661c796` and #713 is
+closed. Its tree is identical to accepted source `058df47b`: canonical Node 22
+passes with 1,159 passed, 15 intentional connected skips and zero failures or
+production vulnerabilities; all 187 browser/accessibility cases, Dependency
+Review and CodeQL pass. The shared game read boundary now rejects foreign or
+malformed rows on every filtered page before projection/recovery. The local
+ignored-filter reproduction disclosed synthetic unrelated series/terminal
+answers before the fix; no live disclosure is asserted.
+
+Exact production `dpl_CwvmeB5SAPMQSu6vccQUEE6FEREY` is READY. Live health and
+readiness returned HTTP 200 with `e3e87ce9`; the known games-list endpoint returned
+the fixed disabled HTTP 404. This is bounded deployment/containment evidence,
+not connected game qualification.
+
+Existing PR #712 is being reconciled with that integrated privacy fix and this
+status/evidence refresh. Its inventory preparation previously passed 1,165 source
+tests and all 187 browser/accessibility cases at `d4903882`; that result is not
+substituted for current combined-candidate validation. The main-only protected
+workflow reads the four game collections twice, retains redacted counts and
+fails closed on incomplete/changing observations. Connected execution is
+NOT_RUN until reviewed integration. Retain its real summary in #711.
+
+Current schema/constraints, provider isolation/cardinality, recovery, raw-response
+secret protection and two-device play remain open. Existing provider/release
+templates remain BLOCKED. The supplied SQL has no game-table definitions.
+Public gameplay remains disabled and excluded; no provider mutation is included.
+Ordinary WIP is #697 and #712 (two), with no dependent stack. Automated Codex
+review was quota-unavailable without an actual inline finding; full-diff source
+review and current project-owned evidence govern integration.
 
 ### Deferred moderation contract review — 27 October 2026 UTC
 
