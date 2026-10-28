@@ -55,7 +55,13 @@ The v3 source now provides:
 
 The machine-readable data contract classifies the four owner-provisioned v3 collections as `DEPLOYED_OPTIONAL`. This records their application integration, not certification of their current physical constraints, permissions, recovery or gameplay. The feature is not qualified for public launch. Earlier statements about an absent route or wholly deferred collections describe the historical containment baseline and must not override the current source/contract.
 
-### Owner-supplied structure review — 28 October 2026 (Australia/Sydney)
+### Exported constraints resolved — 28 October 2026 (Australia/Sydney)
+
+The 28 October owner-supplied `54026_rating_export_2026-10-28.sql.gz` resolves the index ambiguity. Its SHA-256 is `bf6d49719695aecc64d91a6b36443c10d382e7ba01ec68757387eb1ba1bb3f51`; the dump header names `54026_rating`. The four game-table definitions and exact index declarations are retained in [#715](https://github.com/jeremytheva/pourfolio/issues/715). All eight suspect column badges belong to combined unique indexes; zero invalid standalone unique indexes were found on those fields. The required `(game_id, round_number)` unique key already exists. Preserve the existing indexes: the earlier conditional DROP/ADD correction plan is superseded for this exported state.
+
+The native snapshot was created and listed successfully on 28 October; restore is untested. Exported structure and absence of game INSERT statements do not prove live row counts, concurrency, privacy or isolation. Existing connected probes retain acknowledged create IDs only in memory and delete them in an after-hook, without durable create intent/acknowledgement or exact absence verification. Before running them, retain encrypted fixture recovery identity, verify ownership before each bounded delete, prove final absence/non-interference and qualify the isolated test/recovery boundary. Do not treat a successful DELETE response or an `isolated-staging` label as that proof. CAS, score text/object persistence, consent/privacy and two-device play remain NOT_RUN; public enablement remains blocked.
+
+### Earlier owner-supplied structure review — 28 October 2026 (Australia/Sydney)
 
 The owner supplied the four table-designer structures under
 [#715](https://github.com/jeremytheva/pourfolio/issues/715), following the four

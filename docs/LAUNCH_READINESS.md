@@ -652,6 +652,10 @@ governed capabilities.
 
 <!-- launch-requirement:PF-LAUNCH-DEFERRED -->
 
+The 28 October owner-supplied `54026_rating_export_2026-10-28.sql.gz` resolves the index ambiguity. Its SHA-256 is `bf6d49719695aecc64d91a6b36443c10d382e7ba01ec68757387eb1ba1bb3f51`; the dump header names `54026_rating`. The four game-table definitions and exact index declarations are retained in [#715](https://github.com/jeremytheva/pourfolio/issues/715). All eight suspect column badges belong to combined unique indexes; zero invalid standalone unique indexes were found on those fields. The required `(game_id, round_number)` unique key already exists. Preserve the existing indexes: the earlier conditional DROP/ADD correction plan is superseded for this exported state.
+
+The native snapshot was created and listed successfully on 28 October; restore is untested. Exported structure and absence of game INSERT statements do not prove live row counts, concurrency, privacy or isolation. Existing connected probes retain acknowledged create IDs only in memory and delete them in an after-hook, without durable create intent/acknowledgement or exact absence verification. Before running them, retain encrypted fixture recovery identity, verify ownership before each bounded delete, prove final absence/non-interference and qualify the isolated test/recovery boundary. Do not treat a successful DELETE response or an `isolated-staging` label as that proof. CAS, score text/object persistence, consent/privacy and two-device play remain NOT_RUN; public enablement remains blocked.
+
 - [x] Source includes an authenticated, guarded `/brew-done-it` direct route for
   controlled testing, while production-facing primary navigation stays hidden.
 - [x] The game gateway requires explicit server-side
@@ -694,7 +698,7 @@ membership inspection: individual uniqueness on participant IDs, parent IDs,
 round numbers or guess turn numbers would block repeated play. Round numbering
 requires one combined unique `(game_id, round_number)` constraint, while the
 deduction ledger must allow repeated events from the same participant/round.
-The [bounded correction plan](BREW_DONE_IT_READINESS.md#owner-supplied-structure-review--28-october-2026-australiasydney)
+The [bounded correction plan](BREW_DONE_IT_READINESS.md#exported-constraints-resolved--28-october-2026-australiasydney)
 preserves private access and request-key uniqueness, requires a fresh inventory
 and recovery/non-interference evidence before provider changes, and records
 remaining type/score-storage compatibility checks. No schema correction or

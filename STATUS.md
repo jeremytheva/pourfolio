@@ -3,17 +3,17 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Brew Done It structure reviewed; exact provider index correction and controlled-test prerequisites required"
+stage: "Brew Done It exported constraints verified; controlled fixture recovery and connected testing remain open"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Qualify/correct the eight reported Brew Done It uniqueness hazards and combined round key under #715, then establish controlled-test prerequisites; preserve public gameplay gates."
+  objective: "Qualify safe Brew Done It connected fixtures and recovery under #715; preserve the verified combined indexes and public gameplay gates."
   issue: 715
   pr: null
   branch: null
 next_actions:
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
-  - "#715 has owner-supplied structures and complete target column coverage. Inspect actual membership of eight reported UNIQUE badges, preserve/add combined (game_id, round_number), and correct only invalid single-column uniqueness under the bounded plan. Require fresh inventory, instance binding, non-interference/recovery and provider-supported operations before changes or controlled play; do not request the same column-only exports again."
+  - "#715 has exact exported index definitions. No index correction is needed for the eight badge concerns. Establish durable encrypted fixture intent/acknowledgement, exact cleanup/absence and isolated recovery before connected writes, then qualify CAS, scoring persistence, privacy and two-device play."
   - "#710 is integrated as 078843e5. Resume #697 keyboard selector visibility without rewriting its owner's branch/form/test work."
   - "PR #693 is integrated and exact production e9661b0f is READY. Configure independent RELEASE_FIXTURE_ENCRYPTION_KEY before bounded HTTP cellar writes; read-only checks remain available."
   - "#709 read-only Admin workspace is deployed and bounded Admin/user own-capability isolation passed in run 40494158943. Keep full Admin browser/moderation, role-write denial and revocation open under #699/#701/#702."
@@ -29,7 +29,7 @@ next_actions:
 blockers:
   - scope: brew_done_it_connected_qualification
     issue: 715
-    detail: "Source/privacy containment is deployed and bounded inventory passed. Owner-reported structures expose eight potentially invalid single-column UNIQUE flags; exact index membership, combined game/round uniqueness, type/storage compatibility, safe correction capability, controlled-test prerequisites and connected privacy/recovery/two-device evidence remain unqualified."
+    detail: "Exported game constraints resolve the eight uniqueness concerns; preserve combined indexes. Durable fixture recovery, exact cleanup/non-interference, isolated restore, provider CAS, scoring storage, privacy and two-device testing remain unqualified."
   - scope: moderation_provider_schema_access
     issue: 701
     detail: "The supplied schema export is dated 14 July 2026. Current exact-instance schema-only evidence or an authorized read-only schema connection remains required before physical mapping and isolated staging certification; source contracts do not grant provider mutation."
@@ -67,7 +67,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8"
-last_updated: "2026-10-28T04:09:36Z"
+last_updated: "2026-10-28T07:10:19Z"
 
 ---
 
@@ -76,6 +76,12 @@ last_updated: "2026-10-28T04:09:36Z"
 Last materially reviewed: 28 October 2026 UTC
 
 ## AI execution gate
+
+### Exported Brew Done It constraints resolved — 28 October 2026 (Australia/Sydney)
+
+The 28 October owner-supplied `54026_rating_export_2026-10-28.sql.gz` resolves the index ambiguity. Its SHA-256 is `bf6d49719695aecc64d91a6b36443c10d382e7ba01ec68757387eb1ba1bb3f51`; the dump header names `54026_rating`. The four game-table definitions and exact index declarations are retained in [#715](https://github.com/jeremytheva/pourfolio/issues/715). All eight suspect column badges belong to combined unique indexes; zero invalid standalone unique indexes were found on those fields. The required `(game_id, round_number)` unique key already exists. Preserve the existing indexes: the earlier conditional DROP/ADD correction plan is superseded for this exported state.
+
+The native snapshot was created and listed successfully on 28 October; restore is untested. Exported structure and absence of game INSERT statements do not prove live row counts, concurrency, privacy or isolation. Existing connected probes retain acknowledged create IDs only in memory and delete them in an after-hook, without durable create intent/acknowledgement or exact absence verification. Before running them, retain encrypted fixture recovery identity, verify ownership before each bounded delete, prove final absence/non-interference and qualify the isolated test/recovery boundary. Do not treat a successful DELETE response or an `isolated-staging` label as that proof. CAS, score text/object persistence, consent/privacy and two-device play remain NOT_RUN; public enablement remains blocked.
 
 ### Brew Done It owner-supplied structure assessment — 28 October 2026 (Australia/Sydney)
 
