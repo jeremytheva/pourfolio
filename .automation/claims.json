@@ -5,7 +5,7 @@
       "owner": "brew-next-integration-1793171416536",
       "workstream": "catalogue",
       "issue": 715,
-      "pr": null,
+      "pr": 718,
       "surfaces": [
         "repo:integration",
         "STATUS.md",
