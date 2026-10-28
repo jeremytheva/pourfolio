@@ -1,18 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "brew": {
-      "owner": "brew-config-20261028T075233895Z",
-      "workstream": "brew",
-      "issue": 715,
-      "pr": null,
-      "surfaces": [
-        "issue:715",
-        "provider:54026_rating:schema-clone",
-        "provider:brew-staging"
-      ],
-      "acquiredAt": "2026-10-28T07:52:33.895Z",
-      "expiresAt": "2026-10-28T08:22:33.895Z"
-    }
-  }
+  "claims": {}
 }
