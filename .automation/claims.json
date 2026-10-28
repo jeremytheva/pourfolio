@@ -5,7 +5,7 @@
       "owner": "catalogue-brew-launch-20261028T020117535Z",
       "workstream": "catalogue",
       "issue": 711,
-      "pr": 712,
+      "pr": 716,
       "surfaces": [
         "repo:integration",
         "pr:714",
