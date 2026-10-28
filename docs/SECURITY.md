@@ -65,14 +65,26 @@ must project different round views to the two participants:
 React visibility is not an authorisation control. Tests must inspect the raw
 HTTP response received by the guesser's device.
 
+The shared Brew Done It paginated-read boundary verifies every returned page
+against all trusted exact participant, owner, parent and completion-state
+filters. Unsupported/empty filter values, missing/non-scalar fields and any
+foreign row reject the entire read with a safe provider error before projection
+or pending-action recovery; no partial result is returned. Numeric/string IDs
+may represent the same exact identity. Provider-side filtering and permissions
+remain independently required and must be connected-certified. Unfiltered
+catalogue enumeration supplies public game reference facts only.
+
 State-changing game requests use optimistic versions and idempotency keys.
 Browser-supplied participant IDs, turn numbers, correctness, score totals or
 completion state are ignored. A stale or repeated request must not create a
 second question, guess, round or score award.
 
-Base-game questions use only public catalogue facts. Shared rating history,
-cellar data, account data and relationship data are outside the approved base
-question boundary. Free-text questions are not approved for the first delivery.
+Under ADR 0006, natural questions occur outside the application's scored-action
+model. Catalogue-backed deductions use governed facts. Rating-history clues
+require the guesser's explicit series-level opt-in and expose only the approved
+hidden-brewery/style/beer aggregates; raw rating history, notes, cellar contents
+and unrelated account data remain private. The v2 controlled-question model is
+historical and cannot override the v3 consent/privacy boundary.
 
 ## Trust boundaries
 

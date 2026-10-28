@@ -29,9 +29,25 @@ export const collectPagedRecords = async (fetchPage, {
   throw invalidPage()
 }
 
-export const listAllBrewDoneItRecords = (collection, filters = {}, options = {}) => collectPagedRecords(
-  (page, limit) => dataProvider.listPage(collection, { page, limit, filters }),
-  options
-)
+const exactScalar = value => (typeof value === 'string' && value.trim() !== '') || Number.isSafeInteger(value)
+
+export const listAllBrewDoneItRecords = async (collection, filters = {}, options = {}) => {
+  if (!filters || typeof filters !== 'object' || Array.isArray(filters) ||
+      ![Object.prototype, null].includes(Object.getPrototypeOf(filters))) throw invalidPage()
+  const entries = Object.entries(filters)
+  if (entries.some(([key, value]) => !/^[a-z][a-z0-9_]*$/.test(key) || !exactScalar(value))) throw invalidPage()
+  const exactFilters = Object.fromEntries(entries)
+  return collectPagedRecords(async (page, limit) => {
+    const result = await dataProvider.listPage(collection, { page, limit, filters: exactFilters })
+    // Provider filtering is not an authorisation boundary. Reject the entire
+    // read before any caller can project or reconcile a foreign row.
+    if (entries.length && (!Array.isArray(result?.items) || !result.items.every(row =>
+      row && typeof row === 'object' && !Array.isArray(row) && entries.every(([key, value]) =>
+        Object.hasOwn(row, key) && exactScalar(row[key]) && String(row[key]) === String(value)
+      )
+    ))) throw invalidPage()
+    return result
+  }, options)
+}
 
 export const __testables = { DEFAULT_PAGE_SIZE, DEFAULT_MAX_PAGES, invalidPage }
