@@ -36,7 +36,18 @@ const observeCollection = async (provider, collection, { pageSize, maxPages }) =
       result = await provider.listPage(collection, {
         page, limit, orderBy: 'id', order: 'asc', filters: {}, fresh: true
       })
-    } catch { fail('INVENTORY_READ_FAILED') }
+    } catch (error) {
+      const safeFailure = new Error('INVENTORY_READ_FAILED')
+      safeFailure.code = 'INVENTORY_READ_FAILED'
+      if (Number.isInteger(error?.providerStatus) && error.providerStatus >= 100 && error.providerStatus <= 599) {
+        safeFailure.providerStatus = error.providerStatus
+      }
+      if (['DATA_PROVIDER_UNAUTHENTICATED', 'DATA_PROVIDER_FORBIDDEN', 'DATA_CONFIGURATION_INVALID',
+        'DATA_CREDENTIAL_MISSING', 'DATA_INSTANCE_MISSING', 'PROVIDER_ERROR'].includes(error?.code)) {
+        safeFailure.providerCode = error.code
+      }
+      throw safeFailure
+    }
     pagesRead += 1
     if (!record(result) || !Array.isArray(result.items) || result.page !== page || result.pageSize !== limit ||
         !Number.isSafeInteger(result.total) || result.total < 0 ||
@@ -111,6 +122,9 @@ export const runBrewInventory = async ({
     report.status = 'PASS'
   } catch (error) {
     report.failure = { collection: currentCollection, code: safeCode(error) }
+    for (const key of ['providerStatus', 'providerCode']) {
+      if (error?.code === 'INVENTORY_READ_FAILED' && error[key] !== undefined) report.failure[key] = error[key]
+    }
   }
   return report
 }
