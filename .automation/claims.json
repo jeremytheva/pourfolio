@@ -19,7 +19,11 @@
         "file:docs/add-product-moderation.md",
         "file:e2e/catalogue-proposal-searchable-selectors.spec.js",
         "file:e2e/mockApi.js",
+        "file:release-check/__tests__/support.test.js",
         "file:release-check/catalogue-readonly.spec.js",
+        "file:release-check/releaseTarget.js",
+        "file:release-check/releaseTarget.test.js",
+        "file:release-check/support.js",
         "file:src/components/CanonicalSearchSelect.jsx",
         "file:src/pages/AddBeerProposal.jsx",
         "file:src/services/__tests__/catalogueCategoryPage.test.js",
@@ -28,7 +32,7 @@
         "repo:integration"
       ],
       "acquiredAt": "2026-10-28T19:42:32.000Z",
-      "expiresAt": "2026-10-28T20:52:59.000Z"
+      "expiresAt": "2026-10-28T21:06:20.000Z"
     }
   }
 }
