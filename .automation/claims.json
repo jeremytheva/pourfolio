@@ -4,17 +4,18 @@
     "catalogue": {
       "owner": "catalogue-cellar-pagination-20261029T072542668Z",
       "workstream": "catalogue",
-      "issue": null,
+      "issue": 726,
       "pr": null,
       "surfaces": [
-        "repo:integration",
         "branch:fix/cellar-pagination-20261029",
-        "file:api/cellar-data-proxy.js",
-        "file:api/nocodebackend/__tests__/cellarPagination.test.js",
+        "file:ARCHITECTURE.md",
         "file:STATUS.md",
+        "file:api/cellar-data-proxy.js",
+        "file:api/nocodebackend/__tests__/catalogueQueryPolicy.test.js",
+        "file:api/nocodebackend/__tests__/cellarPagination.test.js",
         "file:docs/LAUNCH_READINESS.md",
         "file:docs/TESTING.md",
-        "file:ARCHITECTURE.md"
+        "repo:integration"
       ],
       "acquiredAt": "2026-10-29T07:25:42.668Z",
       "expiresAt": "2026-10-29T07:55:42.668Z"
