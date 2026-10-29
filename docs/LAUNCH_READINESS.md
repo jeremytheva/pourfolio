@@ -39,6 +39,25 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
+### Cellar pagination repair (29 October 2026 UTC)
+
+#726 fixes the still-present source defect on main `345c37e`: one unpaged read
+returned 25 of 205 synthetic cellar records. The repaired list traverses fresh,
+deterministically ordered owner pages, validates completeness before projection
+and fails visibly on invalid/duplicate IDs, changing exact totals or a later
+page failure. Optional product enrichment is bounded, deduplicated and subject
+to a five-second abortable deadline; unavailable metadata preserves owner rows.
+The existing nullable fields, zero values, ownership filtering and response
+contract remain covered. See [testing scope](TESTING.md#complete-owner-cellar-reads).
+
+This is a source/browser repair, with final-head validation/deployment evidence
+in its PR; it does not certify a live 205-row fixture, provider permissions or
+the broader #144/#154 matrix. No provider mutation or schema change is selected.
+The separate style-population relationship pagination defect remains pending.
+Public launch remains **NO-GO** with the existing integrity, privacy, bonus,
+operations and candidate/device gates open. #697's saved-link replacement has
+not been confirmed, so its connected case is not retried unchanged.
+
 ### Newer rating-schema input and preview access — 29 October 2026 UTC
 
 The owner-supplied 28 October export has been structurally audited using main

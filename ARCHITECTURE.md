@@ -85,6 +85,19 @@ Canonical URL defaults where required are `https://app.nocodebackend.com/api/use
 
 Sensitive authentication paths use a shared Redis-compatible store. No raw credentials/tokens/request bodies are stored in rate-limit keys; account/client dimensions are normalised and HMACed; policy buckets are operation-specific; missing configuration is distinguishable from provider/store outage; production fails closed when required shared limiting is unavailable.
 
+## Private cellar completeness
+
+The cellar list traverses fresh owner-filtered pages in ascending provider-ID
+order, with a 100-row page size and 1,000-page cap. It verifies canonical unique
+identities and stable exact pagination metadata before returning the existing
+`items` response; array-only pages continue to their terminal response. Foreign
+and ownerless rows are excluded locally. A failed or inconsistent page returns
+an error rather than a partial cellar. Product enrichment uses four product
+hydrations at a time, shared request-local relationship reads and a five-second
+abortable deadline; unavailable optional metadata preserves private cellar rows.
+This read path adds no provider mutation or schema requirement. Connected
+provider/permission and full release acceptance remain separate.
+
 ## Rating write integrity
 
 A rating is a coordinated write across `ratings`, `rating_scores` and optional `bonus_attribute_rating_mapping` rows. The current NoCodeBackend API relationship field is `bonus_attribute_id`, referencing `bonus_attributes.id`. A retained July 2026 SQL export records the older plural spelling `bonus_attributes_id`; connected provider evidence from 4 October 2026 supersedes that export for application integration. The durable target uses an idempotent submission contract so retries cannot create duplicate logical ratings or partial child graphs.
