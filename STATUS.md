@@ -164,7 +164,7 @@ selection and postflight reports are absent because those steps did not run.
 No catalogue, rating or cellar mutation was selected. This is a confirmed
 configuration failure before access, not an application authentication failure.
 
-The next owner action is to save the exact Commit link for
+At that earlier checkpoint, the proposed next owner action was to save the exact Commit link for
 `pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app` as the **Environment
 secret** `RELEASE_PREVIEW_SHARE_URL` in GitHub `staging-release`, rather than as
 an Actions Variable or Vercel variable, then confirm without posting the value.
@@ -172,6 +172,8 @@ A fresh exact-host link was supplied privately; no link/token is committed.
 [The existing setup instructions](docs/TESTING.md#protected-add-beer-preview-qualification)
 now state the precise setting and fixed-candidate distinction. Tools cannot set
 or inspect GitHub secrets. The worker's guards are retained unchanged.
+That setup route is superseded by the relay/approval gate above; no further
+secret-entry request is current.
 
 #697 remains unmerged at `53299fce` and currently reports a merge conflict.
 After the original bounded gate passes, reconcile it with current main,
@@ -387,7 +389,7 @@ The cleanup step completed. Artifact `12867141138` has SHA-256
 This proves a saved-link scope/configuration rejection, not token validity,
 application authentication or provider denial. No unchanged retry is selected.
 
-Replace the protected `staging-release` secret with a **Share → Commit** link
+At that earlier checkpoint, the proposed setup was to replace the protected `staging-release` secret with a **Share → Commit** link
 whose hostname is exactly
 `pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app`, then confirm the replacement
 without sending its value. The supplied branch alias currently resolves to this
@@ -395,8 +397,10 @@ deployment (metadata checked 29 October), but its token is not transplanted into
 the exact-origin worker. Connected tools cannot set GitHub secrets. Existing
 account passwords need no change. See the
 [operational setup](docs/TESTING.md#protected-add-beer-preview-qualification).
+That setup route is superseded by the relay/approval gate above; no further
+secret-entry request is current.
 
-After corrected configuration, select one bounded run of
+That earlier setup would then have selected one bounded run of
 `catalogue-readonly.spec.js:65`: full authenticated category pagination and
 selection of a returned canonical style. Require matching before/after provenance,
 one pass with no skips/errors, original saved-session HTTP 401 after logout,

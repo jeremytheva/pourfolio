@@ -415,9 +415,10 @@ API is unavailable to this integration; do not repeat owner setup requests.
    without authentication or redirects, for at most three minutes/18 attempts.
    Duplicate, stale, malformed, replayed or tampered input blocks before sign-in.
 5. The receiver removes its private key in `finally`. The verifier reads the
-   private link file, then removes it before the first preview request. Exact
-   origin and before/after source/readiness provenance still precede account
-   credentials. Only unchanged `catalogue-readonly.spec.js:65` may execute.
+   private link file, then removes it before the first preview request. Preflight
+   exact origin/source/readiness checks precede account credentials; matching
+   postflight provenance is required after the browser case. Only unchanged
+   `catalogue-readonly.spec.js:65` may execute.
 6. Require one passed case with no skipped/error outcome, exact provenance,
    original saved-cookie HTTP 401 after logout, successful handoff and verified
    private-file absence. Keep the six explicit redacted JSON reports separate
