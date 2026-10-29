@@ -1,23 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "catalogue-launch-review-20261029T065512369Z",
-      "workstream": "catalogue",
-      "issue": 165,
-      "pr": 725,
-      "surfaces": [
-        "branch:review/launch-20261029",
-        "deployment:dpl_48K6XVAUKsSswisD4YQhqDLM5Wv6",
-        "file:STATUS.md",
-        "file:docs/LAUNCH_READINESS.md",
-        "file:docs/evidence/rating-schema-export-20261028.json",
-        "file:docs/nocodebackend/rating-schema-migration-runbook.md",
-        "pr:697",
-        "repo:integration"
-      ],
-      "acquiredAt": "2026-10-29T06:55:12.369Z",
-      "expiresAt": "2026-10-29T07:36:13.749Z"
-    }
-  }
+  "claims": {}
 }
