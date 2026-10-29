@@ -399,11 +399,15 @@ https://pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app.
 1. Open the [exact deployment](https://vercel.com/jeremythevas-projects/pourfolio/48K6XVAUKsSswisD4YQhqDLM5Wv6),
    choose **Share → Commit** and obtain its Shareable Link. Confirm the immutable
    hostname above. Check its expiry; do not assume a fixed lifetime.
-2. Save the full link directly as `RELEASE_PREVIEW_SHARE_URL` under GitHub
-   **Settings → Environments → staging-release**, then confirm it is saved
-   without sending the value in chat. Existing account passwords stay in their
-   protected secrets. Connected tools cannot set GitHub secrets. No deployment
-   protection setting or project-wide bypass change is required.
+2. Save the full link directly as the **Environment secret**
+   `RELEASE_PREVIEW_SHARE_URL` under GitHub **Settings → Environments →
+   staging-release → Environment secrets**, then confirm it is saved without
+   sending the value in chat. The worker reads `secrets.RELEASE_PREVIEW_SHARE_URL`;
+   GitHub Actions Variables and Vercel environment variables do not supply this
+   value. Use the fixed Add Beer deployment above, rather than the latest main
+   or moving branch deployment. Existing account passwords stay in their
+   protected secrets. Connected tools cannot inspect or set the saved secret.
+   No deployment protection setting or project-wide bypass change is required.
 3. The integration owner selects the prepared run once after confirmation.
    Unmarked preparation does not select it. Dependencies/browser installation
    precedes secret injection. Preflight alone consumes the link; only private
@@ -429,9 +433,22 @@ Run 40761036563 stopped at health HTTP 302 before owner credentials or browser
 selection; preparation run 40766264292 was skipped. After the owner confirmed
 the secret was added, run 40802406434 stopped at an unclassified access preflight.
 The diagnostic-only worker's run 40802837673 reports SHARE_URL_ORIGIN_MISMATCH
-before the first access request. Health/readiness and account/browser checks are
-NOT_RUN. Replace the secret with the exact immutable Commit link and confirm
-the replacement before another run. No unchanged retry is selected.
+before the first access request. After the owner confirmed an updated variable
+using the latest preview, the unchanged reviewed workflow was selected once at
+worker `be0b39058ff1349a6c99fd1b748116ad24dfb057`.
+[Run 40868871732](https://github.com/jeremytheva/pourfolio/actions/runs/40868871732),
+job `123430494145`, again reports **SHARE_URL_ORIGIN_MISMATCH / BLOCKED** before
+any access request or credentials. The confirmation is retained; the worker
+cannot infer the actual saved value or setting location. Health/readiness,
+selection and account/browser checks remain **NOT_RUN**. The retained artifact
+`12894857175` (SHA-256
+`d7648760a3008a57151fc76efcec941d4b85fdecd7bae01767794316d7d72307`)
+contains exactly three inspected reports: preflight BLOCKED, qualification
+BLOCKED/connected NOT_RUN, and cleanup with `privateWorkspace=PASS`,
+`session=NOT_REQUIRED`, HTTP status null. The three unexecuted report paths are
+absent; no six-report PASS is claimed. Replace the exact environment secret
+using the fixed immutable Commit link and confirm before another bounded run.
+No unchanged retry is selected.
 
 Only fixed SHARE_URL_MISSING, SHARE_URL_INVALID, SHARE_URL_ORIGIN_MISMATCH or
 SHARE_URL_SHAPE_INVALID codes identify configuration classes; unknown exceptions

@@ -1,7 +1,7 @@
 # Launch readiness
 
 Last reconciled: **29 October 2026 UTC**. Latest retained bounded production health/readiness deployment:
-[`112d23aea65436794c0e2652fb06c1249a3726d2`](https://github.com/jeremytheva/pourfolio/commit/112d23aea65436794c0e2652fb06c1249a3726d2). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
+[`ef86e20d16865a5322eacfc3d916aca7f939e15d`](https://github.com/jeremytheva/pourfolio/commit/ef86e20d16865a5322eacfc3d916aca7f939e15d). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
@@ -38,6 +38,47 @@ preflight report. No application policy, stored bonus value or provider schema
 changes in this diagnostic correction.
 
 ## Current launch decision
+
+### Confirmed preview update still blocked before access (29 October 2026 UTC)
+
+After the owner confirmed an updated variable using the latest preview, the
+unchanged reviewed worker was selected once as `be0b39058ff1349a6c99fd1b748116ad24dfb057`.
+[Run 40868871732](https://github.com/jeremytheva/pourfolio/actions/runs/40868871732),
+job `123430494145`, reports **SHARE_URL_ORIGIN_MISMATCH / BLOCKED** before any
+access request or credentials. Health/readiness, selection and browser/category
+acceptance are **NOT_RUN**. No unchanged retry is selected; #697 stays unmerged
+at source `53299fce`, with a current merge conflict.
+
+Retained artifact `12894857175` (SHA-256
+`d7648760a3008a57151fc76efcec941d4b85fdecd7bae01767794316d7d72307`)
+was downloaded and digest-verified. Its three inspected reports prove preflight
+BLOCKED, qualification BLOCKED/connected NOT_RUN, and private-workspace cleanup
+PASS with session NOT_REQUIRED and no session HTTP status. No browser, selection
+or postflight report exists. No data mutation was selected or connected PASS
+claimed. The owner's update is acknowledged; tools cannot inspect its actual
+saved value/location.
+
+The worker reads the `staging-release` **Environment secret**
+`secrets.RELEASE_PREVIEW_SHARE_URL`, not an Actions Variable or Vercel variable.
+Use the Share → Commit link for the fixed Add Beer hostname
+`pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app`, rather than a newer main
+or moving branch preview, then confirm the exact secret was saved before one
+bounded run. A fresh exact-host link is available in the private owner handoff;
+no link/token is committed. The
+[existing operational setup](TESTING.md#protected-add-beer-preview-qualification)
+retains all origin, provenance, one-case, logout and cleanup guards.
+
+Both independent pagination repairs are now merged/deployed: #727 as
+`1ef714ce` and #729 as `ef86e20d`. The latter passed 1,230 source tests (15 gated
+skips), all 188 browser/accessibility cases, Dependency Review and CodeQL.
+Production `dpl_FfP54vqPgrGo1ywKXmWumNxiQx9Q` at exact `ef86e20d` returned
+matching HTTP 200 health/readiness with `dataProvider=ok` at 08:07 UTC.
+Preserve both fixes when reconciling #697 with current main and validate its
+resulting exact head/deployment before integration. This latest checkpoint
+supersedes the earlier unconfirmed-update/pending-style statements below.
+Public launch remains **NO-GO**; rating integrity/recovery, privacy, 42 bonus
+values, remaining backend acceptance, operations and device/candidate gates
+remain open. Brew Done It stays launch-excluded.
 
 ### Complete score-population relationships (29 October 2026 UTC)
 
