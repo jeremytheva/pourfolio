@@ -7,16 +7,17 @@
       "issue": 143,
       "pr": 684,
       "surfaces": [
-        "repo:integration",
         "branch:dependabot/npm_and_yarn/development-minor-patches-811865792e",
+        "branch:docs/launch-production-evidence-20261029",
         "branch:fix/add-beer-connected-evidence-20261027",
-        "file:package.json",
-        "file:package-lock.json",
         "file:STATUS.md",
-        "file:docs/LAUNCH_READINESS.md"
+        "file:docs/LAUNCH_READINESS.md",
+        "file:package-lock.json",
+        "file:package.json",
+        "repo:integration"
       ],
       "acquiredAt": "2026-10-29T02:09:00.000Z",
-      "expiresAt": "2026-10-29T02:40:00.000Z"
+      "expiresAt": "2026-10-29T02:50:00.000Z"
     }
   }
 }
