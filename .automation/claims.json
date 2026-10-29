@@ -2,7 +2,7 @@
   "version": 1,
   "claims": {
     "catalogue": {
-      "owner": "catalogue-add-beer-20261028T1943Z",
+      "owner": "catalogue-launch-handoff-20261029T0138Z",
       "workstream": "catalogue",
       "issue": 695,
       "pr": 697,
@@ -31,8 +31,8 @@
         "file:src/services/styleService.js",
         "repo:integration"
       ],
-      "acquiredAt": "2026-10-28T19:42:32.000Z",
-      "expiresAt": "2026-10-28T21:26:00.000Z"
+      "acquiredAt": "2026-10-29T01:38:27.000Z",
+      "expiresAt": "2026-10-29T02:10:00.000Z"
     }
   }
 }
