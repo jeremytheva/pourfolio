@@ -1,4 +1,23 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "catalogue-cellar-pagination-20261029T072542668Z",
+      "workstream": "catalogue",
+      "issue": null,
+      "pr": null,
+      "surfaces": [
+        "repo:integration",
+        "branch:fix/cellar-pagination-20261029",
+        "file:api/cellar-data-proxy.js",
+        "file:api/nocodebackend/__tests__/cellarPagination.test.js",
+        "file:STATUS.md",
+        "file:docs/LAUNCH_READINESS.md",
+        "file:docs/TESTING.md",
+        "file:ARCHITECTURE.md"
+      ],
+      "acquiredAt": "2026-10-29T07:25:42.668Z",
+      "expiresAt": "2026-10-29T07:55:42.668Z"
+    }
+  }
 }
