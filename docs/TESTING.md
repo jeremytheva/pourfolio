@@ -353,7 +353,7 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 
 This one-case gate for unmerged #697 is separate from the main-only connected
 suite and cellar writer. The
-[reviewed worker 901b434c](https://github.com/jeremytheva/pourfolio/blob/901b434c47a1be202a14831361461794bb0b4001/.github/workflows/add-beer-connected-evidence.yml)
+[reviewed worker a98f8231](https://github.com/jeremytheva/pourfolio/blob/a98f8231710b24d79b3acd00892ccf4cc9891320/.github/workflows/add-beer-connected-evidence.yml)
 pins source `53299fce0cfd7a308c36bc0037ac5e2068969131` and
 https://pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app.
 
@@ -387,8 +387,18 @@ requests still occur. Completed-navigation origin checkpoints do not make
 browser auto-wait or navigation races atomic.
 
 Run 40761036563 stopped at health HTTP 302 before owner credentials or browser
-selection. Prepared-worker run 40766264292 was skipped. Neither qualifies live
-access, application authentication, provider permissions or public release.
+selection; preparation run 40766264292 was skipped. After the owner confirmed
+the secret was added, run 40802406434 stopped at an unclassified access preflight.
+The diagnostic-only worker's run 40802837673 reports SHARE_URL_ORIGIN_MISMATCH
+before the first access request. Health/readiness and account/browser checks are
+NOT_RUN. Replace the secret with the exact immutable Commit link and confirm
+the replacement before another run. No unchanged retry is selected.
+
+Only fixed SHARE_URL_MISSING, SHARE_URL_INVALID, SHARE_URL_ORIGIN_MISMATCH or
+SHARE_URL_SHAPE_INVALID codes identify configuration classes; unknown exceptions
+map to PROTECTED_PREVIEW_UNVERIFIED. Neither a code nor a successful cleanup
+step alone proves access, token validity, retained privateWorkspace PASS,
+application authentication, provider permission or public release.
 
 ### Cellar HTTP checkpoints and redacted release evidence
 

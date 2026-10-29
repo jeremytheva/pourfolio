@@ -62,7 +62,7 @@ READY is deployment metadata, not connected acceptance.
 [Run 40761036563](https://github.com/jeremytheva/pourfolio/actions/runs/40761036563),
 job `123072704341`, used worker `68df4354` and earlier deployed source
 `763c67ab`. Health returned HTTP 302; readiness, selection and owner/browser
-steps did not run. Private cleanup passed. The redacted outcome is
+steps did not run. The cleanup step completed. The redacted outcome is
 **BLOCKED / connected NOT_RUN**, not an account-authentication or provider denial.
 Artifact `12848416657` has SHA-256
 `43773e23718accdd1ad217c940693a1de47532598147e0c9240f76b595bad985`.
@@ -74,19 +74,43 @@ private observed cookie state. Syntax and 27 hermetic guard cases pass.
 [Run 40766264292](https://github.com/jeremytheva/pourfolio/actions/runs/40766264292)
 accepted the unmarked workflow and skipped its sole job; live access is NOT_RUN.
 
-The owner's supplied branch-alias link currently resolves to this deployment
-(metadata checked 29 October); it is not substituted into the exact-origin
-worker or committed. The owner must save a matching **Share → Commit** link
-directly in protected `staging-release` secret `RELEASE_PREVIEW_SHARE_URL` and
-confirm it is saved. Connected tools cannot set GitHub secrets. Existing account
-passwords remain unchanged. After confirmation, select one bounded run of
+The owner confirmed `RELEASE_PREVIEW_SHARE_URL` was added to GitHub.
+[Run 40802406434](https://github.com/jeremytheva/pourfolio/actions/runs/40802406434)
+at unchanged worker `548bebf9` stopped during preflight with access/health/
+readiness NOT_RUN and no HTTP status; selection and owner/browser steps skipped.
+Its artifact `12867135589` has SHA-256
+`b298a167e1beba3f321b01e33727277ae7909cfcdaebf5b917c9deb53b78ab60`.
+
+A reviewed diagnostic-only correction adds finite, non-echoing configuration
+codes and preserves every origin, source, case, credential and cleanup gate.
+Syntax, synthetic URL rejection/acceptance and unknown-error redaction pass;
+no secret value or arbitrary exception text is retained.
+[Run 40802837673](https://github.com/jeremytheva/pourfolio/actions/runs/40802837673),
+job `123214720577`, at worker
+`a98f8231710b24d79b3acd00892ccf4cc9891320` reports
+**SHARE_URL_ORIGIN_MISMATCH / BLOCKED**. That guard runs before the first access
+request; health/readiness, selection and owner/browser checks remain NOT_RUN.
+The cleanup step completed. Artifact `12867141138` has SHA-256
+`620c9a7512d619005153944a23eb05a36b7a3e0f4be86360511d5c9ba4c0d93f`.
+This proves a saved-link scope/configuration rejection, not token validity,
+application authentication or provider denial. No unchanged retry is selected.
+
+Replace the protected `staging-release` secret with a **Share → Commit** link
+whose hostname is exactly
+`pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app`, then confirm the replacement
+without sending its value. The supplied branch alias currently resolves to this
+deployment (metadata checked 29 October), but its token is not transplanted into
+the exact-origin worker. Connected tools cannot set GitHub secrets. Existing
+account passwords need no change. See the
+[operational setup](TESTING.md#protected-add-beer-preview-qualification).
+
+After corrected configuration, select one bounded run of
 `catalogue-readonly.spec.js:65`: full authenticated category pagination and
 selection of a returned canonical style. Require matching before/after provenance,
 one pass with no skips/errors, original saved-session HTTP 401 after logout,
-private cleanup and the six explicit redacted reports. No catalogue, rating or
-cellar write is selected. See the
-[operational setup](TESTING.md#protected-add-beer-preview-qualification).
-Until this evidence passes, #697 remains unmerged and connected acceptance NOT_RUN.
+private cleanup and six explicit redacted reports. No catalogue, rating or cellar
+write is selected. Until this evidence passes, #697 remains unmerged and
+connected acceptance NOT_RUN.
 
 PR #710 is integrated as `078843e5`; its moderation target remains source-only.
 The approved single QA cellar recovery is complete and must not be repeated.

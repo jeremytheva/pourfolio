@@ -3,7 +3,7 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Add Beer source validated; protected preview access needed for connected qualification"
+stage: "Saved preview link fails origin check; Add Beer connected qualification NOT_RUN"
 gate: Integration
 execution_state: VALIDATING
 current_work:
@@ -12,7 +12,7 @@ current_work:
   pr: 697
   branch: feature/add-beer-release-form
 next_actions:
-  - "#697 source 53299fce passes 1,200 source tests and 193 browser cases. After the owner saves the commit-specific RELEASE_PREVIEW_SHARE_URL, select the reviewed one-case worker once and require provenance, original-session 401 and cleanup evidence before integration."
+  - "#697 source 53299fce passes 1,200 source tests and 193 browser cases. Saved-link diagnostic 40802837673 reports SHARE_URL_ORIGIN_MISMATCH before any access request. Replace RELEASE_PREVIEW_SHARE_URL with the immutable Commit link, then run the reviewed one-case gate once and require provenance, original-session 401 and cleanup before integration."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
   - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Its provider key is configured; configure the independent recovery key and dedicated fixture user/product IDs, diagnose the failed read, and verify cloned constraints/recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
   - "#710 is integrated as 078843e5. #697 keyboard visibility and release-origin checkpoints are source/browser validated; connected category acceptance remains NOT_RUN."
@@ -30,7 +30,7 @@ next_actions:
 blockers:
   - scope: add_beer_protected_preview_access
     issue: 154
-    detail: "Prior preflight stopped at outer HTTP 302 before owner credentials. The owner must save the exact-preview commit Shareable Link as protected RELEASE_PREVIEW_SHARE_URL before selecting the reviewed worker; live category acceptance remains NOT_RUN."
+    detail: "The owner confirmed the secret was added. Diagnostic run 40802837673 reports SHARE_URL_ORIGIN_MISMATCH before the first access request. Replace it with the exact immutable Commit link and confirm replacement before another run; account/browser/category checks remain NOT_RUN."
   - scope: brew_done_it_connected_qualification
     issue: 715
     detail: "The source's combined indexes are correct. An empty schema clone and dedicated main-only brew-contract environment now exist, and its provider key is now configured. Three fixture/recovery secrets remain absent; the first staging API read failed with INVENTORY_READ_FAILED. Cloned-index/API verification, connected cleanup/non-interference, isolated recovery, provider CAS, scoring storage, privacy and two-device testing remain unqualified."
@@ -71,7 +71,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
-last_updated: "2026-10-29T01:45:00Z"
+last_updated: "2026-10-29T01:53:00Z"
 
 ---
 
@@ -104,7 +104,7 @@ READY is deployment metadata, not connected acceptance.
 [Run 40761036563](https://github.com/jeremytheva/pourfolio/actions/runs/40761036563),
 job `123072704341`, used worker `68df4354` and earlier deployed source
 `763c67ab`. Health returned HTTP 302; readiness, selection and owner/browser
-steps did not run. Private cleanup passed. The redacted outcome is
+steps did not run. The cleanup step completed. The redacted outcome is
 **BLOCKED / connected NOT_RUN**, not an account-authentication or provider denial.
 Artifact `12848416657` has SHA-256
 `43773e23718accdd1ad217c940693a1de47532598147e0c9240f76b595bad985`.
@@ -116,19 +116,43 @@ private observed cookie state. Syntax and 27 hermetic guard cases pass.
 [Run 40766264292](https://github.com/jeremytheva/pourfolio/actions/runs/40766264292)
 accepted the unmarked workflow and skipped its sole job; live access is NOT_RUN.
 
-The owner's supplied branch-alias link currently resolves to this deployment
-(metadata checked 29 October); it is not substituted into the exact-origin
-worker or committed. The owner must save a matching **Share → Commit** link
-directly in protected `staging-release` secret `RELEASE_PREVIEW_SHARE_URL` and
-confirm it is saved. Connected tools cannot set GitHub secrets. Existing account
-passwords remain unchanged. After confirmation, select one bounded run of
+The owner confirmed `RELEASE_PREVIEW_SHARE_URL` was added to GitHub.
+[Run 40802406434](https://github.com/jeremytheva/pourfolio/actions/runs/40802406434)
+at unchanged worker `548bebf9` stopped during preflight with access/health/
+readiness NOT_RUN and no HTTP status; selection and owner/browser steps skipped.
+Its artifact `12867135589` has SHA-256
+`b298a167e1beba3f321b01e33727277ae7909cfcdaebf5b917c9deb53b78ab60`.
+
+A reviewed diagnostic-only correction adds finite, non-echoing configuration
+codes and preserves every origin, source, case, credential and cleanup gate.
+Syntax, synthetic URL rejection/acceptance and unknown-error redaction pass;
+no secret value or arbitrary exception text is retained.
+[Run 40802837673](https://github.com/jeremytheva/pourfolio/actions/runs/40802837673),
+job `123214720577`, at worker
+`a98f8231710b24d79b3acd00892ccf4cc9891320` reports
+**SHARE_URL_ORIGIN_MISMATCH / BLOCKED**. That guard runs before the first access
+request; health/readiness, selection and owner/browser checks remain NOT_RUN.
+The cleanup step completed. Artifact `12867141138` has SHA-256
+`620c9a7512d619005153944a23eb05a36b7a3e0f4be86360511d5c9ba4c0d93f`.
+This proves a saved-link scope/configuration rejection, not token validity,
+application authentication or provider denial. No unchanged retry is selected.
+
+Replace the protected `staging-release` secret with a **Share → Commit** link
+whose hostname is exactly
+`pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app`, then confirm the replacement
+without sending its value. The supplied branch alias currently resolves to this
+deployment (metadata checked 29 October), but its token is not transplanted into
+the exact-origin worker. Connected tools cannot set GitHub secrets. Existing
+account passwords need no change. See the
+[operational setup](docs/TESTING.md#protected-add-beer-preview-qualification).
+
+After corrected configuration, select one bounded run of
 `catalogue-readonly.spec.js:65`: full authenticated category pagination and
 selection of a returned canonical style. Require matching before/after provenance,
 one pass with no skips/errors, original saved-session HTTP 401 after logout,
-private cleanup and the six explicit redacted reports. No catalogue, rating or
-cellar write is selected. See the
-[operational setup](docs/TESTING.md#protected-add-beer-preview-qualification).
-Until this evidence passes, #697 remains unmerged and connected acceptance NOT_RUN.
+private cleanup and six explicit redacted reports. No catalogue, rating or cellar
+write is selected. Until this evidence passes, #697 remains unmerged and
+connected acceptance NOT_RUN.
 
 PR #710 is integrated as `078843e5`; its moderation target remains source-only.
 The approved single QA cellar recovery is complete and must not be repeated.
