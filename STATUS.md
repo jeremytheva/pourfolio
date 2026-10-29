@@ -3,19 +3,19 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Saved preview link fails origin check; Add Beer connected qualification NOT_RUN"
+stage: "Confirmed preview update still fails exact-origin preflight; Add Beer connected qualification NOT_RUN"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Qualify Add Beer canonical categories at reviewed source 53299fce, then integrate #697; preserve independent Brew and public-launch gates."
+  objective: "Correct the exact staging-release Environment secret, qualify Add Beer source 53299fce once, then reconcile #697 with current main and validate before integration."
   issue: 695
   pr: 697
   branch: feature/add-beer-release-form
 next_actions:
   - "#727 is merged as 1ef714ce: the #726 cellar pagination repair passed 1,216 source tests, 188 browser/accessibility cases and exact production health/readiness. Connected multi-page owner/provider acceptance remains under #144/#154."
-  - "#728 repairs the separate unpaged product/category score-population reads with bounded ID batches, complete validated pages and exact requested-ID filtering. Retain final-head validation/deployment evidence separately from connected provider/volume certification."
+  - "#729 is merged as ef86e20d: the #728 style-population pagination repair passed 1,230 source tests, 188 browser/accessibility cases and exact production health/readiness. Both pagination repairs are integrated; connected provider/volume certification remains open."
   - "#165 newer supplied export is assessed: 21 deferred-target structural findings, with profile and combined child uniqueness already present. Reconcile current submission_key-only parent writes with the separate rating_id/child-key target before preparing an executable delta; retain provider/CAS, fresh consistent baseline, isolated restore and irreversible-change approval gates."
-  - "#697 source 53299fce passes 1,200 source tests and 193 browser cases. Saved-link diagnostic 40802837673 reports SHARE_URL_ORIGIN_MISMATCH before any access request. Replace RELEASE_PREVIEW_SHARE_URL with the immutable Commit link, then run the reviewed one-case gate once and require provenance, original-session 401 and cleanup before integration."
+  - "#697 source 53299fce passes 1,200 source tests and 193 browser cases. After owner confirmation of an updated preview variable, one unchanged-worker run 40868871732 still reports SHARE_URL_ORIGIN_MISMATCH before access. Replace staging-release Environment secret RELEASE_PREVIEW_SHARE_URL with the fixed Add Beer Commit link, confirm, then select one bounded gate. Reconcile the conflicted PR with main, retaining both pagination fixes, and validate the resulting head before integration."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
   - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Its provider key is configured; configure the independent recovery key and dedicated fixture user/product IDs, diagnose the failed read, and verify cloned constraints/recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
   - "#710 is integrated as 078843e5. #697 keyboard visibility and release-origin checkpoints are source/browser validated; connected category acceptance remains NOT_RUN."
@@ -33,7 +33,7 @@ next_actions:
 blockers:
   - scope: add_beer_protected_preview_access
     issue: 154
-    detail: "The owner confirmed the secret was added. Diagnostic run 40802837673 reports SHARE_URL_ORIGIN_MISMATCH before the first access request. Replace it with the exact immutable Commit link and confirm replacement before another run; account/browser/category checks remain NOT_RUN."
+    detail: "The owner confirmed an updated variable using the latest preview. Run 40868871732 still reports SHARE_URL_ORIGIN_MISMATCH before access; credentials/browser/category checks remain NOT_RUN. The worker consumes staging-release Environment secrets, not GitHub Actions Variables or Vercel variables. Save the Commit link for pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app in that exact secret and confirm before one further bounded run."
   - scope: brew_done_it_connected_qualification
     issue: 715
     detail: "The source's combined indexes are correct. An empty schema clone and dedicated main-only brew-contract environment now exist, and its provider key is now configured. Three fixture/recovery secrets remain absent; the first staging API read failed with INVENTORY_READ_FAILED. Cloned-index/API verification, connected cleanup/non-interference, isolated recovery, provider CAS, scoring storage, privacy and two-device testing remain unqualified."
@@ -59,12 +59,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "112d23aea65436794c0e2652fb06c1249a3726d2"
+  observed_main_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
   current_candidate_commit: "53299fce0cfd7a308c36bc0037ac5e2068969131"
-  latest_validated_commit: "112d23aea65436794c0e2652fb06c1249a3726d2"
-  latest_deployed_commit: "112d23aea65436794c0e2652fb06c1249a3726d2"
-  latest_runtime_verified_commit: "112d23aea65436794c0e2652fb06c1249a3726d2"
-  latest_browser_verified_commit: "112d23aea65436794c0e2652fb06c1249a3726d2"
+  latest_validated_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
+  latest_deployed_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
+  latest_runtime_verified_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
+  latest_browser_verified_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
 validation:
   governance: PASS
   lint: PASS
@@ -73,8 +73,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "112d23aea65436794c0e2652fb06c1249a3726d2"
-last_updated: "2026-10-29T02:24:00Z"
+last_verified_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
+last_updated: "2026-10-29T11:57:56Z"
 
 ---
 
@@ -83,6 +83,53 @@ last_updated: "2026-10-29T02:24:00Z"
 Last materially reviewed: 29 October 2026 UTC
 
 ## AI execution gate
+
+### Confirmed Add Beer update and bounded result (29 October 2026 UTC)
+
+The owner confirmed an updated variable using the latest preview. The catalogue
+integration execution selected the unchanged reviewed workflow once at worker
+`be0b39058ff1349a6c99fd1b748116ad24dfb057`, pinning Add Beer source
+`53299fce0cfd7a308c36bc0037ac5e2068969131` and its fixed immutable preview.
+[Run 40868871732](https://github.com/jeremytheva/pourfolio/actions/runs/40868871732),
+job `123430494145`, stopped at **SHARE_URL_ORIGIN_MISMATCH / BLOCKED** at
+11:54:22 UTC, before any access request or credential use. Health/readiness,
+selection and browser/category checks remain **NOT_RUN**. No unchanged retry
+is selected. Owner confirmation and observed saved-secret compatibility are
+separate facts; the actual saved value/location cannot be inspected by tools.
+
+Artifact `12894857175`, SHA-256
+`d7648760a3008a57151fc76efcec941d4b85fdecd7bae01767794316d7d72307`,
+was downloaded, digest-verified and its exact three JSON reports inspected:
+preflight BLOCKED, qualification BLOCKED/connected NOT_RUN, and cleanup with
+`privateWorkspace=PASS`, `session=NOT_REQUIRED`, HTTP status null. Browser,
+selection and postflight reports are absent because those steps did not run.
+No catalogue, rating or cellar mutation was selected. This is a confirmed
+configuration failure before access, not an application authentication failure.
+
+The next owner action is to save the exact Commit link for
+`pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app` as the **Environment
+secret** `RELEASE_PREVIEW_SHARE_URL` in GitHub `staging-release`, rather than as
+an Actions Variable or Vercel variable, then confirm without posting the value.
+A fresh exact-host link was supplied privately; no link/token is committed.
+[The existing setup instructions](docs/TESTING.md#protected-add-beer-preview-qualification)
+now state the precise setting and fixed-candidate distinction. Tools cannot set
+or inspect GitHub secrets. The worker's guards are retained unchanged.
+
+#697 remains unmerged at `53299fce` and currently reports a merge conflict.
+After the original bounded gate passes, reconcile it with current main,
+preserving both deployed pagination repairs, then validate the resulting exact
+head and deployment before integration. Current main `ef86e20d` contains #727
+and #729; the latter passed 1,230 source tests (15 gated skips), all 188
+browser/accessibility cases, Dependency Review and CodeQL. Production
+`dpl_FfP54vqPgrGo1ywKXmWumNxiQx9Q` was READY at that exact SHA and bounded
+health/readiness returned HTTP 200 with production identity and
+`dataProvider=ok` at 08:07 UTC. These endpoints do not certify the full release.
+
+This latest checkpoint supersedes earlier "replacement unconfirmed" and
+"style repair pending" statements retained below as dated history. The 42
+bonus allocations, #165 integrity/recovery, #422 privacy, #144/#154 acceptance,
+operations and physical-device/final-candidate gates remain open. Brew Done It
+remains launch-excluded. Public launch remains **NO-GO**.
 
 ### Complete style-population relationships (29 October 2026 UTC)
 
