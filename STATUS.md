@@ -12,6 +12,8 @@ current_work:
   pr: 697
   branch: feature/add-beer-release-form
 next_actions:
+  - "#726 repairs the still-present cellar default-page truncation using fresh sorted owner pages, fail-closed completeness and bounded optional hydration. Verify final-head source/browser/deployment evidence; connected multi-page owner/provider acceptance remains under #144/#154."
+  - "After #726, repair the separate unpaged product/category relationship reads in rating score populations; current loadExactRecords still uses one list call. Do not describe that style-population fix as integrated."
   - "#165 newer supplied export is assessed: 21 deferred-target structural findings, with profile and combined child uniqueness already present. Reconcile current submission_key-only parent writes with the separate rating_id/child-key target before preparing an executable delta; retain provider/CAS, fresh consistent baseline, isolated restore and irreversible-change approval gates."
   - "#697 source 53299fce passes 1,200 source tests and 193 browser cases. Saved-link diagnostic 40802837673 reports SHARE_URL_ORIGIN_MISMATCH before any access request. Replace RELEASE_PREVIEW_SHARE_URL with the immutable Commit link, then run the reviewed one-case gate once and require provenance, original-session 401 and cleanup before integration."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
@@ -81,6 +83,31 @@ last_updated: "2026-10-29T02:24:00Z"
 Last materially reviewed: 29 October 2026 UTC
 
 ## AI execution gate
+
+### Cellar completeness repair (29 October 2026 UTC)
+
+Direct source inspection corrected the earlier conversational assumption that
+the pagination repairs were integrated. At reviewed main `345c37e`, cellar
+listing still used one `dataProvider.list` call. The #726 real-adapter regression
+reproduces **25 returned from 205 synthetic owner records** before the fix.
+Listing now traverses fresh owner-filtered 100-row pages in ascending ID order,
+rejects malformed/duplicate/nonmonotonic identities and changing exact totals,
+and publishes no partial response after a later-page failure. Foreign and
+ownerless rows remain excluded; the existing `items` response is retained.
+
+Optional metadata uses bounded product batches, request-local relationship
+deduplication and a five-second abortable deadline. Missing enrichment retains
+verified private rows, nullable relationships and zero prices/quantities.
+Synthetic transport and browser recovery coverage are described in `docs/TESTING.md`;
+current final-head validation and deployment evidence belong in #726's PR.
+Connected multi-page provider/ownership acceptance remains open under #144/#154.
+No provider write, schema change or launch approval is part of this repair.
+
+The separate rating-population `loadExactRecords` reader also remains unpaged
+at this baseline and is the next independent source repair. #697 remains
+unmerged; no replacement of its saved preview secret has been confirmed.
+The 42 bonus allocations, #165 integrity/recovery, #422 privacy, operations and
+device/candidate acceptance remain open. Public launch remains **NO-GO**.
 
 ### Launch review and newer schema evidence — 29 October 2026 UTC
 

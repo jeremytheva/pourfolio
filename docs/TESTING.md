@@ -92,6 +92,26 @@ crash recovery or snapshot/restore. See the
 
 ## Current automated coverage
 
+### Complete owner cellar reads
+
+`api/nocodebackend/__tests__/cellarPagination.test.js` exercises the real provider
+adapter against a synthetic HTTP transport whose unpaged default is 25 rows.
+The 205-row regression fails before #726 (25 returned) and requires all three
+fresh, sorted, owner-filtered pages after the repair. It also covers empty and
+array-only pages, foreign/ownerless rows, invalid/duplicate/out-of-order IDs,
+changing exact totals, later-page failure, the page cap and caller cancellation.
+No partial HTTP success is permitted on a failed collection read. Large string
+IDs, zero values, nullable relationships and private-field projection are retained.
+
+Metadata checks verify bounded concurrent product hydration, request-local
+product/producer/category deduplication and the abortable optional-enrichment
+deadline without losing verified cellar rows. The existing query-policy case
+now supplies a paginated adapter response rather than an unpaged list mock.
+`e2e/cellar-load-recovery.spec.js` renders 205 synthetic items, searches for the
+last, hides the list on failure and restores all items/focus after retry.
+These are source/browser regressions, not connected multi-page provider,
+permission, mutation or #144/#154 release certification.
+
 Tests cover:
 
 - canonical relational collection names;

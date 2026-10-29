@@ -244,7 +244,8 @@
       "applicability": "required",
       "criticality": "blocking",
       "issue_refs": [
-        "#449"
+        "#449",
+        "#726"
       ],
       "change_paths": [
         "api/**cellar**",
@@ -253,13 +254,17 @@
         "release-check/**cellar*",
         "release-check/*cellar*",
         "release-check/*Cellar*",
-        "release-check/**/cellar*"
+        "release-check/**/cellar*",
+        "scripts/__tests__/cellarWriteCertification.test.js"
       ],
       "test_refs": [
         "e2e/core-flow.spec.js",
         "release-check/connected.spec.js",
         "release-check/__tests__/cellarCleanup.test.js",
-        "release-check/__tests__/cellarFixtureCheckpoint.test.js"
+        "release-check/__tests__/cellarFixtureCheckpoint.test.js",
+        "api/nocodebackend/__tests__/cellarPagination.test.js",
+        "scripts/__tests__/cellarWriteCertification.test.js",
+        "e2e/cellar-load-recovery.spec.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",

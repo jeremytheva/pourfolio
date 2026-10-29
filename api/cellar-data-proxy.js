@@ -19,8 +19,6 @@ import {
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 
 const ALLOWED_METHODS = new Set(['GET', 'POST', 'PUT', 'DELETE'])
-const asArray = (value) => (Array.isArray(value) ? value : value ? [value] : [])
-const normaliseList = (value) => asArray(value).filter((item) => item && typeof item === 'object')
 const firstRecord = (value) => (Array.isArray(value) ? value[0] || null : value || null)
 
 const pathSegments = (request) => {
@@ -63,13 +61,13 @@ const safeProviderGet = async (collection, id, options = {}) => {
   }
 }
 
-const hydrateProduct = async (product, options = {}) => {
+const hydrateProduct = async (product, options = {}, readRecord = safeProviderGet) => {
   if (!product) return null
   const [producer, category] = await Promise.all([
     product.producer_id && String(product.producer_id) !== '0'
-      ? safeProviderGet(COLLECTIONS.producers, product.producer_id, options)
+      ? readRecord(COLLECTIONS.producers, product.producer_id, options)
       : null,
-    product.product_category_id ? safeProviderGet(COLLECTIONS.categories, product.product_category_id, options) : null
+    product.product_category_id ? readRecord(COLLECTIONS.categories, product.product_category_id, options) : null
   ])
   return projectProduct(product, producer, category)
 }
@@ -171,12 +169,96 @@ export const projectCellarRecord = (record, product = null) => ({
   product
 })
 
-const listCellar = async (response, user) => {
-  const records = normaliseList(await dataProvider.list(COLLECTIONS.cellar, { user_id: user.id }, { fresh: true }))
-    .filter((record) => isOwnedBy(record, user.id))
-  const productIds = [...new Set(records.map((record) => record.product_id).filter(Boolean).map(String))]
-  const products = await Promise.all(productIds.map(async (id) => hydrateProduct(await safeProviderGet(COLLECTIONS.products, id))))
-  const productsById = new Map(products.filter(Boolean).map((product) => [String(product.id), product]))
+const CELLAR_PAGE_SIZE = 100
+const CELLAR_MAX_PAGES = 1000
+const CELLAR_ENRICHMENT_TIMEOUT_MS = 5_000
+const cellarReadError = () => Object.assign(new Error('The complete cellar could not be verified. Please try again.'), {
+  status: 502, code: 'CELLAR_READ_UNVERIFIED'
+})
+const canonicalCellarId = value => {
+  if (typeof value !== 'string' && !Number.isSafeInteger(value)) return null
+  const id = String(value)
+  return /^[1-9]\d*$/.test(id) ? id : null
+}
+// Canonical decimal strings preserve ordering even beyond Number's safe range.
+const afterId = (id, previous) => previous === null || id.length > previous.length ||
+  id.length === previous.length && id > previous
+
+const readOwnerCellarRows = async (user, options) => {
+  const rows = []
+  const seen = new Set()
+  let previousId = null
+  let pagination = null
+  for (let page = 1; page <= CELLAR_MAX_PAGES; page += 1) {
+    options.signal?.throwIfAborted()
+    const result = await dataProvider.listPage(COLLECTIONS.cellar, {
+      page, limit: CELLAR_PAGE_SIZE, orderBy: 'id', order: 'asc', filters: { user_id: user.id }, fresh: true
+    }, options)
+    options.signal?.throwIfAborted()
+    if (!Array.isArray(result?.items) || result.page !== page || result.pageSize !== CELLAR_PAGE_SIZE ||
+        !Number.isSafeInteger(result.total) || result.total < 0 ||
+        !Number.isSafeInteger(result.totalPages) || result.totalPages < 0 || result.totalPages > CELLAR_MAX_PAGES) {
+      throw cellarReadError()
+    }
+    // Array-only provider responses have inferred totals which grow until the
+    // terminal page. Exact advertised totals must remain stable across pages.
+    const inferred = Object.hasOwn(result, 'totalIsEstimate')
+    if (pagination && (pagination.inferred !== inferred || !inferred &&
+        (pagination.total !== result.total || pagination.totalPages !== result.totalPages))) throw cellarReadError()
+    pagination = { inferred, total: result.total, totalPages: result.totalPages }
+    for (const row of result.items) {
+      const id = canonicalCellarId(row?.id)
+      if (!row || typeof row !== 'object' || Array.isArray(row) || !id || seen.has(id) || !afterId(id, previousId)) {
+        throw cellarReadError()
+      }
+      seen.add(id)
+      previousId = id
+      if ((typeof row.user_id === 'string' || Number.isSafeInteger(row.user_id)) && isOwnedBy(row, user.id)) rows.push(row)
+    }
+    if (page >= Math.max(1, result.totalPages)) {
+      if (seen.size !== result.total) throw cellarReadError()
+      return rows
+    }
+  }
+  throw cellarReadError()
+}
+
+const hydrateCellarProducts = async (records, options) => {
+  const productIds = [...new Set(records.map(record => canonicalCellarId(record.product_id)).filter(Boolean))]
+  const productsById = new Map()
+  const reads = new Map()
+  const readOnce = (collection, id, readOptions) => {
+    const key = `${collection}:${id}`
+    if (!reads.has(key)) reads.set(key, safeProviderGet(collection, id, readOptions))
+    return reads.get(key)
+  }
+  if (!productIds.length) return productsById
+  try {
+    await withTimeout(async signal => {
+      const readOptions = { fresh: true, signal }
+      // Four products at a time; each has at most two parallel relationship
+      // reads. Shared producer/category lookups are deduplicated for this request.
+      for (let index = 0; index < productIds.length; index += 4) {
+        signal.throwIfAborted()
+        const products = await Promise.all(productIds.slice(index, index + 4).map(async id => {
+          const product = await readOnce(COLLECTIONS.products, id, readOptions)
+          signal.throwIfAborted()
+          return hydrateProduct(product, readOptions, readOnce)
+        }))
+        for (const product of products.filter(Boolean)) productsById.set(String(product.id), product)
+      }
+    }, CELLAR_ENRICHMENT_TIMEOUT_MS, options.signal)
+  } catch {
+    options.signal?.throwIfAborted()
+    // Optional metadata must not hide verified private cellar rows.
+  }
+  return productsById
+}
+
+const listCellar = async (response, user, options = {}) => {
+  const records = await readOwnerCellarRows(user, options)
+  const productsById = await hydrateCellarProducts(records, options)
+  options.signal?.throwIfAborted()
   response.status(200).json({
     items: records.map((record) => projectCellarRecord(record, productsById.get(String(record.product_id)) || null))
   })
@@ -269,7 +351,7 @@ export const routeCellarRequest = async (request, response, user, options = {}) 
     response.status(404).json({ error: 'Application data route not found.' })
     return
   }
-  if (!id && request.method === 'GET') return listCellar(response, user)
+  if (!id && request.method === 'GET') return listCellar(response, user, options)
   if (!id && request.method === 'POST') return createCellar(request, response, user, options)
   if (id && request.method === 'PUT') return updateCellar(id, request, response, user, options)
   if (id && request.method === 'DELETE') return deleteCellar(id, response, user, options)
