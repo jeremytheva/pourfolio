@@ -390,71 +390,47 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 
 ### Protected Add Beer preview qualification
 
-This one-case gate for unmerged #697 is separate from the main-only connected
-suite and cellar writer. The
-[reviewed worker a98f8231](https://github.com/jeremytheva/pourfolio/blob/a98f8231710b24d79b3acd00892ccf4cc9891320/.github/workflows/add-beer-connected-evidence.yml)
+The [reviewed one-run relay](https://github.com/jeremytheva/pourfolio/blob/aa62934c76b8407a0f3431c5aa0a90dfaf69e1cb/.github/workflows/add-beer-connected-evidence.yml)
 pins source `53299fce0cfd7a308c36bc0037ac5e2068969131` and
 https://pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app.
+It preserves the protected `staging-release` account credentials and consumes
+a private one-run link file instead of `RELEASE_PREVIEW_SHARE_URL`. The secret
+API is unavailable to this integration; do not repeat owner setup requests.
 
-1. Open the [exact deployment](https://vercel.com/jeremythevas-projects/pourfolio/48K6XVAUKsSswisD4YQhqDLM5Wv6),
-   choose **Share → Commit** and obtain its Shareable Link. Confirm the immutable
-   hostname above. Check its expiry; do not assume a fixed lifetime.
-2. Save the full link directly as the **Environment secret**
-   `RELEASE_PREVIEW_SHARE_URL` under GitHub **Settings → Environments →
-   staging-release → Environment secrets**, then confirm it is saved without
-   sending the value in chat. The worker reads `secrets.RELEASE_PREVIEW_SHARE_URL`;
-   GitHub Actions Variables and Vercel environment variables do not supply this
-   value. Use the fixed Add Beer deployment above, rather than the latest main
-   or moving branch deployment. Existing account passwords stay in their
-   protected secrets. Connected tools cannot inspect or set the saved secret.
-   No deployment protection setting or project-wide bypass change is required.
-3. The integration owner selects the prepared run once after confirmation.
-   Unmarked preparation does not select it. Dependencies/browser installation
-   precedes secret injection. Preflight alone consumes the link; only private
-   observed cookie state continues into the reviewed source configuration and
-   postflight. Do not transplant a branch-link token to an immutable hostname.
-4. Require one pass of `catalogue-readonly.spec.js:65`, matching before/after
-   source/preview provenance, no skip/error, original saved-session HTTP 401
-   after logout and private cleanup. Other statuses/exceptions leave session
-   revocation UNCONFIRMED and qualification blocked.
-5. Retain only the six explicit redacted JSON reports. Always-run cleanup removes
-   private access/session state, generated configuration and raw logs. After
-   testing, revoke the Vercel Shareable Link and remove the temporary GitHub
-   secret. Runner-local cleanup does not globally revoke the link or cookies.
+1. Before selecting `[qualify-add-beer-ephemeral-53299fce]`, obtain explicit
+   approval for the encrypted packet's public PR-description persistence.
+   Ciphertext may remain in edit history/webhooks after its visible removal.
+   General continuation did not satisfy automatic approval review for this.
+2. Use a fresh protected run. It generates an RSA4096 private key in the runner
+   temporary directory with mode `0600`; only the closed public manifest is
+   uploaded as `add-beer-access-key-<run>-<attempt>` for one day.
+3. Independently verify the artifact ID/digest and its workflow path, repository,
+   branch, head SHA, run and attempt. Validate the public RSA/SPKI fingerprint,
+   exact source/origin, closed manifest and ten-minute maximum lifetime.
+4. Encrypt only the validated commit Shareable Link (at most 400 bytes) with
+   OAEP-SHA256, binding all recipient metadata. Put only its canonical ciphertext
+   envelope in the exact current-run HTML machine block of PR #697. Publish no
+   plaintext link/private key, and do not use another public channel after a
+   rejected write. The receiver polls only the fixed public GitHub API endpoint
+   without authentication or redirects, for at most three minutes/18 attempts.
+   Duplicate, stale, malformed, replayed or tampered input blocks before sign-in.
+5. The receiver removes its private key in `finally`. The verifier reads the
+   private link file, then removes it before the first preview request. Exact
+   origin and before/after source/readiness provenance still precede account
+   credentials. Only unchanged `catalogue-readonly.spec.js:65` may execute.
+6. Require one passed case with no skipped/error outcome, exact provenance,
+   original saved-cookie HTTP 401 after logout, successful handoff and verified
+   private-file absence. Keep the six explicit redacted JSON reports separate
+   from the public-key artifact. Traces, screenshots, video and raw logs stay
+   excluded. Remove only this run's exact packet from a freshly read PR body,
+   preserving other edits; visible removal cannot erase revision/webhook history.
 
-The worker accepts only the exact HTTPS origin, root path and one nonempty
-`_vercel_share` query, follows at most five same-origin redirects, and rejects
-foreign/broad-domain cookies and local-storage state. Browser capture is off.
-The case selects no catalogue, rating or cellar mutation; normal authentication
-requests still occur. Completed-navigation origin checkpoints do not make
-browser auto-wait or navigation races atomic.
-
-Run 40761036563 stopped at health HTTP 302 before owner credentials or browser
-selection; preparation run 40766264292 was skipped. After the owner confirmed
-the secret was added, run 40802406434 stopped at an unclassified access preflight.
-The diagnostic-only worker's run 40802837673 reports SHARE_URL_ORIGIN_MISMATCH
-before the first access request. After the owner confirmed an updated variable
-using the latest preview, the unchanged reviewed workflow was selected once at
-worker `be0b39058ff1349a6c99fd1b748116ad24dfb057`.
-[Run 40868871732](https://github.com/jeremytheva/pourfolio/actions/runs/40868871732),
-job `123430494145`, again reports **SHARE_URL_ORIGIN_MISMATCH / BLOCKED** before
-any access request or credentials. The confirmation is retained; the worker
-cannot infer the actual saved value or setting location. Health/readiness,
-selection and account/browser checks remain **NOT_RUN**. The retained artifact
-`12894857175` (SHA-256
-`d7648760a3008a57151fc76efcec941d4b85fdecd7bae01767794316d7d72307`)
-contains exactly three inspected reports: preflight BLOCKED, qualification
-BLOCKED/connected NOT_RUN, and cleanup with `privateWorkspace=PASS`,
-`session=NOT_REQUIRED`, HTTP status null. The three unexecuted report paths are
-absent; no six-report PASS is claimed. Replace the exact environment secret
-using the fixed immutable Commit link and confirm before another bounded run.
-No unchanged retry is selected.
-
-Only fixed SHARE_URL_MISSING, SHARE_URL_INVALID, SHARE_URL_ORIGIN_MISMATCH or
-SHARE_URL_SHAPE_INVALID codes identify configuration classes; unknown exceptions
-map to PROTECTED_PREVIEW_UNVERIFIED. Neither a code nor a successful cleanup
-step alone proves access, token validity, retained privateWorkspace PASS,
-application authentication, provider permission or public release.
+The retained result for run 40963113424 is BLOCKED / connected NOT_RUN:
+automatic approval review prevented delivery, receive timed out, and all preview/
+account stages skipped. Actual retained JSON verifies privateWorkspace PASS and
+session NOT_REQUIRED. No old key or packet may be reused. Link-grant expiry or
+revocation is separate from runner-local cleanup. The relay and source tests
+cannot qualify the combined new build, provider permissions or public release.
 
 ### Cellar HTTP checkpoints and redacted release evidence
 
