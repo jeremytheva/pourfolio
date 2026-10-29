@@ -8,6 +8,7 @@
       "pr": null,
       "surfaces": [
         "branch:fix/cellar-pagination-20261029",
+        "file:.project-master/launch-readiness.json",
         "file:ARCHITECTURE.md",
         "file:STATUS.md",
         "file:api/cellar-data-proxy.js",
