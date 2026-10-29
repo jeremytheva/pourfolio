@@ -7,19 +7,20 @@
       "issue": 728,
       "pr": null,
       "surfaces": [
-        "repo:integration",
         "branch:fix/style-population-pagination-20261029",
-        "file:api/rating-data-proxy.js",
-        "file:api/__tests__/styleScaledScoreGateway.test.js",
-        "file:api/__tests__/stylePopulationPagination.test.js",
+        "file:.project-master/launch-readiness.json",
+        "file:ARCHITECTURE.md",
         "file:STATUS.md",
+        "file:api/__tests__/ratingDataProxy.test.js",
+        "file:api/__tests__/stylePopulationPagination.test.js",
+        "file:api/__tests__/styleScaledScoreGateway.test.js",
+        "file:api/rating-data-proxy.js",
         "file:docs/LAUNCH_READINESS.md",
         "file:docs/TESTING.md",
-        "file:ARCHITECTURE.md",
-        "file:.project-master/launch-readiness.json"
+        "repo:integration"
       ],
       "acquiredAt": "2026-10-29T07:52:12.848Z",
-      "expiresAt": "2026-10-29T08:22:12.848Z"
+      "expiresAt": "2026-10-29T08:26:27.198Z"
     }
   }
 }
