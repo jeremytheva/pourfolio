@@ -2,38 +2,23 @@
   "version": 1,
   "claims": {
     "catalogue": {
-      "owner": "catalogue-add-beer-qualification-20261029T0236Z",
+      "owner": "catalogue-launch-review-20261029T065512369Z",
       "workstream": "catalogue",
-      "issue": 695,
-      "pr": 697,
+      "issue": 165,
+      "pr": null,
       "surfaces": [
         "repo:integration",
-        "branch:feature/add-beer-release-form",
-        "branch:fix/add-beer-connected-evidence-20261027",
-        "file:.github/workflows/add-beer-connected-evidence.yml",
+        "branch:review/launch-20261029",
+        "branch:dependabot/npm_and_yarn/framer-motion-14.6.0",
+        "file:package.json",
+        "file:package-lock.json",
         "file:STATUS.md",
         "file:docs/LAUNCH_READINESS.md",
-        "file:docs/TESTING.md",
-        "file:docs/add-product-moderation.md",
-        "file:api/catalog-data-proxy.js",
-        "file:api/nocodebackend/__tests__/catalogueCategories.test.js",
-        "file:e2e/catalogue-proposal-searchable-selectors.spec.js",
-        "file:e2e/mockApi.js",
-        "file:src/components/CanonicalSearchSelect.jsx",
-        "file:src/pages/AddBeerProposal.jsx",
-        "file:src/services/__tests__/catalogueCategoryPage.test.js",
-        "file:src/services/catalogueResponse.js",
-        "file:src/services/styleService.js",
-        "file:release-check/catalogue-readonly.spec.js",
-        "file:release-check/releaseTarget.js",
-        "file:release-check/releaseTarget.test.js",
-        "file:release-check/support.js",
-        "file:release-check/__tests__/support.test.js",
-        "file:package.json",
-        "file:package-lock.json"
+        "file:docs/nocodebackend/rating-schema-migration-runbook.md",
+        "file:docs/evidence/rating-schema-export-20261028.json"
       ],
-      "acquiredAt": "2026-10-29T02:36:32.000Z",
-      "expiresAt": "2026-10-29T03:08:00.000Z"
+      "acquiredAt": "2026-10-29T06:55:12.369Z",
+      "expiresAt": "2026-10-29T07:25:12.369Z"
     }
   }
 }
