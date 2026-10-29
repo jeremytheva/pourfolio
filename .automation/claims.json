@@ -1,4 +1,40 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "catalogue-preview-relay-20261029T2155Z",
+      "workstream": "catalogue",
+      "issue": 695,
+      "pr": 697,
+      "surfaces": [
+        "repo:integration",
+        "branch:fix/add-beer-connected-evidence-20261027",
+        "branch:feature/add-beer-release-form",
+        "branch:docs/preview-access-relay-20261029",
+        "file:.github/workflows/add-beer-connected-evidence.yml",
+        "file:STATUS.md",
+        "file:docs/LAUNCH_READINESS.md",
+        "file:docs/TESTING.md",
+        "file:docs/add-product-moderation.md",
+        "file:api/catalog-data-proxy.js",
+        "file:api/nocodebackend/__tests__/catalogueCategories.test.js",
+        "file:e2e/catalogue-proposal-searchable-selectors.spec.js",
+        "file:e2e/mockApi.js",
+        "file:src/components/CanonicalSearchSelect.jsx",
+        "file:src/pages/AddBeerProposal.jsx",
+        "file:src/services/__tests__/catalogueCategoryPage.test.js",
+        "file:src/services/catalogueResponse.js",
+        "file:src/services/styleService.js",
+        "file:release-check/catalogue-readonly.spec.js",
+        "file:release-check/releaseTarget.js",
+        "file:release-check/releaseTarget.test.js",
+        "file:release-check/support.js",
+        "file:release-check/__tests__/support.test.js",
+        "file:package.json",
+        "file:package-lock.json"
+      ],
+      "acquiredAt": "2026-10-29T21:55:00.000Z",
+      "expiresAt": "2026-10-29T22:30:00.000Z"
+    }
+  }
 }
