@@ -71,7 +71,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
-last_updated: "2026-10-29T01:53:00Z"
+last_updated: "2026-10-29T02:11:00Z"
 
 ---
 
@@ -80,6 +80,24 @@ last_updated: "2026-10-29T01:53:00Z"
 Last materially reviewed: 29 October 2026 UTC
 
 ## AI execution gate
+
+### Development toolchain maintenance — 29 October 2026 UTC
+
+Existing [PR #684](https://github.com/jeremytheva/pourfolio/pull/684) updates
+ESLint 10.12.0 → 10.13.0, PostCSS 8.5.30 → 8.5.31 and Vite 8.3.4 → 8.3.5.
+The refresh retains current main `4dbc18be` and the original bot history.
+The manifest/lock change is the original reviewed dependency slice: 241 lock
+nodes, no additions/deletions, and 20 changed development-package nodes including
+Rolldown/platform bindings and OXC types. Runtime dependencies and Node 22 stay
+unchanged. Vite and Rolldown still affect generated browser assets, so integration
+requires current canonical validation, browser/accessibility, bundle/PWA
+containment and release-security evidence; the exact results are retained in #684.
+
+This maintenance does not qualify connected provider behaviour or close a launch
+gate. #697 keeps its reviewed immutable preview and saved-link replacement
+requirement; it is not retargeted by this independent toolchain change. Public
+launch remains **NO-GO**, with #165, #144/#154, #422, the 42 missing bonus values
+and operational gates open. Brew Done It remains disabled and launch-excluded.
 
 ### Add Beer candidate and protected-preview gate — 29 October 2026 UTC
 
