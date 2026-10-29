@@ -11,10 +11,11 @@
         "pr:697",
         "workflow:add-beer-connected-evidence",
         "STATUS.md",
-        "docs/LAUNCH_READINESS.md"
+        "docs/LAUNCH_READINESS.md",
+        "docs/TESTING.md"
       ],
       "acquiredAt": "2026-10-29T11:53:17.783Z",
-      "expiresAt": "2026-10-29T12:23:17.783Z"
+      "expiresAt": "2026-10-29T12:26:27.971Z"
     }
   }
 }
