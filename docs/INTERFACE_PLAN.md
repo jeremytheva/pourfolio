@@ -17,11 +17,32 @@ Secondary signed-in **Explore** navigation contains implemented supporting exper
 - Beer Passport;
 - Historical Feed;
 - Add Beer;
-- What's next.
+- What's next;
+- Admin catalogue review, shown only after a matching server capability response.
 
 `/features` is the feature-status surface. It links only to implemented experiences. Approved but inactive capabilities appear as non-interactive placeholders with an explicit dependency/status label so planned work is visible without presenting it as usable.
 
 Brew Done It remains absent from production-facing navigation and product CTAs until its provider, privacy, two-device and recovery certification gates pass. Its protected source route may remain available for controlled testing while the server policy boundary continues to fail closed unless deliberately enabled.
+
+## Admin catalogue review
+
+The read-only `/admin` workspace supports product/producer search, pagination,
+missing-information hints and canonical detail links. Producers without products
+remain reviewable. Type, query and page live in the URL so detail/back navigation
+retains context. Loading, unavailable access, denied access, catalogue errors,
+retry and empty states are explicit; keyboard focus and responsive layout use
+the existing application shell.
+
+Only the current server session can grant this entry. Browser roles, saved
+flags and another user's capability response cannot expose it. The page explains
+that submission approval is unavailable. It adds no approval/rejection buttons,
+verification badges, pending totals, role management, private history or audit
+views. The existing ordinary Add Beer entry remains available.
+
+Full moderation is tracked by #698/#700–#706: certify the provider's role and
+moderation permissions/schema, durable versioned commands, audit and recovery
+before building producer/product decisions and correction actions. Stable
+product IDs and immediately rateable pending beers remain required by #696.
 
 ## Breweries & Venues
 

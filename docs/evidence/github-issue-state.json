@@ -1,82 +1,92 @@
 {
-  "captured_at": "2026-10-24T22:36:46.902Z",
+  "captured_at": "2026-10-28T02:21:51.554Z",
   "repository": "jeremytheva/pourfolio",
-  "source": "GitHub connected inspection",
-  "scope": "retained issue-state evidence for current blocker and continuity drift checks; refresh with npm run check:status-github -- --write-issue-evidence",
+  "source": "GitHub connected inspection (equivalent to scripts/check-status-github-state.js)",
+  "scope": "retained issue-state evidence for current blocker and continuity drift checks; offline validation does not treat this as fresh live state",
   "issues": [
-    {
-      "number": 165,
-      "title": "Deploy rating idempotency schema before enabling reconciliation",
-      "state": "open",
-      "observed_at": "2026-10-24T22:36:46.902Z"
-    },
-    {
-      "number": 577,
-      "title": "Plan connected user/admin authentication and authorization certification",
-      "state": "closed",
-      "observed_at": "2026-10-24T22:36:46.902Z"
-    },
-    {
-      "number": 224,
-      "title": "Restore current-main Vercel production deployment evidence",
-      "state": "closed",
-      "observed_at": "2026-10-24T22:36:46.902Z"
-    },
-    {
-      "number": 225,
-      "title": "Restore NoCodeBackend data API authorization",
-      "state": "closed",
-      "observed_at": "2026-10-24T22:36:46.902Z"
-    },
     {
       "number": 143,
       "title": "PF-P0-01 — Harden the governed delivery path",
       "state": "open",
-      "observed_at": "2026-10-24T22:36:46.902Z"
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/143"
     },
     {
       "number": 144,
       "title": "PF-P1-01 — Certify the canonical backend contract",
       "state": "open",
-      "observed_at": "2026-10-24T22:36:46.902Z"
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/144"
     },
     {
       "number": 154,
       "title": "PF-P3-01 — Prove dependable beer discovery",
       "state": "open",
-      "observed_at": "2026-10-24T22:36:46.902Z"
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/154"
     },
     {
-      "number": 429,
-      "title": "Prune obsolete and unreachable code before release",
+      "number": 165,
+      "title": "Deploy rating idempotency schema before enabling reconciliation",
       "state": "open",
-      "observed_at": "2026-10-24T22:36:46.902Z"
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/165"
     },
     {
-      "number": 449,
-      "title": "Launch — user beer add/edit workflow and cellar backend alignment",
+      "number": 224,
+      "title": "Restore current-main Vercel production deployment evidence",
       "state": "closed",
-      "observed_at": "2026-10-24T22:36:46.902Z"
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/224"
     },
     {
-      "number": 651,
-      "title": "fix(bonus): verify persisted values and certify bounded fixture cleanup",
+      "number": 225,
+      "title": "Restore NoCodeBackend data API authorization",
       "state": "closed",
-      "observed_at": "2026-10-24T22:36:46.902Z",
-      "kind": "pull_request",
-      "merged": true
-    },
-    {
-      "number": 503,
-      "title": "Restore durable rating workflow after live schema migration",
-      "state": "closed",
-      "observed_at": "2026-10-24T22:36:46.902Z"
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/225"
     },
     {
       "number": 422,
       "title": "Provider migration: deploy persistent profiles and opt-in public rating history",
       "state": "open",
-      "observed_at": "2026-10-24T22:36:46.902Z"
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/422"
+    },
+    {
+      "number": 429,
+      "title": "Prune obsolete and unreachable code before release",
+      "state": "open",
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/429"
+    },
+    {
+      "number": 449,
+      "title": "Launch — user beer add/edit workflow and cellar backend alignment",
+      "state": "closed",
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/449"
+    },
+    {
+      "number": 577,
+      "title": "Plan connected user/admin authentication and authorization certification",
+      "state": "closed",
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/577"
+    },
+    {
+      "number": 701,
+      "title": "ADM-03 — Certify moderation provider capabilities and additive rollout",
+      "state": "open",
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/701"
+    },
+    {
+      "number": 711,
+      "title": "Brew Done It launch: establish bounded read-only provider inventory",
+      "state": "open",
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/711"
+    },
+    {
+      "number": 713,
+      "title": "Brew Done It: reject provider rows outside the authorised exact filter",
+      "state": "closed",
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/713"
+    },
+    {
+      "number": 715,
+      "title": "Brew Done It: qualify current provider schema and controlled-test prerequisites",
+      "state": "open",
+      "html_url": "https://github.com/jeremytheva/pourfolio/issues/715"
     }
   ]
 }

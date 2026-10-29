@@ -9,6 +9,7 @@ import { requireSessionUser } from './_lib/authSession.js'
 import { loadBonusCatalogue } from './_lib/bonusAttributeCatalogue.js'
 import { dataProvider } from './_lib/dataProvider.js'
 import { isCompletedRating } from './_lib/ratingHistoryRecords.js'
+import { styleReferencesForCategory } from './_lib/styleGuidelines.js'
 import {
   CATEGORY_FIELDS,
   PRODUCT_FIELDS,
@@ -94,7 +95,7 @@ const hydrateProducts = async (products) => {
     .map((product) => String(product.id ?? ''))
     .filter((id) => /^[1-9]\d*$/.test(id))
   const relationships = productIds.length
-    ? await requiredRelationshipList(COLLECTIONS.productProducers, { 'product_id[in]': productIds.join(',') })
+    ? await readAllProviderRows(COLLECTIONS.productProducers, { filters: { 'product_id[in]': productIds.join(',') } })
     : []
   const relationshipsByProduct = new Map()
   for (const relationship of relationships) {
@@ -119,8 +120,8 @@ const hydrateProducts = async (products) => {
   }
 
   const [producers, categories] = await Promise.all([
-    producerIds.size ? safeRelationshipList(COLLECTIONS.producers, { 'id[in]': [...producerIds].join(',') }) : [],
-    categoryIds.size ? safeRelationshipList(COLLECTIONS.categories, { 'id[in]': [...categoryIds].join(',') }) : []
+    producerIds.size ? readAllProviderRows(COLLECTIONS.producers, { filters: { 'id[in]': [...producerIds].join(',') } }).catch(() => []) : [],
+    categoryIds.size ? readAllProviderRows(COLLECTIONS.categories, { filters: { 'id[in]': [...categoryIds].join(',') } }).catch(() => []) : []
   ])
   const producersById = indexById(producers)
   const categoriesById = indexById(categories)
@@ -870,8 +871,19 @@ const getRatingForm = async (request, response, user) => {
   })
 }
 
+const getStyleReferences = async (id, response) => {
+  const categoryId = parsePositiveId(id, 'Style identifier')
+  const category = await dataProvider.get(COLLECTIONS.categories, categoryId)
+  if (!category || String(category.id) !== categoryId || typeof category.category_name !== 'string' || !category.category_name.trim()) {
+    response.status(404).json({ error: 'Style not found.' })
+    return
+  }
+  response.status(200).json(styleReferencesForCategory(category))
+}
+
 export const routeCatalogueRequest = async (request, response, user) => {
   const [resource, id, action] = pathSegments(request)
+  if (resource === 'catalog' && id === 'style-references' && action && pathSegments(request).length === 3 && request.method === 'GET') return getStyleReferences(action, response)
   if (resource === 'catalog' && id === 'products' && !action && request.method === 'GET') return listProducts(request, response)
   if (resource === 'catalog' && id === 'products' && !action && request.method === 'POST') return createProduct(request, response, user)
   if (resource === 'catalog' && id === 'products' && action && request.method === 'GET') return getProduct(action, response)
@@ -917,6 +929,7 @@ export default async function handler(request, response) {
 }
 
 export const __testables = {
+  getStyleReferences,
   listProducts,
   hydrateProducts,
   safeRelationshipList,

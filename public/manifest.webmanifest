@@ -1,0 +1,18 @@
+{
+  "name": "Pourfolio",
+  "short_name": "Pourfolio",
+  "description": "Discover, rate and remember your beers",
+  "id": "/",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#92400e",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

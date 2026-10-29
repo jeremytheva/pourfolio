@@ -57,6 +57,7 @@ The table below lists provider collections used by the current launch contract. 
 | --- | --- | --- |
 | `products` | Product catalogue. | Authenticated read for MVP. |
 | `producers` | Product producer catalogue. | Authenticated read for MVP. |
+| `product_producers` | Canonical product/producer attribution, owner-confirmed 16 September 2026. | Server-governed relationship writes; primary mirror retained. |
 | `categories` | Product/style taxonomy. | Authenticated read for MVP. |
 | `rating_attributes` | Applicable 1–7 score definitions and weights. | Authenticated read; administrative write outside MVP. |
 | `bonus_attributes` | Optional rating bonus definitions. | Authenticated read; administrative write outside MVP. |
@@ -65,6 +66,17 @@ The table below lists provider collections used by the current launch contract. 
 | `bonus_attribute_rating_mapping` | Normalised optional bonus selections. | Same owner as parent rating. |
 | `cellar` | Private user cellar inventory. | Owner CRUD only. |
 | `profiles` | Persistent owner profile and stable public-profile identity. | Owner create/read/update; public projection by opaque `public_id`; rating history remains opt-in. |
+
+## Catalogue moderation — unmapped logical target
+
+`contracts/pourfolio-data-contract.json` 1.6.0 defines
+`deferred_targets.catalogue_moderation`, with logical fields/keys rather than
+invented physical collections. Each provider collection mapping remains null;
+exact types, indexes, relationships, permissions and atomic/recovery guarantees
+are UNVERIFIED. Existing active collections/external writers are unchanged.
+The [target/migration package](moderation-migration-plan.md) is the bounded
+preparation and #701 certification handoff. Never require or write these target
+fields through current runtime services before qualified activation.
 
 ## Account export, deletion and retention status
 

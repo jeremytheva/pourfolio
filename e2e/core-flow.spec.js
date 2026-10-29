@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { RATING_DISTRIBUTION_BUCKETS } from '../src/lib/completedRatingContract.js'
-import { installMockApi, product } from './mockApi.js'
+import { installMockApi, product, submissionReceipt } from './mockApi.js'
 
 test.beforeEach(async ({ page }) => {
   await installMockApi(page)
@@ -48,7 +48,7 @@ test('catalogue to product to rating derives Bonus from selected attributes', as
     await route.fulfill({
       status: 201,
       contentType: 'application/json',
-      body: JSON.stringify({ rating: { id: 99 }, scoreCount: 6, bonusCount: 3, bonusPointTotal: 2.1, bonusScore: 2, duplicate: false })
+      body: JSON.stringify(submissionReceipt(submitted))
     })
   })
 

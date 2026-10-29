@@ -1,5 +1,13 @@
 # Data model
 
+## Versioned numeric style references
+
+The [style reference contract](style-reference-comparison.md) defines a static,
+reviewed reference layer, not a new provider collection. Reference identities
+include guide/edition/code; canonical category mappings require exact ID and
+name. Variable ranges and missing product specifications remain explicit. The
+existing product ABV/IBU fields and rating formula remain unchanged.
+
 The uploaded NoCodeBackend database structure is the authoritative launch schema for the currently deployed beer-rating and cellar paths. The broader target model remains documented in [Canonical NoCodeBackend schema mapping](nocodebackend/schema-mapping.md), but code must not require proposed fields before those fields are actually deployed.
 
 The application uses the supplied relational names:
@@ -19,7 +27,7 @@ Legacy `beverages_pf2025`, `ratings_pf2025`, `cellar_items_pf2025` and `beverage
 
 The current database uses:
 
-- `products.producer_id` as the deployed product-to-producer relationship; the supplied backend export contains no `product_producers` junction table;
+- canonical `product_producers` attribution (owner-confirmed deployed 16 September 2026); `products.producer_id` remains the transitional primary-producer compatibility mirror. The older supplied export predates the junction;
 - `products.product_category_id` for product classification;
 - `products.edition` as nullable free-text edition metadata, not a relational vintage/product-family identity;
 - `cellar.series_version_id` for the optional sharing-series edition/version relationship;
@@ -36,6 +44,23 @@ Sharing series and edition/version references on cellar records are nullable and
 Producer attribution is also not fabricated. A zero or missing `products.producer_id` remains unresolved until valid backend catalogue data or a governed multi-producer relationship is deployed.
 
 The browser cannot write `user_id`, `secret_key`, roles, rating totals or provider metadata. Identity and totals are server authoritative.
+
+## Catalogue moderation target
+
+The canonical contract's `deferred_targets.catalogue_moderation` owns the logical
+fields, unique keys, transitions, field allowlists, dependency/version guards and
+recovery requirements. It adds no active provider collection or write capability.
+Proposal ID + revision preserves prior content/evidence; every decision advances
+record version independently of material content version. Approval binds content
+and producer dependency versions. Missing legacy moderation is unknown, never
+implicitly approved; post-activation missing state cannot use that fallback.
+Verification, restriction, lifecycle and availability remain distinct.
+
+Physical mapping, new resource types/indexes, ordinary/provider permissions and
+staging/restore proof remain unverified under #701. The
+[target/migration package](nocodebackend/moderation-migration-plan.md) defines
+safe initialization, reviewer conflicts, unknown outcomes and bounded rollout.
+No SQL, backfill or role assignment is activated by this source target.
 
 ## Rating event target contract
 

@@ -1,19 +1,16 @@
 # Launch readiness
 
-Last reconciled: **25 October 2026 UTC**. Retained integrated source and READY deployment
-metadata: [`70c3a18982db276b89a5c8c7b26048d58f854e1a`](https://github.com/jeremytheva/pourfolio/commit/70c3a18982db276b89a5c8c7b26048d58f854e1a). The anonymous 24 October 23:00 UTC HTTP result below verifies that exact source;
+Last reconciled: **29 October 2026 UTC**. Latest retained bounded production health/readiness deployment:
+[`9e0c44baf7189710477066c0d4e5c7cdf583b0f8`](https://github.com/jeremytheva/pourfolio/commit/9e0c44baf7189710477066c0d4e5c7cdf583b0f8). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
 
-The second-account email secret is now present. The guarded diagnostic confirmed
-primary-owner sign-in/session/sign-out, then received HTTP 401 at the second
-account's sign-in with zero data writes. The account-specific correction passed
-canonical validation (1,005 passed, 15 gated skips), all 155 browser/accessibility
-cases and security checks. Correct the second account's supported credentials
-securely before the remaining guarded isolation check. This closes no complete
-connected auth, cellar-isolation, privacy or release acceptance criterion. See the existing
-[policy record](nocodebackend/connected-policy-certification.md).
+Protected run 40235529806 now verifies both distinct accounts against production
+`f13e07a8` after the owner's secure credential correction. Both passed normal
+sign-in/session/sign-out with zero data writes. This supersedes the former
+second-account HTTP 401 observation for AUTH_ONLY; remaining connected
+cellar/profile isolation, full session lifecycle and release gates stay open.
 
 Issue #671 makes the existing bonus-value fallback explicit in both pickers and
 preserves two-decimal stored-value presentation. It changes no scoring policy
@@ -21,8 +18,9 @@ or provider data. Accepted source `ec4e2610` passed canonical Node 22 validation
 (1,007 tests, 15 gated skips) and 156 deterministic browser/accessibility cases.
 Final-head desktop/mobile regression validation and deployment evidence remain
 required in PR #672; no preceding-head result is promoted to final-head PASS.
-81 missing global values, custom-creation/isolation acceptance and the current
-second-account HTTP 401 remain separate open gates. This presentation correction
+The retained inventory had 81 missing global values. The owner has since supplied
+39 allocations; 42 remain unresolved. Backfill and custom-creation/isolation
+acceptance remain separate open gates. This presentation correction
 does not close PF-LAUNCH-BONUS, PF-LAUNCH-ACCESS or PF-LAUNCH-RELEASE.
 
 The launch-impact guard maps those three requirements. The optional bonus rows
@@ -40,6 +38,407 @@ preflight report. No application policy, stored bonus value or provider schema
 changes in this diagnostic correction.
 
 ## Current launch decision
+
+### Development toolchain maintenance — 29 October 2026 UTC
+
+Existing [PR #684](https://github.com/jeremytheva/pourfolio/pull/684) updates
+ESLint 10.12.0 → 10.13.0, PostCSS 8.5.30 → 8.5.31 and Vite 8.3.4 → 8.3.5.
+The refresh retains current main `4dbc18be` and the original bot history.
+The manifest/lock change is the original reviewed dependency slice: 241 lock
+nodes, no additions/deletions, and 20 changed development-package nodes including
+Rolldown/platform bindings and OXC types. Runtime dependencies and Node 22 stay
+unchanged. Vite and Rolldown still affect generated browser assets, so integration
+requires current canonical validation, browser/accessibility, bundle/PWA
+containment and release-security evidence; the exact results are retained in #684.
+
+This maintenance does not qualify connected provider behaviour or close a launch
+gate. #697 keeps its reviewed immutable preview and saved-link replacement
+requirement; it is not retargeted by this independent toolchain change. Public
+launch remains **NO-GO**, with #165, #144/#154, #422, the 42 missing bonus values
+and operational gates open. Brew Done It remains disabled and launch-excluded.
+
+### Add Beer candidate and protected-preview gate — 29 October 2026 UTC
+
+PR [#697](https://github.com/jeremytheva/pourfolio/pull/697) is open and unmerged
+at `53299fce0cfd7a308c36bc0037ac5e2068969131`, incorporating current main
+`fa18a8655f06c0b25540ec1b7bfcaeac34927ac6` without discarding the newer Brew
+work. Keyboard-active canonical choices now scroll into view while retaining
+combobox focus; the 40-choice regression covers both directions and Enter.
+Release sign-in also checks completed-navigation and response origins before
+credential/submission checkpoints. These checks do not make browser auto-wait
+or navigation races atomic.
+
+Exact-head [run 40765030806](https://github.com/jeremytheva/pourfolio/actions/runs/40765030806)
+passes canonical Node 22 validation: **1,200 passed, 15 intentional connected
+skips, zero failures and production vulnerabilities**. All **193** deterministic
+browser/accessibility cases, Dependency Review and CodeQL pass. Independent
+review found no material source issue. Preview
+`dpl_48K6XVAUKsSswisD4YQhqDLM5Wv6` is READY at this SHA:
+https://pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app.
+READY is deployment metadata, not connected acceptance.
+
+[Run 40761036563](https://github.com/jeremytheva/pourfolio/actions/runs/40761036563),
+job `123072704341`, used worker `68df4354` and earlier deployed source
+`763c67ab`. Health returned HTTP 302; readiness, selection and owner/browser
+steps did not run. The cleanup step completed. The redacted outcome is
+**BLOCKED / connected NOT_RUN**, not an account-authentication or provider denial.
+Artifact `12848416657` has SHA-256
+`43773e23718accdd1ad217c940693a1de47532598147e0c9240f76b595bad985`.
+
+The [reviewed access worker 901b434c](https://github.com/jeremytheva/pourfolio/blob/901b434c47a1be202a14831361461794bb0b4001/.github/workflows/add-beer-connected-evidence.yml)
+pins source `53299fce` and the immutable preview. Its optional Shareable Link
+bootstrap has exact-origin/query validation, bounded same-origin redirects and
+private observed cookie state. Syntax and 27 hermetic guard cases pass.
+[Run 40766264292](https://github.com/jeremytheva/pourfolio/actions/runs/40766264292)
+accepted the unmarked workflow and skipped its sole job; live access is NOT_RUN.
+
+The owner confirmed `RELEASE_PREVIEW_SHARE_URL` was added to GitHub.
+[Run 40802406434](https://github.com/jeremytheva/pourfolio/actions/runs/40802406434)
+at unchanged worker `548bebf9` stopped during preflight with access/health/
+readiness NOT_RUN and no HTTP status; selection and owner/browser steps skipped.
+Its artifact `12867135589` has SHA-256
+`b298a167e1beba3f321b01e33727277ae7909cfcdaebf5b917c9deb53b78ab60`.
+
+A reviewed diagnostic-only correction adds finite, non-echoing configuration
+codes and preserves every origin, source, case, credential and cleanup gate.
+Syntax, synthetic URL rejection/acceptance and unknown-error redaction pass;
+no secret value or arbitrary exception text is retained.
+[Run 40802837673](https://github.com/jeremytheva/pourfolio/actions/runs/40802837673),
+job `123214720577`, at worker
+`a98f8231710b24d79b3acd00892ccf4cc9891320` reports
+**SHARE_URL_ORIGIN_MISMATCH / BLOCKED**. That guard runs before the first access
+request; health/readiness, selection and owner/browser checks remain NOT_RUN.
+The cleanup step completed. Artifact `12867141138` has SHA-256
+`620c9a7512d619005153944a23eb05a36b7a3e0f4be86360511d5c9ba4c0d93f`.
+This proves a saved-link scope/configuration rejection, not token validity,
+application authentication or provider denial. No unchanged retry is selected.
+
+Replace the protected `staging-release` secret with a **Share → Commit** link
+whose hostname is exactly
+`pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app`, then confirm the replacement
+without sending its value. The supplied branch alias currently resolves to this
+deployment (metadata checked 29 October), but its token is not transplanted into
+the exact-origin worker. Connected tools cannot set GitHub secrets. Existing
+account passwords need no change. See the
+[operational setup](TESTING.md#protected-add-beer-preview-qualification).
+
+After corrected configuration, select one bounded run of
+`catalogue-readonly.spec.js:65`: full authenticated category pagination and
+selection of a returned canonical style. Require matching before/after provenance,
+one pass with no skips/errors, original saved-session HTTP 401 after logout,
+private cleanup and six explicit redacted reports. No catalogue, rating or cellar
+write is selected. Until this evidence passes, #697 remains unmerged and
+connected acceptance NOT_RUN.
+
+PR #710 is integrated as `078843e5`; its moderation target remains source-only.
+The approved single QA cellar recovery is complete and must not be repeated.
+A separate `RELEASE_FIXTURE_ENCRYPTION_KEY` is still required before another
+cellar mutation check. Public launch remains **NO-GO**: #165, #144/#154, #422,
+42 missing bonus values and the operational/public-release gates remain open.
+Brew Done It remains disabled and launch-excluded; its independent #715 evidence
+and blockers are preserved below.
+
+### Durable cellar HTTP fixture evidence — 27 October 2026 UTC
+
+PR #693 merged as `e9661b0f6102acb7002f5e207184829bb0398766` after final
+canonical validation of `b1350719` (1,143 passed, 15 intentional skips, zero
+failures/production vulnerabilities). Exact Vercel production deployment
+`dpl_4W63qs33RcxgnAWoyyHz68Xff5v6` is READY. This does not qualify a connected
+cellar mutation; the independent encryption secret is still required.
+
+The failed connected HTTP test could leave a created fixture without a durable
+original acknowledgement. Its recovery is complete, but the test must retain
+its own evidence before another write qualification.
+
+The helper now requires an encrypted checkpoint writer before reading a
+baseline or sending a fixture mutation. It records the original nonce/product/
+baseline, create intent, HTTP response status before parsing, complete original
+receipt/ID before verification, owner confirmation, update/denial phases and
+exact cleanup intent/response/outcome. Failed checkpoint persistence latches a
+block on subsequent fixture mutations. Unknown outcomes are not retried and
+later list differences do not authorise guessed cleanup.
+
+The connected case verifies both live session identities before creating the
+fixture and requires distinct owners. One owner create/update/delete is
+separate from the two cross-owner mutation-denial probes. Mutating HTTP calls
+disable retries and redirects; a fresh owner read checks that denial probes
+preserved the private fixture fields.
+
+The protected workflow supplies a dedicated 32-byte random Base64
+`RELEASE_FIXTURE_ENCRYPTION_KEY` only to the Node checkpoint writer. Provider
+administration credentials remain owned by the deployed runtime; the existing
+governance prohibition is preserved. Invalid keys fail before baseline reads or
+mutations, and provider/account-password fallback is forbidden. Candidate
+checkout must be a reviewed main ancestor and the workflow runs from main.
+It shares the current-instance cellar concurrency group. A redacted reporter
+publishes only fixed source case IDs, statuses/counts and validated commit
+metadata. Raw output is captured privately and removed; traces/screenshots/
+videos are disabled for connected checks. Only the release summary, cellar
+phase summary, encrypted receipt and build-security result are uploaded.
+
+Source head `828864b8dc1633edf61e051cb76ee020fbb5ca1b` passes canonical Node 22
+validation in [run 40583149978](https://github.com/jeremytheva/pourfolio/actions/runs/40583149978):
+1,143 passed, 15 intentional connected skips, zero failures and zero production
+vulnerabilities. All 187 browser/accessibility cases, Dependency Review and
+CodeQL pass. The actual Playwright CLI redaction smoke passes; independent review
+found no material issues. Forty-two focused in-memory tests also pass after the
+key-contract repair, including malformed/noncanonical key rejection. The earlier
+provider-credential guard failure was corrected without weakening that guard.
+
+The new encryption secret must be entered in protected `staging-release` before
+HTTP cellar mutations; connected tools cannot set GitHub secrets. Read-only
+checks remain usable without it. C1 handoff
+`C1-20261027-POURFOLIO-PR693-SECRET-CONTRACT` is accepted in existing PR #693. No provider
+access or data mutation has occurred for this source preparation. An atomic
+runner-local checkpoint plus always-run artifact retention cannot guarantee
+recovery after loss of the entire worker. Connected certification, #165, profile
+privacy, the 42 missing bonus values and public **NO-GO** remain separate.
+
+### Owner-approved QA cellar cleanup verified — 26 October 2026 UTC
+
+The owner explicitly approved removal of the single reviewed QA record.
+[Recovery run 40389866451](https://github.com/jeremytheva/pourfolio/actions/runs/40389866451),
+job `121807724441`, passed at **19:48:15 UTC** against production
+`dde2ee1ed5d8ac8a67ca68054cc14a8aa4467ca8`. Its reviewed workflow source is
+`3d90949b1425c95d49a2d72ecceb69f107e80146`; only the current release SHA
+changed from the prepared recovery. Cellar, authentication, provider and
+receipt helpers were unchanged from the reviewed baseline.
+
+The encrypted source plan, exact raw target fingerprint and authenticated
+ownership all matched before deletion. An encrypted before receipt was written
+before one HTTP DELETE, with redirects and retries disabled. It returned
+HTTP 204. Fresh direct-provider and owner reads confirmed absence of the exact
+ID/marker, and comparison with the remaining owner baseline passed.
+The result records `deletesAttempted: 1`, `removed: 1`, cleanup PASS,
+other-owned-row preservation PASS, release provenance before/after PASS,
+sign-out PASS and private-workspace cleanup PASS.
+
+Encrypted recovery artifact `12682295850` retains the before receipt and
+redacted summary; its SHA-256 is
+`0b2ede3e72638b5d114b0c61f3169655c74df84df4bc97af28769abda4134096`.
+The approved target fingerprint was
+`1c8e0ec1278a28e426f6cb041d1790c26dcc4fe650d4b3b413efddd5fd0ee1ed`.
+Independent review confirmed the executed guards and result.
+
+This closes the single-record recovery and owner-authorization blocker.
+Original-attempt correlation remains UNCONFIRMED, and the earlier failed full
+cellar HTTP test remains unqualified; it was not rerun. Before another mutation
+certification, retain durable encrypted create intent/acknowledgement and safe
+stage/status evidence. Existing provider integrity/recovery, privacy,
+42 unresolved bonus allocations and other public-launch gates remain open.
+Public launch remains **NO-GO**.
+
+### Catalogue relationship pagination — 26 October 2026
+
+[PR #690](https://github.com/jeremytheva/pourfolio/pull/690) replaces provider-default relationship lists with
+complete filtered pagination for catalogue brewery/style enrichment and
+collaboration attribution. List and detail share that path. It is merged and
+deployed at `63f70fcce4c7f60a2441b4e1d8c0ee9be8c57dad`, whose tree equals
+validated source `1bbb84505dfaf24f7c808c55d97c37d98c1fac6b` (1,074 source tests,
+15 provider-gated skips, 176 Chromium browser/accessibility passes). Production
+health/readiness match the merged SHA. Authenticated read-only inspection of one
+24-product page resolves all 21 recorded producer and 22 category references;
+Accept All Cookies now shows Mr. Banks Brewing Co in the response, card and
+detail page. The page total remains a lookahead estimate, not a catalogue census.
+
+This bounded read acceptance does not close #154 catalogue reconciliation,
+connected failure/recovery or WCAG criteria. No provider row was changed.
+Provider/recovery, bonus allocation and public-launch gates remain open.
+
+### Automatic local rating saving — 26 October 2026
+
+[PR #689](https://github.com/jeremytheva/pourfolio/pull/689) is merged and deployed
+at `89c6e4618aefde0f5e33365f4b8578a73421fd4c`; production health/readiness and
+static PWA resources returned HTTP 200. Exact main source/browser checks pass
+(1,069 source tests, 15 provider-gated skips, 176 browser/accessibility cases).
+The identical accepted source also passes mobile Chromium and Linux WebKit
+emulation. [STATUS.md](../STATUS.md#automatic-local-rating-saving-deployed--26-october-2026)
+holds integration/runtime evidence; [offline boundaries](offline-ratings.md)
+define the account/product draft and static-cache contract.
+
+The owner has since reported successful restoration after reopening without
+pressing Save: bounded owner-reported recovery PASS. Device/browser/installed
+mode were not captured; the full physical iOS/home-screen and Android matrix
+remains NOT_RUN. Read-only production product/profile checks confirmed completed
+tasting history and recorded breakdown navigation/reload. They do not correlate
+every phone submission or certify distributed provider durability. Public
+document DOM/keyboard checks passed within their recorded scope; documents
+remain drafts, with full legal/operational and WCAG qualification open.
+
+This closes the source/local-draft delivery only. Explicit server submission is still required,
+and #165 provider integrity/recovery remains open. No automatic upload or live
+rating/provider mutation occurred. The QA recovery authorization and cleanup have since completed, as recorded
+above. The 42 unresolved bonus allocations, connected privacy/operations and
+other launch gates remain open; public launch remains **NO-GO**.
+
+### Cellar HTTP recovery boundary — 25 October 2026 UTC
+
+The separate existing cleanup-guarded cellar HTTP test was selected alone against
+production `fec60da4`, with retries disabled and no rating mutation selected.
+[Run 40241436043](https://github.com/jeremytheva/pourfolio/actions/runs/40241436043),
+job `121313879468`, failed at 22:43:02 UTC in the cleanup helper call.
+Its redacted report cannot identify whether create acknowledgement, owner
+readback, verification or cleanup failed. No HTTP test PASS is claimed, no
+unchanged mutation retry ran, and the earlier direct-gateway PASS is retained
+only within its separate scope.
+
+Read-only owner inspection
+[40241841492](https://github.com/jeremytheva/pourfolio/actions/runs/40241841492),
+job `121315114617`, found one owned row, carrying one canonical QA marker.
+It made zero cellar mutation requests, verified the owner session/release
+before and after, signed out successfully and retained encrypted inspection
+artifact `12617127055`.
+
+Read-only recovery comparison
+[40242334490](https://github.com/jeremytheva/pourfolio/actions/runs/40242334490),
+job `121316602591`, bound that encrypted receipt to the same current owner
+HTTP row and a fresh exact provider read. The stored row matches the initial
+create shape (quantity 1, container `release-check`, exact product/marker,
+received date 25 October); the update shape differs on quantity. This
+establishes persisted create-shaped data, not the original response or failed
+stage. Original-attempt correlation remains **UNCONFIRMED**. The complete raw
+target and owner baseline are backed up in encrypted artifact `12617575916`,
+SHA-256 `1bc38bc4e15e9f0de67c958b884b9ca18485d1986d8032a7cfe74e8423649cbf`.
+The exact raw target fingerprint is
+`1c8e0ec1278a28e426f6cb041d1790c26dcc4fe650d4b3b413efddd5fd0ee1ed`.
+
+The existing [cellar cleanup helper](../release-check/cellarCleanup.js) states:
+“Never discover a cleanup target by comparing histories after a failed create.”
+The original create nonce/acknowledgement was not retained as a durable intent
+receipt. The later snapshot cannot replace that original evidence. The
+[prepared single-record recovery workflow](https://github.com/jeremytheva/pourfolio/blob/23917bf8ad71d5724f2f0641061587f54c4eccfa/.github/workflows/launch-connected-evidence.yml)
+was therefore held pending explicit owner authorization for this current QA
+record. The owner-approved cleanup subsequently passed on 26 October, as
+recorded above. It verifies the encrypted source plan, exact raw fingerprint
+and owner, writes an encrypted before receipt, permits one HTTP DELETE with no
+retry and verifies fresh provider/owner absence plus other owned-row preservation.
+Source/read-only validation does not claim that recovery executed. No unrelated
+record, ownerless history or rating is an authorised cleanup target.
+
+Before another HTTP mutation certification, retain durable encrypted create
+intent/acknowledgement and safe stage/status evidence; review any provider or
+application failure established by that evidence. Do not infer a container enum,
+Origin failure, missing Playwright base URL or a fixed product defect from the
+outer helper frame. Runtime-log/metric queries supplied no request sequence.
+Public launch remains **NO-GO**.
+
+### Integrated allocation and connected release evidence — 25 October 2026 UTC
+
+[PR #686](https://github.com/jeremytheva/pourfolio/pull/686) merged as
+`fec60da415c2f6cb75cd8f19bdc01a6731c5553a`. Exact main source validation and
+all 158 browser/accessibility cases passed in
+[run 40240571422](https://github.com/jeremytheva/pourfolio/actions/runs/40240571422),
+jobs `121311271384` and `121311271130`: 1,055 source tests passed, 15
+provider-gated skips, zero failures and zero production vulnerabilities.
+Production `dpl_9KDT7ZW55CbtJZu8UiLRUS62C6P7` is READY at that exact SHA.
+Anonymous attempt 2, job `121312137847`, passed all eight fixed URLs at
+22:34:58 UTC with matching health/readiness source `fec60da4`. The first
+attempt observed preceding `f13e07a8` during deployment; it did not qualify
+the new candidate.
+
+The live read-only
+[bonus preflight 40240571404](https://github.com/jeremytheva/pourfolio/actions/runs/40240571404),
+job `121311271248`, completed at 22:31:51 UTC. It returned expected
+**BLOCKED / PLAN_POINT_VALUE_INVALID**: 82 global and one private attribute,
+81 missing global values, 39 proposed fills, 42 unresolved allocations, one
+already matched preserved value and zero missing preserved values. The workflow
+exits 2 for the incomplete plan; its canonical validation passed.
+Plan SHA-256 is `e1cdd3421bd072a81868ffe97cb32f03916514e54d148d1705d4d9b5ac0e6723`;
+snapshot SHA-256 is `c6f1ea1167ae07f4b424db4fa0c1c543487513e053caac16387c8e869343c227`.
+Only fresh paginated reads occurred. This is not an atomic backup, a backfill
+or post-write/private/history preservation certification. All 82 descriptors
+remain available; obtain the 42 `null` allocations in the committed plan.
+
+The existing connected browser baseline ran against that exact production
+release on a reviewed evidence-only branch, with no explicit rating/cellar
+writes enabled. Normal profile reads may initialise a default-private profile.
+[Diagnostic run 40240996316](https://github.com/jeremytheva/pourfolio/actions/runs/40240996316),
+job `121312525327`, passed 12 checks, failed zero and skipped four at
+22:39:06 UTC. This covers host/security, public document rendering, configured
+authentication discovery/sign-in/sign-out, catalogue search/pagination/details,
+rating form boundaries, owner/public profile projections, proposal/cellar form
+reachability, inaccessible reconciliation, bonus category rendering, brewery
+navigation, cleared-cookie protected-route redirects and scoped desktop axe.
+The aggregate authentication test does not prove omitted optional sign-up/OTP
+branches, provider expiry/revocation, rate-limit enforcement or real OAuth
+completion. Profile projection does not qualify privacy transitions/uniqueness.
+
+The four skips are rating mutation, cellar HTTP mutation and the two existing
+history-fixture/link cases; no skip becomes PASS. Earlier
+[run 40240743642](https://github.com/jeremytheva/pourfolio/actions/runs/40240743642)
+had five passes, one failure in the composite catalogue/rating-form/profile test
+and ten skips. Diagnostic capture added only static source locations; the
+unchanged application/search configuration then passed. The first failure is
+**NOT_REPRODUCED / CAUSE_UNDETERMINED**; no defect or fix is established. Retain
+both observations and assess repeatability at final candidate qualification.
+
+Trace, screenshot and video capture were disabled; raw diagnostics/session
+files were kept private and removed. Only aggregate results/fixed titles were
+published in artifact `12616933404`, SHA-256
+`016f8c2a4e8fcb3828bc478c3a408f4382f2d1049fb91226eae3b854477dcfbc`.
+Provenance before/after and private-workspace cleanup passed. These evidence-only
+workflows are not proposed for merge. No source, HTTP-entry or baseline result
+approves public-document content, manual WCAG acceptance, #165 provider
+integrity/recovery, complete bonus values/backfill or public launch.
+
+### Owner allocations and corrected account access — 25 October 2026 UTC
+
+The owner supplied 39 calculation values and explicitly confirmed that “All that
+and more” maps to existing ID 3, “All this and more!”. The reviewed
+[data/bonus_attribute_point_plan.json](../data/bonus_attribute_point_plan.json)
+records exact IDs and two-decimal amounts with provenance. All 82 global
+descriptors remain available as requested. Existing global ID 51 retains its
+stored 0.50; the other 42 entries are explicitly unresolved (`null`).
+“Other” is a UI section heading, not a point-bearing row. No default or similar
+descriptor is used to infer an allocation.
+
+The protected read-only preflight uses fresh bounded provider pagination and the
+existing point-plan auditor. It fingerprints the plan/snapshot, reports aggregate
+counts/static blockers and never writes provider data. Missing or conflicting
+preserved values block it. Its protected workflow is main-only, manually
+dispatchable or selected by `[bonus-point-preflight]` in a reviewed merge.
+A partial plan must remain BLOCKED. No actual backfill, historical-total
+preservation, private-row preservation across a write or provider atomicity is
+claimed by this source preparation.
+
+The owner confirmed secure second-account credential updates. Existing protected
+[run 40235529806](https://github.com/jeremytheva/pourfolio/actions/runs/40235529806),
+job `121296164720`, passed both account sign-in/session/sign-out and distinct
+identities at 21:27:10 UTC against production
+`f13e07a845714ea02d744394dbe1684e614c8bfb`, with zero data writes.
+This supersedes the former HTTP 401 blocker for that observation and qualifies
+AUTH_ONLY. The separate bounded
+[cellar run 40239183671](https://github.com/jeremytheva/pourfolio/actions/runs/40239183671),
+job `121307112955`, passed at 22:14:30 UTC from reviewed evidence-only source
+`8b0be28fc81a9a8327e2c500ac89c032cd1c554f` using those live account identities
+and auth release `f13e07a8`. Owner create/reload/update, nullable relationships,
+gift round trip, other-account list/PUT/DELETE denial and exact cleanup passed.
+There was one create, one update, one delete, one removed fixture and no gateway
+failure. The encrypted receipt and redacted summary are artifact `12616105836`.
+No historical ownerless row or rating was mutated. This invokes the candidate
+gateway directly; HTTP/session middleware and browser submission are NOT_RUN.
+The evidence-only workflow is not proposed for merge. Full
+session/rate-limit acceptance and profile privacy remain separate gates.
+
+
+Source head `83ac5d8e1ccba6f2c9ab943a4f63cc1de778ae3b` passed canonical
+Node 22 validation in [run 40239690588](https://github.com/jeremytheva/pourfolio/actions/runs/40239690588),
+Release gate job `121308631243`: 1,055 passed, 15 provider-gated skips, zero
+failures and zero production vulnerabilities. Browser/accessibility job
+`121308631244` passed all 158 cases; CodeQL, Dependency Review and independent
+code/mapping review passed. Exact preview `dpl_2L6CNRU5jEXMkRsN5QGF3B1uLjSx`
+was READY. [PR #686](https://github.com/jeremytheva/pourfolio/pull/686) retains
+final documentation-head, integration, live read-only preflight and deployment
+evidence; no preceding-head result qualifies a later head. This is the intended
+main integration handoff. No source/deployment result certifies a backfill or
+public release.
+
+The review of #679/#681/#683 found no material regression. Verified production
+metadata identifies READY deployment `dpl_BoLGF2ADjpZx17JmURmHazMB4sF6` at
+`f13e07a845714ea02d744394dbe1684e614c8bfb`. PR #683 retains the exact-version
+anonymous eight-route HTTP result. Final-candidate evidence is still required.
+#165 integrity/recovery, complete allocations/backfill, connected privacy and
+publication/operations remain open. Public launch remains **NO-GO**.
 
 ### Superseded scoring source retirement — 25 October 2026 UTC
 
@@ -277,18 +676,18 @@ UTC interval, operator, reviewer, safe evidence reference and cleanup result.
 
 | Work / issue | Delivery owner | Retained evidence and remaining completion gate | Current result |
 | --- | --- | --- | --- |
-| <!-- launch-requirement:PF-LAUNCH-AUTH --> Authentication and rate limits | Launch hardening; ratings owns remaining #144 session certification (#577 adapter closed) | Same-origin authentication, session and limiter controls are implemented. Certify sign-up/sign-in, refresh, expiry, sign-out and revoked/invalid sessions, plus enforced local/shared authentication limits against the intended hosting proxy boundary. | **PARTIAL; current connected lifecycle/rate-limit evidence pending** |
+| <!-- launch-requirement:PF-LAUNCH-AUTH --> Authentication and rate limits | Launch hardening; ratings owns remaining #144 session certification (#577 adapter closed) | Same-origin authentication, session and limiter controls are implemented. Certify sign-up/sign-in, refresh, expiry, sign-out and revoked/invalid sessions, plus enforced local/shared authentication limits against the intended hosting proxy boundary. | **PARTIAL: configured sign-in/session/sign-out and cleared-cookie redirects PASS; full lifecycle/rate-limit evidence pending** |
 | <!-- launch-requirement:PF-LAUNCH-PROVIDER --> Rating provider foundation — [#165](https://github.com/jeremytheva/pourfolio/issues/165) | Ratings | Application durability contracts exist. Prove provider migration/backfill, uniqueness, conditional updates, immutable rating dates, backup and isolated restore; complete the [migration evidence package](nocodebackend/rating-schema-migration-runbook.md) and obtain explicit approval before irreversible mutation. G04, G10–G12, G14–G16 and G28 remain open. | **BLOCKED at provider/approval boundary** |
 | <!-- launch-requirement:PF-LAUNCH-RATING --> Rating lifecycle and deletion — [#503](https://github.com/jeremytheva/pourfolio/issues/503), remaining integrity [#165](https://github.com/jeremytheva/pourfolio/issues/165) | Ratings | #503 is closed. A bounded production `36ce8ffe` browser tasting saved, reloaded and was deleted once; independent `31e41c3b` inspection proved its valid deleted tombstone, zero score/bonus children and preserved baseline. A separate, read-only normal-HTTPS rating-breakdown request from a verified distinct release account returned 404 without writes. These close only their scoped rows. The historical completed/deleted parent with one surviving score child remains a confirmed #165 recovery finding. Full retry/partial-write/concurrency and permission-negative certification remains open in the existing rating guide. | **PARTIAL: bounded lifecycle/read denial PASS; historical recovery and broader integrity evidence open** |
-| <!-- launch-requirement:PF-LAUNCH-BONUS --> Bonus attribute point integrity — [PR #651](https://github.com/jeremytheva/pourfolio/pull/651) | Ratings; catalogue release integration | Merged/deployed `4019c90e`: 896 canonical source tests, 15 gated skips, 155 browser/accessibility cases. Current-instance server persistence/reload and exact fixture cleanup passed: two creates, two deletes, no mutation retry, no fixture from that run remains. Production form rendered stored global 0.5/private 0.7, their 1.20 sum, six selections at 2.00 and the expected 3.07/5 preview; draft discarded. Inventory still has 81 absent values among 83 attributes; fallback 0.2 does not establish them. A later production `36ce8ffe` browser test saved/reloaded one tasting using 0.5 + 0.7 = 1.20 points (Bonus 1/2; 2.82/5), then deleted that exact tasting once and restored counts 4/2 with old links intact. Independent `31e41c3b` inspection confirmed a valid deleted tombstone, zero score/bonus children, and the preserved baseline. Owner decision on 24 October requires authoritative stored values for every launch-selectable descriptor. Refresh inventory; complete exact-ID/value reviewed backfill, dry run, bounded write/readback and historical-total preservation. A labelled 0.2 fallback is insufficient. New custom-attribute browser creation, A/B denial and concurrency remain open; see the [certification guide](nocodebackend/rating-workflow-certification.md). | **PARTIAL: bounded persistence/cleanup and presentation PASS; verified backfill and connected acceptance required** |
+| <!-- launch-requirement:PF-LAUNCH-BONUS --> Bonus attribute point integrity — [PR #651](https://github.com/jeremytheva/pourfolio/pull/651) | Ratings; catalogue release integration | Merged/deployed `4019c90e`: 896 canonical source tests, 15 gated skips, 155 browser/accessibility cases. Current-instance server persistence/reload and exact fixture cleanup passed: two creates, two deletes, no mutation retry, no fixture from that run remains. Production form rendered stored global 0.5/private 0.7, their 1.20 sum, six selections at 2.00 and the expected 3.07/5 preview; draft discarded. Inventory still has 81 absent values among 83 attributes; fallback 0.2 does not establish them. A later production `36ce8ffe` browser test saved/reloaded one tasting using 0.5 + 0.7 = 1.20 points (Bonus 1/2; 2.82/5), then deleted that exact tasting once and restored counts 4/2 with old links intact. Independent `31e41c3b` inspection confirmed a valid deleted tombstone, zero score/bonus children, and the preserved baseline. Owner decision on 24 October requires authoritative stored values for every launch-selectable descriptor. The owner has supplied 39 exact-ID allocations and confirmed ID 3; all 82 remain available, ID 51 preserves its existing 0.50 and 42 values remain unresolved in the committed point plan. Complete remaining allocations, fresh preflight, governed bounded write/readback and historical-total preservation. A labelled 0.2 fallback is insufficient. New custom-attribute browser creation, A/B denial and concurrency remain open; see the [certification guide](nocodebackend/rating-workflow-certification.md). | **PARTIAL: bounded persistence/cleanup and presentation PASS; verified backfill and connected acceptance required** |
 | Backend certification — [#144](https://github.com/jeremytheva/pourfolio/issues/144) | Ratings, coordinated by catalogue | Read-only production checks exist. Complete the same-state provider baseline and [connected policy matrix](nocodebackend/connected-policy-certification.md), including negative ownership/session cases, response contracts, failure recovery and cleanup. Read-only passes do not close write/permission rows. | **PARTIAL** |
 | <!-- launch-requirement:PF-LAUNCH-CATALOGUE --> Catalogue certification — [#154](https://github.com/jeremytheva/pourfolio/issues/154) | Catalogue; producers owns producer fixes | Browse/search/details and relationship controls are integrated. Authenticated production `4019c90e` search, product statistics/history, producer profile and the previously failing unrated-beer filter passed without writes. Producer fix #664 and attribute averages #660 are integrated. Complete connected catalogue reconciliation, provider-failure recovery and applicable import/provenance decisions. | **PARTIAL** |
-| <!-- launch-requirement:PF-LAUNCH-CELLAR --> Private cellar CRUD — [#449](https://github.com/jeremytheva/pourfolio/issues/449) | Catalogue | #449 source work and PR #657 are merged. Retained 21 October production `50a10454` was READY with matching health/readiness, 994 canonical tests (15 gated skips) and 155 browser/accessibility passes. At 21 October 22:28–22:30 UTC, the normal signed-in owner browser added one tagged item, fully reloaded, edited quantity/volume/container/gift/notes, fully reloaded and verified prices/date, searched by marker and deleted only that item once. The full post-delete reload restored the unchanged original one-item baseline. One add/edit/delete, no retry. This closes the bounded deployed owner HTTP/browser row; a separate provider-inventory audit was not run. Cellar A/B denial and the broader session matrix remain open; current second-account setup is unconfirmed. See the [policy record](nocodebackend/connected-policy-certification.md). Historical ownerless rows and gated catalogue/relationship capabilities are untouched. | **PARTIAL: deployed owner browser lifecycle/cleanup PASS; isolation and broader policy acceptance pending** |
+| <!-- launch-requirement:PF-LAUNCH-CELLAR --> Private cellar CRUD — [#449](https://github.com/jeremytheva/pourfolio/issues/449) | Catalogue | #449 source work and PR #657 are merged. Retained 21 October production `50a10454` was READY with matching health/readiness, 994 canonical tests (15 gated skips) and 155 browser/accessibility passes. At 21 October 22:28–22:30 UTC, the normal signed-in owner browser added one tagged item, fully reloaded, edited quantity/volume/container/gift/notes, fully reloaded and verified prices/date, searched by marker and deleted only that item once. The full post-delete reload restored the unchanged original one-item baseline. One add/edit/delete, no retry. This closes the bounded deployed owner HTTP/browser row; a separate provider-inventory audit was not run. Distinct-account authentication passes in run 40235529806; candidate gateway A/B list/update/delete denial and cleanup pass in run 40239183671. Owner-approved single-record recovery also passed in run 40389866451, with one HTTP DELETE and fresh exact absence verified. This does not qualify the earlier failed full HTTP test. The broader session and deployed HTTP/browser isolation matrix remains open. See the [policy record](nocodebackend/connected-policy-certification.md). Historical ownerless rows and gated catalogue/relationship capabilities are untouched. | **PARTIAL: owner browser lifecycle and candidate gateway isolation/cleanup PASS; full HTTP/session policy acceptance pending** |
 | <!-- launch-requirement:PF-LAUNCH-PRIVACY --> Persistent profiles and public history — [#422](https://github.com/jeremytheva/pourfolio/issues/422) | Ratings | Persistent profiles, stable `public_id` and opt-in public history are implemented. Certify provider uniqueness/default-private creation, persisted privacy changes and revocation, copied-link behaviour, cross-owner denial and recovery. Unsupported connected rows stay pending. | **PARTIAL** |
-| User/admin session certification — [#577](https://github.com/jeremytheva/pourfolio/issues/577) | Ratings | The adapter/protected runner is merged. One distinct-account rating read denial does not establish the full user/admin, expired/revoked or cellar/profile matrix. #577 adapter implementation is closed; remaining certification is under #144/#422. All four account fields are present. Correct `RELEASE_OTHER_PASSWORD` securely in protected `staging-release` to match the approved `RELEASE_OTHER_EMAIL` account; do not retry unchanged HTTP 401 credentials. Cellar/bonus manual workflows now require `auth_release_sha`. Session-based certification verifies exact auth provenance before login/write; the configured-contract-user bonus path remains provider-only evidence without session proof. Eight release-target tests and both workflows' five SHA pins passed source checks, with no connected rerun. Database Secret Keys are not login passwords. | **PARTIAL; remaining rows blocked at session-evidence boundary** |
+| User/admin session certification — [#577](https://github.com/jeremytheva/pourfolio/issues/577) | Ratings | The adapter/protected runner is merged and #577 implementation is closed; remaining certification is under #144/#422. Protected AUTH_ONLY run 40235529806 passed both distinct accounts' sign-in/session/sign-out at production f13e07a8 after the secure credential correction. That supersedes the prior unchanged HTTP 401 blocker for those observations. One distinct-account rating read denial and bounded cellar gateway checks do not establish the full user/admin, expired/revoked or cellar/profile matrix. Cellar/bonus workflows require auth_release_sha and verify exact auth provenance; the configured-contract-user bonus path remains provider-only evidence without session proof. Database Secret Keys are not login passwords. | **PARTIAL: distinct-account AUTH_ONLY PASS; broader connected session/policy rows pending** |
 | Current review corrections | Launch hardening (bounded shared-file claim); integration by catalogue | PR #642's header-trust, profile-readback and body-deadline corrections are integrated. PR #657's persisted gift, shared 10-second deadline, uncertain-outcome guidance and cleanup guards merged with passing canonical/browser/security checks. PR #647 accepted source `0ef8f4e4a190090343c2dc99925af457466e4ada` passed the same gates after resolving upgraded-axe catalogue/history names and card structure. PR #645 subsequently updated matched React/React DOM to 19.3.1; integrated source `63da5fae` passed 994 canonical tests (15 gated skips), all 155 browser cases and security checks. This is maintenance, not a demonstrated RSC vulnerability fix. Production identity/readiness is verified below; connected privacy/write acceptance remains open. | **Source corrections integrated and validated; connected acceptance open** |
 | <!-- launch-requirement:PF-LAUNCH-ACCESS --> Launch accessibility acceptance | Launch hardening; catalogue integrates | Accepted React-patch source `63da5fae73406b8310320d44a70436abbfdf9813` passed the upgraded Playwright/axe suite after catalogue/history accessible-name and card-structure corrections. Complete production-equivalent mobile/desktop and supported screen-reader manual acceptance for the final launch candidate. Source/browser passes do not establish those manual connected results. | **PARTIAL: source/browser PASS; final connected/manual acceptance pending** |
-| <!-- launch-requirement:PF-LAUNCH-RELEASE --> Exact-candidate release qualification | Catalogue integration authority | Source preparations #676/#677 are merged at `70c3a189`; production `dpl_945KiC6zYa98V3wKzsbVD8JqHhcv` reports READY at that SHA. Their exact accepted heads passed canonical/browser/security checks. The original `c679192a` source/browser and 23 October HTTP evidence remains retained. Fresh read-only inventory still requires rating recovery, verified bonus values and ownerless-row exclusion. Anonymous HTTP entry passed at `70c3a189`; complete rendered-browser, distinct-account/privacy and operations acceptance for the final candidate. | **PARTIAL; final public release remains NO-GO** |
+| <!-- launch-requirement:PF-LAUNCH-RELEASE --> Exact-candidate release qualification | Catalogue integration authority | Source preparations #676/#677 are merged at `70c3a189`; production `dpl_945KiC6zYa98V3wKzsbVD8JqHhcv` reports READY at that SHA. Their exact accepted heads passed canonical/browser/security checks. The original `c679192a` source/browser and 23 October HTTP evidence remains retained. Fresh read-only inventory still requires rating recovery, verified bonus values and ownerless-row exclusion. Anonymous HTTP entry and 12 connected baseline rows pass at `fec60da4`, with four skips and an initial unreproduced failure retained. Complete distinct-account privacy, write/recovery, manual accessibility and operations acceptance for the final candidate. | **PARTIAL; final public release remains NO-GO** |
 | Publication and operations | Catalogue coordinates; `@jeremytheva` accountable for assigning named operators/reviewers | Reconcile current evidence against [publication](PUBLICATION_AND_RELEASE_EVIDENCE.md), [configuration](launch-configuration-evidence.md) and [operations](OPERATIONS_READINESS.md) procedures: reviewed public documents, support/alert ownership, safe logs, monitoring, credential handling, backup/restore and deployment rollback. No new remote verification is claimed here. | **PENDING current release evidence** |
 
 The earlier connected runs in `STATUS.md` passed 12 baseline cases and skipped
@@ -352,6 +751,25 @@ governed capabilities.
 
 <!-- launch-requirement:PF-LAUNCH-DEFERRED -->
 
+An owner-approved empty schema clone and a separate main-only `brew-contract`
+GitHub environment now exist for Brew write probes. The isolated instance
+variable and provider key are configured; the independent recovery key and
+dedicated fixture user/product IDs are not yet configured. The shared `staging-release`
+environment remains unchanged. Provider UI shows zero clone records and private
+game-table defaults; these observations do not certify API permissions,
+combined indexes, recovery, CAS, score storage, privacy or two-device play.
+The first staging API inventory (run 40670930701) failed its first read with
+`INVENTORY_READ_FAILED`; no connected count/permission PASS is established.
+The report is retained in artifact 12808530751. Bounded failure diagnostics are
+being qualified under #715; no raw response or credential is retained.
+The clone SQL export is pending review. See the
+[dedicated test setup](BREW_DONE_IT_READINESS.md#dedicated-provider-test-environment--28-october-2026-australiasydney)
+and #715. No connected write test or public enablement was performed.
+
+The 28 October owner-supplied `54026_rating_export_2026-10-28.sql.gz` resolves the index ambiguity. Its SHA-256 is `bf6d49719695aecc64d91a6b36443c10d382e7ba01ec68757387eb1ba1bb3f51`; the dump header names `54026_rating`. The four game-table definitions and exact index declarations are retained in [#715](https://github.com/jeremytheva/pourfolio/issues/715). All eight suspect column badges belong to combined unique indexes; zero invalid standalone unique indexes were found on those fields. The required `(game_id, round_number)` unique key already exists. Preserve the existing indexes: the earlier conditional DROP/ADD correction plan is superseded for this exported state.
+
+The native snapshot was created and listed successfully on 28 October; restore is untested. Exported structure and absence of game INSERT statements do not prove live row counts, concurrency, privacy or isolation. PR #719 adds encrypted atomic create intent/acknowledgement, a hashed canonical provider-instance reference, fresh exact-ID reads, acknowledged run-owned parent checks and identity-scoped reverse-order cleanup with exact absence verification. Uncertain creates, failed checkpoints and failed cleanup stop further mutations; uncertain deletes cannot be retried in the same tracker. Before a connected run, qualify the protected independent encryption key, isolated recovery and unrelated-row preservation. Source implementation and local regression tests do not certify those external conditions. Do not treat a successful DELETE response or an `isolated-staging` label as that proof. CAS, score text/object persistence, consent/privacy and two-device play remain NOT_RUN; public enablement remains blocked.
+
 - [x] Source includes an authenticated, guarded `/brew-done-it` direct route for
   controlled testing, while production-facing primary navigation stays hidden.
 - [x] The game gateway requires explicit server-side
@@ -366,6 +784,44 @@ on 21 October. This is a bounded denial consistent with the policy gate; it
 does not expose the literal flag value or qualify gameplay. The checkbox above
 remains open. Security/testing guidance now describes the controlled route
 and actual containment checks accurately.
+
+On 28 October, PR #714's exact production `e3e87ce9` again returned HTTP 404
+from that endpoint while health/readiness returned HTTP 200 with the same SHA.
+The source correction rejects every mis-scoped filtered game page before any
+projection or recovery; accepted head `058df47b` and the merge have identical
+trees, with canonical source validation and all 187 browser/accessibility cases
+passing. No live private game was accessed or exposed during the synthetic
+reproduction. This qualifies the source correction and bounded containment only.
+
+PR #712 is now integrated as `ec6bbc58`; its final source and exact-main
+validation pass with 1,173 tests and 15 intentional connected skips. Protected
+[run 40619712618](https://github.com/jeremytheva/pourfolio/actions/runs/40619712618),
+job `122590506824`, completed the real inventory: all four game collections
+returned zero rows on two complete observations, eight GETs and zero writes.
+The [redacted report](evidence/brew-done-it-provider-inventory-2026-10-28.json)
+is retained with artifact `12786144793` and verified ZIP SHA-256
+`9fe158da1f208681b9f642463eec04ff01044db2aa575dd0d18bdf902c925696`.
+Exact production health/readiness return HTTP 200 at ec6bbc58 and the game API
+remains disabled with HTTP 404. The main browser/accessibility job passes.
+
+This closes #711's bounded inventory outcome after retained-evidence integration;
+#715 owns current schema/constraints and safe controlled-test prerequisites.
+The owner's subsequent four table-designer structures and header-only CSVs
+contain every target field. Eight reported `UNIQUE` badges require actual index
+membership inspection: individual uniqueness on participant IDs, parent IDs,
+round numbers or guess turn numbers would block repeated play. Round numbering
+requires one combined unique `(game_id, round_number)` constraint, while the
+deduction ledger must allow repeated events from the same participant/round.
+The [bounded correction plan](BREW_DONE_IT_READINESS.md#exported-constraints-resolved--28-october-2026-australiasydney)
+preserves private access and request-key uniqueness, requires a fresh inventory
+and recovery/non-interference evidence before provider changes, and records
+remaining type/score-storage compatibility checks. No schema correction or
+connected gameplay certification has been performed; a repeated column-only
+export is no longer the immediate dependency.
+Inventory PASS does not prove atomic snapshot/recovery, permissions, cardinality,
+two-device gameplay or enablement. Those fields remain NOT_RUN in the report and
+release readiness remains BLOCKED. Keep the existing capability manifests and
+public NO-GO intact; no provider mutation or game enablement has occurred.
 
 [ADR 0002](DECISIONS/0002-approve-brew-done-it-cross-device.md) and
 [ADR 0006](DECISIONS/0006-adopt-brew-done-it-deduction-board.md) approve the

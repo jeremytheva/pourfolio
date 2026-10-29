@@ -81,6 +81,9 @@ const installProvider = () => {
     return []
   }
   dataProvider.listPage = async (collection, { filters = {}, limit = 100 } = {}) => {
+    if ([COLLECTIONS.producers, COLLECTIONS.categories].includes(collection)) {
+      return page(await dataProvider.list(collection, filters), limit)
+    }
     if (collection === COLLECTIONS.products) {
       if (filters.producer_id) return page(products.filter((row) => String(row.producer_id) === String(filters.producer_id)), limit)
       if (filters['id[in]']) {

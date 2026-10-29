@@ -47,6 +47,9 @@ test('catalogue aggregates all provider pages and only durable complete ratings 
       return []
     },
     listPage: async (collection, options = {}) => {
+      if ([COLLECTIONS.productProducers, COLLECTIONS.producers, COLLECTIONS.categories].includes(collection)) {
+        return { items: await dataProvider.list(collection, options.filters), totalPages: 1 }
+      }
       if (collection === COLLECTIONS.ratingScores) return { items: [], totalPages: 0 }
       assert.equal(collection, COLLECTIONS.ratings)
       ratingFilters = options.filters

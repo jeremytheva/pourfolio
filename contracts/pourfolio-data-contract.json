@@ -1,6 +1,6 @@
 {
   "contract_name": "pourfolio-data-contract",
-  "contract_version": "1.5.0",
+  "contract_version": "1.6.0",
   "authority": {
     "repository": "jeremytheva/pourfolio",
     "classification_document": "docs/nocodebackend/launch-schema-contract.md",
@@ -434,6 +434,340 @@
           "writable_fields": [],
           "reason": "Profiles are owner-scoped application data. External feeder writes are denied."
         }
+      }
+    }
+  },
+  "deferred_targets": {
+    "catalogue_moderation": {
+      "classification": "DEFERRED_TARGET",
+      "target_version": 1,
+      "provider_mapping": null,
+      "provider_evidence": "NOT_RUN",
+      "mutable_enabled": false,
+      "entity_types": [
+        "product",
+        "producer"
+      ],
+      "identity": {
+        "entity_id": "canonical_positive_decimal_string",
+        "actor_id": "opaque_verified_session_id",
+        "record_ids": "opaque_server_generated_id",
+        "versions": "non_negative_safe_integer"
+      },
+      "verification": {
+        "persisted_states": [
+          "pending",
+          "approved",
+          "needs_changes",
+          "rejected"
+        ],
+        "legacy_projection": "unknown",
+        "legacy_rule": "missing_pre_activation_record_only",
+        "pending_capabilities": [
+          "search",
+          "view",
+          "rate",
+          "cellar"
+        ],
+        "exposure_states": [
+          "normal",
+          "restricted"
+        ],
+        "effective_approval": "current_content_and_current_producer_dependencies"
+      },
+      "records": {
+        "entity": {
+          "provider_collection": null,
+          "logical_fields": [
+            "entity_type",
+            "entity_id",
+            "record_version",
+            "content_version",
+            "approved_content_version",
+            "verification_state",
+            "exposure_state",
+            "submitter_id",
+            "created_at",
+            "updated_at",
+            "last_decision_id"
+          ],
+          "unique_keys": [
+            [
+              "entity_type",
+              "entity_id"
+            ]
+          ]
+        },
+        "proposal": {
+          "provider_collection": null,
+          "logical_fields": [
+            "proposal_id",
+            "entity_type",
+            "entity_id",
+            "base_content_version",
+            "proposed_fields",
+            "evidence",
+            "submitter_id",
+            "submission_key",
+            "status",
+            "proposal_version",
+            "created_at",
+            "updated_at"
+          ],
+          "unique_keys": [
+            [
+              "proposal_id",
+              "proposal_version"
+            ],
+            [
+              "submitter_id",
+              "submission_key"
+            ]
+          ],
+          "states": [
+            "pending",
+            "needs_changes",
+            "accepted",
+            "rejected",
+            "superseded"
+          ]
+        },
+        "decision": {
+          "provider_collection": null,
+          "logical_fields": [
+            "decision_id",
+            "operation_id",
+            "entity_type",
+            "entity_id",
+            "action",
+            "actor_id",
+            "reviewed_record_version",
+            "reviewed_content_version",
+            "resulting_record_version",
+            "resulting_content_version",
+            "previous_state",
+            "next_state",
+            "permitted_diff",
+            "dependency_versions",
+            "reason",
+            "evidence",
+            "committed_at"
+          ],
+          "unique_keys": [
+            [
+              "decision_id"
+            ],
+            [
+              "operation_id"
+            ]
+          ]
+        },
+        "operation": {
+          "provider_collection": null,
+          "logical_fields": [
+            "operation_id",
+            "actor_id",
+            "idempotency_key",
+            "intent_fingerprint",
+            "entity_type",
+            "entity_id",
+            "base_record_version",
+            "base_content_version",
+            "state",
+            "checkpoints",
+            "created_at",
+            "updated_at",
+            "result_reference"
+          ],
+          "unique_keys": [
+            [
+              "operation_id"
+            ],
+            [
+              "actor_id",
+              "idempotency_key"
+            ]
+          ],
+          "states": [
+            "prepared",
+            "committing",
+            "reconciling",
+            "committed",
+            "blocked"
+          ]
+        }
+      },
+      "versions": {
+        "review_requires": [
+          "record_version",
+          "content_version",
+          "producer_dependency_versions",
+          "producer_relation_fingerprint"
+        ],
+        "record_advances": "every_committed_decision",
+        "content_advances": "material_content_or_attribution_change",
+        "approved_content_matches_current": true
+      },
+      "verification_transitions": [
+        {
+          "action": "initialize",
+          "actor": "Submitter",
+          "from_states": [
+            "absent"
+          ],
+          "to_state": "pending",
+          "guards": [
+            "current_versions",
+            "durable_initialization"
+          ]
+        },
+        {
+          "action": "approve",
+          "actor": "Admin",
+          "from_states": [
+            "pending",
+            "needs_changes",
+            "unknown"
+          ],
+          "to_state": "approved",
+          "guards": [
+            "current_versions",
+            "producer_dependencies_approved",
+            "evidence"
+          ]
+        },
+        {
+          "action": "request_changes",
+          "actor": "Admin",
+          "from_states": [
+            "pending"
+          ],
+          "to_state": "needs_changes",
+          "guards": [
+            "current_versions",
+            "reason"
+          ]
+        },
+        {
+          "action": "reject",
+          "actor": "Admin",
+          "from_states": [
+            "pending",
+            "needs_changes",
+            "unknown"
+          ],
+          "to_state": "rejected",
+          "guards": [
+            "current_versions",
+            "reason"
+          ]
+        },
+        {
+          "action": "resubmit",
+          "actor": "Submitter",
+          "from_states": [
+            "needs_changes",
+            "rejected"
+          ],
+          "to_state": "pending",
+          "guards": [
+            "current_versions",
+            "original_submitter",
+            "new_proposal_revision",
+            "state_specific_resubmission"
+          ]
+        },
+        {
+          "action": "apply_correction",
+          "actor": "Admin",
+          "from_states": [
+            "approved"
+          ],
+          "to_state": "approved",
+          "guards": [
+            "current_versions",
+            "producer_dependencies_approved",
+            "evidence",
+            "reason",
+            "validated_diff"
+          ]
+        },
+        {
+          "action": "revoke_verification",
+          "actor": "Admin",
+          "from_states": [
+            "approved"
+          ],
+          "to_state": "needs_changes",
+          "guards": [
+            "current_versions",
+            "reason"
+          ]
+        }
+      ],
+      "exposure": {
+        "actions": [
+          "restrict",
+          "unrestrict"
+        ],
+        "actor": "Admin",
+        "guards": [
+          "current_versions",
+          "reason"
+        ],
+        "independent_of_verification": true,
+        "resubmission_preserves_restriction": true,
+        "restricted_new_activity": "deny",
+        "historical_reference": "safe_identity_placeholder"
+      },
+      "reliability": {
+        "required_capabilities": [
+          "unique_actor_operation_key",
+          "atomic_version_fence",
+          "atomic_commit_or_certified_fenced_recovery",
+          "all_catalogue_writers_fenced",
+          "current_producer_dependency_fence",
+          "complete_snapshot_and_isolated_restore",
+          "provider_role_write_denial_and_revocation"
+        ],
+        "same_key_same_intent": "return_original_result",
+        "same_key_different_intent": "conflict",
+        "unknown_result": "reconcile_original_operation",
+        "audit": "append_only_allowlisted_diff"
+      },
+      "migration": {
+        "mode": "additive_only",
+        "schema_inventory": "UNVERIFIED",
+        "legacy_backfill": "none_without_review",
+        "activation": "after_provider_and_all_writer_certification",
+        "rollback": "disable_commands_preserve_records",
+        "plan": "docs/nocodebackend/moderation-migration-plan.md"
+      },
+      "editable_fields": {
+        "product": [
+          "product_name",
+          "product_category_id",
+          "abv",
+          "ibu",
+          "declared_category",
+          "edition"
+        ],
+        "producer": [
+          "producer_name",
+          "address",
+          "suburb_id"
+        ]
+      },
+      "producer_relationships": {
+        "source_collection": "product_producers",
+        "complete_set_required": true,
+        "primary_count": 1,
+        "sort_order_server_owned": true,
+        "restricted_dependency_rule": "deny_new_dependent_exposure_and_require_review"
+      },
+      "resubmission": {
+        "needs_changes_requires": "validated_field_or_evidence_diff",
+        "rejected_requires": "recorded_response_to_prior_reason"
       }
     }
   }

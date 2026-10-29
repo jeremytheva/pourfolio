@@ -53,6 +53,43 @@ does not verify the deployed flag state or connected gameplay. Unset-flag denial
 remains covered separately by Node policy tests; applicable Playwright and
 accessibility coverage remains required.
 
+## Admin catalogue review coverage
+
+Node policy/handler tests cover exact provider role spellings, one fresh
+identity-bound session read, demotion on the next request, missing/metadata-only
+roles, forged caller IDs/roles, safe capability projection, method/path rejection,
+anonymous denial, no-store and zero profile/data-collection access. Browser
+response validation rejects another subject, added fields and mutable capabilities.
+
+`e2e/admin-catalogue.spec.js` uses synthetic same-origin fixtures to verify the
+Admin entry, ordinary/forged-browser denial, wrong-subject fail-closed/retry,
+search/type/detail/back navigation, zero values, pagination, error/empty/retry,
+late responses after logout, keyboard use, mobile overflow and scoped axe checks.
+These tests do not prove provider role permissions or a real account's UI journey.
+
+The protected main-only `admin-role-source-assessment` workflow observes two
+independently verified normal sessions, classifies only allowlisted static role
+symbols, GETs each session's own review capabilities, compares expected access,
+and signs out. It retains a redacted report with exact source/target SHAs and
+ALLOWED/DENIED/UNAVAILABLE verdicts, never account IDs/emails/cookies/provider
+bodies. A matching Admin/ordinary capability pair is bounded read-only evidence;
+`authorityCertified` remains false, and provider role-write denial/revocation
+remain NOT_RUN. See [the permission contract](admin-permission-foundation.md).
+
+## Moderation target checks
+
+The existing data-contract check now validates the deferred moderation target.
+`node --test scripts/__tests__/moderation-contract.test.js` verifies guard removal,
+unsafe field widening/promotion, independent content/record versions, stale review,
+producer dependencies and the preserved restricted-dependency exposure rule,
+legacy/new missing state, state-specific original-owner resubmission,
+restricted exposure, actor-bound replay, blocked/unknown operations and large
+string IDs. The evaluator is an offline synthetic-fixture interpreter, never a
+server authorizer or provider adapter. Its ELIGIBLE result is not a durable
+commit. Source validation cannot qualify #701 staging, permission, concurrency,
+crash recovery or snapshot/restore. See the
+[target/migration package](nocodebackend/moderation-migration-plan.md).
+
 ## Current automated coverage
 
 Tests cover:
@@ -312,6 +349,97 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 
 ## Connected staging release check
 
+### Protected Add Beer preview qualification
+
+This one-case gate for unmerged #697 is separate from the main-only connected
+suite and cellar writer. The
+[reviewed worker a98f8231](https://github.com/jeremytheva/pourfolio/blob/a98f8231710b24d79b3acd00892ccf4cc9891320/.github/workflows/add-beer-connected-evidence.yml)
+pins source `53299fce0cfd7a308c36bc0037ac5e2068969131` and
+https://pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app.
+
+1. Open the [exact deployment](https://vercel.com/jeremythevas-projects/pourfolio/48K6XVAUKsSswisD4YQhqDLM5Wv6),
+   choose **Share → Commit** and obtain its Shareable Link. Confirm the immutable
+   hostname above. Check its expiry; do not assume a fixed lifetime.
+2. Save the full link directly as `RELEASE_PREVIEW_SHARE_URL` under GitHub
+   **Settings → Environments → staging-release**, then confirm it is saved
+   without sending the value in chat. Existing account passwords stay in their
+   protected secrets. Connected tools cannot set GitHub secrets. No deployment
+   protection setting or project-wide bypass change is required.
+3. The integration owner selects the prepared run once after confirmation.
+   Unmarked preparation does not select it. Dependencies/browser installation
+   precedes secret injection. Preflight alone consumes the link; only private
+   observed cookie state continues into the reviewed source configuration and
+   postflight. Do not transplant a branch-link token to an immutable hostname.
+4. Require one pass of `catalogue-readonly.spec.js:65`, matching before/after
+   source/preview provenance, no skip/error, original saved-session HTTP 401
+   after logout and private cleanup. Other statuses/exceptions leave session
+   revocation UNCONFIRMED and qualification blocked.
+5. Retain only the six explicit redacted JSON reports. Always-run cleanup removes
+   private access/session state, generated configuration and raw logs. After
+   testing, revoke the Vercel Shareable Link and remove the temporary GitHub
+   secret. Runner-local cleanup does not globally revoke the link or cookies.
+
+The worker accepts only the exact HTTPS origin, root path and one nonempty
+`_vercel_share` query, follows at most five same-origin redirects, and rejects
+foreign/broad-domain cookies and local-storage state. Browser capture is off.
+The case selects no catalogue, rating or cellar mutation; normal authentication
+requests still occur. Completed-navigation origin checkpoints do not make
+browser auto-wait or navigation races atomic.
+
+Run 40761036563 stopped at health HTTP 302 before owner credentials or browser
+selection; preparation run 40766264292 was skipped. After the owner confirmed
+the secret was added, run 40802406434 stopped at an unclassified access preflight.
+The diagnostic-only worker's run 40802837673 reports SHARE_URL_ORIGIN_MISMATCH
+before the first access request. Health/readiness and account/browser checks are
+NOT_RUN. Replace the secret with the exact immutable Commit link and confirm
+the replacement before another run. No unchanged retry is selected.
+
+Only fixed SHARE_URL_MISSING, SHARE_URL_INVALID, SHARE_URL_ORIGIN_MISMATCH or
+SHARE_URL_SHAPE_INVALID codes identify configuration classes; unknown exceptions
+map to PROTECTED_PREVIEW_UNVERIFIED. Neither a code nor a successful cleanup
+step alone proves access, token validity, retained privateWorkspace PASS,
+application authentication, provider permission or public release.
+
+### Cellar HTTP checkpoints and redacted release evidence
+
+The connected cellar mutation case requires `RELEASE_CELLAR_RECEIPT_DIRECTORY`,
+a valid `RELEASE_SHA` and a dedicated `RELEASE_FIXTURE_ENCRYPTION_KEY`
+for its Node-only encrypted writer. Both normal account sessions must resolve
+the configured addresses and distinct identities before fixture creation.
+The server still supplies application ownership; the recorded owner ID is
+private recovery evidence.
+
+`withCellarCleanup` persists original nonce/product/baseline and create intent
+before POST, response status before JSON parsing, and the full original
+acknowledgement before verification. Every owner update, cross-owner denial and
+cleanup step records an allowlisted phase/status. One owner create/update/delete
+is counted separately from two denial requests. HTTP mutations disable retries
+and redirects. A failed evidence write blocks subsequent fixture mutations;
+unknown responses never authorise a replay or guessed deletion.
+
+The existing AES-GCM receipt format is reused. `fixture-receipt.json` contains
+the private original evidence; `summary.json` contains only fixed phase/status,
+counter and outcome fields. Files are written as private temporary files and
+renamed atomically, and retained by the always-run artifact step. They are
+runner-local checkpoints, not remote provider backups or a guarantee against
+loss of the whole worker.
+
+The workflow runs from main, checks out an exact reviewed main ancestor before
+dependency execution, and verifies deployed provenance before credentials.
+It shares `bounded-current-instance-cellar-certification` concurrency with
+the existing cellar worker. It runs the redacted reporter with retries disabled,
+captures raw stdout/stderr in a private runner log, and removes that log/session/
+raw report directories in an always-run cleanup step. Capture is disabled for
+traces, screenshots and video. Artifact paths are explicitly limited to
+`release-security-check.txt`, `release-summary.json` and the cellar's encrypted
+receipt/redacted phase summary. An early runner failure can produce no summary;
+that is unavailable evidence, not PASS.
+
+Reporter case IDs are fixed source filenames and line numbers for the four
+reviewed connected specs. Unknown identities, duplicate/missing outcomes, global
+errors and evidence-write failures fail closed. Skipped checks remain SKIPPED.
+Local/private developer reporting does not qualify retained connected evidence.
+
 `npm run test:release` is a separately controlled Playwright suite for an
 immutable, production-equivalent staging deployment. It uses
 `playwright.release.config.js`, only discovers tests in `release-check/`, does
@@ -320,22 +448,37 @@ The HTTPS deployment is therefore the source of all client, authentication and
 application-data responses.
 
 Run the **Connected staging release check** workflow manually after deploying
-the exact candidate commit with the certified staging backend configuration.
-Supply the immutable deployment URL and full deployed commit SHA. The workflow
-checks out that SHA before running and uses the protected `staging-release`
+the exact reviewed main-branch candidate with the certified staging backend
+configuration. Supply the immutable deployment URL and full deployed commit SHA.
+The workflow runs from main, verifies that SHA is a reviewed main ancestor,
+checks it out before dependency execution and uses the protected `staging-release`
 GitHub Environment. Configure required reviewers and prevent administrators
 from bypassing its protection rules.
 
-The following Environment secrets must contain dedicated, non-personal test
-accounts. Never put them in repository variables, workflow inputs, command-line
-arguments, traces or committed `.env` files:
+Use dedicated, non-personal accounts for the account secrets below. The fixture
+encryption key is independent of provider credentials and account passwords.
+Provider administration credentials remain owned by the deployed server runtime.
+Never put secret values in repository variables, workflow inputs, command-line arguments, traces
+or committed `.env` files:
 
 | Secret | Purpose |
 | --- | --- |
 | `RELEASE_OWNER_EMAIL`, `RELEASE_OWNER_PASSWORD` | Primary owner journey and mutations |
+| `RELEASE_FIXTURE_ENCRYPTION_KEY` | Dedicated 32 random bytes encoded as canonical Base64; required before cellar writes |
 | `RELEASE_OTHER_EMAIL`, `RELEASE_OTHER_PASSWORD` | Other-user authorisation boundary |
 | `RELEASE_SIGNUP_EMAIL`, `RELEASE_SIGNUP_PASSWORD` | Optional fresh sign-up address; rotate after use |
 | `RELEASE_OTP_EMAIL`, `RELEASE_OTP_CODE` | Required when OTP is enabled; inject a short-lived code immediately before the controlled run |
+
+Generate this encryption key locally with `openssl rand -base64 32` and save the
+output directly as `RELEASE_FIXTURE_ENCRYPTION_KEY` in the protected
+`staging-release` Environment. Do not send it in chat or reuse a provider key or
+account password. Retain it securely while encrypted recovery artefacts exist;
+rotating it without retaining the previous key makes those artefacts unreadable.
+The writer rejects missing, malformed, noncanonical or incorrectly sized keys
+before baseline reads or mutations. Read-only checks do not require this key.
+
+The workflow sets local output paths in `RELEASE_CELLAR_RECEIPT_DIRECTORY` and
+`RELEASE_EVIDENCE_DIRECTORY`; these paths are not credentials.
 
 `RELEASE_SEARCH_TERM` may be an Environment variable containing a stable,
 non-sensitive catalogue term. The suite fails early unless the deployment URL
@@ -365,20 +508,20 @@ The connected suite covers:
 
 ### Evidence and cleanup
 
-The workflow retains failure-only screenshots, video and traces plus the HTML
-report for 30 days in an artifact named with the deployed SHA. Playwright
-artifacts can contain private page content even when passwords are not printed:
-download them only to the approved review location, inspect and redact them
-before wider sharing, and delete the artifact early when it is no longer
-needed. Record the workflow URL, immutable deployment URL, full SHA, start/end
-time, backend certification reference and artifact digest in the release
-record. Do not paste cookies, bearer tokens, OTPs, email addresses, raw request
-bodies or unredacted screenshots into a pull request.
+The workflow retains only the redacted case/phase summaries, encrypted cellar
+receipt and browser-build security result for 30 days in an artifact named with
+the deployed SHA. Record its workflow URL, exact deployment/SHA, start/end time,
+backend certification reference and artifact digest in the release record.
+Never publish the decryption credential or decrypted receipt. Credentials,
+cookies, OTPs, request bodies and private browser diagnostics are excluded from
+the retained report paths.
 
-The suite deletes the rating and cellar record it creates. The release operator
-must remove or rotate a sign-up account, restore the dedicated owner's display
-name/description if required, and verify that no `release-check` cellar notes
-remain after an interrupted run.
+Guarded cases attempt exact-ID fixture cleanup and verify absence; interruption
+or an unconfirmed response is not cleanup evidence. Inspect the original
+receipt before another write and never select a deletion target from a later
+history difference or QA prefix. The operator must separately remove/rotate any
+optional sign-up fixture account and restore any intentional profile fixture
+changes.
 
 ### Manual WCAG 2.2 AA release record
 

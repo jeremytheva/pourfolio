@@ -1,0 +1,55 @@
+name: Read-only bonus point allocation preflight
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bonus-point-provider-maintenance
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[bonus-point-preflight]'))
+    environment: staging-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Validate the reviewed candidate
+        run: npm run platform:validate
+      - name: Verify checked-out source identity
+        run: test "$(git rev-parse HEAD)" = "$PREFLIGHT_CANDIDATE_SHA"
+        env:
+          PREFLIGHT_CANDIDATE_SHA: ${{ github.sha }}
+      - name: Read current attributes and audit the committed allocation
+        env:
+          RUN_LIVE_BONUS_POINT_PREFLIGHT: "1"
+          PREFLIGHT_CANDIDATE_SHA: ${{ github.sha }}
+          NOCODEBACKEND_DATA_BASE_URL: https://api.nocodebackend.com/
+          NOCODEBACKEND_INSTANCE: ${{ vars.NOCODEBACKEND_INSTANCE }}
+          NOCODEBACKEND_SECRET_KEY: ${{ secrets.NOCODEBACKEND_SECRET_KEY }}
+        shell: bash
+        run: |
+          mkdir -p artifacts/bonus-point-preflight
+          node scripts/run-bonus-point-preflight.js | tee artifacts/bonus-point-preflight/summary.json
+      - name: Retain only the redacted preflight summary
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bonus-point-preflight-${{ github.sha }}
+          path: artifacts/bonus-point-preflight/summary.json
+          if-no-files-found: warn
+          retention-days: 30
