@@ -26,7 +26,7 @@
     "ratings": {
       "owner": "ratings-style-pagination-20261029T074419743Z",
       "workstream": "ratings",
-      "issue": null,
+      "issue": 728,
       "pr": null,
       "surfaces": [
         "branch:fix/style-population-pagination-20261029",
