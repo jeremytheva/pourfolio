@@ -16,6 +16,7 @@
         "file:docs/LAUNCH_READINESS.md",
         "file:docs/TESTING.md",
         "file:e2e/cellar-load-recovery.spec.js",
+        "file:scripts/__tests__/cellarWriteCertification.test.js",
         "repo:integration"
       ],
       "acquiredAt": "2026-10-29T07:25:42.668Z",
