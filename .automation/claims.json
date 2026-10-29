@@ -1,4 +1,22 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "catalogue-dependency-integration-20261029T0209Z",
+      "workstream": "catalogue",
+      "issue": 143,
+      "pr": 684,
+      "surfaces": [
+        "repo:integration",
+        "branch:dependabot/npm_and_yarn/development-minor-patches-811865792e",
+        "branch:fix/add-beer-connected-evidence-20261027",
+        "file:package.json",
+        "file:package-lock.json",
+        "file:STATUS.md",
+        "file:docs/LAUNCH_READINESS.md"
+      ],
+      "acquiredAt": "2026-10-29T02:09:00.000Z",
+      "expiresAt": "2026-10-29T02:40:00.000Z"
+    }
+  }
 }
