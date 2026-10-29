@@ -33,8 +33,8 @@
         "file:package.json",
         "file:package-lock.json"
       ],
-      "acquiredAt": "2026-10-29T21:55:00.000Z",
-      "expiresAt": "2026-10-29T22:30:00.000Z"
+      "acquiredAt": "2026-10-29T21:51:42.000Z",
+      "expiresAt": "2026-10-29T22:25:00.000Z"
     }
   }
 }
