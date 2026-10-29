@@ -116,15 +116,15 @@ or postflight report exists. No data mutation was selected or connected PASS
 claimed. The owner's update is acknowledged; tools cannot inspect its actual
 saved value/location.
 
-The worker reads the `staging-release` **Environment secret**
-`secrets.RELEASE_PREVIEW_SHARE_URL`, not an Actions Variable or Vercel variable.
-Use the Share → Commit link for the fixed Add Beer hostname
-`pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app`, rather than a newer main
-or moving branch preview, then confirm the exact secret was saved before one
-bounded run. A fresh exact-host link is available in the private owner handoff;
-no link/token is committed. The
-[existing operational setup](TESTING.md#protected-add-beer-preview-qualification)
-retains all origin, provenance, one-case, logout and cleanup guards.
+At that earlier checkpoint, the worker read the `staging-release` **Environment
+secret** `secrets.RELEASE_PREVIEW_SHARE_URL`, and the proposed setup was to use
+the Share → Commit link for the fixed Add Beer hostname and confirm that exact
+secret before one bounded run. A fresh exact-host link was then available in
+the private owner handoff; no link/token was committed. That setup route is
+superseded by the relay/approval gate above; no further secret-entry request is
+current. The [operational setup](TESTING.md#protected-add-beer-preview-qualification)
+now documents the reviewed relay with its origin, provenance, singleton-case,
+logout and cleanup guards.
 
 Both independent pagination repairs are now merged/deployed: #727 as
 `1ef714ce` and #729 as `ef86e20d`. The latter passed 1,230 source tests (15 gated
