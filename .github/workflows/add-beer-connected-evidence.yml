@@ -11,7 +11,7 @@ jobs:
   qualify:
     if: >-
       github.ref == 'refs/heads/fix/add-beer-connected-evidence-20261027' &&
-      contains(github.event.head_commit.message, '[qualify-add-beer-readonly-53299fce]')
+      contains(github.event.head_commit.message, '[qualify-add-beer-ephemeral-53299fce]')
     environment: staging-release
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -32,6 +32,215 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - name: Prepare a single-run access key
+        shell: bash
+        run: |
+          umask 077
+          cat > "$RUNNER_TEMP/add-beer-access-handoff.mjs" <<'HANDOFF'
+          import fs from 'node:fs'
+          import path from 'node:path'
+          import { pathToFileURL } from 'node:url'
+          import { constants, createHash, createPrivateKey, createPublicKey, generateKeyPairSync, privateDecrypt } from 'node:crypto'
+          
+          export const REPOSITORY = 'jeremytheva/pourfolio'
+          export const SOURCE_SHA = '53299fce0cfd7a308c36bc0037ac5e2068969131'
+          export const ORIGIN = 'https://pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app'
+          export const PULL_URL = 'https://api.github.com/repos/jeremytheva/pourfolio/pulls/697'
+          export const MANIFEST_PATH = 'artifacts/add-beer-access-key/public-key.json'
+          const bindingFields = ['version', 'repo', 'pr', 'runId', 'runAttempt', 'workerSha', 'sourceSha', 'origin', 'createdAt', 'expiresAt', 'fingerprint']
+          class HandoffError extends Error { constructor(code) { super(code); this.code = code } }
+          const requireThat = (value, code) => { if (!value) throw new HandoffError(code) }
+          const closed = (value, fields) => value && Object.getPrototypeOf(value) === Object.prototype &&
+            Object.keys(value).length === fields.length && fields.every(key => Object.hasOwn(value, key))
+          const sha = value => typeof value === 'string' && /^[a-f0-9]{40}$/.test(value)
+          const positive = value => typeof value === 'string' && /^[1-9]\d{0,19}$/.test(value)
+          const fingerprintFor = key => createHash('sha256').update(createPublicKey(key).export({ type: 'spki', format: 'der' })).digest('hex')
+          const timestamp = value => typeof value === 'string' && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value
+          
+          export const bindingFor = manifest => Object.fromEntries(bindingFields.map(key => [key, manifest[key]]))
+          export const bindingLabel = manifest => Buffer.from(JSON.stringify(bindingFor(manifest)), 'utf8')
+          
+          export function validateManifest(manifest, now = Date.now()) {
+            requireThat(closed(manifest, [...bindingFields, 'publicKey']), 'MANIFEST_INVALID')
+            requireThat(manifest.version === 1 && manifest.repo === REPOSITORY && manifest.pr === 697 &&
+              positive(manifest.runId) && positive(manifest.runAttempt) && sha(manifest.workerSha) &&
+              manifest.sourceSha === SOURCE_SHA && manifest.origin === ORIGIN &&
+              typeof manifest.fingerprint === 'string' && /^[a-f0-9]{64}$/.test(manifest.fingerprint) &&
+              typeof manifest.publicKey === 'string' && manifest.publicKey.length < 2048 &&
+              timestamp(manifest.createdAt) && timestamp(manifest.expiresAt), 'MANIFEST_INVALID')
+            const created = Date.parse(manifest.createdAt), expires = Date.parse(manifest.expiresAt)
+            requireThat(created <= now && expires > now && expires > created && expires - created <= 600_000, 'MANIFEST_EXPIRED')
+            let key
+            try { key = createPublicKey(manifest.publicKey) } catch { throw new HandoffError('PUBLIC_KEY_INVALID') }
+            requireThat(key.asymmetricKeyType === 'rsa' && key.asymmetricKeyDetails.modulusLength === 4096 &&
+              key.export({ type: 'spki', format: 'pem' }) === manifest.publicKey &&
+              fingerprintFor(manifest.publicKey) === manifest.fingerprint, 'PUBLIC_KEY_INVALID')
+            return manifest
+          }
+          
+          export function createManifest({ publicKey, runId, runAttempt, workerSha, sourceSha = SOURCE_SHA, origin = ORIGIN, now = Date.now() }) {
+            const manifest = { version: 1, repo: REPOSITORY, pr: 697, runId, runAttempt, workerSha, sourceSha, origin,
+              createdAt: new Date(now).toISOString(), expiresAt: new Date(now + 600_000).toISOString(),
+              fingerprint: fingerprintFor(publicKey), publicKey }
+            return validateManifest(manifest, now)
+          }
+          
+          export function validateEnvelope(envelope, manifest, now = Date.now()) {
+            validateManifest(manifest, now)
+            requireThat(closed(envelope, [...bindingFields, 'ciphertext']), 'ENVELOPE_INVALID')
+            requireThat(bindingFields.every(key => envelope[key] === manifest[key]), 'BINDING_MISMATCH')
+            requireThat(typeof envelope.ciphertext === 'string' && /^[A-Za-z0-9+/]{683}=$/.test(envelope.ciphertext) &&
+              Buffer.from(envelope.ciphertext, 'base64').length === 512 &&
+              Buffer.from(envelope.ciphertext, 'base64').toString('base64') === envelope.ciphertext, 'CIPHERTEXT_INVALID')
+            return envelope
+          }
+          
+          export function extractEnvelope(body, manifest) {
+            requireThat(typeof body === 'string' && Buffer.byteLength(body) <= 262_144, 'PULL_BODY_INVALID')
+            const prefix = '<!-- pourfolio-preview-access:', count = body.split(prefix).length - 1
+            if (!count) return null
+            requireThat(count === 1, 'DUPLICATE_BLOCK')
+            const rest = body.slice(body.indexOf(prefix) + prefix.length), newline = rest.indexOf('\n'), end = rest.indexOf('\n-->')
+            requireThat(newline >= 0 && end > newline && rest.indexOf('-->') === end + 1, 'BLOCK_INVALID')
+            requireThat(rest.slice(0, newline) === `${manifest.runId}:${manifest.runAttempt}:${manifest.workerSha}`, 'STALE_BLOCK')
+            let envelope
+            const encoded = rest.slice(newline + 1, end)
+            try { envelope = JSON.parse(encoded) } catch { throw new HandoffError('BLOCK_INVALID') }
+            requireThat(closed(envelope, [...bindingFields, 'ciphertext']), 'ENVELOPE_INVALID')
+            requireThat(encoded === JSON.stringify(envelope), 'BLOCK_INVALID')
+            return envelope
+          }
+          
+          export function validateShareUrl(value, origin = ORIGIN) {
+            requireThat(typeof value === 'string' && Buffer.byteLength(value) <= 400 && value.length > 0 &&
+              value === value.trim() && value.startsWith(origin + '/?') && !/[\u0000-\u0020\u007f]/u.test(value), 'SHARE_URL_INVALID')
+            let url
+            try { url = new URL(value) } catch { throw new HandoffError('SHARE_URL_INVALID') }
+            const entries = [...url.searchParams]
+            requireThat(origin === ORIGIN && url.origin === origin && url.protocol === 'https:' &&
+              !url.username && !url.password && !value.includes('#') && url.pathname === '/' &&
+              entries.length === 1 && entries[0][0] === '_vercel_share' && entries[0][1].length > 0, 'SHARE_URL_INVALID')
+            return value
+          }
+          
+          export function decryptEnvelope(envelope, manifest, privateKey, now = Date.now()) {
+            validateEnvelope(envelope, manifest, now)
+            let key, plaintext
+            try {
+              key = createPrivateKey(privateKey)
+              requireThat(key.asymmetricKeyType === 'rsa' && key.asymmetricKeyDetails.modulusLength === 4096 &&
+                fingerprintFor(key) === manifest.fingerprint, 'PRIVATE_KEY_INVALID')
+              plaintext = privateDecrypt({ key, padding: constants.RSA_PKCS1_OAEP_PADDING,
+                oaepHash: 'sha256', oaepLabel: bindingLabel(manifest) }, Buffer.from(envelope.ciphertext, 'base64'))
+            } catch (error) { throw error instanceof HandoffError ? error : new HandoffError('DECRYPT_FAILED') }
+            const value = plaintext.toString('utf8')
+            requireThat(Buffer.from(value, 'utf8').equals(plaintext), 'SHARE_URL_INVALID')
+            return validateShareUrl(value, manifest.origin)
+          }
+          
+          export function privatePaths(directory, manifest) {
+            requireThat(typeof directory === 'string' && path.isAbsolute(directory), 'TEMP_PATH_INVALID')
+            requireThat(positive(manifest.runId) && positive(manifest.runAttempt), 'MANIFEST_INVALID')
+            const suffix = `${manifest.runId}-${manifest.runAttempt}`
+            return { key: path.join(directory, `add-beer-access-key-${suffix}.pem`), url: path.join(directory, `add-beer-access-url-${suffix}.txt`) }
+          }
+          
+          function assertRuntime(manifest, env) {
+            requireThat(manifest.runId === env.GITHUB_RUN_ID && manifest.runAttempt === env.GITHUB_RUN_ATTEMPT &&
+              manifest.workerSha === env.GITHUB_SHA && manifest.sourceSha === env.RELEASE_SHA && manifest.origin === env.RELEASE_BASE_URL,
+            'RUNTIME_BINDING_MISMATCH')
+          }
+          
+          export function prepare({ env = process.env, now = Date.now(), directory = path.resolve(MANIFEST_PATH) } = {}) {
+            requireThat(positive(env.GITHUB_RUN_ID) && positive(env.GITHUB_RUN_ATTEMPT) && sha(env.GITHUB_SHA) &&
+              env.RELEASE_SHA === SOURCE_SHA && env.RELEASE_BASE_URL === ORIGIN, 'RUNTIME_BINDING_MISMATCH')
+            const keys = generateKeyPairSync('rsa', { modulusLength: 4096, publicExponent: 0x10001,
+              publicKeyEncoding: { type: 'spki', format: 'pem' }, privateKeyEncoding: { type: 'pkcs8', format: 'pem' } })
+            const manifest = createManifest({ publicKey: keys.publicKey, runId: env.GITHUB_RUN_ID,
+              runAttempt: env.GITHUB_RUN_ATTEMPT, workerSha: env.GITHUB_SHA, now })
+            const files = privatePaths(env.RUNNER_TEMP, manifest)
+            fs.writeFileSync(files.key, keys.privateKey, { flag: 'wx', mode: 0o600 })
+            fs.mkdirSync(path.dirname(directory), { recursive: true })
+            fs.writeFileSync(directory, JSON.stringify(manifest) + '\n', { flag: 'wx', mode: 0o600 })
+            return manifest
+          }
+          
+          async function boundedJson(response) {
+            requireThat(response.status === 200 && response.body, 'POLL_FAILED')
+            const reader = response.body.getReader(), chunks = []; let length = 0
+            try {
+              while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+                length += value.byteLength
+                requireThat(length <= 262_144, 'POLL_RESPONSE_TOO_LARGE')
+                chunks.push(value)
+              }
+              return JSON.parse(Buffer.concat(chunks).toString('utf8'))
+            } catch (error) { throw error instanceof HandoffError ? error : new HandoffError('POLL_RESPONSE_INVALID') }
+            finally { await reader.cancel().catch(() => {}) }
+          }
+          
+          export async function receive({ env = process.env, manifestPath = path.resolve(MANIFEST_PATH),
+            fetchImpl = fetch, now = Date.now, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)) } = {}) {
+            const files = privatePaths(env.RUNNER_TEMP, { runId: env.GITHUB_RUN_ID, runAttempt: env.GITHUB_RUN_ATTEMPT })
+            try {
+            let manifest
+            try { manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) } catch { throw new HandoffError('MANIFEST_INVALID') }
+            validateManifest(manifest, now()); assertRuntime(manifest, env)
+            const stat = fs.lstatSync(files.key)
+            requireThat(stat.isFile() && !stat.isSymbolicLink() && !(stat.mode & 0o077) && stat.size < 10_000, 'PRIVATE_KEY_INVALID')
+            const privateKey = fs.readFileSync(files.key, 'utf8'), deadline = Math.min(now() + 180_000, Date.parse(manifest.expiresAt))
+            for (let attempt = 0; attempt < 18 && now() < deadline; attempt += 1) {
+              validateManifest(manifest, now())
+              let payload
+              try {
+                payload = await boundedJson(await fetchImpl(PULL_URL, { redirect: 'error', signal: AbortSignal.timeout(Math.max(1, Math.min(5000, deadline - now()))),
+                  headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'pourfolio-preview-access-handoff' } }))
+              } catch (error) { throw error instanceof HandoffError ? error : new HandoffError('POLL_FAILED') }
+              requireThat(now() < deadline, 'HANDOFF_TIMEOUT')
+              requireThat(payload?.number === 697 && (payload.body === null || typeof payload.body === 'string'), 'POLL_RESPONSE_INVALID')
+              const envelope = extractEnvelope(payload.body || '', manifest)
+              if (envelope) {
+                const value = decryptEnvelope(envelope, manifest, privateKey, now())
+                fs.writeFileSync(files.url, value, { flag: 'wx', mode: 0o600 })
+                return
+              }
+              if (attempt < 17 && now() < deadline) await sleep(Math.min(10_000, deadline - now()))
+            }
+            throw new HandoffError('HANDOFF_TIMEOUT')
+            } finally {
+              try { fs.rmSync(files.key, { force: true }) } catch { throw new HandoffError('PRIVATE_KEY_CLEANUP_UNCONFIRMED') }
+            }
+          }
+          
+          export async function runCli(argument, { write = value => process.stdout.write(value), prepareImpl = prepare, receiveImpl = receive } = {}) {
+            const phase = ['prepare', 'receive'].includes(argument) ? argument : 'UNKNOWN'
+            try {
+              requireThat(phase !== 'UNKNOWN', 'INVALID_PHASE')
+              if (phase === 'prepare') await prepareImpl(); else await receiveImpl()
+              write(JSON.stringify({ phase, status: 'PASS', code: phase === 'prepare' ? 'KEY_READY' : 'ACCESS_READY' }) + '\n')
+              return 0
+            } catch (error) {
+              write(JSON.stringify({ phase, status: 'BLOCKED', code: error instanceof HandoffError ? error.code : 'HANDOFF_FAILED' }) + '\n')
+              return 1
+            }
+          }
+          
+          if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) process.exitCode = await runCli(process.argv[2])
+          HANDOFF
+          node "$RUNNER_TEMP/add-beer-access-handoff.mjs" prepare
+      - name: Publish only the ephemeral public key
+        uses: actions/upload-artifact@v7
+        with:
+          name: add-beer-access-key-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 1
+          if-no-files-found: error
+          path: artifacts/add-beer-access-key/public-key.json
+      - name: Receive the encrypted one-run preview link
+        id: handoff
+        shell: bash
+        run: node "$RUNNER_TEMP/add-beer-access-handoff.mjs" receive
       - name: Prepare bounded provenance verifier
         shell: bash
         run: |
@@ -85,7 +294,15 @@ jobs:
               return context.get(url.href, { maxRedirects: 0, maxRetries: 0, timeout: 15000 })
             }
             if (stage === 'preflight') {
-              let current = shareUrl(process.env.RELEASE_PREVIEW_SHARE_URL, origin), complete = false
+              const sharePath = path.join(process.env.RUNNER_TEMP, 'add-beer-access-url-' + process.env.GITHUB_RUN_ID + '-' + process.env.GITHUB_RUN_ATTEMPT + '.txt')
+              let value
+              try {
+                const stat = fs.lstatSync(sharePath)
+                if (!stat.isFile() || stat.isSymbolicLink() || (stat.mode & 0o077) !== 0 || stat.size > 400) throw new Error('state')
+                value = fs.readFileSync(sharePath, 'utf8')
+              } finally { fs.rmSync(sharePath, { force: true }) }
+              let current = shareUrl(value, origin), complete = false
+              value = undefined
               for (let hop = 0; hop < 5; hop += 1) {
                 const response = await get(current.href)
                 if ([301, 302, 303, 307, 308].includes(response.status())) {
@@ -133,8 +350,6 @@ jobs:
           JS
       - name: Verify exact preview before credentials
         id: preflight
-        env:
-          RELEASE_PREVIEW_SHARE_URL: ${{ secrets.RELEASE_PREVIEW_SHARE_URL }}
         shell: bash
         run: |
           umask 077
@@ -251,8 +466,12 @@ jobs:
             if (Number.isInteger(value.sessionHttpStatus) && value.sessionHttpStatus >= 100 && value.sessionHttpStatus <= 599) sessionHttpStatus = value.sessionHttpStatus
           } catch {}
           try {
-            for (const target of [process.env.RELEASE_OWNER_SESSION_PATH, path.join(process.env.RUNNER_TEMP, 'add-beer-private-' + process.env.GITHUB_RUN_ID + '.log'), path.join(process.env.RUNNER_TEMP, 'add-beer-provenance.mjs'), ...['state', 'config'].map(kind => path.join(process.env.RUNNER_TEMP, 'add-beer-preview-' + kind + '-' + process.env.GITHUB_RUN_ID + (kind === 'state' ? '.json' : '.mjs'))), ...['preflight', 'postflight'].map(stage => path.join(process.env.RUNNER_TEMP, 'add-beer-provenance-' + stage + '-' + process.env.GITHUB_RUN_ID + '.log')), 'test-results/release-check', 'playwright-report/release-check']) fs.rmSync(target, { recursive: true, force: true })
+            for (const target of [process.env.RELEASE_OWNER_SESSION_PATH, path.join(process.env.RUNNER_TEMP, 'add-beer-private-' + process.env.GITHUB_RUN_ID + '.log'), path.join(process.env.RUNNER_TEMP, 'add-beer-provenance.mjs'), path.join(process.env.RUNNER_TEMP, 'add-beer-access-handoff.mjs'), ...['key', 'url'].map(kind => path.join(process.env.RUNNER_TEMP, 'add-beer-access-' + kind + '-' + process.env.GITHUB_RUN_ID + '-' + process.env.GITHUB_RUN_ATTEMPT + (kind === 'key' ? '.pem' : '.txt'))), ...['state', 'config'].map(kind => path.join(process.env.RUNNER_TEMP, 'add-beer-preview-' + kind + '-' + process.env.GITHUB_RUN_ID + (kind === 'state' ? '.json' : '.mjs'))), ...['preflight', 'postflight'].map(stage => path.join(process.env.RUNNER_TEMP, 'add-beer-provenance-' + stage + '-' + process.env.GITHUB_RUN_ID + '.log')), 'test-results/release-check', 'playwright-report/release-check']) fs.rmSync(target, { recursive: true, force: true })
           } catch { privateWorkspace = 'UNCONFIRMED' }
+          for (const kind of ['key', 'url']) {
+            const target = path.join(process.env.RUNNER_TEMP, 'add-beer-access-' + kind + '-' + process.env.GITHUB_RUN_ID + '-' + process.env.GITHUB_RUN_ATTEMPT + (kind === 'key' ? '.pem' : '.txt'))
+            try { if (fs.existsSync(target)) privateWorkspace = 'UNCONFIRMED' } catch { privateWorkspace = 'UNCONFIRMED' }
+          }
           fs.mkdirSync(directory, { recursive: true })
           fs.writeFileSync(file, JSON.stringify({ version: 1, session, sessionHttpStatus, privateWorkspace }) + '\n', { mode: 0o600 })
           JS
@@ -260,6 +479,7 @@ jobs:
         if: always()
         env:
           BROWSER_OUTCOME: ${{ steps.browser.outcome }}
+          HANDOFF_OUTCOME: ${{ steps.handoff.outcome }}
         run: |
           node --input-type=module <<'JS'
           import fs from 'node:fs'
@@ -269,7 +489,7 @@ jobs:
           const pre = read('preflight.json'), post = read('postflight.json'), selection = read('selection.json'), cleanup = read('session-cleanup.json'), report = read('release-summary.json')
           const provenance = value => value?.status === 'PASS' && value.access === 'PASS' && value.releaseSha === process.env.RELEASE_SHA && value.health === 'PASS' && value.readiness === 'PASS' && value.healthHttpStatus === 200 && value.readinessHttpStatus === 200
           const oneCase = report?.status === 'PASS' && report.runnerStatus === 'passed' && report.releaseSha === process.env.RELEASE_SHA && report.candidateSha === process.env.GITHUB_SHA && JSON.stringify(report.counts) === JSON.stringify({ expected: 1, passed: 1, failed: 0, skipped: 0, notRun: 0 }) && report.invalidEvents === 0 && report.runnerErrors === 0 && Array.isArray(report.blockers) && report.blockers.length === 0 && JSON.stringify(report.tests) === JSON.stringify([{ caseId: 'catalogue-readonly.spec.js:65', status: 'PASS' }])
-          const pass = provenance(pre) && provenance(post) && selection?.status === 'PASS' && selection.selected === 1 && oneCase && cleanup?.session === 'PASS' && cleanup.sessionHttpStatus === 401 && cleanup.privateWorkspace === 'PASS'
+          const pass = process.env.HANDOFF_OUTCOME === 'success' && provenance(pre) && provenance(post) && selection?.status === 'PASS' && selection.selected === 1 && oneCase && cleanup?.session === 'PASS' && cleanup.sessionHttpStatus === 401 && cleanup.privateWorkspace === 'PASS'
           const ran = process.env.BROWSER_OUTCOME && process.env.BROWSER_OUTCOME !== 'skipped'
           const summary = { version: 1, qualification: 'READ_ONLY_ADD_BEER_CATEGORIES', sourceSha: process.env.RELEASE_SHA, workerSha: process.env.GITHUB_SHA, caseId: 'catalogue-readonly.spec.js:65', connected: ran ? (oneCase ? 'PASS' : 'FAIL') : 'NOT_RUN', status: pass ? 'PASS' : ran ? 'FAIL' : 'BLOCKED' }
           fs.mkdirSync(directory, { recursive: true }); fs.writeFileSync(path.join(directory, 'qualification.json'), JSON.stringify(summary) + '\n', { mode: 0o600 })
@@ -289,3 +509,4 @@ jobs:
             artifacts/add-beer-readonly/session-cleanup.json
             artifacts/add-beer-readonly/release-summary.json
             artifacts/add-beer-readonly/qualification.json
+
