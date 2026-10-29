@@ -46,16 +46,21 @@ jobs:
           if (!['preflight', 'postflight'].includes(stage)) process.exit(2)
           const statePath = path.join(process.env.RUNNER_TEMP, 'add-beer-preview-state-' + process.env.GITHUB_RUN_ID + '.json')
           const configPath = path.join(process.env.RUNNER_TEMP, 'add-beer-preview-config-' + process.env.GITHUB_RUN_ID + '.mjs')
-          const report = { version: 1, stage, releaseSha: process.env.RELEASE_SHA, access: 'NOT_RUN', health: 'NOT_RUN', readiness: 'NOT_RUN', healthHttpStatus: null, readinessHttpStatus: null, status: 'BLOCKED' }
+          const report = { version: 1, stage, releaseSha: process.env.RELEASE_SHA, access: 'NOT_RUN', health: 'NOT_RUN', readiness: 'NOT_RUN', healthHttpStatus: null, readinessHttpStatus: null, blocker: null, status: 'BLOCKED' }
           const exactUrl = (value, origin) => {
             const url = new URL(value)
             if (url.origin !== origin || url.protocol !== 'https:' || url.username || url.password || url.hash) throw new Error('scope')
             return url
           }
+          const configurationCodes = new Set(['SHARE_URL_MISSING', 'SHARE_URL_INVALID', 'SHARE_URL_ORIGIN_MISMATCH', 'SHARE_URL_SHAPE_INVALID'])
           const shareUrl = (value, origin) => {
-            if (typeof value !== 'string' || value.length > 4096) throw new Error('configuration')
-            const url = exactUrl(value, origin), keys = [...url.searchParams.keys()]
-            if (url.pathname !== '/' || keys.length !== 1 || keys[0] !== '_vercel_share' || !url.searchParams.get('_vercel_share')) throw new Error('scope')
+            if (typeof value !== 'string' || !value) throw new Error('SHARE_URL_MISSING')
+            if (value.length > 4096) throw new Error('SHARE_URL_INVALID')
+            let url
+            try { url = new URL(value) } catch { throw new Error('SHARE_URL_INVALID') }
+            if (url.origin !== origin || url.protocol !== 'https:' || url.username || url.password || url.hash) throw new Error('SHARE_URL_ORIGIN_MISMATCH')
+            const keys = [...url.searchParams.keys()]
+            if (url.pathname !== '/' || keys.length !== 1 || keys[0] !== '_vercel_share' || !url.searchParams.get('_vercel_share')) throw new Error('SHARE_URL_SHAPE_INVALID')
             return url
           }
           const scopedState = (state, origin) => {
@@ -120,8 +125,8 @@ jobs:
               fs.writeFileSync(configPath, code, { mode: 0o600, flag: 'wx' })
             }
             report.status = 'PASS'
-          } catch {}
-          try { await context?.dispose() } catch { report.status = 'BLOCKED' }
+          } catch (error) { report.status = 'BLOCKED'; report.blocker = configurationCodes.has(error?.message) ? error.message : 'PROTECTED_PREVIEW_UNVERIFIED' }
+          try { await context?.dispose() } catch { report.status = 'BLOCKED'; report.blocker = 'PRIVATE_CONTEXT_CLEANUP_UNCONFIRMED' }
           fs.mkdirSync(process.env.RELEASE_EVIDENCE_DIRECTORY, { recursive: true })
           fs.writeFileSync(path.join(process.env.RELEASE_EVIDENCE_DIRECTORY, stage + '.json'), JSON.stringify(report) + '\n', { mode: 0o600 })
           if (report.status !== 'PASS') process.exitCode = 1
