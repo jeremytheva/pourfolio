@@ -349,6 +349,47 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 
 ## Connected staging release check
 
+### Protected Add Beer preview qualification
+
+This one-case gate for unmerged #697 is separate from the main-only connected
+suite and cellar writer. The
+[reviewed worker 901b434c](https://github.com/jeremytheva/pourfolio/blob/901b434c47a1be202a14831361461794bb0b4001/.github/workflows/add-beer-connected-evidence.yml)
+pins source `53299fce0cfd7a308c36bc0037ac5e2068969131` and
+https://pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app.
+
+1. Open the [exact deployment](https://vercel.com/jeremythevas-projects/pourfolio/48K6XVAUKsSswisD4YQhqDLM5Wv6),
+   choose **Share → Commit** and obtain its Shareable Link. Confirm the immutable
+   hostname above. Check its expiry; do not assume a fixed lifetime.
+2. Save the full link directly as `RELEASE_PREVIEW_SHARE_URL` under GitHub
+   **Settings → Environments → staging-release**, then confirm it is saved
+   without sending the value in chat. Existing account passwords stay in their
+   protected secrets. Connected tools cannot set GitHub secrets. No deployment
+   protection setting or project-wide bypass change is required.
+3. The integration owner selects the prepared run once after confirmation.
+   Unmarked preparation does not select it. Dependencies/browser installation
+   precedes secret injection. Preflight alone consumes the link; only private
+   observed cookie state continues into the reviewed source configuration and
+   postflight. Do not transplant a branch-link token to an immutable hostname.
+4. Require one pass of `catalogue-readonly.spec.js:65`, matching before/after
+   source/preview provenance, no skip/error, original saved-session HTTP 401
+   after logout and private cleanup. Other statuses/exceptions leave session
+   revocation UNCONFIRMED and qualification blocked.
+5. Retain only the six explicit redacted JSON reports. Always-run cleanup removes
+   private access/session state, generated configuration and raw logs. After
+   testing, revoke the Vercel Shareable Link and remove the temporary GitHub
+   secret. Runner-local cleanup does not globally revoke the link or cookies.
+
+The worker accepts only the exact HTTPS origin, root path and one nonempty
+`_vercel_share` query, follows at most five same-origin redirects, and rejects
+foreign/broad-domain cookies and local-storage state. Browser capture is off.
+The case selects no catalogue, rating or cellar mutation; normal authentication
+requests still occur. Completed-navigation origin checkpoints do not make
+browser auto-wait or navigation races atomic.
+
+Run 40761036563 stopped at health HTTP 302 before owner credentials or browser
+selection. Prepared-worker run 40766264292 was skipped. Neither qualifies live
+access, application authentication, provider permissions or public release.
+
 ### Cellar HTTP checkpoints and redacted release evidence
 
 The connected cellar mutation case requires `RELEASE_CELLAR_RECEIPT_DIRECTORY`,

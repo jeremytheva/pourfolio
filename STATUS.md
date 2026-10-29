@@ -3,18 +3,19 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Staging key configured; first read-only provider inventory failed and needs bounded diagnosis"
+stage: "Add Beer source validated; protected preview access needed for connected qualification"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Complete secure fixture access in the dedicated Brew test environment under #715, then qualify its provider boundary; preserve public gameplay gates."
-  issue: 715
-  pr: null
-  branch: null
+  objective: "Qualify Add Beer canonical categories at reviewed source 53299fce, then integrate #697; preserve independent Brew and public-launch gates."
+  issue: 695
+  pr: 697
+  branch: feature/add-beer-release-form
 next_actions:
+  - "#697 source 53299fce passes 1,200 source tests and 193 browser cases. After the owner saves the commit-specific RELEASE_PREVIEW_SHARE_URL, select the reviewed one-case worker once and require provenance, original-session 401 and cleanup evidence before integration."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
-  - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Securely configure its instance-scoped provider key, independent recovery key and dedicated fixture user/product IDs; verify cloned constraints and recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
-  - "#710 is integrated as 078843e5. Resume #697 keyboard selector visibility without rewriting its owner's branch/form/test work."
+  - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Its provider key is configured; configure the independent recovery key and dedicated fixture user/product IDs, diagnose the failed read, and verify cloned constraints/recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
+  - "#710 is integrated as 078843e5. #697 keyboard visibility and release-origin checkpoints are source/browser validated; connected category acceptance remains NOT_RUN."
   - "PR #693 is integrated and exact production e9661b0f is READY. Configure independent RELEASE_FIXTURE_ENCRYPTION_KEY before bounded HTTP cellar writes; read-only checks remain available."
   - "#709 read-only Admin workspace is deployed and bounded Admin/user own-capability isolation passed in run 40494158943. Keep full Admin browser/moderation, role-write denial and revocation open under #699/#701/#702."
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
@@ -27,6 +28,9 @@ next_actions:
   - "Complete #165 provider mechanism, consistent snapshot and isolated restore evidence before irreversible migration or historical repair; then close #144/#154 acceptance."
   - "Complete publication, monitored support, named operations owners, anonymous production access and final exact-candidate release qualification."
 blockers:
+  - scope: add_beer_protected_preview_access
+    issue: 154
+    detail: "Prior preflight stopped at outer HTTP 302 before owner credentials. The owner must save the exact-preview commit Shareable Link as protected RELEASE_PREVIEW_SHARE_URL before selecting the reviewed worker; live category acceptance remains NOT_RUN."
   - scope: brew_done_it_connected_qualification
     issue: 715
     detail: "The source's combined indexes are correct. An empty schema clone and dedicated main-only brew-contract environment now exist, and its provider key is now configured. Three fixture/recovery secrets remain absent; the first staging API read failed with INVENTORY_READ_FAILED. Cloned-index/API verification, connected cleanup/non-interference, isolated recovery, provider CAS, scoring storage, privacy and two-device testing remain unqualified."
@@ -48,16 +52,16 @@ owner_decision:
   recommendation: null
 wip:
   open_implementation_prs: 1
-  dependent_stack_depth: 1
+  dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
-  current_candidate_commit: null
-  latest_validated_commit: "dfdc04c9d9595e04ec02153c9d3cc198b3394972"
-  latest_deployed_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
+  observed_main_commit: "fa18a8655f06c0b25540ec1b7bfcaeac34927ac6"
+  current_candidate_commit: "53299fce0cfd7a308c36bc0037ac5e2068969131"
+  latest_validated_commit: "53299fce0cfd7a308c36bc0037ac5e2068969131"
+  latest_deployed_commit: "fa18a8655f06c0b25540ec1b7bfcaeac34927ac6"
   latest_runtime_verified_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
-  latest_browser_verified_commit: "ec6bbc580fc7d6a7d0c0fefb4c692d82fe9cdcda"
+  latest_browser_verified_commit: "53299fce0cfd7a308c36bc0037ac5e2068969131"
 validation:
   governance: PASS
   lint: PASS
@@ -67,15 +71,78 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
-last_updated: "2026-10-28T10:23:40Z"
+last_updated: "2026-10-29T01:45:00Z"
 
 ---
 
 # STATUS.md
 
-Last materially reviewed: 28 October 2026 UTC
+Last materially reviewed: 29 October 2026 UTC
 
 ## AI execution gate
+
+### Add Beer candidate and protected-preview gate — 29 October 2026 UTC
+
+PR [#697](https://github.com/jeremytheva/pourfolio/pull/697) is open and unmerged
+at `53299fce0cfd7a308c36bc0037ac5e2068969131`, incorporating current main
+`fa18a8655f06c0b25540ec1b7bfcaeac34927ac6` without discarding the newer Brew
+work. Keyboard-active canonical choices now scroll into view while retaining
+combobox focus; the 40-choice regression covers both directions and Enter.
+Release sign-in also checks completed-navigation and response origins before
+credential/submission checkpoints. These checks do not make browser auto-wait
+or navigation races atomic.
+
+Exact-head [run 40765030806](https://github.com/jeremytheva/pourfolio/actions/runs/40765030806)
+passes canonical Node 22 validation: **1,200 passed, 15 intentional connected
+skips, zero failures and production vulnerabilities**. All **193** deterministic
+browser/accessibility cases, Dependency Review and CodeQL pass. Independent
+review found no material source issue. Preview
+`dpl_48K6XVAUKsSswisD4YQhqDLM5Wv6` is READY at this SHA:
+https://pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app.
+READY is deployment metadata, not connected acceptance.
+
+[Run 40761036563](https://github.com/jeremytheva/pourfolio/actions/runs/40761036563),
+job `123072704341`, used worker `68df4354` and earlier deployed source
+`763c67ab`. Health returned HTTP 302; readiness, selection and owner/browser
+steps did not run. Private cleanup passed. The redacted outcome is
+**BLOCKED / connected NOT_RUN**, not an account-authentication or provider denial.
+Artifact `12848416657` has SHA-256
+`43773e23718accdd1ad217c940693a1de47532598147e0c9240f76b595bad985`.
+
+The [reviewed access worker 901b434c](https://github.com/jeremytheva/pourfolio/blob/901b434c47a1be202a14831361461794bb0b4001/.github/workflows/add-beer-connected-evidence.yml)
+pins source `53299fce` and the immutable preview. Its optional Shareable Link
+bootstrap has exact-origin/query validation, bounded same-origin redirects and
+private observed cookie state. Syntax and 27 hermetic guard cases pass.
+[Run 40766264292](https://github.com/jeremytheva/pourfolio/actions/runs/40766264292)
+accepted the unmarked workflow and skipped its sole job; live access is NOT_RUN.
+
+The owner's supplied branch-alias link currently resolves to this deployment
+(metadata checked 29 October); it is not substituted into the exact-origin
+worker or committed. The owner must save a matching **Share → Commit** link
+directly in protected `staging-release` secret `RELEASE_PREVIEW_SHARE_URL` and
+confirm it is saved. Connected tools cannot set GitHub secrets. Existing account
+passwords remain unchanged. After confirmation, select one bounded run of
+`catalogue-readonly.spec.js:65`: full authenticated category pagination and
+selection of a returned canonical style. Require matching before/after provenance,
+one pass with no skips/errors, original saved-session HTTP 401 after logout,
+private cleanup and the six explicit redacted reports. No catalogue, rating or
+cellar write is selected. See the
+[operational setup](docs/TESTING.md#protected-add-beer-preview-qualification).
+Until this evidence passes, #697 remains unmerged and connected acceptance NOT_RUN.
+
+PR #710 is integrated as `078843e5`; its moderation target remains source-only.
+The approved single QA cellar recovery is complete and must not be repeated.
+A separate `RELEASE_FIXTURE_ENCRYPTION_KEY` is still required before another
+cellar mutation check. Public launch remains **NO-GO**: #165, #144/#154, #422,
+42 missing bonus values and the operational/public-release gates remain open.
+Brew Done It remains disabled and launch-excluded; its independent #715 evidence
+and blockers are preserved below.
+
+Production baseline `fa18a865` passes 1,191 source tests (15 intentional skips),
+zero failures/production vulnerabilities and 187 browser cases in
+[run 40671993296](https://github.com/jeremytheva/pourfolio/actions/runs/40671993296).
+Production `dpl_EfZPt3zpR6s2w1PcyV8X9ZwbnXwz` is READY. Retained bounded runtime
+verification remains scoped to `9e0c44ba`, not this newer deployment.
 
 ### Staging API inventory blocked — 28 October 2026 (Australia/Sydney)
 
