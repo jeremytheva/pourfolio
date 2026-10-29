@@ -2,40 +2,24 @@
   "version": 1,
   "claims": {
     "catalogue": {
-      "owner": "catalogue-cellar-pagination-20261029T072542668Z",
+      "owner": "catalogue-style-integration-20261029T075212848Z",
       "workstream": "catalogue",
-      "issue": 726,
-      "pr": 727,
-      "surfaces": [
-        "branch:fix/cellar-pagination-20261029",
-        "file:.project-master/launch-readiness.json",
-        "file:ARCHITECTURE.md",
-        "file:STATUS.md",
-        "file:api/cellar-data-proxy.js",
-        "file:api/nocodebackend/__tests__/catalogueQueryPolicy.test.js",
-        "file:api/nocodebackend/__tests__/cellarPagination.test.js",
-        "file:docs/LAUNCH_READINESS.md",
-        "file:docs/TESTING.md",
-        "file:e2e/cellar-load-recovery.spec.js",
-        "file:scripts/__tests__/cellarWriteCertification.test.js",
-        "repo:integration"
-      ],
-      "acquiredAt": "2026-10-29T07:25:42.668Z",
-      "expiresAt": "2026-10-29T08:11:15.907Z"
-    },
-    "ratings": {
-      "owner": "ratings-style-pagination-20261029T074419743Z",
-      "workstream": "ratings",
       "issue": 728,
       "pr": null,
       "surfaces": [
+        "repo:integration",
         "branch:fix/style-population-pagination-20261029",
         "file:api/rating-data-proxy.js",
         "file:api/__tests__/styleScaledScoreGateway.test.js",
-        "file:api/__tests__/stylePopulationPagination.test.js"
+        "file:api/__tests__/stylePopulationPagination.test.js",
+        "file:STATUS.md",
+        "file:docs/LAUNCH_READINESS.md",
+        "file:docs/TESTING.md",
+        "file:ARCHITECTURE.md",
+        "file:.project-master/launch-readiness.json"
       ],
-      "acquiredAt": "2026-10-29T07:44:19.743Z",
-      "expiresAt": "2026-10-29T08:14:19.743Z"
+      "acquiredAt": "2026-10-29T07:52:12.848Z",
+      "expiresAt": "2026-10-29T08:22:12.848Z"
     }
   }
 }
