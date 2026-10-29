@@ -39,6 +39,33 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
+### Newer rating-schema input and preview access — 29 October 2026 UTC
+
+The owner-supplied 28 October export has been structurally audited using main
+`2eec6d6`. The [redacted report](evidence/rating-schema-export-20261028.json)
+records **21 deferred-target findings**: 13 nullable fields, three missing
+columns, four missing unique constraints and one score-range control. Existing
+profile/combined-child uniqueness, required foreign keys, immutable rating date
+and workflow fields are present in that supplied input. These are structural
+contract differences, not a live production defect count or permission test.
+The [migration checkpoint](nocodebackend/rating-schema-migration-runbook.md#supplied-export-assessment--29-october-2026)
+requires current-writer/target identity compatibility and preservation of managed
+and terminal rows before an executable delta. Provider mechanisms/CAS, consistent
+baseline, isolated restore and actual irreversible-change approval remain open.
+
+A temporary link for #697's exact immutable preview was successfully obtained
+through the Vercel account. Protected health/readiness at **06:59 UTC** returned
+HTTP 200, exact candidate `53299fce0cfd7a308c36bc0037ac5e2068969131`, preview
+environment and `dataProvider=ok`. This establishes bounded protected endpoint
+access only. The saved GitHub secret has not been replaced/tested, no application
+account/category/browser case ran, and no logout/session-cleanup acceptance is
+claimed. The existing one-case gate remains **NOT_RUN**, with #697 unmerged.
+No link/token or private export is committed.
+
+The optional runtime-major dependency PR #685 remains unmerged; it does not
+replace pending launch certification. Public launch remains **NO-GO** with the
+existing integrity, privacy, bonus, operations and candidate/device gates open.
+
 ### Toolchain integrated and anonymous production entry verified — 29 October 2026 UTC
 
 [PR #684](https://github.com/jeremytheva/pourfolio/pull/684) merged as

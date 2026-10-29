@@ -12,6 +12,7 @@ current_work:
   pr: 697
   branch: feature/add-beer-release-form
 next_actions:
+  - "#165 newer supplied export is assessed: 21 deferred-target structural findings, with profile and combined child uniqueness already present. Reconcile current submission_key-only parent writes with the separate rating_id/child-key target before preparing an executable delta; retain provider/CAS, fresh consistent baseline, isolated restore and irreversible-change approval gates."
   - "#697 source 53299fce passes 1,200 source tests and 193 browser cases. Saved-link diagnostic 40802837673 reports SHARE_URL_ORIGIN_MISMATCH before any access request. Replace RELEASE_PREVIEW_SHARE_URL with the immutable Commit link, then run the reviewed one-case gate once and require provenance, original-session 401 and cleanup before integration."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
   - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Its provider key is configured; configure the independent recovery key and dedicated fixture user/product IDs, diagnose the failed read, and verify cloned constraints/recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
@@ -80,6 +81,42 @@ last_updated: "2026-10-29T02:24:00Z"
 Last materially reviewed: 29 October 2026 UTC
 
 ## AI execution gate
+
+### Launch review and newer schema evidence — 29 October 2026 UTC
+
+Reviewed main `2eec6d6cd9bc1e1a43133c78bd46df4b6d57381d`, current open PRs
+and the newer owner-supplied 28 October database export. The existing structural
+auditor returns **BLOCKED / 21 findings against the deferred rating target**:
+13 nullable fields, three missing columns, four missing unique constraints and
+one missing score-range control. Profile uniqueness, both combined child keys,
+required relationships, immutable rating date default and five-state/version
+fields are present in that input. See the
+[redacted report](docs/evidence/rating-schema-export-20261028.json) and
+[compatibility checkpoint](docs/nocodebackend/rating-schema-migration-runbook.md#supplied-export-assessment--29-october-2026).
+This is supplied-export evidence, not live schema/permission verification or a
+consistent recoverable baseline. No provider write or migration ran.
+
+The target's separate `ratings.rating_id` and child `uniqueness_key` fields are
+absent, while current gateway writes use `submission_key` and combined child
+identity. Reconcile that compatibility and preserve existing keys, IDs, dates,
+totals and terminal states before any executable migration/backfill plan. Do not
+repeat already-satisfied changes or reset managed rows using legacy defaults.
+
+The Vercel account access tool successfully returned a temporary link for #697's
+exact immutable hostname. Protected health/readiness reads at **06:59 UTC**
+returned HTTP 200, source `53299fce0cfd7a308c36bc0037ac5e2068969131`, preview
+environment and `dataProvider=ok`. The link/token is not retained in the repo.
+The saved GitHub secret has not been replaced or recertified by this assessment;
+the one-case category/browser/logout/cleanup gate remains **NOT_RUN** and #697
+stays unmerged. Account credentials need no change. The earlier link-helper
+timeout and saved-secret origin rejection remain historical evidence.
+
+PR #685 is a runtime animation-library major update, separate from the launch
+critical path. Its older checks do not establish current-main integration; leave
+it unmerged while the launch candidate's required connected evidence is pending.
+The 42 bonus allocations, #165 distributed integrity/recovery, #422 privacy,
+#144/#154 connected acceptance, publication/operations and physical-device gates
+remain open. Public launch remains **NO-GO**; Brew Done It remains launch-excluded.
 
 ### Toolchain integrated and anonymous production entry verified — 29 October 2026 UTC
 

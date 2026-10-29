@@ -1,0 +1,153 @@
+{
+  "reportType": "STRUCTURAL_SQL_AUDIT",
+  "scope": "Structural SQL invariants only; connected provider policy and workflow certification is required separately.",
+  "status": "BLOCKED",
+  "counts": {
+    "tablesChecked": 4,
+    "blockers": 21
+  },
+  "countsByCode": {
+    "NULLABLE_REQUIRED_COLUMN": 13,
+    "MISSING_REQUIRED_COLUMN": 3,
+    "MISSING_UNIQUE_CONSTRAINT": 4,
+    "MISSING_SCORE_INTEGER_RANGE_ENFORCEMENT": 1
+  },
+  "blockers": [
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "user_id"
+    },
+    {
+      "code": "MISSING_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "rating_id"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "product_id"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "submission_key"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "submission_fingerprint"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "expected_score_count"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "ratings",
+      "column": "expected_bonus_count"
+    },
+    {
+      "code": "MISSING_UNIQUE_CONSTRAINT",
+      "table": "ratings",
+      "columns": [
+        "user_id",
+        "rating_id"
+      ]
+    },
+    {
+      "code": "MISSING_UNIQUE_CONSTRAINT",
+      "table": "ratings",
+      "columns": [
+        "submission_key"
+      ]
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "rating_scores",
+      "column": "user_id"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "rating_scores",
+      "column": "rating_id"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "rating_scores",
+      "column": "attribute_id"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "rating_scores",
+      "column": "attribute_score"
+    },
+    {
+      "code": "MISSING_REQUIRED_COLUMN",
+      "table": "rating_scores",
+      "column": "uniqueness_key"
+    },
+    {
+      "code": "MISSING_UNIQUE_CONSTRAINT",
+      "table": "rating_scores",
+      "columns": [
+        "uniqueness_key"
+      ]
+    },
+    {
+      "code": "MISSING_SCORE_INTEGER_RANGE_ENFORCEMENT",
+      "table": "rating_scores",
+      "column": "attribute_score"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "bonus_attribute_rating_mapping",
+      "column": "user_id"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "bonus_attribute_rating_mapping",
+      "column": "rating_id"
+    },
+    {
+      "code": "NULLABLE_REQUIRED_COLUMN",
+      "table": "bonus_attribute_rating_mapping",
+      "column": "bonus_attribute_id"
+    },
+    {
+      "code": "MISSING_REQUIRED_COLUMN",
+      "table": "bonus_attribute_rating_mapping",
+      "column": "uniqueness_key"
+    },
+    {
+      "code": "MISSING_UNIQUE_CONSTRAINT",
+      "table": "bonus_attribute_rating_mapping",
+      "columns": [
+        "uniqueness_key"
+      ]
+    }
+  ],
+  "inputs": {
+    "schema": {
+      "file": "54026_rating_export_2026-10-28.sql",
+      "bytes": 2081842,
+      "sha256": "fc574f3b4ea4a7b1c6e4f37552d781e601aeb34335e8160d668fcc906232b718"
+    }
+  },
+  "assessment": {
+    "assessedOn": "2026-10-29",
+    "source": "owner-supplied export labelled 54026_rating, dated 2026-10-28",
+    "compressedInput": {
+      "file": "54026_rating_export_2026-10-28.sql.gz",
+      "bytes": 450666,
+      "sha256": "bf6d49719695aecc64d91a6b36443c10d382e7ba01ec68757387eb1ba1bb3f51"
+    },
+    "reviewedApplicationSha": "2eec6d6cd9bc1e1a43133c78bd46df4b6d57381d",
+    "liveSchemaIntrospection": false,
+    "consistentSnapshotVerified": false,
+    "restoreVerified": false,
+    "migrationExecuted": false,
+    "interpretation": "Findings compare supplied SQL structure with the existing deferred target. They are not a count of observed production failures, a migration plan or provider certification."
+  }
+}
