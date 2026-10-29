@@ -56,12 +56,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "fa18a8655f06c0b25540ec1b7bfcaeac34927ac6"
+  observed_main_commit: "112d23aea65436794c0e2652fb06c1249a3726d2"
   current_candidate_commit: "53299fce0cfd7a308c36bc0037ac5e2068969131"
-  latest_validated_commit: "53299fce0cfd7a308c36bc0037ac5e2068969131"
-  latest_deployed_commit: "fa18a8655f06c0b25540ec1b7bfcaeac34927ac6"
-  latest_runtime_verified_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
-  latest_browser_verified_commit: "53299fce0cfd7a308c36bc0037ac5e2068969131"
+  latest_validated_commit: "112d23aea65436794c0e2652fb06c1249a3726d2"
+  latest_deployed_commit: "112d23aea65436794c0e2652fb06c1249a3726d2"
+  latest_runtime_verified_commit: "112d23aea65436794c0e2652fb06c1249a3726d2"
+  latest_browser_verified_commit: "112d23aea65436794c0e2652fb06c1249a3726d2"
 validation:
   governance: PASS
   lint: PASS
@@ -70,8 +70,8 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "9e0c44baf7189710477066c0d4e5c7cdf583b0f8"
-last_updated: "2026-10-29T02:11:00Z"
+last_verified_commit: "112d23aea65436794c0e2652fb06c1249a3726d2"
+last_updated: "2026-10-29T02:24:00Z"
 
 ---
 
@@ -81,11 +81,48 @@ Last materially reviewed: 29 October 2026 UTC
 
 ## AI execution gate
 
+### Toolchain integrated and anonymous production entry verified — 29 October 2026 UTC
+
+[PR #684](https://github.com/jeremytheva/pourfolio/pull/684) merged as
+`112d23aea65436794c0e2652fb06c1249a3726d2`, tree
+`160aa33a9e0deed2cee93d2ff41870f84dd7093f`, matching validated source
+`7e3c57f2`. Exact merged-main
+[run 40805296523](https://github.com/jeremytheva/pourfolio/actions/runs/40805296523)
+also passes canonical Node 22: 1,191 passed, 15 intentional connected skips,
+zero failures and production vulnerabilities, plus all 187 browser/accessibility
+cases. Dependency Review passed on the PR; CodeQL passed on both heads.
+Production `dpl_DtbdwuQaFKcrRqdAtsfQaC8A7Kj3` is READY at exact `112d23ae`.
+
+The existing anonymous job in
+[run 40805535155](https://github.com/jeremytheva/pourfolio/actions/runs/40805535155),
+job `123223467711`, passed at **02:18:14 UTC**. All eight fixed routes returned
+HTTP 200 at the production origin: `/login`, `/privacy`, `/terms`,
+`/moderation`, `/support`, `/retention`, `/api/health` and `/api/readiness`.
+Health/readiness agreed on exact SHA `112d23ae` and production environment;
+the readiness check required `dataProvider=ok`. The job used no account
+credentials or protection headers and retained only the fixed aggregate report.
+
+Worker `f43a3bdd337ce583b42a6ede16235f2aafcfc5a1` is an empty commit over
+`a98f8231` with only the public-access selector. The separate Add Beer workflow
+[run 40805535140](https://github.com/jeremytheva/pourfolio/actions/runs/40805535140)
+was **SKIPPED**; no preview/account retry occurred. Independent review supports
+only **HTTP_ENTRY_ONLY** for these eight routes. This does not certify rendered
+content, legal approval, authenticated journeys, provider permissions, browser
+accessibility on production, recovery or the full release gate.
+
+The commit-preview link helper separately timed out without returning a usable
+link. No private handoff file was produced and no successful share grant is
+claimed. The owner's confirmation that the incorrect secret was added remains
+distinct from the still-missing confirmation that it was replaced. #697 retains
+its exact reviewed source/preview and SHARE_URL_ORIGIN_MISMATCH blocker.
+Public launch remains **NO-GO**; all provider-integrity, privacy, bonus allocation,
+operations and final-candidate gates below remain open.
+
 ### Development toolchain maintenance — 29 October 2026 UTC
 
 Existing [PR #684](https://github.com/jeremytheva/pourfolio/pull/684) updates
 ESLint 10.12.0 → 10.13.0, PostCSS 8.5.30 → 8.5.31 and Vite 8.3.4 → 8.3.5.
-The refresh retains current main `4dbc18be` and the original bot history.
+The refresh retains its recorded main baseline `4dbc18be` and the original bot history.
 The manifest/lock change is the original reviewed dependency slice: 241 lock
 nodes, no additions/deletions, and 20 changed development-package nodes including
 Rolldown/platform bindings and OXC types. Runtime dependencies and Node 22 stay
@@ -102,7 +139,7 @@ and operational gates open. Brew Done It remains disabled and launch-excluded.
 ### Add Beer candidate and protected-preview gate — 29 October 2026 UTC
 
 PR [#697](https://github.com/jeremytheva/pourfolio/pull/697) is open and unmerged
-at `53299fce0cfd7a308c36bc0037ac5e2068969131`, incorporating current main
+at `53299fce0cfd7a308c36bc0037ac5e2068969131`, incorporating its recorded main baseline
 `fa18a8655f06c0b25540ec1b7bfcaeac34927ac6` without discarding the newer Brew
 work. Keyboard-active canonical choices now scroll into view while retaining
 combobox focus; the 40-choice regression covers both directions and Enter.
@@ -183,8 +220,9 @@ and blockers are preserved below.
 Production baseline `fa18a865` passes 1,191 source tests (15 intentional skips),
 zero failures/production vulnerabilities and 187 browser cases in
 [run 40671993296](https://github.com/jeremytheva/pourfolio/actions/runs/40671993296).
-Production `dpl_EfZPt3zpR6s2w1PcyV8X9ZwbnXwz` is READY. Retained bounded runtime
-verification remains scoped to `9e0c44ba`, not this newer deployment.
+Production `dpl_EfZPt3zpR6s2w1PcyV8X9ZwbnXwz` is READY. At that earlier checkpoint, bounded runtime
+verification was scoped to `9e0c44ba`, not that newer deployment. Current
+`112d23ae` anonymous HTTP evidence is recorded above.
 
 ### Staging API inventory blocked — 28 October 2026 (Australia/Sydney)
 
