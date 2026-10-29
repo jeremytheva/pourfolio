@@ -5,7 +5,7 @@
       "owner": "catalogue-cellar-pagination-20261029T072542668Z",
       "workstream": "catalogue",
       "issue": 726,
-      "pr": null,
+      "pr": 727,
       "surfaces": [
         "branch:fix/cellar-pagination-20261029",
         "file:.project-master/launch-readiness.json",
@@ -21,7 +21,7 @@
         "repo:integration"
       ],
       "acquiredAt": "2026-10-29T07:25:42.668Z",
-      "expiresAt": "2026-10-29T08:04:44.385Z"
+      "expiresAt": "2026-10-29T08:11:15.907Z"
     }
   }
 }
