@@ -12,8 +12,8 @@ current_work:
   pr: 697
   branch: feature/add-beer-release-form
 next_actions:
-  - "#726 repairs the still-present cellar default-page truncation using fresh sorted owner pages, fail-closed completeness and bounded optional hydration. Verify final-head source/browser/deployment evidence; connected multi-page owner/provider acceptance remains under #144/#154."
-  - "After #726, repair the separate unpaged product/category relationship reads in rating score populations; current loadExactRecords still uses one list call. Do not describe that style-population fix as integrated."
+  - "#727 is merged as 1ef714ce: the #726 cellar pagination repair passed 1,216 source tests, 188 browser/accessibility cases and exact production health/readiness. Connected multi-page owner/provider acceptance remains under #144/#154."
+  - "#728 repairs the separate unpaged product/category score-population reads with bounded ID batches, complete validated pages and exact requested-ID filtering. Retain final-head validation/deployment evidence separately from connected provider/volume certification."
   - "#165 newer supplied export is assessed: 21 deferred-target structural findings, with profile and combined child uniqueness already present. Reconcile current submission_key-only parent writes with the separate rating_id/child-key target before preparing an executable delta; retain provider/CAS, fresh consistent baseline, isolated restore and irreversible-change approval gates."
   - "#697 source 53299fce passes 1,200 source tests and 193 browser cases. Saved-link diagnostic 40802837673 reports SHARE_URL_ORIGIN_MISMATCH before any access request. Replace RELEASE_PREVIEW_SHARE_URL with the immutable Commit link, then run the reviewed one-case gate once and require provenance, original-session 401 and cleanup before integration."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
@@ -83,6 +83,32 @@ last_updated: "2026-10-29T02:24:00Z"
 Last materially reviewed: 29 October 2026 UTC
 
 ## AI execution gate
+
+### Complete style-population relationships (29 October 2026 UTC)
+
+#727's cellar repair is merged and deployed at `1ef714ce106d41d07797c46418c23c9bd2f0ba26`.
+Its exact source passed 1,216 tests (15 intentional connected skips), all 188
+browser/accessibility cases, Dependency Review and CodeQL. Production
+`dpl_Dg7db1Yksznprojqb4eP6jtXZFHZ` is READY at that SHA; health/readiness returned
+HTTP 200 with matching production identity and `dataProvider=ok` at 07:52 UTC.
+This is bounded deployment/endpoint evidence, not live 205-row/HTTP-owner certification.
+
+The #728 real-adapter regression separately confirms the old score-population
+defect: 30 qualifying distinct products produced 30 overall scores but only 25
+style scores. Product/category relationship reads now use at most 100 requested
+IDs per batch and traverse every provider page within a 1,000-page collection
+budget. Local batch-ID filtering excludes unrelated records; invalid/repeated/
+nonmonotonic identities, exact-total drift and later-page failures reject the
+population rather than publishing partial style evidence. Missing canonical
+relationships remain unavailable. Formula, eligibility and historical totals
+are unchanged. Final-head source/browser/deployment results belong in its PR;
+connected volume/latency and the broader #144/#154 matrix remain open.
+
+No provider write, schema migration, automatic upload or public launch approval
+is part of either pagination repair. #697's saved preview-link replacement is
+still unconfirmed; the known failed configuration is not retried unchanged.
+The 42 bonus allocations, #165 integrity/recovery, #422 privacy, operations and
+device/candidate acceptance remain open. Public launch remains **NO-GO**.
 
 ### Cellar completeness repair (29 October 2026 UTC)
 

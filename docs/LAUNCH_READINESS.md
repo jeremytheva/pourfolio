@@ -39,6 +39,24 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
+### Complete score-population relationships (29 October 2026 UTC)
+
+#728 repairs the separate product/category relationship truncation after #727's
+cellar pagination repair. The actual-adapter regression reproduces 30 overall
+scores versus only 25 style scores before repair. Relationship reads now use
+bounded exact-ID chunks and complete validated pages; missing canonical facts
+remain unavailable, and inconsistent/failed pages cannot publish partial
+populations. Formula, qualifying states and historical totals are preserved.
+See [testing scope](TESTING.md#complete-style-score-relationship-reads).
+
+#727 is merged/deployed as `1ef714ce` with 1,216 source tests (15 connected skips),
+188 browser/accessibility cases and bounded exact-production health/readiness
+at 07:52 UTC. The #728 final-head results are retained in its PR. Neither source
+repair certifies live multi-page owner data, provider permissions, volume/latency,
+rating concurrency/recovery or the complete release. Public launch stays
+**NO-GO**; the existing bonus, privacy, operations, device and exact-candidate
+gates remain open, and #697's saved-link replacement is still unconfirmed.
+
 ### Cellar pagination repair (29 October 2026 UTC)
 
 #726 fixes the still-present source defect on main `345c37e`: one unpaged read

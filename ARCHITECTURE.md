@@ -98,6 +98,19 @@ abortable deadline; unavailable optional metadata preserves private cellar rows.
 This read path adds no provider mutation or schema requirement. Connected
 provider/permission and full release acceptance remain separate.
 
+## Complete style-score relationships
+
+Rating score populations traverse the complete qualifying rating set, then load
+exact product/category relationships in batches of at most 100 requested IDs.
+Each batch follows deterministic 100-row provider pages; a collection-wide
+1,000-page budget bounds the scan. Every returned identity is validated, and
+only IDs from that batch enter the index even if the provider returns unrelated
+rows. Duplicate/nonmonotonic IDs, inconsistent exact totals and failed later
+pages reject the population. Missing canonical relationships remain unavailable.
+No score formula, historical total or rating-state eligibility rule changes.
+Optional owner-history enrichment retains its existing unavailable fallback
+when a population cannot be verified; partial style populations are not published.
+
 ## Rating write integrity
 
 A rating is a coordinated write across `ratings`, `rating_scores` and optional `bonus_attribute_rating_mapping` rows. The current NoCodeBackend API relationship field is `bonus_attribute_id`, referencing `bonus_attributes.id`. A retained July 2026 SQL export records the older plural spelling `bonus_attributes_id`; connected provider evidence from 4 October 2026 supersedes that export for application integration. The durable target uses an idempotent submission contract so retries cannot create duplicate logical ratings or partial child graphs.

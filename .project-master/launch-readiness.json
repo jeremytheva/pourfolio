@@ -113,7 +113,8 @@
       "criticality": "blocking",
       "issue_refs": [
         "#503",
-        "#165"
+        "#165",
+        "#728"
       ],
       "change_paths": [
         "api/**rating**",
@@ -131,14 +132,19 @@
         "scripts/**/live-rating*",
         "scripts/**/*Rating*",
         "scripts/**/*rating*",
-        "scripts/*Rating*"
+        "scripts/*Rating*",
+        "api/__tests__/stylePopulationPagination.test.js",
+        "api/__tests__/styleScaledScoreGateway.test.js"
       ],
       "test_refs": [
         "e2e/core-flow.spec.js",
         "e2e/rating-breakdown-sharing.spec.js",
         "release-check/connected.spec.js",
         "scripts/__tests__/liveRatingIntegrityAudit.test.js",
-        "api/_lib/__tests__/catalogueTombstoneMetrics.test.js"
+        "api/_lib/__tests__/catalogueTombstoneMetrics.test.js",
+        "api/__tests__/stylePopulationPagination.test.js",
+        "api/__tests__/styleScaledScoreGateway.test.js",
+        "api/_lib/__tests__/styleScaledScore.test.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",

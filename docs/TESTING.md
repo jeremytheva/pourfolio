@@ -92,6 +92,25 @@ crash recovery or snapshot/restore. See the
 
 ## Current automated coverage
 
+### Complete style-score relationship reads
+
+`api/__tests__/stylePopulationPagination.test.js` uses the actual provider
+adapter with a synthetic transport whose unpaged default is 25. The 30-product
+regression reproduces 30 overall scores versus 25 style scores before #728;
+after repair, the late product has the complete 30-score style sample. Further
+cases vary ratings/products/categories independently, cover 205 distinct
+products/styles and bounded ID chunks, traverse broad responses and array-only
+terminal pages, and reject later-page failures, duplicate/conflicting IDs,
+malformed identities, exact-total drift and an oversized advertised scan.
+Missing relationships and empty populations remain unavailable/empty without
+inventing style evidence. Mutation methods are prohibited by the fixture.
+
+`styleScaledScoreGateway.test.js` now pages each relationship collection through
+its existing fake adapter; its original rating-pagination assertions still
+measure rating pages specifically. The pure style-score formula/eligibility
+tests remain unchanged. These checks do not establish connected provider
+volume/latency, permissions, #165 integrity or public-release acceptance.
+
 ### Complete owner cellar reads
 
 `api/nocodebackend/__tests__/cellarPagination.test.js` exercises the real provider

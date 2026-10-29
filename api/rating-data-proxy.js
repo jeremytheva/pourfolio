@@ -91,10 +91,57 @@ const ownedCellarForRating = async (body, userId, productId) => {
 }
 
 const loadExactRecords = async (collection, ids) => {
-  const requested = new Set([...ids].map(canonicalPositiveId).filter(Boolean))
-  if (!requested.size) return []
-  return records(await dataProvider.list(collection, { 'id[in]': [...requested].join(',') }))
-    .filter((record) => requested.has(canonicalPositiveId(record?.id)))
+  const requested = [...new Set([...ids].map(canonicalPositiveId).filter(Boolean))]
+    .sort((left, right) => Number(left) - Number(right))
+  const result = []
+  const batchSize = 100
+  const pageSize = 100
+  const maxPages = 1000
+  let pagesRead = 0
+  const invalidRelationships = () => Object.assign(new Error('The rating style relationships could not be verified.'), {
+    status: 502, code: 'RATING_RELATIONSHIPS_UNVERIFIED'
+  })
+  for (let start = 0; start < requested.length; start += batchSize) {
+    const batch = new Set(requested.slice(start, start + batchSize))
+    const seen = new Set()
+    let lastId = 0
+    let pagination = null
+    let complete = false
+    for (let page = 1; pagesRead < maxPages; page += 1) {
+      pagesRead += 1
+      const response = await dataProvider.listPage(collection, {
+        page, limit: pageSize, orderBy: 'id', order: 'asc', filters: { 'id[in]': [...batch].join(',') }
+      })
+      if (!Array.isArray(response?.items) || response.page !== page || response.pageSize !== pageSize ||
+          !Number.isSafeInteger(response.total) || response.total < 0 ||
+          !Number.isSafeInteger(response.totalPages) || response.totalPages < 0 || response.totalPages > maxPages) {
+        throw invalidRelationships()
+      }
+      const inferred = Object.hasOwn(response, 'totalIsEstimate')
+      if (pagination && (pagination.inferred !== inferred || !inferred &&
+          (pagination.total !== response.total || pagination.totalPages !== response.totalPages))) throw invalidRelationships()
+      pagination = { inferred, total: response.total, totalPages: response.totalPages }
+      for (const record of response.items) {
+        const id = canonicalPositiveId(record?.id)
+        if (!record || typeof record !== 'object' || Array.isArray(record) ||
+            !['number', 'string'].includes(typeof record.id) || !id || seen.has(id) || Number(id) <= lastId) {
+          throw invalidRelationships()
+        }
+        seen.add(id)
+        lastId = Number(id)
+        // A broad provider response must not add another chunk's IDs or count
+        // an unrelated relationship; each requested ID belongs to one batch.
+        if (batch.has(id)) result.push(record)
+      }
+      if (page >= Math.max(1, response.totalPages)) {
+        if (seen.size !== response.total) throw invalidRelationships()
+        complete = true
+        break
+      }
+    }
+    if (!complete) throw invalidRelationships()
+  }
+  return result
 }
 
 const scorePopulations = async () => {

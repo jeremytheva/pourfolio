@@ -12,7 +12,6 @@ const withProviderList = async (replacement, callback) => {
   const originalPage = dataProvider.listPage
   dataProvider.list = replacement
   dataProvider.listPage = async (collection, { page = 1, limit = 100, orderBy, order, filters = {} } = {}) => {
-    assert.equal(collection, COLLECTIONS.ratings)
     assert.equal(orderBy, 'id')
     assert.equal(order, 'asc')
     const rows = await replacement(collection, filters)
@@ -118,7 +117,7 @@ test('gateway includes every completed rating when the provider requires multipl
   }, async () => {
     const originalPage = dataProvider.listPage
     dataProvider.listPage = async (collection, options) => {
-      fetchedPages.push(options.page)
+      if (collection === COLLECTIONS.ratings) fetchedPages.push(options.page)
       return originalPage(collection, options)
     }
     try {
