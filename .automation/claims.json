@@ -1,4 +1,23 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "catalogue-approved-preview-20261104T1212Z",
+      "workstream": "catalogue",
+      "issue": 695,
+      "pr": 697,
+      "surfaces": [
+        "repo:integration",
+        "branch:fix/add-beer-connected-evidence-20261027",
+        "branch:feature/add-beer-release-form",
+        "pr:697",
+        "file:.github/workflows/add-beer-connected-evidence.yml",
+        "file:STATUS.md",
+        "file:docs/LAUNCH_READINESS.md",
+        "file:docs/TESTING.md"
+      ],
+      "acquiredAt": "2026-11-04T12:11:23.000Z",
+      "expiresAt": "2026-11-04T12:41:23.000Z"
+    }
+  }
 }
