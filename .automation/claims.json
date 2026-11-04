@@ -14,7 +14,11 @@
         "file:.github/workflows/add-beer-connected-evidence.yml",
         "file:STATUS.md",
         "file:docs/LAUNCH_READINESS.md",
-        "file:docs/TESTING.md"
+        "file:docs/TESTING.md",
+        "branch:fix/release-failure-locations-20261104",
+        "file:release-check/redactedReleaseReporter.js",
+        "file:release-check/__tests__/redactedReleaseReporter.test.js",
+        "file:docs/evidence/add-beer-connected-20261104.json"
       ],
       "acquiredAt": "2026-11-04T12:11:23.000Z",
       "expiresAt": "2026-11-04T12:41:23.000Z"
