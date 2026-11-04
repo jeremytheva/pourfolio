@@ -3,11 +3,11 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Confirmed preview update still fails exact-origin preflight; Add Beer connected qualification NOT_RUN"
+stage: "Encrypted preview relay prepared; public ciphertext delivery requires scoped approval"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Correct the exact staging-release Environment secret, qualify Add Beer source 53299fce once, then reconcile #697 with current main and validate before integration."
+  objective: "Qualify Add Beer source 53299fce through the reviewed one-run relay after scoped approval, then reconcile #697 with current main and its pagination repairs."
   issue: 695
   pr: 697
   branch: feature/add-beer-release-form
@@ -15,7 +15,7 @@ next_actions:
   - "#727 is merged as 1ef714ce: the #726 cellar pagination repair passed 1,216 source tests, 188 browser/accessibility cases and exact production health/readiness. Connected multi-page owner/provider acceptance remains under #144/#154."
   - "#729 is merged as ef86e20d: the #728 style-population pagination repair passed 1,230 source tests, 188 browser/accessibility cases and exact production health/readiness. Both pagination repairs are integrated; connected provider/volume certification remains open."
   - "#165 newer supplied export is assessed: 21 deferred-target structural findings, with profile and combined child uniqueness already present. Reconcile current submission_key-only parent writes with the separate rating_id/child-key target before preparing an executable delta; retain provider/CAS, fresh consistent baseline, isolated restore and irreversible-change approval gates."
-  - "#697 source 53299fce passes 1,200 source tests and 193 browser cases. After owner confirmation of an updated preview variable, one unchanged-worker run 40868871732 still reports SHARE_URL_ORIGIN_MISMATCH before access. Replace staging-release Environment secret RELEASE_PREVIEW_SHARE_URL with the fixed Add Beer Commit link, confirm, then select one bounded gate. Reconcile the conflicted PR with main, retaining both pagination fixes, and validate the resulting head before integration."
+  - "#697 source 53299fce passes 1,200 source tests and 193 browser cases. Do not ask for another secret update. The reviewed encrypted relay requires explicit approval for one public ciphertext packet before a fresh run; attempt 40963113424 ended NOT_RUN with verified private cleanup. Preserve both pagination fixes when reconciling the conflicted PR, then validate the combined head and qualify its exact build."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
   - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Its provider key is configured; configure the independent recovery key and dedicated fixture user/product IDs, diagnose the failed read, and verify cloned constraints/recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
   - "#710 is integrated as 078843e5. #697 keyboard visibility and release-origin checkpoints are source/browser validated; connected category acceptance remains NOT_RUN."
@@ -33,7 +33,7 @@ next_actions:
 blockers:
   - scope: add_beer_protected_preview_access
     issue: 154
-    detail: "The owner confirmed an updated variable using the latest preview. Run 40868871732 still reports SHARE_URL_ORIGIN_MISMATCH before access; credentials/browser/category checks remain NOT_RUN. The worker consumes staging-release Environment secrets, not GitHub Actions Variables or Vercel variables. Save the Commit link for pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app in that exact secret and confirm before one further bounded run."
+    detail: "Environment secret metadata is inaccessible to the integration (HTTP 403). A tested ephemeral encrypted relay avoids another owner secret update, but automatic approval review rejected public PR-body persistence without explicit scoped approval. No packet was published; run 40963113424 stopped before access, and retained private cleanup passed. Require that specific approval before a fresh relay run."
   - scope: brew_done_it_connected_qualification
     issue: 715
     detail: "The source's combined indexes are correct. An empty schema clone and dedicated main-only brew-contract environment now exist, and its provider key is now configured. Three fixture/recovery secrets remain absent; the first staging API read failed with INVENTORY_READ_FAILED. Cloned-index/API verification, connected cleanup/non-interference, isolated recovery, provider CAS, scoring storage, privacy and two-device testing remain unqualified."
@@ -49,17 +49,17 @@ blockers:
   - scope: persistent_profile_privacy
     issue: 422
     detail: "Provider uniqueness/default-private creation, persisted opt-in/revocation, copied links and cross-owner denial still need connected certification."
-requires_owner_decision: false
+requires_owner_decision: true
 owner_decision:
-  question: null
-  recommendation: null
+  question: "Approve one run-specific encrypted preview-access packet in PR #697's public description, acknowledging that ciphertext may remain in history or webhooks?"
+  recommendation: "Use the reviewed one-run relay only after explicit approval. Keep plaintext and private keys private; verify the fresh recipient and remove only the matching displayed packet after the run."
 wip:
   open_implementation_prs: 1
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
+  observed_main_commit: "116ebf4cde820eec9af8c21b5545ee3881ee73c0"
   current_candidate_commit: "53299fce0cfd7a308c36bc0037ac5e2068969131"
   latest_validated_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
   latest_deployed_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
@@ -74,7 +74,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
-last_updated: "2026-10-29T11:57:56Z"
+last_updated: "2026-10-29T22:18:40Z"
 
 ---
 
@@ -83,6 +83,64 @@ last_updated: "2026-10-29T11:57:56Z"
 Last materially reviewed: 29 October 2026 UTC
 
 ## AI execution gate
+
+### Encrypted preview relay prepared; scoped approval required — 29 October 2026 UTC
+
+The owner requested another route instead of further secret-entry instructions.
+The authenticated CLI can read repository metadata, but the protected Environment
+secret-metadata API returned HTTP 403, `Resource not accessible by integration`.
+No secret write was attempted. This is a scoped permission limit, not a GitHub
+reconnection or password problem. Do not ask the owner to repeat that setup.
+
+The [prepared one-off worker](https://github.com/jeremytheva/pourfolio/blob/aa62934c76b8407a0f3431c5aa0a90dfaf69e1cb/.github/workflows/add-beer-connected-evidence.yml)
+uses a fresh protected-run RSA4096 key instead of the incorrect share-link secret.
+Only its public manifest is uploaded. A compact RSA-OAEP-SHA256 packet binds the
+repository, PR, run and attempt, worker/source SHA, immutable origin, timestamps
+and public-key fingerprint. The proposed delivery is a temporary machine block
+in the existing public PR description. Ciphertext can remain in edit history or
+webhooks even after the displayed block is removed; this needs explicit scoped
+approval. Plaintext links and private keys are excluded from that packet.
+
+Fifteen focused tests pass under Node 24, covering actual cryptography, every
+binding, malformed/duplicate/replayed input, expiry, bounded polling, private
+permissions, cleanup and redaction. YAML, Bash and all six embedded Node modules
+pass syntax checks. Two independent reviews found no blocking source issue.
+The tested helper is embedded byte-for-byte in the worker. Node 22 executed the
+real key-preparation step successfully; live decryption and browser acceptance
+remain unqualified. Existing source `53299fce`, exact preview, singleton case 65,
+original-cookie HTTP 401, credential ordering and private-cleanup gates remain.
+
+[Run 40963113424](https://github.com/jeremytheva/pourfolio/actions/runs/40963113424),
+job `123760688576`, used reviewed worker
+`287ea4f257df3371d4d486067156df5b10b61d77`, attempt 1. The public-key artifact
+`12936213352` was independently bound to that run, branch, repository and source;
+ZIP SHA-256 is
+`95393e67d082a40501ecc4e4a2ee3233af6afb9b061fc0f6a5fbe4f88ecc4c5b`.
+The public manifest and recipient fingerprint were validated before local
+encryption. No private key left the protected runner.
+
+Automatic approval review rejected publishing the encrypted packet in public PR
+metadata because general continuation did not explicitly authorise persistence
+of that sensitive derived payload. The operation was not rerouted to another
+public channel. PR readback confirms no packet was published. The receiver
+stopped at **22:08:55 UTC / HANDOFF_TIMEOUT**; provenance, preview requests,
+selection, account sign-in and the browser case were all skipped.
+
+Retained artifact `12935599886` has ZIP SHA-256
+`c06ff6a9793ad1f436265bc5745b54247ce8236e36e4a1a9780784186d05bc4a`.
+Its actual JSON bytes were independently downloaded and checked:
+`connected: NOT_RUN`, `status: BLOCKED`, `session: NOT_REQUIRED`,
+`sessionHttpStatus: null` and `privateWorkspace: PASS`. The private key and
+temporary runner files were removed; cleanup is not inferred from a step alone.
+The expired run cannot receive a later packet. After explicit approval, use a
+fresh key/run and validate the new artifact bindings before one delivery.
+
+#697 remains unmerged at `53299fce`. Preserve both newer pagination repairs and
+all current main work when eventually reconciling its conflicts. Source/build/
+browser evidence on that combined head and exact-build connected acceptance
+remain separate. The relay approval is not release approval; public launch
+remains **NO-GO**, with #165, #144/#154, #422, 42 missing bonus values and the
+operations/recovery gates unchanged.
 
 ### Confirmed Add Beer update and bounded result (29 October 2026 UTC)
 
@@ -106,7 +164,7 @@ selection and postflight reports are absent because those steps did not run.
 No catalogue, rating or cellar mutation was selected. This is a confirmed
 configuration failure before access, not an application authentication failure.
 
-The next owner action is to save the exact Commit link for
+At that earlier checkpoint, the proposed next owner action was to save the exact Commit link for
 `pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app` as the **Environment
 secret** `RELEASE_PREVIEW_SHARE_URL` in GitHub `staging-release`, rather than as
 an Actions Variable or Vercel variable, then confirm without posting the value.
@@ -114,6 +172,8 @@ A fresh exact-host link was supplied privately; no link/token is committed.
 [The existing setup instructions](docs/TESTING.md#protected-add-beer-preview-qualification)
 now state the precise setting and fixed-candidate distinction. Tools cannot set
 or inspect GitHub secrets. The worker's guards are retained unchanged.
+That setup route is superseded by the relay/approval gate above; no further
+secret-entry request is current.
 
 #697 remains unmerged at `53299fce` and currently reports a merge conflict.
 After the original bounded gate passes, reconcile it with current main,
@@ -329,7 +389,7 @@ The cleanup step completed. Artifact `12867141138` has SHA-256
 This proves a saved-link scope/configuration rejection, not token validity,
 application authentication or provider denial. No unchanged retry is selected.
 
-Replace the protected `staging-release` secret with a **Share → Commit** link
+At that earlier checkpoint, the proposed setup was to replace the protected `staging-release` secret with a **Share → Commit** link
 whose hostname is exactly
 `pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app`, then confirm the replacement
 without sending its value. The supplied branch alias currently resolves to this
@@ -337,8 +397,10 @@ deployment (metadata checked 29 October), but its token is not transplanted into
 the exact-origin worker. Connected tools cannot set GitHub secrets. Existing
 account passwords need no change. See the
 [operational setup](docs/TESTING.md#protected-add-beer-preview-qualification).
+That setup route is superseded by the relay/approval gate above; no further
+secret-entry request is current.
 
-After corrected configuration, select one bounded run of
+That earlier setup would then have selected one bounded run of
 `catalogue-readonly.spec.js:65`: full authenticated category pagination and
 selection of a returned canonical style. Require matching before/after provenance,
 one pass with no skips/errors, original saved-session HTTP 401 after logout,
