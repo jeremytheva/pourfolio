@@ -390,6 +390,24 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 
 ### Protected Add Beer preview qualification
 
+The approved 4 November run `41827382965` delivered one fresh packet and
+passed exact pre/post provenance and singleton selection, but case 65 FAILED
+and original-cookie session closure remained UNCONFIRMED at HTTP 200.
+Private runner cleanup passed. The displayed packet was removed, the new
+Vercel grant revoked without replacement, and local handoff files removed.
+[The digest-verified six-report record](evidence/add-beer-connected-20261104.json)
+is failure evidence, not connected acceptance. The one-packet approval is used.
+
+The redacted reporter's additive failed-step diagnostics retain only the
+discovered case ID, a reviewed relative source file/line, a fixed Playwright
+step category and FAIL. They discard titles, exception details, stacks,
+URLs, values, attachments and arbitrary source paths. Empty diagnostics mean
+the failure location is unavailable; a plain JavaScript throw may have no
+failed Playwright step. Invalid diagnostic metadata is counted without being
+echoed. These fields do not change qualification, case counts or the required
+original-cookie HTTP 401 gate. A future worker must explicitly use the reviewed
+diagnostic reporter, with its source recorded separately from the application.
+
 The [reviewed one-run relay](https://github.com/jeremytheva/pourfolio/blob/aa62934c76b8407a0f3431c5aa0a90dfaf69e1cb/.github/workflows/add-beer-connected-evidence.yml)
 pins source `53299fce0cfd7a308c36bc0037ac5e2068969131` and
 https://pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app.
@@ -426,7 +444,7 @@ API is unavailable to this integration; do not repeat owner setup requests.
    excluded. Remove only this run's exact packet from a freshly read PR body,
    preserving other edits; visible removal cannot erase revision/webhook history.
 
-The retained result for run 40963113424 is BLOCKED / connected NOT_RUN:
+The historical result for run 40963113424 is BLOCKED / connected NOT_RUN:
 automatic approval review prevented delivery, receive timed out, and all preview/
 account stages skipped. Actual retained JSON verifies privateWorkspace PASS and
 session NOT_REQUIRED. No old key or packet may be reused. Link-grant expiry or

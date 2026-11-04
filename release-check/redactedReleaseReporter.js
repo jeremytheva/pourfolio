@@ -15,7 +15,14 @@ const testStatuses = Object.freeze({
   skipped: 'SKIPPED'
 })
 const runStatuses = new Set(['passed', 'failed', 'timedout', 'interrupted'])
+const stepCategories = new Set(['expect', 'pw:api', 'test.step', 'hook'])
+const diagnosticHelpers = Object.freeze(['support.js', 'ownerSession.js'])
 const publicSha = value => typeof value === 'string' && /^[a-f0-9]{40}$/.test(value) ? value : null
+const ownValue = (value, key) => {
+  const descriptor = Object.getOwnPropertyDescriptor(value, key)
+  if (!descriptor || !Object.hasOwn(descriptor, 'value')) throw new Error('INVALID_DIAGNOSTIC')
+  return descriptor.value
+}
 
 // Playwright reporter for connected checks. Only source case IDs and fixed
 // outcomes are retained; test titles, errors, stdout and attachments are private.
@@ -33,8 +40,12 @@ export default class RedactedReleaseReporter {
         ? env.RELEASE_EVIDENCE_DIRECTORY : 'artifacts/connected-release')
     this.allowedFiles = new Map(specFiles.map(file =>
       [path.resolve(rootDirectory, 'release-check', file), file]))
+    this.diagnosticHelpers = new Map(diagnosticHelpers.map(file =>
+      [path.resolve(rootDirectory, 'release-check', file), file]))
     this.metadata = { releaseSha: publicSha(env.RELEASE_SHA), candidateSha: publicSha(env.GITHUB_SHA) }
     this.cases = new Map()
+    this.stepDiagnostics = new Map()
+    this.invalidDiagnostics = 0
     this.blockers = new Set()
     if (!this.metadata.releaseSha) this.block('RELEASE_IDENTITY_MISSING')
     this.discovered = 0
@@ -116,6 +127,33 @@ export default class RedactedReleaseReporter {
   onStdOut() {}
   onStdErr() {}
 
+  onStepEnd(test, _result, step) {
+    try {
+      const error = Object.getOwnPropertyDescriptor(step, 'error')
+      if (!error) return
+      if (!Object.hasOwn(error, 'value')) throw new Error('INVALID_DIAGNOSTIC')
+      if (!error.value) return
+      const testLocation = ownValue(test, 'location')
+      const testFile = ownValue(testLocation, 'file')
+      const caseId = this.caseId({ location: { file: testFile, line: ownValue(testLocation, 'line') } })
+      const location = ownValue(step, 'location')
+      const file = ownValue(location, 'file')
+      const line = ownValue(location, 'line')
+      const category = ownValue(step, 'category')
+      if (!this.started || !caseId || !this.cases.has(caseId) || typeof file !== 'string' ||
+          !Number.isSafeInteger(line) || line < 1 || line > 100000 || !stepCategories.has(category)) throw new Error('INVALID_DIAGNOSTIC')
+      const resolvedFile = path.resolve(file)
+      const sourceFile = resolvedFile === path.resolve(testFile) ? this.allowedFiles.get(resolvedFile) : this.diagnosticHelpers.get(resolvedFile)
+      if (!sourceFile) throw new Error('INVALID_DIAGNOSTIC')
+      const sourceId = sourceFile + ':' + line
+      const key = JSON.stringify([caseId, sourceId, category])
+      if (!this.stepDiagnostics.has(key) && this.stepDiagnostics.size >= 1000) throw new Error('INVALID_DIAGNOSTIC')
+      this.stepDiagnostics.set(key, { caseId, sourceId, category, status: 'FAIL' })
+    } catch {
+      this.invalidDiagnostics = Math.min(10000, this.invalidDiagnostics + 1)
+    }
+  }
+
   onError() {
     this.runnerErrors += 1
     this.block('RUNNER_ERROR')
@@ -151,6 +189,8 @@ export default class RedactedReleaseReporter {
       runnerStatus,
       counts,
       invalidEvents: this.invalidEvents,
+      invalidDiagnostics: this.invalidDiagnostics,
+      diagnostics: [...this.stepDiagnostics].sort(([left], [right]) => left.localeCompare(right)).map(([, value]) => value),
       runnerErrors: this.runnerErrors,
       blockers: [...this.blockers].sort(),
       tests
