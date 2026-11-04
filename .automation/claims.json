@@ -1,22 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "catalogue-preview-handoff-20261104T1208Z",
-      "workstream": "catalogue",
-      "issue": 695,
-      "pr": 731,
-      "surfaces": [
-        "repo:integration",
-        "branch:docs/preview-access-relay-20261029",
-        "file:STATUS.md",
-        "file:docs/LAUNCH_READINESS.md",
-        "file:docs/TESTING.md",
-        "pr:731",
-        "pr:697"
-      ],
-      "acquiredAt": "2026-11-04T12:06:52.000Z",
-      "expiresAt": "2026-11-04T12:36:52.000Z"
-    }
-  }
+  "claims": {}
 }
