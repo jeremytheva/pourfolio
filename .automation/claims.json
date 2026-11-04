@@ -18,10 +18,11 @@
         "branch:fix/release-failure-locations-20261104",
         "file:release-check/redactedReleaseReporter.js",
         "file:release-check/__tests__/redactedReleaseReporter.test.js",
-        "file:docs/evidence/add-beer-connected-20261104.json"
+        "file:docs/evidence/add-beer-connected-20261104.json",
+        "pr:737"
       ],
       "acquiredAt": "2026-11-04T12:11:23.000Z",
-      "expiresAt": "2026-11-04T12:41:23.000Z"
+      "expiresAt": "2026-11-04T12:55:00.000Z"
     }
   }
 }
