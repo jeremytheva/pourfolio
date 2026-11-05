@@ -283,6 +283,90 @@ checks from that baseline, then obtain approval only for actual irreversible
 operations. This supplied-export assessment authorises no provider change and
 does not enable `/ratings/reconcile`.
 
+### Reviewed identity compatibility and preservation decision — 5 November 2026
+
+This is a source-planning decision for the existing #165 migration package,
+reviewed against application `0524f5dde7536af1233aca785ab39432344af595`.
+It retains the accepted deferred target, auditor and six rating-workflow unique
+constraints. It changes no writer, provider schema/data or permission, does not
+enable `/ratings/reconcile`, and does not change the retained 21-finding BLOCKED
+assessment. Source presence and the supplied export remain distinct from live
+capability, consistency and restore certification.
+
+The minimum compatible mapping is:
+
+| Identity/control | Current writer and accepted target | Preservation and required preparation |
+|---|---|---|
+| Provider event ID, `ratings.id` | Immutable canonical record identity; current children and history selectors use this provider ID. | Preserve every parent/child ID, child FK and historical link. Never substitute this value for the client submission ID. |
+| Client `submissionId`, target parent `ratings.rating_id` | The gateway validates a positive safe integer. Current parent creation stores it inside `submission_key` but omits the separate target column. | A future compatibility writer must supply the validated client ID. For existing rows, propose materialisation only from a proved owner-bound identity mapping, with conflict checks below; absence does not permit invention. This field is not a rating UUID. |
+| `ratings.submission_key` | Exact `<owner>:<client-ID>`; current lookups use this key. The target retains its global unique constraint and owner/client-ID uniqueness. | Preserve existing bytes. Check the exact verified owner prefix and one canonical positive-safe-integer suffix, uniqueness, and agreement with any existing client-ID value before proposing a missing-field fill. Do not split an arbitrary colon-delimited key or replace it with a provider ID. |
+| Child `rating_id` | Existing foreign key to `ratings.id`, not to the parent's client-ID column. | Preserve the FK and both combined unique pairs `(rating_id, attribute_id)` / `(rating_id, bonus_attribute_id)` already present in the supplied export. Do not reinterpret or rewrite child FKs. |
+| Target child `uniqueness_key` | Current writers omit it; the accepted additional key contains owner, verified parent client ID and the score/bonus discriminator. | Derive only through the validated parent-to-client mapping using the exact formats below. Preserve child IDs and natural keys; test a future compatible writer before enforcing previously unwritten non-null fields. |
+| `submission_fingerprint` | Current gateway hashes normalised product/cellar, score order, weights and default-sorted bonus IDs. | Preserve every existing digest. A missing digest requires the exact writer-version preimage and test vectors; current catalogue weights or aggregate totals are not a substitute. |
+| Workflow metadata and tombstones | Target states are `pending`, `complete`, `failed`, `deleting`, `deleted`. Current records may already carry managed versions, expected counts and `deleted_at`. | Classify from B0 provenance. Preserve managed active/terminal fields; never reset versions, erase tombstones, resurrect records or legitimise contradictory graphs through defaults. |
+| Event date, product/cellar and totals | A rating is one tasting event; repeated owner/product tastings are valid. | Preserve dates, relationships and historical totals. Never add unique `(user_id, product_id)` or merge repeat events. |
+| Public profile UUID | `profiles.public_id` has separate accepted public-profile semantics. | Preserve it independently of rating/provider/client IDs. A new public rating UUID would be additional scope, not a reinterpretation of `ratings.rating_id`. |
+
+The current-source references are the gateway's `submissionIdentifier`,
+`submissionKey`, `submissionFingerprint` and parent/child create payloads in
+[the rating gateway](../../api/rating-data-proxy.js); identity semantics and
+history selectors remain in [schema mapping](schema-mapping.md#ratings).
+[ADR 0005](../DECISIONS/0005-rating-events-quick-rate-and-repeat-tastings.md)
+preserves repeat tasting events, while
+[ADR 0003](../DECISIONS/0003-public-user-profiles-and-rating-history.md)
+owns public profile identity.
+
+Before an executable delta, retain a private per-row mapping/disposition ledger
+bound to B0 and the exact source/target contracts. A canonical owner-prefixed key
+is evidence only after its owner is proved, suffix format/range and uniqueness
+pass, and every existing client-ID value agrees. Missing, malformed, conflicting
+or ambiguous identities remain findings requiring explicit disposition; do not
+infer a client ID from a child FK, product, date, row order or a generated UUID.
+Publish only redacted reason/count summaries and ledger digests.
+
+Managed records and untouched legacy candidates require separate reviewed
+eligibility lists derived from the consistent baseline, not newly added column
+defaults or missing children. No existing key, fingerprint, version, count,
+state or tombstone is rewritten by legacy initialisation. Parent/child ownership,
+orphan, duplicate and terminal-graph contradictions retain their existing
+recovery gates. The five-state row-count manifest must reconcile unchanged,
+remediated and quarantined records without changing historical totals.
+
+The writer-compatible fingerprint preimage at the reviewed source is exactly
+the gateway's JavaScript object construction and JSON serialisation:
+
+```js
+JSON.stringify({
+  productId: String(productId),
+  cellarId,
+  scores: totals.scores,
+  weights: totals.weights,
+  bonusIds: [...bonusIds].sort()
+})
+```
+
+It is hashed with SHA-256. Retain the normalised score order and default
+JavaScript bonus-ID sort; do not replace them with independent numeric sorting.
+The algorithm/source revision, preimage type/order and vectors must be part of
+private migration evidence. No stored version marker authorises guessing an
+old algorithm from a digest. Existing fingerprints are not recomputed by this
+decision; missing original weights or preimage provenance is an unresolved
+finding, not permission to apply current defaults.
+
+A future compatibility implementation must prove parent/client-ID agreement,
+unchanged repeat/retry identity and payload-conflict rejection, deterministic
+child keys, preserved history/deletion links and abort/rollback behaviour before
+the target's non-null constraints are enforced. The supplied export's already
+present profile/natural-key/FK/date/state controls must be preserved rather than
+re-added from the older baseline. This planning decision is not an executable
+job or evidence that the current writer already satisfies the deferred target.
+
+Keep every existing provider gate: actual supported migration mechanics,
+parent atomic version comparison with conflict-without-mutation, fencing of late
+child writes racing deletion, a fresh consistent B0/write fence, verified isolated
+restore and approval for the exact irreversible operation. Parent read-back or
+a green source/schema audit does not prove graph-level concurrency or recovery.
+
 ## Immutable baseline and target contract
 
 The known source baseline is `54026_rating_export(2).sql`, audited on 29 July
@@ -361,7 +445,7 @@ For each affected collection record, before and after each phase:
 | duplicate groups and affected rows per future unique key |  |  |  |  |  |
 | orphan/owner-mismatch rows per relationship |  |  |  |  |  |
 | out-of-range/non-integer scores |  |  |  |  |  |
-| `pending` / `complete` / `failed` headers |  |  |  |  |  |
+| Headers by `pending` / `complete` / `failed` / `deleting` / `deleted` |  |  |  |  |  |
 
 Reconcile `before = unchanged + remediated + quarantined` for every category.
 Record both duplicate **group** count and affected **row** count. Any unexplained
@@ -458,17 +542,24 @@ quarantine manifest.
 
 ### Deterministic values
 
+These are proposed fills for explicitly eligible untouched legacy rows only,
+after the reviewed B0 mapping/eligibility ledger and writer-compatibility checks
+above pass. They are not blanket updates. Preserve existing managed keys,
+fingerprints, versions, expected counts, states and tombstones byte-for-byte;
+missing or contradictory values require disposition. In particular, defaults
+must never reset managed/terminal rows or infer eligibility from absent children.
+
 * `profiles.user_id`: the immutable authenticated subject already used by owned
   records. Provision one row only when exactly one verified subject is known.
   Absence or ambiguity is quarantined; never derive identity from email/name.
 * `ratings.submission_key`: exact `<user_id>:<rating_id>` using the persisted,
   validated owner and positive safe-integer client rating ID.
-* `ratings.submission_fingerprint`: SHA-256 of the same canonical serialisation
-  used by the gateway: validated `product_id`, nullable same-owner `cellar_id`,
-  scores sorted by numeric `attribute_id`, and a de-duplicated bonus-ID set
-  sorted numerically. The job implementation, serialisation test vectors and
-  digest algorithm revision must be attached to the provider job. Never hash
-  display text or row order.
+* `ratings.submission_fingerprint`: preserve an existing digest. A proposed
+  missing-digest fill must use the exact versioned gateway serialisation above,
+  including normalised weights, score order and default bonus-ID sorting, with
+  original preimage provenance and attached test vectors. Do not recompute from
+  current catalogue defaults, aggregate totals, display text or database row
+  order. Unknown preimages/algorithms remain unresolved findings.
 * `ratings.expected_score_count`: count of the reconciled, unique, valid score
   children for that header. `expected_bonus_count`: count of reconciled, unique,
   valid bonus children. These counts describe the accepted canonical payload;
@@ -481,8 +572,10 @@ quarantine manifest.
 * `ratings.submission_version`: `0` for a deterministically reconciled legacy
   header. Backfill must not invoke the workflow transition endpoint or increment
   it.
-* `ratings.deleted_at`: `null` for every migrated active or quarantined row.
-  Do not infer deletion timestamps or backfill deletion states from missing children.
+* `ratings.deleted_at`: a proposed `null` fill applies only to eligible
+  untouched legacy rows with no deletion evidence. Preserve every managed
+  tombstone and terminal state. Do not infer deletion timestamps/states from
+  missing children or clear a tombstone because a row is quarantined.
 * `rating_scores.uniqueness_key`: exact
   `<user_id>:<client-rating_id>:score:<attribute_id>`, where client rating ID is
   the parent header's `rating_id`, not the provider parent primary key.
@@ -552,8 +645,9 @@ The provider-managed definition must enforce:
 * profile/owned `user_id` consistency using the provider's supported identity
   relationship, without making profile deletion cascade owner data by default;
 * integer `rating_scores.attribute_score BETWEEN 1 AND 7`;
-* non-negative integer workflow version/counts and state limited to
-  `pending`, `complete`, `failed`; and
+* non-negative integer workflow version/counts and state limited to all five
+  `pending`, `complete`, `failed`, `deleting`, `deleted` values; preserve
+  existing managed/terminal states and tombstones; and
 * reviewed restrict/cascade behaviour. Parent deletion must not leave children;
   if provider cascade and permission semantics cannot be proved, use the
   gateway's owner-scoped child-first deletion and restrict parent deletion.
