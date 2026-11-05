@@ -1,6 +1,6 @@
 # Launch readiness
 
-Last reconciled: **4 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
+Last reconciled: **5 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
 [`ef86e20d16865a5322eacfc3d916aca7f939e15d`](https://github.com/jeremytheva/pourfolio/commit/ef86e20d16865a5322eacfc3d916aca7f939e15d). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
@@ -38,6 +38,46 @@ preflight report. No application policy, stored bonus value or provider schema
 changes in this diagnostic correction.
 
 ## Current launch decision
+
+### Reviewed diagnostics prepared; one further packet decision — 5 November 2026 UTC
+
+The #737 reporter repair at `92813bc3c8847df41a5c0f3d1b4990d5b2506c92`
+passed [run 41830592011](https://github.com/jeremytheva/pourfolio/actions/runs/41830592011):
+canonical Node 22.23.4 validation, **1,234 passed / 15 intentional connected
+skips / zero failures and production vulnerabilities**, all **188**
+browser/accessibility cases, Dependency Review and CodeQL. The actual CLI
+fixture exercises assertion/API failure locations in reviewed helpers and
+canary redaction. Independent source review found no material issue. This is
+source/reporter evidence, not acceptance of the failed connected case.
+
+The [prepared diagnostic worker](https://github.com/jeremytheva/pourfolio/blob/69a37d53d89664723dc09f2d62e7f2da2c7fd9f9/.github/workflows/add-beer-connected-evidence.yml)
+is committed without a selection marker in its commit message. It embeds the
+reviewed reporter byte-for-byte (SHA-256
+`9ad70e1eb4dd0a58c400582a3c6ff99cd45c01f065d2315170f36e6f458d0c05`).
+Application source `53299fce`, immutable origin and case 65/assertions are
+unchanged. Failed-step evidence includes only discovered case IDs, reviewed
+spec/helper source lines and fixed categories. Plain JavaScript failures may
+still have no failed-step location; absence does not identify a stage.
+
+Session diagnostics retain fixed restore/logout outcomes and classify only the
+existing probe response as normalized identity PRESENT, ABSENT or UNAVAILABLE.
+No account request or retry is added. HTTP 200 with any of those values stays
+UNCONFIRMED; original-cookie HTTP **401** is still required. A closed final
+cleanup projection retains only the allowed fields; malformed input becomes
+diagnosticFields UNAVAILABLE and cannot qualify. Twenty-one synthetic scenarios
+exercise the actual embedded browser module through final cleanup to retained
+JSON, including malformed canaries, deletion failure and remaining-key checks.
+All pass, as do 13 Bash/eight Node module syntax checks. Independent worker
+review found no material issue. These are hermetic checks, not a second live run.
+
+The earlier one-packet approval was used by run `41827382965`. Obtain explicit
+approval for **one further** run-specific encrypted packet in public PR #697,
+including possible edit-history/webhook persistence, before selecting the
+diagnostic marker. Use a fresh protected key/run, independently validate the
+recipient artifact and obtain a new exact-origin grant. No second packet or
+connected check has been selected. The failed case, UNCONFIRMED session and
+public launch **NO-GO** remain current; all other provider/data/operational
+gates are preserved.
 
 ### Approved relay passed; connected acceptance failed — 4 November 2026 UTC
 

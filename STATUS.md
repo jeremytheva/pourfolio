@@ -3,11 +3,11 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Preview relay passed; connected browser and session acceptance failed"
+stage: "Connected check failed; reviewed diagnostics await one further packet approval"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Prepare redacted failure-location evidence for Add Beer case 65 and diagnose unconfirmed session closure without changing its acceptance checks."
+  objective: "Run reviewed diagnostic worker 69a37d53 after one further scoped packet approval, preserving source 53299fce and the original browser/session acceptance checks."
   issue: 695
   pr: 697
   branch: feature/add-beer-release-form
@@ -15,7 +15,7 @@ next_actions:
   - "#727 is merged as 1ef714ce: the #726 cellar pagination repair passed 1,216 source tests, 188 browser/accessibility cases and exact production health/readiness. Connected multi-page owner/provider acceptance remains under #144/#154."
   - "#729 is merged as ef86e20d: the #728 style-population pagination repair passed 1,230 source tests, 188 browser/accessibility cases and exact production health/readiness. Both pagination repairs are integrated; connected provider/volume certification remains open."
   - "#165 newer supplied export is assessed: 21 deferred-target structural findings, with profile and combined child uniqueness already present. Reconcile current submission_key-only parent writes with the separate rating_id/child-key target before preparing an executable delta; retain provider/CAS, fresh consistent baseline, isolated restore and irreversible-change approval gates."
-  - "#697 source 53299fce passes 1,200 source tests and 193 browser cases. The explicitly approved relay succeeded in run 41827382965, but case 65 failed and original-cookie session closure remained UNCONFIRMED at HTTP 200. Retain that failure, add redacted source locations, and prepare targeted diagnostics before selecting another live run. Do not repeat secret setup or an unchanged retry. Preserve both pagination repairs before eventual integration."
+  - "#697 source 53299fce passes 1,200 source tests and 193 browser cases. Run 41827382965 passed the approved relay but failed case 65, with saved-cookie session closure UNCONFIRMED at HTTP 200. #737 reporter source 92813bc3 passed 1,234 tests, 188 browser cases and real CLI redaction. Prepared diagnostic worker 69a37d53 requires one further explicit public-packet approval; it is unselected. Preserve the failed evidence, strict original-cookie 401, both newer pagination repairs and the conflicted application candidate."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
   - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Its provider key is configured; configure the independent recovery key and dedicated fixture user/product IDs, diagnose the failed read, and verify cloned constraints/recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
   - "#710 is integrated as 078843e5. #697 keyboard visibility and release-origin checkpoints are source/browser validated; connected category acceptance FAILED in run 41827382965."
@@ -33,7 +33,7 @@ next_actions:
 blockers:
   - scope: add_beer_connected_case_and_session
     issue: 154
-    detail: "The owner explicitly approved one public encrypted packet. Fresh run 41827382965 passed the relay, exact pre/post preview provenance and singleton selection; case 65 FAILED and saved-cookie session closure was UNCONFIRMED at HTTP 200. Digest-verified reports prove privateWorkspace PASS. The displayed packet and local private files are removed; Vercel revoked the new grant. Browser failure location and normalized probe identity were not retained, so the root cause remains unverified."
+    detail: "Run 41827382965 passed the explicitly approved relay, pre/post provenance and selection, but case 65 FAILED and session closure was UNCONFIRMED at HTTP 200. Cleanup passed; packet/local files were removed and the new grant revoked. Failure location/probe identity were not retained, so no application diagnosis is claimed. Reviewed diagnostic worker 69a37d53 is prepared and unselected. The previous one-packet approval is consumed; one further public encrypted packet requires fresh scoped approval."
   - scope: brew_done_it_connected_qualification
     issue: 715
     detail: "The source's combined indexes are correct. An empty schema clone and dedicated main-only brew-contract environment now exist, and its provider key is now configured. Three fixture/recovery secrets remain absent; the first staging API read failed with INVENTORY_READ_FAILED. Cloned-index/API verification, connected cleanup/non-interference, isolated recovery, provider CAS, scoring storage, privacy and two-device testing remain unqualified."
@@ -49,10 +49,10 @@ blockers:
   - scope: persistent_profile_privacy
     issue: 422
     detail: "Provider uniqueness/default-private creation, persisted opt-in/revocation, copied links and cross-owner denial still need connected certification."
-requires_owner_decision: false
+requires_owner_decision: true
 owner_decision:
-  question: null
-  recommendation: null
+  question: "Approve one further run-specific encrypted preview-access packet in PR #697 for reviewed diagnostic worker 69a37d53, acknowledging that ciphertext may remain in public history or webhooks?"
+  recommendation: "Use one fresh protected run/key and exact-origin temporary grant after that approval. Preserve source 53299fce, singleton case 65, strict saved-cookie HTTP 401 and all cleanup gates; remove only the matching displayed packet and revoke the new grant after the run."
 wip:
   open_implementation_prs: 1
   dependent_stack_depth: 0
@@ -61,10 +61,10 @@ wip:
 evidence:
   observed_main_commit: "f86571a38fe0ef15c02cd912418d30c3385f1e42"
   current_candidate_commit: "53299fce0cfd7a308c36bc0037ac5e2068969131"
-  latest_validated_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
+  latest_validated_commit: "92813bc3c8847df41a5c0f3d1b4990d5b2506c92"
   latest_deployed_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
   latest_runtime_verified_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
-  latest_browser_verified_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
+  latest_browser_verified_commit: "92813bc3c8847df41a5c0f3d1b4990d5b2506c92"
 validation:
   governance: PASS
   lint: PASS
@@ -74,15 +74,55 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
-last_updated: "2026-11-04T12:24:00Z"
+last_updated: "2026-11-05T03:46:00Z"
 
 ---
 
 # STATUS.md
 
-Last materially reviewed: 4 November 2026 UTC
+Last materially reviewed: 5 November 2026 UTC
 
 ## AI execution gate
+
+### Reviewed diagnostics prepared; one further packet decision — 5 November 2026 UTC
+
+The #737 reporter repair at `92813bc3c8847df41a5c0f3d1b4990d5b2506c92`
+passed [run 41830592011](https://github.com/jeremytheva/pourfolio/actions/runs/41830592011):
+canonical Node 22.23.4 validation, **1,234 passed / 15 intentional connected
+skips / zero failures and production vulnerabilities**, all **188**
+browser/accessibility cases, Dependency Review and CodeQL. The actual CLI
+fixture exercises assertion/API failure locations in reviewed helpers and
+canary redaction. Independent source review found no material issue. This is
+source/reporter evidence, not acceptance of the failed connected case.
+
+The [prepared diagnostic worker](https://github.com/jeremytheva/pourfolio/blob/69a37d53d89664723dc09f2d62e7f2da2c7fd9f9/.github/workflows/add-beer-connected-evidence.yml)
+is committed without a selection marker in its commit message. It embeds the
+reviewed reporter byte-for-byte (SHA-256
+`9ad70e1eb4dd0a58c400582a3c6ff99cd45c01f065d2315170f36e6f458d0c05`).
+Application source `53299fce`, immutable origin and case 65/assertions are
+unchanged. Failed-step evidence includes only discovered case IDs, reviewed
+spec/helper source lines and fixed categories. Plain JavaScript failures may
+still have no failed-step location; absence does not identify a stage.
+
+Session diagnostics retain fixed restore/logout outcomes and classify only the
+existing probe response as normalized identity PRESENT, ABSENT or UNAVAILABLE.
+No account request or retry is added. HTTP 200 with any of those values stays
+UNCONFIRMED; original-cookie HTTP **401** is still required. A closed final
+cleanup projection retains only the allowed fields; malformed input becomes
+diagnosticFields UNAVAILABLE and cannot qualify. Twenty-one synthetic scenarios
+exercise the actual embedded browser module through final cleanup to retained
+JSON, including malformed canaries, deletion failure and remaining-key checks.
+All pass, as do 13 Bash/eight Node module syntax checks. Independent worker
+review found no material issue. These are hermetic checks, not a second live run.
+
+The earlier one-packet approval was used by run `41827382965`. Obtain explicit
+approval for **one further** run-specific encrypted packet in public PR #697,
+including possible edit-history/webhook persistence, before selecting the
+diagnostic marker. Use a fresh protected key/run, independently validate the
+recipient artifact and obtain a new exact-origin grant. No second packet or
+connected check has been selected. The failed case, UNCONFIRMED session and
+public launch **NO-GO** remain current; all other provider/data/operational
+gates are preserved.
 
 ### Approved relay passed; connected acceptance failed — 4 November 2026 UTC
 
