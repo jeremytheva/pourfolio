@@ -37,10 +37,12 @@
         "file:api/nocodebackend/__tests__/cellarPagination.test.js",
         "file:package.json",
         "file:package-lock.json",
-        "file:.project-master/launch-readiness.json"
+        "file:.project-master/launch-readiness.json",
+        "branch:docs/corrected-add-beer-handoff-20261105",
+        "file:docs/evidence/add-beer-corrected-candidate-20261105.json"
       ],
       "acquiredAt": "2026-11-05T21:22:26.000Z",
-      "expiresAt": "2026-11-05T21:52:26.000Z"
+      "expiresAt": "2026-11-05T22:06:00.000Z"
     }
   }
 }
