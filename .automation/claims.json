@@ -29,7 +29,8 @@
         "file:src/services/__tests__/catalogueCategoryPage.test.js",
         "file:e2e/mockApi.js",
         "file:e2e/catalogue-proposal-searchable-selectors.spec.js",
-        "file:docs/evidence/add-beer-connected-20261105.json"
+        "file:docs/evidence/add-beer-connected-20261105.json",
+        "file:docs/catalogue-response-contract.md"
       ],
       "acquiredAt": "2026-11-05T07:07:57.000Z",
       "expiresAt": "2026-11-05T07:37:57.000Z"
