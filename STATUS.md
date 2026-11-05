@@ -3,11 +3,11 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Connected check failed; reviewed diagnostics await one further packet approval"
+stage: "Approved diagnostics identified category and session-status contract repairs"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Run reviewed diagnostic worker 69a37d53 after one further scoped packet approval, preserving source 53299fce and the original browser/session acceptance checks."
+  objective: "Repair empty-session HTTP status and explicit category pagination semantics, then qualify the corrected combined Add Beer candidate with the approved diagnostic workflow."
   issue: 695
   pr: 697
   branch: feature/add-beer-release-form
@@ -15,7 +15,7 @@ next_actions:
   - "#727 is merged as 1ef714ce: the #726 cellar pagination repair passed 1,216 source tests, 188 browser/accessibility cases and exact production health/readiness. Connected multi-page owner/provider acceptance remains under #144/#154."
   - "#729 is merged as ef86e20d: the #728 style-population pagination repair passed 1,230 source tests, 188 browser/accessibility cases and exact production health/readiness. Both pagination repairs are integrated; connected provider/volume certification remains open."
   - "#165 newer supplied export is assessed: 21 deferred-target structural findings, with profile and combined child uniqueness already present. Reconcile current submission_key-only parent writes with the separate rating_id/child-key target before preparing an executable delta; retain provider/CAS, fresh consistent baseline, isolated restore and irreversible-change approval gates."
-  - "#697 source 53299fce passes 1,200 source tests and 193 browser cases. Run 41827382965 passed the approved relay but failed case 65, with saved-cookie session closure UNCONFIRMED at HTTP 200. #737 reporter source 92813bc3 passed 1,234 tests, 188 browser cases and real CLI redaction. Prepared diagnostic worker 69a37d53 requires one further explicit public-packet approval; it is unselected. Preserve the failed evidence, strict original-cookie 401, both newer pagination repairs and the conflicted application candidate."
+  - "#737 is merged as 9bc71ffc. Under the owner's continuing approval, diagnostic run 41985218015 identifies category total stability failure at case65 line81 and an original-cookie probe HTTP200 with normalized identity ABSENT after logout. Correct the category continuation/exact-count contract and empty-session status, preserve strict HTTP401/exact-count/duplicate/page-budget guards, then reconcile #697 with current main and qualify its exact corrected build. No further per-packet approval question is required within this approved launch work."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
   - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Its provider key is configured; configure the independent recovery key and dedicated fixture user/product IDs, diagnose the failed read, and verify cloned constraints/recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
   - "#710 is integrated as 078843e5. #697 keyboard visibility and release-origin checkpoints are source/browser validated; connected category acceptance FAILED in run 41827382965."
@@ -33,7 +33,7 @@ next_actions:
 blockers:
   - scope: add_beer_connected_case_and_session
     issue: 154
-    detail: "Run 41827382965 passed the explicitly approved relay, pre/post provenance and selection, but case 65 FAILED and session closure was UNCONFIRMED at HTTP 200. Cleanup passed; packet/local files were removed and the new grant revoked. Failure location/probe identity were not retained, so no application diagnosis is claimed. Reviewed diagnostic worker 69a37d53 is prepared and unselected. The previous one-packet approval is consumed; one further public encrypted packet requires fresh scoped approval."
+    detail: "Run 41985218015 passed access/provenance/selection and identified failed category exact-total assertion at source532 case65 line81. Cleanup restored and signed out, then the original-cookie probe returned HTTP200 with normalized identity ABSENT: session remains UNCONFIRMED under the unchanged401 gate. Private cleanup/projection PASS; packet/grant/local-file cleanup completed. Source repairs and corrected exact-build qualification are required; continuing scoped actions/public handoffs are now approved."
   - scope: brew_done_it_connected_qualification
     issue: 715
     detail: "The source's combined indexes are correct. An empty schema clone and dedicated main-only brew-contract environment now exist, and its provider key is now configured. Three fixture/recovery secrets remain absent; the first staging API read failed with INVENTORY_READ_FAILED. Cloned-index/API verification, connected cleanup/non-interference, isolated recovery, provider CAS, scoring storage, privacy and two-device testing remain unqualified."
@@ -49,22 +49,22 @@ blockers:
   - scope: persistent_profile_privacy
     issue: 422
     detail: "Provider uniqueness/default-private creation, persisted opt-in/revocation, copied links and cross-owner denial still need connected certification."
-requires_owner_decision: true
+requires_owner_decision: false
 owner_decision:
-  question: "Approve one further run-specific encrypted preview-access packet in PR #697 for reviewed diagnostic worker 69a37d53, acknowledging that ciphertext may remain in public history or webhooks?"
-  recommendation: "Use one fresh protected run/key and exact-origin temporary grant after that approval. Preserve source 53299fce, singleton case 65, strict saved-cookie HTTP 401 and all cleanup gates; remove only the matching displayed packet and revoke the new grant after the run."
+  question: null
+  recommendation: null
 wip:
   open_implementation_prs: 1
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "f86571a38fe0ef15c02cd912418d30c3385f1e42"
+  observed_main_commit: "9bc71ffc537acef2f115eadbf1cdfc7da8b8011c"
   current_candidate_commit: "53299fce0cfd7a308c36bc0037ac5e2068969131"
-  latest_validated_commit: "92813bc3c8847df41a5c0f3d1b4990d5b2506c92"
+  latest_validated_commit: "6ed3ac5823f852d18d1dace4f58dc50fc1178148"
   latest_deployed_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
   latest_runtime_verified_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
-  latest_browser_verified_commit: "92813bc3c8847df41a5c0f3d1b4990d5b2506c92"
+  latest_browser_verified_commit: "6ed3ac5823f852d18d1dace4f58dc50fc1178148"
 validation:
   governance: PASS
   lint: PASS
@@ -74,7 +74,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
-last_updated: "2026-11-05T03:46:00Z"
+last_updated: "2026-11-05T21:24:00Z"
 
 ---
 
@@ -84,7 +84,60 @@ Last materially reviewed: 5 November 2026 UTC
 
 ## AI execution gate
 
-### Reviewed diagnostics prepared; one further packet decision — 5 November 2026 UTC
+### Continuing approval and identified contract failures — 5 November 2026 UTC
+
+The owner has approved continuing scoped launch actions, including the protected
+diagnostic runs, run-bound encrypted public handoffs and resulting fixes. Do not
+repeat per-packet approval or secret-entry requests within this work. Every run
+still needs a fresh key/recipient validation, exact preview provenance, private
+handling, matching packet removal and temporary grant cleanup. Approval does
+not supply missing bonus values or certify provider/schema/recovery capability.
+
+[Diagnostic run 41985218015](https://github.com/jeremytheva/pourfolio/actions/runs/41985218015),
+attempt 1, job `127104263520`, used reviewed worker
+`9d1568f890d3cf9a99245bfe284960ef29c7b4b3` and unchanged application source
+`53299fce0cfd7a308c36bc0037ac5e2068969131`. Handoff, exact pre/post
+health/readiness and singleton selection PASS. Artifact `13395263260`
+(1,917 bytes, ZIP SHA-256
+`f425bb4acf5fbe3dadc4b329fc213273a17bb7e73ff9933b0243e493063bcfad`)
+was downloaded, digest-verified and all six reports inspected.
+
+Case 65 **FAILS** specifically at `catalogue-readonly.spec.js:81`, the
+cross-page equal-total assertion. There are no invalid diagnostics, runner
+errors or skipped cases. The adapter can return changing lower-bound totals
+when the provider has no exact count; its category projection currently drops
+that distinction. Source reproductions cover both 201 records and an exact
+200-record boundary requiring an empty terminal probe. Repair the category-only
+exact/continuation contract explicitly; keep authoritative-total drift,
+duplicate-ID, later-page failure and request-budget rejection. The live report
+does not contain the original numeric totals or provider response body.
+
+Cleanup records `restore=RESTORED`, `logout=PASS`, followed by original-cookie
+probe HTTP **200** and normalized identity **ABSENT**; `cleanupFailure=null`,
+`diagnosticFields=PASS` and `privateWorkspace=PASS`. This identifies a session
+response-status mismatch, not an authenticated session surviving logout.
+Qualification remains **FAIL** and session closure remains **UNCONFIRMED**
+under the unchanged HTTP **401** acceptance condition. Normalize recognized explicit empty-session representations to safe HTTP 401;
+preserve valid session bytes/cookies and treat malformed, unrecognized or error
+envelopes as HTTP 502 service errors, never as proof of logout.
+Do not relax the release gate to accept HTTP 200.
+
+The displayed packet was removed from a fresh PR body and read back absent.
+The new deployment grant was revoked without regeneration, and the five local
+handoff/manifest/payload files were removed with absence verified. The retained
+[redacted evidence](docs/evidence/add-beer-connected-20261105.json) includes every report. Public ciphertext
+history/webhook persistence remains as approved; no plaintext/key is retained.
+
+The auth-status repair is prepared separately from #697's category contract.
+After the source fixes are validated, preserve both newer main pagination repairs
+and all Brew/other work when reconciling #697, then qualify its exact corrected
+deployment. Do not rerun unchanged source 532 or promote the failed evidence.
+The older pending-packet decision below is superseded by the continuing approval.
+Public launch remains **NO-GO**; the 42 missing bonus values, #165 provider
+integrity/recovery, #422 privacy, #144/#154 and final operations/device gates
+remain open.
+
+### Historical diagnostic preparation and packet decision — 5 November 2026 UTC
 
 The #737 reporter repair at `92813bc3c8847df41a5c0f3d1b4990d5b2506c92`
 passed [run 41830592011](https://github.com/jeremytheva/pourfolio/actions/runs/41830592011):

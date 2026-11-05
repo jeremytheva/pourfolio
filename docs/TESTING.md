@@ -390,6 +390,23 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 
 ### Protected Add Beer preview qualification
 
+The auth-status repair has real-handler transport fixtures for recognized empty
+session shapes (401), malformed/unrecognized/error envelopes (502), unchanged
+valid-session bytes/cookies, upstream errors and non-session auth actions.
+Replacement errors explicitly use application/json while preserving no-store,
+request correlation and cookie hardening. An arbitrary identity-free provider
+error must never be converted into the release check's successful 401 signal.
+
+The owner now authorizes continuing scoped launch diagnostics and public
+run-specific encrypted handoffs; no repeated per-packet approval question is
+needed within that scope. Continue fresh-recipient, origin, credential-ordering,
+redaction and cleanup guards for every run. Diagnostic run `41985218015`
+identified the category equal-total assertion at case65 line81, and original
+saved-cookie probe HTTP200/normalized identity ABSENT after restored logout.
+It remains FAIL/session UNCONFIRMED under the strict401 gate. The
+[retained six-report record](evidence/add-beer-connected-20261105.json) is the
+actual failure evidence; fixes must be validated and tested on a new exact build.
+
 The approved 4 November run `41827382965` delivered one fresh packet and
 passed exact pre/post provenance and singleton selection, but case 65 FAILED
 and original-cookie session closure remained UNCONFIRMED at HTTP 200.
@@ -421,10 +438,11 @@ It preserves the protected `staging-release` account credentials and consumes
 a private one-run link file instead of `RELEASE_PREVIEW_SHARE_URL`. The secret
 API is unavailable to this integration; do not repeat owner setup requests.
 
-1. Before selecting `[diagnose-add-beer-ephemeral-53299fce]`, obtain explicit
-   approval for the encrypted packet's public PR-description persistence.
+1. Before selecting a reviewed diagnostic marker, verify that current owner
+   authorization covers the encrypted packet's public PR-description persistence.
    Ciphertext may remain in edit history/webhooks after its visible removal.
-   General continuation did not satisfy automatic approval review for this.
+   The explicit continuing approval now covers this scoped launch work; the
+   earlier general continuation alone did not satisfy automatic approval review.
 2. Use a fresh protected run. It generates an RSA4096 private key in the runner
    temporary directory with mode `0600`; only the closed public manifest is
    uploaded as `add-beer-access-key-<run>-<attempt>` for one day.
