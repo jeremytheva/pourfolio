@@ -39,7 +39,60 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
-### Reviewed diagnostics prepared; one further packet decision — 5 November 2026 UTC
+### Continuing approval and identified contract failures — 5 November 2026 UTC
+
+The owner has approved continuing scoped launch actions, including the protected
+diagnostic runs, run-bound encrypted public handoffs and resulting fixes. Do not
+repeat per-packet approval or secret-entry requests within this work. Every run
+still needs a fresh key/recipient validation, exact preview provenance, private
+handling, matching packet removal and temporary grant cleanup. Approval does
+not supply missing bonus values or certify provider/schema/recovery capability.
+
+[Diagnostic run 41985218015](https://github.com/jeremytheva/pourfolio/actions/runs/41985218015),
+attempt 1, job `127104263520`, used reviewed worker
+`9d1568f890d3cf9a99245bfe284960ef29c7b4b3` and unchanged application source
+`53299fce0cfd7a308c36bc0037ac5e2068969131`. Handoff, exact pre/post
+health/readiness and singleton selection PASS. Artifact `13395263260`
+(1,917 bytes, ZIP SHA-256
+`f425bb4acf5fbe3dadc4b329fc213273a17bb7e73ff9933b0243e493063bcfad`)
+was downloaded, digest-verified and all six reports inspected.
+
+Case 65 **FAILS** specifically at `catalogue-readonly.spec.js:81`, the
+cross-page equal-total assertion. There are no invalid diagnostics, runner
+errors or skipped cases. The adapter can return changing lower-bound totals
+when the provider has no exact count; its category projection currently drops
+that distinction. Source reproductions cover both 201 records and an exact
+200-record boundary requiring an empty terminal probe. Repair the category-only
+exact/continuation contract explicitly; keep authoritative-total drift,
+duplicate-ID, later-page failure and request-budget rejection. The live report
+does not contain the original numeric totals or provider response body.
+
+Cleanup records `restore=RESTORED`, `logout=PASS`, followed by original-cookie
+probe HTTP **200** and normalized identity **ABSENT**; `cleanupFailure=null`,
+`diagnosticFields=PASS` and `privateWorkspace=PASS`. This identifies a session
+response-status mismatch, not an authenticated session surviving logout.
+Qualification remains **FAIL** and session closure remains **UNCONFIRMED**
+under the unchanged HTTP **401** acceptance condition. Normalize recognized explicit empty-session representations to safe HTTP 401;
+preserve valid session bytes/cookies and treat malformed, unrecognized or error
+envelopes as HTTP 502 service errors, never as proof of logout.
+Do not relax the release gate to accept HTTP 200.
+
+The displayed packet was removed from a fresh PR body and read back absent.
+The new deployment grant was revoked without regeneration, and the five local
+handoff/manifest/payload files were removed with absence verified. The retained
+[redacted evidence](evidence/add-beer-connected-20261105.json) includes every report. Public ciphertext
+history/webhook persistence remains as approved; no plaintext/key is retained.
+
+The auth-status repair is prepared separately from #697's category contract.
+After the source fixes are validated, preserve both newer main pagination repairs
+and all Brew/other work when reconciling #697, then qualify its exact corrected
+deployment. Do not rerun unchanged source 532 or promote the failed evidence.
+The older pending-packet decision below is superseded by the continuing approval.
+Public launch remains **NO-GO**; the 42 missing bonus values, #165 provider
+integrity/recovery, #422 privacy, #144/#154 and final operations/device gates
+remain open.
+
+### Historical diagnostic preparation and packet decision — 5 November 2026 UTC
 
 The #737 reporter repair at `92813bc3c8847df41a5c0f3d1b4990d5b2506c92`
 passed [run 41830592011](https://github.com/jeremytheva/pourfolio/actions/runs/41830592011):
