@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "repository": "jeremytheva/pourfolio",
+  "pullRequest": 697,
+  "sourceSha": "97311ddf92a61ae6cce57630b85d79540686a181",
+  "sourceValidation": {
+    "runId": 42113708774,
+    "node": "22.23.4",
+    "passed": 1311,
+    "intentionalSkips": 15,
+    "failed": 0,
+    "productionVulnerabilities": 0,
+    "browserPassed": 196,
+    "independentReview": "GO"
+  },
+  "preview": {
+    "deploymentId": "dpl_AvP1KC2Dtqypv1dp8dHrEv6TPBKR",
+    "origin": "https://pourfolio-wudz1vlku-jeremythevas-projects.vercel.app",
+    "readyState": "READY"
+  },
+  "runId": 42114560862,
+  "runAttempt": 1,
+  "jobId": 127550625024,
+  "workerSha": "140c08e2f41b71aa938b68a72f9dfc2d753ea640",
+  "publicKeyArtifact": {
+    "id": 13455591720,
+    "zipSha256": "e777e6c986a4fc5e11988fcfbf3e7b90098780d76b8e6929e84b86afe8a9d1af",
+    "recipientFingerprint": "e8f3a2c6fdc7915155ec141d70b404faa07376d55c5a6780e3d04beebee96d60"
+  },
+  "redactedArtifact": {
+    "id": 13455439040,
+    "bytes": 714,
+    "zipSha256": "6b94d4943a1b5f72d272d5a795a4623f29517523c30579c125eb7a42fba288f7",
+    "downloadedAndInspected": true
+  },
+  "handoff": "AUTO_REVIEW_PUBLIC_WRITE_REJECTED",
+  "publicPacketPublished": false,
+  "alternatePublicDeliveryAttempted": false,
+  "privateGrantRevocation": "ACKNOWLEDGED_EMPTY_PROTECTION_BYPASS",
+  "localPrivateFilesAbsent": true,
+  "status": "BLOCKED",
+  "connected": "NOT_RUN",
+  "reports": {
+    "qualification.json": {
+      "version": 1,
+      "qualification": "READ_ONLY_ADD_BEER_CATEGORIES",
+      "sourceSha": "97311ddf92a61ae6cce57630b85d79540686a181",
+      "workerSha": "140c08e2f41b71aa938b68a72f9dfc2d753ea640",
+      "diagnosticReporterSha256": "9ad70e1eb4dd0a58c400582a3c6ff99cd45c01f065d2315170f36e6f458d0c05",
+      "caseId": "catalogue-readonly.spec.js:65",
+      "connected": "NOT_RUN",
+      "status": "BLOCKED"
+    },
+    "session-cleanup.json": {
+      "version": 1,
+      "session": "NOT_REQUIRED",
+      "sessionHttpStatus": null,
+      "privateWorkspace": "PASS",
+      "restore": "NOT_RUN",
+      "logout": "NOT_RUN",
+      "probeIdentity": "NOT_INSPECTED",
+      "cleanupFailure": null,
+      "diagnosticFields": "UNAVAILABLE"
+    }
+  },
+  "boundedProductionRead": {
+    "at": "2026-11-05T21:44:44Z",
+    "sha": "0524f5dde7536af1233aca785ab39432344af595",
+    "anonymous": true,
+    "healthHttpStatus": 200,
+    "readinessHttpStatus": 200,
+    "dataProvider": "ok",
+    "getSessionHttpStatus": 401,
+    "scope": "BOUNDED_ANONYMOUS_ENDPOINTS_ONLY"
+  }
+}

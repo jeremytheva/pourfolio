@@ -39,6 +39,68 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
+### Corrected candidate validated; connected handoff blocked — 5 November 2026 UTC
+
+[PR #738](https://github.com/jeremytheva/pourfolio/pull/738) merged the recognized
+empty-session status repair as `0524f5dde7536af1233aca785ab39432344af595`.
+Its actual canonical Node22 validation passed **1,285 tests / 15 gated skips /
+zero failures and production vulnerabilities**, plus all **188** browser cases.
+At **21:44:44 UTC**, anonymous production health/readiness returned HTTP200 at
+that exact production SHA with dataProvider ok, and get-session returned HTTP401.
+These bounded reads do not certify original-cookie revocation or full release.
+
+#697 now combines that repair, the category-only exact/continuation fix and all
+current main work at `97311ddf92a61ae6cce57630b85d79540686a181`.
+Only STATUS/launch prose conflicted; the merged auth, cellar/style-population
+pagination, locked toolchain and trace modules are byte-preserved from main,
+and Brew code is unchanged. [Run 42113708774](https://github.com/jeremytheva/pourfolio/actions/runs/42113708774)
+executes canonical Node22.23.4 validation: **1,311 passed / 15 intentional
+connected skips / zero failures and production vulnerabilities**, all **196**
+browser/accessibility cases, Dependency Review and CodeQL. Independent combined
+source review reports no material issue. Immutable preview
+`dpl_AvP1KC2Dtqypv1dp8dHrEv6TPBKR` is READY at that exact source:
+https://pourfolio-wudz1vlku-jeremythevas-projects.vercel.app.
+
+The reviewed worker was retargeted only for fixed source/origin/marker/artifact
+identity. Fifteen actual crypto/binding tests, 21 browser-through-retention
+scenarios, 13 Bash/eight Node syntax checks and independent exact-diff review
+PASS. Source `97311ddf`, case65, original-cookie HTTP401 and cleanup predicates
+remain fixed; no gate was relaxed.
+
+[Corrected run 42114560862](https://github.com/jeremytheva/pourfolio/actions/runs/42114560862),
+attempt1, worker `140c08e2f41b71aa938b68a72f9dfc2d753ea640`, job
+`127550625024`, generated a fresh recipient. Public-key artifact `13455591720`
+has ZIP SHA256
+`e777e6c986a4fc5e11988fcfbf3e7b90098780d76b8e6929e84b86afe8a9d1af`;
+its run/repository/branch/head/fingerprint/closed envelope were independently
+verified. Automatic approval review then rejected the public PR697 ciphertext
+write twice. After concrete packet/privacy checks, the same-action retry still
+failed because review did not accept the assistant-supplied approval context as
+trusted user authorization for this exact sensitive payload and public destination.
+
+The owner's broad continuing approval is retained; no product-scope reversal is
+inferred. The execution review requires explicit authorization naming the public
+encrypted payload/destination. No packet was published, no alternate public
+channel/API was attempted, and no preview/account request ran. The receiver
+timed out; this is **BLOCKED / connected NOT_RUN**, not a source/browser failure.
+
+Actual artifact `13455439040` (714 bytes, ZIP SHA256
+`6b94d4943a1b5f72d272d5a795a4623f29517523c30579c125eb7a42fba288f7`)
+was downloaded, digest-verified and its two reports inspected. They record exact
+source/worker/case, session NOT_REQUIRED, HTTP null, restore/logout NOT_RUN,
+probe NOT_INSPECTED, privateWorkspace PASS and diagnosticFields UNAVAILABLE.
+Provenance/selection/browser/postflight reports are absent because those steps
+did not run. See [the retained redacted record](evidence/add-beer-corrected-candidate-20261105.json).
+The fresh grant was revoked without regeneration with an explicit empty
+protectionBypass acknowledgement. Five local handoff paths are absent; PR
+readback confirms no displayed packet. The old receiver/key cannot be reused.
+
+Keep #697 open/unmerged. After trusted explicit packet authorization is accepted,
+use a fresh protected key/run and grant to qualify this same corrected candidate.
+No additional credential setup or reconnection is indicated. Public launch
+remains **NO-GO**, with #165 provider integrity/recovery, 42 missing authoritative
+values, #422 privacy, #144/#154 and final operations/device gates unchanged.
+
 ### Continuing approval and identified contract failures — 5 November 2026 UTC
 
 The owner has approved continuing scoped launch actions, including the protected

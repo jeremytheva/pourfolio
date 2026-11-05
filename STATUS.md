@@ -3,11 +3,11 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Approved diagnostics identified category and session-status contract repairs"
+stage: "Corrected Add Beer source validated; public handoff automatic review blocked"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Repair empty-session HTTP status and explicit category pagination semantics, then qualify the corrected combined Add Beer candidate with the approved diagnostic workflow."
+  objective: "Complete exact-97311ddf connected acceptance after automatic approval review accepts an explicit public encrypted-packet authorization; preserve the reviewed source and all guards."
   issue: 695
   pr: 697
   branch: feature/add-beer-release-form
@@ -15,7 +15,7 @@ next_actions:
   - "#727 is merged as 1ef714ce: the #726 cellar pagination repair passed 1,216 source tests, 188 browser/accessibility cases and exact production health/readiness. Connected multi-page owner/provider acceptance remains under #144/#154."
   - "#729 is merged as ef86e20d: the #728 style-population pagination repair passed 1,230 source tests, 188 browser/accessibility cases and exact production health/readiness. Both pagination repairs are integrated; connected provider/volume certification remains open."
   - "#165 newer supplied export is assessed: 21 deferred-target structural findings, with profile and combined child uniqueness already present. Reconcile current submission_key-only parent writes with the separate rating_id/child-key target before preparing an executable delta; retain provider/CAS, fresh consistent baseline, isolated restore and irreversible-change approval gates."
-  - "#737 is merged as 9bc71ffc. Under the owner's continuing approval, diagnostic run 41985218015 identifies category total stability failure at case65 line81 and an original-cookie probe HTTP200 with normalized identity ABSENT after logout. Correct the category continuation/exact-count contract and empty-session status, preserve strict HTTP401/exact-count/duplicate/page-budget guards, then reconcile #697 with current main and qualify its exact corrected build. No further per-packet approval question is required within this approved launch work."
+  - "#738 merged as 0524f5dd; bounded production health/readiness and anonymous get-session401 pass. #697 now combines that auth repair, explicit category continuation and current main as 97311ddf: 1,311 canonical tests/15 gated skips/zero failures or production vulnerabilities,196 browser cases and independent review pass; immutable preview is READY. Corrected run42114560862 stopped at automatic public-packet review before access, with connectedNOT_RUN/sessionNOT_REQUIRED/privateWorkspacePASS. Keep697 unmerged until a fresh protected gate passes; do not retry the expired key/run or bypass the rejected public write."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
   - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Its provider key is configured; configure the independent recovery key and dedicated fixture user/product IDs, diagnose the failed read, and verify cloned constraints/recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
   - "#710 is integrated as 078843e5. #697 keyboard visibility and release-origin checkpoints are source/browser validated; connected category acceptance FAILED in run 41827382965."
@@ -33,7 +33,7 @@ next_actions:
 blockers:
   - scope: add_beer_connected_case_and_session
     issue: 154
-    detail: "Run 41985218015 passed access/provenance/selection and identified failed category exact-total assertion at source532 case65 line81. Cleanup restored and signed out, then the original-cookie probe returned HTTP200 with normalized identity ABSENT: session remains UNCONFIRMED under the unchanged401 gate. Private cleanup/projection PASS; packet/grant/local-file cleanup completed. Source repairs and corrected exact-build qualification are required; continuing scoped actions/public handoffs are now approved."
+    detail: "Corrected source97311ddf is validated and its immutable previewREADY. Automatic approval review rejected public PR697 ciphertext publication twice: it did not accept the supplied broad-approval context as trusted explicit authorization naming that payload/destination. No packet was published or rerouted. Run42114560862 ended BLOCKED/connectedNOT_RUN/sessionNOT_REQUIRED with actual privateWorkspacePASS; new grant revoked and local private files removed. This is a scoped execution privacy-write blocker, not an application failure or GitHub reconnection issue."
   - scope: brew_done_it_connected_qualification
     issue: 715
     detail: "The source's combined indexes are correct. An empty schema clone and dedicated main-only brew-contract environment now exist, and its provider key is now configured. Three fixture/recovery secrets remain absent; the first staging API read failed with INVENTORY_READ_FAILED. Cloned-index/API verification, connected cleanup/non-interference, isolated recovery, provider CAS, scoring storage, privacy and two-device testing remain unqualified."
@@ -49,22 +49,22 @@ blockers:
   - scope: persistent_profile_privacy
     issue: 422
     detail: "Provider uniqueness/default-private creation, persisted opt-in/revocation, copied links and cross-owner denial still need connected certification."
-requires_owner_decision: false
+requires_owner_decision: true
 owner_decision:
-  question: null
-  recommendation: null
+  question: "Explicitly authorize publishing run-specific encrypted preview-access packets in public PR #697, including possible persistent copies in edit history and webhooks, for the reviewed protected checks."
+  recommendation: "Name the encrypted payload and public PR destination explicitly so automatic approval review can evaluate trusted user authorization. Use a fresh protected run/key after acceptance; keep all source/origin/case401/cleanup gates and never reroute a rejected public write."
 wip:
   open_implementation_prs: 1
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "9bc71ffc537acef2f115eadbf1cdfc7da8b8011c"
-  current_candidate_commit: "53299fce0cfd7a308c36bc0037ac5e2068969131"
-  latest_validated_commit: "6ed3ac5823f852d18d1dace4f58dc50fc1178148"
-  latest_deployed_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
-  latest_runtime_verified_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
-  latest_browser_verified_commit: "6ed3ac5823f852d18d1dace4f58dc50fc1178148"
+  observed_main_commit: "0524f5dde7536af1233aca785ab39432344af595"
+  current_candidate_commit: "97311ddf92a61ae6cce57630b85d79540686a181"
+  latest_validated_commit: "97311ddf92a61ae6cce57630b85d79540686a181"
+  latest_deployed_commit: "0524f5dde7536af1233aca785ab39432344af595"
+  latest_runtime_verified_commit: "0524f5dde7536af1233aca785ab39432344af595"
+  latest_browser_verified_commit: "97311ddf92a61ae6cce57630b85d79540686a181"
 validation:
   governance: PASS
   lint: PASS
@@ -74,7 +74,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
-last_updated: "2026-11-05T21:24:00Z"
+last_updated: "2026-11-05T21:46:00Z"
 
 ---
 
@@ -83,6 +83,68 @@ last_updated: "2026-11-05T21:24:00Z"
 Last materially reviewed: 5 November 2026 UTC
 
 ## AI execution gate
+
+### Corrected candidate validated; connected handoff blocked — 5 November 2026 UTC
+
+[PR #738](https://github.com/jeremytheva/pourfolio/pull/738) merged the recognized
+empty-session status repair as `0524f5dde7536af1233aca785ab39432344af595`.
+Its actual canonical Node22 validation passed **1,285 tests / 15 gated skips /
+zero failures and production vulnerabilities**, plus all **188** browser cases.
+At **21:44:44 UTC**, anonymous production health/readiness returned HTTP200 at
+that exact production SHA with dataProvider ok, and get-session returned HTTP401.
+These bounded reads do not certify original-cookie revocation or full release.
+
+#697 now combines that repair, the category-only exact/continuation fix and all
+current main work at `97311ddf92a61ae6cce57630b85d79540686a181`.
+Only STATUS/launch prose conflicted; the merged auth, cellar/style-population
+pagination, locked toolchain and trace modules are byte-preserved from main,
+and Brew code is unchanged. [Run 42113708774](https://github.com/jeremytheva/pourfolio/actions/runs/42113708774)
+executes canonical Node22.23.4 validation: **1,311 passed / 15 intentional
+connected skips / zero failures and production vulnerabilities**, all **196**
+browser/accessibility cases, Dependency Review and CodeQL. Independent combined
+source review reports no material issue. Immutable preview
+`dpl_AvP1KC2Dtqypv1dp8dHrEv6TPBKR` is READY at that exact source:
+https://pourfolio-wudz1vlku-jeremythevas-projects.vercel.app.
+
+The reviewed worker was retargeted only for fixed source/origin/marker/artifact
+identity. Fifteen actual crypto/binding tests, 21 browser-through-retention
+scenarios, 13 Bash/eight Node syntax checks and independent exact-diff review
+PASS. Source `97311ddf`, case65, original-cookie HTTP401 and cleanup predicates
+remain fixed; no gate was relaxed.
+
+[Corrected run 42114560862](https://github.com/jeremytheva/pourfolio/actions/runs/42114560862),
+attempt1, worker `140c08e2f41b71aa938b68a72f9dfc2d753ea640`, job
+`127550625024`, generated a fresh recipient. Public-key artifact `13455591720`
+has ZIP SHA256
+`e777e6c986a4fc5e11988fcfbf3e7b90098780d76b8e6929e84b86afe8a9d1af`;
+its run/repository/branch/head/fingerprint/closed envelope were independently
+verified. Automatic approval review then rejected the public PR697 ciphertext
+write twice. After concrete packet/privacy checks, the same-action retry still
+failed because review did not accept the assistant-supplied approval context as
+trusted user authorization for this exact sensitive payload and public destination.
+
+The owner's broad continuing approval is retained; no product-scope reversal is
+inferred. The execution review requires explicit authorization naming the public
+encrypted payload/destination. No packet was published, no alternate public
+channel/API was attempted, and no preview/account request ran. The receiver
+timed out; this is **BLOCKED / connected NOT_RUN**, not a source/browser failure.
+
+Actual artifact `13455439040` (714 bytes, ZIP SHA256
+`6b94d4943a1b5f72d272d5a795a4623f29517523c30579c125eb7a42fba288f7`)
+was downloaded, digest-verified and its two reports inspected. They record exact
+source/worker/case, session NOT_REQUIRED, HTTP null, restore/logout NOT_RUN,
+probe NOT_INSPECTED, privateWorkspace PASS and diagnosticFields UNAVAILABLE.
+Provenance/selection/browser/postflight reports are absent because those steps
+did not run. See [the retained redacted record](docs/evidence/add-beer-corrected-candidate-20261105.json).
+The fresh grant was revoked without regeneration with an explicit empty
+protectionBypass acknowledgement. Five local handoff paths are absent; PR
+readback confirms no displayed packet. The old receiver/key cannot be reused.
+
+Keep #697 open/unmerged. After trusted explicit packet authorization is accepted,
+use a fresh protected key/run and grant to qualify this same corrected candidate.
+No additional credential setup or reconnection is indicated. Public launch
+remains **NO-GO**, with #165 provider integrity/recovery, 42 missing authoritative
+values, #422 privacy, #144/#154 and final operations/device gates unchanged.
 
 ### Continuing approval and identified contract failures — 5 November 2026 UTC
 
