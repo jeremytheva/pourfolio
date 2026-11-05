@@ -30,7 +30,14 @@
         "file:e2e/mockApi.js",
         "file:e2e/catalogue-proposal-searchable-selectors.spec.js",
         "file:docs/evidence/add-beer-connected-20261105.json",
-        "file:docs/catalogue-response-contract.md"
+        "file:docs/catalogue-response-contract.md",
+        "file:api/cellar-data-proxy.js",
+        "file:api/rating-data-proxy.js",
+        "file:api/__tests__/stylePopulationPagination.test.js",
+        "file:api/nocodebackend/__tests__/cellarPagination.test.js",
+        "file:package.json",
+        "file:package-lock.json",
+        "file:.project-master/launch-readiness.json"
       ],
       "acquiredAt": "2026-11-05T21:22:26.000Z",
       "expiresAt": "2026-11-05T21:52:26.000Z"
