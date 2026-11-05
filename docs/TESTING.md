@@ -92,6 +92,45 @@ crash recovery or snapshot/restore. See the
 
 ## Current automated coverage
 
+### Complete style-score relationship reads
+
+`api/__tests__/stylePopulationPagination.test.js` uses the actual provider
+adapter with a synthetic transport whose unpaged default is 25. The 30-product
+regression reproduces 30 overall scores versus 25 style scores before #728;
+after repair, the late product has the complete 30-score style sample. Further
+cases vary ratings/products/categories independently, cover 205 distinct
+products/styles and bounded ID chunks, traverse broad responses and array-only
+terminal pages, and reject later-page failures, duplicate/conflicting IDs,
+malformed identities, exact-total drift and an oversized advertised scan.
+Missing relationships and empty populations remain unavailable/empty without
+inventing style evidence. Mutation methods are prohibited by the fixture.
+
+`styleScaledScoreGateway.test.js` now pages each relationship collection through
+its existing fake adapter; its original rating-pagination assertions still
+measure rating pages specifically. The pure style-score formula/eligibility
+tests remain unchanged. These checks do not establish connected provider
+volume/latency, permissions, #165 integrity or public-release acceptance.
+
+### Complete owner cellar reads
+
+`api/nocodebackend/__tests__/cellarPagination.test.js` exercises the real provider
+adapter against a synthetic HTTP transport whose unpaged default is 25 rows.
+The 205-row regression fails before #726 (25 returned) and requires all three
+fresh, sorted, owner-filtered pages after the repair. It also covers empty and
+array-only pages, foreign/ownerless rows, invalid/duplicate/out-of-order IDs,
+changing exact totals, later-page failure, the page cap and caller cancellation.
+No partial HTTP success is permitted on a failed collection read. Large string
+IDs, zero values, nullable relationships and private-field projection are retained.
+
+Metadata checks verify bounded concurrent product hydration, request-local
+product/producer/category deduplication and the abortable optional-enrichment
+deadline without losing verified cellar rows. The existing query-policy case
+now supplies a paginated adapter response rather than an unpaged list mock.
+`e2e/cellar-load-recovery.spec.js` renders 205 synthetic items, searches for the
+last, hides the list on failure and restores all items/focus after retry.
+These are source/browser regressions, not connected multi-page provider,
+permission, mutation or #144/#154 release certification.
+
 Tests cover:
 
 - canonical relational collection names;
@@ -348,6 +387,93 @@ Source-only tests cannot replace these staging checks:
 Do not use production credentials or personal data in fixtures. Redact evidence before attaching it to a PR.
 
 ## Connected staging release check
+
+### Protected Add Beer preview qualification
+
+The auth-status repair has real-handler transport fixtures for recognized empty
+session shapes (401), malformed/unrecognized/error envelopes (502), unchanged
+valid-session bytes/cookies, upstream errors and non-session auth actions.
+Replacement errors explicitly use application/json while preserving no-store,
+request correlation and cookie hardening. An arbitrary identity-free provider
+error must never be converted into the release check's successful 401 signal.
+
+The owner now authorizes continuing scoped launch diagnostics and public
+run-specific encrypted handoffs; no repeated per-packet approval question is
+needed within that scope. Continue fresh-recipient, origin, credential-ordering,
+redaction and cleanup guards for every run. Diagnostic run `41985218015`
+identified the category equal-total assertion at case65 line81, and original
+saved-cookie probe HTTP200/normalized identity ABSENT after restored logout.
+It remains FAIL/session UNCONFIRMED under the strict401 gate. The
+[retained six-report record](evidence/add-beer-connected-20261105.json) is the
+actual failure evidence; fixes must be validated and tested on a new exact build.
+
+The approved 4 November run `41827382965` delivered one fresh packet and
+passed exact pre/post provenance and singleton selection, but case 65 FAILED
+and original-cookie session closure remained UNCONFIRMED at HTTP 200.
+Private runner cleanup passed. The displayed packet was removed, the new
+Vercel grant revoked without replacement, and local handoff files removed.
+[The digest-verified six-report record](evidence/add-beer-connected-20261104.json)
+is failure evidence, not connected acceptance. The one-packet approval is used.
+
+The prepared worker embeds the reviewed reporter (SHA-256
+`9ad70e1eb4dd0a58c400582a3c6ff99cd45c01f065d2315170f36e6f458d0c05`).
+Its additive failed-step diagnostics retain only the
+discovered case ID, a reviewed spec or support/owner-session helper file/line, a fixed Playwright
+step category and FAIL. They discard titles, exception details, stacks,
+URLs, values, attachments and arbitrary source paths. Empty diagnostics mean
+the failure location is unavailable; a plain JavaScript throw may have no
+failed Playwright step. Invalid diagnostic metadata is counted without being
+echoed. These fields do not change qualification, case counts or the required
+original-cookie HTTP 401 gate. A future worker must explicitly use the reviewed
+diagnostic reporter, with its source recorded separately from the application.
+The prepared worker also retains fixed restore/logout outcomes and an identity
+enum from the existing probe response only. A closed final-cleanup projection
+preserves these fields; diagnosticFields must PASS. HTTP 200 never satisfies
+the original-cookie HTTP 401 gate, even when no identity is normalized.
+
+The [reviewed one-run relay](https://github.com/jeremytheva/pourfolio/blob/69a37d53d89664723dc09f2d62e7f2da2c7fd9f9/.github/workflows/add-beer-connected-evidence.yml)
+pins source `53299fce0cfd7a308c36bc0037ac5e2068969131` and
+https://pourfolio-oucjlr3cq-jeremythevas-projects.vercel.app.
+It preserves the protected `staging-release` account credentials and consumes
+a private one-run link file instead of `RELEASE_PREVIEW_SHARE_URL`. The secret
+API is unavailable to this integration; do not repeat owner setup requests.
+
+1. Before selecting a reviewed diagnostic marker, verify that current owner
+   authorization covers the encrypted packet's public PR-description persistence.
+   Ciphertext may remain in edit history/webhooks after its visible removal.
+   The explicit continuing approval now covers this scoped launch work; the
+   earlier general continuation alone did not satisfy automatic approval review.
+2. Use a fresh protected run. It generates an RSA4096 private key in the runner
+   temporary directory with mode `0600`; only the closed public manifest is
+   uploaded as `add-beer-access-key-<run>-<attempt>` for one day.
+3. Independently verify the artifact ID/digest and its workflow path, repository,
+   branch, head SHA, run and attempt. Validate the public RSA/SPKI fingerprint,
+   exact source/origin, closed manifest and ten-minute maximum lifetime.
+4. Encrypt only the validated commit Shareable Link (at most 400 bytes) with
+   OAEP-SHA256, binding all recipient metadata. Put only its canonical ciphertext
+   envelope in the exact current-run HTML machine block of PR #697. Publish no
+   plaintext link/private key, and do not use another public channel after a
+   rejected write. The receiver polls only the fixed public GitHub API endpoint
+   without authentication or redirects, for at most three minutes/18 attempts.
+   Duplicate, stale, malformed, replayed or tampered input blocks before sign-in.
+5. The receiver removes its private key in `finally`. The verifier reads the
+   private link file, then removes it before the first preview request. Preflight
+   exact origin/source/readiness checks precede account credentials; matching
+   postflight provenance is required after the browser case. Only unchanged
+   `catalogue-readonly.spec.js:65` may execute.
+6. Require one passed case with no skipped/error outcome, exact provenance,
+   original saved-cookie HTTP 401 after logout, successful handoff and verified
+   private-file absence. Keep the six explicit redacted JSON reports separate
+   from the public-key artifact. Traces, screenshots, video and raw logs stay
+   excluded. Remove only this run's exact packet from a freshly read PR body,
+   preserving other edits; visible removal cannot erase revision/webhook history.
+
+The historical result for run 40963113424 is BLOCKED / connected NOT_RUN:
+automatic approval review prevented delivery, receive timed out, and all preview/
+account stages skipped. Actual retained JSON verifies privateWorkspace PASS and
+session NOT_REQUIRED. No old key or packet may be reused. Link-grant expiry or
+revocation is separate from runner-local cleanup. The relay and source tests
+cannot qualify the combined new build, provider permissions or public release.
 
 ### Cellar HTTP checkpoints and redacted release evidence
 

@@ -9,6 +9,7 @@ import {
 import { enforceSharedRateLimit, rateLimitPolicyFor } from './_lib/rateLimit.js'
 import { resolveAuthCredential } from './_lib/ncbCredentials.js'
 import { resolveAuthBaseUrl } from './_lib/nocodeBackendConfig.js'
+import { extractSessionUser } from './_lib/authSession.js'
 import { runtimeTelemetry, safeCorrelationId, writeTelemetryError } from './_lib/telemetry.js'
 
 const AUTH_ACTIONS = Object.freeze({
@@ -118,6 +119,22 @@ const sanitizeProviderBody = (body) => {
     return null
   }
 }
+
+const emptySessionRecord = (payload) => payload === null || (
+  payload && typeof payload === 'object' && !Array.isArray(payload) &&
+  Object.keys(payload).length > 0 &&
+  Object.keys(payload).every(key => ['user', 'session'].includes(key) && payload[key] === null)
+)
+
+const explicitEmptySession = (payload) => emptySessionRecord(payload) || (
+  payload && typeof payload === 'object' && !Array.isArray(payload) &&
+  Object.keys(payload).length === 1 && Object.hasOwn(payload, 'data') && emptySessionRecord(payload.data)
+)
+
+const failedSessionEnvelope = (payload) => [payload, payload?.data].some(record =>
+  record && typeof record === 'object' && !Array.isArray(record) &&
+  (record.error || record.errors || record.success === false || record.status === 'error')
+)
 
 const splitSetCookieHeader = (header) => String(header || '')
   .split(/,(?=\s*[^;,\s]+=)/)
@@ -259,6 +276,7 @@ export default async function handler(request, response) {
           correlation_id: correlationId
         }))
       }
+      if (path === 'get-session') response.setHeader('Content-Type', 'application/json')
       response.status(upstream.status).json(safeUpstreamAuthError(path, upstream.status, correlationId))
       return
     }
@@ -273,8 +291,24 @@ export default async function handler(request, response) {
       return
     }
 
+    if (path === 'get-session') {
+      const payload = JSON.parse(Buffer.from(body).toString('utf8'))
+      if (failedSessionEnvelope(payload)) throw new Error('AUTH_SESSION_PAYLOAD_INVALID')
+      if (explicitEmptySession(payload)) {
+        response.setHeader('Content-Type', 'application/json')
+        response.status(401).json(safeUpstreamAuthError(path, 401, correlationId))
+        return
+      }
+      // Match protected handlers' identity resolver without treating unknown
+      // provider errors or malformed users as proof that a session is closed.
+      if (!payload || typeof payload !== 'object' || Array.isArray(payload) || !extractSessionUser(payload)) {
+        throw new Error('AUTH_SESSION_PAYLOAD_INVALID')
+      }
+    }
+
     response.status(upstream.status).send(Buffer.from(body))
   } catch (error) {
+    if (path === 'get-session') response.setHeader('Content-Type', 'application/json')
     writeTelemetryError(runtimeTelemetry({
       route_template: '/api/nocodebackend/auth/:action', method: request.method, status_class: '5xx',
       event_name: error.name === 'AbortError' ? 'provider_timeout' : 'authentication_provider_failure',

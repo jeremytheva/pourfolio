@@ -31,8 +31,11 @@ const fixture = (changes = {}) => {
   const calls = []
   const provider = {
     async listPage(collection, options) {
-      const items = collection === 'products' ? [{ id: 1, producer_id: null, product_category_id: null }] : rows.map((row) => ({ ...row }))
-      return { items, page: options.page, totalPages: 1 }
+      const all = collection === 'products' ? [{ id: 1, producer_id: null, product_category_id: null }]
+        : rows.filter(row => !options.filters?.user_id || row.user_id === options.filters.user_id).map(row => ({ ...row }))
+      const { page, limit } = options
+      return { items: all.slice((page - 1) * limit, page * limit), page, pageSize: limit,
+        total: all.length, totalPages: Math.ceil(all.length / limit) }
     },
     async list(_collection, filters = {}) { return rows.filter((row) => !filters.user_id || row.user_id === filters.user_id).map((row) => ({ ...row })) },
     async get(collection, id) {

@@ -93,6 +93,98 @@ test('failed and timed-out cases remain failures without publishing assertion de
   assertPrivate(h)
 })
 
+test('failed steps retain only deterministic source locations for their discovered case', async () => {
+  const h = harness(), entry = specimen('catalogue-readonly.spec.js', 65)
+  begin(h, [entry])
+  const failure = (line, category) => ({
+    location: { ...entry.location, line }, category, error: new Proxy({}, { get() { throw new Error(secret) } }),
+    get title() { throw new Error(secret) }, attachments: [secret], values: [secret]
+  })
+  h.reporter.onStepEnd(entry, {}, failure(98, 'pw:api'))
+  h.reporter.onStepEnd(entry, {}, failure(78, 'expect'))
+  h.reporter.onStepEnd(entry, {}, failure(78, 'expect'))
+  h.reporter.onStepEnd(entry, {}, { location: entry.location, category: 'hook' })
+  h.reporter.onTestEnd(entry, { status: 'failed', error: new Error(secret) })
+  await end(h, 'failed')
+  assert.deepEqual(h.report().diagnostics, [
+    { caseId: 'catalogue-readonly.spec.js:65', sourceId: 'catalogue-readonly.spec.js:78', category: 'expect', status: 'FAIL' },
+    { caseId: 'catalogue-readonly.spec.js:65', sourceId: 'catalogue-readonly.spec.js:98', category: 'pw:api', status: 'FAIL' }
+  ])
+  assert.equal(h.report().invalidDiagnostics, 0)
+  assert.deepEqual(h.report().counts, { expected: 1, passed: 0, failed: 1, skipped: 0, notRun: 0 })
+  assertPrivate(h)
+})
+
+test('unknown diagnostic case, source, category or line is omitted without changing case qualification', async () => {
+  const h = harness(), entry = specimen()
+  begin(h, [entry])
+  const failure = { location: { ...entry.location, line: 20 }, category: 'expect', error: new Error(secret) }
+  const invalid = [
+    { ...failure, location: { file: '/repo/release-check/customer-private.spec.js', line: 20 } },
+    { ...failure, location: specimen('catalogue-readonly.spec.js', 20).location },
+    { ...failure, location: { file: '/outside/release-check/connected.spec.js', line: 20 } },
+    { ...failure, location: { file: '/repo/release-check/customer-private-helper.js', line: 20 } },
+    ...[0, -1, 1.5, 100001, secret].map(line => ({ ...failure, location: { ...entry.location, line } })),
+    { ...failure, category: secret }, { ...failure, category: '__proto__' }
+  ]
+  for (const step of invalid) h.reporter.onStepEnd(entry, {}, step)
+  h.reporter.onStepEnd(specimen('connected.spec.js', 999), {}, failure)
+  h.reporter.onTestEnd(entry, { status: 'passed' })
+  assert.deepEqual(await end(h), { status: 'passed' })
+  assert.equal(h.report().status, 'PASS')
+  assert.deepEqual(h.report().diagnostics, [])
+  assert.equal(h.report().invalidDiagnostics, invalid.length + 1)
+  assertPrivate(h)
+})
+
+test('reviewed helpers can identify a failed step but never become discovered case identities', async () => {
+  const h = harness(), entry = specimen('catalogue-readonly.spec.js', 65)
+  begin(h, [entry])
+  for (const file of ['support.js', 'ownerSession.js']) {
+    h.reporter.onStepEnd(entry, {}, { location: { file: path.join(rootDirectory, 'release-check', file), line: 51 }, category: 'expect', error: new Error(secret) })
+  }
+  h.reporter.onTestEnd(entry, { status: 'failed' })
+  await end(h, 'failed')
+  assert.deepEqual(h.report().diagnostics.map(value => value.sourceId).sort(), ['ownerSession.js:51', 'support.js:51'])
+  assert.ok(h.report().diagnostics.every(value => value.caseId === 'catalogue-readonly.spec.js:65'))
+  assert.equal(h.report().invalidDiagnostics, 0)
+  assertPrivate(h)
+
+  const invalid = harness()
+  begin(invalid, [specimen('support.js', 51)])
+  await end(invalid)
+  assert.ok(invalid.report().blockers.includes('INVALID_CASE_IDENTITY'))
+  assert.deepEqual(invalid.report().tests, [])
+})
+
+test('diagnostic accessors are rejected without invoking getters or serialising their errors', async () => {
+  const h = harness(), entry = specimen()
+  begin(h, [entry])
+  let accesses = 0
+  const getter = { get() { accesses += 1; throw new Error(secret) }, enumerable: true }
+  const failure = () => ({ location: { ...entry.location, line: 20 }, category: 'expect', error: new Error(secret) })
+  for (const field of ['error', 'location', 'category']) {
+    const step = failure()
+    Object.defineProperty(step, field, getter)
+    h.reporter.onStepEnd(entry, {}, step)
+  }
+  for (const field of ['file', 'line']) {
+    const step = failure()
+    Object.defineProperty(step.location, field, getter)
+    h.reporter.onStepEnd(entry, {}, step)
+  }
+  const hostileCase = { location: entry.location }
+  Object.defineProperty(hostileCase, 'location', getter)
+  h.reporter.onStepEnd(hostileCase, {}, failure())
+  h.reporter.onStepEnd(entry, {}, new Proxy({}, { getOwnPropertyDescriptor() { throw new Error(secret) } }))
+  h.reporter.onTestEnd(entry, { status: 'failed' })
+  await end(h, 'failed')
+  assert.equal(accesses, 0)
+  assert.equal(h.report().invalidDiagnostics, 7)
+  assert.deepEqual(h.report().diagnostics, [])
+  assertPrivate(h)
+})
+
 test('skipped checks are counted separately from passing checks', async () => {
   const h = harness()
   const entry = specimen('profile-history-readonly.spec.js', 40)
@@ -224,15 +316,37 @@ test('real Playwright CLI retains failure status and emits only redacted case ev
     error: 'synthetic-private-reporter-error',
     stdout: 'synthetic-private-reporter-stdout',
     stderr: 'synthetic-private-reporter-stderr',
-    attachment: 'synthetic-private-reporter-attachment'
+    attachment: 'synthetic-private-reporter-attachment',
+    assertion: 'synthetic-private-reporter-assertion-value',
+    apiTitle: 'synthetic-private-reporter-api-title',
+    invalidUrl: 'https://[synthetic-private-reporter-invalid-url'
   }
 
   try {
     const testDirectory = path.join(temporaryRoot, 'release-check')
     fs.mkdirSync(testDirectory, { recursive: true })
     fs.writeFileSync(path.join(temporaryRoot, 'package.json'), JSON.stringify({ type: 'module' }), { mode: 0o600 })
-    fs.writeFileSync(path.join(testDirectory, 'connected.spec.js'), [
+    const assertionHelper = [
       'import playwright from ' + JSON.stringify(playwrightModule),
+      'const { expect } = playwright',
+      'export const failAssertion = () => {',
+      '  expect(' + JSON.stringify(privateValues.assertion) + ').toBe("public-expected-value")',
+      '}'
+    ]
+    const apiHelper = [
+      'import playwright from ' + JSON.stringify(playwrightModule),
+      'const { request } = playwright',
+      'export const failApi = async () => {',
+      '  const context = await request.newContext()',
+      '  try { await context.get(' + JSON.stringify(privateValues.invalidUrl) + ') } finally { await context.dispose() }',
+      '}'
+    ]
+    fs.writeFileSync(path.join(testDirectory, 'support.js'), assertionHelper.join('\n'), { mode: 0o600 })
+    fs.writeFileSync(path.join(testDirectory, 'ownerSession.js'), apiHelper.join('\n'), { mode: 0o600 })
+    const sourceLines = [
+      'import playwright from ' + JSON.stringify(playwrightModule),
+      "import { failAssertion } from './support.js'",
+      "import { failApi } from './ownerSession.js'",
       'const { test } = playwright',
       "test('public protocol smoke pass', async () => {})",
       'test(' + JSON.stringify(privateValues.title) + ', async ({}, testInfo) => {',
@@ -241,8 +355,18 @@ test('real Playwright CLI retains failure status and emits only redacted case ev
       '  await testInfo.attach(' + JSON.stringify(privateValues.attachment) +
         ', { body: Buffer.from(' + JSON.stringify(privateValues.attachment) + '), contentType: "text/plain" })',
       '  throw new Error(' + JSON.stringify(privateValues.error) + ')',
+      '})',
+      'test(' + JSON.stringify(privateValues.title + '-assertion') + ', async () => {',
+      '  failAssertion()',
+      '})',
+      'test(' + JSON.stringify(privateValues.apiTitle) + ', async () => {',
+      '  await failApi()',
       '})'
-    ].join('\n'), { mode: 0o600 })
+    ]
+    const assertionLine = assertionHelper.findIndex(line => line.startsWith('  expect(')) + 1
+    const apiLine = apiHelper.findIndex(line => line.startsWith('  try { await context.get(')) + 1
+    const plainThrowCaseLine = sourceLines.findIndex(line => line.startsWith('test(' + JSON.stringify(privateValues.title) + ',')) + 1
+    fs.writeFileSync(path.join(testDirectory, 'connected.spec.js'), sourceLines.join('\n'), { mode: 0o600 })
 
     const configPath = path.join(temporaryRoot, 'playwright.config.mjs')
     fs.writeFileSync(configPath, 'export default ' + JSON.stringify({
@@ -277,9 +401,13 @@ test('real Playwright CLI retains failure status and emits only redacted case ev
     const report = JSON.parse(summary)
     assert.equal(report.status, 'FAIL')
     assert.equal(report.runnerStatus, 'failed')
-    assert.deepEqual(report.counts, { expected: 2, passed: 1, failed: 1, skipped: 0, notRun: 0 })
-    assert.equal(report.tests.length, 2)
+    assert.deepEqual(report.counts, { expected: 4, passed: 1, failed: 3, skipped: 0, notRun: 0 })
+    assert.equal(report.tests.length, 4)
     assert.ok(report.tests.every(entry => /^connected\.spec\.js:[1-9]\d*$/.test(entry.caseId)))
+    assert.equal(report.invalidDiagnostics, 0)
+    assert.ok(report.diagnostics.some(entry => entry.sourceId === `support.js:${assertionLine}` && entry.category === 'expect' && entry.status === 'FAIL'))
+    assert.ok(report.diagnostics.some(entry => entry.sourceId === `ownerSession.js:${apiLine}` && entry.category === 'pw:api' && entry.status === 'FAIL'))
+    assert.ok(report.diagnostics.every(entry => entry.caseId !== `connected.spec.js:${plainThrowCaseLine}`))
     const outputLines = child.stdout.trim().split(/\r?\n/).filter(Boolean)
     assert.equal(outputLines.length, 1)
     assert.deepEqual(JSON.parse(outputLines[0]), report)

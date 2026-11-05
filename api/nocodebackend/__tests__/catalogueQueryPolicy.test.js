@@ -45,14 +45,15 @@ test('catalogue returns provider no-result metadata without relationship hydrati
 
 test('cellar owner isolation survives duplicate and missing relationships', async () => {
   const gets = []
-  dataProvider.list = async (collection, filters) => {
+  dataProvider.listPage = async (collection, { page, limit, filters, fresh }) => {
     assert.equal(collection, COLLECTIONS.cellar)
     assert.deepEqual(filters, { user_id: 'owner' })
-    return [
+    assert.equal(fresh, true)
+    return { page, pageSize: limit, total: 3, totalPages: 1, items: [
       { id: 1, user_id: 'owner', product_id: 8 },
       { id: 2, user_id: 'owner', product_id: 8 },
       { id: 3, user_id: 'other', product_id: 90 }
-    ]
+    ] }
   }
   dataProvider.get = async (collection, id) => {
     gets.push([collection, String(id)])

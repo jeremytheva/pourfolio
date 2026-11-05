@@ -225,6 +225,64 @@ blockers and the supporting evidence rows above are complete.
 | Final migrated data export | Immutable provider export/job ID, UTC interval, SHA-256 digest, aggregate count manifest and quarantined/remediated ledger reference. | `<required>` |
 | Post-migration connected evidence | Timestamp digest, ownership, score-range, relationship, permission-negative, workflow, duplicate retry and forced partial-write evidence references. | `<required>` |
 
+## Supplied export assessment — 29 October 2026
+
+The owner-supplied `54026_rating_export_2026-10-28.sql.gz` provides a newer
+structural input than the retained July baseline. The compressed input is
+450,666 bytes, SHA-256
+`bf6d49719695aecc64d91a6b36443c10d382e7ba01ec68757387eb1ba1bb3f51`.
+Its decompressed SQL is 2,081,842 bytes, SHA-256
+`fc574f3b4ea4a7b1c6e4f37552d781e601aeb34335e8160d668fcc906232b718`.
+Only the redacted [structural audit](../evidence/rating-schema-export-20261028.json)
+is committed; the original contains private data and credentials and must remain
+outside the repository. The input is labelled `54026_rating`; its filename and
+SQL are not independent proof of current deployment, capture consistency,
+permissions, backup usability or an isolated restore.
+
+The existing `audit:schema` command checks four tables and returns **BLOCKED**
+with **21 structural findings against the deferred target**:
+
+| Finding | Count | Meaning in this supplied export |
+|---|---:|---|
+| Nullable required target fields | 13 | Six rating fields, four score fields and three bonus-mapping fields remain nullable. |
+| Missing target columns | 3 | `ratings.rating_id` and both child `uniqueness_key` fields are absent. |
+| Missing exact target unique constraints | 4 | Parent `(user_id, rating_id)` and `submission_key`, plus each child `uniqueness_key`. |
+| Missing integer score-range enforcement | 1 | `attribute_score` has no required 1–7 check. |
+
+These are contract differences, not 21 observed production failures. Already
+present are profile owner uniqueness, both combined child uniqueness constraints
+`(rating_id, attribute_id)` / `(rating_id, bonus_attribute_id)`, the required
+foreign keys, immutable `date_rated` default, all five submission states,
+unsigned version/count types, and nullable `deleted_at`. Preserve these controls;
+do not propose removing or adding them solely from the older missing-index claim.
+Unsigned workflow counters do not establish required nullability, and the
+integer score type does not enforce the 1–7 range.
+
+### Reconcile current writes before preparing an executable delta
+
+At application `2eec6d6`, new parents persist the client identity in
+`submission_key` and do not write a separate `ratings.rating_id`. Child writes
+use provider parent IDs and the existing combined uniqueness constraints, not
+`uniqueness_key`. The deferred target and deterministic backfill rules below
+therefore require a reviewed compatibility decision and mapping before execution.
+Do not invent an old client ID, substitute `ratings.id` for it, or infer a child
+client ID from its foreign key. Preserve existing submission keys/fingerprints,
+provider IDs, dates and historical totals. Missing or ambiguous identity needs
+an explicit disposition in the existing migration package.
+
+This newer input also includes terminal-state fields. The legacy initialisation
+rules below are not blanket instructions to reset existing versions/states,
+clear tombstones or resurrect deleted records. Distinguish untouched legacy rows
+from managed active and terminal rows in the reviewed dry run; contradictory
+terminal/child graphs remain recovery findings under #165.
+
+**Next gate:** obtain the actual provider mechanism/CAS contract, reconcile the
+target with current writer compatibility, and capture a fresh consistent baseline
+with proven isolated restore. Prepare the exact remaining changes and preservation
+checks from that baseline, then obtain approval only for actual irreversible
+operations. This supplied-export assessment authorises no provider change and
+does not enable `/ratings/reconcile`.
+
 ## Immutable baseline and target contract
 
 The known source baseline is `54026_rating_export(2).sql`, audited on 29 July

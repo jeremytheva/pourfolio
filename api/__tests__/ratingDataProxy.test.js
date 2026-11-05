@@ -482,6 +482,11 @@ test('owner history preserves exact category metadata, derives private PPP and h
   ]
   await withProviderMocks({
     listPage: async (collection, { page, limit, filters = {} }) => {
+      if ([COLLECTIONS.products, COLLECTIONS.categories].includes(collection)) {
+        const source = collection === COLLECTIONS.products ? [{ id: 4, product_category_id: 10 }] : [{ id: 10 }]
+        assert.deepEqual(filters, { 'id[in]': collection === COLLECTIONS.products ? '4' : '10' })
+        return { items: source, page, pageSize: limit, total: source.length, totalPages: 1 }
+      }
       assert.equal(collection, COLLECTIONS.ratings)
       // The same paginated provider serves the whole-community population and
       // owner-filtered history. Preserve another completed tasting for ranking.
@@ -519,6 +524,8 @@ test('owner history preserves exact category metadata, derives private PPP and h
     assert.deepEqual(item.product.producer, { id: 20, producer_name: 'Rocky Ridge Brewing' })
     assert.equal(item.advanced_scores.score_out_of_100, 80)
     assert.equal(item.advanced_scores.scaled_score, 0)
+    assert.equal(item.advanced_scores.style_scaled_score, 0)
+    assert.equal(item.advanced_scores.style_sample_size, 2)
     assert.equal(item.advanced_scores.retail_ppp, 136.36)
     assert.equal(item.advanced_scores.purchased_ppp, 140.71)
   })

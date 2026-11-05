@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "qualification": "READ_ONLY_ADD_BEER_CATEGORIES",
+  "repository": "jeremytheva/pourfolio",
+  "pullRequest": 697,
+  "sourceSha": "53299fce0cfd7a308c36bc0037ac5e2068969131",
+  "workerSha": "b29c6a64cdb17bd96994571bb39e93a2881f069e",
+  "runId": 41827382965,
+  "runAttempt": 1,
+  "jobId": 126565479931,
+  "publicKeyArtifact": {
+    "id": 13319179233,
+    "zipSha256": "5fcbee039ad79a83038f77d90dd566c81d5788abcb08aaa30ea0e22c7983f38d",
+    "recipientFingerprint": "49a6f21095345f2c6dc1224f200fa373250d17fc494f5c6f4b3ee357d246a189"
+  },
+  "redactedArtifact": {
+    "id": 13320361151,
+    "sizeInBytes": 1744,
+    "zipSha256": "f008c8e8fa8aa5f6312952ccc49557820df50f523878e5afef3e719c8dc38357",
+    "downloadedAndInspected": true
+  },
+  "accessHandoff": "PASS",
+  "ownerApproval": {
+    "scope": "ONE_PUBLIC_RUN_SPECIFIC_ENCRYPTED_PACKET",
+    "date": "2026-11-04",
+    "historyAndWebhookPersistenceAcknowledged": true
+  },
+  "displayedPacketRemovedAndReadBack": true,
+  "privateLocalFilesRemovedAndAbsenceVerified": true,
+  "grantRevocation": "API_RETURNED_EMPTY_PROTECTION_BYPASS",
+  "status": "FAIL",
+  "reports": {
+    "postflight.json": {
+      "version": 1,
+      "stage": "postflight",
+      "releaseSha": "53299fce0cfd7a308c36bc0037ac5e2068969131",
+      "access": "PASS",
+      "health": "PASS",
+      "readiness": "PASS",
+      "healthHttpStatus": 200,
+      "readinessHttpStatus": 200,
+      "blocker": null,
+      "status": "PASS"
+    },
+    "preflight.json": {
+      "version": 1,
+      "stage": "preflight",
+      "releaseSha": "53299fce0cfd7a308c36bc0037ac5e2068969131",
+      "access": "PASS",
+      "health": "PASS",
+      "readiness": "PASS",
+      "healthHttpStatus": 200,
+      "readinessHttpStatus": 200,
+      "blocker": null,
+      "status": "PASS"
+    },
+    "qualification.json": {
+      "version": 1,
+      "qualification": "READ_ONLY_ADD_BEER_CATEGORIES",
+      "sourceSha": "53299fce0cfd7a308c36bc0037ac5e2068969131",
+      "workerSha": "b29c6a64cdb17bd96994571bb39e93a2881f069e",
+      "caseId": "catalogue-readonly.spec.js:65",
+      "connected": "FAIL",
+      "status": "FAIL"
+    },
+    "release-summary.json": {
+      "version": 1,
+      "qualification": "CONNECTED_RELEASE_CHECKS",
+      "releaseSha": "53299fce0cfd7a308c36bc0037ac5e2068969131",
+      "candidateSha": "b29c6a64cdb17bd96994571bb39e93a2881f069e",
+      "status": "FAIL",
+      "runnerStatus": "failed",
+      "counts": {
+        "expected": 1,
+        "passed": 0,
+        "failed": 1,
+        "skipped": 0,
+        "notRun": 0
+      },
+      "invalidEvents": 0,
+      "runnerErrors": 0,
+      "blockers": [],
+      "tests": [
+        {
+          "caseId": "catalogue-readonly.spec.js:65",
+          "status": "FAIL"
+        }
+      ]
+    },
+    "selection.json": {
+      "version": 1,
+      "status": "PASS",
+      "caseId": "catalogue-readonly.spec.js:65",
+      "selected": 1
+    },
+    "session-cleanup.json": {
+      "version": 1,
+      "session": "UNCONFIRMED",
+      "sessionHttpStatus": 200,
+      "privateWorkspace": "PASS"
+    }
+  }
+}
