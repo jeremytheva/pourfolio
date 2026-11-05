@@ -49,7 +49,7 @@ const installVerifiedRelationshipPage = async (page) => {
     contentType: 'application/json',
     body: JSON.stringify({
       items: [product.category, secondProduct.category],
-      page: 1, pageSize: 100, total: 2, totalPages: 1
+      page: 1, pageSize: 100, total: 2, totalPages: 1, pagination: 'exact', hasMore: false
     })
   }))
   await page.route('**/api/nocodebackend/catalog/products?page=1&limit=50', (route) => route.fulfill({
@@ -245,7 +245,7 @@ test('unused canonical style is selectable using reviewed BJCP/BA aliases', asyn
     contentType: 'application/json',
     body: JSON.stringify({
       items: [product.category, { id: 31, category_name: 'American IPA', parent_id: null }],
-      page: 1, pageSize: 100, total: 2, totalPages: 1
+      page: 1, pageSize: 100, total: 2, totalPages: 1, pagination: 'exact', hasMore: false
     })
   }))
   await page.goto('/products/propose?name=Test%20IPA')
@@ -258,6 +258,32 @@ test('unused canonical style is selectable using reviewed BJCP/BA aliases', asyn
   await expect(stylePicker).toHaveAttribute('aria-describedby', /beer-style-hint beer-style-status/)
   await expect(page.getByText('Verified BJCP/BA equivalents appear in brackets')).toBeVisible()
 })
+
+for (const count of [201, 200]) {
+  test(`Add Beer can select the final style from a ${count}-row continuation inventory`, async ({ page }) => {
+    const categories = Array.from({ length: count }, (_, index) => ({
+      id: index + 1001, category_name: `Continuation Style ${String(index + 1).padStart(3, '0')}`, parent_id: null
+    }))
+    const requested = []
+    await page.route('**/api/nocodebackend/catalog/categories?**', route => {
+      const current = Number(new URL(route.request().url()).searchParams.get('page'))
+      requested.push(current)
+      const items = categories.slice((current - 1) * 100, current * 100)
+      return route.fulfill({
+        status: 200, contentType: 'application/json',
+        body: JSON.stringify({ items, page: current, pageSize: 100, total: null, totalPages: null,
+          pagination: 'continuation', hasMore: items.length === 100 })
+      })
+    })
+    await page.goto('/products/propose?name=Complete%20Style%20Inventory')
+    const picker = page.getByRole('combobox', { name: 'Beer style / category' })
+    const finalName = categories.at(-1).category_name
+    await picker.fill(finalName)
+    await page.getByRole('option', { name: finalName, exact: true }).click()
+    await expect(picker).toHaveValue(finalName)
+    expect(requested).toEqual([1, 2, 3])
+  })
+}
 
 test('brewery picker supports keyboard choice and clearing an obsolete selected producer ID', async ({ page }) => {
   await page.goto('/products/propose?name=Keyboard%20Beer')
@@ -349,7 +375,7 @@ test('keyboard navigation keeps the active style visible beyond the listbox view
   await page.route('**/api/nocodebackend/catalog/categories?page=1&limit=100', (route) => route.fulfill({
     status: 200,
     contentType: 'application/json',
-    body: JSON.stringify({ items: categories, page: 1, pageSize: 100, total: 40, totalPages: 1 })
+    body: JSON.stringify({ items: categories, page: 1, pageSize: 100, total: 40, totalPages: 1, pagination: 'exact', hasMore: false })
   }))
   await page.goto('/products/propose?name=Keyboard%20Visibility')
   const style = page.getByRole('combobox', { name: 'Beer style / category' })

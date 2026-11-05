@@ -138,22 +138,31 @@ const verifiedStyleDetailFromProducts = (products, styleId) => {
 const readAllCanonicalCategories = async () => {
   const categories = []
   const seen = new Set()
-  let page = 1
-  while (true) {
+  let pagination = null, exactTotal = null, exactPages = null
+  for (let page = 1; page <= 25; page += 1) {
     const result = validateCatalogueCategoryPage(
       await apiRequest(`/catalog/categories?page=${page}&limit=100`),
       { expectedPage: page, expectedPageSize: 100 }
     )
+    if (pagination !== null && result.pagination !== pagination) throw styleDataError()
+    pagination = result.pagination
+    if (pagination === 'exact') {
+      if (exactTotal !== null && (result.total !== exactTotal || result.totalPages !== exactPages)) throw styleDataError()
+      exactTotal = result.total
+      exactPages = result.totalPages
+    }
     for (const category of result.items) {
       const id = String(category.id)
       if (seen.has(id)) throw styleDataError()
       seen.add(id)
       categories.push(Object.freeze({ style: category }))
     }
-    if (page >= result.totalPages) break
-    page += 1
+    if (!result.hasMore) {
+      if (pagination === 'exact' && categories.length !== exactTotal) throw styleDataError()
+      return Object.freeze(categories.sort((a, b) => a.style.category_name.localeCompare(b.style.category_name)))
+    }
   }
-  return Object.freeze(categories.sort((a, b) => a.style.category_name.localeCompare(b.style.category_name)))
+  throw styleDataError()
 }
 
 export const styleService = {

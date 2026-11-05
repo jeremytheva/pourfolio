@@ -224,12 +224,20 @@ const listCategories = async (request, response) => {
   const providerPage = await dataProvider.listPage(COLLECTIONS.categories, {
     page, limit, orderBy: 'category_name', order: 'asc'
   })
+  // The adapter always supplies this flag for metadata-free pages, including
+  // the final short/empty probe. Explicit provider totals omit it entirely.
+  const continuation = Object.hasOwn(providerPage, 'totalIsEstimate')
+  if (continuation && typeof providerPage.totalIsEstimate !== 'boolean') {
+    throw Object.assign(new Error('Canonical style pagination is unavailable.'), { status: 502, code: 'PROVIDER_ERROR' })
+  }
   response.status(200).json({
-    items: normaliseList(providerPage.items).map(projectCategory),
+    items: providerPage.items.map(projectCategory),
     page: providerPage.page,
     pageSize: providerPage.pageSize,
-    total: providerPage.total,
-    totalPages: providerPage.totalPages
+    pagination: continuation ? 'continuation' : 'exact',
+    hasMore: continuation ? providerPage.totalIsEstimate : providerPage.page < providerPage.totalPages,
+    total: continuation ? null : providerPage.total,
+    totalPages: continuation ? null : providerPage.totalPages
   })
 }
 

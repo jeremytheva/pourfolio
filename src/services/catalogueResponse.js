@@ -6,6 +6,7 @@ const INVALID_CATALOGUE_MESSAGE = 'The server returned invalid catalogue data. P
 const INVALID_CATALOGUE_CODE = 'invalid_catalogue_response'
 
 const PAGE_KEYS = new Set(['items', 'page', 'pageSize', 'total', 'totalPages'])
+const CATEGORY_PAGE_KEYS = new Set([...PAGE_KEYS, 'pagination', 'hasMore'])
 const PRODUCT_KEYS = new Set([
   'id', 'product_name', 'product_category_id', 'producer_id', 'abv', 'ibu',
   'declared_category', 'edition', 'collaboration', 'product_image', 'producer',
@@ -304,19 +305,27 @@ export const validateCataloguePage = (payload, { expectedPage, expectedPageSize 
   return { items, page: page.page, pageSize: page.pageSize, total: page.total, totalPages: page.totalPages }
 })
 export const validateCatalogueCategoryPage = (payload, { expectedPage, expectedPageSize } = {}) => validate(() => {
-  const page = readDataProperties(payload, PAGE_KEYS, ['items', 'page', 'pageSize', 'total', 'totalPages'])
+  const page = readDataProperties(payload, CATEGORY_PAGE_KEYS, [...CATEGORY_PAGE_KEYS])
   if (!Array.isArray(page.items)) invalid()
-  for (const value of [page.page, page.pageSize, page.total, page.totalPages]) if (!Number.isSafeInteger(value)) invalid()
-  if (page.page < 1 || page.pageSize < 1 || page.pageSize > 100 || page.total < 0 || page.totalPages < 0) invalid()
+  if (!Number.isSafeInteger(page.page) || !Number.isSafeInteger(page.pageSize) ||
+      page.page < 1 || page.pageSize < 1 || page.pageSize > 100 ||
+      !['exact', 'continuation'].includes(page.pagination) || typeof page.hasMore !== 'boolean') invalid()
   if ((expectedPage !== undefined && page.page !== expectedPage) || (expectedPageSize !== undefined && page.pageSize !== expectedPageSize)) invalid()
-  const totalPages = page.total === 0 ? 0 : Math.ceil(page.total / page.pageSize)
-  if (page.totalPages !== totalPages || page.page > Math.max(1, totalPages)) invalid()
-  const expectedItems = page.total === 0 ? 0 : page.page < totalPages ? page.pageSize : page.total - (page.pageSize * (totalPages - 1))
-  if (page.items.length !== expectedItems) invalid()
+  if (page.pagination === 'continuation') {
+    if (page.total !== null || page.totalPages !== null ||
+        (page.hasMore ? page.items.length !== page.pageSize : page.items.length >= page.pageSize)) invalid()
+  } else {
+    if (!Number.isSafeInteger(page.total) || !Number.isSafeInteger(page.totalPages) || page.total < 0 || page.totalPages < 0) invalid()
+    const totalPages = page.total === 0 ? 0 : Math.ceil(page.total / page.pageSize)
+    if (page.totalPages !== totalPages || page.page > Math.max(1, totalPages) || page.hasMore !== (page.page < totalPages)) invalid()
+    const expectedItems = page.total === 0 ? 0 : page.page < totalPages ? page.pageSize : page.total - (page.pageSize * (totalPages - 1))
+    if (page.items.length !== expectedItems) invalid()
+  }
   const items = page.items.map((item) => validateCategory(item))
   if (items.some((item) => !item)) invalid()
   if (new Set(items.map((item) => String(item.id))).size !== items.length) invalid()
-  return { items, page: page.page, pageSize: page.pageSize, total: page.total, totalPages: page.totalPages }
+  return { items, page: page.page, pageSize: page.pageSize, total: page.total, totalPages: page.totalPages,
+    pagination: page.pagination, hasMore: page.hasMore }
 })
 export const validateCatalogueProduct = (payload, { expectedProductId } = {}) => validate(() => {
   const product = validateProduct(payload, { detail: true })

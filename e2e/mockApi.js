@@ -114,7 +114,7 @@ export const installMockApi = async (page, { bonusAttributeRows = bonusAttribute
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        items: [product.category], page: 1, pageSize: size, total: 1, totalPages: 1
+        items: [product.category], page: 1, pageSize: size, total: 1, totalPages: 1, pagination: 'exact', hasMore: false
       })
     })
   })
