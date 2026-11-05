@@ -1,6 +1,6 @@
 # Launch readiness
 
-Last reconciled: **29 October 2026 UTC**. Latest retained bounded production health/readiness deployment:
+Last reconciled: **5 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
 [`ef86e20d16865a5322eacfc3d916aca7f939e15d`](https://github.com/jeremytheva/pourfolio/commit/ef86e20d16865a5322eacfc3d916aca7f939e15d). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
@@ -39,7 +39,99 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
-### Encrypted preview relay prepared; scoped approval required — 29 October 2026 UTC
+### Reviewed diagnostics prepared; one further packet decision — 5 November 2026 UTC
+
+The #737 reporter repair at `92813bc3c8847df41a5c0f3d1b4990d5b2506c92`
+passed [run 41830592011](https://github.com/jeremytheva/pourfolio/actions/runs/41830592011):
+canonical Node 22.23.4 validation, **1,234 passed / 15 intentional connected
+skips / zero failures and production vulnerabilities**, all **188**
+browser/accessibility cases, Dependency Review and CodeQL. The actual CLI
+fixture exercises assertion/API failure locations in reviewed helpers and
+canary redaction. Independent source review found no material issue. This is
+source/reporter evidence, not acceptance of the failed connected case.
+
+The [prepared diagnostic worker](https://github.com/jeremytheva/pourfolio/blob/69a37d53d89664723dc09f2d62e7f2da2c7fd9f9/.github/workflows/add-beer-connected-evidence.yml)
+is committed without a selection marker in its commit message. It embeds the
+reviewed reporter byte-for-byte (SHA-256
+`9ad70e1eb4dd0a58c400582a3c6ff99cd45c01f065d2315170f36e6f458d0c05`).
+Application source `53299fce`, immutable origin and case 65/assertions are
+unchanged. Failed-step evidence includes only discovered case IDs, reviewed
+spec/helper source lines and fixed categories. Plain JavaScript failures may
+still have no failed-step location; absence does not identify a stage.
+
+Session diagnostics retain fixed restore/logout outcomes and classify only the
+existing probe response as normalized identity PRESENT, ABSENT or UNAVAILABLE.
+No account request or retry is added. HTTP 200 with any of those values stays
+UNCONFIRMED; original-cookie HTTP **401** is still required. A closed final
+cleanup projection retains only the allowed fields; malformed input becomes
+diagnosticFields UNAVAILABLE and cannot qualify. Twenty-one synthetic scenarios
+exercise the actual embedded browser module through final cleanup to retained
+JSON, including malformed canaries, deletion failure and remaining-key checks.
+All pass, as do 13 Bash/eight Node module syntax checks. Independent worker
+review found no material issue. These are hermetic checks, not a second live run.
+
+The earlier one-packet approval was used by run `41827382965`. Obtain explicit
+approval for **one further** run-specific encrypted packet in public PR #697,
+including possible edit-history/webhook persistence, before selecting the
+diagnostic marker. Use a fresh protected key/run, independently validate the
+recipient artifact and obtain a new exact-origin grant. No second packet or
+connected check has been selected. The failed case, UNCONFIRMED session and
+public launch **NO-GO** remain current; all other provider/data/operational
+gates are preserved.
+
+### Approved relay passed; connected acceptance failed — 4 November 2026 UTC
+
+The owner explicitly approved one run-specific encrypted packet after the public
+edit-history/webhook persistence warning. Fresh protected
+[run 41827382965](https://github.com/jeremytheva/pourfolio/actions/runs/41827382965),
+attempt 1, job `126565479931`, used unchanged reviewed worker
+`b29c6a64cdb17bd96994571bb39e93a2881f069e` and application source
+`53299fce0cfd7a308c36bc0037ac5e2068969131`. The immutable deployment was READY
+at that source before the run. The fresh public-key artifact `13319179233`
+was independently bound to the workflow, repository, branch, worker, run and
+attempt; its ZIP SHA-256 is
+`5fcbee039ad79a83038f77d90dd566c81d5788abcb08aaa30ea0e22c7983f38d`.
+Only the validated current-run ciphertext was published at 12:15:24 UTC.
+The protected runner received/decrypted it successfully at 12:15:34 UTC.
+
+The six actual reports in artifact `13320361151` (1,744 bytes, ZIP SHA-256
+`f008c8e8fa8aa5f6312952ccc49557820df50f523878e5afef3e719c8dc38357`)
+were downloaded, digest-verified and inspected. Preflight and postflight both
+PASS with exact source, health/readiness HTTP 200 and no blocker. Selection
+PASS identifies only `catalogue-readonly.spec.js:65`. That case **FAILED**:
+zero passes, one failure, no skips, invalid events, runner errors or blockers.
+Original saved-cookie session closure is **UNCONFIRMED**, HTTP **200**;
+`privateWorkspace=PASS`. Overall qualification and connected status are
+**FAIL**. The [redacted record](evidence/add-beer-connected-20261104.json) retains all six reports.
+
+HTTP 200 alone does not establish whether the original cookie still resolves
+an identity: the authentication proxy forwards successful provider bodies, while
+protected data handlers separately reject missing identities. No response body
+or browser failure location was retained. Do not claim a successful logout,
+blame credentials, identify a failing category assertion, or change application
+policy from this evidence. Prepare allowlisted failed source locations for the
+next diagnostic worker while preserving the exact existing assertions and
+strict original-cookie HTTP 401 acceptance condition. No unchanged retry is
+selected.
+
+The matching displayed packet was removed from a fresh PR body and absence
+verified. Vercel's revoke-without-regeneration API returned an empty
+`protectionBypass` for the newly created deployment grant. Five local
+handoff/manifest/payload files were removed and their absence verified; the
+runner's retained private-workspace result is independently PASS. Displayed
+removal cannot erase ciphertext already retained in history or webhooks, as
+approved. The one-packet approval has been used; it is not permission for
+additional public packets, provider writes or public release.
+
+This supersedes the earlier pending-approval/access-only blocker below. #697
+remains unmerged at unchanged source `53299fce`, with its integration conflict
+and both newer main pagination repairs preserved. The source-only diagnostic
+repair does not qualify this failed run or a later combined deployment.
+The 42 missing bonus values, #165 integrity/recovery, #422 privacy, #144/#154
+acceptance, operations and device/final-candidate gates stay open. Public
+launch remains **NO-GO**; Brew Done It remains launch-excluded.
+
+### Historical relay preparation and approval boundary — 29 October 2026 UTC
 
 The owner requested another route instead of further secret-entry instructions.
 The authenticated CLI can read repository metadata, but the protected Environment
