@@ -11,7 +11,7 @@ jobs:
   qualify:
     if: >-
       github.ref == 'refs/heads/fix/add-beer-connected-evidence-20261027' &&
-      contains(github.event.head_commit.message, '[qualify-add-beer-ephemeral-53299fce]')
+      contains(github.event.head_commit.message, '[diagnose-add-beer-ephemeral-53299fce]')
     environment: staging-release
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -388,6 +388,249 @@ jobs:
           fs.writeFileSync(path.join(process.env.RELEASE_EVIDENCE_DIRECTORY, 'selection.json'), JSON.stringify(report) + '\n', { mode: 0o600 })
           if (report.status !== 'PASS') process.exitCode = 1
           JS
+      - name: Prepare the reviewed redacted diagnostic reporter
+        shell: bash
+        run: |
+          umask 077
+          cat > "$RUNNER_TEMP/add-beer-redacted-reporter.mjs" <<'REPORTER'
+          import fs from 'node:fs'
+          import path from 'node:path'
+          
+          const specFiles = Object.freeze([
+            'connected.spec.js',
+            'catalogue-evidence.spec.js',
+            'catalogue-readonly.spec.js',
+            'profile-history-readonly.spec.js'
+          ])
+          const testStatuses = Object.freeze({
+            passed: 'PASS',
+            failed: 'FAIL',
+            timedOut: 'FAIL',
+            interrupted: 'FAIL',
+            skipped: 'SKIPPED'
+          })
+          const runStatuses = new Set(['passed', 'failed', 'timedout', 'interrupted'])
+          const stepCategories = new Set(['expect', 'pw:api', 'test.step', 'hook'])
+          const diagnosticHelpers = Object.freeze(['support.js', 'ownerSession.js'])
+          const publicSha = value => typeof value === 'string' && /^[a-f0-9]{40}$/.test(value) ? value : null
+          const ownValue = (value, key) => {
+            const descriptor = Object.getOwnPropertyDescriptor(value, key)
+            if (!descriptor || !Object.hasOwn(descriptor, 'value')) throw new Error('INVALID_DIAGNOSTIC')
+            return descriptor.value
+          }
+          
+          // Playwright reporter for connected checks. Only source case IDs and fixed
+          // outcomes are retained; test titles, errors, stdout and attachments are private.
+          export default class RedactedReleaseReporter {
+            constructor({
+              env = process.env,
+              rootDirectory = process.cwd(),
+              fileSystem = fs,
+              writeOutput = value => process.stdout.write(value)
+            } = {}) {
+              this.fileSystem = fileSystem
+              this.writeOutput = writeOutput
+              this.directory = path.resolve(rootDirectory,
+                typeof env.RELEASE_EVIDENCE_DIRECTORY === 'string' && env.RELEASE_EVIDENCE_DIRECTORY.trim()
+                  ? env.RELEASE_EVIDENCE_DIRECTORY : 'artifacts/connected-release')
+              this.allowedFiles = new Map(specFiles.map(file =>
+                [path.resolve(rootDirectory, 'release-check', file), file]))
+              this.diagnosticHelpers = new Map(diagnosticHelpers.map(file =>
+                [path.resolve(rootDirectory, 'release-check', file), file]))
+              this.metadata = { releaseSha: publicSha(env.RELEASE_SHA), candidateSha: publicSha(env.GITHUB_SHA) }
+              this.cases = new Map()
+              this.stepDiagnostics = new Map()
+              this.invalidDiagnostics = 0
+              this.blockers = new Set()
+              if (!this.metadata.releaseSha) this.block('RELEASE_IDENTITY_MISSING')
+              this.discovered = 0
+              this.invalidEvents = 0
+              this.runnerErrors = 0
+              this.started = false
+            }
+          
+            block(code) {
+              this.blockers.add(code)
+            }
+          
+            caseId(test) {
+              const location = test?.location
+              if (typeof location?.file !== 'string' ||
+                  !Number.isSafeInteger(location.line) || location.line < 1 || location.line > 100000) return null
+              const file = this.allowedFiles.get(path.resolve(location.file))
+              return file ? file + ':' + location.line : null
+            }
+          
+            onBegin(_config, suite) {
+              if (this.started) {
+                this.block('DUPLICATE_BEGIN')
+                return
+              }
+              this.started = true
+              try {
+                const tests = suite.allTests()
+                if (!Array.isArray(tests) || tests.length > 10000) {
+                  this.block('INVALID_SUITE')
+                  return
+                }
+                this.discovered = tests.length
+                for (const test of tests) {
+                  const id = this.caseId(test)
+                  if (!id) {
+                    this.invalidEvents += 1
+                    this.block('INVALID_CASE_IDENTITY')
+                  } else if (this.cases.has(id)) {
+                    this.invalidEvents += 1
+                    this.block('DUPLICATE_CASE_IDENTITY')
+                  } else {
+                    this.cases.set(id, 'NOT_RUN')
+                  }
+                }
+              } catch {
+                this.block('INVALID_SUITE')
+              }
+            }
+          
+            onTestEnd(test, result) {
+              try {
+                const id = this.caseId(test)
+                if (!this.started || !id || !this.cases.has(id)) {
+                  this.invalidEvents += 1
+                  this.block('UNEXPECTED_CASE_RESULT')
+                  return
+                }
+                if (this.cases.get(id) !== 'NOT_RUN') {
+                  this.invalidEvents += 1
+                  this.cases.set(id, 'FAIL')
+                  this.block('DUPLICATE_CASE_RESULT')
+                  return
+                }
+                const status = result?.status
+                if (typeof status !== 'string' || !Object.hasOwn(testStatuses, status)) {
+                  this.invalidEvents += 1
+                  this.cases.set(id, 'INVALID')
+                  this.block('INVALID_TEST_STATUS')
+                  return
+                }
+                this.cases.set(id, testStatuses[status])
+              } catch {
+                this.invalidEvents += 1
+                this.block('INVALID_CASE_RESULT')
+              }
+            }
+          
+            onStdOut() {}
+            onStdErr() {}
+          
+            onStepEnd(test, _result, step) {
+              try {
+                const error = Object.getOwnPropertyDescriptor(step, 'error')
+                if (!error) return
+                if (!Object.hasOwn(error, 'value')) throw new Error('INVALID_DIAGNOSTIC')
+                if (!error.value) return
+                const testLocation = ownValue(test, 'location')
+                const testFile = ownValue(testLocation, 'file')
+                const caseId = this.caseId({ location: { file: testFile, line: ownValue(testLocation, 'line') } })
+                const location = ownValue(step, 'location')
+                const file = ownValue(location, 'file')
+                const line = ownValue(location, 'line')
+                const category = ownValue(step, 'category')
+                if (!this.started || !caseId || !this.cases.has(caseId) || typeof file !== 'string' ||
+                    !Number.isSafeInteger(line) || line < 1 || line > 100000 || !stepCategories.has(category)) throw new Error('INVALID_DIAGNOSTIC')
+                const resolvedFile = path.resolve(file)
+                const sourceFile = resolvedFile === path.resolve(testFile) ? this.allowedFiles.get(resolvedFile) : this.diagnosticHelpers.get(resolvedFile)
+                if (!sourceFile) throw new Error('INVALID_DIAGNOSTIC')
+                const sourceId = sourceFile + ':' + line
+                const key = JSON.stringify([caseId, sourceId, category])
+                if (!this.stepDiagnostics.has(key) && this.stepDiagnostics.size >= 1000) throw new Error('INVALID_DIAGNOSTIC')
+                this.stepDiagnostics.set(key, { caseId, sourceId, category, status: 'FAIL' })
+              } catch {
+                this.invalidDiagnostics = Math.min(10000, this.invalidDiagnostics + 1)
+              }
+            }
+          
+            onError() {
+              this.runnerErrors += 1
+              this.block('RUNNER_ERROR')
+            }
+          
+            async onEnd(result) {
+              let runnerStatus = 'unknown'
+              try {
+                const value = result?.status
+                if (typeof value === 'string' && runStatuses.has(value)) runnerStatus = value
+              } catch { /* Discard private runner exceptions. */ }
+              if (runnerStatus === 'unknown') this.block('INVALID_RUN_STATUS')
+              if (!this.started) this.block('MISSING_BEGIN')
+              if (!this.discovered) this.block('NO_TESTS_DISCOVERED')
+              const tests = [...this.cases].sort(([left], [right]) => left.localeCompare(right))
+                .map(([caseId, status]) => ({ caseId, status }))
+              const counts = {
+                expected: this.discovered,
+                passed: tests.filter(test => test.status === 'PASS').length,
+                failed: tests.filter(test => test.status === 'FAIL').length,
+                skipped: tests.filter(test => test.status === 'SKIPPED').length,
+                notRun: 0
+              }
+              counts.notRun = Math.max(0, counts.expected - counts.passed - counts.failed - counts.skipped)
+              if (counts.notRun) this.block('INCOMPLETE_RESULTS')
+              const report = {
+                version: 1,
+                qualification: 'CONNECTED_RELEASE_CHECKS',
+                ...this.metadata,
+                status: this.blockers.size ? 'BLOCKED'
+                  : runnerStatus !== 'passed' || counts.failed > 0 ? 'FAIL'
+                    : counts.skipped > 0 ? 'PASS_WITH_SKIPS' : 'PASS',
+                runnerStatus,
+                counts,
+                invalidEvents: this.invalidEvents,
+                invalidDiagnostics: this.invalidDiagnostics,
+                diagnostics: [...this.stepDiagnostics].sort(([left], [right]) => left.localeCompare(right)).map(([, value]) => value),
+                runnerErrors: this.runnerErrors,
+                blockers: [...this.blockers].sort(),
+                tests
+              }
+              const blockReport = code => {
+                if (!report.blockers.includes(code)) report.blockers.push(code)
+                report.blockers.sort()
+                report.status = 'BLOCKED'
+              }
+              const write = () => {
+                const file = path.join(this.directory, 'release-summary.json')
+                this.fileSystem.mkdirSync(this.directory, { recursive: true })
+                this.fileSystem.writeFileSync(file + '.tmp', JSON.stringify(report, null, 2) + '\n', { mode: 0o600 })
+                this.fileSystem.renameSync(file + '.tmp', file)
+              }
+              try {
+                write()
+              } catch {
+                blockReport('REPORT_WRITE_FAILED')
+              }
+              try {
+                this.writeOutput(JSON.stringify(report) + '\n')
+              } catch {
+                blockReport('REPORT_OUTPUT_FAILED')
+                try { write() } catch { blockReport('REPORT_WRITE_FAILED') }
+              }
+              return {
+                status: ['PASS', 'PASS_WITH_SKIPS'].includes(report.status) && runnerStatus === 'passed'
+                  ? 'passed' : 'failed'
+              }
+            }
+          
+            printsToStdio() {
+              // Prevent Playwright from adding a default reporter that prints errors.
+              return true
+            }
+          }
+          REPORTER
+          node --input-type=module <<'VERIFY'
+          import fs from 'node:fs'
+          import path from 'node:path'
+          import crypto from 'node:crypto'
+          const file = path.join(process.env.RUNNER_TEMP, 'add-beer-redacted-reporter.mjs')
+          if (crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex') !== '9ad70e1eb4dd0a58c400582a3c6ff99cd45c01f065d2315170f36e6f458d0c05') throw new Error('DIAGNOSTIC_REPORTER_MISMATCH')
+          VERIFY
       - name: Run one read-only case and close its session
         id: browser
         if: success() && steps.preflight.outcome == 'success' && steps.selection.outcome == 'success'
@@ -404,8 +647,9 @@ jobs:
           import crypto from 'node:crypto'
           import { spawnSync } from 'node:child_process'
           let browser, exitCode = 1, cleanup = 'UNCONFIRMED', cleanupHttpStatus = null
+          let cleanupStage = 'SAVED_SESSION', cleanupFailure = null, restore = 'NOT_RUN', logout = 'NOT_RUN', probeIdentity = 'NOT_INSPECTED'
           try {
-            const args = ['node_modules/@playwright/test/cli.js', 'test', 'release-check/catalogue-readonly.spec.js', '--config=' + path.join(process.env.RUNNER_TEMP, 'add-beer-preview-config-' + process.env.GITHUB_RUN_ID + '.mjs'), '--grep', 'connected Add Beer style choices use every authenticated canonical category page$', '--retries=0', '--workers=1', '--project=connected-chromium', '--reporter=' + path.resolve('release-check/redactedReleaseReporter.js')]
+            const args = ['node_modules/@playwright/test/cli.js', 'test', 'release-check/catalogue-readonly.spec.js', '--config=' + path.join(process.env.RUNNER_TEMP, 'add-beer-preview-config-' + process.env.GITHUB_RUN_ID + '.mjs'), '--grep', 'connected Add Beer style choices use every authenticated canonical category page$', '--retries=0', '--workers=1', '--project=connected-chromium', '--reporter=' + path.join(process.env.RUNNER_TEMP, 'add-beer-redacted-reporter.mjs')]
             const child = spawnSync(process.execPath, args, { stdio: 'inherit', timeout: 180000 })
             exitCode = child.error || child.status !== 0 ? 1 : 0
           } catch {} finally {
@@ -418,19 +662,44 @@ jobs:
               const { chromium } = await import('@playwright/test')
               const { restoreReleaseOwnerSession } = await import('./release-check/ownerSession.js')
               const { signOut } = await import('./release-check/support.js')
+              const { normalizeAuthUser } = await import('./src/hooks/useAuth.js')
+              cleanupStage = 'BROWSER_START'
               browser = await chromium.launch()
               const context = await browser.newContext({ baseURL: origin }), page = await context.newPage()
-              if (await restoreReleaseOwnerSession(page, process.env.RELEASE_OWNER_EMAIL)) await signOut(page)
+              cleanupStage = 'RESTORE'
+              restore = 'ATTEMPTED'
+              const restored = await restoreReleaseOwnerSession(page, process.env.RELEASE_OWNER_EMAIL)
+              restore = restored ? 'RESTORED' : 'NOT_RESTORED'
+              if (restored) {
+                cleanupStage = 'LOGOUT'
+                logout = 'ATTEMPTED'
+                await signOut(page)
+                logout = 'PASS'
+              }
+              cleanupStage = 'CONTEXT_CLOSE'
               await context.close()
+              cleanupStage = 'PROBE'
               const probe = await browser.newContext({ baseURL: origin })
               await probe.addCookies(saved.cookies)
               const response = await probe.request.get('/api/nocodebackend/auth/get-session', { maxRedirects: 0, maxRetries: 0 })
               cleanupHttpStatus = response.status()
               cleanup = cleanupHttpStatus === 401 ? 'PASS' : 'UNCONFIRMED'
+              if (cleanupHttpStatus === 200) {
+                try {
+                  const body = await response.body()
+                  if (!Buffer.isBuffer(body) || body.length > 65536) throw new Error('probe')
+                  probeIdentity = normalizeAuthUser(JSON.parse(body.toString('utf8'))) ? 'PRESENT' : 'ABSENT'
+                } catch { probeIdentity = 'UNAVAILABLE' }
+              }
               await probe.close()
-            } catch { cleanup = 'UNCONFIRMED' }
-            try { await browser?.close() } catch { cleanup = 'UNCONFIRMED' }
-            fs.writeFileSync(path.join(process.env.RELEASE_EVIDENCE_DIRECTORY, 'session-cleanup.json'), JSON.stringify({ version: 1, session: cleanup, sessionHttpStatus: cleanupHttpStatus }) + '\n', { mode: 0o600 })
+            } catch {
+              cleanupFailure = cleanupStage
+              if (cleanupStage === 'RESTORE') restore = 'FAIL'
+              if (cleanupStage === 'LOGOUT') logout = 'FAIL'
+              cleanup = 'UNCONFIRMED'
+            }
+            try { await browser?.close() } catch { cleanupFailure = 'BROWSER_CLOSE'; cleanup = 'UNCONFIRMED' }
+            fs.writeFileSync(path.join(process.env.RELEASE_EVIDENCE_DIRECTORY, 'session-cleanup.json'), JSON.stringify({ version: 1, session: cleanup, sessionHttpStatus: cleanupHttpStatus, restore, logout, probeIdentity, cleanupFailure }) + '\n', { mode: 0o600 })
           }
           process.exitCode = exitCode || (cleanup === 'PASS' ? 0 : 1)
           JS
@@ -460,20 +729,33 @@ jobs:
           import path from 'node:path'
           const directory = process.env.RELEASE_EVIDENCE_DIRECTORY, file = path.join(directory, 'session-cleanup.json')
           let session = process.env.BROWSER_OUTCOME === 'skipped' || !process.env.BROWSER_OUTCOME ? 'NOT_REQUIRED' : 'UNCONFIRMED', privateWorkspace = 'PASS', sessionHttpStatus = null
+          const diagnostic = { restore: 'NOT_RUN', logout: 'NOT_RUN', probeIdentity: 'NOT_INSPECTED', cleanupFailure: null, diagnosticFields: 'UNAVAILABLE' }
+          const diagnosticValues = {
+            restore: ['NOT_RUN', 'ATTEMPTED', 'RESTORED', 'NOT_RESTORED', 'FAIL'],
+            logout: ['NOT_RUN', 'ATTEMPTED', 'PASS', 'FAIL'],
+            probeIdentity: ['NOT_INSPECTED', 'PRESENT', 'ABSENT', 'UNAVAILABLE'],
+            cleanupFailure: [null, 'SAVED_SESSION', 'BROWSER_START', 'RESTORE', 'LOGOUT', 'CONTEXT_CLOSE', 'PROBE', 'BROWSER_CLOSE']
+          }
           try {
             const value = JSON.parse(fs.readFileSync(file, 'utf8'))
             if (['PASS', 'UNCONFIRMED'].includes(value.session)) session = value.session
             if (Number.isInteger(value.sessionHttpStatus) && value.sessionHttpStatus >= 100 && value.sessionHttpStatus <= 599) sessionHttpStatus = value.sessionHttpStatus
+            if (value.version === 1 && Object.keys(value).length === 7 &&
+                ['version', 'session', 'sessionHttpStatus', ...Object.keys(diagnosticValues)].every(key => Object.hasOwn(value, key)) &&
+                Object.entries(diagnosticValues).every(([key, allowed]) => allowed.includes(value[key]))) {
+              for (const key of Object.keys(diagnosticValues)) diagnostic[key] = value[key]
+              diagnostic.diagnosticFields = 'PASS'
+            }
           } catch {}
           try {
-            for (const target of [process.env.RELEASE_OWNER_SESSION_PATH, path.join(process.env.RUNNER_TEMP, 'add-beer-private-' + process.env.GITHUB_RUN_ID + '.log'), path.join(process.env.RUNNER_TEMP, 'add-beer-provenance.mjs'), path.join(process.env.RUNNER_TEMP, 'add-beer-access-handoff.mjs'), ...['key', 'url'].map(kind => path.join(process.env.RUNNER_TEMP, 'add-beer-access-' + kind + '-' + process.env.GITHUB_RUN_ID + '-' + process.env.GITHUB_RUN_ATTEMPT + (kind === 'key' ? '.pem' : '.txt'))), ...['state', 'config'].map(kind => path.join(process.env.RUNNER_TEMP, 'add-beer-preview-' + kind + '-' + process.env.GITHUB_RUN_ID + (kind === 'state' ? '.json' : '.mjs'))), ...['preflight', 'postflight'].map(stage => path.join(process.env.RUNNER_TEMP, 'add-beer-provenance-' + stage + '-' + process.env.GITHUB_RUN_ID + '.log')), 'test-results/release-check', 'playwright-report/release-check']) fs.rmSync(target, { recursive: true, force: true })
+            for (const target of [process.env.RELEASE_OWNER_SESSION_PATH, path.join(process.env.RUNNER_TEMP, 'add-beer-private-' + process.env.GITHUB_RUN_ID + '.log'), path.join(process.env.RUNNER_TEMP, 'add-beer-redacted-reporter.mjs'), path.join(process.env.RUNNER_TEMP, 'add-beer-provenance.mjs'), path.join(process.env.RUNNER_TEMP, 'add-beer-access-handoff.mjs'), ...['key', 'url'].map(kind => path.join(process.env.RUNNER_TEMP, 'add-beer-access-' + kind + '-' + process.env.GITHUB_RUN_ID + '-' + process.env.GITHUB_RUN_ATTEMPT + (kind === 'key' ? '.pem' : '.txt'))), ...['state', 'config'].map(kind => path.join(process.env.RUNNER_TEMP, 'add-beer-preview-' + kind + '-' + process.env.GITHUB_RUN_ID + (kind === 'state' ? '.json' : '.mjs'))), ...['preflight', 'postflight'].map(stage => path.join(process.env.RUNNER_TEMP, 'add-beer-provenance-' + stage + '-' + process.env.GITHUB_RUN_ID + '.log')), 'test-results/release-check', 'playwright-report/release-check']) fs.rmSync(target, { recursive: true, force: true })
           } catch { privateWorkspace = 'UNCONFIRMED' }
           for (const kind of ['key', 'url']) {
             const target = path.join(process.env.RUNNER_TEMP, 'add-beer-access-' + kind + '-' + process.env.GITHUB_RUN_ID + '-' + process.env.GITHUB_RUN_ATTEMPT + (kind === 'key' ? '.pem' : '.txt'))
             try { if (fs.existsSync(target)) privateWorkspace = 'UNCONFIRMED' } catch { privateWorkspace = 'UNCONFIRMED' }
           }
           fs.mkdirSync(directory, { recursive: true })
-          fs.writeFileSync(file, JSON.stringify({ version: 1, session, sessionHttpStatus, privateWorkspace }) + '\n', { mode: 0o600 })
+          fs.writeFileSync(file, JSON.stringify({ version: 1, session, sessionHttpStatus, privateWorkspace, ...diagnostic }) + '\n', { mode: 0o600 })
           JS
       - name: Qualify only complete bounded evidence
         if: always()
@@ -488,10 +770,10 @@ jobs:
           const read = file => { try { return JSON.parse(fs.readFileSync(path.join(directory, file), 'utf8')) } catch { return null } }
           const pre = read('preflight.json'), post = read('postflight.json'), selection = read('selection.json'), cleanup = read('session-cleanup.json'), report = read('release-summary.json')
           const provenance = value => value?.status === 'PASS' && value.access === 'PASS' && value.releaseSha === process.env.RELEASE_SHA && value.health === 'PASS' && value.readiness === 'PASS' && value.healthHttpStatus === 200 && value.readinessHttpStatus === 200
-          const oneCase = report?.status === 'PASS' && report.runnerStatus === 'passed' && report.releaseSha === process.env.RELEASE_SHA && report.candidateSha === process.env.GITHUB_SHA && JSON.stringify(report.counts) === JSON.stringify({ expected: 1, passed: 1, failed: 0, skipped: 0, notRun: 0 }) && report.invalidEvents === 0 && report.runnerErrors === 0 && Array.isArray(report.blockers) && report.blockers.length === 0 && JSON.stringify(report.tests) === JSON.stringify([{ caseId: 'catalogue-readonly.spec.js:65', status: 'PASS' }])
-          const pass = process.env.HANDOFF_OUTCOME === 'success' && provenance(pre) && provenance(post) && selection?.status === 'PASS' && selection.selected === 1 && oneCase && cleanup?.session === 'PASS' && cleanup.sessionHttpStatus === 401 && cleanup.privateWorkspace === 'PASS'
+          const oneCase = report?.status === 'PASS' && report.runnerStatus === 'passed' && report.releaseSha === process.env.RELEASE_SHA && report.candidateSha === process.env.GITHUB_SHA && JSON.stringify(report.counts) === JSON.stringify({ expected: 1, passed: 1, failed: 0, skipped: 0, notRun: 0 }) && report.invalidEvents === 0 && report.invalidDiagnostics === 0 && report.runnerErrors === 0 && Array.isArray(report.blockers) && report.blockers.length === 0 && JSON.stringify(report.tests) === JSON.stringify([{ caseId: 'catalogue-readonly.spec.js:65', status: 'PASS' }])
+          const pass = process.env.HANDOFF_OUTCOME === 'success' && provenance(pre) && provenance(post) && selection?.status === 'PASS' && selection.selected === 1 && oneCase && cleanup?.session === 'PASS' && cleanup.sessionHttpStatus === 401 && cleanup.privateWorkspace === 'PASS' && cleanup.diagnosticFields === 'PASS'
           const ran = process.env.BROWSER_OUTCOME && process.env.BROWSER_OUTCOME !== 'skipped'
-          const summary = { version: 1, qualification: 'READ_ONLY_ADD_BEER_CATEGORIES', sourceSha: process.env.RELEASE_SHA, workerSha: process.env.GITHUB_SHA, caseId: 'catalogue-readonly.spec.js:65', connected: ran ? (oneCase ? 'PASS' : 'FAIL') : 'NOT_RUN', status: pass ? 'PASS' : ran ? 'FAIL' : 'BLOCKED' }
+          const summary = { version: 1, qualification: 'READ_ONLY_ADD_BEER_CATEGORIES', sourceSha: process.env.RELEASE_SHA, workerSha: process.env.GITHUB_SHA, diagnosticReporterSha256: '9ad70e1eb4dd0a58c400582a3c6ff99cd45c01f065d2315170f36e6f458d0c05', caseId: 'catalogue-readonly.spec.js:65', connected: ran ? (oneCase ? 'PASS' : 'FAIL') : 'NOT_RUN', status: pass ? 'PASS' : ran ? 'FAIL' : 'BLOCKED' }
           fs.mkdirSync(directory, { recursive: true }); fs.writeFileSync(path.join(directory, 'qualification.json'), JSON.stringify(summary) + '\n', { mode: 0o600 })
           console.log(JSON.stringify(summary)); if (!pass) process.exitCode = 1
           JS
