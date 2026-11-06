@@ -15,7 +15,7 @@ next_actions:
   - "#727 is merged as 1ef714ce: the #726 cellar pagination repair passed 1,216 source tests, 188 browser/accessibility cases and exact production health/readiness. Connected multi-page owner/provider acceptance remains under #144/#154."
   - "#729 is merged as ef86e20d: the #728 style-population pagination repair passed 1,230 source tests, 188 browser/accessibility cases and exact production health/readiness. Both pagination repairs are integrated; connected provider/volume certification remains open."
   - "#740 merged as 31d28efb: the #165 runbook now reconciles provider event IDs, positive-integer client retry IDs, owner-bound keys and exact fingerprint serialisation, preserving managed state/tombstones and all six constraints. Canonical Node22 validation passed 1,285 tests/15 gated skips and 188 browser cases. No executable migration/provider change; retain provider/CAS, fresh consistent baseline, isolated restore and irreversible-change approval gates."
-  - "#144/#422 profile history checks now establish per-test session cleanup before authentication, retain original cookies across reuse/partial failures and require isolated original-cookie HTTP401 after sign-out for every tracked account. Review the current fix/profile-history-session-cleanup-20261106 branch and its exact-head validation before integration; connected acceptance remains NOT_RUN. Profile GETs can create a missing profile, so these cases do not guarantee zero data writes."
+  - "#144/#422 profile history checks now establish per-test session cleanup before authentication, retain original cookies across reuse/partial failures and require isolated original-cookie HTTP401 after sign-out for every tracked account. Track #741 latest-head validation and integration evidence; preserve its cleanup when later reconciling #697. Connected acceptance remains NOT_RUN. Profile GETs can create a missing profile, so these cases do not guarantee zero data writes."
   - "#738 merged as 0524f5dd; bounded production health/readiness and anonymous get-session401 pass. #697 now combines that auth repair, explicit category continuation and current main as 97311ddf: 1,311 canonical tests/15 gated skips/zero failures or production vulnerabilities,196 browser cases and independent review pass; immutable preview is READY. Corrected run42114560862 stopped at automatic public-packet review before access, with connectedNOT_RUN/sessionNOT_REQUIRED/privateWorkspacePASS. Keep697 unmerged until a fresh protected gate passes; do not retry the expired key/run or bypass the rejected public write."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
   - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Its provider key is configured; configure the independent recovery key and dedicated fixture user/product IDs, diagnose the failed read, and verify cloned constraints/recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
@@ -106,8 +106,14 @@ isolated original-cookie probes even after another cleanup failure. Only HTTP401
 qualifies; redirects, empty-identity HTTP200, transport failures, missing captures
 and bound overflows remain unconfirmed. Owner caches are removed and browser
 contexts close after probing. Playwright retains primary assertion/skip results
-and reports teardown failures separately. Exact-head source validation and
-independent review belong to this correction's PR; no live account run is claimed.
+and reports teardown failures separately. Source `5302cb771568af12774174082cec914929851356`
+passes actual canonical Node22.23.4 validation in [run 42311691777](https://github.com/jeremytheva/pourfolio/actions/runs/42311691777),
+Release job `128214409447`: **1,306 passed / 15 gated skips / zero failures and
+production vulnerabilities**. This includes the actual Playwright fixture
+regression for primary failure plus cleanup failure, authenticated skip, both
+accounts' cleanup ordering and canary redaction. Independent security review GO.
+[PR #741](https://github.com/jeremytheva/pourfolio/pull/741) retains final-head
+validation/integration evidence; no live account run is claimed.
 
 The checks issue no rating writes, but normal profile projection can create a
 missing owner profile. Establish existing-profile prerequisites or separately
