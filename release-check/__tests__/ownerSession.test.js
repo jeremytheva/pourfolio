@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { test } from 'node:test'
-import { restoreReleaseOwnerSession, saveReleaseOwnerSession } from '../ownerSession.js'
+import { forgetReleaseOwnerSession, restoreReleaseOwnerSession, saveReleaseOwnerSession } from '../ownerSession.js'
 
 const fixture = (context) => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pourfolio-owner-session-test-'))
@@ -49,8 +49,8 @@ test('matching cached session is verified with the server before reuse', async (
   saveReleaseOwnerSession({ cookies: [cookie] }, environment.RELEASE_OWNER_EMAIL)
   assert.equal(await restoreReleaseOwnerSession(page, environment.RELEASE_OWNER_EMAIL), true)
   assert.equal(calls.cookies, 1)
-  assert.deepEqual(calls.requests, ['/api/nocodebackend/auth/get-session'])
-  assert.deepEqual(calls.navigation, ['/home'])
+  assert.deepEqual(calls.requests, [environment.RELEASE_BASE_URL + '/api/nocodebackend/auth/get-session'])
+  assert.deepEqual(calls.navigation, [environment.RELEASE_BASE_URL + '/home'])
 })
 
 test('cache cannot be reused across a release, origin or owner, or overwritten by another account', async (context) => {
@@ -93,3 +93,52 @@ test('malformed cache never exposes cookie contents in its error', async (contex
   await assert.rejects(restoreReleaseOwnerSession(page, environment.RELEASE_OWNER_EMAIL),
     (error) => error.message === 'The release owner session file is invalid.' && !error.message.includes('private-fixture-cookie'))
 })
+
+
+test('cached cookies are captured before verification can clear an expired session', async (context) => {
+  const { environment, cookie, page, calls, setResponse } = fixture(context)
+  saveReleaseOwnerSession({ cookies: [cookie] }, environment.RELEASE_OWNER_EMAIL)
+  setResponse(401)
+  const captured = []
+  assert.equal(await restoreReleaseOwnerSession(page, environment.RELEASE_OWNER_EMAIL, {
+    onRestored: async () => {
+      assert.equal(calls.cookies, 1)
+      assert.equal(calls.cleared, 0)
+      captured.push(calls.requests.length)
+    }
+  }), false)
+  assert.deepEqual(captured, [0, 1])
+  assert.equal(calls.cleared, 1)
+})
+
+test('revoked owner cache is removed without touching another account cache', (context) => {
+  const { environment, cookie } = fixture(context)
+  saveReleaseOwnerSession({ cookies: [cookie] }, environment.RELEASE_OWNER_EMAIL)
+  forgetReleaseOwnerSession('other@example.test')
+  assert.equal(fs.existsSync(environment.RELEASE_OWNER_SESSION_PATH), true)
+  forgetReleaseOwnerSession(environment.RELEASE_OWNER_EMAIL)
+  assert.equal(fs.existsSync(environment.RELEASE_OWNER_SESSION_PATH), false)
+  forgetReleaseOwnerSession(environment.RELEASE_OWNER_EMAIL)
+})
+
+for (const identity of ['changed', 'malformed']) {
+  test(`rotated verification cookies are captured before clearing a ${identity} identity`, async (context) => {
+    const { environment, cookie, page, calls } = fixture(context)
+    saveReleaseOwnerSession({ cookies: [cookie] }, environment.RELEASE_OWNER_EMAIL)
+    page.request.get = async () => {
+      calls.requests.push('verification')
+      cookie.value = 'rotated-on-rejected-identity'
+      return { status: () => 200, json: async () => identity === 'changed'
+        ? { user: { id: 'unexpected-owner', email: 'other@example.test' } } : {} }
+    }
+    const captured = []
+    assert.equal(await restoreReleaseOwnerSession(page, environment.RELEASE_OWNER_EMAIL, {
+      onRestored: async () => {
+        assert.equal(calls.cleared, 0)
+        captured.push((await page.context().storageState()).cookies[0].value)
+      }
+    }), false)
+    assert.deepEqual(captured, ['private-fixture-cookie', 'rotated-on-rejected-identity'])
+    assert.equal(calls.cleared, 1)
+  })
+}

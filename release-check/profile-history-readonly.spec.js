@@ -1,5 +1,38 @@
-import { expect, test } from '@playwright/test'
-import { requiredEnvironment, responseJson, signIn } from './support.js'
+import { expect, test as base } from '@playwright/test'
+import { createReleaseSessionScope, requiredEnvironment, responseJson, signIn } from './support.js'
+
+// Fixture teardown runs after assertions, skips and partial authentication.
+// Playwright retains the original result and any separate teardown failure.
+const test = base.extend({
+  releaseSessions: [async ({ browser, page, playwright }, runFixture) => {
+    // Depending on page keeps its context alive until session teardown ends.
+    const sessions = createReleaseSessionScope({
+      newContext: (options) => playwright.request.newContext(options)
+    })
+    const otherContexts = []
+    let primaryError
+    try {
+      await runFixture({
+        ...sessions,
+        newPage: async () => {
+          const context = await browser.newContext({ baseURL: process.env.RELEASE_BASE_URL })
+          otherContexts.push(context)
+          return context.newPage()
+        }
+      })
+    } catch (error) { primaryError = error }
+    let cleanupError
+    try { await sessions.cleanup() }
+    catch (error) { cleanupError = error }
+    for (const context of otherContexts) {
+      try { await context.close() }
+      catch { cleanupError ||= new Error('Release browser context cleanup is unconfirmed.') }
+    }
+    if (primaryError && cleanupError) throw new AggregateError([primaryError, cleanupError], 'Release test and cleanup failed.')
+    if (primaryError) throw primaryError
+    if (cleanupError) throw cleanupError
+  }, { timeout: 120_000 }]
+})
 
 // Existing private ratings and account credentials must not enter artefacts.
 test.use({ trace: 'off', screenshot: 'off', video: 'off' })
@@ -13,10 +46,10 @@ const verifiedBeerRating = (items) => items.find((item) =>
   /^[1-9]\d*$/.test(String(item.id)) &&
   String(item.product?.id) === String(item.product_id) && item.product?.product_name)
 
-test('connected private history links, controlled retry and repeated reloads preserve the exact owner tasting', async ({ page }) => {
+test('connected private history links, controlled retry and repeated reloads preserve the exact owner tasting', async ({ page, releaseSessions }) => {
   test.setTimeout(120_000)
   await prohibitRatingWrites(page)
-  await signIn(page, owner.RELEASE_OWNER_EMAIL, owner.RELEASE_OWNER_PASSWORD, { reuseSession: true })
+  await signIn(page, owner.RELEASE_OWNER_EMAIL, owner.RELEASE_OWNER_PASSWORD, { reuseSession: true, sessionScope: releaseSessions })
   const firstResponse = await page.request.get(historyPath)
   expect(firstResponse.status()).toBe(200)
   const first = await responseJson(firstResponse)
@@ -60,7 +93,7 @@ test('connected private history links, controlled retry and repeated reloads pre
   }
 })
 
-test('connected other-account history cannot resolve an owner rating link', async ({ browser, page }) => {
+test('connected other-account history cannot resolve an owner rating link', async ({ page, releaseSessions }) => {
   test.setTimeout(90_000)
   test.skip(!process.env.RELEASE_OTHER_EMAIL || !process.env.RELEASE_OTHER_PASSWORD,
     'A second supported release-account session is unavailable; cross-account provider evidence is pending.')
@@ -68,29 +101,24 @@ test('connected other-account history cannot resolve an owner rating link', asyn
   if (other.RELEASE_OTHER_EMAIL.toLowerCase() === owner.RELEASE_OWNER_EMAIL.toLowerCase()) {
     throw new Error('Two distinct release accounts are required for cross-account history certification.')
   }
-  await signIn(page, owner.RELEASE_OWNER_EMAIL, owner.RELEASE_OWNER_PASSWORD, { reuseSession: true })
+  await signIn(page, owner.RELEASE_OWNER_EMAIL, owner.RELEASE_OWNER_PASSWORD, { reuseSession: true, sessionScope: releaseSessions })
   const ownerResponse = await page.request.get(historyPath)
   expect(ownerResponse.status()).toBe(200)
   const rating = (await responseJson(ownerResponse)).items[0]
   test.skip(!rating, 'The owner has no completed tasting fixture; cross-account rating-link evidence is pending.')
 
-  const otherContext = await browser.newContext({ baseURL: process.env.RELEASE_BASE_URL })
-  try {
-    const otherPage = await otherContext.newPage()
-    await prohibitRatingWrites(otherPage)
-    await signIn(otherPage, other.RELEASE_OTHER_EMAIL, other.RELEASE_OTHER_PASSWORD)
-    const selector = `${historyPath}&rating_id=${encodeURIComponent(rating.id)}`
-    const denied = await otherPage.request.get(selector)
-    expect(denied.status()).toBe(404)
-    const error = await responseJson(denied)
-    expect(error.code).toBe('rating_not_found')
-    expect(error.error).toBe('That rating is not available in your history.')
-    expect(Object.hasOwn(error, 'items')).toBe(false)
-    await otherPage.goto(`/profile?rating=${encodeURIComponent(rating.id)}`)
-    await expect(otherPage.getByRole('region', { name: 'My ratings' }).getByRole('alert')).toContainText(error.error)
-    await expect(otherPage.getByRole('list', { name: 'Rating history' })).toHaveCount(0)
-    await expect(otherPage.locator(`#rating-${rating.id}`)).toHaveCount(0)
-  } finally {
-    await otherContext.close()
-  }
+  const otherPage = await releaseSessions.newPage()
+  await prohibitRatingWrites(otherPage)
+  await signIn(otherPage, other.RELEASE_OTHER_EMAIL, other.RELEASE_OTHER_PASSWORD, { sessionScope: releaseSessions })
+  const selector = `${historyPath}&rating_id=${encodeURIComponent(rating.id)}`
+  const denied = await otherPage.request.get(selector)
+  expect(denied.status()).toBe(404)
+  const error = await responseJson(denied)
+  expect(error.code).toBe('rating_not_found')
+  expect(error.error).toBe('That rating is not available in your history.')
+  expect(Object.hasOwn(error, 'items')).toBe(false)
+  await otherPage.goto(`/profile?rating=${encodeURIComponent(rating.id)}`)
+  await expect(otherPage.getByRole('region', { name: 'My ratings' }).getByRole('alert')).toContainText(error.error)
+  await expect(otherPage.getByRole('list', { name: 'Rating history' })).toHaveCount(0)
+  await expect(otherPage.locator(`#rating-${rating.id}`)).toHaveCount(0)
 })

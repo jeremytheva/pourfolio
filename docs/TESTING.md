@@ -219,6 +219,26 @@ missing owner fixtures or second-account credentials are explicitly skipped
 and remain pending evidence. Traces, screenshots and videos are disabled for
 these cases to keep private ratings and sign-in credentials out of artefacts.
 
+Their fixture establishes session cleanup before authentication, retains the
+original same-origin cookies for fresh and reused owner/other sessions, and
+attempts every session's sign-out and isolated original-cookie probe after a
+pass, assertion failure, skip or partial authentication failure. Only HTTP 401
+qualifies revocation; redirects, HTTP 200 without identity, service failures and
+unavailable snapshots remain unconfirmed. Cleanup uses bounded requests without
+redirects or retries, invalidates the owner cache and closes other-account
+contexts after probing. A teardown failure cannot replace the original test
+assertion or turn a skipped fixture into connected acceptance.
+
+The filename's read-only scope means no rating creation, update or deletion.
+It is not a guarantee of zero provider data writes: normal authentication
+projection and profile navigation can create an absent owner profile through
+`ensureOwnerProfile`. Establish existing profiles for both accounts or separately
+review that additive behaviour before connected execution. The main connected
+workflow runs the whole suite; leaving destructive confirmation empty does not
+select only these two cases or suppress configured sign-up/OTP checks. This
+cleanup correction is source evidence only, with live profile/privacy and
+session certification still pending under #144/#422.
+
 The connected suite has a finite sign-in budget (ten attempts per account/IP
 over 15 minutes). Read-only owner journeys may reuse a session created by the
 suite, verifying it with `auth/get-session` and the expected owner before each
