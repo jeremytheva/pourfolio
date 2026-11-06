@@ -5,7 +5,7 @@
       "owner": "catalogue-profile-session-cleanup-20261106T2312Z",
       "workstream": "catalogue",
       "issue": 144,
-      "pr": null,
+      "pr": 741,
       "surfaces": [
         "repo:integration",
         "branch:fix/profile-history-session-cleanup-20261106",
