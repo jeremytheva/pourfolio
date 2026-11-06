@@ -390,6 +390,26 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 
 ### Protected Add Beer preview qualification
 
+The corrected fixed candidate is now `97311ddf92a61ae6cce57630b85d79540686a181`
+at https://pourfolio-wudz1vlku-jeremythevas-projects.vercel.app. Its reviewed
+[retargeted worker](https://github.com/jeremytheva/pourfolio/blob/aa1d1795553aa289b86d448294a16b92385c779b/.github/workflows/add-beer-connected-evidence.yml)
+uses marker `[qualify-add-beer-candidate-97311ddf]`; case65, recipient binding,
+exact provenance, original-cookie401 and cleanup remain unchanged. Retarget
+the local encrypting helper to the same fixed source/origin; never transplant
+a branch-alias share token.
+
+Run42114560862 is BLOCKED/NOT_RUN: automatic approval review rejected public
+ciphertext publication even after the same-packet privacy checks and supplied
+broad-approval context. Do not reroute that rejected write. Obtain explicit
+trusted authorization naming encrypted packets and the public PR697 destination
+before a fresh run; the prior run/key is destroyed and cannot accept a later
+packet. Actual retained cleanup is PASS/session NOT_REQUIRED. The
+[redacted candidate record](evidence/add-beer-corrected-candidate-20261105.json)
+separates this tooling outcome from source validation and earlier source532 FAIL.
+
+The older candidate/approval instructions below are retained as dated operating
+history; they do not override this current fixed target and execution blocker.
+
 The auth-status repair has real-handler transport fixtures for recognized empty
 session shapes (401), malformed/unrecognized/error envelopes (502), unchanged
 valid-session bytes/cookies, upstream errors and non-session auth actions.
