@@ -14,7 +14,8 @@ current_work:
 next_actions:
   - "#727 is merged as 1ef714ce: the #726 cellar pagination repair passed 1,216 source tests, 188 browser/accessibility cases and exact production health/readiness. Connected multi-page owner/provider acceptance remains under #144/#154."
   - "#729 is merged as ef86e20d: the #728 style-population pagination repair passed 1,230 source tests, 188 browser/accessibility cases and exact production health/readiness. Both pagination repairs are integrated; connected provider/volume certification remains open."
-  - "#165 newer supplied export is assessed: 21 deferred-target structural findings, with profile and combined child uniqueness already present. Reconcile current submission_key-only parent writes with the separate rating_id/child-key target before preparing an executable delta; retain provider/CAS, fresh consistent baseline, isolated restore and irreversible-change approval gates."
+  - "#740 merged as 31d28efb: the #165 runbook now reconciles provider event IDs, positive-integer client retry IDs, owner-bound keys and exact fingerprint serialisation, preserving managed state/tombstones and all six constraints. Canonical Node22 validation passed 1,285 tests/15 gated skips and 188 browser cases. No executable migration/provider change; retain provider/CAS, fresh consistent baseline, isolated restore and irreversible-change approval gates."
+  - "#144/#422 profile history checks now establish per-test session cleanup before authentication, retain original cookies across reuse/partial failures and require isolated original-cookie HTTP401 after sign-out for every tracked account. Review the current fix/profile-history-session-cleanup-20261106 branch and its exact-head validation before integration; connected acceptance remains NOT_RUN. Profile GETs can create a missing profile, so these cases do not guarantee zero data writes."
   - "#738 merged as 0524f5dd; bounded production health/readiness and anonymous get-session401 pass. #697 now combines that auth repair, explicit category continuation and current main as 97311ddf: 1,311 canonical tests/15 gated skips/zero failures or production vulnerabilities,196 browser cases and independent review pass; immutable preview is READY. Corrected run42114560862 stopped at automatic public-packet review before access, with connectedNOT_RUN/sessionNOT_REQUIRED/privateWorkspacePASS. Keep697 unmerged until a fresh protected gate passes; do not retry the expired key/run or bypass the rejected public write."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
   - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Its provider key is configured; configure the independent recovery key and dedicated fixture user/product IDs, diagnose the failed read, and verify cloned constraints/recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
@@ -54,12 +55,12 @@ owner_decision:
   question: "Explicitly authorize publishing run-specific encrypted preview-access packets in public PR #697, including possible persistent copies in edit history and webhooks, for the reviewed protected checks."
   recommendation: "Name the encrypted payload and public PR destination explicitly so automatic approval review can evaluate trusted user authorization. Use a fresh protected run/key after acceptance; keep all source/origin/case401/cleanup gates and never reroute a rejected public write."
 wip:
-  open_implementation_prs: 1
+  open_implementation_prs: 2
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "0524f5dde7536af1233aca785ab39432344af595"
+  observed_main_commit: "0203e34e60c86029e2eb2c4db007268a2a74c363"
   current_candidate_commit: "97311ddf92a61ae6cce57630b85d79540686a181"
   latest_validated_commit: "97311ddf92a61ae6cce57630b85d79540686a181"
   latest_deployed_commit: "0524f5dde7536af1233aca785ab39432344af595"
@@ -74,15 +75,45 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
-last_updated: "2026-11-05T21:46:00Z"
+last_updated: "2026-11-06T23:22:00Z"
 
 ---
 
 # STATUS.md
 
-Last materially reviewed: 5 November 2026 UTC
+Last materially reviewed: 6 November 2026 UTC
 
 ## AI execution gate
+
+### Independent launch preparation — 6 November 2026 UTC
+
+[PR #740](https://github.com/jeremytheva/pourfolio/pull/740) merged the reviewed
+rating identity/migration compatibility guidance as `31d28efb`. Its exact-head
+canonical Node22 validation passed **1,285 tests / 15 gated skips / zero failures
+and production vulnerabilities**, plus **188** browser cases. The unchanged
+21-finding schema assessment remains BLOCKED; no provider migration is authorised.
+
+[PR #739](https://github.com/jeremytheva/pourfolio/pull/739) is now integrated as
+`0203e34e`. Its independently reviewed documentation/evidence paths were disjoint
+from #740. Integration updates durable main continuity without moving the fixed
+Add Beer source `97311ddf` or promoting its blocked connected result.
+
+The profile history harness had no owner-session revocation teardown and only
+closed the other account's context. The separate #144/#422 correction establishes
+cleanup before sign-in, captures original cookies before verification/clearing
+and after partial authentication, and attempts both accounts' sign-out and
+isolated original-cookie probes even after another cleanup failure. Only HTTP401
+qualifies; redirects, empty-identity HTTP200, transport failures, missing captures
+and bound overflows remain unconfirmed. Owner caches are removed and browser
+contexts close after probing. Playwright retains primary assertion/skip results
+and reports teardown failures separately. Exact-head source validation and
+independent review belong to this correction's PR; no live account run is claimed.
+
+The checks issue no rating writes, but normal profile projection can create a
+missing owner profile. Establish existing-profile prerequisites or separately
+review that additive behaviour before connected execution. The existing workflow
+selects the whole suite; an empty destructive-confirmation value does not select
+only these two cases. #144/#422 certification and public launch remain open.
 
 ### Corrected candidate validated; connected handoff blocked — 5 November 2026 UTC
 

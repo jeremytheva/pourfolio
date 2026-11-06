@@ -24,7 +24,14 @@ export const saveReleaseOwnerSession = (storageState, email) => {
   }
 }
 
-export const restoreReleaseOwnerSession = async (page, email) => {
+export const forgetReleaseOwnerSession = (email) => {
+  const filePath = process.env.RELEASE_OWNER_SESSION_PATH
+  if (!filePath || String(email).trim().toLowerCase() !== ownerEmail()) return
+  try { fs.rmSync(filePath, { force: true }) }
+  catch { throw new Error('The release owner session cache could not be removed.') }
+}
+
+export const restoreReleaseOwnerSession = async (page, email, { onRestored } = {}) => {
   const filePath = process.env.RELEASE_OWNER_SESSION_PATH
   if (!filePath || String(email).trim().toLowerCase() !== ownerEmail() || !fs.existsSync(filePath)) return false
   if ((fs.statSync(filePath).mode & 0o077) !== 0) throw new Error('The release owner session file must be private.')
@@ -37,7 +44,15 @@ export const restoreReleaseOwnerSession = async (page, email) => {
   if (!Array.isArray(saved.cookies) || !saved.cookies.length || saved.cookies.some((cookie) =>
     !cookie || typeof cookie.domain !== 'string' || cookie.domain.replace(/^\./, '') !== hostname)) return false
   await page.context().addCookies(saved.cookies)
-  const response = await page.request.get('/api/nocodebackend/auth/get-session')
+  // A caller's cleanup scope must retain these credentials before verification
+  // can clear them, or a navigation/assertion can fail.
+  if (onRestored) await onRestored()
+  const response = await page.request.get(`${expected.origin}/api/nocodebackend/auth/get-session`, {
+    maxRedirects: 0, maxRetries: 0, timeout: 5000
+  })
+  // Verification may rotate session cookies even when the returned identity
+  // is rejected. Preserve that jar before either rejection branch clears it.
+  if (onRestored) await onRestored()
   if (response.status() === 401) {
     await page.context().clearCookies()
     return false
@@ -49,6 +64,6 @@ export const restoreReleaseOwnerSession = async (page, email) => {
     return false
   }
   saveReleaseOwnerSession(await page.context().storageState(), email)
-  await page.goto('/home')
+  await page.goto(`${expected.origin}/home`)
   return true
 }

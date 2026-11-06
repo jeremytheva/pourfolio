@@ -39,6 +39,26 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
+### Profile history session cleanup preparation — 6 November 2026 UTC
+
+The separate #144/#422 harness correction establishes session teardown before
+authentication in both existing history cases. It retains original same-origin
+cookies for fresh/reused owner and other accounts, including partial failures
+and verification-time rotation, then independently attempts sign-out and an
+isolated original-cookie probe. Only HTTP401 qualifies revocation. Redirects,
+HTTP200 without identity, service errors, unavailable captures and bounded
+overflow remain unconfirmed; cache deletion/context closure alone never qualifies.
+Failure and skip paths run the same cleanup, without replacing the primary test
+assertion. Source/fixture regressions are separate from connected acceptance.
+
+No live account check or profile/privacy certification is claimed. These cases
+perform no rating writes, but the normal profile GET can create a missing owner
+profile; verify existing profiles or separately review that additive behaviour
+before execution. The main connected workflow still selects the full suite.
+This preparation changes no application/provider behaviour or frozen Add Beer
+source973 and closes none of PF-LAUNCH-AUTH, PF-LAUNCH-PRIVACY or
+PF-LAUNCH-RELEASE. Public launch remains **NO-GO**.
+
 ### Corrected candidate validated; connected handoff blocked — 5 November 2026 UTC
 
 [PR #738](https://github.com/jeremytheva/pourfolio/pull/738) merged the recognized
