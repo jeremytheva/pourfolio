@@ -16,7 +16,9 @@
         "file:release-check/__tests__/ownerSession.test.js",
         "file:STATUS.md",
         "file:docs/TESTING.md",
-        "file:docs/LAUNCH_READINESS.md"
+        "file:docs/LAUNCH_READINESS.md",
+        "branch:docs/corrected-add-beer-handoff-20261105",
+        "file:docs/evidence/add-beer-corrected-candidate-20261105.json"
       ],
       "acquiredAt": "2026-11-06T23:11:56.000Z",
       "expiresAt": "2026-11-06T23:41:56.000Z"
