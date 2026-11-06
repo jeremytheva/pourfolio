@@ -2,24 +2,24 @@
   "version": 1,
   "claims": {
     "catalogue": {
-      "owner": "catalogue-profile-session-cleanup-20261105T2258Z",
+      "owner": "catalogue-profile-session-cleanup-20261106T2312Z",
       "workstream": "catalogue",
       "issue": 144,
       "pr": null,
       "surfaces": [
         "repo:integration",
-        "branch:fix/profile-history-session-cleanup-20261105",
+        "branch:fix/profile-history-session-cleanup-20261106",
         "file:release-check/support.js",
         "file:release-check/profile-history-readonly.spec.js",
         "file:release-check/ownerSession.js",
-        "file:release-check/support.test.js",
-        "file:release-check/ownerSession.test.js",
+        "file:release-check/__tests__/support.test.js",
+        "file:release-check/__tests__/ownerSession.test.js",
         "file:STATUS.md",
         "file:docs/TESTING.md",
         "file:docs/LAUNCH_READINESS.md"
       ],
-      "acquiredAt": "2026-11-05T22:57:49.000Z",
-      "expiresAt": "2026-11-05T23:27:49.000Z"
+      "acquiredAt": "2026-11-06T23:11:56.000Z",
+      "expiresAt": "2026-11-06T23:41:56.000Z"
     }
   }
 }
