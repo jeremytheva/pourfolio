@@ -219,6 +219,26 @@ missing owner fixtures or second-account credentials are explicitly skipped
 and remain pending evidence. Traces, screenshots and videos are disabled for
 these cases to keep private ratings and sign-in credentials out of artefacts.
 
+Their fixture establishes session cleanup before authentication, retains the
+original same-origin cookies for fresh and reused owner/other sessions, and
+attempts every session's sign-out and isolated original-cookie probe after a
+pass, assertion failure, skip or partial authentication failure. Only HTTP 401
+qualifies revocation; redirects, HTTP 200 without identity, service failures and
+unavailable snapshots remain unconfirmed. Cleanup uses bounded requests without
+redirects or retries, invalidates the owner cache and closes other-account
+contexts after probing. A teardown failure cannot replace the original test
+assertion or turn a skipped fixture into connected acceptance.
+
+The filename's read-only scope means no rating creation, update or deletion.
+It is not a guarantee of zero provider data writes: normal authentication
+projection and profile navigation can create an absent owner profile through
+`ensureOwnerProfile`. Establish existing profiles for both accounts or separately
+review that additive behaviour before connected execution. The main connected
+workflow runs the whole suite; leaving destructive confirmation empty does not
+select only these two cases or suppress configured sign-up/OTP checks. This
+cleanup correction is source evidence only, with live profile/privacy and
+session certification still pending under #144/#422.
+
 The connected suite has a finite sign-in budget (ten attempts per account/IP
 over 15 minutes). Read-only owner journeys may reuse a session created by the
 suite, verifying it with `auth/get-session` and the expected owner before each
@@ -390,6 +410,37 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 
 ### Protected Add Beer preview qualification
 
+On7November, explicit public-packet/persistence authorization was supplied and
+accepted. [Run42334964532](https://github.com/jeremytheva/pourfolio/actions/runs/42334964532)
+passed the exact973 category case, pre/post provenance, original-cookie HTTP401
+and private cleanup. All six reports, artifact checksums and handoff/grant
+cleanup are retained in [the redacted record](evidence/add-beer-connected-20261107.json).
+No later combined SHA is qualified by this observation. The preceding fresh
+run42334509708 stopped at POLL_FAILED before access; its cause remains unknown
+because HTTP status was not retained. The authenticated reader repair passed
+19 actual Node22 handoff tests,21 cleanup scenarios and independent review.
+
+
+The accepted exact candidate was `97311ddf92a61ae6cce57630b85d79540686a181`
+at https://pourfolio-wudz1vlku-jeremythevas-projects.vercel.app. Its reviewed
+[retargeted worker](https://github.com/jeremytheva/pourfolio/blob/5764098c457018bf8045b6a60bd1a273506dff9d/.github/workflows/add-beer-connected-evidence.yml)
+uses marker `[qualify-add-beer-candidate-97311ddf]`; case65, recipient binding,
+exact provenance, original-cookie401 and cleanup remain unchanged. Retarget
+the local encrypting helper to the same fixed source/origin; never transplant
+a branch-alias share token.
+
+Historical run42114560862 was BLOCKED/NOT_RUN: automatic approval review rejected public
+ciphertext publication even after the same-packet privacy checks and supplied
+broad-approval context. That rejected write was not rerouted. The explicit
+trusted authorization naming encrypted packets and public PR697 was subsequently
+supplied and accepted for a fresh run; the old run/key remains destroyed and
+cannot accept a later packet. Actual retained cleanup is PASS/session NOT_REQUIRED. The
+[redacted candidate record](evidence/add-beer-corrected-candidate-20261105.json)
+separates this tooling outcome from source validation and earlier source532 FAIL.
+
+The older candidate/approval instructions below are retained as dated operating
+history; they do not override the accepted current-scope observation above.
+
 The auth-status repair has real-handler transport fixtures for recognized empty
 session shapes (401), malformed/unrecognized/error envelopes (502), unchanged
 valid-session bytes/cookies, upstream errors and non-session auth actions.
@@ -453,8 +504,11 @@ API is unavailable to this integration; do not repeat owner setup requests.
    OAEP-SHA256, binding all recipient metadata. Put only its canonical ciphertext
    envelope in the exact current-run HTML machine block of PR #697. Publish no
    plaintext link/private key, and do not use another public channel after a
-   rejected write. The receiver polls only the fixed public GitHub API endpoint
-   without authentication or redirects, for at most three minutes/18 attempts.
+   rejected write. The receiver polls only the fixed GitHub PR API endpoint,
+   using a GITHUB_TOKEN scoped to that step with contents:read and
+   pull-requests:read. It never forwards that token to the preview/browser or
+   persists it in manifests/packets. Redirects remain rejected, with at most
+   three minutes/18 attempts and safe numeric HTTP failure codes only.
    Duplicate, stale, malformed, replayed or tampered input blocks before sign-in.
 5. The receiver removes its private key in `finally`. The verifier reads the
    private link file, then removes it before the first preview request. Preflight

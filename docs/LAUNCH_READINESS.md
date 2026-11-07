@@ -1,6 +1,6 @@
 # Launch readiness
 
-Last reconciled: **5 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
+Last reconciled: **7 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
 [`ef86e20d16865a5322eacfc3d916aca7f939e15d`](https://github.com/jeremytheva/pourfolio/commit/ef86e20d16865a5322eacfc3d916aca7f939e15d). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
@@ -39,38 +39,115 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
-### Corrected Add Beer candidate reconciled for validation — 5 November 2026 UTC
+### Add Beer categories and original-cookie closure PASS — 7 November 2026 UTC
 
-The feature branch combines main auth repair `0524f5dde7536af1233aca785ab39432344af595`
-with category repair `311fe10ed65204347d80ca6469126695763bfd9c`.
-The merge preserves main's deployed cellar/style-population pagination, current
-locked toolchain, reporter redaction, rating containment and Brew work. The
-previous failed source `53299fce` is retained as failure evidence and is not
-retried unchanged.
+[Protected run42334964532](https://github.com/jeremytheva/pourfolio/actions/runs/42334964532)
+qualifies only exact source `97311ddf92a61ae6cce57630b85d79540686a181` and its
+immutable preview. The actual six-report artifact `13559560371` (1,885bytes;
+SHA256 `6749792370a96b81500680f8ec6f8fbdc0c7b8088d84cf4966111773bc287ab4`)
+records pre/post exact provenance and HTTP200 health/readiness, exactly one
+reviewed category case65 PASS with no skips/errors/invalid diagnostics, and
+original-cookie HTTP401/privateWorkspace PASS/diagnosticFields PASS. Independent
+evidence review GO. Restore NOT_RESTORED/logout NOT_RUN follows the passing
+case's own sign-out; the separate original-cookie probe supplies closure proof.
 
-Canonical category pages now distinguish provider-authoritative exact counts
-from metadata-free continuation. Continuation pages publish null counts and
-explicit hasMore, including the empty terminal probe for 200 rows; exact pages
-retain stable count/page arithmetic. Both modes reject duplicates, mode changes,
-later-page failures and exhaustion of 25 requests. The source case remains
-`catalogue-readonly.spec.js:65` and retains complete-inventory/style-selection
-checks. See the category-only [wire contract](catalogue-response-contract.md#canonical-category-pages).
+The owner's explicit public-packet/persistence authorization was accepted. A
+fresh recipient-bound ciphertext was received, its displayed block removed and
+read back absent, and its temporary grant revoked without regeneration with
+explicit empty protectionBypass acknowledgement. Three local private paths are
+absent. The earlier fresh POLL_FAILED attempt remains connected NOT_RUN; its
+HTTP status/cause were not retained. The read-only fixed-endpoint GitHub-token
+repair passed19 handoff tests,21 cleanup scenarios and independent review.
+See [the complete redacted record](evidence/add-beer-connected-20261107.json).
 
-Recognized empty-session forms now return HTTP 401; malformed, unrecognized or
-error envelopes return safe 502 instead of manufacturing a successful logout
-signal. Valid authenticated bytes/cookies and non-session actions are preserved.
-The isolated auth source passed 1,285 canonical Node22 tests (15 gated skips),
-188 browser cases, security checks and independent review before its merge;
-the combined candidate requires its own fresh validation and deployment evidence.
+This supersedes the old public-handoff blocker for this bounded row. Reconcile
+newer main work and validate/deploy the combined source separately; do not
+transfer exact973 evidence to another SHA. No catalogue/rating/cellar mutation
+test was selected, and zero provider DML was not separately certified. Proposal
+writes, broader #144/#154 policy, #422 privacy, #165 recovery,42 bonus values and
+operations/manual-device acceptance remain open. Public launch stays **NO-GO**.
 
-Next, validate this combined head, independently bind its immutable preview and
-retarget the reviewed run-bound diagnostic helper. Qualification must prove
-exact pre/post source/readiness, singleton case 65 PASS with no skips/errors,
-original saved-cookie HTTP401 and private cleanup. The owner has approved these
-continuing scoped actions/public encrypted handoffs; no repeated packet question
-is needed. No combined live PASS is recorded at this preparation checkpoint.
-Public launch remains NO-GO and every unrelated provider/data/privacy/operations
-gate remains open.
+### Profile history session cleanup preparation — 6 November 2026 UTC
+
+The separate #144/#422 harness correction establishes session teardown before
+authentication in both existing history cases. It retains original same-origin
+cookies for fresh/reused owner and other accounts, including partial failures
+and verification-time rotation, then independently attempts sign-out and an
+isolated original-cookie probe. Only HTTP401 qualifies revocation. Redirects,
+HTTP200 without identity, service errors, unavailable captures and bounded
+overflow remain unconfirmed; cache deletion/context closure alone never qualifies.
+Failure and skip paths run the same cleanup, without replacing the primary test
+assertion. Source/fixture regressions are separate from connected acceptance.
+
+No live account check or profile/privacy certification is claimed. These cases
+perform no rating writes, but the normal profile GET can create a missing owner
+profile; verify existing profiles or separately review that additive behaviour
+before execution. The main connected workflow still selects the full suite.
+This preparation changes no application/provider behaviour or frozen Add Beer
+source973 and closes none of PF-LAUNCH-AUTH, PF-LAUNCH-PRIVACY or
+PF-LAUNCH-RELEASE. Public launch remains **NO-GO**.
+
+### Corrected candidate validated; connected handoff blocked — 5 November 2026 UTC
+
+[PR #738](https://github.com/jeremytheva/pourfolio/pull/738) merged the recognized
+empty-session status repair as `0524f5dde7536af1233aca785ab39432344af595`.
+Its actual canonical Node22 validation passed **1,285 tests / 15 gated skips /
+zero failures and production vulnerabilities**, plus all **188** browser cases.
+At **21:44:44 UTC**, anonymous production health/readiness returned HTTP200 at
+that exact production SHA with dataProvider ok, and get-session returned HTTP401.
+These bounded reads do not certify original-cookie revocation or full release.
+
+#697 now combines that repair, the category-only exact/continuation fix and all
+current main work at `97311ddf92a61ae6cce57630b85d79540686a181`.
+Only STATUS/launch prose conflicted; the merged auth, cellar/style-population
+pagination, locked toolchain and trace modules are byte-preserved from main,
+and Brew code is unchanged. [Run 42113708774](https://github.com/jeremytheva/pourfolio/actions/runs/42113708774)
+executes canonical Node22.23.4 validation: **1,311 passed / 15 intentional
+connected skips / zero failures and production vulnerabilities**, all **196**
+browser/accessibility cases, Dependency Review and CodeQL. Independent combined
+source review reports no material issue. Immutable preview
+`dpl_AvP1KC2Dtqypv1dp8dHrEv6TPBKR` is READY at that exact source:
+https://pourfolio-wudz1vlku-jeremythevas-projects.vercel.app.
+
+The reviewed worker was retargeted only for fixed source/origin/marker/artifact
+identity. Fifteen actual crypto/binding tests, 21 browser-through-retention
+scenarios, 13 Bash/eight Node syntax checks and independent exact-diff review
+PASS. Source `97311ddf`, case65, original-cookie HTTP401 and cleanup predicates
+remain fixed; no gate was relaxed.
+
+[Corrected run 42114560862](https://github.com/jeremytheva/pourfolio/actions/runs/42114560862),
+attempt1, worker `140c08e2f41b71aa938b68a72f9dfc2d753ea640`, job
+`127550625024`, generated a fresh recipient. Public-key artifact `13455591720`
+has ZIP SHA256
+`e777e6c986a4fc5e11988fcfbf3e7b90098780d76b8e6929e84b86afe8a9d1af`;
+its run/repository/branch/head/fingerprint/closed envelope were independently
+verified. Automatic approval review then rejected the public PR697 ciphertext
+write twice. After concrete packet/privacy checks, the same-action retry still
+failed because review did not accept the assistant-supplied approval context as
+trusted user authorization for this exact sensitive payload and public destination.
+
+The owner's broad continuing approval is retained; no product-scope reversal is
+inferred. The execution review requires explicit authorization naming the public
+encrypted payload/destination. No packet was published, no alternate public
+channel/API was attempted, and no preview/account request ran. The receiver
+timed out; this is **BLOCKED / connected NOT_RUN**, not a source/browser failure.
+
+Actual artifact `13455439040` (714 bytes, ZIP SHA256
+`6b94d4943a1b5f72d272d5a795a4623f29517523c30579c125eb7a42fba288f7`)
+was downloaded, digest-verified and its two reports inspected. They record exact
+source/worker/case, session NOT_REQUIRED, HTTP null, restore/logout NOT_RUN,
+probe NOT_INSPECTED, privateWorkspace PASS and diagnosticFields UNAVAILABLE.
+Provenance/selection/browser/postflight reports are absent because those steps
+did not run. See [the retained redacted record](evidence/add-beer-corrected-candidate-20261105.json).
+The fresh grant was revoked without regeneration with an explicit empty
+protectionBypass acknowledgement. Five local handoff paths are absent; PR
+readback confirms no displayed packet. The old receiver/key cannot be reused.
+
+Keep #697 open/unmerged. After trusted explicit packet authorization is accepted,
+use a fresh protected key/run and grant to qualify this same corrected candidate.
+No additional credential setup or reconnection is indicated. Public launch
+remains **NO-GO**, with #165 provider integrity/recovery, 42 missing authoritative
+values, #422 privacy, #144/#154 and final operations/device gates unchanged.
 
 ### Continuing approval and identified contract failures — 5 November 2026 UTC
 
