@@ -12,18 +12,18 @@ jobs:
   qualify:
     if: >-
       github.ref == 'refs/heads/fix/add-beer-connected-evidence-20261027' &&
-      contains(github.event.head_commit.message, '[qualify-add-beer-candidate-97311ddf]')
+      contains(github.event.head_commit.message, '[qualify-add-beer-candidate-b9a1c942]')
     environment: staging-release
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      RELEASE_SHA: 97311ddf92a61ae6cce57630b85d79540686a181
-      RELEASE_BASE_URL: https://pourfolio-wudz1vlku-jeremythevas-projects.vercel.app
+      RELEASE_SHA: b9a1c942450cda826ad5e8703652bb60111bdec5
+      RELEASE_BASE_URL: https://pourfolio-1zung5dfr-jeremythevas-projects.vercel.app
       RELEASE_EVIDENCE_DIRECTORY: artifacts/add-beer-readonly
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: 97311ddf92a61ae6cce57630b85d79540686a181
+          ref: b9a1c942450cda826ad5e8703652bb60111bdec5
           persist-credentials: false
       - name: Verify reviewed source
         run: test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
@@ -44,8 +44,8 @@ jobs:
           import { constants, createHash, createPrivateKey, createPublicKey, generateKeyPairSync, privateDecrypt } from 'node:crypto'
           
           export const REPOSITORY = 'jeremytheva/pourfolio'
-          export const SOURCE_SHA = '97311ddf92a61ae6cce57630b85d79540686a181'
-          export const ORIGIN = 'https://pourfolio-wudz1vlku-jeremythevas-projects.vercel.app'
+          export const SOURCE_SHA = 'b9a1c942450cda826ad5e8703652bb60111bdec5'
+          export const ORIGIN = 'https://pourfolio-1zung5dfr-jeremythevas-projects.vercel.app'
           export const PULL_URL = 'https://api.github.com/repos/jeremytheva/pourfolio/pulls/697'
           export const MANIFEST_PATH = 'artifacts/add-beer-access-key/public-key.json'
           const bindingFields = ['version', 'repo', 'pr', 'runId', 'runAttempt', 'workerSha', 'sourceSha', 'origin', 'createdAt', 'expiresAt', 'fingerprint']
@@ -792,7 +792,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: add-beer-readonly-97311ddf-${{ github.run_id }}
+          name: add-beer-readonly-b9a1c942-${{ github.run_id }}
           retention-days: 30
           if-no-files-found: error
           path: |
