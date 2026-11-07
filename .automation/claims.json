@@ -15,7 +15,8 @@
         "file:STATUS.md",
         "file:docs/TESTING.md",
         "file:docs/LAUNCH_READINESS.md",
-        "file:docs/evidence/add-beer-corrected-candidate-20261105.json"
+        "file:docs/evidence/add-beer-corrected-candidate-20261105.json",
+        "file:.github/workflows/add-beer-connected-evidence.yml"
       ],
       "acquiredAt": "2026-11-07T03:31:52.000Z",
       "expiresAt": "2026-11-07T04:01:52.000Z"
