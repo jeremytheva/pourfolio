@@ -4,6 +4,7 @@ on:
     branches: [fix/add-beer-connected-evidence-20261027]
 permissions:
   contents: read
+  pull-requests: read
 concurrency:
   group: bounded-current-instance-cellar-certification
   cancel-in-progress: false
@@ -166,7 +167,11 @@ jobs:
           }
           
           async function boundedJson(response) {
-            requireThat(response.status === 200 && response.body, 'POLL_FAILED')
+            const status = response?.status
+            if (Number.isInteger(status) && status >= 100 && status <= 599 && status !== 200) {
+              throw new HandoffError(`POLL_HTTP_${status}`)
+            }
+            requireThat(status === 200 && response.body, 'POLL_FAILED')
             const reader = response.body.getReader(), chunks = []; let length = 0
             try {
               while (true) {
@@ -188,6 +193,9 @@ jobs:
             let manifest
             try { manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) } catch { throw new HandoffError('MANIFEST_INVALID') }
             validateManifest(manifest, now()); assertRuntime(manifest, env)
+            const token = env.GITHUB_TOKEN
+            requireThat(typeof token === 'string' && token.length > 0 && token.length <= 4096 &&
+              !/[^\u0021-\u007e]/u.test(token), 'POLL_TOKEN_INVALID')
             const stat = fs.lstatSync(files.key)
             requireThat(stat.isFile() && !stat.isSymbolicLink() && !(stat.mode & 0o077) && stat.size < 10_000, 'PRIVATE_KEY_INVALID')
             const privateKey = fs.readFileSync(files.key, 'utf8'), deadline = Math.min(now() + 180_000, Date.parse(manifest.expiresAt))
@@ -196,7 +204,8 @@ jobs:
               let payload
               try {
                 payload = await boundedJson(await fetchImpl(PULL_URL, { redirect: 'error', signal: AbortSignal.timeout(Math.max(1, Math.min(5000, deadline - now()))),
-                  headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'pourfolio-preview-access-handoff' } }))
+                  headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`,
+                    'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'pourfolio-preview-access-handoff' } }))
               } catch (error) { throw error instanceof HandoffError ? error : new HandoffError('POLL_FAILED') }
               requireThat(now() < deadline, 'HANDOFF_TIMEOUT')
               requireThat(payload?.number === 697 && (payload.body === null || typeof payload.body === 'string'), 'POLL_RESPONSE_INVALID')
@@ -239,6 +248,8 @@ jobs:
           path: artifacts/add-beer-access-key/public-key.json
       - name: Receive the encrypted one-run preview link
         id: handoff
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: node "$RUNNER_TEMP/add-beer-access-handoff.mjs" receive
       - name: Prepare bounded provenance verifier
