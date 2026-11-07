@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-07 03:44:15 UTC",
+  "scope": "READ_ONLY_ADD_BEER_CATEGORIES",
+  "sourceSha": "97311ddf92a61ae6cce57630b85d79540686a181",
+  "deploymentId": "dpl_AvP1KC2Dtqypv1dp8dHrEv6TPBKR",
+  "origin": "https://pourfolio-wudz1vlku-jeremythevas-projects.vercel.app",
+  "run": {
+    "id": 42334964532,
+    "attempt": 1,
+    "workerSha": "a4b33cbf39fca58c585266dc08d7a590248eab0c",
+    "workflowPath": ".github/workflows/add-beer-connected-evidence.yml",
+    "workflowBlobSha": "7f6bfeaf204fa1f24cfcc48a3a1a1906040c3659",
+    "workflowSha256": "addc323c00bf31f959a4d5a6ab179dd84acee0ce7f61361184fd699605bc5a01",
+    "helperSha256": "60abaea7fc2063292964fa9bf56b8b61f4c1f53f7e71d15471cf095eadb1ea62",
+    "diagnosticReporterSha256": "9ad70e1eb4dd0a58c400582a3c6ff99cd45c01f065d2315170f36e6f458d0c05"
+  },
+  "publicKeyArtifact": {
+    "id": 13559361026,
+    "bytes": 1106,
+    "sha256": "eaf3ad4fe576e812fdf3904f1db1f5c240c925e5767a890909bd6bd190e846bb",
+    "fingerprint": "5bb4ae3ad71613405505f4b8199eca7e6258f950eb3a21e962f531464190cdc9"
+  },
+  "reportArtifact": {
+    "id": 13559560371,
+    "bytes": 1885,
+    "sha256": "6749792370a96b81500680f8ec6f8fbdc0c7b8088d84cf4966111773bc287ab4"
+  },
+  "handoff": {
+    "explicitUserAuthorization": true,
+    "publicDestination": "jeremytheva/pourfolio PR697 description",
+    "runSpecificCiphertextOnly": true,
+    "plaintextPublished": false,
+    "privateKeyPublished": false,
+    "matchingPacketRemoved": true,
+    "packetReadbackAbsent": true,
+    "historyAndWebhookPersistenceApproved": true,
+    "temporaryGrantRevoked": true,
+    "revocationAcknowledgement": "EXPLICIT_EMPTY_PROTECTION_BYPASS",
+    "grantRegenerated": false,
+    "rootPrivateFilesAbsent": 3
+  },
+  "reports": {
+    "postflight.json": {
+      "version": 1,
+      "stage": "postflight",
+      "releaseSha": "97311ddf92a61ae6cce57630b85d79540686a181",
+      "access": "PASS",
+      "health": "PASS",
+      "readiness": "PASS",
+      "healthHttpStatus": 200,
+      "readinessHttpStatus": 200,
+      "blocker": null,
+      "status": "PASS"
+    },
+    "preflight.json": {
+      "version": 1,
+      "stage": "preflight",
+      "releaseSha": "97311ddf92a61ae6cce57630b85d79540686a181",
+      "access": "PASS",
+      "health": "PASS",
+      "readiness": "PASS",
+      "healthHttpStatus": 200,
+      "readinessHttpStatus": 200,
+      "blocker": null,
+      "status": "PASS"
+    },
+    "qualification.json": {
+      "version": 1,
+      "qualification": "READ_ONLY_ADD_BEER_CATEGORIES",
+      "sourceSha": "97311ddf92a61ae6cce57630b85d79540686a181",
+      "workerSha": "a4b33cbf39fca58c585266dc08d7a590248eab0c",
+      "diagnosticReporterSha256": "9ad70e1eb4dd0a58c400582a3c6ff99cd45c01f065d2315170f36e6f458d0c05",
+      "caseId": "catalogue-readonly.spec.js:65",
+      "connected": "PASS",
+      "status": "PASS"
+    },
+    "release-summary.json": {
+      "version": 1,
+      "qualification": "CONNECTED_RELEASE_CHECKS",
+      "releaseSha": "97311ddf92a61ae6cce57630b85d79540686a181",
+      "candidateSha": "a4b33cbf39fca58c585266dc08d7a590248eab0c",
+      "status": "PASS",
+      "runnerStatus": "passed",
+      "counts": {
+        "expected": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "notRun": 0
+      },
+      "invalidEvents": 0,
+      "invalidDiagnostics": 0,
+      "diagnostics": [],
+      "runnerErrors": 0,
+      "blockers": [],
+      "tests": [
+        {
+          "caseId": "catalogue-readonly.spec.js:65",
+          "status": "PASS"
+        }
+      ]
+    },
+    "selection.json": {
+      "version": 1,
+      "status": "PASS",
+      "caseId": "catalogue-readonly.spec.js:65",
+      "selected": 1
+    },
+    "session-cleanup.json": {
+      "version": 1,
+      "session": "PASS",
+      "sessionHttpStatus": 401,
+      "privateWorkspace": "PASS",
+      "restore": "NOT_RESTORED",
+      "logout": "NOT_RUN",
+      "probeIdentity": "NOT_INSPECTED",
+      "cleanupFailure": null,
+      "diagnosticFields": "PASS"
+    }
+  },
+  "earlierAttempt": {
+    "runId": 42334509708,
+    "workerSha": "b8927f78ee806b645fcd284487d1e5932b24c8eb",
+    "artifactId": 13558681973,
+    "artifactBytes": 714,
+    "artifactSha256": "fb5a51a3a9fe07e17aa61923b7a8a430f4ff23fcc2e97f4f9e7c5904cf40b615",
+    "receiveCode": "POLL_FAILED",
+    "httpStatus": "NOT_RETAINED",
+    "cause": "UNDETERMINED",
+    "connected": "NOT_RUN",
+    "session": "NOT_REQUIRED",
+    "privateWorkspace": "PASS",
+    "packetPublished": false,
+    "grantRevoked": true,
+    "rootPrivateInputAbsent": true
+  },
+  "limits": [
+    "This qualifies only the recorded exact source and singleton category-read case.",
+    "No catalogue/rating/cellar mutation test was selected; zero provider DML was not separately certified.",
+    "NOT_RESTORED/logout NOT_RUN follow the passing case's own sign-out; the independent original-cookie HTTP401 remains the revocation evidence.",
+    "Historical failed and blocked runs remain retained; their results are not rewritten.",
+    "No later combined-source deployment or complete release/provider/privacy/device gate is qualified by this record."
+  ]
+}

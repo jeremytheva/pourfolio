@@ -55,6 +55,34 @@ foreign key as either `null` or an empty string. The boundary copies those empty
 optional values as `null` so the UI reports “Not recorded”; it does not trim or
 coerce non-empty identifiers or measurements.
 
+## Canonical category pages
+
+Authenticated `/catalog/categories` pages have exactly `items`, `page`,
+`pageSize`, `pagination`, `hasMore`, `total` and `totalPages`. The category-only
+contract does not add fields to the product-page allowlist. Category items have
+unique positive identifiers, non-empty names and an explicit nullable parent ID.
+The returned page/size must match the request; the size is at most 100.
+
+`pagination: "exact"` means provider-authoritative integer totals. Page count
+and item count follow the same arithmetic as product pages, and `hasMore`
+must equal `page < totalPages`. The complete collector rejects changed exact
+totals/page counts and verifies its final accumulated count.
+
+`pagination: "continuation"` means the provider omitted an exact total. Both
+`total` and `totalPages` are explicitly `null`; lower-bound estimates are never
+published as authoritative counts. `hasMore: true` requires a full page;
+`hasMore: false` requires a short or empty terminal page. A 200-record inventory
+with 100-row pages therefore needs a third empty probe, while 201 records end
+with a one-row third page. The gateway selects this mode from the adapter's
+explicit metadata-free-page flag, including its false terminal value.
+
+The collector latches one pagination mode, rejects mode changes and duplicate
+IDs across all pages, and returns no partial result after malformed data or a
+later-page failure. It allows at most 25 requests, including a terminal probe;
+exhaustion rejects rather than presenting truncated canonical choices. The
+connected Add Beer check retains the same bounds and exact-count checks while
+using explicit continuation termination when an exact count is unavailable.
+
 ## Product detail
 
 Details use the same product projection and additionally require

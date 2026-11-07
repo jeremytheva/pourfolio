@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test'
-import { parseReleaseBaseUrl } from './releaseTarget.js'
+import { assertReleasePageOrigin, parseReleaseBaseUrl } from './releaseTarget.js'
 import { forgetReleaseOwnerSession, restoreReleaseOwnerSession, saveReleaseOwnerSession } from './ownerSession.js'
 
 export const requiredEnvironment = (names) => Object.fromEntries(names.map((name) => {
@@ -12,12 +12,6 @@ const signInResponse = (response, origin) => {
   if (response.request().method() !== 'POST') return false
   const url = new URL(response.url())
   return url.origin === origin && url.pathname === '/api/nocodebackend/auth/sign-in/email'
-}
-
-const assertPageOrigin = (page, origin) => {
-  let actual
-  try { actual = new URL(page.url()).origin } catch { /* Discard private URLs. */ }
-  if (actual !== origin) throw new Error('Release page origin is unverified.')
 }
 
 // Browser contexts and the owner cache are private local state, not revocation
@@ -125,23 +119,24 @@ const retryAfterMilliseconds = (response) => {
 
 export const signIn = async (page, email, password, { reuseSession = false, sessionScope } = {}) => {
   const origin = parseReleaseBaseUrl(process.env.RELEASE_BASE_URL)
+  const requireCurrentOrigin = () => assertReleasePageOrigin(page.url(), origin)
   sessionScope?.track(page, email)
   try {
     if (reuseSession && await restoreReleaseOwnerSession(page, email, {
       onRestored: () => sessionScope?.capture(page)
     })) {
       await expect(page).toHaveURL(/\/home$/)
-      assertPageOrigin(page, origin)
+      requireCurrentOrigin()
       return
     }
     await page.goto('/login')
-    assertPageOrigin(page, origin)
+    requireCurrentOrigin()
     await page.getByLabel('Email').fill(email)
-    assertPageOrigin(page, origin)
+    requireCurrentOrigin()
     await page.getByLabel('Password').fill(password)
 
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      assertPageOrigin(page, origin)
+      requireCurrentOrigin()
       sessionScope?.beginAuthentication(page)
       const responsePromise = page.waitForResponse(response => signInResponse(response, origin))
       await page.getByRole('button', { name: 'Sign in' }).click()
@@ -150,7 +145,7 @@ export const signIn = async (page, email, password, { reuseSession = false, sess
 
       if (response.status() !== 429) {
         await expect(page).toHaveURL(/\/home$/)
-        assertPageOrigin(page, origin)
+        requireCurrentOrigin()
         saveReleaseOwnerSession(await page.context().storageState(), email)
         return
       }
