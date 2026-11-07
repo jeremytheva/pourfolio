@@ -16,7 +16,10 @@
         "file:docs/TESTING.md",
         "file:docs/LAUNCH_READINESS.md",
         "file:docs/evidence/add-beer-corrected-candidate-20261105.json",
-        "file:.github/workflows/add-beer-connected-evidence.yml"
+        "file:.github/workflows/add-beer-connected-evidence.yml",
+        "file:release-check/support.js",
+        "file:release-check/__tests__/support.test.js",
+        "file:docs/evidence/add-beer-connected-20261107.json"
       ],
       "acquiredAt": "2026-11-07T03:31:52.000Z",
       "expiresAt": "2026-11-07T04:01:52.000Z"
