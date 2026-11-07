@@ -1,4 +1,24 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "catalogue-approved-preview-handoff-20261107T0332Z",
+      "workstream": "catalogue",
+      "issue": 695,
+      "pr": 697,
+      "surfaces": [
+        "repo:integration",
+        "pr:697:description",
+        "branch:fix/add-beer-connected-evidence-20261027",
+        "branch:feature/add-beer-release-form",
+        "deployment:dpl_AvP1KC2Dtqypv1dp8dHrEv6TPBKR:temporary-share",
+        "file:STATUS.md",
+        "file:docs/TESTING.md",
+        "file:docs/LAUNCH_READINESS.md",
+        "file:docs/evidence/add-beer-corrected-candidate-20261105.json"
+      ],
+      "acquiredAt": "2026-11-07T03:31:52.000Z",
+      "expiresAt": "2026-11-07T04:01:52.000Z"
+    }
+  }
 }
