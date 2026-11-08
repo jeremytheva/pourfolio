@@ -62,14 +62,14 @@
     "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^10.0.0",
     "@playwright/test": "^1.64.1",
-    "@vitejs/plugin-react": "^6.1.2",
-    "autoprefixer": "^10.6.1",
-    "eslint": "^10.13.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "autoprefixer": "^10.6.2",
+    "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
-    "globals": "^17.13.0",
-    "postcss": "^8.5.31",
+    "globals": "^17.14.0",
+    "postcss": "^8.5.32",
     "tailwindcss": "^3.4.17",
-    "vite": "^8.3.5"
+    "vite": "^8.3.6"
   }
 }
