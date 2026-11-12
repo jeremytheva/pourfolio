@@ -1,30 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "catalogue-add-beer-integration-20261112T0241Z",
-      "workstream": "catalogue",
-      "issue": 144,
-      "pr": null,
-      "surfaces": [
-        "repo:integration",
-        "branch:docs/accepted-add-beer-handoff-20261112",
-        "file:STATUS.md",
-        "file:docs/LAUNCH_READINESS.md",
-        "file:docs/TESTING.md",
-        "file:docs/evidence/add-beer-final-connected-20261107.json",
-        "branch:fix/profile-history-release-scope-20261112",
-        "file:.github/workflows/connected-release-check.yml",
-        "file:scripts/__tests__/connected-provider-workflow.test.js",
-        "file:.project-master/launch-readiness.json",
-        "workflow:connected-release-check.yml:profile-history",
-        "workflow:bonus-point-preflight.yml:dispatch",
-        "branch:docs/launch-evidence-results-20261112",
-        "file:docs/evidence/private-history-scope-20261112.json",
-        "file:docs/evidence/bonus-point-preflight-20261112.json"
-      ],
-      "acquiredAt": "2026-11-12T02:41:41.000Z",
-      "expiresAt": "2026-11-12T03:57:00.000Z"
-    }
-  }
+  "claims": {}
 }
