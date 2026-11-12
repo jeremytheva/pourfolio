@@ -5,7 +5,7 @@
       "owner": "catalogue-add-beer-integration-20261112T0241Z",
       "workstream": "catalogue",
       "issue": 144,
-      "pr": null,
+      "pr": 744,
       "surfaces": [
         "repo:integration",
         "branch:docs/accepted-add-beer-handoff-20261112",
@@ -15,7 +15,8 @@
         "file:docs/evidence/add-beer-final-connected-20261107.json",
         "branch:fix/profile-history-release-scope-20261112",
         "file:.github/workflows/connected-release-check.yml",
-        "file:scripts/__tests__/connected-provider-workflow.test.js"
+        "file:scripts/__tests__/connected-provider-workflow.test.js",
+        "file:.project-master/launch-readiness.json"
       ],
       "acquiredAt": "2026-11-12T02:41:41.000Z",
       "expiresAt": "2026-11-12T03:34:30.000Z"
