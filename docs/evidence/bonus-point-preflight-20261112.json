@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-12",
+  "scope": "BONUS_POINT_PREFLIGHT",
+  "sourceSha": "60c3cfe0b7a57563c655b2be74da12239ebef4ad",
+  "run": {
+    "id": 43147510610,
+    "attempt": 1,
+    "workflowPath": ".github/workflows/bonus-point-preflight.yml",
+    "jobId": 130948687525,
+    "event": "workflow_dispatch",
+    "ref": "main",
+    "inputs": "NONE",
+    "startedAt": "2026-11-12T03:20:13Z",
+    "completedAt": "2026-11-12T03:20:53Z",
+    "overallOutcome": "failure",
+    "canonicalValidationOutcome": "success",
+    "sourceIdentityOutcome": "success",
+    "providerAuditOutcome": "failure",
+    "redactedRetentionOutcome": "success"
+  },
+  "canonicalValidation": {
+    "node": "22.23.4",
+    "command": "npm run platform:validate",
+    "passed": 1337,
+    "skipped": 15,
+    "failed": 0,
+    "productionDependencyVulnerabilities": 0
+  },
+  "reportArtifact": {
+    "id": 13912856099,
+    "bytes": 556,
+    "sha256": "313cdabfc50103567b47a6ff1c684304b9c043d8b4385ff33fc9a818417201c8"
+  },
+  "summary": {
+    "status": "BLOCKED",
+    "mode": "preflight",
+    "qualification": "SOURCE_ONLY",
+    "planSha256": "e1cdd3421bd072a81868ffe97cb32f03916514e54d148d1705d4d9b5ac0e6723",
+    "snapshotSha256": "c7c1191b893dfb4aa7df7015cd72c6540ac91c416ea907f5c2bfda0243cbd08d",
+    "counts": {
+      "global": 82,
+      "private": 1,
+      "planned": 82,
+      "alreadyMatched": 1,
+      "missing": 39,
+      "proposedFills": 39,
+      "globalMissingValues": 81,
+      "unresolvedPlanValues": 42,
+      "preservedMissingValues": 0
+    },
+    "blockers": [
+      "PLAN_POINT_VALUE_INVALID"
+    ],
+    "providerRead": "READ_ONLY",
+    "snapshotScope": "PAGINATION_COMPLETE_NOT_ATOMIC",
+    "candidateCommit": "60c3cfe0b7a57563c655b2be74da12239ebef4ad"
+  },
+  "interpretation": {
+    "classification": "EXPECTED_INCOMPLETE_ALLOCATION_PLAN",
+    "sourceFailure": false,
+    "credentialReadFailure": false,
+    "providerMutations": 0,
+    "backfillPerformed": false,
+    "allGlobalDescriptorsPreserved": 82,
+    "authoritativeRemainingValues": 42,
+    "productionInstanceCorrespondence": "UNVERIFIED"
+  },
+  "limits": [
+    "The configured staging-release instance was read directly; this is SOURCE_ONLY evidence, not production-instance certification.",
+    "PAGINATION_COMPLETE_NOT_ATOMIC is not a consistent migration baseline or backup/restore proof.",
+    "Snapshot hashes include capture time; a changed hash alone does not prove data changes.",
+    "39 supplied fills remain proposed,42 allocations unresolved and81 global stored values missing.",
+    "No values were inferred and no provider backfill or historical-total preservation audit was performed."
+  ]
+}

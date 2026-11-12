@@ -1,13 +1,13 @@
 ---
 project: Pourfolio
 portfolio_state: VALIDATING
-execution_slot: VERIFYING
+execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Add Beer integrated and runtime verified; scoped private-history acceptance next"
+stage: "Add Beer complete; profile fixture and authoritative bonus values block further acceptance"
 gate: Integration
-execution_state: VALIDATING
+execution_state: BLOCKED
 current_work:
-  objective: "Prepare the main-only profile-history scope and certify the two existing private-history cases without rating writes; retain remaining provider/data/privacy/release gates."
+  objective: "Obtain the42 authoritative bonus values and a governed eligible owner tasting fixture; preserve provider integrity/recovery and remaining privacy/release gates."
   issue: 144
   pr: null
   branch: null
@@ -17,7 +17,7 @@ next_actions:
   - "#740 merged as 31d28efb: the #165 runbook now reconciles provider event IDs, positive-integer client retry IDs, owner-bound keys and exact fingerprint serialisation, preserving managed state/tombstones and all six constraints. Canonical Node22 validation passed 1,285 tests/15 gated skips and 188 browser cases. No executable migration/provider change; retain provider/CAS, fresh consistent baseline, isolated restore and irreversible-change approval gates."
   - "#144/#422 profile history checks now establish per-test session cleanup before authentication, retain original cookies across reuse/partial failures and require isolated original-cookie HTTP401 after sign-out for every tracked account. The #741 cleanup is preserved in merged #697; retain its verified latest-head evidence. Connected acceptance remains NOT_RUN. Profile GETs can create a missing profile, so these cases do not guarantee zero data writes."
   - "#697 is merged as8d5049c5 and production health/readiness verify that exact SHA. Combined sourceb9a1c942 passed1,332 canonical tests/15 gated skips,196 browser cases and its own protected run42336019065: pre/post provenance, singleton case65, original-cookie401 and private cleanup PASS. Packets removed, grants revoked and private files absent. Preserve exact historical bindings; broader launch gates remain open."
-  - "#144 private-history acceptance is the next bounded row: prepare a main-only profile-history workflow scope, omit signup/OTP/write-fixture secrets, require exact current main and two passed cases with strict session cleanup. Last retained run skipped both for no eligible owner tasting; run once to qualify or accurately retain the fixture blocker. Do not manufacture a rating or claim public-privacy closure."
+  - "#744 is merged as60c3cfe0: the main-only profile scope passed1,337 source tests/15 gated skips and196 browser cases. Actual run43147240884 has exact pre/post provenance PASS,0passed/2skipped and private cleanup PASS; qualification correctly BLOCKED. Both configured account credentials were injected, but the existing cases lack eligible owner fixtures. Do not rerun unchanged or manufacture ratings; obtain a governed eligible fixture before those rows can qualify."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
   - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Its provider key is configured; configure the independent recovery key and dedicated fixture user/product IDs, diagnose the failed read, and verify cloned constraints/recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
   - "#710 is integrated as 078843e5. #697 keyboard visibility and release-origin checkpoints are source/browser validated; current exact973 connected category acceptance PASS is retained in run42334964532, with older failures preserved."
@@ -25,7 +25,7 @@ next_actions:
   - "#709 read-only Admin workspace is deployed and bounded Admin/user own-capability isolation passed in run 40494158943. Keep full Admin browser/moderation, role-write denial and revocation open under #699/#701/#702."
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
   - "Approved single-QA recovery passed in run 40389866451: one DELETE, exact absence and other-owned-row preservation verified. Before another HTTP mutation certification, retain encrypted create intent/acknowledgement and safe stage/status evidence."
-  - "Live bonus preflight 40240571404 confirms 39 proposed fills and 42 unresolved values. Complete the plan, then use #680 before/after preservation checks and complete historical evidence for governed backfill."
+  - "Fresh read-only preflight43147510610 at60c3cfe0 confirms82 global descriptors,81 missing stored values,39 proposed fills and42 unresolved plan values. Expected BLOCKED/PLAN_POINT_VALUE_INVALID is a data-plan result, not a source/read failure. No mutation/backfill; complete authoritative values then satisfy #680 preservation and #165 provider/recovery gates."
   - "Use #678's corrected canonical bonus_attribute_id checks when auditing fresh same-state baseline/import-rehearsal evidence; historical or mixed-column exports are not current-contract evidence."
   - "Terminal-rating containment and the read-only point-plan auditor are integrated in #676/#677; retain the distributed concurrency boundary under #165 and use the existing evidence package."
   - "Obtain the remaining 42 exact-ID bonus values in data/bonus_attribute_point_plan.json, then complete governed backfill and post-write/historical-total preservation verification; all 82 descriptors remain available."
@@ -44,26 +44,29 @@ blockers:
     detail: "Unconditional parent transitions and late child writes lack certified distributed integrity. Provider uniqueness/atomic workflow, consistent backup, isolated restore and approval for irreversible changes remain required."
   - scope: connected_backend_and_bonus_values
     issue: 144
-    detail: "Distinct-account authentication and bounded cellar gateway isolation pass; connected baseline has 12 passes and four skips, with an earlier unreproduced failure retained. Live preflight confirms 39 proposed fills and 42 unresolved values. Backfill, remaining connected policy and recovery acceptance remain open; #577 implementation is closed."
+    detail: "Distinct-account authentication and bounded cellar gateway isolation pass; connected baseline has 12 passes and four skips, with an earlier unreproduced failure retained. Fresh preflight43147510610 confirms39 proposed fills,42 unresolved plan values and81 missing global stored values. Backfill, remaining connected policy and recovery acceptance remain open; #577 implementation is closed."
+  - scope: private_history_fixture
+    issue: 144
+    detail: "Current-main protected profile run43147240884 passed pre/post provenance and private cleanup but both cases skipped. The first selected page has no eligible verified tasting; with both account credentials present, the second case also found no owner tasting in page1. This does not establish global historical absence or other-account sign-in/privacy acceptance. A governed eligible fixture is required; no rating was manufactured."
   - scope: persistent_profile_privacy
     issue: 422
     detail: "Provider uniqueness/default-private creation, persisted opt-in/revocation, copied links and cross-owner denial still need connected certification."
-requires_owner_decision: false
+requires_owner_decision: true
 owner_decision:
-  question: null
-  recommendation: null
+  question: "Provide exact point values for the42 unresolved descriptor IDs in data/bonus_attribute_point_plan.json."
+  recommendation: "Keep all82 descriptors and the39 supplied allocations unchanged. Supply authoritative missing values; no inferred points or backfill before the governed preservation/provider gates."
 wip:
   open_implementation_prs: 0
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "8d5049c5aa231ddfff1b45f55f298b722c3055d7"
-  current_candidate_commit: "8d5049c5aa231ddfff1b45f55f298b722c3055d7"
-  latest_validated_commit: "b9a1c942450cda826ad5e8703652bb60111bdec5"
-  latest_deployed_commit: "8d5049c5aa231ddfff1b45f55f298b722c3055d7"
-  latest_runtime_verified_commit: "8d5049c5aa231ddfff1b45f55f298b722c3055d7"
-  latest_browser_verified_commit: "b9a1c942450cda826ad5e8703652bb60111bdec5"
+  observed_main_commit: "60c3cfe0b7a57563c655b2be74da12239ebef4ad"
+  current_candidate_commit: "60c3cfe0b7a57563c655b2be74da12239ebef4ad"
+  latest_validated_commit: "60c3cfe0b7a57563c655b2be74da12239ebef4ad"
+  latest_deployed_commit: "60c3cfe0b7a57563c655b2be74da12239ebef4ad"
+  latest_runtime_verified_commit: "60c3cfe0b7a57563c655b2be74da12239ebef4ad"
+  latest_browser_verified_commit: "43aefe69b8d85fdf8dca74c9df6f749d9207c19c"
 validation:
   governance: PASS
   lint: PASS
@@ -73,7 +76,7 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "b9a1c942450cda826ad5e8703652bb60111bdec5"
-last_updated: "2026-11-12T02:46:08Z"
+last_updated: "2026-11-12T03:28:00Z"
 
 ---
 
@@ -82,6 +85,53 @@ last_updated: "2026-11-12T02:46:08Z"
 Last materially reviewed: 12 November 2026 UTC
 
 ## AI execution gate
+
+### Scoped history remains unqualified; fresh bonus audit confirms missing values — 12 November 2026 UTC
+
+[PR #744](https://github.com/jeremytheva/pourfolio/pull/744) merged the protected
+main-only profile-history scope as `60c3cfe0b7a57563c655b2be74da12239ebef4ad`.
+Exact source43aefe69 passed canonical Node22.23.4 validation: **1,337 tests /
+15 gated skips / zero failures and production vulnerabilities**, all196 browser
+cases, Dependency Review, CodeQL and independent security review. The existing
+workflow now selects only the two checked history cases, requires exact current
+main, withholds signup/OTP/write-fixture secrets and rejects incomplete results.
+
+One accepted workflow_dispatch produced [run43147240884](https://github.com/jeremytheva/pourfolio/actions/runs/43147240884).
+Pre/post exact60c3cfe0 production provenance and dataProvider ok PASS. Actual
+reports show **0passed / 2skipped**, with no failed cases, invalid events, invalid
+diagnostics or runner errors. Qualification correctly returns **BLOCKED /
+PROFILE_HISTORY_CHECKS_NOT_QUALIFIED**. Overall workflow fails that gate; the
+always-run private diagnostics/cache cleanup succeeds. Both owner and other
+credential fields were injected, without retaining their values; signup/OTP were
+withheld. The first selected history page has no eligible verified tasting, and
+the second case has no owner tasting in page1 after its credential precondition.
+No rating/cellar fixture was created. These limited queries do not prove absence
+throughout all historical pages, nor do they certify other-account sign-in or
+public-profile privacy. Do not turn skips into PASS or rerun unchanged fixtures.
+Artifact13911973039 (1,811bytes), SHA256
+`cedb7a762f54c9b22096d23a85e2fc1bbae58e5da57f65e7f28afa021f08babc`,
+was downloaded/digest-verified; [the record](docs/evidence/private-history-scope-20261112.json)
+retains all four redacted JSON reports and cleanup outcomes.
+
+One fresh existing [bonus preflight43147510610](https://github.com/jeremytheva/pourfolio/actions/runs/43147510610)
+validated the exact checked-out60c3cfe0 source, then performed only paginated
+GETs against the configured staging-release NoCodeBackend instance. Actual
+canonical Node22 validation again passes1,337/15skips/0failures/vulnerabilities.
+The audit has **82global / 1private / 81global missing values / 39proposed fills /
+42unresolved allocations**, with expected **BLOCKED / PLAN_POINT_VALUE_INVALID**.
+Artifact13912856099 (556bytes), SHA256
+`313cdabfc50103567b47a6ff1c684304b9c043d8b4385ff33fc9a818417201c8`,
+was downloaded/digest-verified. [The summary](docs/evidence/bonus-point-preflight-20261112.json)
+remains SOURCE_ONLY/PAGINATION_COMPLETE_NOT_ATOMIC: no production-instance,
+atomic-baseline, restore or historical-preservation certification is inferred.
+No value was invented and no provider mutation/backfill occurred. All82
+descriptors and the39 supplied allocations remain unchanged.
+
+Further acceptance now needs authoritative missing values and an eligible
+owner tasting fixture, with #165 provider integrity/recovery, #422 public
+privacy, broader #144/#154 and operations/manual-device gates still open.
+No credential reconnection or repeated public-packet approval is needed.
+Public launch remains **NO-GO**.
 
 ### Add Beer merged and production verified — 12 November 2026 UTC
 

@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-12",
+  "scope": "PRIVATE_PROFILE_HISTORY",
+  "sourceSha": "60c3cfe0b7a57563c655b2be74da12239ebef4ad",
+  "implementation": {
+    "pr": 744,
+    "validatedHead": "43aefe69b8d85fdf8dca74c9df6f749d9207c19c",
+    "canonicalRun": 43146272916,
+    "releaseJob": 130944802526,
+    "node": "22.23.4",
+    "passed": 1337,
+    "skipped": 15,
+    "failed": 0,
+    "productionDependencyVulnerabilities": 0,
+    "browserJob": 130944802838,
+    "browserPassed": 196,
+    "independentSecurityReview": "GO"
+  },
+  "run": {
+    "id": 43147240884,
+    "attempt": 1,
+    "workflowPath": ".github/workflows/connected-release-check.yml",
+    "jobId": 130947809846,
+    "event": "workflow_dispatch",
+    "ref": "main",
+    "scopeInput": "profile-history",
+    "destructiveConfirmation": "EMPTY",
+    "startedAt": "2026-11-12T03:17:49Z",
+    "completedAt": "2026-11-12T03:18:42Z",
+    "overallOutcome": "failure",
+    "qualificationOutcome": "failure",
+    "privateCleanupOutcome": "success"
+  },
+  "reportArtifact": {
+    "id": 13911973039,
+    "bytes": 1811,
+    "sha256": "cedb7a762f54c9b22096d23a85e2fc1bbae58e5da57f65e7f28afa021f08babc"
+  },
+  "reports": {
+    "release-summary.json": {
+      "version": 1,
+      "qualification": "CONNECTED_RELEASE_CHECKS",
+      "releaseSha": "60c3cfe0b7a57563c655b2be74da12239ebef4ad",
+      "candidateSha": "60c3cfe0b7a57563c655b2be74da12239ebef4ad",
+      "status": "PASS_WITH_SKIPS",
+      "runnerStatus": "passed",
+      "counts": {
+        "expected": 2,
+        "passed": 0,
+        "failed": 0,
+        "skipped": 2,
+        "notRun": 0
+      },
+      "invalidEvents": 0,
+      "invalidDiagnostics": 0,
+      "diagnostics": [],
+      "runnerErrors": 0,
+      "blockers": [],
+      "tests": [
+        {
+          "caseId": "profile-history-readonly.spec.js:49",
+          "status": "SKIPPED"
+        },
+        {
+          "caseId": "profile-history-readonly.spec.js:96",
+          "status": "SKIPPED"
+        }
+      ]
+    },
+    "profile-history-preflight.json": {
+      "status": "PASS",
+      "commitSha": "60c3cfe0b7a57563c655b2be74da12239ebef4ad",
+      "environment": "production",
+      "dataProvider": "ok"
+    },
+    "profile-history-postflight.json": {
+      "status": "PASS",
+      "commitSha": "60c3cfe0b7a57563c655b2be74da12239ebef4ad",
+      "environment": "production",
+      "dataProvider": "ok"
+    },
+    "profile-history-qualification.json": {
+      "version": 1,
+      "qualification": "PRIVATE_PROFILE_HISTORY",
+      "releaseSha": "60c3cfe0b7a57563c655b2be74da12239ebef4ad",
+      "status": "BLOCKED",
+      "code": "PROFILE_HISTORY_CHECKS_NOT_QUALIFIED",
+      "expectedCases": 2,
+      "qualifiedCases": 0,
+      "preflight": "PASS",
+      "postflight": "PASS"
+    }
+  },
+  "otherFiles": {
+    "release-security-check.txt": {
+      "bytes": 131,
+      "sha256": "decc0c666afd9cd433a5717c41b65bb7fefd3e258f7ff216563fd7eb647e012b"
+    }
+  },
+  "credentialPresenceOnly": {
+    "ownerEmailInjected": true,
+    "ownerPasswordInjected": true,
+    "otherEmailInjected": true,
+    "otherPasswordInjected": true,
+    "unusedSignupInjected": false,
+    "unusedOtpInjected": false
+  },
+  "interpretation": {
+    "acceptance": "BLOCKED",
+    "passedCases": 0,
+    "skippedCases": 2,
+    "firstCaseFixture": "NO_ELIGIBLE_VERIFIED_TASTING_IN_SELECTED_PAGE",
+    "secondCaseFixture": "NO_OWNER_TASTING_IN_FIRST_PAGE",
+    "basis": "Checked source has no other skip path for the second case after both configured account credentials are present; no account values or history records are retained.",
+    "sourceFailure": false,
+    "privateDiagnosticsCleanup": "PASS",
+    "ratingOrCellarFixtureCreated": false,
+    "zeroProviderDMLCertified": false,
+    "fullSessionLifecycleCertified": false,
+    "publicProfilePrivacyCertified": false
+  },
+  "limits": [
+    "Both cases are unqualified; PASS_WITH_SKIPS is not profile acceptance.",
+    "The first case's selected page does not prove absence throughout all historical pages.",
+    "Other-account credentials were injected, but its sign-in/denial path was not reached after the owner fixture skip.",
+    "Normal profile GETs may create an absent private profile; no zero-provider-DML claim is made.",
+    "Provider CAS/recovery, public opt-in/revocation and broader backend/release gates remain open."
+  ]
+}

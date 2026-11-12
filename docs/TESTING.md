@@ -410,6 +410,14 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 
 ### Main-only private profile/history scope
 
+The first live scoped observation is run43147240884 at main60c3cfe0 on
+12November. Both cases skipped; exact pre/post provenance and private cleanup
+pass, while qualification correctly remains BLOCKED. Both account credential
+fields were injected. The selected-page/first-page owner fixture conditions
+remain unmet; no rating was manufactured. See [the retained report](evidence/private-history-scope-20261112.json).
+Do not infer all historical pages are empty or rerun unchanged to seek a PASS.
+
+
 The existing protected workflow accepts `scope: all` (the default, including
 the existing owner issue-comment command) or `scope: profile-history`. Unknown
 scopes fail before credentials. Profile scope requires the exact reviewed main

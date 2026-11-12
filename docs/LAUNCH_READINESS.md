@@ -39,6 +39,29 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
+### Fresh private-history and allocation audit outcomes — 12 November 2026 UTC
+
+Main-only profile scope#744 is integrated as60c3cfe0 after1,337 canonical
+source tests/15 gated skips,196 browser cases and independent review PASS.
+Protected run43147240884 verifies exact pre/post production provenance but
+records0passed/2skipped; strict two-case qualification remains BLOCKED.
+Private diagnostics/cache cleanup PASS. Both account credential fields were
+injected, but eligible owner fixtures were unavailable in the checked pages.
+No rating fixture was manufactured, and no private-history/public-privacy row
+closes. [Exact reports and artifact provenance](evidence/private-history-scope-20261112.json)
+retain the bounded observation without asserting global historical absence.
+
+Fresh existing read-only bonus run43147510610 passes canonical source validation
+and reads the configured staging-release instance. Its summary remains
+SOURCE_ONLY/PAGINATION_COMPLETE_NOT_ATOMIC with82global descriptors,81missing
+stored values,39proposed fills and42unresolved plan allocations. Expected
+BLOCKED/PLAN_POINT_VALUE_INVALID is not a source or read failure.
+[The retained summary](evidence/bonus-point-preflight-20261112.json) records no
+provider mutation/backfill and does not certify production correspondence,
+atomic baseline, restore or historical-total preservation. All82 remain
+available. Supply authoritative missing values and satisfy remaining provider,
+privacy, operational/device and final release gates. Public launch stays **NO-GO**.
+
 ### Add Beer integrated; exact combined acceptance and runtime read — 12 November 2026 UTC
 
 PR697 merged as8d5049c5 with the same tree as accepted combined source
