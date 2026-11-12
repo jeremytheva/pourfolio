@@ -3,20 +3,21 @@ project: Pourfolio
 portfolio_state: VALIDATING
 execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Add Beer categories and original-cookie closure verified; combined source validating"
+stage: "Add Beer integrated and runtime verified; scoped private-history acceptance next"
 gate: Integration
 execution_state: VALIDATING
 current_work:
-  objective: "Integrate the accepted Add Beer source with current main while preserving session cleanup and origin checkpoints; validate the combined source and qualify its deployment separately."
-  issue: 695
-  pr: 697
-  branch: feature/add-beer-release-form
+  objective: "Prepare the main-only profile-history scope and certify the two existing private-history cases without rating writes; retain remaining provider/data/privacy/release gates."
+  issue: 144
+  pr: null
+  branch: null
 next_actions:
   - "#727 is merged as 1ef714ce: the #726 cellar pagination repair passed 1,216 source tests, 188 browser/accessibility cases and exact production health/readiness. Connected multi-page owner/provider acceptance remains under #144/#154."
   - "#729 is merged as ef86e20d: the #728 style-population pagination repair passed 1,230 source tests, 188 browser/accessibility cases and exact production health/readiness. Both pagination repairs are integrated; connected provider/volume certification remains open."
   - "#740 merged as 31d28efb: the #165 runbook now reconciles provider event IDs, positive-integer client retry IDs, owner-bound keys and exact fingerprint serialisation, preserving managed state/tombstones and all six constraints. Canonical Node22 validation passed 1,285 tests/15 gated skips and 188 browser cases. No executable migration/provider change; retain provider/CAS, fresh consistent baseline, isolated restore and irreversible-change approval gates."
-  - "#144/#422 profile history checks now establish per-test session cleanup before authentication, retain original cookies across reuse/partial failures and require isolated original-cookie HTTP401 after sign-out for every tracked account. Track #741 latest-head validation and integration evidence; preserve its cleanup when later reconciling #697. Connected acceptance remains NOT_RUN. Profile GETs can create a missing profile, so these cases do not guarantee zero data writes."
-  - "#697 exact97311ddf now passes protected run42334964532: exact pre/post provenance, singleton category case65 and original-cookie401/private cleanup PASS. Explicit public-packet authorization was supplied and accepted; packet display removed, grant revoked, local private files absent. Reconcile current main21f86ff without losing #741 lifecycle/origin tests or changing category guards, then require combined-source canonical/browser validation and separate exact deployment evidence. Prior failed/blocked runs remain historical."
+  - "#144/#422 profile history checks now establish per-test session cleanup before authentication, retain original cookies across reuse/partial failures and require isolated original-cookie HTTP401 after sign-out for every tracked account. The #741 cleanup is preserved in merged #697; retain its verified latest-head evidence. Connected acceptance remains NOT_RUN. Profile GETs can create a missing profile, so these cases do not guarantee zero data writes."
+  - "#697 is merged as8d5049c5 and production health/readiness verify that exact SHA. Combined sourceb9a1c942 passed1,332 canonical tests/15 gated skips,196 browser cases and its own protected run42336019065: pre/post provenance, singleton case65, original-cookie401 and private cleanup PASS. Packets removed, grants revoked and private files absent. Preserve exact historical bindings; broader launch gates remain open."
+  - "#144 private-history acceptance is the next bounded row: prepare a main-only profile-history workflow scope, omit signup/OTP/write-fixture secrets, require exact current main and two passed cases with strict session cleanup. Last retained run skipped both for no eligible owner tasting; run once to qualify or accurately retain the fixture blocker. Do not manufacture a rating or claim public-privacy closure."
   - "#714 and #712 are integrated/deployed. Protected inventory run 40619712618 passed at ec6bbc58 with two complete zero-row observations per game table, eight GETs and zero writes; retain its exact report and artifact provenance under #711."
   - "#715 now has an owner-approved empty schema clone and a separate main-only brew-contract environment. Its provider key is configured; configure the independent recovery key and dedicated fixture user/product IDs, diagnose the failed read, and verify cloned constraints/recovery before connected writes. Preserve the source's correct combined indexes, then certify CAS, scoring persistence, privacy and two-device play."
   - "#710 is integrated as 078843e5. #697 keyboard visibility and release-origin checkpoints are source/browser validated; current exact973 connected category acceptance PASS is retained in run42334964532, with older failures preserved."
@@ -52,17 +53,17 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 1
+  open_implementation_prs: 0
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "21f86ff33876bd1cd5e20ca99dbb2191623500ae"
-  current_candidate_commit: "97311ddf92a61ae6cce57630b85d79540686a181"
-  latest_validated_commit: "97311ddf92a61ae6cce57630b85d79540686a181"
-  latest_deployed_commit: "0524f5dde7536af1233aca785ab39432344af595"
-  latest_runtime_verified_commit: "0524f5dde7536af1233aca785ab39432344af595"
-  latest_browser_verified_commit: "97311ddf92a61ae6cce57630b85d79540686a181"
+  observed_main_commit: "8d5049c5aa231ddfff1b45f55f298b722c3055d7"
+  current_candidate_commit: "8d5049c5aa231ddfff1b45f55f298b722c3055d7"
+  latest_validated_commit: "b9a1c942450cda826ad5e8703652bb60111bdec5"
+  latest_deployed_commit: "8d5049c5aa231ddfff1b45f55f298b722c3055d7"
+  latest_runtime_verified_commit: "8d5049c5aa231ddfff1b45f55f298b722c3055d7"
+  latest_browser_verified_commit: "b9a1c942450cda826ad5e8703652bb60111bdec5"
 validation:
   governance: PASS
   lint: PASS
@@ -71,16 +72,61 @@ validation:
   build: PASS
   ci: PASS
   runtime: UNVERIFIED
-last_verified_commit: "ef86e20d16865a5322eacfc3d916aca7f939e15d"
-last_updated: "2026-11-07T03:43:00Z"
+last_verified_commit: "b9a1c942450cda826ad5e8703652bb60111bdec5"
+last_updated: "2026-11-12T02:46:08Z"
 
 ---
 
 # STATUS.md
 
-Last materially reviewed: 7 November 2026 UTC
+Last materially reviewed: 12 November 2026 UTC
 
 ## AI execution gate
+
+### Add Beer merged and production verified — 12 November 2026 UTC
+
+[PR #697](https://github.com/jeremytheva/pourfolio/pull/697) is merged as
+`8d5049c5aa231ddfff1b45f55f298b722c3055d7`, with tree
+`8fef81d738686c59d89fb7fc22ec29395e56bfd4` equal to validated combined source
+`b9a1c942450cda826ad5e8703652bb60111bdec5`. Main's newer #741 session/cache
+lifecycle and profile fixtures, canonical origin checkpoints, both regression
+sets, migration identity guidance and all Brew work are preserved.
+
+Actual Node22.23.4 canonical [run42335680105](https://github.com/jeremytheva/pourfolio/actions/runs/42335680105)
+passed **1,332 tests / 15 intentional connected skips / zero failures and
+production vulnerabilities**, including the actual profile-session fixture. All
+**196** browser/accessibility cases, Dependency Review, CodeQL and independent
+merged-source review pass at that exact combined head.
+
+Its own fresh [protected run42336019065](https://github.com/jeremytheva/pourfolio/actions/runs/42336019065)
+qualifies exact b9a1c942: pre/post exact preview health/readiness200, exactly
+case65 PASS with zero skips/invalid events/diagnostics/runner errors, preserved
+original-cookie HTTP401, privateWorkspace PASS and diagnosticFields PASS.
+Artifact `13559771746` (1,880bytes), SHA256
+`0ca077eaafbc6fe168ca5ed9aba81ff8c9748c1c1deb8f1c122077e52a3beba1`,
+was downloaded/digest-verified; all six reports independently reviewed GO.
+The matching ciphertext block was removed/read back absent, the fresh grant
+revoked without regeneration with explicit empty protectionBypass acknowledgement,
+and all three private files removed/verified absent. No access setup is pending.
+
+At **02:46:07 UTC on12November**, production deployment
+`dpl_HWWTjfJy5TYZT1Uk79rb86Mq5vYn` was READY at merge SHA8d5049c5. Direct
+anonymous production health/readiness returned200 with that exact SHA and
+dataProvider ok; anonymous get-session returned401. These bounded production
+reads do not replace preview browser acceptance or qualify the full release.
+The [final redacted record](docs/evidence/add-beer-final-connected-20261107.json)
+retains exact source/run/artifact/cleanup bindings and the separate runtime read.
+Earlier failed, blocked and exact973 passing runs remain historical.
+
+Next, add an allowlisted profile-history-only scope to the existing protected
+workflow and run the two existing cases once against reviewed current main.
+Require exact-main provenance and two passes; omit signup/OTP/write-fixture
+credentials and reject destructive confirmation. Normal profile GETs may create
+a missing private profile; no zero-provider-DML claim is made. Missing eligible
+owner tastings remain pending evidence, with no rating creation or invented
+ownership. #422 public privacy, #165 provider CAS/recovery,42 missing bonus
+values, broader #144/#154, operations/manual-device and final public release
+gates remain open. Public launch remains **NO-GO**.
 
 ### Protected Add Beer category acceptance passed — 7 November 2026 UTC
 

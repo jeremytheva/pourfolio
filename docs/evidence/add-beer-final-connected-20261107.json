@@ -1,0 +1,191 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-12",
+  "scope": "READ_ONLY_ADD_BEER_CATEGORIES",
+  "sourceSha": "b9a1c942450cda826ad5e8703652bb60111bdec5",
+  "sourceValidation": {
+    "runId": 42335680105,
+    "releaseJobId": 128291952219,
+    "node": "22.23.4",
+    "canonicalCommand": "npm run platform:validate",
+    "passed": 1332,
+    "skipped": 15,
+    "failed": 0,
+    "productionDependencyVulnerabilities": 0,
+    "actualProfileFixture": "PASS",
+    "browserJobId": 128291952470,
+    "browserPassed": 196,
+    "dependencyReview": "PASS",
+    "codeqlRunId": 42335680111,
+    "codeql": "PASS",
+    "independentMergedSourceReview": "GO"
+  },
+  "deployment": {
+    "id": "dpl_9n3DG6wivGd2PgzUUGKeerXv3Pwy",
+    "origin": "https://pourfolio-1zung5dfr-jeremythevas-projects.vercel.app",
+    "sourceSha": "b9a1c942450cda826ad5e8703652bb60111bdec5"
+  },
+  "run": {
+    "id": 42336019065,
+    "attempt": 1,
+    "workerSha": "b71d75c5069bb0b751a3250fcc3ee2c1685eb660",
+    "startedAt": "2026-11-07T03:53:37Z",
+    "completedAt": "2026-11-07T03:55:26Z",
+    "workflowPath": ".github/workflows/add-beer-connected-evidence.yml",
+    "workflowBlobSha": "5e935eca04f8a29c2ad15872436fc7586e8da299",
+    "workflowSha256": "2c9cc2b1707123688e480f0cb4daba136c1a42a6f1750adfa240157217a54399",
+    "helperSha256": "84f7a01eae82f88e0e6277c9ac0e76904688583f9241a3dc4ab100ea74fb9f5c",
+    "diagnosticReporterSha256": "9ad70e1eb4dd0a58c400582a3c6ff99cd45c01f065d2315170f36e6f458d0c05"
+  },
+  "publicKeyArtifact": {
+    "id": 13559109512,
+    "bytes": 1103,
+    "sha256": "9ab7edb29e3aad1e7c9aa134b6aed722877a0266d2169574a19dea2156508784",
+    "fingerprint": "1d8e37d28d2ac26c69ffeec968ebecdcb287c38b79ecb2c099667ec3d37aceb1",
+    "verifiedAt": "2026-11-07",
+    "retentionDays": 1
+  },
+  "reportArtifact": {
+    "id": 13559771746,
+    "bytes": 1880,
+    "sha256": "0ca077eaafbc6fe168ca5ed9aba81ff8c9748c1c1deb8f1c122077e52a3beba1"
+  },
+  "handoff": {
+    "explicitUserAuthorization": true,
+    "publicDestination": "jeremytheva/pourfolio PR697 description",
+    "runSpecificCiphertextOnly": true,
+    "plaintextPublished": false,
+    "privateKeyPublished": false,
+    "matchingPacketRemoved": true,
+    "packetReadbackAbsent": true,
+    "historyAndWebhookPersistenceApproved": true,
+    "temporaryGrantRevoked": true,
+    "revocationAcknowledgement": "EXPLICIT_EMPTY_PROTECTION_BYPASS",
+    "grantRegenerated": false,
+    "rootPrivateFilesAbsent": 3,
+    "cleanupVerifiedAt": "2026-11-07",
+    "rootFileAbsenceRecheckedAt": "2026-11-12"
+  },
+  "reports": {
+    "postflight.json": {
+      "version": 1,
+      "stage": "postflight",
+      "releaseSha": "b9a1c942450cda826ad5e8703652bb60111bdec5",
+      "access": "PASS",
+      "health": "PASS",
+      "readiness": "PASS",
+      "healthHttpStatus": 200,
+      "readinessHttpStatus": 200,
+      "blocker": null,
+      "status": "PASS"
+    },
+    "preflight.json": {
+      "version": 1,
+      "stage": "preflight",
+      "releaseSha": "b9a1c942450cda826ad5e8703652bb60111bdec5",
+      "access": "PASS",
+      "health": "PASS",
+      "readiness": "PASS",
+      "healthHttpStatus": 200,
+      "readinessHttpStatus": 200,
+      "blocker": null,
+      "status": "PASS"
+    },
+    "qualification.json": {
+      "version": 1,
+      "qualification": "READ_ONLY_ADD_BEER_CATEGORIES",
+      "sourceSha": "b9a1c942450cda826ad5e8703652bb60111bdec5",
+      "workerSha": "b71d75c5069bb0b751a3250fcc3ee2c1685eb660",
+      "diagnosticReporterSha256": "9ad70e1eb4dd0a58c400582a3c6ff99cd45c01f065d2315170f36e6f458d0c05",
+      "caseId": "catalogue-readonly.spec.js:65",
+      "connected": "PASS",
+      "status": "PASS"
+    },
+    "release-summary.json": {
+      "version": 1,
+      "qualification": "CONNECTED_RELEASE_CHECKS",
+      "releaseSha": "b9a1c942450cda826ad5e8703652bb60111bdec5",
+      "candidateSha": "b71d75c5069bb0b751a3250fcc3ee2c1685eb660",
+      "status": "PASS",
+      "runnerStatus": "passed",
+      "counts": {
+        "expected": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "notRun": 0
+      },
+      "invalidEvents": 0,
+      "invalidDiagnostics": 0,
+      "diagnostics": [],
+      "runnerErrors": 0,
+      "blockers": [],
+      "tests": [
+        {
+          "caseId": "catalogue-readonly.spec.js:65",
+          "status": "PASS"
+        }
+      ]
+    },
+    "selection.json": {
+      "version": 1,
+      "status": "PASS",
+      "caseId": "catalogue-readonly.spec.js:65",
+      "selected": 1
+    },
+    "session-cleanup.json": {
+      "version": 1,
+      "session": "PASS",
+      "sessionHttpStatus": 401,
+      "privateWorkspace": "PASS",
+      "restore": "NOT_RESTORED",
+      "logout": "NOT_RUN",
+      "probeIdentity": "NOT_INSPECTED",
+      "cleanupFailure": null,
+      "diagnosticFields": "PASS"
+    }
+  },
+  "independentActualEvidenceReview": "GO",
+  "integration": {
+    "pr": 697,
+    "mergedAt": "2026-11-12",
+    "mergeSha": "8d5049c5aa231ddfff1b45f55f298b722c3055d7",
+    "acceptedTree": "8fef81d738686c59d89fb7fc22ec29395e56bfd4",
+    "mergeTreeEqualsValidatedSourceTree": true,
+    "productionDeploymentId": "dpl_HWWTjfJy5TYZT1Uk79rb86Mq5vYn",
+    "productionObservation": {
+      "observedAt": "2026-11-12T02:46:07.689138+00:00",
+      "origin": "https://brew-buds-mobile-app-design-3577.vercel.app",
+      "records": {
+        "health": {
+          "httpStatus": 200,
+          "status": "ok",
+          "commitSha": "8d5049c5aa231ddfff1b45f55f298b722c3055d7",
+          "environment": "production",
+          "dataProvider": null
+        },
+        "readiness": {
+          "httpStatus": 200,
+          "status": "ready",
+          "commitSha": "8d5049c5aa231ddfff1b45f55f298b722c3055d7",
+          "environment": "production",
+          "dataProvider": "ok"
+        },
+        "anonymousSession": {
+          "httpStatus": 401,
+          "status": null,
+          "commitSha": null,
+          "environment": null,
+          "dataProvider": null
+        }
+      }
+    }
+  },
+  "limits": [
+    "Exact preview/source acceptance remains bound to b9a1c942; production HTTP reads qualify only their recorded merge SHA.",
+    "This qualifies category pagination/style selection and this original-cookie closure, not proposal writes or the full backend/privacy matrix.",
+    "No catalogue/rating/cellar mutation test was selected; zero provider DML was not separately certified.",
+    "Restore NOT_RESTORED/logout NOT_RUN follows the passing case's own sign-out; the independent preserved-original-cookie HTTP401 supplies closure proof.",
+    "Provider CAS/recovery,42 authoritative bonus values, public privacy, operations/manual-device and full launch acceptance remain open."
+  ]
+}

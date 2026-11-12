@@ -410,6 +410,16 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 
 ### Protected Add Beer preview qualification
 
+Final combined sourceb9a1c942 passed its own protected run42336019065 before
+PR697 merged as8d5049c5 on12November. Canonical Node22 validation passes1,332
+tests/15 gated skips; all196 browser cases pass. All six actual exact-b9 reports,
+artifact digest and packet/grant/private-file cleanup are retained in
+[the final record](evidence/add-beer-final-connected-20261107.json). Its
+separate production observation verifies health/readiness200 at merge8d5049c5
+and anonymous get-session401, without relabelling preview evidence as a full
+production browser/release result. No further credential setup is required.
+
+
 On7November, explicit public-packet/persistence authorization was supplied and
 accepted. [Run42334964532](https://github.com/jeremytheva/pourfolio/actions/runs/42334964532)
 passed the exact973 category case, pre/post provenance, original-cookie HTTP401
