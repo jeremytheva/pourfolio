@@ -1,7 +1,7 @@
 # Launch readiness
 
-Last reconciled: **7 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
-[`ef86e20d16865a5322eacfc3d916aca7f939e15d`](https://github.com/jeremytheva/pourfolio/commit/ef86e20d16865a5322eacfc3d916aca7f939e15d). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
+Last reconciled: **12 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
+[`8d5049c5aa231ddfff1b45f55f298b722c3055d7`](https://github.com/jeremytheva/pourfolio/commit/8d5049c5aa231ddfff1b45f55f298b722c3055d7). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
@@ -38,6 +38,28 @@ preflight report. No application policy, stored bonus value or provider schema
 changes in this diagnostic correction.
 
 ## Current launch decision
+
+### Add Beer integrated; exact combined acceptance and runtime read — 12 November 2026 UTC
+
+PR697 merged as8d5049c5 with the same tree as accepted combined source
+`b9a1c942450cda826ad5e8703652bb60111bdec5`. Exact-head canonical Node22
+validation passes1,332 tests/15 gated skips/zero failures and production
+vulnerabilities; all196 browser cases, Dependency Review, CodeQL and independent
+review pass. Protected run42336019065 separately passes exact b9a1c942
+pre/post provenance, singleton case65, preserved-original-cookie401 and private
+cleanup. All six actual reports and artifact13559771746's1880-byte ZIP/digest
+are retained in [the final record](evidence/add-beer-final-connected-20261107.json).
+Its matching packet was removed and read back absent; grant revocation without
+regeneration was acknowledged with explicit empty protectionBypass; private
+files are absent. The explicit public-packet authorization is no longer blocked.
+
+Production8d5049c5 was READY, with direct health/readiness200 at that exact SHA
+and dataProvider ok at02:46:07UTC12November; anonymous get-session401. These
+reads qualify only their bounded runtime row. No proposal-write, full backend,
+public privacy, provider CAS/recovery, bonus backfill, operations/device or
+public-release gate closes. The next useful existing row is private history/link
+isolation through an exact-main two-case workflow scope; absence of an eligible
+tasting fixture must remain incomplete evidence. Public launch stays **NO-GO**.
 
 ### Add Beer categories and original-cookie closure PASS — 7 November 2026 UTC
 
