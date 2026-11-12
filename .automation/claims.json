@@ -4,17 +4,18 @@
     "catalogue": {
       "owner": "catalogue-add-beer-integration-20261112T0241Z",
       "workstream": "catalogue",
-      "issue": 695,
-      "pr": 697,
+      "issue": 144,
+      "pr": null,
       "surfaces": [
         "repo:integration",
-        "pr:697:description",
-        "branch:feature/add-beer-release-form",
         "branch:docs/accepted-add-beer-handoff-20261112",
         "file:STATUS.md",
         "file:docs/LAUNCH_READINESS.md",
         "file:docs/TESTING.md",
-        "file:docs/evidence/add-beer-final-connected-20261107.json"
+        "file:docs/evidence/add-beer-final-connected-20261107.json",
+        "branch:fix/profile-history-release-scope-20261112",
+        "file:.github/workflows/connected-release-check.yml",
+        "file:scripts/__tests__/connected-provider-workflow.test.js"
       ],
       "acquiredAt": "2026-11-12T02:41:41.000Z",
       "expiresAt": "2026-11-12T03:11:41.000Z"
