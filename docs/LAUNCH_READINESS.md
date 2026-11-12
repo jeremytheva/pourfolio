@@ -1,6 +1,6 @@
 # Launch readiness
 
-Last reconciled: **5 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
+Last reconciled: **7 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
 [`ef86e20d16865a5322eacfc3d916aca7f939e15d`](https://github.com/jeremytheva/pourfolio/commit/ef86e20d16865a5322eacfc3d916aca7f939e15d). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
@@ -38,6 +38,34 @@ preflight report. No application policy, stored bonus value or provider schema
 changes in this diagnostic correction.
 
 ## Current launch decision
+
+### Add Beer categories and original-cookie closure PASS — 7 November 2026 UTC
+
+[Protected run42334964532](https://github.com/jeremytheva/pourfolio/actions/runs/42334964532)
+qualifies only exact source `97311ddf92a61ae6cce57630b85d79540686a181` and its
+immutable preview. The actual six-report artifact `13559560371` (1,885bytes;
+SHA256 `6749792370a96b81500680f8ec6f8fbdc0c7b8088d84cf4966111773bc287ab4`)
+records pre/post exact provenance and HTTP200 health/readiness, exactly one
+reviewed category case65 PASS with no skips/errors/invalid diagnostics, and
+original-cookie HTTP401/privateWorkspace PASS/diagnosticFields PASS. Independent
+evidence review GO. Restore NOT_RESTORED/logout NOT_RUN follows the passing
+case's own sign-out; the separate original-cookie probe supplies closure proof.
+
+The owner's explicit public-packet/persistence authorization was accepted. A
+fresh recipient-bound ciphertext was received, its displayed block removed and
+read back absent, and its temporary grant revoked without regeneration with
+explicit empty protectionBypass acknowledgement. Three local private paths are
+absent. The earlier fresh POLL_FAILED attempt remains connected NOT_RUN; its
+HTTP status/cause were not retained. The read-only fixed-endpoint GitHub-token
+repair passed19 handoff tests,21 cleanup scenarios and independent review.
+See [the complete redacted record](evidence/add-beer-connected-20261107.json).
+
+This supersedes the old public-handoff blocker for this bounded row. Reconcile
+newer main work and validate/deploy the combined source separately; do not
+transfer exact973 evidence to another SHA. No catalogue/rating/cellar mutation
+test was selected, and zero provider DML was not separately certified. Proposal
+writes, broader #144/#154 policy, #422 privacy, #165 recovery,42 bonus values and
+operations/manual-device acceptance remain open. Public launch stays **NO-GO**.
 
 ### Profile history session cleanup preparation — 6 November 2026 UTC
 
