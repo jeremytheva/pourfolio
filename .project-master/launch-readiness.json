@@ -5,7 +5,7 @@
     "version": "1.1.0",
     "adoption": "adapted"
   },
-  "project": "Pourfolio \u2014 beer-first launch",
+  "project": "Pourfolio — beer-first launch",
   "goal_source": "PROJECT.md",
   "readiness_source": "docs/LAUNCH_READINESS.md",
   "tracked_roots": [
@@ -348,12 +348,14 @@
         ".github/workflows/**",
         "docs/OPERATIONS_READINESS.md",
         "docs/PUBLICATION_AND_RELEASE_EVIDENCE.md",
-        "release-check/**"
+        "release-check/**",
+        "scripts/__tests__/connected-provider-workflow.test.js"
       ],
       "test_refs": [
         "release-check/connected.spec.js",
         "playwright.release.config.js",
-        "release-check/__tests__/redactedReleaseReporter.test.js"
+        "release-check/__tests__/redactedReleaseReporter.test.js",
+        "scripts/__tests__/connected-provider-workflow.test.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#launch-sign-off",

@@ -408,6 +408,34 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 
 ## Connected staging release check
 
+### Main-only private profile/history scope
+
+The existing protected workflow accepts `scope: all` (the default, including
+the existing owner issue-comment command) or `scope: profile-history`. Unknown
+scopes fail before credentials. Profile scope requires the exact reviewed main
+SHA captured for the dispatch and an empty destructive confirmation; it cannot
+select an older ancestor without the current session teardown. Its command
+hardcodes only `release-check/profile-history-readonly.spec.js`, with no retry
+or arbitrary file/grep input. Sign-up, OTP and write-fixture credentials are
+empty in this scope; existing full-scope behaviour is preserved.
+
+Profile preflight and postflight verify the same exact source and environment.
+The retained `profile-history-qualification.json` qualifies only two distinct
+current case IDs, both PASS, with zero skips/failures/not-run/invalid diagnostics
+or runner errors and successful pre/post provenance. Skips, absent fixtures or
+incomplete evidence block qualification even if Playwright exits successfully.
+Consume overall workflow success, including the later always-run private-file
+cleanup, rather than qualification JSON alone. The original-cookie HTTP401
+fixture remains mandatory on failure/skip paths. Raw logs, owner cache and
+browser artefacts are removed; only the fixed redacted evidence is retained.
+
+These checks cover private history, retry/reload and other-account link denial,
+not public profile opt-in/revocation. They create no rating/cellar fixtures,
+and missing eligible tastings stay unqualified. Normal profile GETs may create
+an absent private profile, so this scope does not certify zero provider DML.
+#144's wider matrix, #422 public privacy and #165 recovery remain separate.
+
+
 ### Protected Add Beer preview qualification
 
 Final combined sourceb9a1c942 passed its own protected run42336019065 before
