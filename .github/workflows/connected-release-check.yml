@@ -13,6 +13,12 @@ on:
         description: Full commit SHA deployed to staging
         required: true
         type: string
+      scope:
+        description: All checks or only existing private profile/history checks
+        required: true
+        default: all
+        type: choice
+        options: [all, profile-history]
       destructive_confirmation:
         description: Optional exact confirmation for cleanup-guarded rating/cellar write checks
         required: false
@@ -41,8 +47,23 @@ jobs:
     env:
       RELEASE_BASE_URL: ${{ github.event_name == 'issue_comment' && 'https://brew-buds-mobile-app-design-3577.vercel.app' || inputs.release_url }}
       RELEASE_SHA: ${{ github.event_name == 'issue_comment' && github.sha || inputs.release_sha }}
+      RELEASE_CHECK_SCOPE: ${{ github.event_name == 'issue_comment' && 'all' || inputs.scope }}
       RELEASE_DESTRUCTIVE_CONFIRMATION: ${{ github.event_name == 'workflow_dispatch' && inputs.destructive_confirmation || '' }}
     steps:
+      - name: Validate release check scope
+        shell: bash
+        run: |
+          fail_scope() { printf '{"status":"BLOCKED","code":"%s"}\n' "$1"; exit 2; }
+          case "$RELEASE_CHECK_SCOPE" in
+            all) ;;
+            profile-history)
+              test -z "$RELEASE_DESTRUCTIVE_CONFIRMATION" || fail_scope PROFILE_HISTORY_WRITES_FORBIDDEN
+              test "$RELEASE_SHA" = "$REVIEWED_MAIN_SHA" || fail_scope PROFILE_HISTORY_REQUIRES_CURRENT_MAIN
+              ;;
+            *) fail_scope RELEASE_CHECK_SCOPE_INVALID ;;
+          esac
+        env:
+          REVIEWED_MAIN_SHA: ${{ github.sha }}
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event_name == 'issue_comment' && github.sha || inputs.release_sha }}
@@ -67,18 +88,33 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Verify release target origin and provenance
-        run: node scripts/verify-release-target.js
+        id: release_preflight
+        shell: bash
+        run: |
+          if test "$RELEASE_CHECK_SCOPE" = profile-history
+          then
+            mkdir -p artifacts/connected-release
+            node scripts/verify-release-target.js > artifacts/connected-release/profile-history-preflight.json
+          else
+            node scripts/verify-release-target.js
+          fi
       - name: Build the exact release candidate
         run: npm run build
       - name: Check built browser release for server-only data
         run: npm run check:release-security | tee release-security-check.txt
       - run: npx playwright install --with-deps chromium
       - name: Run connected release checks with redacted evidence
+        id: release_checks
         shell: bash
         run: |
           umask 077
+          case "$RELEASE_CHECK_SCOPE" in
+            all) release_test_args=() ;;
+            profile-history) release_test_args=(release-check/profile-history-readonly.spec.js) ;;
+            *) printf '{"status":"BLOCKED","code":"RELEASE_CHECK_SCOPE_INVALID"}\n'; exit 2 ;;
+          esac
           private_log="$RUNNER_TEMP/pourfolio-release-check-$GITHUB_RUN_ID.log"
-          if npm run test:release -- --reporter=./release-check/redactedReleaseReporter.js --retries=0 > "$private_log" 2>&1
+          if npm run test:release -- "${release_test_args[@]}" --reporter=./release-check/redactedReleaseReporter.js --retries=0 > "$private_log" 2>&1
           then
             release_exit_code=0
           else
@@ -91,25 +127,100 @@ jobs:
             process.stdout.write(JSON.stringify({ status: 'BLOCKED', code: 'RELEASE_REPORT_UNAVAILABLE' }) + '\n')
             process.exit(2)
           }
-          for (const file of [required, 'artifacts/connected-release/cellar/summary.json']) {
-            if (fs.existsSync(file)) process.stdout.write(JSON.stringify(JSON.parse(fs.readFileSync(file, 'utf8'))) + '\n')
+          if (process.env.RELEASE_CHECK_SCOPE === 'all') {
+            for (const file of [required, 'artifacts/connected-release/cellar/summary.json']) {
+              if (fs.existsSync(file)) process.stdout.write(JSON.stringify(JSON.parse(fs.readFileSync(file, 'utf8'))) + '\n')
+            }
           }
           JS
           exit "$release_exit_code"
         env:
           RELEASE_OWNER_SESSION_PATH: ${{ runner.temp }}/pourfolio-release-owner-${{ github.run_id }}.json
           RELEASE_EVIDENCE_DIRECTORY: ${{ github.workspace }}/artifacts/connected-release
-          RELEASE_CELLAR_RECEIPT_DIRECTORY: ${{ github.workspace }}/artifacts/connected-release/cellar
-          RELEASE_FIXTURE_ENCRYPTION_KEY: ${{ secrets.RELEASE_FIXTURE_ENCRYPTION_KEY }}
+          RELEASE_CELLAR_RECEIPT_DIRECTORY: ${{ env.RELEASE_CHECK_SCOPE == 'all' && format('{0}/artifacts/connected-release/cellar', github.workspace) || '' }}
+          RELEASE_FIXTURE_ENCRYPTION_KEY: ${{ env.RELEASE_CHECK_SCOPE == 'all' && secrets.RELEASE_FIXTURE_ENCRYPTION_KEY || '' }}
           RELEASE_OWNER_EMAIL: ${{ secrets.RELEASE_OWNER_EMAIL }}
           RELEASE_OWNER_PASSWORD: ${{ secrets.RELEASE_OWNER_PASSWORD }}
           RELEASE_OTHER_EMAIL: ${{ secrets.RELEASE_OTHER_EMAIL }}
           RELEASE_OTHER_PASSWORD: ${{ secrets.RELEASE_OTHER_PASSWORD }}
-          RELEASE_SIGNUP_EMAIL: ${{ secrets.RELEASE_SIGNUP_EMAIL }}
-          RELEASE_SIGNUP_PASSWORD: ${{ secrets.RELEASE_SIGNUP_PASSWORD }}
-          RELEASE_OTP_EMAIL: ${{ secrets.RELEASE_OTP_EMAIL }}
-          RELEASE_OTP_CODE: ${{ secrets.RELEASE_OTP_CODE }}
+          RELEASE_SIGNUP_EMAIL: ${{ env.RELEASE_CHECK_SCOPE == 'all' && secrets.RELEASE_SIGNUP_EMAIL || '' }}
+          RELEASE_SIGNUP_PASSWORD: ${{ env.RELEASE_CHECK_SCOPE == 'all' && secrets.RELEASE_SIGNUP_PASSWORD || '' }}
+          RELEASE_OTP_EMAIL: ${{ env.RELEASE_CHECK_SCOPE == 'all' && secrets.RELEASE_OTP_EMAIL || '' }}
+          RELEASE_OTP_CODE: ${{ env.RELEASE_CHECK_SCOPE == 'all' && secrets.RELEASE_OTP_CODE || '' }}
           RELEASE_SEARCH_TERM: ${{ vars.RELEASE_SEARCH_TERM }}
+      - name: Verify profile history target after attempted checks
+        id: profile_postflight
+        if: ${{ always() && env.RELEASE_CHECK_SCOPE == 'profile-history' && contains(fromJSON('["success","failure","cancelled"]'), steps.release_checks.outcome) }}
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          mkdir -p artifacts/connected-release
+          node scripts/verify-release-target.js > artifacts/connected-release/profile-history-postflight.json
+      - name: Qualify only complete private profile history evidence
+        if: ${{ always() && env.RELEASE_CHECK_SCOPE == 'profile-history' }}
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs'
+          const directory = 'artifacts/connected-release'
+          const read = file => {
+            try {
+              const value = fs.readFileSync(file, 'utf8')
+              return Buffer.byteLength(value) <= 262144 ? JSON.parse(value) : null
+            } catch { return null }
+          }
+          const releaseSha = /^[a-f0-9]{40}$/.test(process.env.RELEASE_SHA || '') ? process.env.RELEASE_SHA : null
+          const sameSource = releaseSha !== null && releaseSha === process.env.GITHUB_SHA
+          const preflight = read(directory + '/profile-history-preflight.json')
+          const postflight = read(directory + '/profile-history-postflight.json')
+          const verified = value => value?.status === 'PASS' && value.commitSha === releaseSha &&
+            ['preview', 'production'].includes(value.environment) && value.dataProvider === 'ok'
+          const preflightPass = sameSource && process.env.PROFILE_PREFLIGHT_OUTCOME === 'success' && verified(preflight)
+          const postflightPass = sameSource && process.env.PROFILE_POSTFLIGHT_OUTCOME === 'success' && verified(postflight)
+          const report = read(directory + '/release-summary.json')
+          let expectedCases = []
+          try {
+            expectedCases = fs.readFileSync('release-check/profile-history-readonly.spec.js', 'utf8').split('\n')
+              .flatMap((line, index) => line.startsWith("test('") ? ['profile-history-readonly.spec.js:' + (index + 1)] : [])
+          } catch { /* Missing checked-out source cannot qualify. */ }
+          const tests = report?.tests
+          const counts = report?.counts
+          const casesPass = expectedCases.length === 2 && Array.isArray(tests) && tests.length === 2 &&
+            new Set(tests.map(value => value?.caseId)).size === 2 && tests.every(value =>
+              expectedCases.includes(value?.caseId) && value.status === 'PASS')
+          const reportPass = report?.version === 1 && report.qualification === 'CONNECTED_RELEASE_CHECKS' &&
+            report.releaseSha === releaseSha && report.candidateSha === process.env.GITHUB_SHA &&
+            report.status === 'PASS' && report.runnerStatus === 'passed' &&
+            counts?.expected === 2 && counts.passed === 2 && counts.failed === 0 && counts.skipped === 0 && counts.notRun === 0 &&
+            report.invalidEvents === 0 && report.invalidDiagnostics === 0 && report.runnerErrors === 0 &&
+            Array.isArray(report.diagnostics) && report.diagnostics.length === 0 &&
+            Array.isArray(report.blockers) && report.blockers.length === 0 && casesPass
+          const matchingProvenance = preflightPass && postflightPass && preflight.environment === postflight.environment
+          const qualified = sameSource && matchingProvenance &&
+            process.env.PROFILE_CHECK_OUTCOME === 'success' && reportPass
+          const code = qualified ? 'PROFILE_HISTORY_QUALIFIED'
+            : !sameSource ? 'PROFILE_HISTORY_SOURCE_UNVERIFIED'
+              : process.env.PROFILE_CHECK_OUTCOME === 'skipped' || !process.env.PROFILE_CHECK_OUTCOME ? 'PROFILE_HISTORY_CHECKS_NOT_RUN'
+                : !matchingProvenance ? 'PROFILE_HISTORY_PROVENANCE_UNVERIFIED'
+                  : !report ? 'PROFILE_HISTORY_REPORT_UNAVAILABLE' : 'PROFILE_HISTORY_CHECKS_NOT_QUALIFIED'
+          const qualification = { version: 1, qualification: 'PRIVATE_PROFILE_HISTORY', releaseSha,
+            status: qualified ? 'PASS' : 'BLOCKED', code, expectedCases: 2, qualifiedCases: qualified ? 2 : 0,
+            preflight: preflightPass ? 'PASS' : 'UNVERIFIED', postflight: postflightPass ? 'PASS' : 'UNVERIFIED' }
+          try {
+            fs.mkdirSync(directory, { recursive: true })
+            fs.writeFileSync(directory + '/profile-history-qualification.json', JSON.stringify(qualification, null, 2) + '\n', { mode: 0o600 })
+          } catch {
+            qualification.status = 'BLOCKED'
+            qualification.code = 'PROFILE_HISTORY_REPORT_WRITE_FAILED'
+            qualification.qualifiedCases = 0
+          }
+          process.stdout.write(JSON.stringify(qualification) + '\n')
+          if (qualification.status !== 'PASS') process.exitCode = 1
+          JS
+        env:
+          PROFILE_PREFLIGHT_OUTCOME: ${{ steps.release_preflight.outcome }}
+          PROFILE_POSTFLIGHT_OUTCOME: ${{ steps.profile_postflight.outcome }}
+          PROFILE_CHECK_OUTCOME: ${{ steps.release_checks.outcome }}
       - name: Remove private diagnostics and temporary owner session
         if: always()
         shell: bash
@@ -132,6 +243,9 @@ jobs:
           path: |
             release-security-check.txt
             artifacts/connected-release/release-summary.json
+            artifacts/connected-release/profile-history-preflight.json
+            artifacts/connected-release/profile-history-postflight.json
+            artifacts/connected-release/profile-history-qualification.json
             artifacts/connected-release/cellar/summary.json
             artifacts/connected-release/cellar/fixture-receipt.json
           retention-days: 30
