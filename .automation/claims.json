@@ -16,7 +16,9 @@
         "branch:fix/profile-history-release-scope-20261112",
         "file:.github/workflows/connected-release-check.yml",
         "file:scripts/__tests__/connected-provider-workflow.test.js",
-        "file:.project-master/launch-readiness.json"
+        "file:.project-master/launch-readiness.json",
+        "workflow:connected-release-check.yml:profile-history",
+        "workflow:bonus-point-preflight.yml:dispatch"
       ],
       "acquiredAt": "2026-11-12T02:41:41.000Z",
       "expiresAt": "2026-11-12T03:34:30.000Z"
