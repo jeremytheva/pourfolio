@@ -1,7 +1,7 @@
 # Launch readiness
 
 Last reconciled: **12 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
-[`ef86e20d16865a5322eacfc3d916aca7f939e15d`](https://github.com/jeremytheva/pourfolio/commit/ef86e20d16865a5322eacfc3d916aca7f939e15d). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
+[`8d5049c5aa231ddfff1b45f55f298b722c3055d7`](https://github.com/jeremytheva/pourfolio/commit/8d5049c5aa231ddfff1b45f55f298b722c3055d7). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
