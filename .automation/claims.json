@@ -5,7 +5,7 @@
       "owner": "catalogue-launch-maintenance-20261118T1002Z",
       "workstream": "catalogue",
       "issue": 144,
-      "pr": 746,
+      "pr": 734,
       "surfaces": [
         "repo:integration",
         "pr:746",
