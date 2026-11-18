@@ -1,5 +1,24 @@
 # Testing
 
+## Maintenance validation — 18 November 2026 UTC
+
+Both dependency PRs were refreshed onto current main before integration; previous
+head results were retained separately. Exact current evidence:
+
+| PR | Tested head | Canonical workflow | Source result | Browser/accessibility |
+| --- | --- | --- | --- | --- |
+| #746 — seven development minor/patch updates | `6d6e37c0960a554770100dafd36b42c8758179b3` | [44281794727](https://github.com/jeremytheva/pourfolio/actions/runs/44281794727) | 1,337 passed / 15 gated skips / 0 failed | 196 passed |
+| #734 — Upstash Redis 1.41.0 | `b596dde86c5f7ac98503a9383a92aad92500622d` | [44282552967](https://github.com/jeremytheva/pourfolio/actions/runs/44282552967) | 1,337 passed / 15 gated skips / 0 failed | 196 passed |
+
+Both canonical runs used Node 22.23.4 and `npm run platform:validate`, with zero
+production dependency vulnerabilities and successful security checks. Independent
+source review confirms supported Playwright conditional modifiers and an unchanged
+integer-only limiter EVAL contract. The Redis tests inject compatible clients;
+they do not certify the live service. [Retained maintenance/runtime evidence](evidence/launch-maintenance-20261118.json)
+records exact production identity and bounded public health/readiness/session
+probes, without private account journeys or provider writes. Connected fixture,
+backfill/recovery and historical preservation gates remain separate.
+
 ## Local release gate
 
 Use the governed Node.js 22 runtime and run:

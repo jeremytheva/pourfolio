@@ -3,15 +3,17 @@ project: Pourfolio
 portfolio_state: BLOCKED
 execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Complete bonus plan merged; read-only preflight PASS; guarded database backfill capability pending"
+stage: "Nonbreaking maintenance integrated and runtime verified; tenant backfill/recovery capability evidence pending"
 gate: Integration
 execution_state: BLOCKED
 current_work:
-  objective: "Qualify the guarded81-row bonus fill, private baseline/recovery and historical preservation against the evidenced provider; retain fixture and privacy gates."
+  objective: "Confirm tenant snapshot, isolated recovery and SQL/editor capabilities; qualify the guarded 81-row bonus fill without changing historical totals or private rows."
   issue: 144
   pr: null
   branch: null
 next_actions:
+  - "#746 tooling and #734 Redis maintenance are merged as694f018e/fe11d833 after current-main refresh, independent compatibility/preservation review and actual Node22canonical1,337passes/15gated skips/0failures/0production vulnerabilities plus196browser cases each. Exact productionfe11d833 health/readiness200 and anonymous session401 pass; live Redis/provider acceptance is not implied."
+  - "Current NoCodeBackend documentation describes full consistent snapshots and restore. Confirm actual tenant snapshot/quota, isolated recovery/clone and SQL-editor options; then inspect the generated current Swagger/write contract. Public docs do not establish a conditional missing-only update or SQL DML transaction interface. No provider mutation or recovery exercise has run."
   - "#727 is merged as 1ef714ce: the #726 cellar pagination repair passed 1,216 source tests, 188 browser/accessibility cases and exact production health/readiness. Connected multi-page owner/provider acceptance remains under #144/#154."
   - "#729 is merged as ef86e20d: the #728 style-population pagination repair passed 1,230 source tests, 188 browser/accessibility cases and exact production health/readiness. Both pagination repairs are integrated; connected provider/volume certification remains open."
   - "#740 merged as 31d28efb: the #165 runbook now reconciles provider event IDs, positive-integer client retry IDs, owner-bound keys and exact fingerprint serialisation, preserving managed state/tombstones and all six constraints. Canonical Node22 validation passed 1,285 tests/15 gated skips and 188 browser cases. No executable migration/provider change; retain provider/CAS, fresh consistent baseline, isolated restore and irreversible-change approval gates."
@@ -44,7 +46,7 @@ blockers:
     detail: "Unconditional parent transitions and late child writes lack certified distributed integrity. Provider uniqueness/atomic workflow, consistent backup, isolated restore and approval for irreversible changes remain required."
   - scope: connected_backend_and_bonus_values
     issue: 144
-    detail: "Distinct-account authentication and bounded cellar gateway isolation pass; connected baseline has 12 passes and four skips, with an earlier unreproduced failure retained. The complete82-value owner plan now has0 unresolved values. Fresh complete-plan preflight44278895670 passes with81 missing global stored values and0 unresolved allocations; actual guarded backfill/preservation/recovery remains unverified. #577 implementation is closed."
+    detail: "Distinct-account authentication and bounded cellar gateway isolation pass; connected baseline has 12 passes and four skips, with an earlier unreproduced failure retained. The complete82-value owner plan now has0 unresolved values. Fresh complete-plan preflight44278895670 passes with81 missing global stored values and0 unresolved allocations; actual guarded backfill/preservation/recovery remains unverified. Vendor snapshot/restore features are documented, but current-tenant availability/isolated recovery and a conditional fill interface require evidence; dashboard capability information is pending. #577 implementation is closed."
   - scope: private_history_fixture
     issue: 144
     detail: "Current-main protected profile run43147240884 passed pre/post provenance and private cleanup but both cases skipped. The first selected page has no eligible verified tasting; with both account credentials present, the second case also found no owner tasting in page1. This does not establish global historical absence or other-account sign-in/privacy acceptance. A governed eligible fixture is required; no rating was manufactured."
@@ -61,12 +63,12 @@ wip:
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "81c8382615a285d9acc2fd6b2f3a985e9575921a"
-  current_candidate_commit: "81c8382615a285d9acc2fd6b2f3a985e9575921a"
-  latest_validated_commit: "81c8382615a285d9acc2fd6b2f3a985e9575921a"
-  latest_deployed_commit: "60c3cfe0b7a57563c655b2be74da12239ebef4ad"
-  latest_runtime_verified_commit: "60c3cfe0b7a57563c655b2be74da12239ebef4ad"
-  latest_browser_verified_commit: "6e6405a2fbb2e2ba6360fd0a2cd41c005354d962"
+  observed_main_commit: "fe11d8335bfcc532ff5150dc382c503045eddcd7"
+  current_candidate_commit: "fe11d8335bfcc532ff5150dc382c503045eddcd7"
+  latest_validated_commit: "b596dde86c5f7ac98503a9383a92aad92500622d"
+  latest_deployed_commit: "fe11d8335bfcc532ff5150dc382c503045eddcd7"
+  latest_runtime_verified_commit: "fe11d8335bfcc532ff5150dc382c503045eddcd7"
+  latest_browser_verified_commit: "b596dde86c5f7ac98503a9383a92aad92500622d"
 validation:
   governance: PASS
   lint: PASS
@@ -74,9 +76,9 @@ validation:
   tests: PASS
   build: PASS
   ci: PASS
-  runtime: UNVERIFIED
-last_verified_commit: "b9a1c942450cda826ad5e8703652bb60111bdec5"
-last_updated: "2026-11-18T09:49:21Z"
+  runtime: VERIFIED
+last_verified_commit: "fe11d8335bfcc532ff5150dc382c503045eddcd7"
+last_updated: "2026-11-18T10:18:38Z"
 
 ---
 
@@ -85,6 +87,51 @@ last_updated: "2026-11-18T09:49:21Z"
 Last materially reviewed: 18 November 2026 UTC
 
 ## AI execution gate
+
+### Maintained launch dependencies and bounded runtime verified — 18 November 2026 UTC
+
+[PR #746](https://github.com/jeremytheva/pourfolio/pull/746) refreshed the seven
+development minor/patch updates onto current main and merged as `694f018e`.
+[PR #734](https://github.com/jeremytheva/pourfolio/pull/734) then refreshed Redis
+1.41.0 onto that result and merged as `fe11d833`. Independent exact-diff and
+compatibility reviews passed. The latter changes only the SDK constraint and
+lock entry, retaining all seven tooling updates and the complete 82-value plan.
+Playwright 1.65 retains the existing conditional skip overloads. Upstash's new
+plain-JSON response default preserves our integer count/PTTL pair; constructor,
+EVAL and automatic-pipeline contracts are unchanged. This is maintenance, not a
+proven current vulnerability fix.
+
+Exact heads `6d6e37c0` and `b596dde8` each passed actual Node 22.23.4
+`npm run platform:validate`: **1,337 passed / 15 gated skips / 0 failed /
+0 production dependency vulnerabilities**, plus **196 browser/accessibility
+passes**, CodeQL, dependency review, lifecycle and launch-impact checks.
+Runs [44281794727](https://github.com/jeremytheva/pourfolio/actions/runs/44281794727)
+and [44282552967](https://github.com/jeremytheva/pourfolio/actions/runs/44282552967)
+retain their respective exact-head evidence.
+
+Production `dpl_DFYsqxTyF6rdkEugSsrF376AprDH` is READY for exact `fe11d833`.
+At 10:17:19–10:17:20 UTC, the existing public origin returned HTTP 200 for health
+and readiness with matching full commit/environment and provider state `ok`;
+an anonymous session request returned HTTP 401. The earlier `694f018e` runtime
+probe also passed. These bounded checks and source/preservation records are
+retained in [the maintenance evidence](docs/evidence/launch-maintenance-20261118.json).
+They do not certify live Redis behavior, private account journeys or launch GO.
+
+The [current vendor snapshot guide](https://app.nocodebackend.com/help/en/database-snapshots)
+documents a full database dump under a brief read-only table lock and whole-target
+restore. Actual tenant availability, quota and isolated recovery/clone remain
+unverified. The [REST contract](https://app.nocodebackend.com/help/en/rest-api)
+documents sparse exact-ID updates; it does not establish missing-only conditional
+writes or a transactional SQL DML interface. Read-only dashboard option information
+is pending; no connected dashboard session is available here. No snapshot,
+restore, point fill, schema change or historical repair was executed.
+
+All 82 allocations remain known and unchanged. Retain the fresh preflight PASS
+and its 81 proposed fills, then prove actual bounded writes, private baseline/
+recovery and historical preservation. These narrower additive-fill requirements
+remain independent of #165's irreversible schema-migration package. Private
+fixtures, provider integrity/privacy, operations/device and final acceptance
+remain open; public launch stays **NO-GO**.
 
 ### Complete authoritative bonus allocation received — 18 November 2026 UTC
 

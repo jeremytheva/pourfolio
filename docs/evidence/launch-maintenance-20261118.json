@@ -1,0 +1,218 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-18T10:18:38Z",
+  "scope": "NONBREAKING_LAUNCH_MAINTENANCE",
+  "developmentTooling": {
+    "pullRequest": 746,
+    "headCommit": "6d6e37c0960a554770100dafd36b42c8758179b3",
+    "mergeCommit": "694f018ea772182640f6a13a82bc03681c743727",
+    "treeSha": "3d4f736dccfe7e058ced055741433d312ec5edec",
+    "status": "MERGED",
+    "validation": {
+      "workflowRunId": 44281794727,
+      "nodeVersion": "22.23.4",
+      "command": "npm run platform:validate",
+      "releaseGateJobId": 134724096291,
+      "passed": 1337,
+      "gatedSkips": 15,
+      "failed": 0,
+      "productionDependencyVulnerabilities": 0,
+      "browserJobId": 134724096415,
+      "browserPassed": 196,
+      "codeqlRunId": 44281795463,
+      "conclusion": "success"
+    },
+    "independentReview": "GO",
+    "compatibility": {
+      "playwright": "1.65.0",
+      "conditionalModifiers": "SUPPORTED_ADDITIONAL_OVERLOAD",
+      "packageAndLockEngines": "PASS",
+      "primaryReferences": [
+        "https://github.com/microsoft/playwright/blob/v1.65.0/packages/playwright/types/test.d.ts#L4880",
+        "https://github.com/microsoft/playwright/blob/v1.65.0/packages/playwright/src/worker/testInfo.ts#L247"
+      ]
+    },
+    "production": {
+      "deploymentId": "dpl_4A4xCWtfdmEhTkL7GgGz16vyuzL5",
+      "state": "READY",
+      "target": "production",
+      "projectId": "prj_UD1ZYz1Rz62iZ9UQTwMveua3qeRM",
+      "runtime": {
+        "observedAt": "2026-11-18T10:12:50.362886Z",
+        "origin": "https://brew-buds-mobile-app-design-3577.vercel.app",
+        "scope": "PUBLIC_READ_ONLY_PROBES",
+        "results": [
+          {
+            "path": "/api/health",
+            "httpStatus": 200,
+            "status": "ok",
+            "release": {
+              "commitSha": "694f018ea772182640f6a13a82bc03681c743727",
+              "environment": "production"
+            },
+            "checks": {
+              "dataProvider": null,
+              "rateLimiterConfigured": true
+            }
+          },
+          {
+            "path": "/api/readiness",
+            "httpStatus": 200,
+            "status": "ready",
+            "release": {
+              "commitSha": "694f018ea772182640f6a13a82bc03681c743727",
+              "environment": "production"
+            },
+            "checks": {
+              "dataProvider": "ok",
+              "rateLimiterConfigured": null
+            }
+          },
+          {
+            "path": "/api/nocodebackend/auth/get-session",
+            "httpStatus": 401
+          }
+        ],
+        "expectedCommit": "694f018ea772182640f6a13a82bc03681c743727",
+        "releaseIdentity": "PASS",
+        "observedFrom": "2026-11-18T10:12:20Z",
+        "observedUntil": "2026-11-18T10:12:50.362886Z"
+      }
+    }
+  },
+  "redisSdk": {
+    "pullRequest": 734,
+    "headCommit": "b596dde86c5f7ac98503a9383a92aad92500622d",
+    "baseCommit": "694f018ea772182640f6a13a82bc03681c743727",
+    "treeSha": "c9a67bacdd24a9d3752b840b8fe615c140f3eeed",
+    "status": "MERGED",
+    "version": "1.41.0",
+    "independentReview": "GO",
+    "compatibility": {
+      "changesOnlySdkManifestAndLockEntry": true,
+      "allSevenDevelopmentUpdatesPreserved": true,
+      "responseEncodingDefault": "PLAIN_JSON_FROM_1_40",
+      "applicationEvalResult": "INTEGER_COUNT_AND_PTTL_PAIR",
+      "constructorAndEvalContract": "UNCHANGED",
+      "automaticPipelining": "UNCHANGED",
+      "applicationSuppliesSignal": false,
+      "liveRedisServiceCertification": "NOT_RUN",
+      "primaryReference": "https://github.com/upstash/redis-js/blob/%40upstash%2Fredis%401.41.0/packages/redis/CHANGELOG.md"
+    },
+    "mergeCommit": "fe11d8335bfcc532ff5150dc382c503045eddcd7",
+    "validation": {
+      "workflowRunId": 44282552967,
+      "nodeVersion": "22.23.4",
+      "command": "npm run platform:validate",
+      "releaseGateJobId": 134726761075,
+      "passed": 1337,
+      "gatedSkips": 15,
+      "failed": 0,
+      "productionDependencyVulnerabilities": 0,
+      "browserJobId": 134726761321,
+      "browserPassed": 196,
+      "codeqlRunId": 44282552921,
+      "conclusion": "success"
+    },
+    "production": {
+      "deploymentId": "dpl_DFYsqxTyF6rdkEugSsrF376AprDH",
+      "state": "READY",
+      "target": "production",
+      "projectId": "prj_UD1ZYz1Rz62iZ9UQTwMveua3qeRM",
+      "runtime": {
+        "origin": "https://brew-buds-mobile-app-design-3577.vercel.app",
+        "scope": "PUBLIC_READ_ONLY_PROBES",
+        "expectedCommit": "fe11d8335bfcc532ff5150dc382c503045eddcd7",
+        "observedFrom": "2026-11-18T10:17:19.142965Z",
+        "observedUntil": "2026-11-18T10:17:20.000599Z",
+        "releaseIdentity": "PASS",
+        "results": [
+          {
+            "path": "/api/health",
+            "httpStatus": 200,
+            "status": "ok",
+            "release": {
+              "commitSha": "fe11d8335bfcc532ff5150dc382c503045eddcd7",
+              "environment": "production"
+            },
+            "checks": {
+              "rateLimiterConfigured": true
+            }
+          },
+          {
+            "path": "/api/readiness",
+            "httpStatus": 200,
+            "status": "ready",
+            "release": {
+              "commitSha": "fe11d8335bfcc532ff5150dc382c503045eddcd7",
+              "environment": "production"
+            },
+            "checks": {
+              "dataProvider": "ok"
+            }
+          },
+          {
+            "path": "/api/nocodebackend/auth/get-session",
+            "httpStatus": 401
+          }
+        ]
+      }
+    }
+  },
+  "bonusPlanPreservation": {
+    "planBlobSha": "bdead94cba645513fffd7972559351bb16bfd3ff",
+    "planSha256": "e92eb682ef7524d58541960302974ddbf0cd9961d30b051433a7c1dae3acb929",
+    "globalAllocations": 82,
+    "unresolvedAllocations": 0,
+    "priorEvidenceRef": "docs/evidence/bonus-allocation-complete-20261118.json",
+    "providerBackfill": "NOT_RUN"
+  },
+  "providerCapabilityResearch": {
+    "observedAt": "2026-11-18",
+    "method": "PUBLIC_PRIMARY_DOCUMENTATION_ONLY",
+    "snapshot": {
+      "documented": true,
+      "describedScope": [
+        "schema",
+        "constraints",
+        "row_data",
+        "authentication_configuration",
+        "permissions",
+        "accounts"
+      ],
+      "consistencyMethod": "MOMENTARY_READ_ONLY_TABLE_LOCK_FOR_DUMP",
+      "documentedNavigation": [
+        "Snapshots",
+        "Create Snapshot",
+        "select database instance",
+        "Take Snapshot"
+      ],
+      "source": "https://app.nocodebackend.com/help/en/database-snapshots",
+      "pourfolioAvailability": "UNVERIFIED",
+      "operationExecuted": false
+    },
+    "recovery": {
+      "wholeTargetRestoreDocumented": true,
+      "restoreOverwritesDestination": true,
+      "isolatedCloneAdvertised": "DETAILS_NOT_CONFIRMED",
+      "pourfolioRecoveryExercise": "NOT_RUN"
+    },
+    "conditionalWrite": {
+      "restSparseExactIdPutDocumented": true,
+      "atomicMissingOnlyPredicate": "NOT_ESTABLISHED_BY_PUBLIC_CONTRACT",
+      "sqlDmlTransactionInterface": "NOT_ESTABLISHED_BY_PUBLIC_CONTRACT",
+      "source": "https://app.nocodebackend.com/help/en/rest-api",
+      "currentTenantSwagger": "NOT_INSPECTED"
+    },
+    "pendingInput": "AVAILABLE_ACCOUNT_SNAPSHOT_ISOLATED_RECOVERY_AND_SQL_EDITOR_OPTIONS",
+    "dashboardSessionAvailable": false,
+    "providerCollectionWrites": 0
+  },
+  "limits": [
+    "Development maintenance is not a proven current vulnerability fix.",
+    "Canonical and browser checks do not certify live Redis service behavior, connected provider permissions or final public launch.",
+    "Documented vendor snapshot/restore features are distinct from available account capabilities, an actual completed backup and an isolated recovery exercise.",
+    "No conditional SQL or REST fill was invented or executed; provider backfill and historical preservation remain open.",
+    "Public launch remains NO_GO; eligible profile fixtures, integrity/privacy and operations/device acceptance stay open."
+  ]
+}
