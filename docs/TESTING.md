@@ -408,6 +408,28 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 
 ## Connected staging release check
 
+### Complete bonus allocation input — 18 November 2026 UTC
+
+The owner-supplied 42-row CSV completes all 82 plan values while preserving the
+previous 40 records. [The mapping evidence](evidence/bonus-allocation-complete-20261118.json)
+labels 31 focused existing checks and the compatibility fixture as local/synthetic
+evidence; the latter is not a provider snapshot. PR747 exact head `6e6405a2`
+passed actual Node 22.23.4 canonical validation (1,337 passes/15 gated skips/0 failures/
+0 production dependency vulnerabilities),196 browser cases, CodeQL and dependency
+review. Merged `81c83826` ran the existing main-push protected preflight once:
+[44278895670](https://github.com/jeremytheva/pourfolio/actions/runs/44278895670),
+job 134714035254, all steps successful. A second actual Node 22 canonical PASS
+and exact source identity preceded provider credentials. Verified artifact
+14415627488 (528 bytes) reports PASS/SOURCE_ONLY:82 global/1 private,1 matched,
+81 missing/proposed fills,0 unresolved, no blockers. The mapping evidence retains
+its exact source/plan/snapshot bindings and digest. The full private snapshot
+is not retained, and pagination is not an atomic snapshot or restore backup.
+No provider writes occurred. Complete allocation and
+preflight PASS do not qualify writes, backup/restore, concurrency, explicit/
+private-row or historical rating/child preservation. The offline auditor has
+no apply mode; do not use disposable fixture tests as a global point-fill path.
+
+
 ### Main-only private profile/history scope
 
 The first live scoped observation is run43147240884 at main60c3cfe0 on

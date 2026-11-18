@@ -1,6 +1,6 @@
 # Launch readiness
 
-Last reconciled: **12 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
+Last reconciled: **18 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
 [`8d5049c5aa231ddfff1b45f55f298b722c3055d7`](https://github.com/jeremytheva/pourfolio/commit/8d5049c5aa231ddfff1b45f55f298b722c3055d7). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
@@ -18,9 +18,10 @@ or provider data. Accepted source `ec4e2610` passed canonical Node 22 validation
 (1,007 tests, 15 gated skips) and 156 deterministic browser/accessibility cases.
 Final-head desktop/mobile regression validation and deployment evidence remain
 required in PR #672; no preceding-head result is promoted to final-head PASS.
-The retained inventory had 81 missing global values. The owner has since supplied
-39 allocations; 42 remain unresolved. Backfill and custom-creation/isolation
-acceptance remain separate open gates. This presentation correction
+The retained inventory had 81 missing global values. The owner has now supplied
+all81 allocations across25October and18November; the remaining explicit provider
+value is preserved. All82 plan values are known. Provider backfill and
+custom-creation/isolation acceptance remain separate open gates. This presentation correction
 does not close PF-LAUNCH-BONUS, PF-LAUNCH-ACCESS or PF-LAUNCH-RELEASE.
 
 The launch-impact guard maps those three requirements. The optional bonus rows
@@ -38,6 +39,43 @@ preflight report. No application policy, stored bonus value or provider schema
 changes in this diagnostic correction.
 
 ## Current launch decision
+
+### All 82 authoritative plan values supplied — 18 November 2026 UTC
+
+The owner's 42 new exact-ID rows complete the existing plan:81 owner allocations
+plus ID 51's preserved explicit 0.50, with 0 unresolved values. Independent mapping
+review GO confirms complete/unique ID coverage, exact descriptions and unchanged
+previous 40 records. [Input](../data/bonus_attribute_point_allocations_20261118.csv)
+and [mapping evidence](evidence/bonus-allocation-complete-20261118.json) retain
+provenance and fingerprints. [PR #747](https://github.com/jeremytheva/pourfolio/pull/747)
+merged as `81c83826`. Its exact head `6e6405a2` passed actual Node 22.23.4 canonical
+validation with 1,337 passes/15 gated skips/0 failures/0 production dependency
+vulnerabilities,196 browser/accessibility cases, CodeQL and dependency review.
+The 31 local focused checks and synthetic compatibility fixture remain separately
+labelled supplemental evidence.
+
+Fresh read-only main-push preflight
+[44278895670](https://github.com/jeremytheva/pourfolio/actions/runs/44278895670)
+at exact `81c83826` passed canonical validation and source identity before provider
+credentials. Job 134714035254 succeeded. Artifact14415627488 was verified against
+its 528-byte size and SHA256: **PASS / SOURCE_ONLY**,82 global/1 private,
+82 planned,1 matched,81 missing/proposed fills,0 unresolved/0 preserved-missing,
+no blockers. The exact report, source/plan/snapshot fingerprints and artifact
+digest are retained in the mapping evidence. This is a configured-instance
+paginated read with no provider mutation; production correspondence, an atomic
+snapshot, a full private restore baseline and historical preservation are
+unverified. The81 database values remain missing.
+
+The authoritative-allocation input gap is closed. PF-LAUNCH-BONUS remains open
+until immutable complete private before/after evidence, a proven bounded
+conditional fill or serialized administration/concurrency/recovery path, exact readback and
+explicit/private/historical-total preservation qualify actual fills. The
+current offline auditor has no apply mode; disposable fixture certification is
+not a global fill executor. The narrower additive-fill evidence requirements
+apply independently of #165's irreversible schema-migration approval package.
+Do not infer provider PASS from the complete plan or its synthetic fixture.
+Private history, public privacy, provider/recovery, operations/manual-device
+and final release gates remain open. Public launch stays **NO-GO**.
 
 ### Fresh private-history and allocation audit outcomes — 12 November 2026 UTC
 
@@ -1181,7 +1219,7 @@ UTC interval, operator, reviewer, safe evidence reference and cleanup result.
 | <!-- launch-requirement:PF-LAUNCH-AUTH --> Authentication and rate limits | Launch hardening; ratings owns remaining #144 session certification (#577 adapter closed) | Same-origin authentication, session and limiter controls are implemented. Certify sign-up/sign-in, refresh, expiry, sign-out and revoked/invalid sessions, plus enforced local/shared authentication limits against the intended hosting proxy boundary. | **PARTIAL: configured sign-in/session/sign-out and cleared-cookie redirects PASS; full lifecycle/rate-limit evidence pending** |
 | <!-- launch-requirement:PF-LAUNCH-PROVIDER --> Rating provider foundation — [#165](https://github.com/jeremytheva/pourfolio/issues/165) | Ratings | Application durability contracts exist. Prove provider migration/backfill, uniqueness, conditional updates, immutable rating dates, backup and isolated restore; complete the [migration evidence package](nocodebackend/rating-schema-migration-runbook.md) and obtain explicit approval before irreversible mutation. G04, G10–G12, G14–G16 and G28 remain open. | **BLOCKED at provider/approval boundary** |
 | <!-- launch-requirement:PF-LAUNCH-RATING --> Rating lifecycle and deletion — [#503](https://github.com/jeremytheva/pourfolio/issues/503), remaining integrity [#165](https://github.com/jeremytheva/pourfolio/issues/165) | Ratings | #503 is closed. A bounded production `36ce8ffe` browser tasting saved, reloaded and was deleted once; independent `31e41c3b` inspection proved its valid deleted tombstone, zero score/bonus children and preserved baseline. A separate, read-only normal-HTTPS rating-breakdown request from a verified distinct release account returned 404 without writes. These close only their scoped rows. The historical completed/deleted parent with one surviving score child remains a confirmed #165 recovery finding. Full retry/partial-write/concurrency and permission-negative certification remains open in the existing rating guide. | **PARTIAL: bounded lifecycle/read denial PASS; historical recovery and broader integrity evidence open** |
-| <!-- launch-requirement:PF-LAUNCH-BONUS --> Bonus attribute point integrity — [PR #651](https://github.com/jeremytheva/pourfolio/pull/651) | Ratings; catalogue release integration | Merged/deployed `4019c90e`: 896 canonical source tests, 15 gated skips, 155 browser/accessibility cases. Current-instance server persistence/reload and exact fixture cleanup passed: two creates, two deletes, no mutation retry, no fixture from that run remains. Production form rendered stored global 0.5/private 0.7, their 1.20 sum, six selections at 2.00 and the expected 3.07/5 preview; draft discarded. Inventory still has 81 absent values among 83 attributes; fallback 0.2 does not establish them. A later production `36ce8ffe` browser test saved/reloaded one tasting using 0.5 + 0.7 = 1.20 points (Bonus 1/2; 2.82/5), then deleted that exact tasting once and restored counts 4/2 with old links intact. Independent `31e41c3b` inspection confirmed a valid deleted tombstone, zero score/bonus children, and the preserved baseline. Owner decision on 24 October requires authoritative stored values for every launch-selectable descriptor. The owner has supplied 39 exact-ID allocations and confirmed ID 3; all 82 remain available, ID 51 preserves its existing 0.50 and 42 values remain unresolved in the committed point plan. Complete remaining allocations, fresh preflight, governed bounded write/readback and historical-total preservation. A labelled 0.2 fallback is insufficient. New custom-attribute browser creation, A/B denial and concurrency remain open; see the [certification guide](nocodebackend/rating-workflow-certification.md). | **PARTIAL: bounded persistence/cleanup and presentation PASS; verified backfill and connected acceptance required** |
+| <!-- launch-requirement:PF-LAUNCH-BONUS --> Bonus attribute point integrity — [PR #651](https://github.com/jeremytheva/pourfolio/pull/651) | Ratings; catalogue release integration | Merged/deployed `4019c90e`: 896 canonical source tests, 15 gated skips, 155 browser/accessibility cases. Current-instance server persistence/reload and exact fixture cleanup passed: two creates, two deletes, no mutation retry, no fixture from that run remains. Production form rendered stored global 0.5/private 0.7, their 1.20 sum, six selections at 2.00 and the expected 3.07/5 preview; draft discarded. Fresh configured-instance preflight44278895670 at81c83826 passes with81 missing global values among82global and1private attribute,1existing match,0unresolved allocations and no blockers; it is read-only SOURCE_ONLY and a fallback0.2 does not establish stored values. A later production `36ce8ffe` browser test saved/reloaded one tasting using 0.5 + 0.7 = 1.20 points (Bonus 1/2; 2.82/5), then deleted that exact tasting once and restored counts 4/2 with old links intact. Independent `31e41c3b` inspection confirmed a valid deleted tombstone, zero score/bonus children, and the preserved baseline. Owner decision on 24 October requires authoritative stored values for every launch-selectable descriptor. The owner has supplied all81 exact-ID allocations across25October and18November; all82 plan values are known, including ID51's preserved explicit0.50. The previous40 records are unchanged and no descriptor is removed. Retain the fresh preflight PASS; complete immutable private before/after evidence, verified bounded conditional fill or serialized administration/concurrency/recovery, exact readback and explicit/private/historical-total preservation before declaring backfill complete. A labelled 0.2 fallback is insufficient. New custom-attribute browser creation, A/B denial and concurrency remain open; see the [certification guide](nocodebackend/rating-workflow-certification.md). | **PARTIAL: bounded persistence/cleanup and presentation PASS; verified backfill and connected acceptance required** |
 | Backend certification — [#144](https://github.com/jeremytheva/pourfolio/issues/144) | Ratings, coordinated by catalogue | Read-only production checks exist. Complete the same-state provider baseline and [connected policy matrix](nocodebackend/connected-policy-certification.md), including negative ownership/session cases, response contracts, failure recovery and cleanup. Read-only passes do not close write/permission rows. | **PARTIAL** |
 | <!-- launch-requirement:PF-LAUNCH-CATALOGUE --> Catalogue certification — [#154](https://github.com/jeremytheva/pourfolio/issues/154) | Catalogue; producers owns producer fixes | Browse/search/details and relationship controls are integrated. Authenticated production `4019c90e` search, product statistics/history, producer profile and the previously failing unrated-beer filter passed without writes. Producer fix #664 and attribute averages #660 are integrated. Complete connected catalogue reconciliation, provider-failure recovery and applicable import/provenance decisions. | **PARTIAL** |
 | <!-- launch-requirement:PF-LAUNCH-CELLAR --> Private cellar CRUD — [#449](https://github.com/jeremytheva/pourfolio/issues/449) | Catalogue | #449 source work and PR #657 are merged. Retained 21 October production `50a10454` was READY with matching health/readiness, 994 canonical tests (15 gated skips) and 155 browser/accessibility passes. At 21 October 22:28–22:30 UTC, the normal signed-in owner browser added one tagged item, fully reloaded, edited quantity/volume/container/gift/notes, fully reloaded and verified prices/date, searched by marker and deleted only that item once. The full post-delete reload restored the unchanged original one-item baseline. One add/edit/delete, no retry. This closes the bounded deployed owner HTTP/browser row; a separate provider-inventory audit was not run. Distinct-account authentication passes in run 40235529806; candidate gateway A/B list/update/delete denial and cleanup pass in run 40239183671. Owner-approved single-record recovery also passed in run 40389866451, with one HTTP DELETE and fresh exact absence verified. This does not qualify the earlier failed full HTTP test. The broader session and deployed HTTP/browser isolation matrix remains open. See the [policy record](nocodebackend/connected-policy-certification.md). Historical ownerless rows and gated catalogue/relationship capabilities are untouched. | **PARTIAL: owner browser lifecycle and candidate gateway isolation/cleanup PASS; full HTTP/session policy acceptance pending** |
@@ -1350,7 +1388,7 @@ do not recreate them or rerun completed fixtures solely for documentation.
 | --- | --- | --- |
 | A — Baseline | Reconcile exact main, deployed SHA, existing claims/PRs and live issue states. Preserve the existing requirement anchors and evidence authorities. | One current queue with implementation separated from provider/runtime acceptance. |
 | B — Integrity | Under #165, reconcile the actual provider schema/write contract, correct terminal retries, prove atomic/versioned parent and child workflow guarantees, and prepare the existing migration/recovery package. | Restorable consistent baseline, isolated restore and approved irreversible work; connected duplicate/lost-response retry, partial-child recovery, concurrency, deletion and cleanup pass. |
-| C — Journeys/data | Correct the second account's supported credentials; complete #144/#422 session, rate-limit, cellar/profile/bonus isolation and #154 catalogue certification. Require authoritative bonus backfill; preserve ownerless cellar exclusion. | Every required connected row passes; no missing launch-selectable point value, inferred owner, unverified required relationship or leftover fixture. |
+| C — Journeys/data | Use the configured distinct accounts and eligible governed fixtures to complete #144/#422 session, rate-limit, cellar/profile/bonus isolation and #154 catalogue certification. All82 bonus allocations are known; require verified stored-value backfill and preserve ownerless cellar exclusion. | Every required connected row passes; no missing launch-selectable point value, inferred owner, unverified required relationship or leftover fixture. |
 | D — Publication/operations | Finish reviewed public documents, monitored support, named operators/backups, safe logs/alerts, configuration, anonymous production access, restore and deployment rollback. | Reviewed effective content and exercised support/alert/recovery routes; production entry is public while application routes remain authenticated. |
 | E — Qualification | Freeze one candidate after fixes, public content and data work. Run Node 22 canonical, browser, connected and manual acceptance; verify exact deployment/configuration/provider state. | No material unresolved defect or required skip; dated reviewed evidence identifies the same candidate and cleanup outcome. |
 | F — Pilot/public | Observe 10–20 adult participants over 7–14 days after B–E pass. Prepare accurate onboarding, limitations and release notes; announce broadly only after GO. | All critical journeys exercised without unresolved P0/P1 defects, integrity/privacy failures or missing operational acceptance. |
