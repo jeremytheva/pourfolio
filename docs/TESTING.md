@@ -408,6 +408,19 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 
 ## Connected staging release check
 
+### Complete bonus allocation input — 18 November 2026 UTC
+
+The owner-supplied42-row CSV completes all82 plan values while preserving the
+previous40 records. [The mapping evidence](evidence/bonus-allocation-complete-20261118.json)
+labels31 focused existing checks and the compatibility fixture as local/synthetic
+evidence; the latter is not a provider snapshot. After integration, run the
+existing read-only bonus preflight once. Its actual source/plan/snapshot bindings
+and aggregate result must be retained separately. Complete allocation and
+preflight PASS do not qualify writes, backup/restore, concurrency, explicit/
+private-row or historical rating/child preservation. The offline auditor has
+no apply mode; do not use disposable fixture tests as a global point-fill path.
+
+
 ### Main-only private profile/history scope
 
 The first live scoped observation is run43147240884 at main60c3cfe0 on
