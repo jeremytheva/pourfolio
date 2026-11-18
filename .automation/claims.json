@@ -1,4 +1,24 @@
 {
   "version": 1,
-  "claims": {}
+  "claims": {
+    "catalogue": {
+      "owner": "catalogue-bonus-allocation-complete-20261118T0928Z",
+      "workstream": "catalogue",
+      "issue": 144,
+      "pr": null,
+      "surfaces": [
+        "repo:integration",
+        "branch:fix/complete-bonus-point-plan-20261118",
+        "file:data/bonus_attribute_point_plan.json",
+        "file:data/bonus_attribute_point_allocations_20261118.csv",
+        "file:STATUS.md",
+        "file:docs/LAUNCH_READINESS.md",
+        "file:docs/TESTING.md",
+        "file:docs/evidence/bonus-allocation-complete-20261118.json",
+        "workflow:bonus-point-preflight.yml:dispatch"
+      ],
+      "acquiredAt": "2026-11-18T09:27:55.000Z",
+      "expiresAt": "2026-11-18T09:57:55.000Z"
+    }
+  }
 }
