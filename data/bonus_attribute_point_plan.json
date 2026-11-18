@@ -1,19 +1,19 @@
 {
   "version": 1,
-  "source_ref": "owner-instruction:2026-10-25-calculation-values",
-  "reviewer_ref": "independent-exact-id-mapping-review:2026-10-25",
-  "reviewed_at": "2026-10-25T22:15:43Z",
-  "scope": "Keep all 82 canonical global descriptors available. Unresolved values block backfill and launch.",
-  "owner_allocations": 39,
+  "source_ref": "owner-instruction:2026-10-25-calculation-values;owner-instruction:2026-11-18-calculation-values",
+  "reviewer_ref": "independent-exact-id-mapping-review:2026-11-18",
+  "reviewed_at": "2026-11-18T09:29:05.877Z",
+  "scope": "Keep all 82 canonical global descriptors available. All point allocations are supplied; governed provider backfill and preservation verification remain open.",
+  "owner_allocations": 81,
   "preserved_explicit_values": 1,
-  "unresolved_values": 42,
+  "unresolved_values": 0,
   "other_label": "Other is a UI section heading, not a point-bearing descriptor.",
   "attributes": [
     {
       "id": 1,
       "description": "A Trippy Adventure",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.60",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 2,
@@ -32,14 +32,14 @@
     {
       "id": 4,
       "description": "Balanced like a trapeze artist",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.60",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 5,
       "description": "Barrelled to Perfection!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.70",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 6,
@@ -50,8 +50,8 @@
     {
       "id": 7,
       "description": "Beer illusion",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.30",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 8,
@@ -76,14 +76,14 @@
     {
       "id": 11,
       "description": "Bulbous head",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.30",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 12,
       "description": "Burpalicious",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.30",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 13,
@@ -102,8 +102,8 @@
     {
       "id": 15,
       "description": "Delicate in a good way",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.40",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 16,
@@ -146,8 +146,8 @@
     {
       "id": 22,
       "description": "First Impact - 3",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.30",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 23,
@@ -166,14 +166,14 @@
     {
       "id": 25,
       "description": "Goes down way too easily!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.60",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 26,
       "description": "Gotta love them plums!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.40",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 27,
@@ -184,8 +184,8 @@
     {
       "id": 28,
       "description": "Hops, hops, baby!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.50",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 29,
@@ -198,26 +198,26 @@
     {
       "id": 30,
       "description": "If this was a piece of music, it would be beautiful.",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.80",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 31,
       "description": "Incongruous",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.20",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 32,
       "description": "Is what it says it is",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.50",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 33,
       "description": "It had the naked man factor",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.50",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 34,
@@ -246,8 +246,8 @@
     {
       "id": 38,
       "description": "It's a Concept...",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.20",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 39,
@@ -258,38 +258,38 @@
     {
       "id": 40,
       "description": "Just enjoyable",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.30",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 41,
       "description": "Just nice!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.20",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 42,
       "description": "Keep them coming.",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.60",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 43,
       "description": "La La La!!!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.40",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 44,
       "description": "Layers",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.60",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 45,
       "description": "Like a well aged 2000",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.60",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 46,
@@ -300,14 +300,14 @@
     {
       "id": 47,
       "description": "Liquid Gold",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.80",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 48,
       "description": "Mmmm, hazelnuts",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.40",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 49,
@@ -318,8 +318,8 @@
     {
       "id": 50,
       "description": "No, but it really is what it says it is!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.60",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 51,
@@ -330,8 +330,8 @@
     {
       "id": 52,
       "description": "Piney for you",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.40",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 53,
@@ -348,8 +348,8 @@
     {
       "id": 55,
       "description": "Scrape your brain (aroma)",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.50",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 56,
@@ -384,8 +384,8 @@
     {
       "id": 61,
       "description": "SSD (Smooth Sweet and Delicious!)",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.60",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 62,
@@ -396,8 +396,8 @@
     {
       "id": 63,
       "description": "Stunning pour",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.50",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 64,
@@ -408,26 +408,26 @@
     {
       "id": 65,
       "description": "Thank you, hops!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.50",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 66,
       "description": "That is just ridiculously easy to drink!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.70",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 67,
       "description": "That went 'oooohhhh'.",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.60",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 68,
       "description": "The Burp!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.20",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 69,
@@ -438,20 +438,20 @@
     {
       "id": 70,
       "description": "The perfect dessert!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.70",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 71,
       "description": "The Sum is Greater than its parts.",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.80",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 72,
       "description": "The warmer it got, the better it got!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.60",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 73,
@@ -462,8 +462,8 @@
     {
       "id": 74,
       "description": "This one goes to 11!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.80",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 75,
@@ -480,8 +480,8 @@
     {
       "id": 77,
       "description": "Undulating",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.50",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 78,
@@ -492,26 +492,40 @@
     {
       "id": 79,
       "description": "Very yum ... drink!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.50",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 80,
       "description": "Want grapefruit with that?",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.40",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 81,
       "description": "What I was hoping for and more!",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.60",
+      "value_source": "owner-allocation-2026-11-18"
     },
     {
       "id": 82,
       "description": "You can feel that Aroma.",
-      "point_value": null,
-      "value_source": "unresolved"
+      "point_value": "0.70",
+      "value_source": "owner-allocation-2026-11-18"
+    }
+  ],
+  "allocation_history": [
+    {
+      "source_ref": "owner-instruction:2026-10-25-calculation-values",
+      "reviewer_ref": "independent-exact-id-mapping-review:2026-10-25",
+      "reviewed_at": "2026-10-25T22:15:43Z",
+      "owner_allocations": 39
+    },
+    {
+      "source_ref": "owner-instruction:2026-11-18-calculation-values",
+      "input_ref": "data/bonus_attribute_point_allocations_20261118.csv",
+      "input_sha256": "e4ee77898dc19fe6f097070693c6da73acef8046ee6ad79ec44db25ebb8ed5bb",
+      "owner_allocations": 42
     }
   ]
 }

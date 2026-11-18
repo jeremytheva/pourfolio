@@ -1,16 +1,16 @@
 ---
 project: Pourfolio
 portfolio_state: VALIDATING
-execution_slot: WAITING
+execution_slot: VERIFYING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Add Beer complete; profile fixture and authoritative bonus values block further acceptance"
+stage: "All82 bonus values supplied; complete-plan provider preflight and guarded backfill preparation"
 gate: Integration
-execution_state: BLOCKED
+execution_state: VALIDATING
 current_work:
-  objective: "Obtain the42 authoritative bonus values and a governed eligible owner tasting fixture; preserve provider integrity/recovery and remaining privacy/release gates."
+  objective: "Integrate the completed82-value plan, run fresh read-only provider preflight, then prepare the verified bonus fill/preservation/recovery path while retaining fixture and privacy gates."
   issue: 144
   pr: null
-  branch: null
+  branch: fix/complete-bonus-point-plan-20261118
 next_actions:
   - "#727 is merged as 1ef714ce: the #726 cellar pagination repair passed 1,216 source tests, 188 browser/accessibility cases and exact production health/readiness. Connected multi-page owner/provider acceptance remains under #144/#154."
   - "#729 is merged as ef86e20d: the #728 style-population pagination repair passed 1,230 source tests, 188 browser/accessibility cases and exact production health/readiness. Both pagination repairs are integrated; connected provider/volume certification remains open."
@@ -25,10 +25,10 @@ next_actions:
   - "#709 read-only Admin workspace is deployed and bounded Admin/user own-capability isolation passed in run 40494158943. Keep full Admin browser/moderation, role-write denial and revocation open under #699/#701/#702."
   - "Autosave in #689 has owner-reported recovery PASS; complete the remaining physical iOS/home-screen and Android matrix without automatic upload. #690 catalogue attribution is deployed with bounded live list/detail readback; wider #154 certification remains open."
   - "Approved single-QA recovery passed in run 40389866451: one DELETE, exact absence and other-owned-row preservation verified. Before another HTTP mutation certification, retain encrypted create intent/acknowledgement and safe stage/status evidence."
-  - "Fresh read-only preflight43147510610 at60c3cfe0 confirms82 global descriptors,81 missing stored values,39 proposed fills and42 unresolved plan values. Expected BLOCKED/PLAN_POINT_VALUE_INVALID is a data-plan result, not a source/read failure. No mutation/backfill; complete authoritative values then satisfy #680 preservation and #165 provider/recovery gates."
+  - "The owner supplied all42 remaining exact-ID values on18November. The complete plan has82 values:81owner allocations and1preserved explicit provider value, with the previous40 records unchanged. Merge/validate this plan and run the existing read-only preflight; the older39-fill/42-unresolved reports remain historical only. No provider backfill is implied."
   - "Use #678's corrected canonical bonus_attribute_id checks when auditing fresh same-state baseline/import-rehearsal evidence; historical or mixed-column exports are not current-contract evidence."
   - "Terminal-rating containment and the read-only point-plan auditor are integrated in #676/#677; retain the distributed concurrency boundary under #165 and use the existing evidence package."
-  - "Obtain the remaining 42 exact-ID bonus values in data/bonus_attribute_point_plan.json, then complete governed backfill and post-write/historical-total preservation verification; all 82 descriptors remain available."
+  - "All82 exact-ID bonus values are now supplied in data/bonus_attribute_point_plan.json. Next obtain fresh current-instance complete preflight plus immutable before/after attribute evidence, a proven bounded conditional fill/concurrency/recovery mechanism and historical rating/child preservation. No existing global point-fill executor is certified; do not substitute the offline auditor or disposable fixture runner for backfill."
   - "Distinct-account authentication and cellar gateway isolation/cleanup pass. Connected baseline at fec60da4 passes 12 checks with four skips; retain its initial unreproduced failure and qualify remaining HTTP/write, privacy and session gates."
   - "Complete #165 provider mechanism, consistent snapshot and isolated restore evidence before irreversible migration or historical repair; then close #144/#154 acceptance."
   - "Complete publication, monitored support, named operations owners, anonymous production access and final exact-candidate release qualification."
@@ -44,24 +44,24 @@ blockers:
     detail: "Unconditional parent transitions and late child writes lack certified distributed integrity. Provider uniqueness/atomic workflow, consistent backup, isolated restore and approval for irreversible changes remain required."
   - scope: connected_backend_and_bonus_values
     issue: 144
-    detail: "Distinct-account authentication and bounded cellar gateway isolation pass; connected baseline has 12 passes and four skips, with an earlier unreproduced failure retained. Fresh preflight43147510610 confirms39 proposed fills,42 unresolved plan values and81 missing global stored values. Backfill, remaining connected policy and recovery acceptance remain open; #577 implementation is closed."
+    detail: "Distinct-account authentication and bounded cellar gateway isolation pass; connected baseline has 12 passes and four skips, with an earlier unreproduced failure retained. The complete82-value owner plan now has0 unresolved values. The last provider read still had81 missing global stored values; fresh complete-plan preflight and actual guarded backfill/preservation/recovery remain unverified. #577 implementation is closed."
   - scope: private_history_fixture
     issue: 144
     detail: "Current-main protected profile run43147240884 passed pre/post provenance and private cleanup but both cases skipped. The first selected page has no eligible verified tasting; with both account credentials present, the second case also found no owner tasting in page1. This does not establish global historical absence or other-account sign-in/privacy acceptance. A governed eligible fixture is required; no rating was manufactured."
   - scope: persistent_profile_privacy
     issue: 422
     detail: "Provider uniqueness/default-private creation, persisted opt-in/revocation, copied links and cross-owner denial still need connected certification."
-requires_owner_decision: true
+requires_owner_decision: false
 owner_decision:
-  question: "Provide exact point values for the42 unresolved descriptor IDs in data/bonus_attribute_point_plan.json."
-  recommendation: "Keep all82 descriptors and the39 supplied allocations unchanged. Supply authoritative missing values; no inferred points or backfill before the governed preservation/provider gates."
+  question: null
+  recommendation: null
 wip:
-  open_implementation_prs: 0
+  open_implementation_prs: 1
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "60c3cfe0b7a57563c655b2be74da12239ebef4ad"
+  observed_main_commit: "46f816ff3dcdeb16ce693c2233cba9cbb22c3499"
   current_candidate_commit: "60c3cfe0b7a57563c655b2be74da12239ebef4ad"
   latest_validated_commit: "60c3cfe0b7a57563c655b2be74da12239ebef4ad"
   latest_deployed_commit: "60c3cfe0b7a57563c655b2be74da12239ebef4ad"
@@ -76,15 +76,55 @@ validation:
   ci: PASS
   runtime: UNVERIFIED
 last_verified_commit: "b9a1c942450cda826ad5e8703652bb60111bdec5"
-last_updated: "2026-11-12T03:28:00Z"
+last_updated: "2026-11-18T09:29:06Z"
 
 ---
 
 # STATUS.md
 
-Last materially reviewed: 12 November 2026 UTC
+Last materially reviewed: 18 November 2026 UTC
 
 ## AI execution gate
+
+### Complete authoritative bonus allocation received — 18 November 2026 UTC
+
+The owner supplied all42 remaining CSV rows by exact ID. Independent review
+confirms that the42 IDs exactly match the unresolved set, with no duplicates,
+missing/extraneous IDs or description mismatches. Each two-decimal value is
+recorded unchanged. The existing40 attribute records remain semantically
+identical, including the39 earlier owner allocations and ID51's explicit0.50.
+No descriptor was removed or renamed. The plan now contains **82known values /
+81owner allocations / 1preserved explicit provider value / 0unresolved**.
+
+[The original42-row input](data/bonus_attribute_point_allocations_20261118.csv)
+is retained with its SHA256 in the plan's allocation history and
+[the mapping evidence](docs/evidence/bonus-allocation-complete-20261118.json).
+The old source/reviewer metadata is preserved in history; each new row cites
+the18November owner allocation.31 existing audit/preflight checks pass locally
+on Node24. A separately labelled synthetic compatibility check passes with
+82global rows,1existing match and81potential fills. That fixture is explicitly
+SYNTHETIC_ONLY, without provider reads/writes or backup/preservation claims.
+Exact-head canonical Node22 validation remains required for integration.
+
+The authoritative-value blocker is resolved; the database backfill is not.
+After merging this reviewed plan, run the existing main-only protected
+bonus-point-preflight workflow once against its configured instance. A fresh
+PASS would remain SOURCE_ONLY/PAGINATION_COMPLETE_NOT_ATOMIC and would not
+qualify provider fills, production-instance correspondence or historical totals.
+The12November42-unresolved reports below retain their original dated outcomes.
+
+The existing#680 auditor has no apply mode, and disposable bonus-write tests do
+not fill global rows. Actual backfill still needs immutable complete private
+before/after attribute snapshots from the same evidenced instance, exact fill
+count and readback, a verified bounded conditional-write/concurrency mechanism,
+recovery evidence and preservation of explicit/private fields and historical
+rating totals/children. The generic provider update is unconditional and no
+bonus-specific atomic fill is certified. These additive-fill gates are narrower
+than#165's irreversible schema-migration package; do not conflate them or
+claim the whole migration approval is automatically required. No point fill,
+schema change or historical recomputation has run. Private-history fixture,
+public privacy, provider/recovery, operations/device and final launch gates
+remain open. Public launch stays **NO-GO**. No further point values are requested.
 
 ### Scoped history remains unqualified; fresh bonus audit confirms missing values — 12 November 2026 UTC
 
@@ -3014,19 +3054,19 @@ Detailed implementation history belongs in commits, PRs and `docs/RELEASE_TRACKI
 | Issue | Remaining boundary | Safe continuation |
 |---|---|---|
 | #165 | Certified parent/child concurrency, uniqueness, provider migration/recovery and historical contradictory rating | Source containment and evidence preparation; no irreversible mutation or reconciliation enablement before the existing gate |
-| #144 | Authentication-only now passes; remaining backend isolation and 42 bonus values/backfill | Review bounded cellar certification, complete the committed point plan and retain governed recovery gates |
+| #144 | Authentication-only passes; all82 bonus allocations are supplied, with actual backfill and broader backend isolation open | Refresh complete-plan preflight and prepare verified bounded fill/preservation/recovery; retain fixture and connected-policy gates |
 | #422 | Persistent profile/privacy and distinct-account acceptance | Reuse merged source; certify default-private, persistence, opt-in/revocation, copied links and owner denial |
 
 These scoped blockers do not prevent independent launch work. The product
-choices are settled; external credentials, authoritative values, provider
-recovery and named specialist/operations evidence remain required.
+choices and bonus allocations are settled; provider write/recovery capability,
+eligible fixtures and named specialist/operations evidence remain required.
 
 ## Next dependency-correct work
 
-1. Obtain the 42 unresolved exact-ID values in the committed point plan, then
-   refresh the bounded read-only provider preflight and prepare governed
-   backfill/recovery with post-write preservation verification. Preserve explicit/private values and all
-   historical rating totals.
+1. All82 exact-ID bonus allocations are supplied. Refresh the bounded read-only
+   provider preflight and prepare a verified bounded point-fill/concurrency/
+   recovery path with immutable before/after and historical preservation evidence.
+   Preserve explicit/private values and all historical rating totals.
 2. Retain passing distinct-account AUTH_ONLY and bounded cellar gateway
    isolation/cleanup evidence; complete remaining HTTP/browser, full session,
    profile and bonus connected acceptance with current release provenance.
