@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "recordedAt": "2026-11-18T09:29:05.877Z",
+  "recordedAt": "2026-11-18T09:49:21Z",
   "scope": "COMPLETE_OWNER_BONUS_POINT_ALLOCATION",
   "sourceRef": "owner-instruction:2026-11-18-calculation-values",
   "inputRef": "data/bonus_attribute_point_allocations_20261118.csv",
@@ -45,14 +45,94 @@
       "providerMutation": false
     }
   },
-  "liveProviderPreflight": "NOT_RUN_FOR_COMPLETED_PLAN",
+  "liveProviderPreflight": {
+    "workflowRunId": 44278895670,
+    "workflowPath": ".github/workflows/bonus-point-preflight.yml",
+    "event": "push",
+    "trigger": "existing [bonus-point-preflight] main-push condition",
+    "jobId": 134714035254,
+    "jobConclusion": "success",
+    "candidateCommit": "81c8382615a285d9acc2fd6b2f3a985e9575921a",
+    "environment": "staging-release",
+    "readObservedAt": "2026-11-18T09:46:06Z",
+    "canonicalValidation": {
+      "nodeVersion": "22.23.4",
+      "command": "npm run platform:validate",
+      "passed": 1337,
+      "failed": 0,
+      "gatedSkips": 15,
+      "productionDependencyVulnerabilities": 0,
+      "beforeProviderCredentials": true,
+      "sourceIdentityStep": "PASS"
+    },
+    "artifact": {
+      "id": 14415627488,
+      "sizeBytes": 528,
+      "sha256": "e59566c80454adce978eb30edcfbc5547d35b3a155c04db3b54e336926649454",
+      "integrity": "PASS",
+      "files": [
+        "summary.json"
+      ],
+      "expiresAt": "2026-12-18T09:46:06Z"
+    },
+    "report": {
+      "status": "PASS",
+      "mode": "preflight",
+      "qualification": "SOURCE_ONLY",
+      "planSha256": "e92eb682ef7524d58541960302974ddbf0cd9961d30b051433a7c1dae3acb929",
+      "snapshotSha256": "7db614b5385c9df43c9b391b0713366db28158e8f9c060a922734fa2ddc62fbc",
+      "counts": {
+        "global": 82,
+        "private": 1,
+        "planned": 82,
+        "alreadyMatched": 1,
+        "missing": 81,
+        "proposedFills": 81,
+        "globalMissingValues": 81,
+        "unresolvedPlanValues": 0,
+        "preservedMissingValues": 0
+      },
+      "blockers": [],
+      "providerRead": "READ_ONLY",
+      "snapshotScope": "PAGINATION_COMPLETE_NOT_ATOMIC",
+      "candidateCommit": "81c8382615a285d9acc2fd6b2f3a985e9575921a"
+    },
+    "providerMutation": false,
+    "productionInstanceCorrespondence": "UNVERIFIED",
+    "fullPrivateBaselineOrRestoreArtifactRetained": false,
+    "workflowConclusion": "success"
+  },
   "providerBackfill": "NOT_RUN",
   "historicalTotalPreservation": "NOT_RUN",
   "limits": [
-    "All82 allocations are known; this record does not assert provider point values have been filled.",
+    "All82 allocations are known and the fresh configured-instance read-only preflight passes; provider point values have not been filled.",
     "The synthetic compatibility fixture is not a provider snapshot or backup.",
-    "A fresh current-instance preflight, immutable before/after evidence, verified bounded conditional fill/concurrency and recovery, and historical rating/child preservation are still required before backfill.",
+    "Immutable complete private before/after evidence, verified bounded conditional fill or proven serialization/concurrency and recovery, and historical rating/child preservation are still required before backfill.",
     "The full #165 irreversible schema migration package is not automatically the authority for these additive fills; the narrower bonus preservation/write-mechanism gates apply independently.",
     "Private-history fixture, public privacy, operations/device and full launch acceptance remain open."
-  ]
+  ],
+  "sourceIntegration": {
+    "pullRequest": 747,
+    "headCommit": "6e6405a2fbb2e2ba6360fd0a2cd41c005354d962",
+    "mergeCommit": "81c8382615a285d9acc2fd6b2f3a985e9575921a",
+    "treeSha": "febe4f2b6201eab094eadbc332d7f9f7af8fb13e",
+    "canonicalValidation": {
+      "workflowRunId": 44278251992,
+      "jobId": 134711828820,
+      "nodeVersion": "22.23.4",
+      "command": "npm run platform:validate",
+      "passed": 1337,
+      "failed": 0,
+      "gatedSkips": 15,
+      "productionDependencyVulnerabilities": 0,
+      "jobConclusion": "success"
+    },
+    "browserValidation": {
+      "jobId": 134711829329,
+      "passed": 196,
+      "jobConclusion": "success"
+    },
+    "codeqlRunId": 44278252064,
+    "independentReview": "GO"
+  }
 }
