@@ -5,7 +5,7 @@
       "owner": "catalogue-bonus-allocation-complete-20261118T0928Z",
       "workstream": "catalogue",
       "issue": 144,
-      "pr": 747,
+      "pr": null,
       "surfaces": [
         "repo:integration",
         "branch:fix/complete-bonus-point-plan-20261118",
@@ -17,7 +17,8 @@
         "file:docs/evidence/bonus-allocation-complete-20261118.json",
         "workflow:bonus-point-preflight.yml:dispatch",
         "pr:747",
-        "workflow:bonus-point-preflight.yml:main-push"
+        "workflow:bonus-point-preflight.yml:main-push",
+        "branch:docs/complete-bonus-preflight-20261118"
       ],
       "acquiredAt": "2026-11-18T09:27:55.000Z",
       "expiresAt": "2026-11-18T10:11:26.117Z"
