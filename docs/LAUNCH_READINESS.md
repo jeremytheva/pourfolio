@@ -1,7 +1,7 @@
 # Launch readiness
 
 Last reconciled: **18 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
-[`8d5049c5aa231ddfff1b45f55f298b722c3055d7`](https://github.com/jeremytheva/pourfolio/commit/8d5049c5aa231ddfff1b45f55f298b722c3055d7). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
+[`fe11d8335bfcc532ff5150dc382c503045eddcd7`](https://github.com/jeremytheva/pourfolio/commit/fe11d8335bfcc532ff5150dc382c503045eddcd7). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
@@ -39,6 +39,34 @@ preflight report. No application policy, stored bonus value or provider schema
 changes in this diagnostic correction.
 
 ## Current launch decision
+
+### Nonbreaking maintenance and exact runtime — 18 November 2026 UTC
+
+PRs [#746](https://github.com/jeremytheva/pourfolio/pull/746) and
+[#734](https://github.com/jeremytheva/pourfolio/pull/734) are integrated as
+`694f018e` and `fe11d833`. Each refreshed exact head passed actual Node 22.23.4
+canonical validation (1,337 passes, 15 gated skips, no failures, no production
+vulnerabilities), all 196 browser/accessibility cases and security checks.
+Independent compatibility and preservation review GO includes Playwright's
+conditional modifiers and the limiter's integer-only Redis EVAL result.
+The complete 82-value plan and all prior provider evidence are unchanged.
+
+Exact production `fe11d833` is READY. At 10:17:19–10:17:20 UTC, public health and
+readiness returned HTTP 200 with matching full SHA/environment and provider `ok`;
+anonymous session access returned HTTP 401. [The maintenance record](evidence/launch-maintenance-20261118.json)
+retains candidate, deployment, source checks and runtime observations. This does
+not qualify live Redis service behavior, broader connected policy or release GO.
+
+The [vendor snapshot guide](https://app.nocodebackend.com/help/en/database-snapshots)
+now provides a documented backup/restore route. The account's available snapshot
+quota, isolated recovery destination/clone and SQL-editor options still need
+confirmation. Restore replaces the destination; no recovery operation was run.
+The [public REST guide](https://app.nocodebackend.com/help/en/rest-api) does not
+establish conditional missing-only updates or a SQL DML transaction interface;
+current tenant Swagger remains uninspected. All 82 values are supplied, but the
+81 missing stored values still need verified bounded fill and preservation.
+No new provider writes or historical recomputation occurred. Public launch
+remains **NO-GO**.
 
 ### All 82 authoritative plan values supplied — 18 November 2026 UTC
 
