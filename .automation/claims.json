@@ -5,7 +5,7 @@
       "owner": "catalogue-connected-release-20261119T0926Z",
       "workstream": "catalogue",
       "issue": 144,
-      "pr": 750,
+      "pr": null,
       "surfaces": [
         "repo:integration",
         "branch:fix/connected-release-scopes-20261119",
@@ -27,10 +27,11 @@
         "file:release-check/__tests__/authOnlySessionFixture.test.js",
         "file:playwright.release.config.js",
         "file:.project-master/launch-readiness.json",
-        "pr:750"
+        "pr:750",
+        "branch:docs/auth-qualification-20261119"
       ],
       "acquiredAt": "2026-11-19T09:25:20.544Z",
-      "expiresAt": "2026-11-19T10:11:27.140Z"
+      "expiresAt": "2026-11-19T10:33:57.668Z"
     }
   }
 }
