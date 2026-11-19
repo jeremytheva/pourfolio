@@ -5,10 +5,9 @@
       "owner": "catalogue-connected-release-20261119T0926Z",
       "workstream": "catalogue",
       "issue": 144,
-      "pr": null,
+      "pr": 750,
       "surfaces": [
         "repo:integration",
-        "pr:749",
         "branch:fix/connected-release-scopes-20261119",
         "file:.github/workflows/connected-release-check.yml",
         "file:release-check/profile-history-readonly.spec.js",
@@ -27,7 +26,8 @@
         "file:release-check/__tests__/support.test.js",
         "file:release-check/__tests__/authOnlySessionFixture.test.js",
         "file:playwright.release.config.js",
-        "file:.project-master/launch-readiness.json"
+        "file:.project-master/launch-readiness.json",
+        "pr:750"
       ],
       "acquiredAt": "2026-11-19T09:25:20.544Z",
       "expiresAt": "2026-11-19T10:11:27.140Z"
