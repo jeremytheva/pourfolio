@@ -26,7 +26,8 @@
         "file:release-check/support.js",
         "file:release-check/__tests__/support.test.js",
         "file:release-check/__tests__/authOnlySessionFixture.test.js",
-        "file:playwright.release.config.js"
+        "file:playwright.release.config.js",
+        "file:.project-master/launch-readiness.json"
       ],
       "acquiredAt": "2026-11-19T09:25:20.544Z",
       "expiresAt": "2026-11-19T10:11:27.140Z"
