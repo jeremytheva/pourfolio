@@ -1,23 +1,4 @@
 {
   "version": 1,
-  "claims": {
-    "catalogue": {
-      "owner": "catalogue-auth-evidence-20261119T2037Z",
-      "workstream": "catalogue",
-      "issue": 144,
-      "pr": 751,
-      "surfaces": [
-        "repo:integration",
-        "pr:750",
-        "branch:docs/auth-qualification-20261119",
-        "file:STATUS.md",
-        "file:docs/LAUNCH_READINESS.md",
-        "file:docs/TESTING.md",
-        "file:docs/evidence/connected-auth-scope-20261119.json",
-        "pr:751"
-      ],
-      "acquiredAt": "2026-11-19T20:37:48.543Z",
-      "expiresAt": "2026-11-19T21:07:48.544Z"
-    }
-  }
+  "claims": {}
 }
