@@ -2,27 +2,28 @@
   "version": 1,
   "claims": {
     "catalogue": {
-      "owner": "catalogue-launch-maintenance-20261118T1002Z",
+      "owner": "catalogue-connected-release-20261119T0926Z",
       "workstream": "catalogue",
       "issue": 144,
-      "pr": 749,
+      "pr": null,
       "surfaces": [
         "repo:integration",
-        "pr:746",
-        "pr:734",
-        "branch:dependabot/npm_and_yarn/development-minor-patches-7345f6c82b",
-        "branch:dependabot/npm_and_yarn/production-minor-patches-0ecd4a9c21",
-        "file:package.json",
-        "file:package-lock.json",
+        "pr:749",
+        "branch:fix/connected-release-scopes-20261119",
+        "file:.github/workflows/connected-release-check.yml",
+        "file:release-check/profile-history-readonly.spec.js",
+        "file:release-check/profileHistoryFixture.js",
+        "file:scripts/__tests__/profileHistoryFixture.test.js",
+        "file:release-check/auth-only.spec.js",
+        "file:release-check/redactedReleaseReporter.js",
         "file:STATUS.md",
         "file:docs/LAUNCH_READINESS.md",
         "file:docs/TESTING.md",
-        "file:docs/evidence/launch-maintenance-20261118.json",
-        "branch:docs/launch-maintenance-20261118",
-        "pr:749"
+        "file:docs/evidence/connected-auth-scope-20261119.json",
+        "workflow:connected-release-check.yml:dispatch"
       ],
-      "acquiredAt": "2026-11-18T10:02:23.506Z",
-      "expiresAt": "2026-11-18T10:49:15.772Z"
+      "acquiredAt": "2026-11-19T09:25:20.544Z",
+      "expiresAt": "2026-11-19T09:55:20.544Z"
     }
   }
 }
