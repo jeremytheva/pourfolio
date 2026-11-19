@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "preparedAt": "2026-11-19T09:48:11Z",
+  "scope": "MAIN_ONLY_AUTH_AND_BOUNDED_HISTORY_QUALIFICATION",
+  "mainAtPreparation": "24849dc7ecf67e309b2dbe21c631f0ab3e1a35bf",
+  "independentSourceReview": "GO",
+  "independentWorkflowQualificationReview": "GO",
+  "sourceValidationAtPreparation": {
+    "localNodeMajor": 24,
+    "focusedRegressions": {
+      "status": "PASS",
+      "passed": 62,
+      "failed": 0,
+      "skipped": 0,
+      "nodeVersion": "24.19.0",
+      "qualification": "LOCAL_SUPPLEMENTAL"
+    },
+    "apiFixtureScenarios": 14,
+    "sessionScopeTests": 23,
+    "profileSelectionTests": 10,
+    "node22Canonical": "NOT_RUN_ON_PROPOSED_HEAD",
+    "browserSecurity": "NOT_RUN_ON_PROPOSED_HEAD"
+  },
+  "authenticationScope": {
+    "workflow": ".github/workflows/connected-release-check.yml",
+    "scopeInput": "auth-only",
+    "requiredRef": "refs/heads/main",
+    "releaseShaMustEqualGithubSha": true,
+    "requiredOrigin": "https://brew-buds-mobile-app-design-3577.vercel.app",
+    "requiredEnvironment": "production",
+    "destructiveConfirmationMustBeEmpty": true,
+    "canonicalValidationBeforeCredentials": true,
+    "provenanceBeforeCredentials": true,
+    "credentialNames": [
+      "RELEASE_OWNER_EMAIL",
+      "RELEASE_OWNER_PASSWORD",
+      "RELEASE_OTHER_EMAIL",
+      "RELEASE_OTHER_PASSWORD"
+    ],
+    "signupOtpFixtureSecretsWithheld": true,
+    "providerSecretNotInjected": true,
+    "selectedSpec": "release-check/auth-only.spec.js",
+    "requiredCases": 1,
+    "requiredDistinctAccounts": 2,
+    "requestSurface": [
+      "POST /api/nocodebackend/auth/sign-in/email",
+      "GET /api/nocodebackend/auth/get-session",
+      "POST /api/nocodebackend/auth/sign-out"
+    ],
+    "applicationDataEndpointsUsed": false,
+    "normalAuthenticationSessionChangesExpected": true,
+    "browserNavigationUsed": false,
+    "excludedFromOtherScopeDiscovery": true
+  },
+  "sessionCleanup": {
+    "browserDefaultsPreserved": true,
+    "apiStorageStateCookiesSupported": true,
+    "originalCookieJarsRetained": true,
+    "signOutRequires2xx": true,
+    "separateOriginalCookieProbeRequires401": true,
+    "perCleanupRequestTimeoutMs": 4000,
+    "teardownBudgetMs": 120000,
+    "everyPrimaryRequestContextDisposed": true,
+    "partialFailureAndSkipCleanupRequired": true,
+    "wholeJobAndPrivateFileCleanupMustSucceed": true
+  },
+  "qualification": {
+    "closedScopeCases": {
+      "auth-only": 1,
+      "profile-history": 2
+    },
+    "profilePreviewSupportPreserved": true,
+    "matchingPrePostSourceAndEnvironmentRequired": true,
+    "skippedOrNotRunCasesAccepted": false,
+    "runnerErrorsOrInvalidEventsAccepted": false,
+    "privateErrorsTitlesBodiesCookiesRetained": false,
+    "fixedAuthArtifactFiles": [
+      "auth-only-preflight.json",
+      "auth-only-postflight.json",
+      "auth-only-qualification.json",
+      "release-summary.json"
+    ]
+  },
+  "historyFixtureCorrection": {
+    "problem": "ELIGIBLE_PAGE_ONE_DISCARDED_WHEN_PAGE_TWO_INELIGIBLE",
+    "pagesReadMaximum": [
+      1,
+      2
+    ],
+    "retainsEligibleFirstPageFallback": true,
+    "prefersOlderPageOnlyWhenEligible": true,
+    "selectedRowAndPageKeptTogether": true,
+    "eachResponseValidated": true,
+    "readOrMalformedResponseFailurePropagates": true,
+    "crossResponseAtomicityClaimed": false,
+    "crossAccountCaseUnchanged": true,
+    "liveFixtureManufactured": false,
+    "historicalSkippedReportPreserved": "docs/evidence/private-history-scope-20261112.json"
+  },
+  "bonusPreservation": {
+    "globalPlannedValues": 82,
+    "unresolvedValues": 0,
+    "planSha256": "e92eb682ef7524d58541960302974ddbf0cd9961d30b051433a7c1dae3acb929",
+    "backfill": "NOT_RUN"
+  },
+  "liveAuthQualification": "NOT_RUN",
+  "liveHistoryQualification": "NOT_RUN",
+  "providerBaselineOrRecovery": "NOT_RUN",
+  "publicLaunch": "NO_GO"
+}

@@ -48,12 +48,79 @@ const fixture = (t, outcomes = []) => {
     return { context: () => context, setCookies: value => { current = value },
       url: () => origin + '/login' }
   }
-  return { scope: createReleaseSessionScope({ newContext }), calls, contexts, page }
+  return { scope: createReleaseSessionScope({ newContext }), newContext, calls, contexts, page }
 }
 
 const unconfirmed = (error) => error.message === 'Release session cleanup is unconfirmed.' &&
   !JSON.stringify(error, Object.getOwnPropertyNames(error)).includes(privateCanary) &&
   !Object.hasOwn(error, 'cause')
+
+test('API contexts retain rotated storage-state cookies without a browser or Page adapter', async t => {
+  const { newContext, calls, contexts } = fixture(t)
+  let cookies = [cookie('api-original')]
+  const api = { storageState: async () => ({ cookies: structuredClone(cookies), origins: [] }) }
+  const scope = createReleaseSessionScope({ newContext, contextFor: context => context,
+    cookiesFor: async context => (await context.storageState()).cookies })
+  scope.track(api, 'owner@example.invalid')
+  scope.beginAuthentication(api)
+  await scope.capture(api)
+  cookies = [cookie('api-rotated'), { ...cookie('foreign'), domain: 'elsewhere.invalid' }]
+  await scope.cleanup()
+  assert.deepEqual(calls.filter(call => call.method === 'GET').map(call => call.cookies[0].value),
+    ['api-original', 'api-rotated'])
+  assert.equal(contexts.every(context => context.disposed), true)
+  assert.equal(Object.hasOwn(api, 'context'), false)
+  assert.equal(Object.hasOwn(api, 'cookies'), false)
+})
+
+test('API storage-state failure preserves earlier credentials and still cleans another account', async t => {
+  const { newContext, calls } = fixture(t)
+  let broken = false
+  const owner = { storageState: async () => {
+    if (broken) throw new Error(privateCanary)
+    return { cookies: [cookie('retained-before-failure')] }
+  } }
+  const other = { storageState: async () => ({ cookies: [cookie('other-api')] }) }
+  const scope = createReleaseSessionScope({ newContext, contextFor: context => context,
+    cookiesFor: async context => (await context.storageState()).cookies })
+  scope.track(owner, 'owner@example.invalid')
+  scope.beginAuthentication(owner)
+  await scope.capture(owner)
+  broken = true
+  scope.track(other, 'other@example.invalid')
+  scope.beginAuthentication(other)
+  await assert.rejects(scope.capture(owner), unconfirmed)
+  await assert.rejects(scope.cleanup(), unconfirmed)
+  assert.deepEqual(calls.filter(call => call.method === 'GET').map(call => call.cookies[0].value),
+    ['retained-before-failure', 'other-api'])
+})
+
+test('invalid context/cookie readers and reader exceptions expose only the safe scope error', t => {
+  fixture(t)
+  for (const options of [{ contextFor: null }, { cookiesFor: null }]) {
+    assert.throws(() => createReleaseSessionScope({ newContext: async () => {}, ...options }), unconfirmed)
+  }
+  const scope = createReleaseSessionScope({ newContext: async () => {},
+    contextFor: () => { throw new Error(privateCanary) } })
+  assert.throws(() => scope.track({}, 'owner@example.invalid'), unconfirmed)
+})
+
+test('a final context-reader failure cannot qualify cleanup even when retained originals are revoked', async t => {
+  const { newContext, calls } = fixture(t)
+  let unavailable = false
+  const api = { storageState: async () => ({ cookies: [cookie('api-original')] }) }
+  const scope = createReleaseSessionScope({ newContext,
+    contextFor: context => {
+      if (unavailable) throw new Error(privateCanary)
+      return context
+    }, cookiesFor: async context => (await context.storageState()).cookies })
+  scope.track(api, 'owner@example.invalid')
+  scope.beginAuthentication(api)
+  await scope.capture(api)
+  unavailable = true
+  await assert.rejects(scope.cleanup(), unconfirmed)
+  assert.deepEqual(calls.map(call => call.method), ['POST', 'GET'])
+})
 
 test('cleanup retains original cookies, independently signs out and requires original-cookie HTTP401', async (t) => {
   const { scope, calls, contexts, page } = fixture(t)

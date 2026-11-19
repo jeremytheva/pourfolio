@@ -17,32 +17,37 @@ const signInResponse = (response, origin) => {
 // Browser contexts and the owner cache are private local state, not revocation
 // evidence. Retain immutable original cookies before logout, then test those
 // cookies in a separate request context after the sign-out request.
-export const createReleaseSessionScope = ({ newContext }) => {
+export const createReleaseSessionScope = ({ newContext,
+  contextFor = page => page.context(), cookiesFor = context => context.cookies() }) => {
   const origin = parseReleaseBaseUrl(process.env.RELEASE_BASE_URL)
   const hostname = new URL(origin).hostname
   const sessions = new Map()
   let closed = false
   const fail = () => new Error('Release session cleanup is unconfirmed.')
-  const sessionFor = (page) => {
-    const session = sessions.get(page.context())
+  if (typeof contextFor !== 'function' || typeof cookiesFor !== 'function') throw fail()
+  const contextOf = subject => {
+    try { return contextFor(subject) } catch { throw fail() }
+  }
+  const sessionFor = (subject) => {
+    const session = sessions.get(contextOf(subject))
     if (!session || closed) throw fail()
     return session
   }
-  const track = (page, email) => {
+  const track = (subject, email) => {
     if (closed || typeof newContext !== 'function') throw fail()
-    const context = page.context()
+    const context = contextOf(subject)
     const existing = sessions.get(context)
     if (existing) {
       if (existing.email !== email) throw fail()
       return
     }
     if (sessions.size >= 2) throw fail()
-    sessions.set(context, { context, page, email, attempted: false, snapshots: [], overflow: null, captureFailed: false })
+    sessions.set(context, { context, subject, email, attempted: false, snapshots: [], overflow: null, captureFailed: false })
   }
-  const capture = async (page) => {
-    const session = sessionFor(page)
+  const capture = async (subject) => {
+    const session = sessionFor(subject)
     try {
-      const cookies = (await session.context.cookies()).filter(cookie =>
+      const cookies = (await cookiesFor(session.context)).filter(cookie =>
         cookie.domain.replace(/^\./, '') === hostname)
       if (cookies.length > 100) throw fail()
       const serialised = JSON.stringify(cookies)
@@ -87,7 +92,8 @@ export const createReleaseSessionScope = ({ newContext }) => {
   const cleanup = async () => {
     if (closed) throw fail()
     for (const session of sessions.values()) {
-      try { await capture(session.page) } catch { /* Retain failure and continue every session. */ }
+      try { await capture(session.subject) }
+      catch { session.captureFailed = true }
     }
     closed = true
     let confirmed = true
@@ -107,7 +113,7 @@ export const createReleaseSessionScope = ({ newContext }) => {
     if (!confirmed) throw fail()
   }
   return Object.freeze({ track, capture, cleanup,
-    beginAuthentication: (page) => { sessionFor(page).attempted = true } })
+    beginAuthentication: (subject) => { sessionFor(subject).attempted = true } })
 }
 
 const retryAfterMilliseconds = (response) => {

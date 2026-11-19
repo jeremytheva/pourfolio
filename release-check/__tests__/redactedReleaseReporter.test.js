@@ -420,3 +420,18 @@ test('real Playwright CLI retains failure status and emits only redacted case ev
     fs.rmSync(temporaryRoot, { recursive: true, force: true })
   }
 })
+
+
+test('authentication-only evidence keeps the same fixed source identity and private-data suppression', async () => {
+  const h = harness()
+  const entry = specimen('auth-only.spec.js', 42)
+  begin(h, [entry])
+  h.reporter.onStdOut(Buffer.from(secret), entry)
+  h.reporter.onStdErr(Buffer.from(secret), entry)
+  h.reporter.onTestEnd(entry, { status: 'passed', errors: [new Error(secret)], attachments: [{ body: Buffer.from(secret) }] })
+  await end(h)
+  assert.deepEqual(h.report().tests, [{ caseId: 'auth-only.spec.js:42', status: 'PASS' }])
+  assert.equal(h.report().status, 'PASS')
+  assert.equal(h.report().invalidEvents, 0)
+  assertPrivate(h)
+})

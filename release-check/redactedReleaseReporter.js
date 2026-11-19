@@ -3,6 +3,7 @@ import path from 'node:path'
 
 const specFiles = Object.freeze([
   'connected.spec.js',
+  'auth-only.spec.js',
   'catalogue-evidence.spec.js',
   'catalogue-readonly.spec.js',
   'profile-history-readonly.spec.js'
