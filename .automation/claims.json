@@ -2,36 +2,21 @@
   "version": 1,
   "claims": {
     "catalogue": {
-      "owner": "catalogue-connected-release-20261119T0926Z",
+      "owner": "catalogue-auth-evidence-20261119T2037Z",
       "workstream": "catalogue",
       "issue": 144,
       "pr": null,
       "surfaces": [
         "repo:integration",
-        "branch:fix/connected-release-scopes-20261119",
-        "file:.github/workflows/connected-release-check.yml",
-        "file:release-check/profile-history-readonly.spec.js",
-        "file:release-check/profileHistoryFixture.js",
-        "file:scripts/__tests__/profileHistoryFixture.test.js",
-        "file:release-check/auth-only.spec.js",
-        "file:release-check/redactedReleaseReporter.js",
+        "pr:750",
+        "branch:docs/auth-qualification-20261119",
         "file:STATUS.md",
         "file:docs/LAUNCH_READINESS.md",
         "file:docs/TESTING.md",
-        "file:docs/evidence/connected-auth-scope-20261119.json",
-        "workflow:connected-release-check.yml:dispatch",
-        "file:scripts/__tests__/connected-provider-workflow.test.js",
-        "file:release-check/__tests__/redactedReleaseReporter.test.js",
-        "file:release-check/support.js",
-        "file:release-check/__tests__/support.test.js",
-        "file:release-check/__tests__/authOnlySessionFixture.test.js",
-        "file:playwright.release.config.js",
-        "file:.project-master/launch-readiness.json",
-        "pr:750",
-        "branch:docs/auth-qualification-20261119"
+        "file:docs/evidence/connected-auth-scope-20261119.json"
       ],
-      "acquiredAt": "2026-11-19T09:25:20.544Z",
-      "expiresAt": "2026-11-19T10:33:57.668Z"
+      "acquiredAt": "2026-11-19T20:37:48.543Z",
+      "expiresAt": "2026-11-19T21:07:48.544Z"
     }
   }
 }
