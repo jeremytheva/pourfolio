@@ -103,8 +103,204 @@
     "planSha256": "e92eb682ef7524d58541960302974ddbf0cd9961d30b051433a7c1dae3acb929",
     "backfill": "NOT_RUN"
   },
-  "liveAuthQualification": "NOT_RUN",
+  "liveAuthQualification": {
+    "status": "PASS",
+    "qualification": "AUTH_ONLY",
+    "workflowRunId": 44501376108,
+    "workflowPath": ".github/workflows/connected-release-check.yml",
+    "event": "workflow_dispatch",
+    "releaseSha": "204de509cdc52a6b6f483c305a81392573235be5",
+    "candidateSha": "204de509cdc52a6b6f483c305a81392573235be5",
+    "environment": "production",
+    "jobId": 135481768929,
+    "jobConclusion": "success",
+    "independentEvidenceReview": "GO",
+    "metadata": {
+      "run": {
+        "id": 44501376108,
+        "head_sha": "204de509cdc52a6b6f483c305a81392573235be5",
+        "head_branch": "main",
+        "event": "workflow_dispatch",
+        "path": ".github/workflows/connected-release-check.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-11-19T09:59:05Z",
+        "run_started_at": "2026-11-19T09:59:05Z",
+        "updated_at": "2026-11-19T10:00:09Z"
+      },
+      "job": {
+        "id": 135481768929,
+        "head_sha": "204de509cdc52a6b6f483c305a81392573235be5",
+        "head_branch": "main",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-11-19T09:59:07Z",
+        "started_at": "2026-11-19T09:59:16Z",
+        "completed_at": "2026-11-19T10:00:08Z"
+      }
+    },
+    "canonicalBeforeCredentials": {
+      "nodeVersion": "22.23.4",
+      "command": "npm run platform:validate",
+      "tests": 1372,
+      "passed": 1357,
+      "gatedSkips": 15,
+      "failed": 0,
+      "productionDependencyVulnerabilities": 0,
+      "stepConclusion": "success"
+    },
+    "requiredAccountAssertionsInPassingCase": 2,
+    "preflightStep": "success",
+    "checkStep": "success",
+    "postflightStep": "success",
+    "qualificationStep": "success",
+    "privateCleanupStep": "success",
+    "artifactUploadStep": "success",
+    "originalCookieRevocationRequiredFixture": "PASS",
+    "primaryContextDisposalRequiredFixture": "PASS",
+    "artifact": {
+      "id": 14516758374,
+      "sizeBytes": 1475,
+      "sha256": "22c3724a6c703442eb94a702adb46663fe6fc8f158dda576c1d6d97f26bac1f6",
+      "integrity": "PASS",
+      "files": [
+        "release-summary.json",
+        "auth-only-preflight.json",
+        "auth-only-postflight.json",
+        "auth-only-qualification.json"
+      ],
+      "expiresAt": "2026-12-19T10:00:04Z"
+    },
+    "reports": {
+      "release-summary.json": {
+        "version": 1,
+        "qualification": "CONNECTED_RELEASE_CHECKS",
+        "releaseSha": "204de509cdc52a6b6f483c305a81392573235be5",
+        "candidateSha": "204de509cdc52a6b6f483c305a81392573235be5",
+        "status": "PASS",
+        "runnerStatus": "passed",
+        "counts": {
+          "expected": 1,
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0,
+          "notRun": 0
+        },
+        "invalidEvents": 0,
+        "invalidDiagnostics": 0,
+        "diagnostics": [],
+        "runnerErrors": 0,
+        "blockers": [],
+        "tests": [
+          {
+            "caseId": "auth-only.spec.js:90",
+            "status": "PASS"
+          }
+        ]
+      },
+      "auth-only-preflight.json": {
+        "status": "PASS",
+        "commitSha": "204de509cdc52a6b6f483c305a81392573235be5",
+        "environment": "production",
+        "dataProvider": "ok"
+      },
+      "auth-only-postflight.json": {
+        "status": "PASS",
+        "commitSha": "204de509cdc52a6b6f483c305a81392573235be5",
+        "environment": "production",
+        "dataProvider": "ok"
+      },
+      "auth-only-qualification.json": {
+        "version": 1,
+        "qualification": "AUTH_ONLY",
+        "releaseSha": "204de509cdc52a6b6f483c305a81392573235be5",
+        "status": "PASS",
+        "code": "AUTH_ONLY_QUALIFIED",
+        "expectedCases": 1,
+        "qualifiedCases": 1,
+        "preflight": "PASS",
+        "postflight": "PASS"
+      }
+    },
+    "deployment": {
+      "id": "dpl_FQPCznGiQzUR1QaG29Un2fAUWBCM",
+      "projectId": "prj_UD1ZYz1Rz62iZ9UQTwMveua3qeRM",
+      "state": "READY",
+      "target": "production",
+      "sha": "204de509cdc52a6b6f483c305a81392573235be5"
+    },
+    "preRunPublicProbes": {
+      "observedAt": "2026-11-19T09:58:20.041030Z",
+      "origin": "https://brew-buds-mobile-app-design-3577.vercel.app",
+      "expectedCommit": "204de509cdc52a6b6f483c305a81392573235be5",
+      "scope": "PUBLIC_PRE_AUTH_PROBES",
+      "results": [
+        {
+          "path": "/api/health",
+          "httpStatus": 200,
+          "status": "ok",
+          "release": {
+            "commitSha": "204de509cdc52a6b6f483c305a81392573235be5",
+            "environment": "production"
+          },
+          "checks": {
+            "rateLimiterConfigured": true
+          }
+        },
+        {
+          "path": "/api/readiness",
+          "httpStatus": 200,
+          "status": "ready",
+          "release": {
+            "commitSha": "204de509cdc52a6b6f483c305a81392573235be5",
+            "environment": "production"
+          },
+          "checks": {
+            "dataProvider": "ok"
+          }
+        }
+      ],
+      "releaseIdentity": "PASS"
+    },
+    "normalAuthenticationSessionChangesExpected": true,
+    "signupOtpProfileRatingCellarFixturePathsSelected": false
+  },
   "liveHistoryQualification": "NOT_RUN",
   "providerBaselineOrRecovery": "NOT_RUN",
-  "publicLaunch": "NO_GO"
+  "publicLaunch": "NO_GO",
+  "acceptedAt": "2026-11-19T10:07:45Z",
+  "sourceIntegration": {
+    "pullRequest": 750,
+    "headCommit": "14807e470e9faf085bc73c85117eca42001ef1ff",
+    "mergeCommit": "204de509cdc52a6b6f483c305a81392573235be5",
+    "treeSha": "18eaddbfe21cef8fa71e4484f922c96e955edc8f",
+    "independentReview": "GO",
+    "canonical": {
+      "workflowRunId": 44500508568,
+      "jobId": 135478725541,
+      "nodeVersion": "22.23.4",
+      "command": "npm run platform:validate",
+      "tests": 1372,
+      "passed": 1357,
+      "gatedSkips": 15,
+      "failed": 0,
+      "productionDependencyVulnerabilities": 0
+    },
+    "browser": {
+      "jobId": 135478725295,
+      "passed": 196,
+      "conclusion": "success"
+    },
+    "codeqlRunId": 44500508512,
+    "securityAndLifecycle": "PASS"
+  },
+  "limits": [
+    "One required API case verifies both configured distinct account identities plus original-cookie teardown; it is not the complete authentication lifecycle, shared-limiter negative matrix or user/admin policy certification.",
+    "The protected job and private cleanup succeeded in addition to the strict redacted qualification report.",
+    "The unchanged-source private-history fixture requirement remains open; the prior skipped report is retained and was not relabelled or rerun.",
+    "All82 planned values are unchanged; no point backfill, historical repair or provider recovery operation was run.",
+    "Current-tenant snapshot/isolated recovery and conditional-write/SQL capability information remains pending.",
+    "Public launch remains NO_GO."
+  ],
+  "reconciledAt": "2026-11-19T20:37:55Z"
 }

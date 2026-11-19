@@ -1,7 +1,7 @@
 # Launch readiness
 
 Last reconciled: **19 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
-[`fe11d8335bfcc532ff5150dc382c503045eddcd7`](https://github.com/jeremytheva/pourfolio/commit/fe11d8335bfcc532ff5150dc382c503045eddcd7). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
+[`204de509cdc52a6b6f483c305a81392573235be5`](https://github.com/jeremytheva/pourfolio/commit/204de509cdc52a6b6f483c305a81392573235be5). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
 qualification remains open.
@@ -40,32 +40,33 @@ changes in this diagnostic correction.
 
 ## Current launch decision
 
-### Narrow current-main authentication qualification — 19 November 2026 UTC
+### Current-production two-account API authentication PASS — 19 November 2026 UTC
 
-The reviewed `auth-only` workflow scope uses the existing public production
-origin, exact current/deployed main and no destructive confirmation. It runs
-canonical validation and production provenance before the four existing account
-secrets, then selects one API-only case verifying both distinct expected
-identities. It calls only sign-in/email, get-session and sign-out; no UI/profile,
-signup/OTP or rating/cellar fixture path is selected. Existing browser scopes and
-secret boundaries remain, and the dedicated auth case is excluded from their
-discovery rather than introducing a required skip.
+PR [#750](https://github.com/jeremytheva/pourfolio/pull/750) is integrated as
+`204de509` after exact-head Node 22 canonical validation (1,357 passes / 15 gated
+skips / 0 failures / 0 production vulnerabilities), 196 browser/accessibility
+passes, security checks and independent review. Its closed API-only scope uses
+current main, the existing public production origin and only four account secrets
+after source/provenance/canonical guards; other scope case sets are preserved.
 
-The reused session scope captures original/rotated API cookies, requires 2xx
-sign-out plus separate original-cookie HTTP 401 for every jar, and disposes
-primary contexts after every outcome. Qualification is closed to the checked-out
-case, successful matching pre/post production provenance and a clean report/job
-with no skips or private diagnostics. Source/local synthetic review passes;
-actual Node 22 latest-head validation and the first live auth-only observation
-remain pending in [the preparation record](evidence/connected-auth-scope-20261119.json).
-This is preparation, not current connected acceptance.
+Protected [AUTH_ONLY run 44501376108](https://github.com/jeremytheva/pourfolio/actions/runs/44501376108)
+passed on exact `204de509` production: both expected distinct account identities
+were verified by the sole required case, **1 PASS / 0 skips/errors/invalids**.
+Every original/rotated cookie jar passed 2xx sign-out and independent original-
+cookie HTTP 401. Pre/post exact production/provider provenance, qualification,
+primary-context disposal and private-file cleanup passed. A second actual
+canonical run preceded credentials. [The retained record](evidence/connected-auth-scope-20261119.json)
+contains verified artifact `14516758374` (1,475 bytes), all four redacted reports,
+source/job/deployment bindings and independent review GO.
 
-The private-history test also retains an eligible page-one fixture when its
-optional older page lacks one, preserving the two-page bound and exact selected
-page metadata. Read failures remain failures. No live fixture is inferred or
-manufactured; the prior skipped profile run remains blocked. All 82 allocations
-are unchanged and provider backfill/recovery is still open. Public launch remains
-**NO-GO**.
+This qualifies normal two-account API sign-in/session/sign-out and required
+teardown only. No signup/OTP, UI/profile initialization or rating/cellar fixture
+path was selected. Full expiry/refresh, limiter negatives, user/admin policy and
+connected privacy remain open. The profile fixture fallback is corrected within
+its two-page bound, but no live fixture or private-history PASS is inferred;
+the historical skipped cases remain blocked. All 82 planned values are unchanged;
+81 stored fills and provider/recovery, operations/device and final release gates
+stay open. Public launch remains **NO-GO**.
 
 ### Nonbreaking maintenance and exact runtime — 18 November 2026 UTC
 
@@ -1271,7 +1272,7 @@ UTC interval, operator, reviewer, safe evidence reference and cleanup result.
 
 | Work / issue | Delivery owner | Retained evidence and remaining completion gate | Current result |
 | --- | --- | --- | --- |
-| <!-- launch-requirement:PF-LAUNCH-AUTH --> Authentication and rate limits | Launch hardening; ratings owns remaining #144 session certification (#577 adapter closed) | Same-origin authentication, session and limiter controls are implemented. Certify sign-up/sign-in, refresh, expiry, sign-out and revoked/invalid sessions, plus enforced local/shared authentication limits against the intended hosting proxy boundary. | **PARTIAL: configured sign-in/session/sign-out and cleared-cookie redirects PASS; full lifecycle/rate-limit evidence pending** |
+| <!-- launch-requirement:PF-LAUNCH-AUTH --> Authentication and rate limits | Launch hardening; ratings owns remaining #144 session certification (#577 adapter closed) | Same-origin authentication, session and limiter controls are implemented. Certify sign-up/sign-in, refresh, expiry, sign-out and revoked/invalid sessions, plus enforced local/shared authentication limits against the intended hosting proxy boundary. | **PARTIAL: current-production two-account API authentication/original-cookie teardown PASS; full lifecycle/rate-limit evidence pending** |
 | <!-- launch-requirement:PF-LAUNCH-PROVIDER --> Rating provider foundation — [#165](https://github.com/jeremytheva/pourfolio/issues/165) | Ratings | Application durability contracts exist. Prove provider migration/backfill, uniqueness, conditional updates, immutable rating dates, backup and isolated restore; complete the [migration evidence package](nocodebackend/rating-schema-migration-runbook.md) and obtain explicit approval before irreversible mutation. G04, G10–G12, G14–G16 and G28 remain open. | **BLOCKED at provider/approval boundary** |
 | <!-- launch-requirement:PF-LAUNCH-RATING --> Rating lifecycle and deletion — [#503](https://github.com/jeremytheva/pourfolio/issues/503), remaining integrity [#165](https://github.com/jeremytheva/pourfolio/issues/165) | Ratings | #503 is closed. A bounded production `36ce8ffe` browser tasting saved, reloaded and was deleted once; independent `31e41c3b` inspection proved its valid deleted tombstone, zero score/bonus children and preserved baseline. A separate, read-only normal-HTTPS rating-breakdown request from a verified distinct release account returned 404 without writes. These close only their scoped rows. The historical completed/deleted parent with one surviving score child remains a confirmed #165 recovery finding. Full retry/partial-write/concurrency and permission-negative certification remains open in the existing rating guide. | **PARTIAL: bounded lifecycle/read denial PASS; historical recovery and broader integrity evidence open** |
 | <!-- launch-requirement:PF-LAUNCH-BONUS --> Bonus attribute point integrity — [PR #651](https://github.com/jeremytheva/pourfolio/pull/651) | Ratings; catalogue release integration | Merged/deployed `4019c90e`: 896 canonical source tests, 15 gated skips, 155 browser/accessibility cases. Current-instance server persistence/reload and exact fixture cleanup passed: two creates, two deletes, no mutation retry, no fixture from that run remains. Production form rendered stored global 0.5/private 0.7, their 1.20 sum, six selections at 2.00 and the expected 3.07/5 preview; draft discarded. Fresh configured-instance preflight44278895670 at81c83826 passes with81 missing global values among82global and1private attribute,1existing match,0unresolved allocations and no blockers; it is read-only SOURCE_ONLY and a fallback0.2 does not establish stored values. A later production `36ce8ffe` browser test saved/reloaded one tasting using 0.5 + 0.7 = 1.20 points (Bonus 1/2; 2.82/5), then deleted that exact tasting once and restored counts 4/2 with old links intact. Independent `31e41c3b` inspection confirmed a valid deleted tombstone, zero score/bonus children, and the preserved baseline. Owner decision on 24 October requires authoritative stored values for every launch-selectable descriptor. The owner has supplied all81 exact-ID allocations across25October and18November; all82 plan values are known, including ID51's preserved explicit0.50. The previous40 records are unchanged and no descriptor is removed. Retain the fresh preflight PASS; complete immutable private before/after evidence, verified bounded conditional fill or serialized administration/concurrency/recovery, exact readback and explicit/private/historical-total preservation before declaring backfill complete. A labelled 0.2 fallback is insufficient. New custom-attribute browser creation, A/B denial and concurrency remain open; see the [certification guide](nocodebackend/rating-workflow-certification.md). | **PARTIAL: bounded persistence/cleanup and presentation PASS; verified backfill and connected acceptance required** |

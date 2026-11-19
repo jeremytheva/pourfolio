@@ -1,18 +1,18 @@
 ---
 project: Pourfolio
-portfolio_state: VALIDATING
-execution_slot: VERIFYING
+portfolio_state: BLOCKED
+execution_slot: WAITING
 phase: "Phase 3 — Beer discovery dependable"
-stage: "Bounded authentication-only qualification and profile fixture fallback validating"
+stage: "Current production AUTH_ONLY PASS; private fixtures and provider backfill/recovery acceptance pending"
 gate: Integration
-execution_state: VALIDATING
+execution_state: BLOCKED
 current_work:
-  objective: "Integrate the reviewed main-only API authentication scope and bounded profile fixture correction, then qualify both existing accounts without profile/rating/cellar fixtures; retain provider backfill/recovery gates."
+  objective: "Confirm current-tenant snapshot/isolated recovery and conditional update/SQL capabilities, then qualify guarded stored-value fills and governed private-history fixtures while preserving the accepted authentication evidence."
   issue: 144
   pr: null
-  branch: fix/connected-release-scopes-20261119
+  branch: null
 next_actions:
-  - "Integrate the reviewed auth-only main/production scope, then run it once on the exact deployed current main with the four already configured account secrets. It uses only sign-in/email, get-session and sign-out, requires distinct identities and original-cookie401 teardown, and retains only redacted evidence. No signup/OTP/profile/rating/cellar fixture workflow is selected."
+  - "#750 merged as204de509 after actualNode22canonical1,357passes/15gated skips/0failures/audit0,196browser cases and independent review GO. Protected AUTH_ONLYrun44501376108 qualifies both distinct expected accounts on exact204production:1required casePASS/0skips/errors/invalids, pre/post provenancePASS, original-cookie401 teardown and private cleanupPASS. Only normal authentication-session changes were selected; broader authentication/privacy/limiter/provider gates remain open."
   - "The private-history fixture finder now keeps an eligible page1 fallback and prefers page2 only when eligible, validating each response within the unchanged two-page bound. This fixes a false skip; it does not establish that live private fixtures exist or close the retained Nov12 skipped result."
   - "#746 tooling and #734 Redis maintenance are merged as694f018e/fe11d833 after current-main refresh, independent compatibility/preservation review and actual Node22canonical1,337passes/15gated skips/0failures/0production vulnerabilities plus196browser cases each. Exact productionfe11d833 health/readiness200 and anonymous session401 pass; live Redis/provider acceptance is not implied."
   - "Current NoCodeBackend documentation describes full consistent snapshots and restore. Confirm actual tenant snapshot/quota, isolated recovery/clone and SQL-editor options; then inspect the generated current Swagger/write contract. Public docs do not establish a conditional missing-only update or SQL DML transaction interface. No provider mutation or recovery exercise has run."
@@ -48,7 +48,7 @@ blockers:
     detail: "Unconditional parent transitions and late child writes lack certified distributed integrity. Provider uniqueness/atomic workflow, consistent backup, isolated restore and approval for irreversible changes remain required."
   - scope: connected_backend_and_bonus_values
     issue: 144
-    detail: "Distinct-account authentication and bounded cellar gateway isolation pass; connected baseline has 12 passes and four skips, with an earlier unreproduced failure retained. The complete82-value owner plan now has0 unresolved values. Fresh complete-plan preflight44278895670 passes with81 missing global stored values and0 unresolved allocations; actual guarded backfill/preservation/recovery remains unverified. Vendor snapshot/restore features are documented, but current-tenant availability/isolated recovery and a conditional fill interface require evidence; dashboard capability information is pending. #577 implementation is closed."
+    detail: "Exact-production AUTH_ONLYrun44501376108 now passes both configured accounts and original-cookie teardown with private cleanup; broader authentication/session/limiter policy stays open. Bounded cellar gateway isolation passes; connected baseline retains 12 passes and four skips, with an earlier unreproduced failure retained. The complete82-value owner plan now has0 unresolved values. Fresh complete-plan preflight44278895670 passes with81 missing global stored values and0 unresolved allocations; actual guarded backfill/preservation/recovery remains unverified. Vendor snapshot/restore features are documented, but current-tenant availability/isolated recovery and a conditional fill interface require evidence; dashboard capability information is pending. #577 implementation is closed."
   - scope: private_history_fixture
     issue: 144
     detail: "Current-main protected profile run43147240884 passed pre/post provenance and private cleanup but both cases skipped. The first selected page has no eligible verified tasting; with both account credentials present, the second case also found no owner tasting in page1. This does not establish global historical absence or other-account sign-in/privacy acceptance. A governed eligible fixture is required; no rating was manufactured."
@@ -60,27 +60,27 @@ owner_decision:
   question: null
   recommendation: null
 wip:
-  open_implementation_prs: 1
+  open_implementation_prs: 0
   dependent_stack_depth: 0
   max_open_implementation_prs: 3
   max_dependent_stack_depth: 2
 evidence:
-  observed_main_commit: "24849dc7ecf67e309b2dbe21c631f0ab3e1a35bf"
-  current_candidate_commit: "24849dc7ecf67e309b2dbe21c631f0ab3e1a35bf"
-  latest_validated_commit: "861135f04a518d4e55556da4af42c2c687045b74"
-  latest_deployed_commit: "24849dc7ecf67e309b2dbe21c631f0ab3e1a35bf"
-  latest_runtime_verified_commit: "24849dc7ecf67e309b2dbe21c631f0ab3e1a35bf"
-  latest_browser_verified_commit: "861135f04a518d4e55556da4af42c2c687045b74"
+  observed_main_commit: "204de509cdc52a6b6f483c305a81392573235be5"
+  current_candidate_commit: "204de509cdc52a6b6f483c305a81392573235be5"
+  latest_validated_commit: "204de509cdc52a6b6f483c305a81392573235be5"
+  latest_deployed_commit: "204de509cdc52a6b6f483c305a81392573235be5"
+  latest_runtime_verified_commit: "204de509cdc52a6b6f483c305a81392573235be5"
+  latest_browser_verified_commit: "14807e470e9faf085bc73c85117eca42001ef1ff"
 validation:
   governance: PASS
   lint: PASS
   typecheck: NOT_APPLICABLE
-  tests: NOT_RUN
-  build: NOT_RUN
-  ci: PENDING
-  runtime: UNVERIFIED
-last_verified_commit: "fe11d8335bfcc532ff5150dc382c503045eddcd7"
-last_updated: "2026-11-19T09:48:11Z"
+  tests: PASS
+  build: PASS
+  ci: PASS
+  runtime: VERIFIED
+last_verified_commit: "204de509cdc52a6b6f483c305a81392573235be5"
+last_updated: "2026-11-19T20:37:55Z"
 
 ---
 
@@ -90,54 +90,53 @@ Last materially reviewed: 19 November 2026 UTC
 
 ## AI execution gate
 
-### Bounded authentication and history qualification correction — 19 November 2026 UTC
+### Two-account API authentication qualified; bounded history fallback corrected — 19 November 2026 UTC
 
-Current main is `24849dc7`; the maintenance handoff is merged and its final
-18 November production health/readiness HTTP 200 and anonymous-session HTTP 401
-observation is retained in PR #749. The earlier integration claim expired after
-interruption and was reconciled before a fresh bounded claim was acquired.
+[PR #750](https://github.com/jeremytheva/pourfolio/pull/750) merged as
+`204de509cdc52a6b6f483c305a81392573235be5`. Exact head `14807e47` passed actual
+Node 22.23.4 `npm run platform:validate`: **1,357 passed / 15 gated skips /
+0 failures / 0 production dependency vulnerabilities**, plus **196 browser/
+accessibility passes**, CodeQL, dependency review and independent source review.
+The new closed `auth-only` scope selects just normal API authentication, with
+current-main/production/source guards and canonical validation before the four
+already-configured account secrets. Signup/OTP/fixture secrets remain withheld.
+Default/full and profile discovery retain their previous case sets.
 
-The existing `all` connected check can run signup/OTP when configured and its UI
-login can initialize a missing profile. The prior authentication-only worker pins
-an obsolete release, while the old baseline workflow now performs single-record
-cellar recovery. Neither is reused for current authentication qualification.
-The current-main workflow gains a closed `auth-only` scope: exact deployed main,
-the existing public production origin, empty destructive confirmation and
-successful production provenance before the four configured account secrets.
-It runs actual Node 22 canonical validation before credentials, selects one
-API-only case covering both distinct expected identities, and calls only normal
-sign-in, get-session and sign-out. Signup, OTP and fixture secrets remain empty.
-Default/full and profile discovery exclude this dedicated case rather than
-adding an unrelated skip.
+Protected [run 44501376108](https://github.com/jeremytheva/pourfolio/actions/runs/44501376108)
+then succeeded on exact production `204de509`, job `135481768929`.
+It repeated actual Node 22 canonical validation before credentials and passed
+both expected distinct account identities through one required API case:
+**1 passed / 0 failed / 0 skipped / 0 not-run**, with zero errors, invalid events,
+diagnostics or blockers. The required fixture signed out every captured
+original/rotated cookie jar and independently verified original-cookie HTTP 401,
+then disposed every primary request context. Pre/post exact production/provider
+provenance, strict `AUTH_ONLY_QUALIFIED` and private-file cleanup all passed.
+Chromium and separate browser-build steps were intentionally omitted for this
+API scope; canonical validation had already built and checked the candidate.
 
-The existing session scope now also reads API request-context cookies, retaining
-all browser defaults and the same bounded original-cookie revocation checks.
-Every captured jar must sign out with a 2xx response and independently return
-HTTP 401; every primary context is disposed even after partial authentication,
-skip or another cleanup failure. Teardown has its own 120-second budget.
-Qualification requires one successful auth case, matching pre/post full SHA and
-production environment, no skips/errors/invalid events or diagnostics, and the
-whole job's private cleanup success. Only redacted source IDs and outcomes are
-retained. This exercises normal authentication-session changes, without browser
-profile initialization or rating/cellar fixtures.
+Artifact `14516758374` is 1,475 bytes, verified SHA-256
+`22c3724a6c703442eb94a702adb46663fe6fc8f158dda576c1d6d97f26bac1f6`.
+It contains exactly four closed redacted reports, retained with source/run/
+job/deployment bindings and independent evidence review GO in
+[the authentication evidence](docs/evidence/connected-auth-scope-20261119.json).
+No account IDs, emails, passwords, cookies or private bodies are published.
+Only authentication-session creation/revocation was selected; no signup/OTP,
+profile initialization or rating/cellar fixture path was exercised. This closes
+that bounded two-account authentication/teardown observation, not the full
+expiry/refresh/limiter-negative/user-admin or connected privacy matrix.
 
-Separately, the first private-history case previously discarded an eligible
-page-one tasting whenever page two existed. Its bounded finder now retains that
-fallback and prefers page two only when eligible, returning the chosen row and
-page together. Each response's page, size, rows and totals are validated; failed
-or malformed reads remain failures. It reads no page three and makes no atomic
-cross-response or global fixture-absence claim. Existing cross-account code,
-no-rating-write routes, private-artifact suppression and session cleanup remain.
+The profile-history finder separately retains an eligible page-one fixture and
+prefers page two only when eligible, preserving the exact chosen page metadata
+and two-page bound. Failed/malformed responses remain failures; no global
+fixture absence or cross-response atomicity is inferred. Cross-account logic,
+no-rating-write routes and private-artifact suppression are unchanged. The
+older two skipped profile cases remain unqualified; no fixture was fabricated
+and no unchanged missing-fixture run was repeated.
 
-Focused synthetic checks pass locally under Node 24, with independent source
-and workflow/qualification review GO. Actual exact-head Node 22 canonical and
-browser/security checks are still required before integration. The proposed
-scope has not made live account requests or qualified a current auth run;
-[preparation evidence](docs/evidence/connected-auth-scope-20261119.json) separates
-those pending gates from source tests. The historical two skipped profile cases
-remain unqualified. All 82 bonus allocations and prior evidence are unchanged;
-81 stored fills and provider baseline/write/recovery, privacy, operations/device
-and final launch gates remain open. Public launch stays **NO-GO**.
+All 82 point allocations remain unchanged; 81 stored fills, provider snapshot/
+conditional-write/recovery evidence, governed private fixtures, broader privacy,
+operations/device and final acceptance remain open. The pending NoCodeBackend
+account-capability question is retained. Public launch remains **NO-GO**.
 
 ### Maintained launch dependencies and bounded runtime verified — 18 November 2026 UTC
 

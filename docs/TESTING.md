@@ -456,8 +456,22 @@ The first profile-history case separately uses a two-page finder: retain eligibl
 page one, prefer eligible page two, and keep selected page metadata together.
 Per-response count/shape validation, failed/malformed-read propagation and the
 no-page-three bound are covered; no atomic snapshot or global absence is asserted.
-Source checks and live qualification remain separately recorded in
-[the prepared scope evidence](evidence/connected-auth-scope-20261119.json).
+Source and live qualification are separately retained in
+[the scope evidence](evidence/connected-auth-scope-20261119.json).
+
+The first actual `auth-only` dispatch is
+[44501376108](https://github.com/jeremytheva/pourfolio/actions/runs/44501376108),
+exact production `204de509`. Actual Node 22.23.4 canonical validation passed
+1,357 tests with 15 gated skips and no failures/vulnerabilities before account
+credentials. The sole required case `auth-only.spec.js:90` passed both distinct
+identities and its required original-cookie teardown; no case skipped and no
+invalid/diagnostic/runner error remained. Pre/post provenance, qualification,
+private-file cleanup and the overall job succeeded. Artifact `14516758374`
+(1,475 bytes) was verified against SHA-256
+`22c3724a6c703442eb94a702adb46663fe6fc8f158dda576c1d6d97f26bac1f6`
+and contains only the four expected redacted JSON reports. These results do not
+qualify private-history fixtures, all authentication lifecycle/limiter cases,
+provider writes/recovery or full launch acceptance.
 
 ### Complete bonus allocation input — 18 November 2026 UTC
 
