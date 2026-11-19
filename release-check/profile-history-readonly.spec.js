@@ -35,6 +35,8 @@ const test = base.extend({
 })
 
 // Existing private ratings and account credentials must not enter artefacts.
+import { findProfileHistoryFixture } from './profileHistoryFixture.js'
+
 test.use({ trace: 'off', screenshot: 'off', video: 'off' })
 test.describe.configure({ mode: 'serial', retries: 0 })
 
@@ -42,29 +44,17 @@ const owner = requiredEnvironment(['RELEASE_OWNER_EMAIL', 'RELEASE_OWNER_PASSWOR
 const historyPath = '/api/nocodebackend/ratings/history?page=1&limit=20'
 const prohibitRatingWrites = (page) => page.route('**/api/nocodebackend/ratings/**', (route) =>
   route.request().method() === 'GET' ? route.fallback() : route.abort('blockedbyclient'))
-const verifiedBeerRating = (items) => items.find((item) =>
-  /^[1-9]\d*$/.test(String(item.id)) &&
-  String(item.product?.id) === String(item.product_id) && item.product?.product_name)
-
 test('connected private history links, controlled retry and repeated reloads preserve the exact owner tasting', async ({ page, releaseSessions }) => {
   test.setTimeout(120_000)
   await prohibitRatingWrites(page)
   await signIn(page, owner.RELEASE_OWNER_EMAIL, owner.RELEASE_OWNER_PASSWORD, { reuseSession: true, sessionScope: releaseSessions })
-  const firstResponse = await page.request.get(historyPath)
-  expect(firstResponse.status()).toBe(200)
-  const first = await responseJson(firstResponse)
-  expect(first.page).toBe(1)
-  expect(first.pageSize).toBe(20)
-  expect(first.items.length).toBeLessThanOrEqual(20)
-  expect(first.summary.count === first.total).toBe(true)
-  let source = first
-  if (first.totalPages > 1) {
-    const olderResponse = await page.request.get('/api/nocodebackend/ratings/history?page=2&limit=20')
-    expect(olderResponse.status()).toBe(200)
-    source = await responseJson(olderResponse)
-  }
-  const rating = verifiedBeerRating(source.items)
-  test.skip(!rating, 'No completed owner tasting with a verified beer fixture is available; exact-entry evidence is pending.')
+  const fixture = await findProfileHistoryFixture(async (pageNumber) => {
+    const response = await page.request.get(`/api/nocodebackend/ratings/history?page=${pageNumber}&limit=20`)
+    expect(response.status()).toBe(200)
+    return responseJson(response)
+  })
+  test.skip(!fixture, 'No verified beer tasting fixture was found in the bounded owner-history reads; exact-entry evidence is pending.')
+  const { rating, source } = fixture
 
   // A bounded client-side failure tests recovery against the actual provider on retry.
   let failOnce = true

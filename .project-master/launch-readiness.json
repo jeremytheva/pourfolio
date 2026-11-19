@@ -46,7 +46,12 @@
         "src/**/adminReview*",
         "src/**/useAdminReview*",
         "src/pages/AdminCatalogue.jsx",
-        "e2e/admin-catalogue.spec.js"
+        "e2e/admin-catalogue.spec.js",
+        "release-check/auth-only.spec.js",
+        "release-check/support.js",
+        "release-check/__tests__/support.test.js",
+        "release-check/__tests__/authOnlySessionFixture.test.js",
+        ".github/workflows/connected-release-check.yml"
       ],
       "test_refs": [
         "e2e/authentication.spec.js",
@@ -56,7 +61,11 @@
         "api/_lib/__tests__/adminReviewAccess.test.js",
         "api/__tests__/adminReviewCapabilities.test.js",
         "src/services/__tests__/adminReviewService.test.js",
-        "e2e/admin-catalogue.spec.js"
+        "e2e/admin-catalogue.spec.js",
+        "release-check/auth-only.spec.js",
+        "release-check/__tests__/support.test.js",
+        "release-check/__tests__/authOnlySessionFixture.test.js",
+        "scripts/__tests__/connected-provider-workflow.test.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",
@@ -293,11 +302,13 @@
         "src/**/Profile*",
         "e2e/*profile*",
         "e2e/*history*",
-        "release-check/*profile*"
+        "release-check/*profile*",
+        "scripts/__tests__/profileHistoryFixture.test.js"
       ],
       "test_refs": [
         "e2e/profile-rating-links.spec.js",
-        "release-check/profile-history-readonly.spec.js"
+        "release-check/profile-history-readonly.spec.js",
+        "scripts/__tests__/profileHistoryFixture.test.js"
       ],
       "evidence_refs": [
         "docs/LAUNCH_READINESS.md#current-launch-checklist",

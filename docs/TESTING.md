@@ -427,6 +427,38 @@ Do not use production credentials or personal data in fixtures. Redact evidence 
 
 ## Connected staging release check
 
+### Main-only API authentication scope — 19 November 2026 UTC
+
+Dispatch `connected-release-check.yml` from `main` with `scope: auth-only`,
+`release_url: https://brew-buds-mobile-app-design-3577.vercel.app`, the exact
+current deployed `release_sha`, and empty `destructive_confirmation`. No new
+credentials are requested: only the existing owner/other email/password secrets
+are exposed to the selected test step. Scope/source/origin, canonical validation
+and production readiness guards precede those secrets. Chromium installation is
+omitted because the case uses only API request contexts; the full and profile
+browser scopes retain their normal installation and discovery.
+
+One required case verifies both expected account identities are distinct. Its
+separate fixture teardown captures original/rotated cookies, independently
+signs out and requires original-cookie HTTP 401 for every jar, then disposes all
+primary contexts, preserving test and cleanup failures. The shared scope's
+browser defaults remain unchanged. Synthetic tests exercise the actual
+Playwright fixture through success, partial failure, skip, duplicate identity,
+revocation/disposal failure and pre-auth guard failures without live networking.
+The workflow accepts only a clean exact-source one-case report with matching
+pre/post production SHA/environment; overall job and private-file cleanup must
+also succeed. Fixed `auth-only-preflight`, `auth-only-postflight` and
+`auth-only-qualification` JSON files plus the redacted release summary are retained.
+No profile/rating/cellar fixture or signup/OTP path is used. Normal auth-session
+creation/revocation is within this check's scope.
+
+The first profile-history case separately uses a two-page finder: retain eligible
+page one, prefer eligible page two, and keep selected page metadata together.
+Per-response count/shape validation, failed/malformed-read propagation and the
+no-page-three bound are covered; no atomic snapshot or global absence is asserted.
+Source checks and live qualification remain separately recorded in
+[the prepared scope evidence](evidence/connected-auth-scope-20261119.json).
+
 ### Complete bonus allocation input — 18 November 2026 UTC
 
 The owner-supplied 42-row CSV completes all 82 plan values while preserving the

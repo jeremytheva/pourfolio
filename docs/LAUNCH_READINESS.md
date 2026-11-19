@@ -1,6 +1,6 @@
 # Launch readiness
 
-Last reconciled: **18 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
+Last reconciled: **19 November 2026 UTC**. Latest retained bounded production health/readiness deployment:
 [`fe11d8335bfcc532ff5150dc382c503045eddcd7`](https://github.com/jeremytheva/pourfolio/commit/fe11d8335bfcc532ff5150dc382c503045eddcd7). The approved QA recovery verifies its recorded production provenance before/after; PR #690 retains its earlier validated-tree and bounded catalogue evidence. Earlier anonymous and connected results remain scoped to their recorded candidates;
 READY metadata alone remains insufficient.
 Bounded evidence is recorded below and in `STATUS.md`; final public launch
@@ -39,6 +39,33 @@ preflight report. No application policy, stored bonus value or provider schema
 changes in this diagnostic correction.
 
 ## Current launch decision
+
+### Narrow current-main authentication qualification — 19 November 2026 UTC
+
+The reviewed `auth-only` workflow scope uses the existing public production
+origin, exact current/deployed main and no destructive confirmation. It runs
+canonical validation and production provenance before the four existing account
+secrets, then selects one API-only case verifying both distinct expected
+identities. It calls only sign-in/email, get-session and sign-out; no UI/profile,
+signup/OTP or rating/cellar fixture path is selected. Existing browser scopes and
+secret boundaries remain, and the dedicated auth case is excluded from their
+discovery rather than introducing a required skip.
+
+The reused session scope captures original/rotated API cookies, requires 2xx
+sign-out plus separate original-cookie HTTP 401 for every jar, and disposes
+primary contexts after every outcome. Qualification is closed to the checked-out
+case, successful matching pre/post production provenance and a clean report/job
+with no skips or private diagnostics. Source/local synthetic review passes;
+actual Node 22 latest-head validation and the first live auth-only observation
+remain pending in [the preparation record](evidence/connected-auth-scope-20261119.json).
+This is preparation, not current connected acceptance.
+
+The private-history test also retains an eligible page-one fixture when its
+optional older page lacks one, preserving the two-page bound and exact selected
+page metadata. Read failures remain failures. No live fixture is inferred or
+manufactured; the prior skipped profile run remains blocked. All 82 allocations
+are unchanged and provider backfill/recovery is still open. Public launch remains
+**NO-GO**.
 
 ### Nonbreaking maintenance and exact runtime — 18 November 2026 UTC
 
